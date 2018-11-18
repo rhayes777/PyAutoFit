@@ -4,12 +4,9 @@ import pytest
 
 import math
 
-from autolens import conf
-from autolens import exc
-from autolens.autofit import model_mapper
-from autolens.model.galaxy import galaxy as g
-from autolens.model.galaxy import galaxy, galaxy_model
-from autolens.model.profiles import geometry_profiles, light_profiles, mass_profiles
+from autofit import conf
+from autofit import exc
+from autofit.core import model_mapper
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 

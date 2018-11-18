@@ -3,7 +3,7 @@ import shutil
 
 import pytest
 
-from autolens.autofit import link
+from autofit.core import link
 
 temp_folder_path = "/tmp/linked_folder"
 
