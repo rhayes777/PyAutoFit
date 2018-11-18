@@ -3,10 +3,10 @@
 set -e
 
 BRANCH=`git branch | grep \* | cut -d ' ' -f2`
-BRANCH_TYPE=`echo $BRANCH | cut -d ' ' -f1`
+BRANCH_TYPE=`echo $BRANCH | cut -d '/' -f1`
 VERSION=`echo $BRANCH | cut -d '/' -f2`
 
-if [ $BRANCH_TYPE!="release" ]  
+if [ $BRANCH_TYPE != "release" ]  
 then
 	echo "Must be on a release branch. Type git-flow release start a new release."
 	exit 1
@@ -20,3 +20,5 @@ twine upload dist/* --skip-existing --username $PYPI_USERNAME --password $PYPI_P
 #docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 #docker build -t rhayes777/autofit .
 #docker push rhayes777/autofit:latest
+
+git flow release finish '0.1.0'
