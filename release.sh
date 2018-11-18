@@ -12,7 +12,10 @@ then
 	exit 1
 fi
 
-echo "__version__ = "`git branch | grep \* | cut -d ' ' -f2 | cut -d '/' -f2` > autofit/__init__.py
+echo "__version__ = '"`git branch | grep \* | cut -d ' ' -f2 | cut -d '/' -f2`"'" > autofit/__init__.py
+
+git add autofit/__init__.py
+git commit -m "Incremented version number"
 
 python setup.py sdist bdist_wheel
 twine upload dist/* --skip-existing --username $PYPI_USERNAME --password $PYPI_PASSWORD
