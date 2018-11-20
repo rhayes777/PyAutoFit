@@ -250,11 +250,11 @@ class TestAddition(object):
         assert three.a == 'a'
         assert three.b == 'b'
 
-    def test_mapper_plus_mapper(self):
-        one = model_mapper.ModelMapper()
-        two = model_mapper.ModelMapper()
-        one.a = model_mapper.PriorModel(mock.EllipticalSersic)
-        two.b = model_mapper.PriorModel(mock.EllipticalSersic)
+    def test_mapper_plus_mapper(self, test_config, limit_config):
+        one = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        two = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        one.a = model_mapper.PriorModel(mock.EllipticalSersic, test_config, limit_config)
+        two.b = model_mapper.PriorModel(mock.EllipticalSersic, test_config, limit_config)
 
         three = one + two
 
@@ -364,23 +364,23 @@ class TestRegression(object):
 
         assert len(info.split('\n')) == len(mapper.info.split('\n'))
 
-    def test_set_tuple_constant(self):
-        mm = model_mapper.ModelMapper()
-        mm.galaxy = mock.GalaxyModel(sersic=mock.EllipticalSersic)
+    def test_set_tuple_constant(self, test_config, limit_config):
+        mm = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        mm.sersic = mock.EllipticalSersic
 
         assert mm.prior_count == 7
 
-        mm.galaxy.sersic.centre_0 = model_mapper.Constant(0)
-        mm.galaxy.sersic.centre_1 = model_mapper.Constant(0)
+        mm.sersic.centre_0 = model_mapper.Constant(0)
+        mm.sersic.centre_1 = model_mapper.Constant(0)
 
         assert mm.prior_count == 5
 
-    def test_get_tuple_constants(self):
-        mm = model_mapper.ModelMapper()
-        mm.galaxy = mock.GalaxyModel(sersic=mock.EllipticalSersic)
+    def test_get_tuple_constants(self, test_config, limit_config):
+        mm = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        mm.sersic = mock.EllipticalSersic
 
-        assert isinstance(mm.galaxy.sersic.centre_0, model_mapper.Prior)
-        assert isinstance(mm.galaxy.sersic.centre_1, model_mapper.Prior)
+        assert isinstance(mm.sersic.centre_0, model_mapper.Prior)
+        assert isinstance(mm.sersic.centre_1, model_mapper.Prior)
 
     def test_tuple_parameter(self, mapper):
         mapper.with_float = WithFloat
