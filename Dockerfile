@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-LABEL authors="Nan Li <linan7788626@gmail.com>, Richard Hayes <richard@rghsoftware.co.uk>"
+LABEL authors="Richard Hayes <richard@rghsoftware.co.uk>"
 
 # Install packages with apt-get
 RUN apt-get update \
@@ -44,7 +44,7 @@ RUN gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B42F6819007
 
 # Copy files
 ADD dockerfiles/jupyter /home/user/.jupyter
-ADD autolens /home/user/autolens
+ADD autofit/home/user/autofit
 ADD workspace /home/user/workspace_temp
 ADD dockerfiles/entrypoint.sh /usr/local/bin/entrypoint.sh
 ADD dockerfiles/bashrc /home/user/.bashrc
