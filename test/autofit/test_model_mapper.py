@@ -60,6 +60,12 @@ class MockClassInf(object):
 
 
 class TestPriorLimits(object):
+    def test_out_of_order_prior_limits(self):
+        with pytest.raises(exc.PriorException):
+            model_mapper.UniformPrior(1., 0)
+        with pytest.raises(exc.PriorException):
+            model_mapper.GaussianPrior(0, 1, 1, 0)
+
     def test_in_or_out(self):
         prior = model_mapper.GaussianPrior(0, 1, 0, 1)
         with pytest.raises(exc.PriorLimitException):
