@@ -9,7 +9,6 @@ from scipy.special import erfinv
 
 from autofit import conf
 from autofit import exc
-from autofit.conf import DefaultPriorConfig
 
 
 class AttributeNameValue(object):
@@ -97,13 +96,8 @@ class ModelMapper(AbstractModel):
         @DynamicAttrs
     """
 
-    def __init__(self, config=None, width_config=None, limit_config=None, **classes):
+    def __init__(self, **classes):
         """
-        Parameters
-        ----------
-        config: DefaultPriorConfig
-            An object that wraps a configuration
-
         Examples
         --------
         # The ModelMapper converts a set of classes whose input attributes may be modeled using a non-linear search,
@@ -150,15 +144,11 @@ class ModelMapper(AbstractModel):
 
         # A ModelMapper can be concisely constructed using keyword arguments:
 
-        mapper = prior.ModelMapper(config, source_light_profile=light_profile.AbstractEllipticalSersic,
+        mapper = prior.ModelMapper(source_light_profile=light_profile.AbstractEllipticalSersic,
                                     lens_mass_profile=mass_profile.EllipticalCoredIsothermal,
                                     lens_light_profile=light_profile.EllipticalCoreSersic)
         """
         super(ModelMapper, self).__init__()
-
-        self.config = (config or conf.instance.prior_default)
-        self.width_config = (width_config or conf.instance.prior_width)
-        self.limit_config = (limit_config or conf.instance.limit_config)
 
         for name, cls in classes.items():
             self.__setattr__(name, cls)
@@ -167,7 +157,7 @@ class ModelMapper(AbstractModel):
         if isinstance(value, list) and len(value) > 0 and isinstance(value[0], AbstractPriorModel):
             value = ListPriorModel(value)
         elif inspect.isclass(value):
-            value = PriorModel(value, config=self.config, limit_config=self.limit_config)
+            value = PriorModel(value)
         super(ModelMapper, self).__setattr__(key, value)
 
     @property
@@ -510,7 +500,7 @@ class ModelMapper(AbstractModel):
         model_mapper: ModelMapper
             A new model mapper with updated priors.
         """
-        mapper = ModelMapper(config=self.config, width_config=self.width_config)
+        mapper = ModelMapper()
 
         for prior_model_tuple in self.prior_model_tuples:
             setattr(mapper, prior_model_tuple.name,
@@ -540,7 +530,7 @@ class ModelMapper(AbstractModel):
 
         for i, prior_tuple in enumerate(prior_tuples):
             cls = prior_class_dict[prior_tuple.prior]
-            width = self.width_config.get_for_nearest_ancestor(cls, prior_tuple.name)
+            width = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
             arguments[prior_tuple.prior] = GaussianPrior(tuples[i].name, max(tuples[i].prior, width))
 
         return self.mapper_from_prior_arguments(arguments)
@@ -567,7 +557,7 @@ class ModelMapper(AbstractModel):
 
         for i, prior_tuple in enumerate(prior_tuples):
             cls = prior_class_dict[prior_tuple.prior]
-            width = self.width_config.get_for_nearest_ancestor(cls, prior_tuple.name)
+            width = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
             arguments[prior_tuple.prior] = GaussianPrior(means[i], width)
 
         return self.mapper_from_prior_arguments(arguments)
@@ -889,7 +879,7 @@ class PriorModel(AbstractPriorModel):
     def flat_prior_model_tuples(self):
         return [("", self)]
 
-    def __init__(self, cls, config=None, limit_config=None):
+    def __init__(self, cls):
         """
         Parameters
         ----------
@@ -898,10 +888,6 @@ class PriorModel(AbstractPriorModel):
         """
 
         self.cls = cls
-        self.config = (config or conf.instance.prior_default)
-        self.width_config = conf.instance.prior_width
-        self.limit_config = (limit_config or conf.instance.limit_config)
-
         self.component_number = next(self._ids)
 
         arg_spec = inspect.getfullargspec(cls.__init__)
@@ -928,7 +914,8 @@ class PriorModel(AbstractPriorModel):
             else:
                 setattr(self, arg, self.make_prior(arg, cls))
 
-    def make_prior(self, attribute_name, cls):
+    @staticmethod
+    def make_prior(attribute_name, cls):
         """
         Create a prior for an attribute of a class with a given name. The prior is created by searching the default
         prior config for the attribute.
@@ -957,11 +944,11 @@ class PriorModel(AbstractPriorModel):
         exc.PriorException
             If no configuration can be found
         """
-        config_arr = self.config.get_for_nearest_ancestor(cls, attribute_name)
+        config_arr = conf.instance.prior_default.get_for_nearest_ancestor(cls, attribute_name)
         if config_arr[0] == "u":
             return UniformPrior(config_arr[1], config_arr[2])
         elif config_arr[0] == "g":
-            limits = self.limit_config.get_for_nearest_ancestor(cls, attribute_name)
+            limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, attribute_name)
             return GaussianPrior(config_arr[1], config_arr[2], *limits)
         elif config_arr[0] == "c":
             return Constant(config_arr[1])
@@ -995,7 +982,7 @@ class PriorModel(AbstractPriorModel):
         """
         constructor_args = inspect.getfullargspec(cls).args
         attribute_tuples = self.attribute_tuples
-        new_model = PriorModel(cls, self.config, self.limit_config)
+        new_model = PriorModel(cls)
         for attribute_tuple in attribute_tuples:
             name = attribute_tuple.name
             if name in constructor_args or (
@@ -1132,7 +1119,7 @@ class PriorModel(AbstractPriorModel):
         new_model: ModelMapper
             A new model mapper populated with Gaussian priors
         """
-        new_model = PriorModel(self.cls, self.config)
+        new_model = PriorModel(self.cls)
 
         model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}
 
