@@ -21,7 +21,10 @@ def make_uniform_half():
     return model_mapper.UniformPrior(lower_limit=0.5, upper_limit=1.)
 
 
-conf.instance = conf.Config("{}/../test_files/configs/model_mapper".format(os.path.dirname(os.path.realpath(__file__))))
+@pytest.fixture(scope="session", autouse=True)
+def do_something():
+    conf.instance = conf.Config(
+        "{}/../test_files/configs/model_mapper".format(os.path.dirname(os.path.realpath(__file__))))
 
 
 @pytest.fixture(name="initial_model")
@@ -269,28 +272,6 @@ class ExtendedMockClass(MockClassMM):
     def __init__(self, one, two, three):
         super().__init__(one, two)
         self.three = three
-
-
-class MockConfig(conf.DefaultPriorConfig):
-    def __init__(self, d=None):
-        super(MockConfig, self).__init__("")
-        if d is not None:
-            self.d = d
-        else:
-            self.d = {}
-
-    def get_for_nearest_ancestor(self, cls, attribute_name):
-        return self.get(None, cls.__name__, attribute_name)
-
-    def get(self, _, class_name, var_name):
-        try:
-            return self.d[class_name][var_name]
-        except KeyError:
-            return ["u", 0, 1]
-
-
-class MockWidthConfig(conf.WidthConfig):
-    pass
 
 
 class MockProfile(object):
@@ -870,19 +851,19 @@ class TestUtility(object):
 class TestPriorReplacement(object):
 
     def test_prior_replacement(self):
-        mapper = model_mapper.ModelMapper( mock_class=MockClassMM)
+        mapper = model_mapper.ModelMapper(mock_class=MockClassMM)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
 
         assert isinstance(result.mock_class.one, model_mapper.GaussianPrior)
 
     def test_replace_priors_with_gaussians_from_tuples(self):
-        mapper = model_mapper.ModelMapper( mock_class=MockClassMM)
+        mapper = model_mapper.ModelMapper(mock_class=MockClassMM)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
 
         assert isinstance(result.mock_class.one, model_mapper.GaussianPrior)
 
     def test_replacing_priors_for_profile(self):
-        mapper = model_mapper.ModelMapper( mock_class=MockProfile)
+        mapper = model_mapper.ModelMapper(mock_class=MockProfile)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3), (5, 3)])
 
         assert isinstance(result.mock_class.centre.prior_tuples[0][1], model_mapper.GaussianPrior)
@@ -890,7 +871,7 @@ class TestPriorReplacement(object):
         assert isinstance(result.mock_class.intensity, model_mapper.GaussianPrior)
 
     def test_replace_priors_for_two_classes(self):
-        mapper = model_mapper.ModelMapper( one=MockClassMM, two=MockClassMM)
+        mapper = model_mapper.ModelMapper(one=MockClassMM, two=MockClassMM)
 
         result = mapper.mapper_from_gaussian_tuples([(1, 1), (2, 1), (3, 1), (4, 1)])
 

@@ -144,7 +144,10 @@ def test_mn_results():
     return mn_results_path
 
 
-conf.instance = conf.Config("{}/../test_files/configs/non_linear".format(os.path.dirname(os.path.realpath(__file__))))
+@pytest.fixture(scope="session", autouse=True)
+def do_something():
+    conf.instance = conf.Config(
+        "{}/../test_files/configs/non_linear".format(os.path.dirname(os.path.realpath(__file__))))
 
 
 def create_path(func):
