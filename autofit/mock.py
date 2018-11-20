@@ -269,3 +269,27 @@ class EllipticalExponential(EllipticalSersic):
             The circular radius containing half the light of this profile.
         """
         super(EllipticalExponential, self).__init__(centre, axis_ratio, phi, intensity, effective_radius, 1.0)
+
+
+class EllipticalGaussian(EllipticalLP):
+
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01):
+        """ The elliptical Gaussian profile.
+
+        Parameters
+        ----------
+        centre: (float, float)
+            The (y,x) origin of the light profile.
+        axis_ratio : float
+            Ratio of light profiles ellipse's minor and major axes (b/a).
+        phi : float
+            Rotation angle of light profile counter-clockwise from positive x-axis.
+        intensity : float
+            Overall intensity normalisation of the light profiles (electrons per second).
+        sigma : float
+            The full-width half-maximum of the Gaussian.
+        """
+        super(EllipticalGaussian, self).__init__(centre, axis_ratio, phi)
+
+        self.intensity = intensity
+        self.sigma = sigma
