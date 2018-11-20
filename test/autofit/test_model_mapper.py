@@ -1,15 +1,12 @@
+import math
 import os
 
 import pytest
 
-import math
-
-from autolens import conf
-from autolens import exc
-from autolens.autofit import model_mapper
-from autolens.model.galaxy import galaxy as g
-from autolens.model.galaxy import galaxy, galaxy_model
-from autolens.model.profiles import geometry_profiles, light_profiles, mass_profiles
+from autofit import conf
+from autofit import exc
+from autofit import mock
+from autofit.core import model_mapper
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -63,6 +60,12 @@ class MockClassInf(object):
 
 
 class TestPriorLimits(object):
+    def test_out_of_order_prior_limits(self):
+        with pytest.raises(exc.PriorException):
+            model_mapper.UniformPrior(1., 0)
+        with pytest.raises(exc.PriorException):
+            model_mapper.GaussianPrior(0, 1, 1, 0)
+
     def test_in_or_out(self):
         prior = model_mapper.GaussianPrior(0, 1, 0, 1)
         with pytest.raises(exc.PriorLimitException):
@@ -247,11 +250,11 @@ class TestAddition(object):
         assert three.a == 'a'
         assert three.b == 'b'
 
-    def test_mapper_plus_mapper(self):
-        one = model_mapper.ModelMapper()
-        two = model_mapper.ModelMapper()
-        one.a = model_mapper.PriorModel(light_profiles.EllipticalSersic)
-        two.b = model_mapper.PriorModel(light_profiles.EllipticalSersic)
+    def test_mapper_plus_mapper(self, test_config, limit_config):
+        one = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        two = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        one.a = model_mapper.PriorModel(mock.EllipticalSersic, test_config, limit_config)
+        two.b = model_mapper.PriorModel(mock.EllipticalSersic, test_config, limit_config)
 
         three = one + two
 
@@ -351,7 +354,7 @@ class WithTuple(object):
 # noinspection PyUnresolvedReferences
 class TestRegression(object):
     def test_tuple_constant_model_info(self, mapper):
-        mapper.profile = light_profiles.EllipticalCoreSersic
+        mapper.profile = mock.EllipticalCoreSersic
         info = mapper.info
 
         mapper.profile.centre_0 = 1.
@@ -361,23 +364,23 @@ class TestRegression(object):
 
         assert len(info.split('\n')) == len(mapper.info.split('\n'))
 
-    def test_set_tuple_constant(self):
-        mm = model_mapper.ModelMapper()
-        mm.galaxy = galaxy_model.GalaxyModel(sersic=light_profiles.EllipticalSersic)
+    def test_set_tuple_constant(self, test_config, limit_config):
+        mm = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        mm.sersic = mock.EllipticalSersic
 
         assert mm.prior_count == 7
 
-        mm.galaxy.sersic.centre_0 = model_mapper.Constant(0)
-        mm.galaxy.sersic.centre_1 = model_mapper.Constant(0)
+        mm.sersic.centre_0 = model_mapper.Constant(0)
+        mm.sersic.centre_1 = model_mapper.Constant(0)
 
         assert mm.prior_count == 5
 
-    def test_get_tuple_constants(self):
-        mm = model_mapper.ModelMapper()
-        mm.galaxy = galaxy_model.GalaxyModel(sersic=light_profiles.EllipticalSersic)
+    def test_get_tuple_constants(self, test_config, limit_config):
+        mm = model_mapper.ModelMapper(test_config, limit_config=limit_config)
+        mm.sersic = mock.EllipticalSersic
 
-        assert isinstance(mm.galaxy.sersic.centre_0, model_mapper.Prior)
-        assert isinstance(mm.galaxy.sersic.centre_1, model_mapper.Prior)
+        assert isinstance(mm.sersic.centre_0, model_mapper.Prior)
+        assert isinstance(mm.sersic.centre_1, model_mapper.Prior)
 
     def test_tuple_parameter(self, mapper):
         mapper.with_float = WithFloat
@@ -458,33 +461,33 @@ class TestModelingMapper(object):
 class TestModelInstance(object):
     def test_instances_of(self):
         instance = model_mapper.ModelInstance()
-        instance.galaxy_1 = g.Galaxy()
-        instance.galaxy_2 = g.Galaxy()
-        assert instance.instances_of(g.Galaxy) == [instance.galaxy_1, instance.galaxy_2]
+        instance.galaxy_1 = mock.Galaxy()
+        instance.galaxy_2 = mock.Galaxy()
+        assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1, instance.galaxy_2]
 
     def test_instances_of_filtering(self):
         instance = model_mapper.ModelInstance()
-        instance.galaxy_1 = g.Galaxy()
-        instance.galaxy_2 = g.Galaxy()
-        instance.other = galaxy_model.GalaxyModel()
-        assert instance.instances_of(g.Galaxy) == [instance.galaxy_1, instance.galaxy_2]
+        instance.galaxy_1 = mock.Galaxy()
+        instance.galaxy_2 = mock.Galaxy()
+        instance.other = mock.GalaxyModel()
+        assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1, instance.galaxy_2]
 
     def test_instances_from_list(self):
         instance = model_mapper.ModelInstance()
-        galaxy_1 = g.Galaxy()
-        galaxy_2 = g.Galaxy()
+        galaxy_1 = mock.Galaxy()
+        galaxy_2 = mock.Galaxy()
         instance.galaxies = [galaxy_1, galaxy_2]
-        assert instance.instances_of(g.Galaxy) == [galaxy_1, galaxy_2]
+        assert instance.instances_of(mock.Galaxy) == [galaxy_1, galaxy_2]
 
     def test_non_trivial_instances_of(self):
         instance = model_mapper.ModelInstance()
-        galaxy_1 = g.Galaxy(redshift=1)
-        galaxy_2 = g.Galaxy(redshift=2)
-        instance.galaxies = [galaxy_1, galaxy_2, galaxy_model.GalaxyModel]
-        instance.galaxy_3 = g.Galaxy(redshift=3)
-        instance.galaxy_prior = galaxy_model.GalaxyModel()
+        galaxy_1 = mock.Galaxy(redshift=1)
+        galaxy_2 = mock.Galaxy(redshift=2)
+        instance.galaxies = [galaxy_1, galaxy_2, mock.GalaxyModel]
+        instance.galaxy_3 = mock.Galaxy(redshift=3)
+        instance.galaxy_prior = mock.GalaxyModel()
 
-        assert instance.instances_of(g.Galaxy) == [instance.galaxy_3, galaxy_1, galaxy_2]
+        assert instance.instances_of(mock.Galaxy) == [instance.galaxy_3, galaxy_1, galaxy_2]
 
     def test_simple_model(self):
         mapper = model_mapper.ModelMapper(MockConfig())
@@ -585,16 +588,16 @@ class TestRealClasses(object):
 
     def test_combination(self):
         mapper = model_mapper.ModelMapper(MockConfig(),
-                                          source_light_profile=light_profiles.EllipticalSersic,
-                                          lens_mass_profile=mass_profiles.EllipticalCoredIsothermal,
-                                          lens_light_profile=light_profiles.EllipticalCoreSersic)
+                                          source_light_profile=mock.EllipticalSersic,
+                                          lens_mass_profile=mock.EllipticalCoredIsothermal,
+                                          lens_light_profile=mock.EllipticalCoreSersic)
 
         model_map = mapper.instance_from_unit_vector(
             [1 for _ in range(len(mapper.prior_tuples_ordered_by_id))])
 
-        assert isinstance(model_map.source_light_profile, light_profiles.EllipticalSersic)
-        assert isinstance(model_map.lens_mass_profile, mass_profiles.EllipticalCoredIsothermal)
-        assert isinstance(model_map.lens_light_profile, light_profiles.EllipticalCoreSersic)
+        assert isinstance(model_map.source_light_profile, mock.EllipticalSersic)
+        assert isinstance(model_map.lens_mass_profile, mock.EllipticalCoredIsothermal)
+        assert isinstance(model_map.lens_light_profile, mock.EllipticalCoreSersic)
 
     def test_attribute(self):
         mm = model_mapper.ModelMapper(MockConfig())
@@ -615,7 +618,7 @@ class TestConfigFunctions:
     def test_model_from_unit_vector(self, test_config, limit_config):
         mapper = model_mapper.ModelMapper(test_config,
                                           limit_config=limit_config,
-                                          geometry_profile=geometry_profiles.GeometryProfile)
+                                          geometry_profile=mock.GeometryProfile)
 
         model_map = mapper.instance_from_unit_vector([1., 1.])
 
@@ -624,7 +627,7 @@ class TestConfigFunctions:
     def test_model_from_physical_vector(self, test_config, limit_config):
         mapper = model_mapper.ModelMapper(test_config,
                                           limit_config=limit_config,
-                                          geometry_profile=geometry_profiles.GeometryProfile)
+                                          geometry_profile=mock.GeometryProfile)
 
         model_map = mapper.instance_from_physical_vector([1., 0.5])
 
@@ -633,7 +636,7 @@ class TestConfigFunctions:
     def test_inheritance(self, test_config, limit_config):
         mapper = model_mapper.ModelMapper(test_config,
                                           limit_config=limit_config,
-                                          geometry_profile=geometry_profiles.EllipticalProfile)
+                                          geometry_profile=mock.EllipticalProfile)
 
         model_map = mapper.instance_from_unit_vector([1., 1., 1., 1.])
 
@@ -644,21 +647,21 @@ class TestConfigFunctions:
 
         mapper = model_mapper.ModelMapper(config=config,
                                           limit_config=limit_config,
-                                          sersic_light_profile=light_profiles.EllipticalSersic,
-                                          elliptical_profile_1=geometry_profiles.EllipticalProfile,
-                                          elliptical_profile_2=geometry_profiles.EllipticalProfile,
-                                          spherical_profile=geometry_profiles.SphericalProfile,
-                                          exponential_light_profile=light_profiles.EllipticalExponential)
+                                          sersic_light_profile=mock.EllipticalSersic,
+                                          elliptical_profile_1=mock.EllipticalProfile,
+                                          elliptical_profile_2=mock.EllipticalProfile,
+                                          spherical_profile=mock.SphericalProfile,
+                                          exponential_light_profile=mock.EllipticalExponential)
 
         model_map = mapper.instance_from_unit_vector(
             [0.5 for _ in range(len(mapper.prior_tuples_ordered_by_id))])
 
-        assert isinstance(model_map.elliptical_profile_1, geometry_profiles.EllipticalProfile)
-        assert isinstance(model_map.elliptical_profile_2, geometry_profiles.EllipticalProfile)
-        assert isinstance(model_map.spherical_profile, geometry_profiles.SphericalProfile)
+        assert isinstance(model_map.elliptical_profile_1, mock.EllipticalProfile)
+        assert isinstance(model_map.elliptical_profile_2, mock.EllipticalProfile)
+        assert isinstance(model_map.spherical_profile, mock.SphericalProfile)
 
-        assert isinstance(model_map.sersic_light_profile, light_profiles.EllipticalSersic)
-        assert isinstance(model_map.exponential_light_profile, light_profiles.EllipticalExponential)
+        assert isinstance(model_map.sersic_light_profile, mock.EllipticalSersic)
+        assert isinstance(model_map.exponential_light_profile, mock.EllipticalExponential)
 
 
 class TestHyperCube:
@@ -666,15 +669,15 @@ class TestHyperCube:
     def test__in_order_of_class_constructor__one_profile(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            geometry_profile=geometry_profiles.EllipticalProfile)
+            geometry_profile=mock.EllipticalProfile)
 
         assert mapper.physical_values_ordered_by_class([0.5, 0.5, 0.5, 0.5]) == [1.0, 0.5, 0.5, 1.0]
 
     def test__in_order_of_class_constructor__multiple_profiles(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         unit_vector = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
@@ -684,8 +687,8 @@ class TestHyperCube:
     def test__in_order_of_class_constructor__multiple_profiles_bigger_range_of_unit_values(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         unit_vector = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
@@ -695,8 +698,8 @@ class TestHyperCube:
     def test__order_maintained_with_prior_change(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         unit_vector = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
@@ -712,7 +715,7 @@ class TestModelInstancesRealClasses(object):
     def test__in_order_of_class_constructor__one_profile(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile)
 
         model_map = mapper.instance_from_unit_vector([0.25, 0.5, 0.75, 1.0])
 
@@ -723,8 +726,8 @@ class TestModelInstancesRealClasses(object):
     def test__in_order_of_class_constructor___multiple_profiles(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         model_map = mapper.instance_from_unit_vector([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
 
@@ -741,8 +744,8 @@ class TestModelInstancesRealClasses(object):
     def test__check_order_for_different_unit_values(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         mapper.profile_1.centre.centre_0 = model_mapper.UniformPrior(0.0, 1.0)
         mapper.profile_1.centre.centre_1 = model_mapper.UniformPrior(0.0, 1.0)
@@ -772,8 +775,8 @@ class TestModelInstancesRealClasses(object):
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         mapper.profile_1.centre.centre_0 = model_mapper.UniformPrior(0.0, 1.0)
         mapper.profile_1.centre.centre_1 = model_mapper.UniformPrior(0.0, 1.0)
@@ -806,8 +809,8 @@ class TestModelInstancesRealClasses(object):
     def test__check_order_for_physical_values(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         model_map = mapper.instance_from_physical_vector(
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
@@ -825,7 +828,7 @@ class TestModelInstancesRealClasses(object):
     def test__from_prior_medians__one_model(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile)
 
         model_map = mapper.instance_from_prior_medians()
 
@@ -838,8 +841,8 @@ class TestModelInstancesRealClasses(object):
     def test__from_prior_medians__multiple_models(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile, profile_2=geometry_profiles.GeometryProfile,
-            profile_3=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile, profile_2=mock.GeometryProfile,
+            profile_3=mock.EllipticalProfile)
 
         model_map = mapper.instance_from_prior_medians()
 
@@ -858,7 +861,7 @@ class TestModelInstancesRealClasses(object):
     def test__from_prior_medians__one_model__set_one_parameter_to_another(self, test_config):
         mapper = model_mapper.ModelMapper(
             test_config,
-            profile_1=geometry_profiles.EllipticalProfile)
+            profile_1=mock.EllipticalProfile)
 
         mapper.profile_1.axis_ratio = mapper.profile_1.phi
 
@@ -1102,7 +1105,7 @@ class TestConstant(object):
         assert len(mapper.constant_tuples_ordered_by_id) == 2
 
     def test_set_for_tuple_prior(self):
-        prior_model = model_mapper.PriorModel(light_profiles.EllipticalSersic, MockConfig())
+        prior_model = model_mapper.PriorModel(mock.EllipticalSersic, MockConfig())
         prior_model.centre_0 = 1.
         prior_model.centre_1 = 2.
         prior_model.axis_ratio = 1.
@@ -1207,10 +1210,3 @@ class TestFlatPriorModel(object):
         mapper.list = [model_mapper.PriorModel(MockClassMM, config=test_config)]
 
         assert len(mapper.flat_prior_model_tuples) == 1
-
-    def test_flatten_galaxy_prior_list(self, width_config):
-        mapper = model_mapper.ModelMapper(width_config=width_config)
-        mapper.list = [galaxy_model.GalaxyModel(variable_redshift=True)]
-
-        assert len(mapper.flat_prior_model_tuples) == 1
-        assert mapper.flat_prior_model_tuples[0][1].cls == galaxy.Redshift

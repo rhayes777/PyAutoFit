@@ -67,7 +67,7 @@ class IntervalCounter(object):
 
 class NonLinearOptimizer(object):
 
-    def __init__(self, include_hyper_image=False, model_mapper=None, name=None, label_config=None, **classes):
+    def __init__(self, model_mapper=None, name=None, label_config=None, **classes):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
@@ -104,9 +104,9 @@ class NonLinearOptimizer(object):
         self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
         self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
 
-        # If the include_hyper_image flag is set to True make this an additional prior model
-        if include_hyper_image:
-            self.hyper_image = mm.PriorModel(hyper_image.HyperImage, config=self.variable.config)
+        # # If the include_hyper_image flag is set to True make this an additional prior model
+        # if include_hyper_image:
+        #     self.hyper_image = mm.PriorModel(hyper_image.HyperImage, config=self.variable.config)
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -288,11 +288,6 @@ class MultiNest(NonLinearOptimizer):
 
         This interfaces with an input model_mapper, which is used for setting up the individual model instances that \
         are passed to each iteration of MultiNest.
-
-        Parameters
-        ------------
-        path : str
-            The path where the non_linear nlo are stored.
         """
 
         super(MultiNest, self).__init__(include_hyper_image=include_hyper_image, model_mapper=model_mapper, name=name,
