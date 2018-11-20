@@ -948,7 +948,7 @@ class PriorModel(AbstractPriorModel):
         if config_arr[0] == "u":
             return UniformPrior(config_arr[1], config_arr[2])
         elif config_arr[0] == "g":
-            limits = conf.instance.prior_width.get_for_nearest_ancestor(cls, attribute_name)
+            limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, attribute_name)
             return GaussianPrior(config_arr[1], config_arr[2], *limits)
         elif config_arr[0] == "c":
             return Constant(config_arr[1])
