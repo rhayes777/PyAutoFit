@@ -243,11 +243,11 @@ class WidthConfig(AncestorConfig):
 
 
 class Config(object):
-    def __init__(self, config_path, output_path):
+    def __init__(self, config_path, output_path="output"):
         self.config_path = config_path
         self.prior_default = DefaultPriorConfig("{}/priors/default".format(config_path))
         self.prior_width = WidthConfig("{}/priors/width".format(config_path))
-        self.limit_config = LimitConfig("{}/priors/limit".format(config_path))
+        self.prior_limit = LimitConfig("{}/priors/limit".format(config_path))
         self.non_linear = NamedConfig("{}/non_linear.ini".format(config_path))
         self.label = LabelConfig("{}/label.ini".format(config_path))
         self.general = NamedConfig("{}/general.ini".format(config_path))

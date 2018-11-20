@@ -67,7 +67,7 @@ class IntervalCounter(object):
 
 class NonLinearOptimizer(object):
 
-    def __init__(self, model_mapper=None, name=None, label_config=None, **classes):
+    def __init__(self, model_mapper=None, name=None):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
@@ -75,10 +75,7 @@ class NonLinearOptimizer(object):
 
         Parameters
         ------------
-        path : str
-            The path where the non-linear lensing nlo are stored.
-        obj_name : str
-            Unique identifier of the data_vector being analysed (e.g. the analysis_path of the data_vector set)
+
         """
         self.named_config = conf.instance.non_linear
 
@@ -99,14 +96,10 @@ class NonLinearOptimizer(object):
         self.variable = model_mapper or mm.ModelMapper()
         self.constant = mm.ModelInstance()
 
-        self.label_config = label_config or conf.instance.label
+        self.label_config = conf.instance.label
 
         self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
         self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
-
-        # # If the include_hyper_image flag is set to True make this an additional prior model
-        # if include_hyper_image:
-        #     self.hyper_image = mm.PriorModel(hyper_image.HyperImage, config=self.variable.config)
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -220,7 +213,7 @@ class AbstractFitness(object):
 
         try:
             likelihood = self.analysis.fit(instance)
-        except exc.InversionException or exc.RayTracingException or exc.PriorLimitException:
+        except exc.FitException:
             likelihood = -np.inf
 
         if likelihood > self.max_likelihood:
@@ -237,10 +230,8 @@ class AbstractFitness(object):
 
 class DownhillSimplex(NonLinearOptimizer):
 
-    def __init__(self, include_hyper_image=False, model_mapper=None,
-                 fmin=scipy.optimize.fmin, name=None, label_config=None):
-        super(DownhillSimplex, self).__init__(include_hyper_image=include_hyper_image,
-                                              model_mapper=model_mapper, name=name, label_config=label_config)
+    def __init__(self, model_mapper=None, fmin=scipy.optimize.fmin, name=None):
+        super(DownhillSimplex, self).__init__(model_mapper=model_mapper, name=name)
 
         self.xtol = self.config("xtol", float)
         self.ftol = self.config("ftol", float)
@@ -282,16 +273,14 @@ class DownhillSimplex(NonLinearOptimizer):
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, include_hyper_image=False, model_mapper=None, sigma_limit=3, run=pymultinest.run, name=None,
-                 label_config=None):
+    def __init__(self, model_mapper=None, sigma_limit=3, run=pymultinest.run, name=None):
         """Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
         This interfaces with an input model_mapper, which is used for setting up the individual model instances that \
         are passed to each iteration of MultiNest.
         """
 
-        super(MultiNest, self).__init__(include_hyper_image=include_hyper_image, model_mapper=model_mapper, name=name,
-                                        label_config=label_config)
+        super(MultiNest, self).__init__(model_mapper=model_mapper, name=name)
 
         self.file_summary = "{}/{}".format(self.path, 'multinestsummary.txt')
         self.file_weighted_samples = "{}/{}".format(self.path, 'multinest.txt')
