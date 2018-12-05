@@ -41,7 +41,15 @@ class NamedConfig(object):
         prior_array: []
             An array describing a prior
         """
-        string_value = self.parser.get(section_name, attribute_name)
+        try:
+            string_value = self.parser.get(section_name, attribute_name)
+        except configparser.NoSectionError:
+            raise configparser.NoSectionError(
+                "Could not find section {} in config at path {}".format(section_name, self.path))
+        except configparser.NoOptionError as e:
+            raise configparser.NoOptionError(
+                "could not find option {} in section {} of config at path {}".format(attribute_name, section_name,
+                                                                                     self.path), e.section)
         if string_value == "None":
             return None
         if attribute_type is bool:
