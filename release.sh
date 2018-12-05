@@ -2,15 +2,9 @@
 
 set -e
 
-BRANCH=`git branch | grep \* | cut -d ' ' -f2`
-BRANCH_TYPE=`echo $BRANCH | cut -d '/' -f1`
-VERSION=`echo $BRANCH | cut -d '/' -f2`
+VERSION=$1
 
-if [ $BRANCH_TYPE != "release" ]  
-then
-	echo "Must be on a release branch. Type git-flow release start a new release."
-	exit 1
-fi
+git flow release start $VERSION
 
 echo "__version__ = '"$VERSION"'" > $PACKAGE_NAME/__init__.py
 
