@@ -23,7 +23,7 @@ class Analysis(object):
     def fit(self, instance):
         raise NotImplementedError()
 
-    def visualise(self, instance):
+    def visualize(self, instance, suffix, during_analysis):
         raise NotImplementedError()
 
     def log(self, instance):
