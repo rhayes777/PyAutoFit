@@ -1,6 +1,7 @@
 import logging
 import math
 import os
+import shutil
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +23,7 @@ class Analysis(object):
     def fit(self, instance):
         raise NotImplementedError()
 
-    def visualise(self, instance):
+    def visualize(self, instance, suffix, during_analysis):
         raise NotImplementedError()
 
     def log(self, instance):
@@ -85,6 +86,7 @@ class NonLinearOptimizer(object):
         self.opt_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
 
         sym_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
+        self.backup_path = "{}/{}/optimizer_backup".format(conf.instance.output_path, name)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -100,6 +102,13 @@ class NonLinearOptimizer(object):
 
         self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
         self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
+
+    def backup(self):
+        try:
+            shutil.rmtree(self.backup_path)
+        except FileNotFoundError:
+            pass
+        shutil.copytree(self.opt_path, self.backup_path)
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -196,7 +205,8 @@ class NonLinearOptimizer(object):
 
 
 class AbstractFitness(object):
-    def __init__(self, analysis, instance_from_physical_vector, constant):
+    def __init__(self, nlo, analysis, instance_from_physical_vector, constant):
+        self.nlo = nlo
         self.result = None
         self.instance_from_physical_vector = instance_from_physical_vector
         self.constant = constant
@@ -204,9 +214,11 @@ class AbstractFitness(object):
         self.analysis = analysis
         visualise_interval = conf.instance.general.get('output', 'visualise_interval', int)
         log_interval = conf.instance.general.get('output', 'log_interval', int)
+        backup_interval = conf.instance.general.get('output', 'backup_interval', int)
 
         self.should_log = IntervalCounter(log_interval)
         self.should_visualise = IntervalCounter(visualise_interval)
+        self.should_backup = IntervalCounter(backup_interval)
 
     def fit_instance(self, instance):
         instance += self.constant
@@ -224,6 +236,8 @@ class AbstractFitness(object):
             self.analysis.visualize(instance, suffix=None, during_analysis=True)
         if self.should_log():
             self.analysis.log(instance)
+        if self.should_backup():
+            self.nlo.backup()
 
         return likelihood
 
@@ -250,13 +264,13 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = self.variable.physical_values_from_prior_medians
 
         class Fitness(AbstractFitness):
-            def __init__(self, instance_from_physical_vector, constant):
-                super().__init__(analysis, instance_from_physical_vector, constant)
+            def __init__(self, nlo, instance_from_physical_vector, constant):
+                super().__init__(nlo, analysis, instance_from_physical_vector, constant)
 
             def __call__(self, vector):
                 return -2 * super().fit_instance(self.instance_from_physical_vector(vector))
 
-        fitness_function = Fitness(self.variable.instance_from_physical_vector, self.constant)
+        fitness_function = Fitness(self, self.variable.instance_from_physical_vector, self.constant)
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
@@ -322,8 +336,8 @@ class MultiNest(NonLinearOptimizer):
         class Fitness(AbstractFitness):
 
             # noinspection PyShadowingNames
-            def __init__(self, instance_from_physical_vector, constant, output_results):
-                super().__init__(analysis, instance_from_physical_vector, constant)
+            def __init__(self, nlo, instance_from_physical_vector, constant, output_results):
+                super().__init__(nlo, analysis, instance_from_physical_vector, constant)
                 self.output_results = output_results
                 self.accepted_samples = 0
                 self.number_of_accepted_samples_between_output = conf.instance.general.get(
@@ -355,7 +369,8 @@ class MultiNest(NonLinearOptimizer):
 
             return cube
 
-        fitness_function = Fitness(self.variable.instance_from_physical_vector, self.constant, self.output_results)
+        fitness_function = Fitness(self, self.variable.instance_from_physical_vector, self.constant,
+                                   self.output_results)
 
         logger.info("Running MultiNest...")
         self.run(fitness_function.__call__,
