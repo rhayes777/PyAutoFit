@@ -556,10 +556,10 @@ class ModelMapper(AbstractModel):
         arguments = {}
 
         for i, prior_tuple in enumerate(prior_tuples):
-            cls = prior_class_dict[prior_tuple.prior]
+            prior = prior_tuple.prior
+            cls = prior_class_dict[prior]
             width = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
-            limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, prior_tuple.name)
-            arguments[prior_tuple.prior] = GaussianPrior(means[i], width, *limits)
+            arguments[prior] = GaussianPrior(means[i], width, prior.lower_limit, prior.upper_limit)
 
         return self.mapper_from_prior_arguments(arguments)
 
