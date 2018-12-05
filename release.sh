@@ -28,3 +28,8 @@ docker build -t rhayes777/$PACKAGE_NAME .
 docker push rhayes777/$PACKAGE_NAME:latest
 
 git flow release finish $VERSION
+
+git checkout master
+git push
+git checkout develop
+git push
