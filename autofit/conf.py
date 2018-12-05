@@ -287,6 +287,9 @@ if is_config_in(docker_workspace_directory):
 elif is_config_in(current_directory):
     CONFIG_PATH = "{}/config".format(current_directory)
     instance = Config(CONFIG_PATH, "{}/output/".format(current_directory))
+elif is_config_in("{}/../..".format(current_directory)):
+    CONFIG_PATH = "{}/../../config".format(current_directory)
+    instance = Config(CONFIG_PATH, "{}/output/".format(current_directory))
 else:
     CONFIG_PATH = "{}/../workspace/config".format(autofit_directory)
     instance = Config(CONFIG_PATH, "{}/../workspace/output/".format(autofit_directory))
