@@ -223,10 +223,7 @@ class AbstractFitness(object):
     def fit_instance(self, instance):
         instance += self.constant
 
-        try:
-            likelihood = self.analysis.fit(instance)
-        except exc.FitException:
-            likelihood = -np.inf
+        likelihood = self.analysis.fit(instance)
 
         if likelihood > self.max_likelihood:
             self.max_likelihood = likelihood
@@ -268,7 +265,12 @@ class DownhillSimplex(NonLinearOptimizer):
                 super().__init__(nlo, analysis, instance_from_physical_vector, constant)
 
             def __call__(self, vector):
-                return -2 * super().fit_instance(self.instance_from_physical_vector(vector))
+                try:
+                    instance = self.instance_from_physical_vector(vector)
+                    likelihood = self.fit_instance(instance)
+                except exc.FitException:
+                    likelihood = -np.inf
+                return -2 * likelihood
 
         fitness_function = Fitness(self, self.variable.instance_from_physical_vector, self.constant)
 
@@ -346,8 +348,11 @@ class MultiNest(NonLinearOptimizer):
                     int)
 
             def __call__(self, cube, ndim, nparams, lnew):
-                instance = self.instance_from_physical_vector(cube)
-                likelihood = self.fit_instance(instance)
+                try:
+                    instance = self.instance_from_physical_vector(cube)
+                    likelihood = self.fit_instance(instance)
+                except exc.FitException:
+                    likelihood = -np.inf
 
                 if likelihood > self.max_likelihood:
 

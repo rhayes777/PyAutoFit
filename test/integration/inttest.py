@@ -1,11 +1,20 @@
 import logging
+import shutil
+from os import path
+
+import pytest
 
 from autofit import mock
 from autofit.core import non_linear
 
-import pytest
-
 logger = logging.getLogger(__name__)
+
+try:
+    output_dir = "{}/../../workspace/output/phase".format(path.dirname(path.realpath(__file__)))
+    logger.info("Removing {}".format(output_dir))
+    shutil.rmtree(output_dir)
+except FileNotFoundError:
+    logging.info("Not found")
 
 
 class TestCase(object):
