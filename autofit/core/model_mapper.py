@@ -523,7 +523,7 @@ class ModelMapper(AbstractModel):
         mapper: ModelMapper
             A new model mapper with all priors replaced by gaussian priors.
         """
-        tuples = [PriorNameValue(*tup) for tup in tuples]
+
         prior_tuples = self.prior_tuples_ordered_by_id
         prior_class_dict = self.prior_class_dict
         arguments = {}
@@ -532,8 +532,11 @@ class ModelMapper(AbstractModel):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
             width = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
-            arguments[prior] = GaussianPrior(tuples[i].name, max(tuples[i].prior, width), prior.lower_limit,
-                                             prior.upper_limit)
+            if isinstance(prior, GaussianPrior):
+                limits = (prior.lower_limit, prior.upper_limit)
+            else:
+                limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, prior_tuple.name)
+            arguments[prior] = GaussianPrior(tuples[i][0], max(tuples[i][1], width), *limits)
 
         return self.mapper_from_prior_arguments(arguments)
 
@@ -553,17 +556,7 @@ class ModelMapper(AbstractModel):
         mapper: ModelMapper
             A new model mapper with all priors replaced by gaussian priors.
         """
-        prior_tuples = self.prior_tuples_ordered_by_id
-        prior_class_dict = self.prior_class_dict
-        arguments = {}
-
-        for i, prior_tuple in enumerate(prior_tuples):
-            prior = prior_tuple.prior
-            cls = prior_class_dict[prior]
-            width = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
-            arguments[prior] = GaussianPrior(means[i], width, prior.lower_limit, prior.upper_limit)
-
-        return self.mapper_from_prior_arguments(arguments)
+        return self.mapper_from_gaussian_tuples([(mean, 0) for mean in means])
 
     @property
     def info(self):

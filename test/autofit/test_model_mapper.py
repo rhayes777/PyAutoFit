@@ -175,6 +175,25 @@ class TestPriorLimits(object):
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == 2
 
+    def test_uniform_prior_limits_do_not_carry(self):
+        mm = model_mapper.ModelMapper()
+        mm.mock_class = MockClassMM
+
+        prior_tuples = mm.prior_tuples_ordered_by_id
+
+        prior_tuples[0].prior.lower_limit = 3
+        prior_tuples[0].prior.upper_limit = 4
+
+        new_mapper = mm.mapper_from_gaussian_means([0.5, 0.5])
+
+        prior_tuples = new_mapper.prior_tuples_ordered_by_id
+
+        assert prior_tuples[0].prior.lower_limit == -10
+        assert prior_tuples[0].prior.upper_limit == 10
+
+        assert prior_tuples[1].prior.lower_limit == -10
+        assert prior_tuples[1].prior.upper_limit == 10
+
 
 class TestPriorLinking(object):
     def test_same_class(self, initial_model):
