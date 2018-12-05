@@ -104,7 +104,10 @@ class NonLinearOptimizer(object):
         self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
 
     def backup(self):
-        shutil.rmtree(self.backup_path)
+        try:
+            shutil.rmtree(self.backup_path)
+        except FileNotFoundError:
+            pass
         shutil.copytree(self.opt_path, self.backup_path)
 
     def config(self, attribute_name, attribute_type=str):
