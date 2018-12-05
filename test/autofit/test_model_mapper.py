@@ -128,6 +128,20 @@ class TestPriorLimits(object):
         with pytest.raises(exc.PriorLimitException):
             mm.instance_from_physical_vector(([0, -1]))
 
+    def test_preserve_limits(self):
+        mm = model_mapper.ModelMapper()
+        mm.mock_class_gaussian = MockClassGaussian
+
+        new_mapper = mm.mapper_from_gaussian_means([0.5, 1])
+
+        prior_tuples = new_mapper.prior_tuples_ordered_by_id
+
+        assert prior_tuples[0].prior.lower_limit == 0
+        assert prior_tuples[0].prior.upper_limit == 1
+
+        assert prior_tuples[1].prior.lower_limit == 0
+        assert prior_tuples[1].prior.upper_limit == 2
+
 
 class TestPriorLinking(object):
     def test_same_class(self, initial_model):
