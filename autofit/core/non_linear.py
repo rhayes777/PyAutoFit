@@ -231,7 +231,7 @@ class AbstractFitness(object):
 
             if self.should_visualise():
                 self.analysis.visualize(instance, suffix=None, during_analysis=True)
-                
+
         if self.should_log():
             self.analysis.log(instance)
         if self.should_backup():
