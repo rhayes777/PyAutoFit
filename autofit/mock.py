@@ -1,11 +1,38 @@
+from autofit.core import model_mapper as mm
+
+
 class Galaxy(object):
     def __init__(self, redshift=None):
         self.redshift = redshift
 
 
-class GalaxyModel(object):
-    def __init__(self, **kwargs):
+class Redshift(object):
+    def __init__(self, redshift):
+        self.redshift = redshift
+
+
+# noinspection PyAbstractClass
+class GalaxyModel(mm.AbstractPriorModel):
+    def instance_for_arguments(self, arguments):
+        try:
+            return Galaxy(redshift=self.redshift.instance_for_arguments(arguments))
+        except AttributeError:
+            return Galaxy()
+
+    def __init__(self, variable_redshift=False, **kwargs):
+        self.redshift = mm.PriorModel(Redshift) if variable_redshift else None
         self.kwargs = kwargs
+
+    @property
+    @mm.cast_collection(mm.PriorNameValue)
+    def prior_tuples(self):
+        return [item for item in self.__dict__.items() if isinstance(item[1], mm.Prior)] + [
+            ("redshift", self.redshift.redshift)] if self.redshift is not None else []
+
+    @property
+    @mm.cast_collection(mm.PriorModelNameValue)
+    def flat_prior_model_tuples(self):
+        return [item for item in self.__dict__.items() if isinstance(item[1], mm.AbstractPriorModel)]
 
 
 class GeometryProfile(object):
