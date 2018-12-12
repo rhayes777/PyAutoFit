@@ -1,4 +1,28 @@
+import re
+
 from autofit.core import non_linear
+
+
+class ResultsCollection(list):
+    def __init__(self, results):
+        super().__init__(results)
+
+    @property
+    def last(self):
+        if len(self) > 0:
+            return self[-1]
+        return None
+
+    @property
+    def first(self):
+        if len(self) > 0:
+            return self[0]
+        return None
+
+
+def make_name(cls):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', cls.__name__)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
 class AbstractPhase(object):
@@ -17,7 +41,7 @@ class AbstractPhase(object):
             The name of this phase
         """
         self.optimizer = optimizer_class(name=phase_name)
-        self.phase_name = phase_name
+        self.phase_name = phase_name or make_name(self.__class__)
         self.auto_link_priors = auto_link_priors
 
     @property
