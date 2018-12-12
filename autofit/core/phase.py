@@ -40,8 +40,8 @@ class AbstractPhase(object):
         phase_name: str
             The name of this phase
         """
-        self.optimizer = optimizer_class(name=phase_name)
         self.phase_name = phase_name or make_name(self.__class__)
+        self.optimizer = optimizer_class(name=self.phase_name)
         self.auto_link_priors = auto_link_priors
 
     @property
