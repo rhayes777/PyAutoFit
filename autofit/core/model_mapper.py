@@ -993,7 +993,7 @@ class PriorModel(AbstractPriorModel):
         return new_model
 
     def __setattr__(self, key, value):
-        if key not in ("component_number", "position", "mapping_name"):
+        if key not in ("component_number", "phase_property_position", "mapping_name"):
             try:
                 if "_" in key:
                     name = key.split("_")[0]

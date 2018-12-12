@@ -251,10 +251,10 @@ class TestPhasePropertyCollectionAttributes(object):
         assert "redshift" == list_phase.variable.prior_tuples_ordered_by_id[0][0]
 
         prior_model = mm.PriorModel(mock.Galaxy)
-        prior_model.position = 0
+        prior_model.phase_property_position = 0
 
         assert len(prior_model.constant_tuples) == 0
 
 
 def assert_ordered(items):
-    assert [n for n in range(len(items))] == [item.position for item in items]
+    assert [n for n in range(len(items))] == [item.phase_property_position for item in items]
