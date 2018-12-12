@@ -100,7 +100,7 @@ class ListWrapper(object):
 
     def __setitem__(self, i, value):
         original = self[i]
-        value.position = original.position
+        value.phase_property_position = original.phase_property_position
         if original in self.variable_items:
             self.variable_items.remove(original)
         if original in self.constant_items:
@@ -115,7 +115,7 @@ class ListWrapper(object):
 
     @property
     def items(self):
-        return sorted(self.variable_items + self.constant_items, key=lambda item: item.position)
+        return sorted(self.variable_items + self.constant_items, key=lambda item: item.phase_property_position)
 
     def __eq__(self, other):
         return list(self.items) == other
@@ -163,7 +163,7 @@ class PhasePropertyCollection(PhaseProperty):
                         "Classes must be wrapped in PriorModel instances to be used in PhasePropertyLists")
                 value.append(tup[1])
                 value[n].mapping_name = tup[0]
-                value[n].position = n
+                value[n].phase_property_position = n
                 if is_prior(tup[1]):
                     setattr(obj.optimizer.variable, tup[0], tup[1])
                 else:
@@ -174,6 +174,6 @@ class PhasePropertyCollection(PhaseProperty):
                     raise AssertionError(
                         "Classes must be wrapped in PriorModel instances to be used in PhasePropertyLists")
                 value[n].mapping_name = "{}_{}".format(self.name, n)
-                value[n].position = n
+                value[n].phase_property_position = n
         setattr(obj.optimizer.variable, self.name, [item for item in value if is_prior(item)])
         setattr(obj.optimizer.constant, self.name, [item for item in value if not is_prior(item)])

@@ -1,12 +1,13 @@
 import os
 
 import pytest
+
 from autofit import conf
-from autofit.core import model_mapper as mm
 from autofit import mock
+from autofit.core import model_mapper as mm
 from autofit.core import non_linear
-from autofit.core import phase_property
 from autofit.core import phase as ph
+from autofit.core import phase_property
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -243,6 +244,17 @@ class TestPhasePropertyCollectionAttributes(object):
 
         assert hasattr(list_phase.prop, "one")
 
+    def test_position_not_a_prior(self, list_phase):
+        list_phase.prop = [mm.PriorModel(mock.Galaxy)]
+
+        assert list_phase.variable.prior_count == 1
+        assert "redshift" == list_phase.variable.prior_tuples_ordered_by_id[0][0]
+
+        prior_model = mm.PriorModel(mock.Galaxy)
+        prior_model.phase_property_position = 0
+
+        assert len(prior_model.constant_tuples) == 0
+
 
 def assert_ordered(items):
-    assert [n for n in range(len(items))] == [item.position for item in items]
+    assert [n for n in range(len(items))] == [item.phase_property_position for item in items]
