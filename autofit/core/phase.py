@@ -1,6 +1,23 @@
 from autofit.core import non_linear
 
 
+class ResultsCollection(list):
+    def __init__(self, results):
+        super().__init__(results)
+
+    @property
+    def last(self):
+        if len(self) > 0:
+            return self[-1]
+        return None
+
+    @property
+    def first(self):
+        if len(self) > 0:
+            return self[0]
+        return None
+
+
 class AbstractPhase(object):
 
     def __init__(self, optimizer_class=non_linear.MultiNest, phase_name=None,
