@@ -338,6 +338,7 @@ class TestLogUniformPrior(object):
         assert log_uniform_half.value_for(1.) == 1.
         assert log_uniform_half.value_for(0.5) == pytest.approx(0.70710678118, 1.0e-4)
 
+
 class TestGaussianPrior(object):
 
     def test__simple_assumptions(self):
