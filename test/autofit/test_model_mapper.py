@@ -128,6 +128,72 @@ class TestPriorLimits(object):
         with pytest.raises(exc.PriorLimitException):
             mm.instance_from_physical_vector(([0, -1]))
 
+    def test_preserve_limits(self):
+        mm = model_mapper.ModelMapper()
+        mm.mock_class_gaussian = MockClassGaussian
+
+        new_mapper = mm.mapper_from_gaussian_means([0.5, 1])
+
+        prior_tuples = new_mapper.prior_tuples_ordered_by_id
+
+        assert prior_tuples[0].prior.lower_limit == 0
+        assert prior_tuples[0].prior.upper_limit == 1
+
+        assert prior_tuples[1].prior.lower_limit == 0
+        assert prior_tuples[1].prior.upper_limit == 2
+
+    def test_preserve_limits_tuples(self):
+        mm = model_mapper.ModelMapper()
+        mm.mock_class_gaussian = MockClassGaussian
+
+        new_mapper = mm.mapper_from_gaussian_tuples([(0.0, 0.5), (0.0, 1)])
+
+        prior_tuples = new_mapper.prior_tuples_ordered_by_id
+
+        assert prior_tuples[0].prior.lower_limit == 0
+        assert prior_tuples[0].prior.upper_limit == 1
+
+        assert prior_tuples[1].prior.lower_limit == 0
+        assert prior_tuples[1].prior.upper_limit == 2
+
+    def test_preserve_modified_limits(self):
+        mm = model_mapper.ModelMapper()
+        mm.mock_class_gaussian = MockClassGaussian
+
+        prior_tuples = mm.prior_tuples_ordered_by_id
+
+        prior_tuples[0].prior.lower_limit = 3
+        prior_tuples[0].prior.upper_limit = 4
+
+        new_mapper = mm.mapper_from_gaussian_means([0.5, 1])
+
+        prior_tuples = new_mapper.prior_tuples_ordered_by_id
+
+        assert prior_tuples[0].prior.lower_limit == 3
+        assert prior_tuples[0].prior.upper_limit == 4
+
+        assert prior_tuples[1].prior.lower_limit == 0
+        assert prior_tuples[1].prior.upper_limit == 2
+
+    def test_uniform_prior_limits_do_not_carry(self):
+        mm = model_mapper.ModelMapper()
+        mm.mock_class = MockClassMM
+
+        prior_tuples = mm.prior_tuples_ordered_by_id
+
+        prior_tuples[0].prior.lower_limit = 3
+        prior_tuples[0].prior.upper_limit = 4
+
+        new_mapper = mm.mapper_from_gaussian_means([0.5, 0.5])
+
+        prior_tuples = new_mapper.prior_tuples_ordered_by_id
+
+        assert prior_tuples[0].prior.lower_limit == -10
+        assert prior_tuples[0].prior.upper_limit == 10
+
+        assert prior_tuples[1].prior.lower_limit == -10
+        assert prior_tuples[1].prior.upper_limit == 10
+
 
 class TestPriorLinking(object):
     def test_same_class(self, initial_model):
