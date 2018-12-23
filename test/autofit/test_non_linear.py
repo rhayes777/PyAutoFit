@@ -810,7 +810,7 @@ class TestFitting(object):
 
             assert result.constant.mock_class.one == 1
             assert result.constant.mock_class.two == 2
-            assert result.likelihood == 1
+            assert result.figure_of_merit == 1
 
         def test_variable(self, downhill_simplex):
             downhill_simplex.variable.mock_class = model_mapper.PriorModel(MockClassNLOx4)
@@ -818,7 +818,7 @@ class TestFitting(object):
 
             assert result.constant.mock_class.one == 0.0
             assert result.constant.mock_class.two == 0.0
-            assert result.likelihood == 1
+            assert result.figure_of_merit == 1
 
             assert result.variable.mock_class.one.mean == 0.0
             assert result.variable.mock_class.two.mean == 0.0
@@ -835,7 +835,7 @@ class TestFitting(object):
             assert result.constant.variable.two == 0.0
             assert result.variable.variable.one.mean == 0.0
             assert result.variable.variable.two.mean == 0.0
-            assert result.likelihood == 1
+            assert result.figure_of_merit == 1
 
     class TestMultiNest(object):
 
@@ -845,7 +845,7 @@ class TestFitting(object):
 
             assert result.constant.mock_class.one == 9.0
             assert result.constant.mock_class.two == -10.0
-            assert result.likelihood == 0.02
+            assert result.figure_of_merit == 0.02
 
             assert result.variable.mock_class.one.mean == 1
             assert result.variable.mock_class.two.mean == -2
