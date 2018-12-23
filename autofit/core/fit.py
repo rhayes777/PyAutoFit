@@ -1,11 +1,11 @@
 import numpy as np
 
-from autofit.core import fitting_util
+from autofit.core import fit_util
 
-class DataFitter(object):
+class DataFit(object):
 
     def __init__(self, data, noise_map, mask, model_data):
-        """Class to fit to data composed of just one piece of datas (e.g. not a list).
+        """Class to fit data composed of just one piece of data (e.g. not a list).
 
         Parameters
         -----------
@@ -39,22 +39,22 @@ class DataFitter(object):
         self.mask = mask
         self.model_data = model_data
 
-        self.residual_map = fitting_util.residual_map_from_data_mask_and_model_data(data=data, mask=mask,
-                                                                                    model_data=model_data)
+        self.residual_map = fit_util.residual_map_from_data_mask_and_model_data(data=data, mask=mask,
+                                                                                model_data=model_data)
 
-        self.chi_squared_map = fitting_util.chi_squared_map_from_residual_map_noise_map_and_mask(
+        self.chi_squared_map = fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(
             residual_map=self.residual_map, noise_map=self.noise_map, mask=self.mask)
 
-        self.chi_squared = fitting_util.chi_squared_from_chi_squared_map_and_mask(chi_squared_map=self.chi_squared_map,
-                                                                                  mask=self.mask)
+        self.chi_squared = fit_util.chi_squared_from_chi_squared_map_and_mask(chi_squared_map=self.chi_squared_map,
+                                                                              mask=self.mask)
         self.reduced_chi_squared = self.chi_squared / int(np.size(self.mask) - np.sum(self.mask))
-        self.noise_normalization = fitting_util.noise_normalization_from_noise_map_and_mask(noise_map=self.noise_map,
-                                                                                            mask=self.mask)
-        self.likelihood = fitting_util.likelihood_from_chi_squared_and_noise_normalization(
+        self.noise_normalization = fit_util.noise_normalization_from_noise_map_and_mask(noise_map=self.noise_map,
+                                                                                        mask=self.mask)
+        self.likelihood = fit_util.likelihood_from_chi_squared_and_noise_normalization(
             chi_squared=self.chi_squared, noise_normalization=self.noise_normalization)
 
 
-class DataFitterStack(object):
+class DataFitStack(object):
 
     def __init__(self, datas, noise_maps, masks, model_datas):
         """Class to fit to a data-set which is a 'stack' of multiple pieces of datas (stored as lists).
@@ -104,19 +104,19 @@ class DataFitterStack(object):
         self.model_datas = model_datas
 
         self.residual_maps = list(map(lambda data, mask, model_data :
-                             fitting_util.residual_map_from_data_mask_and_model_data(data=data, mask=mask,
-                                                                                    model_data=model_data),
+                             fit_util.residual_map_from_data_mask_and_model_data(data=data, mask=mask,
+                                                                                 model_data=model_data),
                                       self.datas, self.masks, self.model_datas))
 
         self.chi_squared_maps = list(map(lambda residual_map, noise_map, mask :
-                                fitting_util.chi_squared_map_from_residual_map_noise_map_and_mask(residual_map=residual_map,
-                                                                                                  noise_map=noise_map,
-                                                                                                  mask=mask),
+                                fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(residual_map=residual_map,
+                                                                                              noise_map=noise_map,
+                                                                                              mask=mask),
                                          self.residual_maps, self.noise_maps, self.masks))
 
         self.chi_squareds = list(map(lambda chi_squared_map, mask :
-                                 fitting_util.chi_squared_from_chi_squared_map_and_mask(chi_squared_map=chi_squared_map,
-                                                                                        mask=mask),
+                                 fit_util.chi_squared_from_chi_squared_map_and_mask(chi_squared_map=chi_squared_map,
+                                                                                    mask=mask),
                                      self.chi_squared_maps, self.masks))
 
         self.reduced_chi_squareds = list(map(lambda mask, chi_squared_term :
@@ -124,13 +124,13 @@ class DataFitterStack(object):
                                              self.masks, self.chi_squareds))
 
         self.noise_normalizations = list(map(lambda noise_map, mask :
-                                             fitting_util.noise_normalization_from_noise_map_and_mask(noise_map=noise_map,
-                                                                                                      mask=mask,),
+                                             fit_util.noise_normalization_from_noise_map_and_mask(noise_map=noise_map,
+                                                                                                  mask=mask, ),
                                              self.noise_maps, self.masks))
 
         self.likelihoods = list(map(lambda chi_squared_term, noise_term :
-                        fitting_util.likelihood_from_chi_squared_and_noise_normalization(chi_squared=chi_squared_term,
-                                                                                         noise_normalization=noise_term),
+                        fit_util.likelihood_from_chi_squared_and_noise_normalization(chi_squared=chi_squared_term,
+                                                                                     noise_normalization=noise_term),
                                     self.chi_squareds, self.noise_normalizations))
         
         self.chi_squared = sum(self.chi_squareds)
