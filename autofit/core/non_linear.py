@@ -32,21 +32,21 @@ class Analysis(object):
 
 class Result(object):
 
-    def __init__(self, constant, likelihood, variable=None):
+    def __init__(self, constant, figure_of_merit, variable=None):
         """
         The result of an optimization.
 
         Parameters
         ----------
         constant: mm.ModelInstance
-            An instance object comprising the class instances that gave the optimal fit_normal
-        likelihood: float
-            A value indicating the likelihood given by the optimal fit_normal
+            An instance object comprising the class instances that gave the optimal fit
+        figure_of_merit: float
+            A value indicating the figure of merit given by the optimal fit
         variable: mm.ModelMapper
             An object comprising priors determined by this stage of the lensing
         """
         self.constant = constant
-        self.likelihood = likelihood
+        self.figure_of_merit = figure_of_merit
         self.variable = variable
 
     def __str__(self):
@@ -413,7 +413,7 @@ class MultiNest(NonLinearOptimizer):
 
         analysis.visualize(instance=constant, suffix=None, during_analysis=False)
 
-        return Result(constant=constant, likelihood=self.max_likelihood_from_summary(), variable=variable)
+        return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(), variable=variable)
 
     def open_summary_file(self):
 

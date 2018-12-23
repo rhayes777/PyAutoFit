@@ -126,8 +126,8 @@ class AbstractPhase(object):
 
     class Result(non_linear.Result):
 
-        def __init__(self, constant, likelihood, variable):
+        def __init__(self, constant, figure_of_merit, variable):
             """
             The result of a phase
             """
-            super(AbstractPhase.Result, self).__init__(constant, likelihood, variable)
+            super(AbstractPhase.Result, self).__init__(constant, figure_of_merit, variable)
