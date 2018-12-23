@@ -11,16 +11,6 @@ from autofit.core import model_mapper
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
 
-@pytest.fixture(name='uniform_simple')
-def make_uniform_simple():
-    return model_mapper.UniformPrior(lower_limit=0., upper_limit=1.)
-
-
-@pytest.fixture(name='uniform_half')
-def make_uniform_half():
-    return model_mapper.UniformPrior(lower_limit=0.5, upper_limit=1.)
-
-
 @pytest.fixture(scope="session", autouse=True)
 def do_something():
     conf.instance = conf.Config(
@@ -313,15 +303,58 @@ class TestAddition(object):
 
 
 class TestUniformPrior(object):
-    def test__simple_assumptions(self, uniform_simple):
+    def test__simple_assumptions(self):
+
+        uniform_simple = model_mapper.UniformPrior(lower_limit=0., upper_limit=1.)
+
         assert uniform_simple.value_for(0.) == 0.
         assert uniform_simple.value_for(1.) == 1.
         assert uniform_simple.value_for(0.5) == 0.5
 
-    def test__non_zero_lower_limit(self, uniform_half):
+    def test__non_zero_lower_limit(self):
+
+        uniform_half = model_mapper.UniformPrior(lower_limit=0.5, upper_limit=1.)
+
         assert uniform_half.value_for(0.) == 0.5
         assert uniform_half.value_for(1.) == 1.
         assert uniform_half.value_for(0.5) == 0.75
+
+
+class TestLogUniformPrior(object):
+
+    def test__simple_assumptions(self):
+
+        log_uniform_simple = model_mapper.LogUniformPrior(lower_limit=1.0e-8, upper_limit=1.)
+
+        assert log_uniform_simple.value_for(0.) == 1.0e-8
+        assert log_uniform_simple.value_for(1.) == 1.
+        assert log_uniform_simple.value_for(0.5) == 0.0001
+
+    def test__non_zero_lower_limit(self):
+
+        log_uniform_half = model_mapper.LogUniformPrior(lower_limit=0.5, upper_limit=1.)
+
+        assert log_uniform_half.value_for(0.) == 0.5
+        assert log_uniform_half.value_for(1.) == 1.
+        assert log_uniform_half.value_for(0.5) == pytest.approx(0.70710678118, 1.0e-4)
+
+class TestGaussianPrior(object):
+
+    def test__simple_assumptions(self):
+
+        gaussian_simple = model_mapper.GaussianPrior(mean=0.0, sigma=1.0)
+
+        assert gaussian_simple.value_for(0.1) == pytest.approx(-1.281551, 1.0e-4)
+        assert gaussian_simple.value_for(0.9) == pytest.approx( 1.281551, 1.0e-4)
+        assert gaussian_simple.value_for(0.5) == 0.0
+
+    def test__non_zero_mean(self):
+
+        gaussian_half = model_mapper.GaussianPrior(mean=0.5, sigma=2.0)
+
+        assert gaussian_half.value_for(0.1) == pytest.approx(-2.0631031, 1.0e-4)
+        assert gaussian_half.value_for(0.9) == pytest.approx(3.0631031, 1.0e-4)
+        assert gaussian_half.value_for(0.5) == 0.5
 
 
 class MockClassMM(object):

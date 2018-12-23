@@ -3,9 +3,10 @@ import itertools
 import math
 import os
 import re
+import numpy as np
 from functools import wraps
 
-from scipy.special import erfinv
+from scipy.special import erfcinv
 
 from autofit import conf
 from autofit import exc
@@ -729,6 +730,41 @@ class UniformPrior(Prior):
         return 'UniformPrior, lower_limit = ' + str(self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
 
 
+class LogUniformPrior(UniformPrior):
+    """A prior with a uniform distribution between a lower and upper limit"""
+
+    def __init__(self, lower_limit=0., upper_limit=1.):
+        """
+
+        Parameters
+        ----------
+        lower_limit: Float
+            The lowest value this prior can return
+        upper_limit: Float
+            The highest value this prior can return
+        """
+        super(LogUniformPrior, self).__init__(lower_limit, upper_limit)
+
+    def value_for(self, unit):
+        """
+
+        Parameters
+        ----------
+        unit: Float
+            A unit hypercube value between 0 and 1
+        Returns
+        -------
+        value: Float
+            A value for the attribute between the upper and lower limits
+        """
+        return 10.0**(np.log10(self.lower_limit) + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit)))
+
+    @property
+    def info(self):
+        """The line of text describing this prior for the model_mapper.info file"""
+        return 'LogUniformPrior, lower_limit = ' + str(self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
+
+
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
 
@@ -751,7 +787,7 @@ class GaussianPrior(Prior):
         value: Float
             A value for the attribute biased to the gaussian distribution
         """
-        return self.mean + (self.sigma * math.sqrt(2) * erfinv((unit * 2.0) - 1.0))
+        return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 *(1.0-unit)))
 
     @property
     def info(self):
