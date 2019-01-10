@@ -34,6 +34,12 @@ class TestGridSearchOptimizer(object):
         assert tuple_lists_equal([(0.0,), (0.1,), (0.2,), (0.3,), (0.4,), (0.5,), (0.6,), (0.7,), (0.8,), (0.9,)],
                                  points)
 
+    def test_2d(self):
+        points = []
+        points = []
+        grid(lambda x: points.append(x), 2, 0.3)
+        assert 9 == len(points)
+
 # class TestGridSearch(object):
 #     def test_1d(self):
 #         grid_search = non_linear.GridSearch(step_size=0.1)
