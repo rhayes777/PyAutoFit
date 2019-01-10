@@ -94,3 +94,8 @@ class TestGridSearch(object):
         grid_search.fit(analysis)
 
         assert len(analysis.instances) == 11
+
+        instance = analysis.instances[5]
+
+        assert isinstance(instance.one, mock.Galaxy)
+        assert instance.one.redshift == 0.5
