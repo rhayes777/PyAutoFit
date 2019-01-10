@@ -614,31 +614,22 @@ class MultiNest(NonLinearOptimizer):
 
                     most_probable = self.most_probable_from_summary()
 
-                    lower_limit = self.model_at_lower_sigma_limit(sigma_limit=3.0)
-                    upper_limit = self.model_at_upper_sigma_limit(sigma_limit=3.0)
+                    def write_for_sigma_limit(limit):
+                        lower_limit = self.model_at_lower_sigma_limit(sigma_limit=limit)
+                        upper_limit = self.model_at_upper_sigma_limit(sigma_limit=limit)
 
-                    results.write('\n')
-                    results.write('Most probable model (3 sigma limits)' + '\n')
-                    results.write('\n')
+                        results.write('\n')
+                        results.write('Most probable model ({} sigma limits)\n'.format(limit))
+                        results.write('\n')
 
-                    for i in range(self.variable.prior_count):
-                        line = self.param_names[i]
-                        line += ' ' * (60 - len(line)) + str(most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + \
-                                str(upper_limit[i]) + ')'
-                        results.write(line + '\n')
+                        for i in range(self.variable.prior_count):
+                            line = self.param_names[i]
+                            line += ' ' * (60 - len(line)) + str(most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + \
+                                    str(upper_limit[i]) + ')'
+                            results.write(line + '\n')
 
-                    lower_limit = self.model_at_lower_sigma_limit(sigma_limit=1.0)
-                    upper_limit = self.model_at_upper_sigma_limit(sigma_limit=1.0)
-
-                    results.write('\n')
-                    results.write('Most probable model (1 sigma limits)' + '\n')
-                    results.write('\n')
-
-                    for i in range(self.variable.prior_count):
-                        line = self.param_names[i]
-                        line += ' ' * (60 - len(line)) + str(most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + \
-                                str(upper_limit[i]) + ')'
-                        results.write(line + '\n')
+                    write_for_sigma_limit(3.0)
+                    write_for_sigma_limit(1.0)
 
                 results.write('\n')
                 results.write('Constants' + '\n')
