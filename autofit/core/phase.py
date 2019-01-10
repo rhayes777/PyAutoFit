@@ -112,18 +112,6 @@ class AbstractPhase(object):
             if self.previous_results is not None:
                 return self.previous_results.last
 
-        def tracer_for_instance(self, instance):
-            raise NotImplementedError()
-
-        def padded_tracer_for_instance(self, instance):
-            raise NotImplementedError()
-
-        def fit_for_tracers(self, tracer, padded_tracer):
-            raise NotImplementedError()
-
-        def fast_likelihood_for_tracer(self, tracer):
-            raise NotImplementedError()
-
     class Result(non_linear.Result):
 
         def __init__(self, constant, figure_of_merit, variable):
