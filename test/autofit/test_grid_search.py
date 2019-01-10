@@ -117,7 +117,6 @@ class TestGridSearch(object):
         assert instance.one.redshift == 0.5
 
     def test_2d(self, grid_search):
-        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
         grid_search.variable.one = mock.Galaxy
         grid_search.variable.two = mock.Galaxy
 
