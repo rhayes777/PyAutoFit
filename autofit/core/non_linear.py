@@ -204,40 +204,39 @@ class NonLinearOptimizer(object):
                 line += ' ' * (70 - len(line)) + paramnames_labels[i]
                 paramnames.write(line + '\n')
 
+    class Fitness(object):
+        def __init__(self, nlo, analysis, constant):
+            self.nlo = nlo
+            self.result = None
+            self.constant = constant
+            self.max_likelihood = -np.inf
+            self.analysis = analysis
+            visualise_interval = conf.instance.general.get('output', 'visualise_interval', int)
+            log_interval = conf.instance.general.get('output', 'log_interval', int)
+            backup_interval = conf.instance.general.get('output', 'backup_interval', int)
 
-class AbstractFitness(object):
-    def __init__(self, nlo, analysis, constant):
-        self.nlo = nlo
-        self.result = None
-        self.constant = constant
-        self.max_likelihood = -np.inf
-        self.analysis = analysis
-        visualise_interval = conf.instance.general.get('output', 'visualise_interval', int)
-        log_interval = conf.instance.general.get('output', 'log_interval', int)
-        backup_interval = conf.instance.general.get('output', 'backup_interval', int)
+            self.should_log = IntervalCounter(log_interval)
+            self.should_visualise = IntervalCounter(visualise_interval)
+            self.should_backup = IntervalCounter(backup_interval)
 
-        self.should_log = IntervalCounter(log_interval)
-        self.should_visualise = IntervalCounter(visualise_interval)
-        self.should_backup = IntervalCounter(backup_interval)
+        def fit_instance(self, instance):
+            instance += self.constant
 
-    def fit_instance(self, instance):
-        instance += self.constant
+            likelihood = self.analysis.fit(instance)
 
-        likelihood = self.analysis.fit(instance)
+            if likelihood > self.max_likelihood:
+                self.max_likelihood = likelihood
+                self.result = Result(instance, likelihood)
 
-        if likelihood > self.max_likelihood:
-            self.max_likelihood = likelihood
-            self.result = Result(instance, likelihood)
+                if self.should_visualise():
+                    self.analysis.visualize(instance, suffix=None, during_analysis=True)
 
-            if self.should_visualise():
-                self.analysis.visualize(instance, suffix=None, during_analysis=True)
+            if self.should_log():
+                self.analysis.log(instance)
+            if self.should_backup():
+                self.nlo.backup()
 
-        if self.should_log():
-            self.analysis.log(instance)
-        if self.should_backup():
-            self.nlo.backup()
-
-        return likelihood
+            return likelihood
 
 
 class DownhillSimplex(NonLinearOptimizer):
@@ -258,7 +257,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
         logger.debug("Creating DownhillSimplex NLO")
 
-    class Fitness(AbstractFitness):
+    class Fitness(NonLinearOptimizer.Fitness):
         def __init__(self, nlo, analysis, instance_from_physical_vector, constant):
             super().__init__(nlo, analysis, constant)
             self.instance_from_physical_vector = instance_from_physical_vector
@@ -336,7 +335,7 @@ class MultiNest(NonLinearOptimizer):
         import getdist
         return getdist.mcsamples.loadMCSamples(self.opt_path + '/multinest')
 
-    class Fitness(AbstractFitness):
+    class Fitness(NonLinearOptimizer.Fitness):
 
         def __init__(self, nlo, analysis, instance_from_physical_vector, constant, output_results):
             super().__init__(nlo, analysis, constant)
@@ -605,10 +604,10 @@ class MultiNest(NonLinearOptimizer):
                     raise exc.MultiNestException('MultiNest and GetDist have counted a different number of parameters.'
                                                  'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
 
-                for i in range(self.variable.prior_count):
-                    line = self.param_names[i]
-                    line += ' ' * (60 - len(line)) + str(most_likely[i])
-                    results.write(line + '\n')
+                for j in range(self.variable.prior_count):
+                    most_likely_line = self.param_names[j]
+                    most_likely_line += ' ' * (60 - len(most_likely_line)) + str(most_likely[j])
+                    results.write(most_likely_line + '\n')
 
                 if during_analysis is False:
 
@@ -664,7 +663,7 @@ class GridSearch(NonLinearOptimizer):
         self.step_size = step_size
         self.grid = grid
 
-    class Fitness(AbstractFitness):
+    class Fitness(NonLinearOptimizer.Fitness):
         def __init__(self, nlo, analysis, instance_from_unit_vector, constant):
             super().__init__(nlo, analysis, constant)
             self.instance_from_unit_vector = instance_from_unit_vector
