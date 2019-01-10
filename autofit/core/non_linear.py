@@ -568,7 +568,7 @@ class MultiNest(NonLinearOptimizer):
 
             for param_name in self.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(fname=self.phase_path + 'image/pdf_' + param_name + '_1D.png')
+                pdf_plot.export(fname='{}image/pdf_{}_1D.png'.format(self.phase_path, param_name))
 
         plt.close()
 
@@ -595,7 +595,7 @@ class MultiNest(NonLinearOptimizer):
 
                 max_likelihood = self.max_likelihood_from_summary()
 
-                results.write('Most likely model, Likelihood = ' + str(max_likelihood) + '\n')
+                results.write('Most likely model, Likelihood = {}\n'.format(max_likelihood))
                 results.write('\n')
 
                 most_likely = self.most_likely_from_summary()
@@ -609,7 +609,7 @@ class MultiNest(NonLinearOptimizer):
                     most_likely_line += ' ' * (60 - len(most_likely_line)) + str(most_likely[j])
                     results.write(most_likely_line + '\n')
 
-                if during_analysis is False:
+                if not during_analysis:
 
                     most_probable = self.most_probable_from_summary()
 
@@ -623,8 +623,8 @@ class MultiNest(NonLinearOptimizer):
 
                         for i in range(self.variable.prior_count):
                             line = self.param_names[i]
-                            line += ' ' * (60 - len(line)) + str(most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + \
-                                    str(upper_limit[i]) + ')'
+                            line += ' ' * (60 - len(line)) + str(
+                                most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + str(upper_limit[i]) + ')'
                             results.write(line + '\n')
 
                     write_for_sigma_limit(3.0)
@@ -637,9 +637,9 @@ class MultiNest(NonLinearOptimizer):
                 constant_names = self.constant_names
                 constants = self.variable.constant_tuples_ordered_by_id
 
-                for i in range(self.variable.constant_count):
-                    line = constant_names[i]
-                    line += ' ' * (60 - len(line)) + str(constants[i][1].value)
+                for j in range(self.variable.constant_count):
+                    constant_line = constant_names[j]
+                    constant_line += ' ' * (60 - len(constant_line)) + str(constants[j][1].value)
 
 
 class GridSearch(NonLinearOptimizer):
