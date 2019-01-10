@@ -205,10 +205,9 @@ class NonLinearOptimizer(object):
 
 
 class AbstractFitness(object):
-    def __init__(self, nlo, analysis, instance_from_physical_vector, constant):
+    def __init__(self, nlo, analysis, constant):
         self.nlo = nlo
         self.result = None
-        self.instance_from_physical_vector = instance_from_physical_vector
         self.constant = constant
         self.max_likelihood = -np.inf
         self.analysis = analysis
@@ -263,7 +262,8 @@ class DownhillSimplex(NonLinearOptimizer):
 
         class Fitness(AbstractFitness):
             def __init__(self, nlo, instance_from_physical_vector, constant):
-                super().__init__(nlo, analysis, instance_from_physical_vector, constant)
+                super().__init__(nlo, analysis, constant)
+                self.instance_from_physical_vector = instance_from_physical_vector
 
             def __call__(self, vector):
                 try:
@@ -340,7 +340,8 @@ class MultiNest(NonLinearOptimizer):
 
             # noinspection PyShadowingNames
             def __init__(self, nlo, instance_from_physical_vector, constant, output_results):
-                super().__init__(nlo, analysis, instance_from_physical_vector, constant)
+                super().__init__(nlo, analysis, constant)
+                self.instance_from_physical_vector = instance_from_physical_vector
                 self.output_results = output_results
                 self.accepted_samples = 0
                 self.number_of_accepted_samples_between_output = conf.instance.general.get(
@@ -651,9 +652,37 @@ class MultiNest(NonLinearOptimizer):
 
 
 class GridSearch(NonLinearOptimizer):
-    def __init__(self, step_size, model_mapper=None, name=None):
+    def __init__(self, step_size, model_mapper=None, name=None, grid=optimizer.grid):
         super().__init__(model_mapper=model_mapper, name=name)
         self.step_size = step_size
+        self.grid = grid
 
     def fit(self, analysis):
-        pass
+        class Fitness(AbstractFitness):
+
+            # noinspection PyShadowingNames
+            def __init__(self, nlo, instance_from_unit_vector, constant):
+                super().__init__(nlo, analysis, constant)
+                self.instance_from_unit_vector = instance_from_unit_vector
+
+            def __call__(self, cube):
+                try:
+                    instance = self.instance_from_unit_vector(cube)
+                    return self.fit_instance(instance)
+                except exc.FitException:
+                    return -np.inf
+
+        fitness_function = Fitness(self, self.variable.instance_from_unit_vector, self.constant)
+
+        logger.info("Running grid search...")
+        output = self.grid.run(fitness_function, self.variable.prior_count, self.step_size)
+
+        logger.info("grid search complete")
+        res = fitness_function.result
+
+        # Create a set of Gaussian priors from this result and associate them with the result object.
+        res.variable = self.variable.mapper_from_gaussian_means(output)
+
+        analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
+
+        return res
