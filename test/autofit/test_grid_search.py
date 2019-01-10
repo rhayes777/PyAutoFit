@@ -1,5 +1,9 @@
+import shutil
+from os import path
+
 import pytest
 
+from autofit import conf
 from autofit import mock
 from autofit.core import non_linear
 from autofit.core.optimizer import grid
@@ -88,9 +92,18 @@ class TestGridSearchOptimizer(object):
         assert result == best_point
 
 
+@pytest.fixture(name="grid_search")
+def make_grid_search():
+    name = "grid_search"
+    try:
+        shutil.rmtree("{}/{}/".format(conf.instance.output_path, name))
+    except FileNotFoundError:
+        pass
+    return non_linear.GridSearch(name=name, step_size=0.1)
+
+
 class TestGridSearch(object):
-    def test_1d(self):
-        grid_search = non_linear.GridSearch(step_size=0.1)
+    def test_1d(self, grid_search):
         grid_search.variable.one = mock.Galaxy
 
         analysis = MockAnalysis()
@@ -103,7 +116,7 @@ class TestGridSearch(object):
         assert isinstance(instance.one, mock.Galaxy)
         assert instance.one.redshift == 0.5
 
-    def test_2d(self):
+    def test_2d(self, grid_search):
         grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
         grid_search.variable.one = mock.Galaxy
         grid_search.variable.two = mock.Galaxy
@@ -114,3 +127,9 @@ class TestGridSearch(object):
 
         assert pytest.approx(result.constant.one.redshift) == 0.1
         assert pytest.approx(result.constant.two.redshift) == 0.7
+
+    def test_checkpoint(self, grid_search):
+        analysis = MockAnalysis()
+        grid_search.fit(analysis)
+
+        assert path.exists(grid_search.checkpoint_path)
