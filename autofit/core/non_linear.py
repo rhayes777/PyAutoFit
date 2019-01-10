@@ -648,3 +648,12 @@ class MultiNest(NonLinearOptimizer):
                 for i in range(self.variable.constant_count):
                     line = constant_names[i]
                     line += ' ' * (60 - len(line)) + str(constants[i][1].value)
+
+
+class GridSearch(NonLinearOptimizer):
+    def __init__(self, step_size, model_mapper=None, name=None):
+        super().__init__(model_mapper=model_mapper, name=name)
+        self.step_size = step_size
+
+    def fit(self, analysis):
+        pass
