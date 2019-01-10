@@ -1,8 +1,11 @@
 import ast
+import datetime as dt
+import functools
 import logging
 import math
 import os
 import shutil
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +16,7 @@ from autofit import conf
 from autofit import exc
 from autofit.core import link
 from autofit.core import model_mapper as mm
-from autofit.core import optimizer
+from autofit.core import optimizer as opt
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -68,6 +71,27 @@ class IntervalCounter(object):
         return self.count % self.interval == 0
 
 
+def persistent_timer(func):
+    @functools.wraps(func)
+    def timed_function(optimizer_instance, *args, **kwargs):
+        try:
+            with open("{}/start_time".format(optimizer_instance.path)) as f:
+                start = float(f.read())
+        except FileNotFoundError:
+            start = time.time()
+            with open("{}/start_time".format(optimizer_instance.path), "w+") as f:
+                f.write(str(start))
+
+        result = func(optimizer_instance, *args, **kwargs)
+        logger.info("{} took {} to run".format(
+            optimizer_instance.name,
+            str(dt.timedelta(seconds=time.time() - start))
+        ))
+        return result
+
+    return timed_function
+
+
 class NonLinearOptimizer(object):
 
     def __init__(self, model_mapper=None, name=None):
@@ -83,6 +107,7 @@ class NonLinearOptimizer(object):
         self.named_config = conf.instance.non_linear
 
         name = name or "phase"
+        self.name = name
 
         self.phase_path = "{}/{}/".format(conf.instance.output_path, name)
         self.opt_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
@@ -271,6 +296,7 @@ class DownhillSimplex(NonLinearOptimizer):
                 likelihood = -np.inf
             return -2 * likelihood
 
+    @persistent_timer
     def fit(self, analysis):
         self.save_model_info()
         initial_vector = self.variable.physical_values_from_prior_medians
@@ -366,6 +392,7 @@ class MultiNest(NonLinearOptimizer):
 
             return likelihood
 
+    @persistent_timer
     def fit(self, analysis):
         self.save_model_info()
 
@@ -645,7 +672,7 @@ class MultiNest(NonLinearOptimizer):
 
 
 class GridSearch(NonLinearOptimizer):
-    def __init__(self, step_size, model_mapper=None, name=None, grid=optimizer.grid):
+    def __init__(self, step_size, model_mapper=None, name=None, grid=opt.grid):
         """
         Optimise by performing a grid search.
 
@@ -737,6 +764,7 @@ class GridSearch(NonLinearOptimizer):
     def checkpoint_prior_count(self):
         return int(self.checkpoint_array[4])
 
+    @persistent_timer
     def fit(self, analysis):
         self.save_model_info()
 
