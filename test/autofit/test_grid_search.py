@@ -1,9 +1,9 @@
 import shutil
-from os import path
 
 import pytest
 
 from autofit import conf
+from autofit import exc
 from autofit import mock
 from autofit.core import non_linear
 from autofit.core.optimizer import grid
@@ -127,7 +127,7 @@ class TestGridSearch(object):
         assert pytest.approx(result.constant.one.redshift) == 0.1
         assert pytest.approx(result.constant.two.redshift) == 0.7
 
-    def test_checkpoint(self, grid_search):
+    def test_checkpoint_properties(self, grid_search):
         analysis = MockAnalysis()
 
         grid_search.variable.one = mock.Galaxy
@@ -135,9 +135,26 @@ class TestGridSearch(object):
 
         grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
 
-        assert path.exists(grid_search.checkpoint_path)
+        assert grid_search.is_checkpoint
         assert grid_search.checkpoint_count == 11
         assert grid_search.checkpoint_fit == 0.
         assert grid_search.checkpoint_cube == (0.0,)
         assert grid_search.checkpoint_step_size == 0.1
         assert grid_search.checkpoint_prior_count == 1
+
+    def test_recover_bad_checkpoint(self, grid_search):
+        analysis = MockAnalysis()
+
+        grid_search.variable.one = mock.Galaxy
+        grid_search.fit(analysis)
+
+        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+
+        with pytest.raises(exc.CheckpointException):
+            grid_search.fit(analysis)
+
+        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.2)
+        grid_search.variable.one = mock.Galaxy
+
+        with pytest.raises(exc.CheckpointException):
+            grid_search.fit(analysis)

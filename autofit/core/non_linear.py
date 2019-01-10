@@ -702,6 +702,10 @@ class GridSearch(NonLinearOptimizer):
             write(self.variable.prior_count)
 
     @property
+    def is_checkpoint(self):
+        return os.path.exists(self.checkpoint_path)
+
+    @property
     def checkpoint_array(self):
         with open(self.checkpoint_path) as f:
             return f.readlines()
@@ -728,6 +732,11 @@ class GridSearch(NonLinearOptimizer):
 
     def fit(self, analysis):
         self.save_model_info()
+        if self.is_checkpoint:
+            if not self.checkpoint_prior_count == self.variable.prior_count:
+                raise exc.CheckpointException("The number of dimensions does not match that found in the checkpoint")
+            if not self.checkpoint_step_size == self.step_size:
+                raise exc.CheckpointException("The step size does not match that found in the checkpoint")
 
         fitness_function = GridSearch.Fitness(self, analysis, self.variable.instance_from_unit_vector, self.constant)
 
