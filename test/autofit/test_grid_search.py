@@ -158,3 +158,24 @@ class TestGridSearch(object):
 
         with pytest.raises(exc.CheckpointException):
             grid_search.fit(analysis)
+
+    def test_recover_checkpoint(self, grid_search):
+        analysis = MockAnalysis()
+
+        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.two = mock.Galaxy
+
+        grid_search.fit(analysis)
+
+        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+
+        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.two = mock.Galaxy
+
+        analysis = MockAnalysis()
+
+        result = grid_search.fit(analysis)
+
+        assert len(analysis.instances) == 1
+        assert pytest.approx(result.constant.one.redshift) == 0.1
+        assert pytest.approx(result.constant.two.redshift) == 0.7

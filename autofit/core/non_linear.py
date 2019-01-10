@@ -666,21 +666,28 @@ class GridSearch(NonLinearOptimizer):
         self.grid = grid
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_unit_vector, constant):
+        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, checkpoint_count=0, best_fit=-np.inf,
+                     best_cube=None):
             super().__init__(nlo, analysis, constant)
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
-            self.best_fit = -np.inf
-            self.best_cube = None
+            self.checkpoint_count = checkpoint_count
+            self.best_fit = best_fit
+            self.best_cube = best_cube
+            if self.best_cube is not None:
+                self.fit_instance(self.instance_from_unit_vector(self.best_cube))
 
         def __call__(self, cube):
             try:
+                self.total_calls += 1
+                if self.total_calls <= self.checkpoint_count:
+                    #  TODO: is there an issue here where grid_search will forget the previous best fit?
+                    return -np.inf
                 instance = self.instance_from_unit_vector(cube)
                 fit = self.fit_instance(instance)
                 if fit > self.best_fit:
                     self.best_fit = fit
                     self.best_cube = cube
-                self.total_calls += 1
                 self.nlo.save_checkpoint(self.total_calls, self.best_fit, self.best_cube)
                 return fit
             except exc.FitException:
@@ -732,22 +739,37 @@ class GridSearch(NonLinearOptimizer):
 
     def fit(self, analysis):
         self.save_model_info()
+
+        checkpoint_count = 0
+        best_fit = -np.inf
+        best_cube = None
+
         if self.is_checkpoint:
             if not self.checkpoint_prior_count == self.variable.prior_count:
                 raise exc.CheckpointException("The number of dimensions does not match that found in the checkpoint")
             if not self.checkpoint_step_size == self.step_size:
                 raise exc.CheckpointException("The step size does not match that found in the checkpoint")
 
-        fitness_function = GridSearch.Fitness(self, analysis, self.variable.instance_from_unit_vector, self.constant)
+            checkpoint_count = self.checkpoint_count
+            best_fit = self.checkpoint_fit
+            best_cube = self.checkpoint_cube
+
+        fitness_function = GridSearch.Fitness(self,
+                                              analysis,
+                                              self.variable.instance_from_unit_vector,
+                                              self.constant,
+                                              checkpoint_count=checkpoint_count,
+                                              best_fit=best_fit,
+                                              best_cube=best_cube)
 
         logger.info("Running grid search...")
-        output = self.grid(fitness_function, self.variable.prior_count, self.step_size)
+        self.grid(fitness_function, self.variable.prior_count, self.step_size)
 
         logger.info("grid search complete")
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res.variable = self.variable.mapper_from_gaussian_means(output)
+        res.variable = self.variable.mapper_from_gaussian_means(fitness_function.best_cube)
 
         analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
 
