@@ -5,11 +5,13 @@ from autofit.core.optimizer import grid
 
 
 class MockAnalysis(non_linear.Analysis):
-    def __init__(self):
+    def __init__(self, best_fit=(0.5,)):
         self.instances = []
+        self.best_fit = best_fit
 
     def fit(self, instance):
         self.instances.append(instance)
+        return 1 if instance == self.best_fit else 0
 
     def visualize(self, instance, suffix, during_analysis):
         pass
@@ -31,7 +33,12 @@ def tuple_lists_equal(l1, l2):
 class TestGridSearchOptimizer(object):
     def test_1d(self):
         points = []
-        grid(lambda x: points.append(x), 1, 0.1)
+
+        def fit(point):
+            points.append(point)
+            return 0
+
+        grid(fit, 1, 0.1)
 
         assert 11 == len(points)
         assert tuple_lists_equal(
@@ -40,7 +47,12 @@ class TestGridSearchOptimizer(object):
 
     def test_2d(self):
         points = []
-        grid(lambda x: points.append(x), 2, 0.3)
+
+        def fit(point):
+            points.append(point)
+            return 0
+
+        grid(fit, 2, 0.3)
 
         assert 16 == len(points)
         assert tuple_lists_equal([(0.0, 0.0), (0.0, 0.3), (0.0, 0.6), (0.0, 0.9),
@@ -51,10 +63,25 @@ class TestGridSearchOptimizer(object):
 
     def test_3d(self):
         points = []
-        grid(lambda x: points.append(x), 3, 0.5)
+
+        def fit(point):
+            points.append(point)
+            return 0
+
+        grid(fit, 3, 0.5)
 
         assert 3 == len(points[0])
         assert 27 == len(points)
+
+    def test_best_fit(self):
+        best_point = (0.6, 0.3)
+
+        def fit(point):
+            return 1 if point == best_point else 0
+
+        result = grid(fit, 2, 0.3)
+
+        assert result == best_point
 
 # class TestGridSearch(object):
 #     def test_1d(self):
