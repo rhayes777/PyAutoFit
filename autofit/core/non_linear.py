@@ -1,7 +1,11 @@
+import ast
+import datetime as dt
+import functools
 import logging
 import math
 import os
 import shutil
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +16,7 @@ from autofit import conf
 from autofit import exc
 from autofit.core import link
 from autofit.core import model_mapper as mm
+from autofit.core import optimizer as opt
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -66,6 +71,27 @@ class IntervalCounter(object):
         return self.count % self.interval == 0
 
 
+def persistent_timer(func):
+    @functools.wraps(func)
+    def timed_function(optimizer_instance, *args, **kwargs):
+        try:
+            with open("{}/start_time".format(optimizer_instance.path)) as f:
+                start = float(f.read())
+        except FileNotFoundError:
+            start = time.time()
+            with open("{}/start_time".format(optimizer_instance.path), "w+") as f:
+                f.write(str(start))
+
+        result = func(optimizer_instance, *args, **kwargs)
+        logger.info("{} took {} to run".format(
+            optimizer_instance.name,
+            str(dt.timedelta(seconds=time.time() - start))
+        ))
+        return result
+
+    return timed_function
+
+
 class NonLinearOptimizer(object):
 
     def __init__(self, model_mapper=None, name=None):
@@ -81,6 +107,7 @@ class NonLinearOptimizer(object):
         self.named_config = conf.instance.non_linear
 
         name = name or "phase"
+        self.name = name
 
         self.phase_path = "{}/{}/".format(conf.instance.output_path, name)
         self.opt_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
@@ -203,41 +230,39 @@ class NonLinearOptimizer(object):
                 line += ' ' * (70 - len(line)) + paramnames_labels[i]
                 paramnames.write(line + '\n')
 
+    class Fitness(object):
+        def __init__(self, nlo, analysis, constant):
+            self.nlo = nlo
+            self.result = None
+            self.constant = constant
+            self.max_likelihood = -np.inf
+            self.analysis = analysis
+            visualise_interval = conf.instance.general.get('output', 'visualise_interval', int)
+            log_interval = conf.instance.general.get('output', 'log_interval', int)
+            backup_interval = conf.instance.general.get('output', 'backup_interval', int)
 
-class AbstractFitness(object):
-    def __init__(self, nlo, analysis, instance_from_physical_vector, constant):
-        self.nlo = nlo
-        self.result = None
-        self.instance_from_physical_vector = instance_from_physical_vector
-        self.constant = constant
-        self.max_likelihood = -np.inf
-        self.analysis = analysis
-        visualise_interval = conf.instance.general.get('output', 'visualise_interval', int)
-        log_interval = conf.instance.general.get('output', 'log_interval', int)
-        backup_interval = conf.instance.general.get('output', 'backup_interval', int)
+            self.should_log = IntervalCounter(log_interval)
+            self.should_visualise = IntervalCounter(visualise_interval)
+            self.should_backup = IntervalCounter(backup_interval)
 
-        self.should_log = IntervalCounter(log_interval)
-        self.should_visualise = IntervalCounter(visualise_interval)
-        self.should_backup = IntervalCounter(backup_interval)
+        def fit_instance(self, instance):
+            instance += self.constant
 
-    def fit_instance(self, instance):
-        instance += self.constant
+            likelihood = self.analysis.fit(instance)
 
-        likelihood = self.analysis.fit(instance)
+            if likelihood > self.max_likelihood:
+                self.max_likelihood = likelihood
+                self.result = Result(instance, likelihood)
 
-        if likelihood > self.max_likelihood:
-            self.max_likelihood = likelihood
-            self.result = Result(instance, likelihood)
+                if self.should_visualise():
+                    self.analysis.visualize(instance, suffix=None, during_analysis=True)
 
-            if self.should_visualise():
-                self.analysis.visualize(instance, suffix=None, during_analysis=True)
+            if self.should_log():
+                self.analysis.log(instance)
+            if self.should_backup():
+                self.nlo.backup()
 
-        if self.should_log():
-            self.analysis.log(instance)
-        if self.should_backup():
-            self.nlo.backup()
-
-        return likelihood
+            return likelihood
 
 
 class DownhillSimplex(NonLinearOptimizer):
@@ -258,22 +283,26 @@ class DownhillSimplex(NonLinearOptimizer):
 
         logger.debug("Creating DownhillSimplex NLO")
 
+    class Fitness(NonLinearOptimizer.Fitness):
+        def __init__(self, nlo, analysis, instance_from_physical_vector, constant):
+            super().__init__(nlo, analysis, constant)
+            self.instance_from_physical_vector = instance_from_physical_vector
+
+        def __call__(self, vector):
+            try:
+                instance = self.instance_from_physical_vector(vector)
+                likelihood = self.fit_instance(instance)
+            except exc.FitException:
+                likelihood = -np.inf
+            return -2 * likelihood
+
+    @persistent_timer
     def fit(self, analysis):
+        self.save_model_info()
         initial_vector = self.variable.physical_values_from_prior_medians
 
-        class Fitness(AbstractFitness):
-            def __init__(self, nlo, instance_from_physical_vector, constant):
-                super().__init__(nlo, analysis, instance_from_physical_vector, constant)
-
-            def __call__(self, vector):
-                try:
-                    instance = self.instance_from_physical_vector(vector)
-                    likelihood = self.fit_instance(instance)
-                except exc.FitException:
-                    likelihood = -np.inf
-                return -2 * likelihood
-
-        fitness_function = Fitness(self, self.variable.instance_from_physical_vector, self.constant)
+        fitness_function = DownhillSimplex.Fitness(self, analysis, self.variable.instance_from_physical_vector,
+                                                   self.constant)
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
@@ -291,7 +320,8 @@ class DownhillSimplex(NonLinearOptimizer):
 class MultiNest(NonLinearOptimizer):
 
     def __init__(self, model_mapper=None, sigma_limit=3, run=pymultinest.run, name=None):
-        """Class to setup and run a MultiNest lensing and output the MultiNest nlo.
+        """
+        Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
         This interfaces with an input model_mapper, which is used for setting up the individual model instances that \
         are passed to each iteration of MultiNest.
@@ -333,41 +363,41 @@ class MultiNest(NonLinearOptimizer):
         import getdist
         return getdist.mcsamples.loadMCSamples(self.opt_path + '/multinest')
 
+    class Fitness(NonLinearOptimizer.Fitness):
+
+        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, output_results):
+            super().__init__(nlo, analysis, constant)
+            self.instance_from_physical_vector = instance_from_physical_vector
+            self.output_results = output_results
+            self.accepted_samples = 0
+            self.number_of_accepted_samples_between_output = conf.instance.general.get(
+                "output",
+                "number_of_accepted_samples_between_output",
+                int)
+
+        def __call__(self, cube, ndim, nparams, lnew):
+            try:
+                instance = self.instance_from_physical_vector(cube)
+                likelihood = self.fit_instance(instance)
+            except exc.FitException:
+                likelihood = -np.inf
+
+            if likelihood > self.max_likelihood:
+
+                self.accepted_samples += 1
+
+                if self.accepted_samples == self.number_of_accepted_samples_between_output:
+                    self.accepted_samples = 0
+                    self.output_results(during_analysis=True)
+
+            return likelihood
+
+    @persistent_timer
     def fit(self, analysis):
         self.save_model_info()
 
-        class Fitness(AbstractFitness):
-
-            # noinspection PyShadowingNames
-            def __init__(self, nlo, instance_from_physical_vector, constant, output_results):
-                super().__init__(nlo, analysis, instance_from_physical_vector, constant)
-                self.output_results = output_results
-                self.accepted_samples = 0
-                self.number_of_accepted_samples_between_output = conf.instance.general.get(
-                    "output",
-                    "number_of_accepted_samples_between_output",
-                    int)
-
-            def __call__(self, cube, ndim, nparams, lnew):
-                try:
-                    instance = self.instance_from_physical_vector(cube)
-                    likelihood = self.fit_instance(instance)
-                except exc.FitException:
-                    likelihood = -np.inf
-
-                if likelihood > self.max_likelihood:
-
-                    self.accepted_samples += 1
-
-                    if self.accepted_samples == self.number_of_accepted_samples_between_output:
-                        self.accepted_samples = 0
-                        self.output_results(during_analysis=True)
-
-                return likelihood
-
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-
             phys_cube = self.variable.physical_vector_from_hypercube_vector(hypercube_vector=cube)
 
             for i in range(self.variable.prior_count):
@@ -375,8 +405,8 @@ class MultiNest(NonLinearOptimizer):
 
             return cube
 
-        fitness_function = Fitness(self, self.variable.instance_from_physical_vector, self.constant,
-                                   self.output_results)
+        fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector, self.constant,
+                                             self.output_results)
 
         logger.info("Running MultiNest...")
         self.run(fitness_function.__call__,
@@ -567,7 +597,7 @@ class MultiNest(NonLinearOptimizer):
 
             for param_name in self.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(fname=self.phase_path + 'image/pdf_' + param_name + '_1D.png')
+                pdf_plot.export(fname='{}image/pdf_{}_1D.png'.format(self.phase_path, param_name))
 
         plt.close()
 
@@ -594,7 +624,7 @@ class MultiNest(NonLinearOptimizer):
 
                 max_likelihood = self.max_likelihood_from_summary()
 
-                results.write('Most likely model, Likelihood = ' + str(max_likelihood) + '\n')
+                results.write('Most likely model, Likelihood = {}\n'.format(max_likelihood))
                 results.write('\n')
 
                 most_likely = self.most_likely_from_summary()
@@ -603,40 +633,31 @@ class MultiNest(NonLinearOptimizer):
                     raise exc.MultiNestException('MultiNest and GetDist have counted a different number of parameters.'
                                                  'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
 
-                for i in range(self.variable.prior_count):
-                    line = self.param_names[i]
-                    line += ' ' * (60 - len(line)) + str(most_likely[i])
-                    results.write(line + '\n')
+                for j in range(self.variable.prior_count):
+                    most_likely_line = self.param_names[j]
+                    most_likely_line += ' ' * (60 - len(most_likely_line)) + str(most_likely[j])
+                    results.write(most_likely_line + '\n')
 
-                if during_analysis is False:
+                if not during_analysis:
 
                     most_probable = self.most_probable_from_summary()
 
-                    lower_limit = self.model_at_lower_sigma_limit(sigma_limit=3.0)
-                    upper_limit = self.model_at_upper_sigma_limit(sigma_limit=3.0)
+                    def write_for_sigma_limit(limit):
+                        lower_limit = self.model_at_lower_sigma_limit(sigma_limit=limit)
+                        upper_limit = self.model_at_upper_sigma_limit(sigma_limit=limit)
 
-                    results.write('\n')
-                    results.write('Most probable model (3 sigma limits)' + '\n')
-                    results.write('\n')
+                        results.write('\n')
+                        results.write('Most probable model ({} sigma limits)\n'.format(limit))
+                        results.write('\n')
 
-                    for i in range(self.variable.prior_count):
-                        line = self.param_names[i]
-                        line += ' ' * (60 - len(line)) + str(most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + \
-                                str(upper_limit[i]) + ')'
-                        results.write(line + '\n')
+                        for i in range(self.variable.prior_count):
+                            line = self.param_names[i]
+                            line += ' ' * (60 - len(line)) + str(
+                                most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + str(upper_limit[i]) + ')'
+                            results.write(line + '\n')
 
-                    lower_limit = self.model_at_lower_sigma_limit(sigma_limit=1.0)
-                    upper_limit = self.model_at_upper_sigma_limit(sigma_limit=1.0)
-
-                    results.write('\n')
-                    results.write('Most probable model (1 sigma limits)' + '\n')
-                    results.write('\n')
-
-                    for i in range(self.variable.prior_count):
-                        line = self.param_names[i]
-                        line += ' ' * (60 - len(line)) + str(most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + \
-                                str(upper_limit[i]) + ')'
-                        results.write(line + '\n')
+                    write_for_sigma_limit(3.0)
+                    write_for_sigma_limit(1.0)
 
                 results.write('\n')
                 results.write('Constants' + '\n')
@@ -645,6 +666,139 @@ class MultiNest(NonLinearOptimizer):
                 constant_names = self.constant_names
                 constants = self.variable.constant_tuples_ordered_by_id
 
-                for i in range(self.variable.constant_count):
-                    line = constant_names[i]
-                    line += ' ' * (60 - len(line)) + str(constants[i][1].value)
+                for j in range(self.variable.constant_count):
+                    constant_line = constant_names[j]
+                    constant_line += ' ' * (60 - len(constant_line)) + str(constants[j][1].value)
+
+
+class GridSearch(NonLinearOptimizer):
+    def __init__(self, step_size, model_mapper=None, name=None, grid=opt.grid):
+        """
+        Optimise by performing a grid search.
+
+        Parameters
+        ----------
+        step_size: float
+            The step size of the grid search in hypercube space.
+            E.g. a step size of 0.5 will give steps 0.0, 0.5 and 1.0
+        model_mapper: cls
+            The model mapper class (used for testing)
+        name: str
+            The name of run (defaults to 'phase')
+        grid: function
+            A function that takes a fitness function, dimensionality and step size and performs a grid search
+        """
+        super().__init__(model_mapper=model_mapper, name=name)
+        self.step_size = step_size
+        self.grid = grid
+
+    class Fitness(NonLinearOptimizer.Fitness):
+        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, checkpoint_count=0, best_fit=-np.inf,
+                     best_cube=None):
+            super().__init__(nlo, analysis, constant)
+            self.instance_from_unit_vector = instance_from_unit_vector
+            self.total_calls = 0
+            self.checkpoint_count = checkpoint_count
+            self.best_fit = best_fit
+            self.best_cube = best_cube
+            if self.best_cube is not None:
+                self.fit_instance(self.instance_from_unit_vector(self.best_cube))
+
+        def __call__(self, cube):
+            try:
+                self.total_calls += 1
+                if self.total_calls <= self.checkpoint_count:
+                    #  TODO: is there an issue here where grid_search will forget the previous best fit?
+                    return -np.inf
+                instance = self.instance_from_unit_vector(cube)
+                fit = self.fit_instance(instance)
+                if fit > self.best_fit:
+                    self.best_fit = fit
+                    self.best_cube = cube
+                self.nlo.save_checkpoint(self.total_calls, self.best_fit, self.best_cube)
+                return fit
+            except exc.FitException:
+                return -np.inf
+
+    @property
+    def checkpoint_path(self):
+        return "{}/checkpoint".format(self.path)
+
+    def save_checkpoint(self, total_calls, best_fit, best_cube):
+        with open(self.checkpoint_path, "w+") as f:
+            def write(item):
+                f.writelines("{}\n".format(item))
+
+            write(total_calls)
+            write(best_fit)
+            write(best_cube)
+            write(self.step_size)
+            write(self.variable.prior_count)
+
+    @property
+    def is_checkpoint(self):
+        return os.path.exists(self.checkpoint_path)
+
+    @property
+    def checkpoint_array(self):
+        with open(self.checkpoint_path) as f:
+            return f.readlines()
+
+    @property
+    def checkpoint_count(self):
+        return int(self.checkpoint_array[0])
+
+    @property
+    def checkpoint_fit(self):
+        return float(self.checkpoint_array[1])
+
+    @property
+    def checkpoint_cube(self):
+        return ast.literal_eval(self.checkpoint_array[2])
+
+    @property
+    def checkpoint_step_size(self):
+        return float(self.checkpoint_array[3])
+
+    @property
+    def checkpoint_prior_count(self):
+        return int(self.checkpoint_array[4])
+
+    @persistent_timer
+    def fit(self, analysis):
+        self.save_model_info()
+
+        checkpoint_count = 0
+        best_fit = -np.inf
+        best_cube = None
+
+        if self.is_checkpoint:
+            if not self.checkpoint_prior_count == self.variable.prior_count:
+                raise exc.CheckpointException("The number of dimensions does not match that found in the checkpoint")
+            if not self.checkpoint_step_size == self.step_size:
+                raise exc.CheckpointException("The step size does not match that found in the checkpoint")
+
+            checkpoint_count = self.checkpoint_count
+            best_fit = self.checkpoint_fit
+            best_cube = self.checkpoint_cube
+
+        fitness_function = GridSearch.Fitness(self,
+                                              analysis,
+                                              self.variable.instance_from_unit_vector,
+                                              self.constant,
+                                              checkpoint_count=checkpoint_count,
+                                              best_fit=best_fit,
+                                              best_cube=best_cube)
+
+        logger.info("Running grid search...")
+        self.grid(fitness_function, self.variable.prior_count, self.step_size)
+
+        logger.info("grid search complete")
+        res = fitness_function.result
+
+        # Create a set of Gaussian priors from this result and associate them with the result object.
+        res.variable = self.variable.mapper_from_gaussian_means(fitness_function.best_cube)
+
+        analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
+
+        return res
