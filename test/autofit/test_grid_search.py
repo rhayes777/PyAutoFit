@@ -179,3 +179,21 @@ class TestGridSearch(object):
         assert len(analysis.instances) == 1
         assert pytest.approx(result.constant.one.redshift) == 0.1
         assert pytest.approx(result.constant.two.redshift) == 0.7
+
+    def test_recover_midway(self, grid_search):
+        string = "11\n0\n(0.0, 0.0)\n0.1\n2"
+        with open(grid_search.checkpoint_path, "w+") as f:
+            f.write(string)
+
+        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+
+        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.two = mock.Galaxy
+
+        analysis = MockAnalysis()
+
+        result = grid_search.fit(analysis)
+
+        assert len(analysis.instances) == 111
+        assert pytest.approx(result.constant.one.redshift) == 0.1
+        assert pytest.approx(result.constant.two.redshift) == 0.7
