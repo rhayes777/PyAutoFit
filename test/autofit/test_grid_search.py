@@ -40,7 +40,6 @@ class TestGridSearchOptimizer(object):
 
     def test_2d(self):
         points = []
-        points = []
         grid(lambda x: points.append(x), 2, 0.3)
 
         assert 16 == len(points)
@@ -49,6 +48,13 @@ class TestGridSearchOptimizer(object):
                                   (0.6, 0.0), (0.6, 0.3), (0.6, 0.6), (0.6, 0.9),
                                   (0.9, 0.0), (0.9, 0.3), (0.9, 0.6), (0.9, 0.9), ],
                                  points)
+
+    def test_3d(self):
+        points = []
+        grid(lambda x: points.append(x), 3, 0.5)
+
+        assert 3 == len(points[0])
+        assert 27 == len(points)
 
 # class TestGridSearch(object):
 #     def test_1d(self):
