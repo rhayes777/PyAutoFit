@@ -12,6 +12,7 @@ from autofit import conf
 from autofit import exc
 from autofit.core import link
 from autofit.core import model_mapper as mm
+from autofit.core import optimizer
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -675,7 +676,7 @@ class GridSearch(NonLinearOptimizer):
         fitness_function = Fitness(self, self.variable.instance_from_unit_vector, self.constant)
 
         logger.info("Running grid search...")
-        output = self.grid.run(fitness_function, self.variable.prior_count, self.step_size)
+        output = self.grid(fitness_function, self.variable.prior_count, self.step_size)
 
         logger.info("grid search complete")
         res = fitness_function.result
