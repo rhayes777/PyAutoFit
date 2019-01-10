@@ -258,23 +258,25 @@ class DownhillSimplex(NonLinearOptimizer):
 
         logger.debug("Creating DownhillSimplex NLO")
 
+    class Fitness(AbstractFitness):
+        def __init__(self, nlo, analysis, instance_from_physical_vector, constant):
+            super().__init__(nlo, analysis, constant)
+            self.instance_from_physical_vector = instance_from_physical_vector
+
+        def __call__(self, vector):
+            try:
+                instance = self.instance_from_physical_vector(vector)
+                likelihood = self.fit_instance(instance)
+            except exc.FitException:
+                likelihood = -np.inf
+            return -2 * likelihood
+
     def fit(self, analysis):
+        self.save_model_info()
         initial_vector = self.variable.physical_values_from_prior_medians
 
-        class Fitness(AbstractFitness):
-            def __init__(self, nlo, instance_from_physical_vector, constant):
-                super().__init__(nlo, analysis, constant)
-                self.instance_from_physical_vector = instance_from_physical_vector
-
-            def __call__(self, vector):
-                try:
-                    instance = self.instance_from_physical_vector(vector)
-                    likelihood = self.fit_instance(instance)
-                except exc.FitException:
-                    likelihood = -np.inf
-                return -2 * likelihood
-
-        fitness_function = Fitness(self, self.variable.instance_from_physical_vector, self.constant)
+        fitness_function = DownhillSimplex.Fitness(self, analysis, self.variable.instance_from_physical_vector,
+                                                   self.constant)
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
@@ -334,42 +336,40 @@ class MultiNest(NonLinearOptimizer):
         import getdist
         return getdist.mcsamples.loadMCSamples(self.opt_path + '/multinest')
 
+    class Fitness(AbstractFitness):
+
+        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, output_results):
+            super().__init__(nlo, analysis, constant)
+            self.instance_from_physical_vector = instance_from_physical_vector
+            self.output_results = output_results
+            self.accepted_samples = 0
+            self.number_of_accepted_samples_between_output = conf.instance.general.get(
+                "output",
+                "number_of_accepted_samples_between_output",
+                int)
+
+        def __call__(self, cube, ndim, nparams, lnew):
+            try:
+                instance = self.instance_from_physical_vector(cube)
+                likelihood = self.fit_instance(instance)
+            except exc.FitException:
+                likelihood = -np.inf
+
+            if likelihood > self.max_likelihood:
+
+                self.accepted_samples += 1
+
+                if self.accepted_samples == self.number_of_accepted_samples_between_output:
+                    self.accepted_samples = 0
+                    self.output_results(during_analysis=True)
+
+            return likelihood
+
     def fit(self, analysis):
         self.save_model_info()
 
-        class Fitness(AbstractFitness):
-
-            # noinspection PyShadowingNames
-            def __init__(self, nlo, instance_from_physical_vector, constant, output_results):
-                super().__init__(nlo, analysis, constant)
-                self.instance_from_physical_vector = instance_from_physical_vector
-                self.output_results = output_results
-                self.accepted_samples = 0
-                self.number_of_accepted_samples_between_output = conf.instance.general.get(
-                    "output",
-                    "number_of_accepted_samples_between_output",
-                    int)
-
-            def __call__(self, cube, ndim, nparams, lnew):
-                try:
-                    instance = self.instance_from_physical_vector(cube)
-                    likelihood = self.fit_instance(instance)
-                except exc.FitException:
-                    likelihood = -np.inf
-
-                if likelihood > self.max_likelihood:
-
-                    self.accepted_samples += 1
-
-                    if self.accepted_samples == self.number_of_accepted_samples_between_output:
-                        self.accepted_samples = 0
-                        self.output_results(during_analysis=True)
-
-                return likelihood
-
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-
             phys_cube = self.variable.physical_vector_from_hypercube_vector(hypercube_vector=cube)
 
             for i in range(self.variable.prior_count):
@@ -377,8 +377,8 @@ class MultiNest(NonLinearOptimizer):
 
             return cube
 
-        fitness_function = Fitness(self, self.variable.instance_from_physical_vector, self.constant,
-                                   self.output_results)
+        fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector, self.constant,
+                                             self.output_results)
 
         logger.info("Running MultiNest...")
         self.run(fitness_function.__call__,
@@ -673,22 +673,22 @@ class GridSearch(NonLinearOptimizer):
         self.step_size = step_size
         self.grid = grid
 
+    class Fitness(AbstractFitness):
+        def __init__(self, nlo, analysis, instance_from_unit_vector, constant):
+            super().__init__(nlo, analysis, constant)
+            self.instance_from_unit_vector = instance_from_unit_vector
+
+        def __call__(self, cube):
+            try:
+                instance = self.instance_from_unit_vector(cube)
+                return self.fit_instance(instance)
+            except exc.FitException:
+                return -np.inf
+
     def fit(self, analysis):
-        class Fitness(AbstractFitness):
+        self.save_model_info()
 
-            # noinspection PyShadowingNames
-            def __init__(self, nlo, instance_from_unit_vector, constant):
-                super().__init__(nlo, analysis, constant)
-                self.instance_from_unit_vector = instance_from_unit_vector
-
-            def __call__(self, cube):
-                try:
-                    instance = self.instance_from_unit_vector(cube)
-                    return self.fit_instance(instance)
-                except exc.FitException:
-                    return -np.inf
-
-        fitness_function = Fitness(self, self.variable.instance_from_unit_vector, self.constant)
+        fitness_function = GridSearch.Fitness(self, analysis, self.variable.instance_from_unit_vector, self.constant)
 
         logger.info("Running grid search...")
         output = self.grid(fitness_function, self.variable.prior_count, self.step_size)
