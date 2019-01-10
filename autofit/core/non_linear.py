@@ -1,3 +1,4 @@
+import ast
 import logging
 import math
 import os
@@ -694,6 +695,23 @@ class GridSearch(NonLinearOptimizer):
             f.writelines("{}\n".format(total_calls))
             f.writelines("{}\n".format(best_fit))
             f.writelines("{}\n".format(best_cube))
+
+    @property
+    def checkpoint_array(self):
+        with open(self.checkpoint_path) as f:
+            return f.readlines()
+
+    @property
+    def checkpoint_count(self):
+        return int(self.checkpoint_array[0])
+
+    @property
+    def checkpoint_fit(self):
+        return float(self.checkpoint_array[1])
+
+    @property
+    def checkpoint_cube(self):
+        return ast.literal_eval(self.checkpoint_array[2])
 
     def fit(self, analysis):
         self.save_model_info()

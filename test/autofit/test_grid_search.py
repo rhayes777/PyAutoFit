@@ -129,6 +129,11 @@ class TestGridSearch(object):
 
     def test_checkpoint(self, grid_search):
         analysis = MockAnalysis()
+
+        grid_search.variable.one = mock.Galaxy
         grid_search.fit(analysis)
 
         assert path.exists(grid_search.checkpoint_path)
+        assert grid_search.checkpoint_count == 11
+        assert grid_search.checkpoint_fit == 0.
+        assert grid_search.checkpoint_cube == (0.0,)
