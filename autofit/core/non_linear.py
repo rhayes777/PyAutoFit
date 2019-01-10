@@ -668,13 +668,32 @@ class GridSearch(NonLinearOptimizer):
         def __init__(self, nlo, analysis, instance_from_unit_vector, constant):
             super().__init__(nlo, analysis, constant)
             self.instance_from_unit_vector = instance_from_unit_vector
+            self.total_calls = 0
+            self.best_fit = -np.inf
+            self.best_cube = None
 
         def __call__(self, cube):
             try:
                 instance = self.instance_from_unit_vector(cube)
-                return self.fit_instance(instance)
+                fit = self.fit_instance(instance)
+                if fit > self.best_fit:
+                    self.best_fit = fit
+                    self.best_cube = cube
+                self.total_calls += 1
+                self.nlo.save_checkpoint(self.total_calls, self.best_fit, self.best_cube)
+                return fit
             except exc.FitException:
                 return -np.inf
+
+    @property
+    def checkpoint_path(self):
+        return "{}/checkpoint".format(self.path)
+
+    def save_checkpoint(self, total_calls, best_fit, best_cube):
+        with open(self.checkpoint_path, "w+") as f:
+            f.writelines("{}\n".format(total_calls))
+            f.writelines("{}\n".format(best_fit))
+            f.writelines("{}\n".format(best_cube))
 
     def fit(self, analysis):
         self.save_model_info()
