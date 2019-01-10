@@ -6,13 +6,16 @@ from autofit.core.optimizer import grid
 
 
 class MockAnalysis(non_linear.Analysis):
-    def __init__(self, best_fit=(0.5,)):
+    def __init__(self):
         self.instances = []
-        self.best_fit = best_fit
 
     def fit(self, instance):
         self.instances.append(instance)
-        return 1 if instance == self.best_fit else 0
+        try:
+            return 1 if pytest.approx(instance.one.redshift) == 0.1 and pytest.approx(
+                instance.two.redshift) == 0.7 else 0
+        except AttributeError:
+            return 0
 
     def visualize(self, instance, suffix, during_analysis):
         pass
@@ -99,3 +102,15 @@ class TestGridSearch(object):
 
         assert isinstance(instance.one, mock.Galaxy)
         assert instance.one.redshift == 0.5
+
+    def test_2d(self):
+        grid_search = non_linear.GridSearch(step_size=0.1)
+        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.two = mock.Galaxy
+
+        analysis = MockAnalysis()
+
+        result = grid_search.fit(analysis)
+
+        assert pytest.approx(result.constant.one.redshift) == 0.1
+        assert pytest.approx(result.constant.two.redshift) == 0.7
