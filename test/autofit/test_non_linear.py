@@ -5,6 +5,7 @@ from functools import wraps
 
 import pytest
 
+from autofit.core import prior as p
 from autofit import conf
 from autofit.core import model_mapper
 from autofit.core import non_linear
@@ -432,7 +433,7 @@ class TestMultiNest(object):
             conf.instance.output_path = mn_summary_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
-            mapper.mock_class.five = model_mapper.Constant(10.0)
+            mapper.mock_class.five = p.Constant(10.0)
 
             mn = non_linear.MultiNest(model_mapper=mapper)
             create_summary_4_parameters(path=mn.opt_path)
@@ -507,7 +508,7 @@ class TestMultiNest(object):
             conf.instance.output_path = mn_summary_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
-            mapper.mock_class.five = model_mapper.Constant(10.0)
+            mapper.mock_class.five = p.Constant(10.0)
             mn = non_linear.MultiNest(model_mapper=mapper)
             create_summary_4_parameters(path=mn.opt_path)
 

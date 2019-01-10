@@ -1,3 +1,4 @@
+from autofit.core import prior as p
 from autofit.core import model_mapper as mm
 
 
@@ -24,13 +25,13 @@ class GalaxyModel(mm.AbstractPriorModel):
         self.kwargs = kwargs
 
     @property
-    @mm.cast_collection(mm.PriorNameValue)
+    @p.cast_collection(p.PriorNameValue)
     def prior_tuples(self):
-        return [item for item in self.__dict__.items() if isinstance(item[1], mm.Prior)] + [
+        return [item for item in self.__dict__.items() if isinstance(item[1], p.Prior)] + [
             ("redshift", self.redshift.redshift)] if self.redshift is not None else []
 
     @property
-    @mm.cast_collection(mm.PriorModelNameValue)
+    @p.cast_collection(mm.PriorModelNameValue)
     def flat_prior_model_tuples(self):
         return [item for item in self.__dict__.items() if isinstance(item[1], mm.AbstractPriorModel)]
 
