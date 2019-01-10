@@ -692,9 +692,12 @@ class GridSearch(NonLinearOptimizer):
 
     def save_checkpoint(self, total_calls, best_fit, best_cube):
         with open(self.checkpoint_path, "w+") as f:
-            f.writelines("{}\n".format(total_calls))
-            f.writelines("{}\n".format(best_fit))
-            f.writelines("{}\n".format(best_cube))
+            def write(item):
+                f.writelines("{}\n".format(item))
+
+            write(total_calls)
+            write(best_fit)
+            write(best_cube)
 
     @property
     def checkpoint_array(self):

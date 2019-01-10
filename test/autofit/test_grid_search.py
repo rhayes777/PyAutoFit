@@ -133,6 +133,8 @@ class TestGridSearch(object):
         grid_search.variable.one = mock.Galaxy
         grid_search.fit(analysis)
 
+        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+
         assert path.exists(grid_search.checkpoint_path)
         assert grid_search.checkpoint_count == 11
         assert grid_search.checkpoint_fit == 0.
