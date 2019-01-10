@@ -654,6 +654,21 @@ class MultiNest(NonLinearOptimizer):
 
 class GridSearch(NonLinearOptimizer):
     def __init__(self, step_size, model_mapper=None, name=None, grid=optimizer.grid):
+        """
+        Optimise by performing a grid search.
+
+        Parameters
+        ----------
+        step_size: float
+            The step size of the grid search in hypercube space.
+            E.g. a step size of 0.5 will give steps 0.0, 0.5 and 1.0
+        model_mapper: cls
+            The model mapper class (used for testing)
+        name: str
+            The name of run (defaults to 'phase')
+        grid: function
+            A function that takes a fitness function, dimensionality and step size and performs a grid search
+        """
         super().__init__(model_mapper=model_mapper, name=name)
         self.step_size = step_size
         self.grid = grid
