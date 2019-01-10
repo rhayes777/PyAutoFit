@@ -698,6 +698,8 @@ class GridSearch(NonLinearOptimizer):
             write(total_calls)
             write(best_fit)
             write(best_cube)
+            write(self.step_size)
+            write(self.variable.prior_count)
 
     @property
     def checkpoint_array(self):
@@ -715,6 +717,14 @@ class GridSearch(NonLinearOptimizer):
     @property
     def checkpoint_cube(self):
         return ast.literal_eval(self.checkpoint_array[2])
+
+    @property
+    def checkpoint_step_size(self):
+        return float(self.checkpoint_array[3])
+
+    @property
+    def checkpoint_prior_count(self):
+        return int(self.checkpoint_array[4])
 
     def fit(self, analysis):
         self.save_model_info()

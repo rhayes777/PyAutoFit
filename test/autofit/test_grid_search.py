@@ -139,3 +139,5 @@ class TestGridSearch(object):
         assert grid_search.checkpoint_count == 11
         assert grid_search.checkpoint_fit == 0.
         assert grid_search.checkpoint_cube == (0.0,)
+        assert grid_search.checkpoint_step_size == 0.1
+        assert grid_search.checkpoint_prior_count == 1
