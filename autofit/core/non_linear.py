@@ -293,7 +293,8 @@ class DownhillSimplex(NonLinearOptimizer):
 class MultiNest(NonLinearOptimizer):
 
     def __init__(self, model_mapper=None, sigma_limit=3, run=pymultinest.run, name=None):
-        """Class to setup and run a MultiNest lensing and output the MultiNest nlo.
+        """
+        Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
         This interfaces with an input model_mapper, which is used for setting up the individual model instances that \
         are passed to each iteration of MultiNest.
