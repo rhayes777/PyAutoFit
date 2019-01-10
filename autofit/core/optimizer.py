@@ -1,4 +1,22 @@
 def grid(fitness_function, no_dimensions, step_size):
+    """
+    Grid search using a fitness function over a given number of dimensions and a given step size between inclusive
+    limits of 0 and 1.
+
+    Parameters
+    ----------
+    fitness_function: function
+        A function that takes a tuple of floats as an argument
+    no_dimensions: int
+        The number of dimensions of the grid search
+    step_size: float
+        The step size of the grid search
+
+    Returns
+    -------
+    best_arguments: tuple[float]
+        The tuple of arguments that gave the highest fitness
+    """
     best_fitness = float("-inf")
     best_arguments = None
 
@@ -12,6 +30,22 @@ def grid(fitness_function, no_dimensions, step_size):
 
 
 def make_lists(no_dimensions, step_size):
+    """
+    Create a list of lists of floats covering every combination across no_dimensions of points of integer step size
+    between 0 and 1 inclusive.
+
+    Parameters
+    ----------
+    no_dimensions: int
+        The number of dimensions, that is the length of the lists
+    step_size: float
+        The step size
+
+    Returns
+    -------
+    lists: [[float]]
+        A list of lists
+    """
     if no_dimensions == 0:
         return [[]]
 
