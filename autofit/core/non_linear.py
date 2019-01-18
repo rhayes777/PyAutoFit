@@ -75,18 +75,23 @@ def persistent_timer(func):
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
         try:
-            with open("{}/start_time".format(optimizer_instance.path)) as f:
+            with open("{}/.start_time".format(optimizer_instance.path)) as f:
                 start = float(f.read())
         except FileNotFoundError:
             start = time.time()
-            with open("{}/start_time".format(optimizer_instance.path), "w+") as f:
+            with open("{}/.start_time".format(optimizer_instance.path), "w+") as f:
                 f.write(str(start))
 
         result = func(optimizer_instance, *args, **kwargs)
+
+        execution_time = str(dt.timedelta(seconds=time.time() - start))
+
         logger.info("{} took {} to run".format(
             optimizer_instance.name,
-            str(dt.timedelta(seconds=time.time() - start))
+            execution_time
         ))
+        with open("{}/execution_time".format(optimizer_instance.phase_path), "w+") as f:
+            f.write(execution_time)
         return result
 
     return timed_function
@@ -722,7 +727,7 @@ class GridSearch(NonLinearOptimizer):
 
     @property
     def checkpoint_path(self):
-        return "{}/checkpoint".format(self.path)
+        return "{}/.checkpoint".format(self.path)
 
     def save_checkpoint(self, total_calls, best_fit, best_cube):
         with open(self.checkpoint_path, "w+") as f:
