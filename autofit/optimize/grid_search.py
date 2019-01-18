@@ -1,6 +1,21 @@
+import numpy as np
+
 from autofit.mapper.prior import UniformPrior
 from autofit.optimize import non_linear
 from autofit.optimize import optimizer
+
+
+class GridSearchResult(object):
+    def __init__(self, results, lists):
+        self.lists = lists
+        self.results = results
+        self.no_dimensions = len(self.lists[0])
+        self.side_length = int(len(self.lists) / self.no_dimensions)
+
+    @property
+    def figure_of_merit_array(self):
+        return np.reshape(np.array([result.figure_of_merit for result in self.results]),
+                          tuple(self.side_length for _ in range(self.no_dimensions)))
 
 
 class GridSearch(object):
@@ -29,4 +44,4 @@ class GridSearch(object):
             result = self.optimizer_class(model_mapper, "{}/{}".format(self.name, "_".join(map(str, values)))).fit(
                 analysis)
             results.append(result)
-        return results
+        return GridSearchResult(results, lists)

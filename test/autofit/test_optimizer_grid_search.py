@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from autofit import mock
@@ -85,6 +86,8 @@ class MockClassContainer(object):
 
             def fit(self, analysis):
                 fit_args.append(analysis)
+                # noinspection PyTypeChecker
+                return non_linear.Result(None, analysis.fit(None), None)
 
         class MockAnalysis(non_linear.Analysis):
             def fit(self, instance):
@@ -108,34 +111,40 @@ def make_mock_class_container():
     return MockClassContainer()
 
 
+@pytest.fixture(name="grid_search_05")
+def make_grid_search_05(mapper, container):
+    return gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.5,
+                         name="sample_name")
+
+
 class TestGridNLOBehaviour(object):
-    def test_calls(self, mapper, container):
-        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.1)
+    def test_calls(self, grid_search_05, container, mapper):
+        result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
-        results = grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0])
+        assert len(container.init_args) == 2
+        assert len(container.fit_args) == 2
+        assert len(result.results) == 2
 
-        assert len(container.init_args) == 10
-        assert len(container.fit_args) == 10
-        assert len(results) == 10
-
-    def test_names_1d(self, mapper, container):
-        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.5,
-                                    name="sample_name")
-
-        grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0])
+    def test_names_1d(self, grid_search_05, container, mapper):
+        grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
         assert len(container.init_args) == 2
         assert container.init_args[0][1] == "sample_name/0.0"
         assert container.init_args[1][1] == "sample_name/0.5"
 
-    def test_names_2d(self, mapper, container):
-        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.5,
-                                    name="sample_name")
-
-        grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
+    def test_names_2d(self, grid_search_05, mapper, container):
+        grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
 
         assert len(container.init_args) == 4
         assert container.init_args[0][1] == "sample_name/0.0_0.0"
         assert container.init_args[1][1] == "sample_name/0.0_0.5"
         assert container.init_args[2][1] == "sample_name/0.5_0.0"
         assert container.init_args[3][1] == "sample_name/0.5_0.5"
+
+    def test_results(self, grid_search_05, mapper, container):
+        result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
+
+        assert len(result.results) == 4
+        assert result.no_dimensions == 2
+        assert np.equal(result.figure_of_merit_array, np.array([[1.0, 1.0],
+                                                                [1.0, 1.0]])).all()
