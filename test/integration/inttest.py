@@ -17,6 +17,13 @@ try:
 except FileNotFoundError:
     logging.info("Not found")
 
+try:
+    output_dir = "{}/../../workspace/output/integration_grid_search".format(path.dirname(path.realpath(__file__)))
+    logger.info("Removing {}".format(output_dir))
+    shutil.rmtree(output_dir)
+except FileNotFoundError:
+    logging.info("Not found")
+
 
 class Analysis(non_linear.Analysis):
     def fit(self, instance):
