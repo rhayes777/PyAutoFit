@@ -5,6 +5,7 @@ from autofit.core import fit_util
 
 class DataFit(object):
 
+    # noinspection PyUnresolvedReferences
     def __init__(self, data, noise_map, mask, model_data):
         """Class to fit data composed of just one piece of data (e.g. not a list).
 
@@ -55,6 +56,7 @@ class DataFit(object):
             chi_squared=self.chi_squared, noise_normalization=self.noise_normalization)
 
 
+# noinspection PyUnresolvedReferences
 class DataFitStack(object):
 
     def __init__(self, datas, noise_maps, masks, model_datas):
