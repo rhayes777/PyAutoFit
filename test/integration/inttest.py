@@ -61,5 +61,5 @@ class TestCase(object):
 
 
 if __name__ == "__main__":
-    # TestCase().test_integration()
+    TestCase().test_integration()
     TestCase().test_grid()
