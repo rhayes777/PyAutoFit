@@ -1,13 +1,14 @@
 import pytest
 
 from autofit import mock
-from autofit.mapper import model_mapper
+from autofit.mapper import model_mapper as mm
 from autofit.optimize import grid_search as gs
+from autofit.optimize import non_linear
 
 
 @pytest.fixture(name="mapper")
 def make_mapper():
-    mapper = model_mapper.ModelMapper()
+    mapper = mm.ModelMapper()
     mapper.profile = mock.GeometryProfile
     return mapper
 
@@ -74,5 +75,31 @@ class TestGridSearchablePriors(object):
 
 class TestGridNLOBehaviour(object):
     def test_calls(self, mapper):
-        # non_linear.NonLinearOptimizer
-        pass
+        init_args = []
+        fit_args = []
+
+        class MockOptimizer(non_linear.NonLinearOptimizer):
+            def __init__(self, model_mapper, name):
+                super().__init__(model_mapper, name)
+                init_args.append((model_mapper, name))
+
+            def fit(self, analysis):
+                fit_args.append(analysis)
+
+        class MockAnalysis(non_linear.Analysis):
+            def fit(self, instance):
+                return 1
+
+            def visualize(self, instance, suffix, during_analysis):
+                pass
+
+            def log(self, instance):
+                pass
+
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=MockOptimizer, step_size=0.1)
+
+        results = grid_search.fit(MockAnalysis(), [mapper.profile.centre_0])
+
+        assert len(init_args) == 10
+        assert len(fit_args) == 10
+        assert len(results) == 10
