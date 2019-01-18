@@ -14,7 +14,8 @@ def make_mapper():
 
 class TestGridSearchablePriors(object):
     def test_generated_models(self, mapper):
-        grid_search = gs.GridSearch(mapper, variables=[mapper.profile.centre_0, mapper.profile.centre_1], step_size=0.1)
+        grid_search = gs.GridSearch(model_mapper=mapper, grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1],
+                                    step_size=0.1)
         mappers = list(grid_search.models_mappers)
 
         assert len(mappers) == 100
@@ -30,7 +31,7 @@ class TestGridSearchablePriors(object):
         assert mappers[-1].profile.centre_1.upper_limit == 1.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = gs.GridSearch(mapper, variables=[mapper.profile.centre_0], step_size=0.1)
+        grid_search = gs.GridSearch(model_mapper=mapper, grid_priors=[mapper.profile.centre_0], step_size=0.1)
         mappers = list(grid_search.models_mappers)
 
         assert len(mappers) == 10
@@ -48,7 +49,8 @@ class TestGridSearchablePriors(object):
     def test_tied_priors(self, mapper):
         mapper.profile.centre_0 = mapper.profile.centre_1
 
-        grid_search = gs.GridSearch(mapper, variables=[mapper.profile.centre_0, mapper.profile.centre_1], step_size=0.1)
+        grid_search = gs.GridSearch(model_mapper=mapper, grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1],
+                                    step_size=0.1)
         mappers = list(grid_search.models_mappers)
 
         assert len(mappers) == 10
