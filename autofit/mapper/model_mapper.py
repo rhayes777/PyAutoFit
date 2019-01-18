@@ -433,6 +433,24 @@ class ModelMapper(AbstractModel):
 
         return model_instance
 
+    def mapper_from_partial_prior_arguments(self, arguments):
+        """
+        Creates a new model mapper from a dictionary mapping_matrix existing priors to new priors, keeping existing
+        priors where no mapping is provided.
+
+        Parameters
+        ----------
+        arguments: {Prior: Prior}
+            A dictionary mapping_matrix priors to priors
+
+        Returns
+        -------
+        model_mapper: ModelMapper
+            A new model mapper with updated priors.
+        """
+        original_prior_dict = {prior: prior for prior in self.priors}
+        return self.mapper_from_prior_arguments({**original_prior_dict, **arguments})
+
     def mapper_from_prior_arguments(self, arguments):
         """
         Creates a new model mapper from a dictionary mapping_matrix existing priors to new priors.
