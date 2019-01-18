@@ -73,8 +73,8 @@ class TestGridSearchablePriors(object):
             assert mapper.profile.centre_0 == mapper.profile.centre_1
 
 
-class TestGridNLOBehaviour(object):
-    def test_calls(self, mapper):
+class MockClassContainer(object):
+    def __init__(self):
         init_args = []
         fit_args = []
 
@@ -96,10 +96,24 @@ class TestGridNLOBehaviour(object):
             def log(self, instance):
                 pass
 
-        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=MockOptimizer, step_size=0.1)
+        self.init_args = init_args
+        self.fit_args = fit_args
 
-        results = grid_search.fit(MockAnalysis(), [mapper.profile.centre_0])
+        self.MockOptimizer = MockOptimizer
+        self.MockAnalysis = MockAnalysis
 
-        assert len(init_args) == 10
-        assert len(fit_args) == 10
+
+@pytest.fixture(name="container")
+def make_mock_class_container():
+    return MockClassContainer()
+
+
+class TestGridNLOBehaviour(object):
+    def test_calls(self, mapper, container):
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.1)
+
+        results = grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0])
+
+        assert len(container.init_args) == 10
+        assert len(container.fit_args) == 10
         assert len(results) == 10
