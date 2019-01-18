@@ -65,6 +65,3 @@ class TestGridSearchablePriors(object):
 
         for mapper in mappers:
             assert mapper.profile.centre_0 == mapper.profile.centre_1
-
-# With non-searched dimensions
-# With tied priors
