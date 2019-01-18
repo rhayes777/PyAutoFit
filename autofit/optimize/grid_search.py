@@ -6,7 +6,7 @@ class GridSearch(object):
     def __init__(self, source_model_mapper, variables, step_size=0.1):
         self.source_model_mapper = source_model_mapper
         self.original_prior_dict = {prior: prior for prior in self.source_model_mapper.priors}
-        self.variables = variables
+        self.variables = set(variables)
         self.step_size = step_size
 
     @property
