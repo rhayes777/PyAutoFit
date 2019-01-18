@@ -117,3 +117,25 @@ class TestGridNLOBehaviour(object):
         assert len(container.init_args) == 10
         assert len(container.fit_args) == 10
         assert len(results) == 10
+
+    def test_names_1d(self, mapper, container):
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.5,
+                                    name="sample_name")
+
+        grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0])
+
+        assert len(container.init_args) == 2
+        assert container.init_args[0][1] == "sample_name/0.0"
+        assert container.init_args[1][1] == "sample_name/0.5"
+
+    def test_names_2d(self, mapper, container):
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.5,
+                                    name="sample_name")
+
+        grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
+
+        assert len(container.init_args) == 4
+        assert container.init_args[0][1] == "sample_name/0.0_0.0"
+        assert container.init_args[1][1] == "sample_name/0.0_0.5"
+        assert container.init_args[2][1] == "sample_name/0.5_0.0"
+        assert container.init_args[3][1] == "sample_name/0.5_0.5"
