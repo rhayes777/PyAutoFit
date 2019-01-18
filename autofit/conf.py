@@ -229,25 +229,8 @@ class LimitConfig(AncestorConfig):
         return tuple(map(float, arr[:2]))
 
 
-class WidthConfig(AncestorConfig):
-    def get(self, module_name, class_name, attribute_name):
-        """
-
-        Parameters
-        ----------
-        module_name: String
-            The analysis_path of the module
-        class_name: String
-            The analysis_path of the class
-        attribute_name: String
-            The analysis_path of the attribute
-
-        Returns
-        -------
-        width: float
-            The default width of a gaussian prior for this attribute
-        """
-        return float(super(WidthConfig, self).get(module_name, class_name, attribute_name))
+class WidthConfig(DefaultPriorConfig):
+    pass
 
 
 class Config(object):

@@ -1182,8 +1182,8 @@ def make_mapper_with_list():
 class TestGaussianWidthConfig(object):
 
     def test_(self):
-        assert 1 == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'one')
-        assert 2 == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'two')
+        assert ["a", 1] == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'one')
+        assert ["a", 2] == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'two')
 
     def test_prior_classes(self, mapper_with_one):
         assert mapper_with_one.prior_class_dict == {mapper_with_one.one.one: MockClassMM,
