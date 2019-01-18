@@ -5,10 +5,9 @@ from functools import wraps
 
 import pytest
 
-from autofit.core import prior as p
 from autofit import conf
-from autofit.core import model_mapper
-from autofit.core import non_linear
+from autofit.mapper import model_mapper, prior as p
+from autofit.optimize import non_linear
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 

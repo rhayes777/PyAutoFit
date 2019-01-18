@@ -1,5 +1,4 @@
-from autofit.core import prior as p
-from autofit.core import model_mapper as mm
+from autofit.mapper import model_mapper as mm, prior as p
 
 
 class Galaxy(object):

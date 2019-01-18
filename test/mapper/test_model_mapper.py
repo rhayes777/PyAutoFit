@@ -6,8 +6,7 @@ import pytest
 from autofit import conf
 from autofit import exc
 from autofit import mock
-from autofit.core import model_mapper
-from autofit.core import prior as p
+from autofit.mapper import model_mapper, prior as p
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 

@@ -1,6 +1,6 @@
 import inspect
 
-from autofit.core import model_mapper as mm
+from autofit.mapper import model_mapper as mm
 
 
 def is_prior(value):

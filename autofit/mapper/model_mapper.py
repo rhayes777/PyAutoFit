@@ -5,7 +5,7 @@ import re
 
 from autofit import conf
 from autofit import exc
-from autofit.core.prior import TuplePrior, GaussianPrior, LogUniformPrior, UniformPrior, Prior, Constant, \
+from autofit.mapper.prior import TuplePrior, GaussianPrior, LogUniformPrior, UniformPrior, Prior, Constant, \
     cast_collection, PriorNameValue, ConstantNameValue, AttributeNameValue
 
 
@@ -161,12 +161,16 @@ class ModelMapper(AbstractModel):
         """
         Returns
         -------
-        prior_tuple_dict: {Prior: PriorTuple}
+        prior_tuple_dict: [(Prior, PriorTuple)]
             The set of all priors associated with this mapper
         """
         return {prior_tuple.prior: prior_tuple
                 for name, prior_model in self.prior_model_tuples
                 for prior_tuple in prior_model.prior_tuples}.values()
+
+    @property
+    def priors(self):
+        return [prior_tuple.prior for prior_tuple in self.prior_tuple_dict]
 
     @property
     @cast_collection(ConstantNameValue)
@@ -428,6 +432,24 @@ class ModelMapper(AbstractModel):
                     prior_model_tuple.prior_model.instance_for_arguments(arguments))
 
         return model_instance
+
+    def mapper_from_partial_prior_arguments(self, arguments):
+        """
+        Creates a new model mapper from a dictionary mapping_matrix existing priors to new priors, keeping existing
+        priors where no mapping is provided.
+
+        Parameters
+        ----------
+        arguments: {Prior: Prior}
+            A dictionary mapping_matrix priors to priors
+
+        Returns
+        -------
+        model_mapper: ModelMapper
+            A new model mapper with updated priors.
+        """
+        original_prior_dict = {prior: prior for prior in self.priors}
+        return self.mapper_from_prior_arguments({**original_prior_dict, **arguments})
 
     def mapper_from_prior_arguments(self, arguments):
         """
