@@ -722,7 +722,7 @@ class GridSearch(NonLinearOptimizer):
 
     @property
     def checkpoint_path(self):
-        return "{}/checkpoint".format(self.path)
+        return "{}/.checkpoint".format(self.path)
 
     def save_checkpoint(self, total_calls, best_fit, best_cube):
         with open(self.checkpoint_path, "w+") as f:
