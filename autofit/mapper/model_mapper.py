@@ -161,12 +161,16 @@ class ModelMapper(AbstractModel):
         """
         Returns
         -------
-        prior_tuple_dict: {Prior: PriorTuple}
+        prior_tuple_dict: [(Prior, PriorTuple)]
             The set of all priors associated with this mapper
         """
         return {prior_tuple.prior: prior_tuple
                 for name, prior_model in self.prior_model_tuples
                 for prior_tuple in prior_model.prior_tuples}.values()
+
+    @property
+    def priors(self):
+        return [prior_tuple.prior for prior_tuple in self.prior_tuple_dict]
 
     @property
     @cast_collection(ConstantNameValue)
