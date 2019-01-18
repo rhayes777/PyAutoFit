@@ -7,6 +7,13 @@ class Galaxy(object):
         self.redshift = redshift
 
 
+class RelativeWidth(object):
+    def __init__(self, one, two, three):
+        self.one = one
+        self.two = two
+        self.three = three
+
+
 class Redshift(object):
     def __init__(self, redshift):
         self.redshift = redshift

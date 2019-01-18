@@ -474,12 +474,19 @@ class ModelMapper(AbstractModel):
         for i, prior_tuple in enumerate(prior_tuples):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
-            width = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
+            mean = tuples[i][0]
+            width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
+            if width_type == "r":
+                width = value * mean
+            elif width_type == "a":
+                width = value
+            else:
+                raise exc.PriorException("Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0")
             if isinstance(prior, GaussianPrior):
                 limits = (prior.lower_limit, prior.upper_limit)
             else:
                 limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, prior_tuple.name)
-            arguments[prior] = GaussianPrior(tuples[i][0], max(tuples[i][1], width), *limits)
+            arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
 
         return self.mapper_from_prior_arguments(arguments)
 

@@ -3,11 +3,11 @@ import os
 
 import pytest
 
-from autofit.core import prior as p
 from autofit import conf
 from autofit import exc
 from autofit import mock
 from autofit.core import model_mapper
+from autofit.core import prior as p
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -305,7 +305,6 @@ class TestAddition(object):
 
 class TestUniformPrior(object):
     def test__simple_assumptions(self):
-
         uniform_simple = p.UniformPrior(lower_limit=0., upper_limit=1.)
 
         assert uniform_simple.value_for(0.) == 0.
@@ -313,7 +312,6 @@ class TestUniformPrior(object):
         assert uniform_simple.value_for(0.5) == 0.5
 
     def test__non_zero_lower_limit(self):
-
         uniform_half = p.UniformPrior(lower_limit=0.5, upper_limit=1.)
 
         assert uniform_half.value_for(0.) == 0.5
@@ -324,7 +322,6 @@ class TestUniformPrior(object):
 class TestLogUniformPrior(object):
 
     def test__simple_assumptions(self):
-
         log_uniform_simple = p.LogUniformPrior(lower_limit=1.0e-8, upper_limit=1.)
 
         assert log_uniform_simple.value_for(0.) == 1.0e-8
@@ -332,7 +329,6 @@ class TestLogUniformPrior(object):
         assert log_uniform_simple.value_for(0.5) == 0.0001
 
     def test__non_zero_lower_limit(self):
-
         log_uniform_half = p.LogUniformPrior(lower_limit=0.5, upper_limit=1.)
 
         assert log_uniform_half.value_for(0.) == 0.5
@@ -343,15 +339,13 @@ class TestLogUniformPrior(object):
 class TestGaussianPrior(object):
 
     def test__simple_assumptions(self):
-
         gaussian_simple = p.GaussianPrior(mean=0.0, sigma=1.0)
 
         assert gaussian_simple.value_for(0.1) == pytest.approx(-1.281551, 1.0e-4)
-        assert gaussian_simple.value_for(0.9) == pytest.approx( 1.281551, 1.0e-4)
+        assert gaussian_simple.value_for(0.9) == pytest.approx(1.281551, 1.0e-4)
         assert gaussian_simple.value_for(0.5) == 0.0
 
     def test__non_zero_mean(self):
-
         gaussian_half = p.GaussianPrior(mean=0.5, sigma=2.0)
 
         assert gaussian_half.value_for(0.1) == pytest.approx(-2.0631031, 1.0e-4)
@@ -1182,8 +1176,21 @@ def make_mapper_with_list():
 class TestGaussianWidthConfig(object):
 
     def test_(self):
-        assert 1 == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'one')
-        assert 2 == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'two')
+        assert ["a", 1] == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'one')
+        assert ["a", 2] == conf.instance.prior_width.get('test_model_mapper', 'MockClassMM', 'two')
+
+    def test_relative_widths(self, mapper):
+        mapper.relative_width = mock.RelativeWidth
+        new_mapper = mapper.mapper_from_gaussian_tuples([(1, 0), (1, 0), (1, 0)])
+
+        assert new_mapper.relative_width.one.mean == 1.
+        assert new_mapper.relative_width.one.sigma == 0.1
+
+        assert new_mapper.relative_width.two.mean == 1.
+        assert new_mapper.relative_width.two.sigma == 0.5
+
+        assert new_mapper.relative_width.three.mean == 1.
+        assert new_mapper.relative_width.three.sigma == 1.
 
     def test_prior_classes(self, mapper_with_one):
         assert mapper_with_one.prior_class_dict == {mapper_with_one.one.one: MockClassMM,

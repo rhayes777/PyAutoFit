@@ -2,8 +2,10 @@ import numpy as np
 
 from autofit.core import fit_util
 
+
 class DataFit(object):
 
+    # noinspection PyUnresolvedReferences
     def __init__(self, data, noise_map, mask, model_data):
         """Class to fit data composed of just one piece of data (e.g. not a list).
 
@@ -54,6 +56,7 @@ class DataFit(object):
             chi_squared=self.chi_squared, noise_normalization=self.noise_normalization)
 
 
+# noinspection PyUnresolvedReferences
 class DataFitStack(object):
 
     def __init__(self, datas, noise_maps, masks, model_datas):
@@ -103,36 +106,40 @@ class DataFitStack(object):
         self.masks = masks
         self.model_datas = model_datas
 
-        self.residual_maps = list(map(lambda data, mask, model_data :
-                             fit_util.residual_map_from_data_mask_and_model_data(data=data, mask=mask,
-                                                                                 model_data=model_data),
+        # noinspection PyArgumentList
+        self.residual_maps = list(map(lambda data, mask, model_data:
+                                      fit_util.residual_map_from_data_mask_and_model_data(data=data, mask=mask,
+                                                                                          model_data=model_data),
                                       self.datas, self.masks, self.model_datas))
 
-        self.chi_squared_maps = list(map(lambda residual_map, noise_map, mask :
-                                fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(residual_map=residual_map,
-                                                                                              noise_map=noise_map,
-                                                                                              mask=mask),
+        # noinspection PyArgumentList
+        self.chi_squared_maps = list(map(lambda residual_map, noise_map, mask:
+                                         fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(
+                                             residual_map=residual_map,
+                                             noise_map=noise_map,
+                                             mask=mask),
                                          self.residual_maps, self.noise_maps, self.masks))
 
-        self.chi_squareds = list(map(lambda chi_squared_map, mask :
-                                 fit_util.chi_squared_from_chi_squared_map_and_mask(chi_squared_map=chi_squared_map,
-                                                                                    mask=mask),
+        self.chi_squareds = list(map(lambda chi_squared_map, mask:
+                                     fit_util.chi_squared_from_chi_squared_map_and_mask(chi_squared_map=chi_squared_map,
+                                                                                        mask=mask),
                                      self.chi_squared_maps, self.masks))
 
-        self.reduced_chi_squareds = list(map(lambda mask, chi_squared_term :
-                                                  chi_squared_term /  int(np.size(mask) - np.sum(mask)),
+        self.reduced_chi_squareds = list(map(lambda mask, chi_squared_term:
+                                             chi_squared_term / int(np.size(mask) - np.sum(mask)),
                                              self.masks, self.chi_squareds))
 
-        self.noise_normalizations = list(map(lambda noise_map, mask :
+        self.noise_normalizations = list(map(lambda noise_map, mask:
                                              fit_util.noise_normalization_from_noise_map_and_mask(noise_map=noise_map,
                                                                                                   mask=mask, ),
                                              self.noise_maps, self.masks))
 
-        self.likelihoods = list(map(lambda chi_squared_term, noise_term :
-                        fit_util.likelihood_from_chi_squared_and_noise_normalization(chi_squared=chi_squared_term,
-                                                                                     noise_normalization=noise_term),
+        self.likelihoods = list(map(lambda chi_squared_term, noise_term:
+                                    fit_util.likelihood_from_chi_squared_and_noise_normalization(
+                                        chi_squared=chi_squared_term,
+                                        noise_normalization=noise_term),
                                     self.chi_squareds, self.noise_normalizations))
-        
+
         self.chi_squared = sum(self.chi_squareds)
         self.reduced_chi_squared = sum(self.reduced_chi_squareds)
         self.noise_normalization = sum(self.noise_normalizations)
