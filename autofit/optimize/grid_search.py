@@ -10,7 +10,7 @@ class GridSearch(object):
 
     @property
     def models_mappers(self):
-        lists = optimizer.make_lists(len(self.variables), step_size=self.step_size)
+        lists = optimizer.make_lists(len(self.variables), step_size=self.step_size, include_upper_limit=False)
         for values in lists:
             priors = [UniformPrior(lower_limit=value, upper_limit=value + self.step_size) for value in values]
             arguments = {source_prior: prior for source_prior, prior in zip(self.variables, priors)}
