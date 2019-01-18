@@ -5,7 +5,7 @@ import re
 
 from autofit import conf
 from autofit import exc
-from autofit.core.prior import TuplePrior, GaussianPrior, LogUniformPrior, UniformPrior, Prior, Constant, \
+from autofit.mapper.prior import TuplePrior, GaussianPrior, LogUniformPrior, UniformPrior, Prior, Constant, \
     cast_collection, PriorNameValue, ConstantNameValue, AttributeNameValue
 
 

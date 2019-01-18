@@ -3,7 +3,7 @@ import shutil
 
 import pytest
 
-from autofit.core import link
+from autofit.mapper import link
 
 temp_folder_path = "/tmp/linked_folder"
 

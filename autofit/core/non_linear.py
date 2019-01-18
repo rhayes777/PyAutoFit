@@ -14,8 +14,7 @@ import scipy.optimize
 
 from autofit import conf
 from autofit import exc
-from autofit.core import link
-from autofit.core import model_mapper as mm
+from autofit.mapper import model_mapper as mm, link
 from autofit.core import optimizer as opt
 
 logging.basicConfig()
