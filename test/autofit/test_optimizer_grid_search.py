@@ -148,3 +148,11 @@ class TestGridNLOBehaviour(object):
         assert result.no_dimensions == 2
         assert np.equal(result.figure_of_merit_array, np.array([[1.0, 1.0],
                                                                 [1.0, 1.0]])).all()
+
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.1,
+                                    name="sample_name")
+        result = grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
+
+        assert len(result.results) == 100
+        assert result.no_dimensions == 2
+        assert result.figure_of_merit_array.shape == (10, 10)

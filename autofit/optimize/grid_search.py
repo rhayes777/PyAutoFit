@@ -11,7 +11,8 @@ class GridSearchResult(object):
         self.lists = lists
         self.results = results
         self.no_dimensions = len(self.lists[0])
-        self.side_length = int(len(self.lists) / self.no_dimensions)
+        self.no_steps = len(self.lists)
+        self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
 
     @property
     def figure_of_merit_array(self):
