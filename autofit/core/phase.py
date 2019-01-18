@@ -1,6 +1,6 @@
 import re
 
-from autofit.core import non_linear
+from autofit.optimize import non_linear
 
 
 class ResultsCollection(list):

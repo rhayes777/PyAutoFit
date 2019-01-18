@@ -5,8 +5,8 @@ import pytest
 from autofit import conf
 from autofit import exc
 from autofit import mock
-from autofit.core import non_linear
-from autofit.core.optimizer import grid
+from autofit.optimize import non_linear
+from autofit.optimize.optimizer import grid
 
 
 class MockAnalysis(non_linear.Analysis):

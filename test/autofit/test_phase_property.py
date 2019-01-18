@@ -5,7 +5,7 @@ import pytest
 from autofit import conf
 from autofit import mock
 from autofit.mapper import model_mapper as mm
-from autofit.core import non_linear
+from autofit.optimize import non_linear
 from autofit.core import phase as ph
 from autofit.core import phase_property
 

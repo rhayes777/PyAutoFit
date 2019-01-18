@@ -7,7 +7,7 @@ import pytest
 
 from autofit import conf
 from autofit.mapper import model_mapper, prior as p
-from autofit.core import non_linear
+from autofit.optimize import non_linear
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 

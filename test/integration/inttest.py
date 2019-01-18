@@ -5,7 +5,7 @@ from os import path
 import pytest
 
 from autofit import mock
-from autofit.core import non_linear
+from autofit.optimize import non_linear
 
 logger = logging.getLogger(__name__)
 
