@@ -1,5 +1,6 @@
 import numpy as np
 
+from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import UniformPrior
 from autofit.optimize import non_linear
 from autofit.optimize import optimizer
@@ -21,7 +22,7 @@ class GridSearchResult(object):
 class GridSearch(object):
     def __init__(self, step_size=0.1, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
                  name="grid_search"):
-        self.variable = model_mapper
+        self.variable = model_mapper or mm.ModelMapper()
         self.name = name
         self.step_size = step_size
         self.optimizer_class = optimizer_class
@@ -41,7 +42,7 @@ class GridSearch(object):
         results = []
         lists = self.make_lists(grid_priors)
         for values, model_mapper in zip(lists, self.models_mappers(grid_priors)):
-            result = self.optimizer_class(model_mapper, "{}/{}".format(self.name, "_".join(map(str, values)))).fit(
-                analysis)
+            result = self.optimizer_class(model_mapper=model_mapper,
+                                          name="{}/{}".format(self.name, "_".join(map(str, values)))).fit(analysis)
             results.append(result)
         return GridSearchResult(results, lists)
