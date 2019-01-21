@@ -97,8 +97,10 @@ class GridSearch(object):
         grid_priors = set(grid_priors)
         lists = self.make_lists(grid_priors)
         for values in lists:
-            priors = [p.UniformPrior(lower_limit=value, upper_limit=value + self.step_size) for value in values]
-            arguments = {source_prior: prior for source_prior, prior in zip(grid_priors, priors)}
+            arguments = {}
+            for value, grid_prior in zip(values, grid_priors):
+                prior = p.UniformPrior(lower_limit=value, upper_limit=value + self.step_size)
+                arguments[grid_prior] = prior
             yield self.variable.mapper_from_partial_prior_arguments(arguments)
 
     def fit(self, analysis, grid_priors):
