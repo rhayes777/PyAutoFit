@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from autofit import exc
 from autofit import mock
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
@@ -98,6 +99,12 @@ class TestGridSearchablePriors(object):
 
         assert mappers[-1].profile.centre_0.lower_limit == 1.45
         assert mappers[-1].profile.centre_0.upper_limit == 1.5
+
+    def test_raises_exception_for_bad_limits(self, grid_search):
+        grid_search.variable.profile.centre_0 = p.GaussianPrior(0., 2., lower_limit=float('-inf'),
+                                                                upper_limit=float('inf'))
+        with pytest.raises(exc.PriorException):
+            list(grid_search.models_mappers(grid_priors=[grid_search.variable.profile.centre_0]))
 
 
 class MockClassContainer(object):

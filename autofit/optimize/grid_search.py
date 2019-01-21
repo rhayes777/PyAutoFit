@@ -1,5 +1,6 @@
 import numpy as np
 
+from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.optimize import non_linear
@@ -100,6 +101,8 @@ class GridSearch(object):
             arguments = {}
             for value, grid_prior in zip(values, grid_priors):
                 prior_step_size = grid_prior.upper_limit - grid_prior.lower_limit
+                if float("-inf") == grid_prior.lower_limit or float('inf') == grid_prior.upper_limit:
+                    raise exc.PriorException("Priors passed to the grid search must have definite limits")
                 lower_limit = grid_prior.lower_limit + value * prior_step_size
                 upper_limit = grid_prior.lower_limit + (value + self.step_size) * prior_step_size
                 prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
