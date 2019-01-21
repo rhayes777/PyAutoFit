@@ -99,7 +99,10 @@ class GridSearch(object):
         for values in lists:
             arguments = {}
             for value, grid_prior in zip(values, grid_priors):
-                prior = p.UniformPrior(lower_limit=value, upper_limit=value + self.step_size)
+                prior_step_size = grid_prior.upper_limit - grid_prior.lower_limit
+                lower_limit = grid_prior.lower_limit + value * prior_step_size
+                upper_limit = grid_prior.lower_limit + (value + self.step_size) * prior_step_size
+                prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
                 arguments[grid_prior] = prior
             yield self.variable.mapper_from_partial_prior_arguments(arguments)
 

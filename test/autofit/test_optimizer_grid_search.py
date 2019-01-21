@@ -3,6 +3,7 @@ import pytest
 
 from autofit import mock
 from autofit.mapper import model_mapper as mm
+from autofit.mapper import prior as p
 from autofit.optimize import grid_search as gs
 from autofit.optimize import non_linear
 
@@ -72,6 +73,31 @@ class TestGridSearchablePriors(object):
 
         for mapper in mappers:
             assert mapper.profile.centre_0 == mapper.profile.centre_1
+
+    def test_different_prior_width(self, grid_search):
+        grid_search.variable.profile.centre_0 = p.UniformPrior(0., 2.)
+        mappers = list(grid_search.models_mappers(
+            grid_priors=[grid_search.variable.profile.centre_0]))
+
+        assert len(mappers) == 10
+
+        assert mappers[0].profile.centre_0.lower_limit == 0.0
+        assert mappers[0].profile.centre_0.upper_limit == 0.2
+
+        assert mappers[-1].profile.centre_0.lower_limit == 1.8
+        assert mappers[-1].profile.centre_0.upper_limit == 2.0
+
+        grid_search.variable.profile.centre_0 = p.UniformPrior(1., 1.5)
+        mappers = list(grid_search.models_mappers(
+            grid_priors=[grid_search.variable.profile.centre_0]))
+
+        assert len(mappers) == 10
+
+        assert mappers[0].profile.centre_0.lower_limit == 1.0
+        assert mappers[0].profile.centre_0.upper_limit == 1.05
+
+        assert mappers[-1].profile.centre_0.lower_limit == 1.45
+        assert mappers[-1].profile.centre_0.upper_limit == 1.5
 
 
 class MockClassContainer(object):
