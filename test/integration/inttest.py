@@ -5,20 +5,15 @@ from os import path
 import pytest
 
 from autofit import mock
+from autofit.core import phase as p
+from autofit.core import phase_property
 from autofit.optimize import grid_search as gs
 from autofit.optimize import non_linear
 
 logger = logging.getLogger(__name__)
 
 try:
-    output_dir = "{}/../../workspace/output/phase".format(path.dirname(path.realpath(__file__)))
-    logger.info("Removing {}".format(output_dir))
-    shutil.rmtree(output_dir)
-except FileNotFoundError:
-    logging.info("Not found")
-
-try:
-    output_dir = "{}/../../workspace/output/integration_grid_search".format(path.dirname(path.realpath(__file__)))
+    output_dir = "{}/../../workspace/output".format(path.dirname(path.realpath(__file__)))
     logger.info("Removing {}".format(output_dir))
     shutil.rmtree(output_dir)
 except FileNotFoundError:
@@ -34,6 +29,17 @@ class Analysis(non_linear.Analysis):
 
     def log(self, instance):
         logger.info("{}, {}".format(*instance.profile.centre))
+
+
+class Phase(p.AbstractPhase):
+    profile = phase_property.PhaseProperty("profile")
+
+    def __init__(self, name, profile):
+        super().__init__(phase_name=name)
+        self.profile = profile
+
+    def make_result(self, result, analysis):
+        return result
 
 
 class TestCase(object):
@@ -59,7 +65,17 @@ class TestCase(object):
 
         print(result.figure_of_merit_array)
 
+    def test_phase(self):
+        phase = Phase(name="test_phase", profile=mock.EllipticalProfile)
+        result = phase.run_analysis(Analysis())
+
+        centre = result.constant.profile.centre
+
+        assert 0 == pytest.approx(centre[0], abs=0.1)
+        assert 0 == pytest.approx(centre[1], abs=0.1)
+
 
 if __name__ == "__main__":
     TestCase().test_integration()
     TestCase().test_grid()
+    TestCase().test_phase()
