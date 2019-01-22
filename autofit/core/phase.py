@@ -128,19 +128,24 @@ class AbstractPhase(object):
             super(AbstractPhase.Result, self).__init__(constant, figure_of_merit, variable)
 
 
-class GridSearchMixin(AbstractPhase):
-    def __init__(self, number_of_steps=10, optimizer_class=non_linear.MultiNest, phase_name=None):
-        super().__init__(optimizer_class=optimizer_class, phase_name=phase_name)
-        self.optimizer = grid_search.GridSearch(number_of_steps=number_of_steps, optimizer_class=optimizer_class,
-                                                name=phase_name)
+def as_grid_search(phase_class):
+    class GridSearchExtension(phase_class):
+        def __init__(self, number_of_steps=10, optimizer_class=non_linear.MultiNest, phase_name=None):
+            super().__init__(optimizer_class=optimizer_class, phase_name=phase_name)
+            self.optimizer = grid_search.GridSearch(number_of_steps=number_of_steps, optimizer_class=optimizer_class,
+                                                    name=phase_name)
 
-    def run_analysis(self, analysis):
-        return self.optimizer.fit(analysis, self.grid_priors)
+        def run_analysis(self, analysis):
+            return self.optimizer.fit(analysis, self.grid_priors)
 
-    def make_result(self, result, analysis):
-        return result
+        # noinspection PyMethodMayBeStatic,PyUnusedLocal
+        def make_result(self, result, analysis):
+            return result
 
-    @property
-    def grid_priors(self):
-        raise NotImplementedError("The grid priors property must be implemented to provide a list of priors to be grid "
-                                  "searched")
+        @property
+        def grid_priors(self):
+            raise NotImplementedError(
+                "The grid priors property must be implemented to provide a list of priors to be grid "
+                "searched")
+
+    return GridSearchExtension
