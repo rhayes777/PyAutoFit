@@ -194,7 +194,7 @@ class TestGridNLOBehaviour(object):
 
 class TestMixin(object):
     def test_mixin(self, container):
-        class MyOptimizer(phase.as_grid_search(phase.AbstractPhase)):
+        class MyPhase(phase.as_grid_search(phase.AbstractPhase)):
             @property
             def grid_priors(self):
                 return [self.variable.profile.centre_0]
@@ -203,7 +203,7 @@ class TestMixin(object):
                 analysis = container.MockAnalysis()
                 return self.make_result(self.run_analysis(analysis), analysis)
 
-        optimizer = MyOptimizer(number_of_steps=2, optimizer_class=container.MockOptimizer)
+        optimizer = MyPhase(number_of_steps=2, optimizer_class=container.MockOptimizer)
         optimizer.variable.profile = mock.GeometryProfile
 
         result = optimizer.run()
