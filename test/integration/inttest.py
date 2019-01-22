@@ -85,6 +85,11 @@ class TestCase(object):
 
         print(result.figure_of_merit_array)
 
+        assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[0, 1]
+        assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[1, 0]
+        assert result.figure_of_merit_array[1, 0] > result.figure_of_merit_array[1, 1]
+        assert result.figure_of_merit_array[0, 1] > result.figure_of_merit_array[1, 1]
+
 
 if __name__ == "__main__":
     TestCase().test_integration()
