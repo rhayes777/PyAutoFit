@@ -44,7 +44,7 @@ class GridSearchResult(object):
 
 class GridSearch(object):
     def __init__(self, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
-                 name="grid_search"):
+                 constant=None, name="grid_search"):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -62,6 +62,7 @@ class GridSearch(object):
             The name of this grid search
         """
         self.variable = model_mapper or mm.ModelMapper()
+        self.constant = constant or mm.ModelInstance()
         self.name = name
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
