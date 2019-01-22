@@ -39,7 +39,7 @@ class GridSearchResult(object):
 
 
 class GridSearch(object):
-    def __init__(self, step_size=0.1, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
+    def __init__(self, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
                  name="grid_search"):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -48,8 +48,8 @@ class GridSearch(object):
 
         Parameters
         ----------
-        step_size: float
-            The size of steps for every dimension. The search starts at 0 and finishes at 1 - step_size
+        number_of_steps: int
+            The number of steps to go in each direction
         optimizer_class: class
             The class of the optimizer that is run at each step
         model_mapper: mm.ModelMapper | None
@@ -59,8 +59,12 @@ class GridSearch(object):
         """
         self.variable = model_mapper or mm.ModelMapper()
         self.name = name
-        self.step_size = step_size
+        self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
+
+    @property
+    def hyper_step_size(self):
+        return 1 / self.number_of_steps
 
     def make_lists(self, grid_priors):
         """
@@ -76,7 +80,7 @@ class GridSearch(object):
         -------
         lists: [[float]]
         """
-        return optimizer.make_lists(len(grid_priors), step_size=self.step_size, include_upper_limit=False)
+        return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size, include_upper_limit=False)
 
     def models_mappers(self, grid_priors):
         """
@@ -84,7 +88,8 @@ class GridSearch(object):
         prior that is not included in grid priors remains unchanged; priors included in grid priors are replaced by
         uniform priors between the limits of the grid step:
 
-        UniformPrior(lower_limit=step_no * step_size, upper_limit=(step_no + 1) * step_size)
+        UniformPrior(lower_limit=lower_limit + value * prior_step_size,
+                     upper_limit=lower_limit + (value + self.step_size) * prior_step_size)
 
         Parameters
         ----------
@@ -104,7 +109,7 @@ class GridSearch(object):
                 if float("-inf") == grid_prior.lower_limit or float('inf') == grid_prior.upper_limit:
                     raise exc.PriorException("Priors passed to the grid search must have definite limits")
                 lower_limit = grid_prior.lower_limit + value * prior_step_size
-                upper_limit = grid_prior.lower_limit + (value + self.step_size) * prior_step_size
+                upper_limit = grid_prior.lower_limit + (value + self.hyper_step_size) * prior_step_size
                 prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
                 arguments[grid_prior] = prior
             yield self.variable.mapper_from_partial_prior_arguments(arguments)

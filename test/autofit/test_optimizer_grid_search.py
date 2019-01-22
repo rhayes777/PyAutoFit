@@ -18,7 +18,7 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return gs.GridSearch(model_mapper=mapper, step_size=0.1)
+    return gs.GridSearch(model_mapper=mapper, number_of_steps=10)
 
 
 class TestGridSearchablePriors(object):
@@ -39,7 +39,7 @@ class TestGridSearchablePriors(object):
         assert mappers[-1].profile.centre_1.upper_limit == 1.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = gs.GridSearch(model_mapper=mapper, step_size=0.1)
+        grid_search = gs.GridSearch(model_mapper=mapper, number_of_steps=10)
         mappers = list(grid_search.models_mappers(grid_priors=[mapper.profile.centre_0]))
 
         assert len(mappers) == 10
@@ -146,7 +146,7 @@ def make_mock_class_container():
 
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05(mapper, container):
-    return gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.5,
+    return gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=2,
                          name="sample_name")
 
 
@@ -182,7 +182,7 @@ class TestGridNLOBehaviour(object):
         assert np.equal(result.figure_of_merit_array, np.array([[1.0, 1.0],
                                                                 [1.0, 1.0]])).all()
 
-        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, step_size=0.1,
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=10,
                                     name="sample_name")
         result = grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
 
