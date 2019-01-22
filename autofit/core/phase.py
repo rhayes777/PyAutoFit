@@ -116,7 +116,7 @@ class AbstractPhase(object):
             if self.previous_results is not None:
                 return self.previous_results.last
 
-    def make_result(self, result):
+    def make_result(self, result, analysis):
         raise NotImplementedError()
 
     class Result(non_linear.Result):
@@ -137,7 +137,7 @@ class GridSearchMixin(AbstractPhase):
     def run_analysis(self, analysis):
         return self.optimizer.fit(analysis, self.grid_priors)
 
-    def make_result(self, result):
+    def make_result(self, result, analysis):
         return result
 
     @property
