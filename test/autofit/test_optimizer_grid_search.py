@@ -194,7 +194,7 @@ class TestGridNLOBehaviour(object):
 
 class TestMixin(object):
     def test_mixin(self, container):
-        class MyOptimizer(phase.AbstractGridPhase, phase.AbstractPhase):
+        class MyOptimizer(phase.GridSearchMixin, phase.AbstractPhase):
             @property
             def grid_priors(self):
                 return [self.variable.profile.centre_0]
