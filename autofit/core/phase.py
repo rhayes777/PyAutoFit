@@ -130,8 +130,8 @@ class AbstractPhase(object):
 
 def as_grid_search(phase_class):
     class GridSearchExtension(phase_class):
-        def __init__(self, number_of_steps=10, optimizer_class=non_linear.MultiNest, phase_name=None):
-            super().__init__(optimizer_class=optimizer_class, phase_name=phase_name)
+        def __init__(self, *args, number_of_steps=10, optimizer_class=non_linear.MultiNest, phase_name=None, **kwargs):
+            super().__init__(*args, optimizer_class=optimizer_class, phase_name=phase_name, **kwargs)
             self.optimizer = grid_search.GridSearch(number_of_steps=number_of_steps, optimizer_class=optimizer_class,
                                                     name=phase_name, model_mapper=self.variable)
 
