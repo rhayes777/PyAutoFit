@@ -64,6 +64,12 @@ class GridSearch(object):
 
     @property
     def hyper_step_size(self):
+        """
+        Returns
+        -------
+        hyper_step_size: float
+            The size of a step in any given dimension in hyper space.
+        """
         return 1 / self.number_of_steps
 
     def make_lists(self, grid_priors):
