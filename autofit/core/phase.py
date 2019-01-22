@@ -132,7 +132,7 @@ class AbstractGridPhase(AbstractPhase):
                                                 name=phase_name)
 
     def run_analysis(self, analysis):
-        self.optimizer.fit(analysis, self.grid_priors)
+        return self.optimizer.fit(analysis, self.grid_priors)
 
     @property
     def grid_priors(self):

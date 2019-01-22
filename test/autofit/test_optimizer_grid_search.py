@@ -3,6 +3,7 @@ import pytest
 
 from autofit import exc
 from autofit import mock
+from autofit.core import phase
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.optimize import grid_search as gs
@@ -113,7 +114,7 @@ class MockClassContainer(object):
         fit_args = []
 
         class MockOptimizer(non_linear.NonLinearOptimizer):
-            def __init__(self, model_mapper, name):
+            def __init__(self, model_mapper=None, name="mock_optimizer"):
                 super().__init__(model_mapper, name)
                 init_args.append((model_mapper, name))
 
@@ -189,3 +190,23 @@ class TestGridNLOBehaviour(object):
         assert len(result.results) == 100
         assert result.no_dimensions == 2
         assert result.figure_of_merit_array.shape == (10, 10)
+
+
+class TestMixin(object):
+    def test_mixin(self, container):
+        class MyOptimizer(phase.AbstractGridPhase, phase.AbstractPhase):
+            @property
+            def grid_priors(self):
+                return [self.variable.profile.centre_0]
+
+            def run(self):
+                analysis = container.MockAnalysis()
+                return self.run_analysis(analysis)
+
+        optimizer = MyOptimizer(number_of_steps=2, optimizer_class=container.MockOptimizer)
+        optimizer.variable.profile = mock.GeometryProfile
+
+        result = optimizer.run()
+
+        assert isinstance(result, gs.GridSearchResult)
+        assert len(result.results) == 2

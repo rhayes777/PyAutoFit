@@ -1,6 +1,10 @@
+import os
+
 import numpy as np
 
+from autofit import conf
 from autofit import exc
+from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.optimize import non_linear
@@ -61,6 +65,16 @@ class GridSearch(object):
         self.name = name
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
+
+        sym_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
+        self.backup_path = "{}/{}/optimizer_backup".format(conf.instance.output_path, name)
+
+        try:
+            os.makedirs("/".join(sym_path.split("/")[:-1]))
+        except FileExistsError:
+            pass
+
+        self.path = link.make_linked_folder(sym_path)
 
     @property
     def hyper_step_size(self):
