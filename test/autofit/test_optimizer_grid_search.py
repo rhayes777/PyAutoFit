@@ -201,7 +201,7 @@ class TestMixin(object):
 
             def run(self):
                 analysis = container.MockAnalysis()
-                return self.run_analysis(analysis)
+                return self.make_result(self.run_analysis(analysis))
 
         optimizer = MyOptimizer(number_of_steps=2, optimizer_class=container.MockOptimizer)
         optimizer.variable.profile = mock.GeometryProfile
