@@ -34,8 +34,8 @@ class Analysis(non_linear.Analysis):
 class Phase(p.AbstractPhase):
     profile = phase_property.PhaseProperty("profile")
 
-    def __init__(self, name, profile):
-        super().__init__(phase_name=name)
+    def __init__(self, phase_name, profile, optimizer_class=non_linear.MultiNest):
+        super().__init__(phase_name=phase_name, optimizer_class=optimizer_class)
         self.profile = profile
 
     def make_result(self, result, analysis):
@@ -66,7 +66,7 @@ class TestCase(object):
         print(result.figure_of_merit_array)
 
     def test_phase(self):
-        phase = Phase(name="test_phase", profile=mock.EllipticalProfile)
+        phase = Phase(phase_name="test_phase", profile=mock.EllipticalProfile)
         result = phase.run_analysis(Analysis())
 
         centre = result.constant.profile.centre
@@ -74,8 +74,20 @@ class TestCase(object):
         assert 0 == pytest.approx(centre[0], abs=0.1)
         assert 0 == pytest.approx(centre[1], abs=0.1)
 
+    def test_grid_search_phase(self):
+        class GridSearchPhase(p.as_grid_search(Phase)):
+            @property
+            def grid_priors(self):
+                return [self.variable.profile.centre_0, self.variable.profile.centre_1]
+
+        result = GridSearchPhase(number_of_steps=2, phase_name="grid_search_phase",
+                                 profile=mock.EllipticalProfile).run_analysis(Analysis())
+
+        print(result.figure_of_merit_array)
+
 
 if __name__ == "__main__":
-    TestCase().test_integration()
-    TestCase().test_grid()
-    TestCase().test_phase()
+    # TestCase().test_integration()
+    # TestCase().test_grid()
+    # TestCase().test_phase()
+    TestCase().test_grid_search_phase()
