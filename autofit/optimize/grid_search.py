@@ -39,7 +39,7 @@ class GridSearchResult(object):
 
 
 class GridSearch(object):
-    def __init__(self, step_size=0.1, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
+    def __init__(self, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
                  name="grid_search"):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -48,8 +48,8 @@ class GridSearch(object):
 
         Parameters
         ----------
-        step_size: float
-            The size of steps for every dimension. The search starts at 0 and finishes at 1 - step_size
+        number_of_steps: int
+            The number of steps to go in each direction
         optimizer_class: class
             The class of the optimizer that is run at each step
         model_mapper: mm.ModelMapper | None
@@ -59,7 +59,7 @@ class GridSearch(object):
         """
         self.variable = model_mapper or mm.ModelMapper()
         self.name = name
-        self.step_size = step_size
+        self.step_size = 1 / number_of_steps
         self.optimizer_class = optimizer_class
 
     def make_lists(self, grid_priors):
@@ -84,7 +84,8 @@ class GridSearch(object):
         prior that is not included in grid priors remains unchanged; priors included in grid priors are replaced by
         uniform priors between the limits of the grid step:
 
-        UniformPrior(lower_limit=step_no * step_size, upper_limit=(step_no + 1) * step_size)
+        UniformPrior(lower_limit=lower_limit + value * prior_step_size,
+                     upper_limit=lower_limit + (value + self.step_size) * prior_step_size)
 
         Parameters
         ----------
