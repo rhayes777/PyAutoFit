@@ -59,8 +59,12 @@ class GridSearch(object):
         """
         self.variable = model_mapper or mm.ModelMapper()
         self.name = name
-        self.step_size = 1 / number_of_steps
+        self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
+
+    @property
+    def hyper_step_size(self):
+        return 1 / self.number_of_steps
 
     def make_lists(self, grid_priors):
         """
@@ -76,7 +80,7 @@ class GridSearch(object):
         -------
         lists: [[float]]
         """
-        return optimizer.make_lists(len(grid_priors), step_size=self.step_size, include_upper_limit=False)
+        return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size, include_upper_limit=False)
 
     def models_mappers(self, grid_priors):
         """
@@ -105,7 +109,7 @@ class GridSearch(object):
                 if float("-inf") == grid_prior.lower_limit or float('inf') == grid_prior.upper_limit:
                     raise exc.PriorException("Priors passed to the grid search must have definite limits")
                 lower_limit = grid_prior.lower_limit + value * prior_step_size
-                upper_limit = grid_prior.lower_limit + (value + self.step_size) * prior_step_size
+                upper_limit = grid_prior.lower_limit + (value + self.hyper_step_size) * prior_step_size
                 prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
                 arguments[grid_prior] = prior
             yield self.variable.mapper_from_partial_prior_arguments(arguments)
