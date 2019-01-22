@@ -39,6 +39,9 @@ def tuple_lists_equal(l1, l2):
 
 
 class TestGridSearchOptimizer(object):
+    def test_config(self):
+        assert non_linear.GridSearch().step_size == 0.1
+
     def test_1d(self):
         points = []
 
