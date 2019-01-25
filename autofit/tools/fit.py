@@ -1,6 +1,6 @@
 import numpy as np
 
-from autofit.core import fit_util
+from autofit.tools import fit_util
 
 
 class DataFit(object):

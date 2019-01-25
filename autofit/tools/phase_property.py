@@ -1,10 +1,11 @@
 import inspect
 
+import autofit.mapper.prior_model
 from autofit.mapper import model_mapper as mm
 
 
 def is_prior(value):
-    return inspect.isclass(value) or isinstance(value, mm.AbstractPriorModel)
+    return inspect.isclass(value) or isinstance(value, autofit.mapper.prior_model.AbstractPriorModel)
 
 
 class PhaseProperty(object):

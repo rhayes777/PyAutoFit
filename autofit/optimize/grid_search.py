@@ -157,7 +157,9 @@ class GridSearch(object):
         results = []
         lists = self.make_lists(grid_priors)
         for values, model_mapper in zip(lists, self.models_mappers(grid_priors)):
-            result = self.optimizer_class(model_mapper=model_mapper,
-                                          name="{}/{}".format(self.name, "_".join(map(str, values)))).fit(analysis)
+            optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
+                                                      name="{}/{}".format(self.name, "_".join(map(str, values))))
+            optimizer_instance.constant = self.constant
+            result = optimizer_instance.fit(analysis)
             results.append(result)
         return GridSearchResult(results, lists)

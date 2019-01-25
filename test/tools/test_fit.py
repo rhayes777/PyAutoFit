@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from autofit.core import fit
+from autofit.tools import fit
 
 
 class TestDataFitter:

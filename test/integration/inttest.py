@@ -5,8 +5,8 @@ from os import path
 import pytest
 
 from autofit import mock
-from autofit.core import phase as p
-from autofit.core import phase_property
+from autofit.tools import phase as p
+from autofit.tools import phase_property
 from autofit.optimize import grid_search as gs
 from autofit.optimize import non_linear
 
@@ -33,10 +33,12 @@ class Analysis(non_linear.Analysis):
 
 class Phase(p.AbstractPhase):
     profile = phase_property.PhaseProperty("profile")
+    constant_profile = phase_property.PhaseProperty("constant_profile")
 
-    def __init__(self, phase_name, profile, optimizer_class=non_linear.MultiNest):
+    def __init__(self, phase_name, profile, constant_profile, optimizer_class=non_linear.MultiNest):
         super().__init__(phase_name=phase_name, optimizer_class=optimizer_class)
         self.profile = profile
+        self.constant_profile = constant_profile
 
     def make_result(self, result, analysis):
         return result
@@ -66,7 +68,8 @@ class TestCase(object):
         print(result.figure_of_merit_array)
 
     def test_phase(self):
-        phase = Phase(phase_name="test_phase", profile=mock.EllipticalProfile)
+        phase = Phase(phase_name="test_phase", profile=mock.EllipticalProfile,
+                      constant_profile=mock.EllipticalProfile())
         result = phase.run_analysis(Analysis())
 
         centre = result.constant.profile.centre
@@ -80,8 +83,13 @@ class TestCase(object):
             def grid_priors(self):
                 return [self.variable.profile.centre_0, self.variable.profile.centre_1]
 
+        constant_profile = mock.EllipticalProfile()
+
         result = GridSearchPhase(number_of_steps=2, phase_name="grid_search_phase",
-                                 profile=mock.EllipticalProfile).run_analysis(Analysis())
+                                 profile=mock.EllipticalProfile,
+                                 constant_profile=constant_profile).run_analysis(Analysis())
+
+        assert result.results[0].constant.constant_profile == constant_profile
 
         print(result.figure_of_merit_array)
 

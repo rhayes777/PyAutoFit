@@ -105,3 +105,5 @@ venv.bak/
 .mypy_cache/
 .idea
 workspace/output/
+output
+test/optimize/test_fit

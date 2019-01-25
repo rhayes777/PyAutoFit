@@ -5,6 +5,7 @@ from functools import wraps
 
 import pytest
 
+import autofit.mapper.prior_model
 from autofit import conf
 from autofit.mapper import model_mapper, prior as p
 from autofit.optimize import non_linear
@@ -19,8 +20,8 @@ def make_mapper():
 
 @pytest.fixture(name="mock_list")
 def make_mock_list():
-    return [model_mapper.PriorModel(MockClassNLOx4),
-            model_mapper.PriorModel(MockClassNLOx4)]
+    return [autofit.mapper.prior_model.PriorModel(MockClassNLOx4),
+            autofit.mapper.prior_model.PriorModel(MockClassNLOx4)]
 
 
 # noinspection PyUnresolvedReferences
@@ -31,8 +32,8 @@ class TestParamNames(object):
         assert [tup.name for tup in mapper.mock_list.label_prior_model_tuples] == ['0', '1']
 
     def test_label_prior_model_tuples_with_mapping_name(self, mapper):
-        one = model_mapper.PriorModel(MockClassNLOx4)
-        two = model_mapper.PriorModel(MockClassNLOx4)
+        one = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
+        two = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
 
         one.mapping_name = "one"
         two.mapping_name = "two"
@@ -813,7 +814,7 @@ class TestFitting(object):
             assert result.figure_of_merit == 1
 
         def test_variable(self, downhill_simplex):
-            downhill_simplex.variable.mock_class = model_mapper.PriorModel(MockClassNLOx4)
+            downhill_simplex.variable.mock_class = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
             result = downhill_simplex.fit(MockAnalysis())
 
             assert result.constant.mock_class.one == 0.0
@@ -825,7 +826,7 @@ class TestFitting(object):
 
         def test_constant_and_variable(self, downhill_simplex):
             downhill_simplex.constant.constant = MockClassNLOx4()
-            downhill_simplex.variable.variable = model_mapper.PriorModel(MockClassNLOx4)
+            downhill_simplex.variable.variable = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
 
             result = downhill_simplex.fit(MockAnalysis())
 
@@ -840,7 +841,7 @@ class TestFitting(object):
     class TestMultiNest(object):
 
         def test_variable(self, multi_nest):
-            multi_nest.variable.mock_class = model_mapper.PriorModel(MockClassNLOx4, )
+            multi_nest.variable.mock_class = autofit.mapper.prior_model.PriorModel(MockClassNLOx4, )
             result = multi_nest.fit(MockAnalysis())
 
             assert result.constant.mock_class.one == 9.0
@@ -871,7 +872,7 @@ class TestLabels(object):
         assert conf.instance.label.label("four") == "x4p3"
 
     def test_labels(self, label_optimizer):
-        model_mapper.AbstractPriorModel._ids = itertools.count()
+        autofit.mapper.prior_model.AbstractPriorModel._ids = itertools.count()
         label_optimizer.variable.prior_model = MockClassNLOx4
 
         assert label_optimizer.param_labels == [r'x4p0_{\mathrm{a1}}', r'x4p1_{\mathrm{a1}}',
