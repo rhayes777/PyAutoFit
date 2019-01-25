@@ -1,3 +1,4 @@
+import copy
 import inspect
 import os
 
@@ -456,7 +457,7 @@ class ModelMapper(AbstractModel):
         model_mapper: ModelMapper
             A new model mapper with updated priors.
         """
-        mapper = ModelMapper()
+        mapper = copy.deepcopy(self)
 
         for prior_model_tuple in self.prior_model_tuples:
             setattr(mapper, prior_model_tuple.name,
@@ -566,5 +567,3 @@ class ModelInstance(AbstractModel):
 
     def name_instance_tuples_for_class(self, cls):
         return [item for item in self.__dict__.items() if isinstance(item[1], cls)]
-
-
