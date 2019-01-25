@@ -3,11 +3,11 @@ import pytest
 
 from autofit import exc
 from autofit import mock
-from autofit.core import phase
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.optimize import grid_search as gs
 from autofit.optimize import non_linear
+from autofit.tools import phase
 
 
 @pytest.fixture(name="mapper")
@@ -205,6 +205,21 @@ class TestGridNLOBehaviour(object):
         for instance in container.fit_instances:
             assert isinstance(instance.profile, mock.GeometryProfile)
             assert instance.constant_profile == constant_profile
+
+    def test_generated_models_with_constant_attributes(self, grid_search, container):
+        constant = p.Constant(2)
+        grid_search.variable.profile.centre_1 = constant
+
+        analysis = container.MockAnalysis()
+
+        grid_search.fit(analysis, [grid_search.variable.profile.centre_0])
+
+        assert len(container.fit_instances) > 0
+
+        for instance in container.fit_instances:
+            assert isinstance(instance.profile, mock.GeometryProfile)
+            # noinspection PyUnresolvedReferences
+            assert instance.profile.centre[1] == 2
 
 
 class TestMixin(object):

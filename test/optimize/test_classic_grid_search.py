@@ -7,6 +7,13 @@ from autofit import exc
 from autofit import mock
 from autofit.optimize import non_linear
 from autofit.optimize.optimizer import grid
+import os
+
+
+@pytest.fixture(scope="session", autouse=True)
+def do_something():
+    conf.instance = conf.Config(
+        "{}/../../workspace/config".format(os.path.dirname(os.path.realpath(__file__))))
 
 
 class MockAnalysis(non_linear.Analysis):
