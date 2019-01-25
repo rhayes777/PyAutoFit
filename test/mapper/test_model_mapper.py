@@ -318,6 +318,9 @@ class TestUniformPrior(object):
         assert uniform_half.value_for(1.) == 1.
         assert uniform_half.value_for(0.5) == 0.75
 
+    def test_width(self):
+        assert p.UniformPrior(2, 5).width == 3
+
 
 class TestLogUniformPrior(object):
 
@@ -942,6 +945,17 @@ class TestUtility(object):
         assert mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls == MockClassMM
         assert mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls == MockClassMM
 
+    def test_prior_prior_name_dict(self):
+        mapper = model_mapper.ModelMapper(mock_class=MockClassMM)
+
+        assert mapper.prior_prior_name_dict == {mapper.priors[0]: "one", mapper.priors[1]: "two"}
+
+    def test_name_for_prior(self):
+        mapper = model_mapper.ModelMapper(mock_class=MockClassMM)
+
+        assert mapper.name_for_prior(mapper.priors[0]) == "one"
+        assert mapper.name_for_prior(mapper.priors[1]) == "two"
+
 
 class TestPriorReplacement(object):
 
@@ -1082,7 +1096,7 @@ class TestConstant(object):
         mapper = model_mapper.ModelMapper()
         mapper.mock_class = mock_with_constant
 
-        assert len(mapper.prior_tuple_dict) == 1
+        assert len(mapper.prior_tuples) == 1
 
     def test_retrieve_constants(self, mock_with_constant):
         assert len(mock_with_constant.constant_tuples) == 1
