@@ -294,6 +294,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
         analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return res
 
 
@@ -423,6 +424,7 @@ class MultiNest(NonLinearOptimizer):
 
         analysis.visualize(instance=constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(), variable=variable)
 
     def open_summary_file(self):
@@ -781,4 +783,5 @@ class GridSearch(NonLinearOptimizer):
 
         analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return res
