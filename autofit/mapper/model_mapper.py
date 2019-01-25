@@ -551,6 +551,33 @@ class ModelMapper(AbstractModel):
 
         return '\n'.join(info)
 
+    @property
+    def param_names(self):
+        """The param_names vector is a list each parameter's analysis_path, and is used for *GetDist* visualization.
+
+        The parameter names are determined from the class instance names of the model_mapper. Latex tags are \
+        properties of each model class."""
+
+        paramnames_names = []
+
+        prior_prior_model_name_dict = self.prior_prior_model_name_dict
+
+        for prior_name, prior in self.prior_tuples_ordered_by_id:
+            paramnames_names.append(prior_prior_model_name_dict[prior] + '_' + prior_name)
+
+        return paramnames_names
+
+    @property
+    def constant_names(self):
+        constant_names = []
+
+        constant_prior_model_name_dict = self.constant_prior_model_name_dict
+
+        for constant_name, constant in self.constant_tuples_ordered_by_id:
+            constant_names.append(constant_prior_model_name_dict[constant] + '_' + constant_name)
+
+        return constant_names
+
 
 class ModelInstance(AbstractModel):
     """
