@@ -145,7 +145,6 @@ def as_grid_search(phase_class):
         @property
         def grid_priors(self):
             raise NotImplementedError(
-                "The grid priors property must be implemented to provide a list of priors to be grid "
-                "searched")
+                "The grid priors property must be implemented to provide a list of priors to be grid searched")
 
     return GridSearchExtension
