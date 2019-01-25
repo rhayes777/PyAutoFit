@@ -73,12 +73,13 @@ class IntervalCounter(object):
 def persistent_timer(func):
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
+        start_time_path = "{}/.start_time".format(optimizer_instance.phase_path)
         try:
-            with open("{}/.start_time".format(optimizer_instance.path)) as f:
+            with open(start_time_path) as f:
                 start = float(f.read())
         except FileNotFoundError:
             start = time.time()
-            with open("{}/.start_time".format(optimizer_instance.path), "w+") as f:
+            with open(start_time_path, "w+") as f:
                 f.write(str(start))
 
         result = func(optimizer_instance, *args, **kwargs)
