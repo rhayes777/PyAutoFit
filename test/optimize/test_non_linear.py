@@ -852,18 +852,22 @@ class TestFitting(object):
             assert result.variable.mock_class.two.mean == -2
 
 
-@pytest.fixture(name='label_optimizer')
-def make_label_optimizer():
-    optimizer = non_linear.NonLinearOptimizer()
-    return optimizer
+@pytest.fixture(name='optimizer')
+def make_optimizer():
+    return non_linear.NonLinearOptimizer()
 
 
 class TestLabels(object):
-    def test_properties(self, label_optimizer):
-        label_optimizer.variable.prior_model = MockClassNLOx4
+    def test_param_names(self, optimizer):
+        optimizer.variable.prior_model = MockClassNLOx4
+        assert ['prior_model_one', 'prior_model_two', 'prior_model_three',
+                'prior_model_four'] == optimizer.variable.param_names
 
-        assert len(label_optimizer.param_labels) == 4
-        assert len(label_optimizer.param_names) == 4
+    def test_properties(self, optimizer):
+        optimizer.variable.prior_model = MockClassNLOx4
+
+        assert len(optimizer.param_labels) == 4
+        assert len(optimizer.variable.param_names) == 4
 
     def test_label_config(self):
         assert conf.instance.label.label("one") == "x4p0"
@@ -871,9 +875,9 @@ class TestLabels(object):
         assert conf.instance.label.label("three") == "x4p2"
         assert conf.instance.label.label("four") == "x4p3"
 
-    def test_labels(self, label_optimizer):
+    def test_labels(self, optimizer):
         autofit.mapper.prior_model.AbstractPriorModel._ids = itertools.count()
-        label_optimizer.variable.prior_model = MockClassNLOx4
+        optimizer.variable.prior_model = MockClassNLOx4
 
-        assert label_optimizer.param_labels == [r'x4p0_{\mathrm{a1}}', r'x4p1_{\mathrm{a1}}',
-                                                r'x4p2_{\mathrm{a1}}', r'x4p3_{\mathrm{a1}}']
+        assert optimizer.param_labels == [r'x4p0_{\mathrm{a1}}', r'x4p1_{\mathrm{a1}}',
+                                          r'x4p2_{\mathrm{a1}}', r'x4p3_{\mathrm{a1}}']
