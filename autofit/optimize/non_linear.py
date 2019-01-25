@@ -134,6 +134,8 @@ class NonLinearOptimizer(object):
         self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
         self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
 
+        self.image_path = "{}image".format(self.phase_path)
+
     def backup(self):
         try:
             shutil.rmtree(self.backup_path)
@@ -574,7 +576,7 @@ class MultiNest(NonLinearOptimizer):
 
             for param_name in self.variable.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(fname='{}image/pdf_{}_1D.png'.format(self.phase_path, param_name))
+                pdf_plot.export(fname='{}/pdf_{}_1D.png'.format(self.image_path, param_name))
 
         plt.close()
 
@@ -584,7 +586,7 @@ class MultiNest(NonLinearOptimizer):
 
             try:
                 pdf_plot.triangle_plot(roots=self.pdf)
-                pdf_plot.export(fname=self.phase_path + 'image/pdf_triangle.png')
+                pdf_plot.export(fname='{}/pdf_triangle.png'.format(self.image_path))
             except Exception as e:
                 print(type(e))
                 print('The PDF triangle of this non-linear search could not be plotted. This is most likely due to a '
