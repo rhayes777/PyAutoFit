@@ -6,8 +6,8 @@ from autofit import conf
 from autofit import mock
 from autofit.mapper import model_mapper as mm
 from autofit.optimize import non_linear
-from autofit.core import phase as ph
-from autofit.core import phase_property
+from autofit.tools import phase as ph
+from autofit.tools import phase_property
 
 directory = os.path.dirname(os.path.realpath(__file__))
 

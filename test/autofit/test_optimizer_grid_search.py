@@ -3,7 +3,7 @@ import pytest
 
 from autofit import exc
 from autofit import mock
-from autofit.core import phase
+from autofit.tools import phase
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.optimize import grid_search as gs

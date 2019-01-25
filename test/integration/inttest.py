@@ -5,8 +5,8 @@ from os import path
 import pytest
 
 from autofit import mock
-from autofit.core import phase as p
-from autofit.core import phase_property
+from autofit.tools import phase as p
+from autofit.tools import phase_property
 from autofit.optimize import grid_search as gs
 from autofit.optimize import non_linear
 
