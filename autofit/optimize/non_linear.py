@@ -1,6 +1,7 @@
 import ast
 import datetime as dt
 import functools
+import glob
 import logging
 import math
 import os
@@ -137,12 +138,25 @@ class NonLinearOptimizer(object):
 
         self.image_path = "{}image".format(self.phase_path)
 
+        self.restore()
+
     def backup(self):
+        """
+        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        """
         try:
             shutil.rmtree(self.backup_path)
         except FileNotFoundError:
             pass
         shutil.copytree(self.opt_path, self.backup_path)
+
+    def restore(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+        if os.path.exists(self.backup_path):
+            for file in glob.glob(self.backup_path + "/*"):
+                shutil.copy(file, self.path)
 
     def config(self, attribute_name, attribute_type=str):
         """
