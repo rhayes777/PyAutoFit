@@ -160,6 +160,10 @@ class Prior(Attribute):
                 "The physical value {} for a prior was not within its limits {}, {}".format(value, self.lower_limit,
                                                                                             self.upper_limit))
 
+    @property
+    def width(self):
+        return self.upper_limit - self.lower_limit
+
     def value_for(self, unit):
         raise NotImplementedError()
 

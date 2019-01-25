@@ -149,7 +149,7 @@ class ModelMapper(AbstractModel):
 
     @property
     @cast_collection(PriorNameValue)
-    def prior_tuple_dict(self):
+    def prior_tuples(self):
         """
         Returns
         -------
@@ -162,7 +162,14 @@ class ModelMapper(AbstractModel):
 
     @property
     def priors(self):
-        return [prior_tuple.prior for prior_tuple in self.prior_tuple_dict]
+        return [prior_tuple.prior for prior_tuple in self.prior_tuples]
+
+    @property
+    def prior_prior_name_dict(self):
+        return {prior_tuple.prior: prior_tuple.name for prior_tuple in self.prior_tuples}
+
+    def name_for_prior(self, prior):
+        return self.prior_prior_name_dict[prior]
 
     @property
     @cast_collection(ConstantNameValue)
@@ -186,7 +193,7 @@ class ModelMapper(AbstractModel):
         priors: [Prior]
             An ordered list of unique priors associated with this mapper
         """
-        return sorted(list(self.prior_tuple_dict), key=lambda prior_tuple: prior_tuple.prior.id)
+        return sorted(list(self.prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id)
 
     @property
     @cast_collection(ConstantNameValue)
@@ -336,7 +343,7 @@ class ModelMapper(AbstractModel):
         physical_values: [float]
             A list of physical values constructed by taking the mean possible value from each prior.
         """
-        return self.physical_vector_from_hypercube_vector([0.5] * len(self.prior_tuple_dict))
+        return self.physical_vector_from_hypercube_vector([0.5] * len(self.prior_tuples))
 
     def instance_from_prior_medians(self):
         """
@@ -348,7 +355,7 @@ class ModelMapper(AbstractModel):
             A list of physical values
 
         """
-        return self.instance_from_unit_vector(unit_vector=[0.5] * len(self.prior_tuple_dict))
+        return self.instance_from_unit_vector(unit_vector=[0.5] * len(self.prior_tuples))
 
     def instance_from_unit_vector(self, unit_vector):
         """
@@ -550,6 +557,33 @@ class ModelMapper(AbstractModel):
                 info.append('')
 
         return '\n'.join(info)
+
+    @property
+    def param_names(self):
+        """The param_names vector is a list each parameter's analysis_path, and is used for *GetDist* visualization.
+
+        The parameter names are determined from the class instance names of the model_mapper. Latex tags are \
+        properties of each model class."""
+
+        paramnames_names = []
+
+        prior_prior_model_name_dict = self.prior_prior_model_name_dict
+
+        for prior_name, prior in self.prior_tuples_ordered_by_id:
+            paramnames_names.append(prior_prior_model_name_dict[prior] + '_' + prior_name)
+
+        return paramnames_names
+
+    @property
+    def constant_names(self):
+        constant_names = []
+
+        constant_prior_model_name_dict = self.constant_prior_model_name_dict
+
+        for constant_name, constant in self.constant_tuples_ordered_by_id:
+            constant_names.append(constant_prior_model_name_dict[constant] + '_' + constant_name)
+
+        return constant_names
 
 
 class ModelInstance(AbstractModel):

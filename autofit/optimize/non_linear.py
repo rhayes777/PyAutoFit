@@ -134,6 +134,8 @@ class NonLinearOptimizer(object):
         self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
         self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
 
+        self.image_path = "{}image".format(self.phase_path)
+
     def backup(self):
         try:
             shutil.rmtree(self.backup_path)
@@ -173,33 +175,6 @@ class NonLinearOptimizer(object):
         raise NotImplementedError("Fitness function must be overridden by non linear optimizers")
 
     @property
-    def param_names(self):
-        """The param_names vector is a list each parameter's analysis_path, and is used for *GetDist* visualization.
-
-        The parameter names are determined from the class instance names of the model_mapper. Latex tags are \
-        properties of each model class."""
-
-        paramnames_names = []
-
-        prior_prior_model_name_dict = self.variable.prior_prior_model_name_dict
-
-        for prior_name, prior in self.variable.prior_tuples_ordered_by_id:
-            paramnames_names.append(prior_prior_model_name_dict[prior] + '_' + prior_name)
-
-        return paramnames_names
-
-    @property
-    def constant_names(self):
-        constant_names = []
-
-        constant_prior_model_name_dict = self.variable.constant_prior_model_name_dict
-
-        for constant_name, constant in self.variable.constant_tuples_ordered_by_id:
-            constant_names.append(constant_prior_model_name_dict[constant] + '_' + constant_name)
-
-        return constant_names
-
-    @property
     def param_labels(self):
         """The param_names vector is a list each parameter's analysis_path, and is used for *GetDist* visualization.
 
@@ -226,7 +201,7 @@ class NonLinearOptimizer(object):
 
         The parameter names are determined from the class instance names of the model_mapper. Latex tags are
         properties of each model class."""
-        paramnames_names = self.param_names
+        paramnames_names = self.variable.param_names
         paramnames_labels = self.param_labels
         with open(self.file_param_names, 'w') as paramnames:
             for i in range(self.variable.prior_count):
@@ -599,9 +574,9 @@ class MultiNest(NonLinearOptimizer):
 
         if plot_pdf_1d_params:
 
-            for param_name in self.param_names:
+            for param_name in self.variable.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(fname='{}image/pdf_{}_1D.png'.format(self.phase_path, param_name))
+                pdf_plot.export(fname='{}/pdf_{}_1D.png'.format(self.image_path, param_name))
 
         plt.close()
 
@@ -611,7 +586,7 @@ class MultiNest(NonLinearOptimizer):
 
             try:
                 pdf_plot.triangle_plot(roots=self.pdf)
-                pdf_plot.export(fname=self.phase_path + 'image/pdf_triangle.png')
+                pdf_plot.export(fname='{}/pdf_triangle.png'.format(self.image_path))
             except Exception as e:
                 print(type(e))
                 print('The PDF triangle of this non-linear search could not be plotted. This is most likely due to a '
@@ -638,7 +613,7 @@ class MultiNest(NonLinearOptimizer):
                                                  'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
 
                 for j in range(self.variable.prior_count):
-                    most_likely_line = self.param_names[j]
+                    most_likely_line = self.variable.param_names[j]
                     most_likely_line += ' ' * (60 - len(most_likely_line)) + str(most_likely[j])
                     results.write(most_likely_line + '\n')
 
@@ -655,7 +630,7 @@ class MultiNest(NonLinearOptimizer):
                         results.write('\n')
 
                         for i in range(self.variable.prior_count):
-                            line = self.param_names[i]
+                            line = self.variable.param_names[i]
                             line += ' ' * (60 - len(line)) + str(
                                 most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + str(upper_limit[i]) + ')'
                             results.write(line + '\n')
@@ -667,7 +642,7 @@ class MultiNest(NonLinearOptimizer):
                 results.write('Constants' + '\n')
                 results.write('\n')
 
-                constant_names = self.constant_names
+                constant_names = self.variable.constant_names
                 constants = self.variable.constant_tuples_ordered_by_id
 
                 for j in range(self.variable.constant_count):
