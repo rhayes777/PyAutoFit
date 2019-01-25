@@ -1,6 +1,7 @@
 import ast
 import datetime as dt
 import functools
+import glob
 import logging
 import math
 import os
@@ -73,12 +74,13 @@ class IntervalCounter(object):
 def persistent_timer(func):
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
+        start_time_path = "{}/.start_time".format(optimizer_instance.phase_path)
         try:
-            with open("{}/.start_time".format(optimizer_instance.path)) as f:
+            with open(start_time_path) as f:
                 start = float(f.read())
         except FileNotFoundError:
             start = time.time()
-            with open("{}/.start_time".format(optimizer_instance.path), "w+") as f:
+            with open(start_time_path, "w+") as f:
                 f.write(str(start))
 
         result = func(optimizer_instance, *args, **kwargs)
@@ -136,12 +138,25 @@ class NonLinearOptimizer(object):
 
         self.image_path = "{}image".format(self.phase_path)
 
+        self.restore()
+
     def backup(self):
+        """
+        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        """
         try:
             shutil.rmtree(self.backup_path)
         except FileNotFoundError:
             pass
         shutil.copytree(self.opt_path, self.backup_path)
+
+    def restore(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+        if os.path.exists(self.backup_path):
+            for file in glob.glob(self.backup_path + "/*"):
+                shutil.copy(file, self.path)
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -291,8 +306,9 @@ class DownhillSimplex(NonLinearOptimizer):
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.variable = self.variable.mapper_from_gaussian_means(output)
 
-        analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
+        analysis.visualize(instance=res.constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return res
 
 
@@ -422,6 +438,7 @@ class MultiNest(NonLinearOptimizer):
 
         analysis.visualize(instance=constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(), variable=variable)
 
     def open_summary_file(self):
@@ -778,6 +795,7 @@ class GridSearch(NonLinearOptimizer):
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.variable = self.variable.mapper_from_gaussian_means(fitness_function.best_cube)
 
-        analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
+        analysis.visualize(instance=res.constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return res
