@@ -1,6 +1,7 @@
 import ast
 import datetime as dt
 import functools
+import glob
 import logging
 import math
 import os
@@ -73,12 +74,13 @@ class IntervalCounter(object):
 def persistent_timer(func):
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
+        start_time_path = "{}/.start_time".format(optimizer_instance.phase_path)
         try:
-            with open("{}/.start_time".format(optimizer_instance.path)) as f:
+            with open(start_time_path) as f:
                 start = float(f.read())
         except FileNotFoundError:
             start = time.time()
-            with open("{}/.start_time".format(optimizer_instance.path), "w+") as f:
+            with open(start_time_path, "w+") as f:
                 f.write(str(start))
 
         result = func(optimizer_instance, *args, **kwargs)
@@ -134,12 +136,27 @@ class NonLinearOptimizer(object):
         self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
         self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
 
+        self.image_path = "{}image".format(self.phase_path)
+
+        self.restore()
+
     def backup(self):
+        """
+        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        """
         try:
             shutil.rmtree(self.backup_path)
         except FileNotFoundError:
             pass
         shutil.copytree(self.opt_path, self.backup_path)
+
+    def restore(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+        if os.path.exists(self.backup_path):
+            for file in glob.glob(self.backup_path + "/*"):
+                shutil.copy(file, self.path)
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -291,6 +308,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
         analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return res
 
 
@@ -420,6 +438,7 @@ class MultiNest(NonLinearOptimizer):
 
         analysis.visualize(instance=constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(), variable=variable)
 
     def open_summary_file(self):
@@ -574,7 +593,7 @@ class MultiNest(NonLinearOptimizer):
 
             for param_name in self.variable.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(fname='{}image/pdf_{}_1D.png'.format(self.phase_path, param_name))
+                pdf_plot.export(fname='{}/pdf_{}_1D.png'.format(self.image_path, param_name))
 
         plt.close()
 
@@ -584,7 +603,7 @@ class MultiNest(NonLinearOptimizer):
 
             try:
                 pdf_plot.triangle_plot(roots=self.pdf)
-                pdf_plot.export(fname=self.phase_path + 'image/pdf_triangle.png')
+                pdf_plot.export(fname='{}/pdf_triangle.png'.format(self.image_path))
             except Exception as e:
                 print(type(e))
                 print('The PDF triangle of this non-linear search could not be plotted. This is most likely due to a '
@@ -778,4 +797,5 @@ class GridSearch(NonLinearOptimizer):
 
         analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
 
+        self.backup()
         return res

@@ -103,36 +103,22 @@ class GridSearch(object):
         """
         return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size, include_upper_limit=False)
 
-    def models_mappers(self, grid_priors):
-        """
-        A generator that yields one model mapper at a time. Each model mapper represents on step in the grid search. Any
-        prior that is not included in grid priors remains unchanged; priors included in grid priors are replaced by
-        uniform priors between the limits of the grid step:
+    def make_arguments(self, values, grid_priors):
+        arguments = {}
+        for value, grid_prior in zip(values, grid_priors):
+            if float("-inf") == grid_prior.lower_limit or float('inf') == grid_prior.upper_limit:
+                raise exc.PriorException("Priors passed to the grid search must have definite limits")
+            lower_limit = grid_prior.lower_limit + value * grid_prior.width
+            upper_limit = grid_prior.lower_limit + (value + self.hyper_step_size) * grid_prior.width
+            prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
+            arguments[grid_prior] = prior
+        return arguments
 
-        UniformPrior(lower_limit=lower_limit + value * prior_step_size,
-                     upper_limit=lower_limit + (value + self.step_size) * prior_step_size)
-
-        Parameters
-        ----------
-        grid_priors: [p.Prior]
-            A list of priors to be substituted for uniform priors across the grid.
-
-        Returns
-        -------
-        model_mappers: generator[mm.ModelMapper]
-        """
-        grid_priors = set(grid_priors)
+    def model_mappers(self, grid_priors):
+        grid_priors = list(set(grid_priors))
         lists = self.make_lists(grid_priors)
         for values in lists:
-            arguments = {}
-            for value, grid_prior in zip(values, grid_priors):
-                prior_step_size = grid_prior.upper_limit - grid_prior.lower_limit
-                if float("-inf") == grid_prior.lower_limit or float('inf') == grid_prior.upper_limit:
-                    raise exc.PriorException("Priors passed to the grid search must have definite limits")
-                lower_limit = grid_prior.lower_limit + value * prior_step_size
-                upper_limit = grid_prior.lower_limit + (value + self.hyper_step_size) * prior_step_size
-                prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
-                arguments[grid_prior] = prior
+            arguments = self.make_arguments(values, grid_priors)
             yield self.variable.mapper_from_partial_prior_arguments(arguments)
 
     def fit(self, analysis, grid_priors):
@@ -152,11 +138,21 @@ class GridSearch(object):
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
+        grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
-        for values, model_mapper in zip(lists, self.models_mappers(grid_priors)):
+        for values in lists:
+            arguments = self.make_arguments(values, grid_priors)
+            model_mapper = self.variable.mapper_from_partial_prior_arguments(arguments)
+
+            labels = []
+            for prior in arguments.values():
+                labels.append(
+                    "{}_{}_{}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
+
+            name_path = "{}/{}".format(self.name, "_".join(labels))
             optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
-                                                      name="{}/{}".format(self.name, "_".join(map(str, values))))
+                                                      name=name_path)
             optimizer_instance.constant = self.constant
             result = optimizer_instance.fit(analysis)
             results.append(result)

@@ -24,7 +24,7 @@ def make_grid_search(mapper):
 
 class TestGridSearchablePriors(object):
     def test_generated_models(self, grid_search):
-        mappers = list(grid_search.models_mappers(
+        mappers = list(grid_search.model_mappers(
             grid_priors=[grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1]))
 
         assert len(mappers) == 100
@@ -41,7 +41,8 @@ class TestGridSearchablePriors(object):
 
     def test_non_grid_searched_dimensions(self, mapper):
         grid_search = gs.GridSearch(model_mapper=mapper, number_of_steps=10)
-        mappers = list(grid_search.models_mappers(grid_priors=[mapper.profile.centre_0]))
+
+        mappers = list(grid_search.model_mappers(grid_priors=[mapper.profile.centre_0]))
 
         assert len(mappers) == 10
 
@@ -58,7 +59,7 @@ class TestGridSearchablePriors(object):
     def test_tied_priors(self, grid_search):
         grid_search.variable.profile.centre_0 = grid_search.variable.profile.centre_1
 
-        mappers = list(grid_search.models_mappers(
+        mappers = list(grid_search.model_mappers(
             grid_priors=[grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1]))
 
         assert len(mappers) == 10
@@ -78,7 +79,7 @@ class TestGridSearchablePriors(object):
 
     def test_different_prior_width(self, grid_search):
         grid_search.variable.profile.centre_0 = p.UniformPrior(0., 2.)
-        mappers = list(grid_search.models_mappers(
+        mappers = list(grid_search.model_mappers(
             grid_priors=[grid_search.variable.profile.centre_0]))
 
         assert len(mappers) == 10
@@ -90,7 +91,7 @@ class TestGridSearchablePriors(object):
         assert mappers[-1].profile.centre_0.upper_limit == 2.0
 
         grid_search.variable.profile.centre_0 = p.UniformPrior(1., 1.5)
-        mappers = list(grid_search.models_mappers(
+        mappers = list(grid_search.model_mappers(
             grid_priors=[grid_search.variable.profile.centre_0]))
 
         assert len(mappers) == 10
@@ -105,7 +106,7 @@ class TestGridSearchablePriors(object):
         grid_search.variable.profile.centre_0 = p.GaussianPrior(0., 2., lower_limit=float('-inf'),
                                                                 upper_limit=float('inf'))
         with pytest.raises(exc.PriorException):
-            list(grid_search.models_mappers(grid_priors=[grid_search.variable.profile.centre_0]))
+            list(grid_search.make_arguments([[0, 1]], grid_priors=[grid_search.variable.profile.centre_0]))
 
 
 class MockClassContainer(object):
@@ -166,17 +167,17 @@ class TestGridNLOBehaviour(object):
         grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
         assert len(container.init_args) == 2
-        assert container.init_args[0][1] == "sample_name/0.0"
-        assert container.init_args[1][1] == "sample_name/0.5"
+        assert container.init_args[0][1] == "sample_name/centre_0_0.0_0.5"
+        assert container.init_args[1][1] == "sample_name/centre_0_0.5_1.0"
 
     def test_names_2d(self, grid_search_05, mapper, container):
         grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
 
         assert len(container.init_args) == 4
-        assert container.init_args[0][1] == "sample_name/0.0_0.0"
-        assert container.init_args[1][1] == "sample_name/0.0_0.5"
-        assert container.init_args[2][1] == "sample_name/0.5_0.0"
-        assert container.init_args[3][1] == "sample_name/0.5_0.5"
+        assert container.init_args[0][1] == "sample_name/centre_0_0.0_0.5_centre_1_0.0_0.5"
+        assert container.init_args[1][1] == "sample_name/centre_0_0.0_0.5_centre_1_0.5_1.0"
+        assert container.init_args[2][1] == "sample_name/centre_0_0.5_1.0_centre_1_0.0_0.5"
+        assert container.init_args[3][1] == "sample_name/centre_0_0.5_1.0_centre_1_0.5_1.0"
 
     def test_results(self, grid_search_05, mapper, container):
         result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
