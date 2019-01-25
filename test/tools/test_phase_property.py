@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+import autofit.mapper.prior_model
 from autofit import conf
 from autofit import mock
 from autofit.mapper import model_mapper as mm
@@ -94,7 +95,7 @@ class TestPhasePropertyList(object):
         assert list_phase.prop == objects
 
     def test_abstract_prior_models(self, list_phase):
-        objects = [mm.AbstractPriorModel(), mm.AbstractPriorModel()]
+        objects = [autofit.mapper.prior_model.AbstractPriorModel(), autofit.mapper.prior_model.AbstractPriorModel()]
 
         list_phase.prop = objects
 
@@ -245,12 +246,12 @@ class TestPhasePropertyCollectionAttributes(object):
         assert hasattr(list_phase.prop, "one")
 
     def test_position_not_a_prior(self, list_phase):
-        list_phase.prop = [mm.PriorModel(mock.Galaxy)]
+        list_phase.prop = [autofit.mapper.prior_model.PriorModel(mock.Galaxy)]
 
         assert list_phase.variable.prior_count == 1
         assert "redshift" == list_phase.variable.prior_tuples_ordered_by_id[0][0]
 
-        prior_model = mm.PriorModel(mock.Galaxy)
+        prior_model = autofit.mapper.prior_model.PriorModel(mock.Galaxy)
         prior_model.phase_property_position = 0
 
         assert len(prior_model.constant_tuples) == 0
