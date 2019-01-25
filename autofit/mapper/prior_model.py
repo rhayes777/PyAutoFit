@@ -1,3 +1,4 @@
+import copy
 import inspect
 import itertools
 import re
@@ -409,7 +410,7 @@ class PriorModel(AbstractPriorModel):
         new_model: ModelMapper
             A new model mapper populated with Gaussian priors
         """
-        new_model = PriorModel(self.cls)
+        new_model = copy.deepcopy(self)
 
         model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}
 
