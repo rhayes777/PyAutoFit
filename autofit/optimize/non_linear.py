@@ -306,7 +306,7 @@ class DownhillSimplex(NonLinearOptimizer):
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.variable = self.variable.mapper_from_gaussian_means(output)
 
-        analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
+        analysis.visualize(instance=res.constant, suffix=None, during_analysis=False)
 
         self.backup()
         return res
@@ -795,7 +795,7 @@ class GridSearch(NonLinearOptimizer):
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.variable = self.variable.mapper_from_gaussian_means(fitness_function.best_cube)
 
-        analysis.visualize(instance=self.constant, suffix=None, during_analysis=False)
+        analysis.visualize(instance=res.constant, suffix=None, during_analysis=False)
 
         self.backup()
         return res
