@@ -103,7 +103,7 @@ class GridSearch(object):
         -------
         lists: [[float]]
         """
-        return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size, include_upper_limit=False)
+        return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size, centre_steps=False)
 
     def make_arguments(self, values, grid_priors):
         arguments = {}

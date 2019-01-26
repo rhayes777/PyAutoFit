@@ -29,7 +29,7 @@ def grid(fitness_function, no_dimensions, step_size):
     return best_arguments
 
 
-def make_lists(no_dimensions, step_size, include_upper_limit=True):
+def make_lists(no_dimensions, step_size, centre_steps=True):
     """
     Create a list of lists of floats covering every combination across no_dimensions of points of integer step size
     between 0 and 1 inclusive.
@@ -40,7 +40,7 @@ def make_lists(no_dimensions, step_size, include_upper_limit=True):
         The number of dimensions, that is the length of the lists
     step_size: float
         The step size
-    include_upper_limit: bool
+    centre_steps: bool
 
     Returns
     -------
@@ -50,6 +50,8 @@ def make_lists(no_dimensions, step_size, include_upper_limit=True):
     if no_dimensions == 0:
         return [[]]
 
-    sub_lists = make_lists(no_dimensions - 1, step_size, include_upper_limit=include_upper_limit)
-    return [[step_size * value] + sub_list for value in
-            range(0, int((1 / step_size) + (1 if include_upper_limit else 0))) for sub_list in sub_lists]
+    sub_lists = make_lists(no_dimensions - 1, step_size, centre_steps=centre_steps)
+    # return [[(1 + 0.5 if centre_steps else 0) * step_size * value] + sub_list for value in
+    #         range(0, int((1 / step_size))) for sub_list in sub_lists]
+    return [[step_size * value + 0.5 * step_size if centre_steps else 0] + sub_list for value in
+            range(0, int((1 / step_size))) for sub_list in sub_lists]
