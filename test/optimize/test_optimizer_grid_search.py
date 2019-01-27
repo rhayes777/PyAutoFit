@@ -174,6 +174,7 @@ class TestGridNLOBehaviour(object):
         grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
 
         assert len(container.init_args) == 4
+        
         assert container.init_args[0][1] == "sample_name/centre_0_0.0_0.5_centre_1_0.0_0.5"
         assert container.init_args[1][1] == "sample_name/centre_0_0.0_0.5_centre_1_0.5_1.0"
         assert container.init_args[2][1] == "sample_name/centre_0_0.5_1.0_centre_1_0.0_0.5"
