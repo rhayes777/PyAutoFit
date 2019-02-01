@@ -177,7 +177,8 @@ class Prior(Attribute):
         return hash(self.id)
 
     def __repr__(self):
-        return "<Prior id={}>".format(self.id)
+        return "<{} id={} lower_limit={} upper_limit={}>".format(self.__class__.__name__, self.id, self.lower_limit,
+                                                                 self.upper_limit)
 
 
 class GaussianPrior(Prior):
@@ -208,6 +209,12 @@ class GaussianPrior(Prior):
     def info(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return 'GaussianPrior, mean = ' + str(self.mean) + ', sigma = ' + str(self.sigma)
+
+    def __repr__(self):
+        return "<GaussianPrior id={} mean={} sigma={} lower_limit={} upper_limit={}>".format(self.id, self.mean,
+                                                                                             self.sigma,
+                                                                                             self.lower_limit,
+                                                                                             self.upper_limit)
 
 
 class UniformPrior(Prior):
