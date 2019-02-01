@@ -1,8 +1,7 @@
 from codecs import open
 from os.path import abspath, dirname, join
-from subprocess import call
 
-from setuptools import Command, find_packages, setup
+from setuptools import find_packages, setup
 
 from autofit import __version__
 
