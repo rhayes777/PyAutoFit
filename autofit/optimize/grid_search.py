@@ -148,7 +148,7 @@ class GridSearch(object):
             labels = []
             for prior in arguments.values():
                 labels.append(
-                    "{}_{}_{}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
+                    "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
             name_path = "{}/{}".format(self.name, "_".join(labels))
             optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
