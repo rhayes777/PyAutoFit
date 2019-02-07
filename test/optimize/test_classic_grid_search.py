@@ -35,8 +35,6 @@ class MockAnalysis(non_linear.Analysis):
 
 
 def tuple_lists_equal(l1, l2):
-    print(l1)
-    print(l2)
     assert len(l1) == len(l2)
     for tuple_pair in zip(l1, l2):
         assert len(tuple_pair[0]) == len(tuple_pair[1])

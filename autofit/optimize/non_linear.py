@@ -697,6 +697,7 @@ class GridSearch(NonLinearOptimizer):
             self.checkpoint_count = checkpoint_count
             self.best_fit = best_fit
             self.best_cube = best_cube
+            self.all_fits = {}
             if self.best_cube is not None:
                 self.fit_instance(self.instance_from_unit_vector(self.best_cube))
 
@@ -708,6 +709,7 @@ class GridSearch(NonLinearOptimizer):
                     return -np.inf
                 instance = self.instance_from_unit_vector(cube)
                 fit = self.fit_instance(instance)
+                self.all_fits[cube] = fit
                 if fit > self.best_fit:
                     self.best_fit = fit
                     self.best_cube = cube
@@ -790,6 +792,17 @@ class GridSearch(NonLinearOptimizer):
         self.grid(fitness_function, self.variable.prior_count, self.step_size)
 
         logger.info("grid search complete")
+
+        results_list = [self.variable.param_names]
+
+        for item in fitness_function.all_fits.items():
+            results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
+
+        with open("{}/results".format(self.phase_path), "w+") as f:
+            f.write("\n".join(map(lambda ls: ", ".join(
+                map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
+                                  results_list)))
+
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.

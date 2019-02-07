@@ -69,8 +69,10 @@ class GridSearch(object):
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
-        sym_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
-        self.backup_path = "{}/{}/optimizer_backup".format(conf.instance.output_path, name)
+        self.phase_path = "{}/{}".format(conf.instance.output_path, name)
+
+        sym_path = "{}/optimizer".format(self.phase_path)
+        self.backup_path = "{}/optimizer_backup".format(self.phase_path)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -150,7 +152,7 @@ class GridSearch(object):
             labels = []
             for prior in arguments.values():
                 labels.append(
-                    "{}_{}_{}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
+                    "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
             name_path = "{}/{}".format(self.name, "_".join(labels))
             optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
@@ -158,4 +160,15 @@ class GridSearch(object):
             optimizer_instance.constant = self.constant
             result = optimizer_instance.fit(analysis)
             results.append(result)
+
+        results_list = [self.variable.param_names]
+
+        for result, values in zip(results, lists):
+            results_list.append([*self.variable.physical_vector_from_hypercube_vector(values), result.figure_of_merit])
+
+        with open("{}/results".format(self.phase_path), "w+") as f:
+            f.write("\n".join(map(lambda ls: ", ".join(
+                map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
+                                  results_list)))
+
         return GridSearchResult(results, lists)
