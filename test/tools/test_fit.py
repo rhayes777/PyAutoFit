@@ -18,6 +18,7 @@ class TestDataFitter:
 
         assert (data_fit.data == np.array([1.0, 2.0, 3.0, 4.0])).all()
         assert (data_fit.noise_map == np.array([2.0, 2.0, 2.0, 2.0])).all()
+        assert (data_fit.signal_to_noise_map == np.array([0.5, 1.0, 1.5, 2.0])).all()
         assert (data_fit.mask == np.array([False, False, False, False])).all()
         assert (data_fit.model_data == np.array([1.0, 2.0, 3.0, 4.0])).all()
         assert (data_fit.residual_map == np.array([0.0, 0.0, 0.0, 0.0])).all()
@@ -39,6 +40,7 @@ class TestDataFitter:
 
         assert (data_fit.data == np.array([1.0, 2.0, 3.0, 4.0])).all()
         assert (data_fit.noise_map == np.array([2.0, 2.0, 2.0, 2.0])).all()
+        assert (data_fit.signal_to_noise_map == np.array([0.5, 1.0, 1.5, 2.0])).all()
         assert (data_fit.mask == np.array([False, False, False, False])).all()
         assert (data_fit.model_data == np.array([1.0, 1.0, 1.0, 1.0])).all()
         assert (data_fit.residual_map == np.array([0.0, 1.0, 2.0, 3.0])).all()
@@ -60,6 +62,7 @@ class TestDataFitter:
 
         assert (data_fit.data == np.array([1.0, 2.0, 3.0, 4.0])).all()
         assert (data_fit.noise_map == np.array([2.0, 2.0, 2.0, 2.0])).all()
+        assert (data_fit.signal_to_noise_map == np.array([0.5, 1.0, 1.5, 2.0])).all()
         assert (data_fit.mask == np.array([False, True, True, False])).all()
         assert (data_fit.model_data == model_data).all()
         assert (data_fit.residual_map == np.array([0.0, 0.0, 0.0, 3.0])).all()

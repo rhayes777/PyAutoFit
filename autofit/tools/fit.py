@@ -55,6 +55,13 @@ class DataFit(object):
         self.likelihood = fit_util.likelihood_from_chi_squared_and_noise_normalization(
             chi_squared=self.chi_squared, noise_normalization=self.noise_normalization)
 
+    @property
+    def signal_to_noise_map(self):
+        """The signal-to-noise_map of the data and noise-map which are fitted."""
+        signal_to_noise_map = np.divide(self.data, self.noise_map)
+        signal_to_noise_map[signal_to_noise_map < 0] = 0
+        return signal_to_noise_map
+
 
 # noinspection PyUnresolvedReferences
 class DataFitStack(object):
