@@ -145,6 +145,15 @@ class GridSearch(object):
         grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
+
+        results_list = [list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
+
+        def write_results():
+            with open("{}/results".format(self.phase_path), "w+") as f:
+                f.write("\n".join(map(lambda ls: ", ".join(
+                    map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
+                                      results_list)))
+
         for values in lists:
             arguments = self.make_arguments(values, grid_priors)
             model_mapper = self.variable.mapper_from_partial_prior_arguments(arguments)
@@ -161,14 +170,8 @@ class GridSearch(object):
             result = optimizer_instance.fit(analysis)
             results.append(result)
 
-        results_list = [self.variable.param_names]
+            results_list.append([*[prior.lower_limit for prior in arguments.values()], result.figure_of_merit])
 
-        for result, values in zip(results, lists):
-            results_list.append([*self.variable.physical_vector_from_hypercube_vector(values), result.figure_of_merit])
-
-        with open("{}/results".format(self.phase_path), "w+") as f:
-            f.write("\n".join(map(lambda ls: ", ".join(
-                map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
-                                  results_list)))
+            write_results()
 
         return GridSearchResult(results, lists)

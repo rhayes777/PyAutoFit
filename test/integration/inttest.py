@@ -77,6 +77,17 @@ class TestCase(object):
         assert 0 == pytest.approx(centre[0], abs=0.1)
         assert 0 == pytest.approx(centre[1], abs=0.1)
 
+    def test_classic_grid_search_phase(self):
+        # noinspection PyTypeChecker
+        phase = Phase(phase_name="test_classic_grid_search_phase", profile=mock.EllipticalProfile,
+                      constant_profile=mock.EllipticalProfile(), optimizer_class=non_linear.GridSearch)
+        result = phase.run_analysis(Analysis())
+
+        centre = result.constant.profile.centre
+
+        assert 0 == pytest.approx(centre[0], abs=0.1)
+        assert 0 == pytest.approx(centre[1], abs=0.1)
+
     def test_grid_search_phase(self):
         class GridSearchPhase(p.as_grid_search(Phase)):
             @property
@@ -103,4 +114,5 @@ if __name__ == "__main__":
     TestCase().test_integration()
     TestCase().test_grid()
     TestCase().test_phase()
+    TestCase().test_classic_grid_search_phase()
     TestCase().test_grid_search_phase()
