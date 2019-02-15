@@ -71,6 +71,11 @@ class AbstractPriorModel:
         raise NotImplementedError()
 
     @property
+    @cast_collection(PriorModelNameValue)
+    def direct_prior_model_tuples(self):
+        return [(name, value) for name, value in self.__dict__.items() if isinstance(value, AbstractPriorModel)]
+
+    @property
     def constant_tuples(self):
         raise NotImplementedError()
 
@@ -82,6 +87,10 @@ class AbstractPriorModel:
         raise NotImplementedError()
 
     def name_for_prior(self, prior):
+        for prior_model_name, prior_model in self.direct_prior_model_tuples:
+            prior_name = prior_model.name_for_prior(prior)
+            if prior_name is not None:
+                return "{}_{}".format(prior_model_name, prior_name)
         prior_tuples = self.prior_tuples
         for name, p in prior_tuples:
             if p == prior:
@@ -208,7 +217,7 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, tuple_prior)
             else:
                 setattr(self, arg, self.make_prior(arg, cls))
- 
+
     @staticmethod
     def make_prior(attribute_name, cls):
         """
