@@ -21,8 +21,6 @@ from autofit.optimize import optimizer as opt
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 
-SIMPLEX_TUPLE_WIDTH = 0.1
-
 
 class Analysis(object):
     def fit(self, instance):
