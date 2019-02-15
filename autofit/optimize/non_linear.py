@@ -740,7 +740,7 @@ class GridSearch(NonLinearOptimizer):
                     self.best_cube = cube
                 self.nlo.save_checkpoint(self.total_calls, self.best_fit, self.best_cube)
                 if self.should_save_grid_results():
-                    self.save_results(self.all_fits.values())
+                    self.save_results(self.all_fits.items())
                 return fit
             except exc.FitException:
                 return -np.inf
@@ -807,9 +807,9 @@ class GridSearch(NonLinearOptimizer):
             best_fit = self.checkpoint_fit
             best_cube = self.checkpoint_cube
 
-        def save_results(all_fit_values):
+        def save_results(all_fit_items):
             results_list = [self.variable.param_names + ["fit"]]
-            for item in fitness_function.all_fits.items():
+            for item in all_fit_items:
                 results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
 
             with open("{}/results".format(self.phase_path), "w+") as f:
