@@ -27,8 +27,8 @@ class Analysis(non_linear.Analysis):
     def visualize(self, instance, **kwargs):
         pass
 
-    def log(self, instance):
-        logger.info("{}, {}".format(*instance.profile.centre))
+    def describe(self, instance):
+        return "{}, {}".format(*instance.profile.centre)
 
 
 class Phase(p.AbstractPhase):

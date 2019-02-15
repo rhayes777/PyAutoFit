@@ -12,6 +12,7 @@ from autofit.optimize import optimizer
 
 
 class GridSearchResult(object):
+
     def __init__(self, results, lists):
         """
         The result of a grid search.
@@ -43,6 +44,7 @@ class GridSearchResult(object):
 
 
 class GridSearch(object):
+
     def __init__(self, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
                  constant=None, name="grid_search"):
         """

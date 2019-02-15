@@ -27,11 +27,11 @@ class MockAnalysis(non_linear.Analysis):
         except AttributeError:
             return 0
 
-    def visualize(self, instance, suffix, during_analysis):
+    def visualize(self, instance, image_path, during_analysis):
         pass
 
-    def log(self, instance):
-        pass
+    def describe(self, instance):
+        return ""
 
 
 def tuple_lists_equal(l1, l2):
@@ -207,3 +207,16 @@ class TestGridSearch(object):
         assert len(analysis.instances) == 90
         assert pytest.approx(result.constant.one.redshift) == 0.15
         assert pytest.approx(result.constant.two.redshift) == 0.65
+
+    def test__output_likelihoods(self, grid_search):
+        grid_search.variable.one = mock.Galaxy
+
+        analysis = MockAnalysis()
+        grid_search.fit(analysis)
+
+        assert len(analysis.instances) == 10
+
+        instance = analysis.instances[5]
+
+        assert isinstance(instance.one, mock.Galaxy)
+        assert instance.one.redshift == 0.55
