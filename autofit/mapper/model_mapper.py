@@ -168,9 +168,6 @@ class ModelMapper(AbstractModel):
     def prior_prior_name_dict(self):
         return {prior_tuple.prior: prior_tuple.name for prior_tuple in self.prior_tuples}
 
-    def name_for_prior(self, prior):
-        return self.prior_prior_name_dict[prior]
-
     @property
     @cast_collection(ConstantNameValue)
     def constant_tuple_dict(self):
@@ -558,6 +555,12 @@ class ModelMapper(AbstractModel):
 
         return '\n'.join(info)
 
+    def name_for_prior(self, prior):
+        for prior_model_name, prior_model in self.prior_model_tuples:
+            prior_name = prior_model.name_for_prior(prior)
+            if prior_name is not None:
+                return "{}_{}".format(prior_model_name, prior_name)
+
     @property
     def param_names(self):
         """The param_names vector is a list each parameter's analysis_path, and is used for *GetDist* visualization.
@@ -565,14 +568,7 @@ class ModelMapper(AbstractModel):
         The parameter names are determined from the class instance names of the model_mapper. Latex tags are \
         properties of each model class."""
 
-        paramnames_names = []
-
-        prior_prior_model_name_dict = self.prior_prior_model_name_dict
-
-        for prior_name, prior in self.prior_tuples_ordered_by_id:
-            paramnames_names.append(prior_prior_model_name_dict[prior] + '_' + prior_name)
-
-        return paramnames_names
+        return [self.name_for_prior(prior) for prior in self.priors]
 
     @property
     def constant_names(self):
