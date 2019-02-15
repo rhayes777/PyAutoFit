@@ -959,8 +959,8 @@ class TestUtility(object):
     def test_name_for_prior(self):
         mapper = model_mapper.ModelMapper(mock_class=MockClassMM)
 
-        assert mapper.name_for_prior(mapper.priors[0]) == "one"
-        assert mapper.name_for_prior(mapper.priors[1]) == "two"
+        assert mapper.name_for_prior(mapper.priors[0]) == "mock_class_one"
+        assert mapper.name_for_prior(mapper.priors[1]) == "mock_class_two"
 
 
 class TestPriorReplacement(object):
