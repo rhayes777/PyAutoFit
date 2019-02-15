@@ -629,13 +629,18 @@ class MultiNest(NonLinearOptimizer):
 
     def output_results(self, during_analysis=False):
 
+        decimal_places = conf.instance.general.get("output", "model_results_decimal_places", int)
+
+        def rounded(num):
+            return np.round(num, decimal_places)
+
         if os.path.isfile(self.file_summary):
 
             with open(self.file_results, 'w') as results:
 
                 max_likelihood = self.max_likelihood_from_summary()
 
-                results.write('Most likely model, Likelihood = {}\n'.format(max_likelihood))
+                results.write('Most likely model, Likelihood = {}\n'.format(rounded(max_likelihood)))
                 results.write('\n')
 
                 most_likely = self.most_likely_from_summary()
@@ -646,7 +651,7 @@ class MultiNest(NonLinearOptimizer):
 
                 for j in range(self.variable.prior_count):
                     most_likely_line = self.variable.param_names[j]
-                    most_likely_line += ' ' * (60 - len(most_likely_line)) + str(most_likely[j])
+                    most_likely_line += ' ' * (60 - len(most_likely_line)) + str(rounded(most_likely[j]))
                     results.write(most_likely_line + '\n')
 
                 if not during_analysis:
@@ -664,7 +669,8 @@ class MultiNest(NonLinearOptimizer):
                         for i in range(self.variable.prior_count):
                             line = self.variable.param_names[i]
                             line += ' ' * (60 - len(line)) + str(
-                                most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + str(upper_limit[i]) + ')'
+                                rounded(most_probable[i])) + ' (' + str(rounded(lower_limit[i])) + ', ' + str(
+                                rounded(upper_limit[i])) + ')'
                             results.write(line + '\n')
 
                     write_for_sigma_limit(3.0)
