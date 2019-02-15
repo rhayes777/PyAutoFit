@@ -81,6 +81,12 @@ class AbstractPriorModel:
     def instance_for_arguments(self, arguments):
         raise NotImplementedError()
 
+    def name_for_prior(self, prior):
+        prior_tuples = self.prior_tuples
+        for name, p in prior_tuples:
+            if p == prior:
+                return name
+
 
 class ListPriorModel(list, AbstractPriorModel):
     @property
@@ -202,7 +208,7 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, tuple_prior)
             else:
                 setattr(self, arg, self.make_prior(arg, cls))
-
+ 
     @staticmethod
     def make_prior(attribute_name, cls):
         """
