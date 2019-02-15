@@ -111,8 +111,8 @@ class TestCase(object):
 
 
 if __name__ == "__main__":
-    # TestCase().test_integration()
-    # TestCase().test_grid()
-    # TestCase().test_phase()
+    TestCase().test_integration()
+    TestCase().test_grid()
+    TestCase().test_phase()
     TestCase().test_classic_grid_search_phase()
-    # TestCase().test_grid_search_phase()
+    TestCase().test_grid_search_phase()
