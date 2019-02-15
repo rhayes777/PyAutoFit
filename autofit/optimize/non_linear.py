@@ -710,15 +710,19 @@ class GridSearch(NonLinearOptimizer):
         self.grid = grid
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, image_path, checkpoint_count=0,
-                     best_fit=-np.inf, best_cube=None):
+        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, image_path, save_results,
+                     checkpoint_count=0, best_fit=-np.inf, best_cube=None):
             super().__init__(nlo, analysis, constant, image_path)
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
+            self.save_results = save_results
             self.best_fit = best_fit
             self.best_cube = best_cube
             self.all_fits = {}
+            grid_results_interval = conf.instance.general.get('output', 'grid_results_interval', int)
+
+            self.should_save_grid_results = IntervalCounter(grid_results_interval)
             if self.best_cube is not None:
                 self.fit_instance(self.instance_from_unit_vector(self.best_cube))
 
@@ -735,6 +739,8 @@ class GridSearch(NonLinearOptimizer):
                     self.best_fit = fit
                     self.best_cube = cube
                 self.nlo.save_checkpoint(self.total_calls, self.best_fit, self.best_cube)
+                if self.should_save_grid_results():
+                    self.save_results(self.all_fits.values())
                 return fit
             except exc.FitException:
                 return -np.inf
@@ -801,11 +807,22 @@ class GridSearch(NonLinearOptimizer):
             best_fit = self.checkpoint_fit
             best_cube = self.checkpoint_cube
 
+        def save_results(all_fit_values):
+            results_list = [self.variable.param_names + ["fit"]]
+            for item in fitness_function.all_fits.items():
+                results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
+
+            with open("{}/results".format(self.phase_path), "w+") as f:
+                f.write("\n".join(map(lambda ls: ", ".join(
+                    map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
+                                      results_list)))
+
         fitness_function = GridSearch.Fitness(self,
                                               analysis,
                                               self.variable.instance_from_unit_vector,
                                               self.constant,
                                               self.image_path,
+                                              save_results,
                                               checkpoint_count=checkpoint_count,
                                               best_fit=best_fit,
                                               best_cube=best_cube)
@@ -814,16 +831,6 @@ class GridSearch(NonLinearOptimizer):
         self.grid(fitness_function, self.variable.prior_count, self.step_size)
 
         logger.info("grid search complete")
-
-        results_list = [self.variable.param_names]
-
-        for item in fitness_function.all_fits.items():
-            results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
-
-        with open("{}/results".format(self.phase_path), "w+") as f:
-            f.write("\n".join(map(lambda ls: ", ".join(
-                map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
-                                  results_list)))
 
         res = fitness_function.result
 
