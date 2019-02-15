@@ -96,20 +96,17 @@ class AbstractPhase(object):
     # noinspection PyAbstractClass
     class Analysis(non_linear.Analysis):
 
-        def __init__(self, phase_name, previous_results=None):
+        def __init__(self, previous_results=None):
             """
             An lensing object
 
             Parameters
             ----------
-            phase_name: str
-                The name of the phase to which this analysis belongs
             previous_results: ResultsCollection
                 The results of all previous phases
             """
 
             self.previous_results = previous_results
-            self.phase_name = phase_name
 
         @property
         def last_results(self):
