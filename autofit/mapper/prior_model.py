@@ -100,6 +100,9 @@ class AbstractPriorModel:
             if p == prior:
                 return name
 
+    def tuples_with_type(self, class_type):
+        return list(filter(lambda t: isinstance(t[1], class_type), self.__dict__.items()))
+
 
 class ListPriorModel(list, AbstractPriorModel):
     @property
@@ -340,7 +343,7 @@ class PriorModel(AbstractPriorModel):
         -------
         tuple_prior_tuples: [(String, TuplePrior)]
         """
-        return list(filter(lambda t: isinstance(t[1], TuplePrior), self.__dict__.items()))
+        return self.tuples_with_type(TuplePrior)
 
     @property
     @cast_collection(PriorNameValue)
@@ -350,7 +353,7 @@ class PriorModel(AbstractPriorModel):
         -------
         direct_priors: [(String, Prior)]
         """
-        return list(filter(lambda t: isinstance(t[1], Prior), self.__dict__.items()))
+        return self.tuples_with_type(Prior)
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -360,7 +363,7 @@ class PriorModel(AbstractPriorModel):
         -------
         direct_priors: [(String, Prior)]
         """
-        return list(filter(lambda t: isinstance(t[1], PriorModel), self.__dict__.items()))
+        return self.tuples_with_type(PriorModel)
 
     @property
     @cast_collection(PriorNameValue)
@@ -385,7 +388,7 @@ class PriorModel(AbstractPriorModel):
         constants: [(String, Constant)]
             A list of constants
         """
-        return list(filter(lambda t: isinstance(t[1], Constant), self.__dict__.items()))
+        return self.tuples_with_type(Constant)
 
     @property
     @cast_collection(ConstantNameValue)
