@@ -86,6 +86,10 @@ class AbstractPriorModel:
     def instance_for_arguments(self, arguments):
         raise NotImplementedError()
 
+    @property
+    def prior_count(self):
+        return len(self.prior_tuples)
+
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.direct_prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
@@ -215,6 +219,8 @@ class PriorModel(AbstractPriorModel):
                     attribute_name = "{}_{}".format(arg, i)
                     setattr(tuple_prior, attribute_name, self.make_prior(attribute_name, cls))
                 setattr(self, arg, tuple_prior)
+            elif arg in arg_spec.annotations and arg_spec.annotations[arg] != float:
+                setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
             else:
                 setattr(self, arg, self.make_prior(arg, cls))
 
@@ -354,8 +360,13 @@ class PriorModel(AbstractPriorModel):
         -------
         priors: [(String, Prior))]
         """
-        return [prior for tuple_prior in self.tuple_prior_tuples for prior in
-                tuple_prior[1].prior_tuples] + self.direct_prior_tuples
+        return [prior for prior_tuple in self.prior_model_tuples for prior in
+                prior_tuple[1].prior_tuples] + self.direct_prior_tuples
+
+    @property
+    @cast_collection(PriorModelNameValue)
+    def prior_model_tuples(self):
+        return list(filter(lambda t: isinstance(t[1], PriorModel), self.__dict__.items()))
 
     @property
     @cast_collection(ConstantNameValue)
