@@ -360,13 +360,8 @@ class PriorModel(AbstractPriorModel):
         -------
         priors: [(String, Prior))]
         """
-        return [prior for prior_tuple in self.prior_model_tuples for prior in
-                prior_tuple[1].prior_tuples] + self.direct_prior_tuples
-
-    @property
-    @cast_collection(PriorModelNameValue)
-    def prior_model_tuples(self):
-        return list(filter(lambda t: isinstance(t[1], PriorModel), self.__dict__.items()))
+        return [prior for tuple_prior in self.tuple_prior_tuples for prior in
+                tuple_prior[1].prior_tuples] + self.direct_prior_tuples
 
     @property
     @cast_collection(ConstantNameValue)
