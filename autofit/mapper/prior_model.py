@@ -353,6 +353,16 @@ class PriorModel(AbstractPriorModel):
         return list(filter(lambda t: isinstance(t[1], Prior), self.__dict__.items()))
 
     @property
+    @cast_collection(PriorModelNameValue)
+    def prior_model_tuples(self):
+        """
+        Returns
+        -------
+        direct_priors: [(String, Prior)]
+        """
+        return list(filter(lambda t: isinstance(t[1], PriorModel), self.__dict__.items()))
+
+    @property
     @cast_collection(PriorNameValue)
     def prior_tuples(self):
         """
@@ -361,7 +371,10 @@ class PriorModel(AbstractPriorModel):
         priors: [(String, Prior))]
         """
         return [prior for tuple_prior in self.tuple_prior_tuples for prior in
-                tuple_prior[1].prior_tuples] + self.direct_prior_tuples
+                tuple_prior[1].prior_tuples] + self.direct_prior_tuples + [prior for prior_model in
+                                                                           self.prior_model_tuples
+                                                                           for prior in
+                                                                           prior_model[1].prior_tuples]
 
     @property
     @cast_collection(ConstantNameValue)
@@ -413,6 +426,8 @@ class PriorModel(AbstractPriorModel):
         constant_arguments = {t.name: t.constant.value for t in self.direct_constant_tuples}
         for tuple_prior in self.tuple_prior_tuples:
             model_arguments[tuple_prior.name] = tuple_prior.prior.value_for_arguments(arguments)
+        for prior_model_tuple in self.direct_prior_model_tuples:
+            model_arguments[prior_model_tuple.name] = prior_model_tuple.prior_model.instance_for_arguments(arguments)
 
         return self.cls(**{**model_arguments, **constant_arguments})
 

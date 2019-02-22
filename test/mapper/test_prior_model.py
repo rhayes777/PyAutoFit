@@ -1,5 +1,6 @@
 import inspect
 
+from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior_model as pm
 
 
@@ -25,4 +26,13 @@ class TestCase(object):
 
         assert hasattr(prior_model, "simple")
         assert prior_model.simple.prior_count == 2
-        # assert prior_model.prior_count == 2
+        assert prior_model.prior_count == 2
+
+    def test_create_instance(self):
+        mapper = mm.ModelMapper()
+        mapper.complex = ComplexClass
+
+        instance = mapper.instance_from_unit_vector([1.0, 0.0])
+
+        assert instance.complex.simple.one == 1.0
+        assert instance.complex.simple.two == 0.0
