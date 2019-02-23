@@ -130,7 +130,7 @@ class MockClassContainer(object):
                 fit_instances.append(instance)
                 return 1
 
-            def visualize(self, instance, suffix, during_analysis):
+            def visualize(self, instance, image_path, during_analysis):
                 pass
 
             def log(self, instance):
@@ -167,8 +167,8 @@ class TestGridNLOBehaviour(object):
         grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
         assert len(container.init_args) == 2
-        assert container.init_args[0][1] == "sample_name/centre_0_0.00_0.50"
-        assert container.init_args[1][1] == "sample_name/centre_0_0.50_1.00"
+        assert container.init_args[0][1] == "sample_name/profile_centre_0_0.00_0.50"
+        assert container.init_args[1][1] == "sample_name/profile_centre_0_0.50_1.00"
 
     def test_round_names(self, container, mapper):
         grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=3,
@@ -177,19 +177,19 @@ class TestGridNLOBehaviour(object):
         grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
         assert len(container.init_args) == 3
-        assert container.init_args[0][1] == "sample_name/centre_0_0.00_0.33"
-        assert container.init_args[1][1] == "sample_name/centre_0_0.33_0.67"
-        assert container.init_args[2][1] == "sample_name/centre_0_0.67_1.00"
+        assert container.init_args[0][1] == "sample_name/profile_centre_0_0.00_0.33"
+        assert container.init_args[1][1] == "sample_name/profile_centre_0_0.33_0.67"
+        assert container.init_args[2][1] == "sample_name/profile_centre_0_0.67_1.00"
 
     def test_names_2d(self, grid_search_05, mapper, container):
         grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
 
         assert len(container.init_args) == 4
 
-        assert container.init_args[0][1] == "sample_name/centre_0_0.00_0.50_centre_1_0.00_0.50"
-        assert container.init_args[1][1] == "sample_name/centre_0_0.00_0.50_centre_1_0.50_1.00"
-        assert container.init_args[2][1] == "sample_name/centre_0_0.50_1.00_centre_1_0.00_0.50"
-        assert container.init_args[3][1] == "sample_name/centre_0_0.50_1.00_centre_1_0.50_1.00"
+        assert container.init_args[0][1] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
+        assert container.init_args[1][1] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
+        assert container.init_args[2][1] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
+        assert container.init_args[3][1] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
 
     def test_results(self, grid_search_05, mapper, container):
         result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])

@@ -21,17 +21,15 @@ from autofit.optimize import optimizer as opt
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 
-SIMPLEX_TUPLE_WIDTH = 0.1
-
 
 class Analysis(object):
     def fit(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, instance, suffix, during_analysis):
+    def visualize(self, instance, image_path, during_analysis):
         raise NotImplementedError()
 
-    def log(self, instance):
+    def describe(self, instance):
         raise NotImplementedError()
 
 
@@ -138,6 +136,20 @@ class NonLinearOptimizer(object):
 
         self.image_path = "{}image".format(self.phase_path)
 
+        self.log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
+
+        if not len(self.log_file) == 0:
+            log_path = "{}/{}".format(self.phase_path, self.log_file)
+            logger.handlers = [logging.FileHandler(log_path)]
+            logger.propagate = False
+
+        self.image_path = "{}/image/".format(self.phase_path)
+        if not os.path.exists(self.image_path):
+            os.makedirs(self.image_path)
+
+        if not os.path.exists("{}fits/".format(self.image_path)):
+            os.makedirs("{}fits/".format(self.image_path))
+
         self.restore()
 
     def backup(self):
@@ -225,11 +237,12 @@ class NonLinearOptimizer(object):
                 paramnames.write(line + '\n')
 
     class Fitness(object):
-        def __init__(self, nlo, analysis, constant):
+        def __init__(self, nlo, analysis, constant, image_path):
             self.nlo = nlo
             self.result = None
             self.constant = constant
             self.max_likelihood = -np.inf
+            self.image_path = image_path
             self.analysis = analysis
             visualise_interval = conf.instance.general.get('output', 'visualise_interval', int)
             log_interval = conf.instance.general.get('output', 'log_interval', int)
@@ -249,10 +262,10 @@ class NonLinearOptimizer(object):
                 self.result = Result(instance, likelihood)
 
                 if self.should_visualise():
-                    self.analysis.visualize(instance, suffix=None, during_analysis=True)
+                    self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
 
             if self.should_log():
-                self.analysis.log(instance)
+                logger.debug(self.analysis.describe(instance))
             if self.should_backup():
                 self.nlo.backup()
 
@@ -278,8 +291,8 @@ class DownhillSimplex(NonLinearOptimizer):
         logger.debug("Creating DownhillSimplex NLO")
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_physical_vector, constant):
-            super().__init__(nlo, analysis, constant)
+        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, image_path):
+            super().__init__(nlo, analysis, constant, image_path)
             self.instance_from_physical_vector = instance_from_physical_vector
 
         def __call__(self, vector):
@@ -296,7 +309,7 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = self.variable.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(self, analysis, self.variable.instance_from_physical_vector,
-                                                   self.constant)
+                                                   self.constant, self.image_path)
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
@@ -306,7 +319,7 @@ class DownhillSimplex(NonLinearOptimizer):
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.variable = self.variable.mapper_from_gaussian_means(output)
 
-        analysis.visualize(instance=res.constant, suffix=None, during_analysis=False)
+        analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 
         self.backup()
         return res
@@ -360,8 +373,8 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
 
-        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, output_results):
-            super().__init__(nlo, analysis, constant)
+        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, output_results, image_path):
+            super().__init__(nlo, analysis, constant, image_path)
             self.instance_from_physical_vector = instance_from_physical_vector
             self.output_results = output_results
             self.accepted_samples = 0
@@ -374,7 +387,7 @@ class MultiNest(NonLinearOptimizer):
             try:
                 instance = self.instance_from_physical_vector(cube)
                 likelihood = self.fit_instance(instance)
-            except exc.FitException:
+            except exc.FitException or (likelihood > -1.0e-18 and likelihood < 1.0e-18):
                 likelihood = -np.inf
 
             if likelihood > self.max_likelihood:
@@ -401,7 +414,7 @@ class MultiNest(NonLinearOptimizer):
             return cube
 
         fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector, self.constant,
-                                             self.output_results)
+                                             self.output_results, self.image_path)
 
         logger.info("Running MultiNest...")
         self.run(fitness_function.__call__,
@@ -436,7 +449,7 @@ class MultiNest(NonLinearOptimizer):
         variable = self.variable.mapper_from_gaussian_tuples(
             tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
-        analysis.visualize(instance=constant, suffix=None, during_analysis=False)
+        analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
 
         self.backup()
         return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(), variable=variable)
@@ -614,13 +627,18 @@ class MultiNest(NonLinearOptimizer):
 
     def output_results(self, during_analysis=False):
 
+        decimal_places = conf.instance.general.get("output", "model_results_decimal_places", int)
+
+        def rounded(num):
+            return np.round(num, decimal_places)
+
         if os.path.isfile(self.file_summary):
 
             with open(self.file_results, 'w') as results:
 
                 max_likelihood = self.max_likelihood_from_summary()
 
-                results.write('Most likely model, Likelihood = {}\n'.format(max_likelihood))
+                results.write('Most likely model, Likelihood = {}\n'.format(rounded(max_likelihood)))
                 results.write('\n')
 
                 most_likely = self.most_likely_from_summary()
@@ -631,7 +649,7 @@ class MultiNest(NonLinearOptimizer):
 
                 for j in range(self.variable.prior_count):
                     most_likely_line = self.variable.param_names[j]
-                    most_likely_line += ' ' * (60 - len(most_likely_line)) + str(most_likely[j])
+                    most_likely_line += ' ' * (60 - len(most_likely_line)) + str(rounded(most_likely[j]))
                     results.write(most_likely_line + '\n')
 
                 if not during_analysis:
@@ -649,7 +667,8 @@ class MultiNest(NonLinearOptimizer):
                         for i in range(self.variable.prior_count):
                             line = self.variable.param_names[i]
                             line += ' ' * (60 - len(line)) + str(
-                                most_probable[i]) + ' (' + str(lower_limit[i]) + ', ' + str(upper_limit[i]) + ')'
+                                rounded(most_probable[i])) + ' (' + str(rounded(lower_limit[i])) + ', ' + str(
+                                rounded(upper_limit[i])) + ')'
                             results.write(line + '\n')
 
                     write_for_sigma_limit(3.0)
@@ -689,15 +708,19 @@ class GridSearch(NonLinearOptimizer):
         self.grid = grid
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, checkpoint_count=0, best_fit=-np.inf,
-                     best_cube=None):
-            super().__init__(nlo, analysis, constant)
+        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, image_path, save_results,
+                     checkpoint_count=0, best_fit=-np.inf, best_cube=None):
+            super().__init__(nlo, analysis, constant, image_path)
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
+            self.save_results = save_results
             self.best_fit = best_fit
             self.best_cube = best_cube
             self.all_fits = {}
+            grid_results_interval = conf.instance.general.get('output', 'grid_results_interval', int)
+
+            self.should_save_grid_results = IntervalCounter(grid_results_interval)
             if self.best_cube is not None:
                 self.fit_instance(self.instance_from_unit_vector(self.best_cube))
 
@@ -714,6 +737,8 @@ class GridSearch(NonLinearOptimizer):
                     self.best_fit = fit
                     self.best_cube = cube
                 self.nlo.save_checkpoint(self.total_calls, self.best_fit, self.best_cube)
+                if self.should_save_grid_results():
+                    self.save_results(self.all_fits.items())
                 return fit
             except exc.FitException:
                 return -np.inf
@@ -780,10 +805,22 @@ class GridSearch(NonLinearOptimizer):
             best_fit = self.checkpoint_fit
             best_cube = self.checkpoint_cube
 
+        def save_results(all_fit_items):
+            results_list = [self.variable.param_names + ["fit"]]
+            for item in all_fit_items:
+                results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
+
+            with open("{}/results".format(self.phase_path), "w+") as f:
+                f.write("\n".join(map(lambda ls: ", ".join(
+                    map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
+                                      results_list)))
+
         fitness_function = GridSearch.Fitness(self,
                                               analysis,
                                               self.variable.instance_from_unit_vector,
                                               self.constant,
+                                              self.image_path,
+                                              save_results,
                                               checkpoint_count=checkpoint_count,
                                               best_fit=best_fit,
                                               best_cube=best_cube)
@@ -793,22 +830,12 @@ class GridSearch(NonLinearOptimizer):
 
         logger.info("grid search complete")
 
-        results_list = [self.variable.param_names]
-
-        for item in fitness_function.all_fits.items():
-            results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
-
-        with open("{}/results".format(self.phase_path), "w+") as f:
-            f.write("\n".join(map(lambda ls: ", ".join(
-                map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
-                                  results_list)))
-
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.variable = self.variable.mapper_from_gaussian_means(fitness_function.best_cube)
 
-        analysis.visualize(instance=res.constant, suffix=None, during_analysis=False)
+        analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 
         self.backup()
         return res
