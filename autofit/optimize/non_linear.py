@@ -387,7 +387,7 @@ class MultiNest(NonLinearOptimizer):
             try:
                 instance = self.instance_from_physical_vector(cube)
                 likelihood = self.fit_instance(instance)
-            except exc.FitException or (likelihood > -1.0e-18 and likelihood < 1.0e-18):
+            except exc.FitException:
                 likelihood = -np.inf
 
             if likelihood > self.max_likelihood:
