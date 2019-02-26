@@ -33,3 +33,15 @@ class TestResultsCollection(object):
     def test_duplicate_result(self, results):
         with pytest.raises(exc.PipelineException):
             results.add("second phase", "three")
+
+
+class MockPhase(object):
+    def __init__(self, phase_name):
+        self.phase_name = phase_name
+
+
+class TestPipeline(object):
+    def test_unique_phases(self):
+        pipeline.Pipeline("name", MockPhase("one"), MockPhase("two"))
+        with pytest.raises(exc.PipelineException):
+            pipeline.Pipeline("name", MockPhase("one"), MockPhase("one"))

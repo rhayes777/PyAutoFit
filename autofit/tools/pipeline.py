@@ -55,6 +55,10 @@ class Pipeline(object):
         """
         self.pipeline_name = pipeline_name
         self.phases = phases
+        phase_names = [phase.phase_name for phase in phases]
+        if len(set(phase_names)) < len(phase_names):
+            raise exc.PipelineException(
+                "Cannot create pipelines with duplicate phase names. ({})".format(", ".join(phase_names)))
 
     def __add__(self, other):
         """
