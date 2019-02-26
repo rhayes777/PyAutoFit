@@ -208,15 +208,15 @@ class TestGridSearch(object):
         assert pytest.approx(result.constant.one.redshift) == 0.15
         assert pytest.approx(result.constant.two.redshift) == 0.65
 
-    def test__output_likelihoods(self, grid_search):
+    def test_instances(self, grid_search):
         grid_search.variable.one = mock.Galaxy
 
         analysis = MockAnalysis()
-        grid_search.fit(analysis)
+        result = grid_search.fit(analysis)
 
-        assert len(analysis.instances) == 10
+        assert len(result.instances) == 10
 
-        instance = analysis.instances[5]
+        instance = result.instances[5]
 
-        assert isinstance(instance.one, mock.Galaxy)
-        assert instance.one.redshift == 0.55
+        assert isinstance(instance[0].one, mock.Galaxy)
+        assert instance[0].one.redshift == 0.55
