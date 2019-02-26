@@ -139,9 +139,10 @@ class NonLinearOptimizer(object):
         self.log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
 
         if not len(self.log_file) == 0:
-            log_path = "{}/{}".format(self.phase_path, self.log_file)
+            log_path = "{}{}".format(self.phase_path, self.log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
+            logger.level = logging.INFO
 
         self.image_path = "{}/image/".format(self.phase_path)
         if not os.path.exists(self.image_path):
@@ -265,7 +266,7 @@ class NonLinearOptimizer(object):
                     self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
 
             if self.should_log():
-                logger.debug(self.analysis.describe(instance))
+                logger.info(self.analysis.describe(instance))
             if self.should_backup():
                 self.nlo.backup()
 
