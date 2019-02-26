@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class ResultsCollection(list):
     def __init__(self, results=None):
         super().__init__(results or [])
