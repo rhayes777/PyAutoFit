@@ -23,8 +23,17 @@ class ResultsCollection(object):
         return None
 
     def add(self, phase_name, result):
+        if phase_name in self.__result_dict:
+            raise exc.PipelineException(
+                "Results from a phase called {} already exist in the pipeline".format(phase_name))
         self.__result_list.append(result)
         self.__result_dict[phase_name] = result
+
+    def __getitem__(self, item):
+        return self.__result_list[item]
+
+    def __len__(self):
+        return len(self.__result_dict)
 
     def from_phase(self, phase_name):
         try:
