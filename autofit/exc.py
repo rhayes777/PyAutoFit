@@ -22,3 +22,7 @@ class FitException(Exception):
 
 class PriorLimitException(FitException, PriorException):
     pass
+
+
+class PipelineException(Exception):
+    pass
