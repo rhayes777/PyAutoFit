@@ -568,7 +568,7 @@ class ModelMapper(AbstractModel):
         The parameter names are determined from the class instance names of the model_mapper. Latex tags are \
         properties of each model class."""
 
-        return [self.name_for_prior(prior) for prior in self.priors]
+        return [self.name_for_prior(prior) for prior in sorted(self.priors, key=lambda prior: prior.id)]
 
     @property
     def constant_names(self):
