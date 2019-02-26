@@ -142,7 +142,9 @@ class NonLinearOptimizer(object):
             log_path = "{}{}".format(self.phase_path, self.log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
-            logger.level = logging.INFO
+            # noinspection PyProtectedMember
+            logger.level = logging._nameToLevel[
+                conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
 
         self.image_path = "{}/image/".format(self.phase_path)
         if not os.path.exists(self.image_path):
