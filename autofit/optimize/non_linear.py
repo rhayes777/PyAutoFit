@@ -707,6 +707,27 @@ class GridSearch(NonLinearOptimizer):
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 
+    class Result(Result):
+        def __init__(self, result, variable, instances):
+            """
+            The result of an grid search optimization.
+
+            Parameters
+            ----------
+            result: Result
+                The result
+            variable: mm.ModelMapper
+                A model mapper
+            instances: [mm.ModelInstance]
+                A model instance for each point in the grid search
+            """
+            super().__init__(result.constant, result.figure_of_merit, variable)
+            self.instances = instances
+
+        def __str__(self):
+            return "Analysis Result:\n{}".format(
+                "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
+
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(self, nlo, analysis, instance_from_unit_vector, constant, image_path, save_results,
                      checkpoint_count=0, best_fit=-np.inf, best_cube=None):
@@ -832,8 +853,11 @@ class GridSearch(NonLinearOptimizer):
 
         res = fitness_function.result
 
+        instances = [(self.variable.instance_from_unit_vector(cube), fit) for cube, fit in
+                     fitness_function.all_fits.items()]
+
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res.variable = self.variable.mapper_from_gaussian_means(fitness_function.best_cube)
+        res = GridSearch.Result(res, self.variable.mapper_from_gaussian_means(fitness_function.best_cube), instances)
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 
