@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class Analysis(object):
+
     def fit(self, instance):
         raise NotImplementedError()
 
