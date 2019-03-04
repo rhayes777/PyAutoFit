@@ -268,8 +268,8 @@ class NonLinearOptimizer(object):
                 if self.should_visualise():
                     self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
 
-            if self.should_log():
-                logger.info(self.analysis.describe(instance))
+        #    if self.should_log():
+        #        logger.info(self.analysis.describe(instance))
             if self.should_backup():
                 self.nlo.backup()
 
