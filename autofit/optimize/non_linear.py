@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class Analysis(object):
+
     def fit(self, instance):
         raise NotImplementedError()
 
@@ -302,7 +303,8 @@ class DownhillSimplex(NonLinearOptimizer):
             try:
                 instance = self.instance_from_physical_vector(vector)
                 likelihood = self.fit_instance(instance)
-            except exc.FitException:
+            except exc.FitException as e:
+                logger.info("Fit exception {} was thrown".format(e))
                 likelihood = -np.inf
             return -2 * likelihood
 
@@ -390,7 +392,8 @@ class MultiNest(NonLinearOptimizer):
             try:
                 instance = self.instance_from_physical_vector(cube)
                 likelihood = self.fit_instance(instance)
-            except exc.FitException:
+            except exc.FitException as e:
+                logger.info("Fit exception {} was thrown".format(e))
                 likelihood = -np.inf
 
             if likelihood > self.max_likelihood:
@@ -764,7 +767,8 @@ class GridSearch(NonLinearOptimizer):
                 if self.should_save_grid_results():
                     self.save_results(self.all_fits.items())
                 return fit
-            except exc.FitException:
+            except exc.FitException as e:
+                logger.info("Fit exception {} was thrown".format(e))
                 return -np.inf
 
     @property
