@@ -116,14 +116,6 @@ class AbstractPhase(object):
     def make_result(self, result, analysis):
         raise NotImplementedError()
 
-    class Result(non_linear.Result):
-
-        def __init__(self, constant, figure_of_merit, variable):
-            """
-            The result of a phase
-            """
-            super(AbstractPhase.Result, self).__init__(constant, figure_of_merit, variable)
-
 
 def as_grid_search(phase_class):
     class GridSearchExtension(phase_class):
