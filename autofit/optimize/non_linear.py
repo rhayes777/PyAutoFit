@@ -15,6 +15,7 @@ import scipy.optimize
 
 from autofit import conf
 from autofit import exc
+from autofit.tools import path_util
 from autofit.mapper import model_mapper as mm, link
 from autofit.optimize import optimizer as opt
 
@@ -99,7 +100,7 @@ def persistent_timer(func):
 
 class NonLinearOptimizer(object):
 
-    def __init__(self, phase_path, phase_name, model_mapper=None):
+    def __init__(self, phase_name, phase_folders=None, model_mapper=None):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
@@ -110,14 +111,20 @@ class NonLinearOptimizer(object):
 
         """
         self.named_config = conf.instance.non_linear
-        self.phase_path = phase_path
+
+        self.phase_folders = phase_folders
+        if phase_folders is None:
+            self.phase_path = ''
+        else:
+            self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
+
         self.phase_name = phase_name
 
-        self.phase_output_path = "{}/{}/{}/".format(conf.instance.output_path, phase_path, phase_name)
-        self.opt_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, phase_path, phase_name)
+        self.phase_output_path = "{}/{}/{}/".format(conf.instance.output_path, self.phase_path, phase_name)
+        self.opt_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name)
 
-        sym_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, phase_path, phase_name)
-        self.backup_path = "{}/{}/{}/optimizer_backup".format(conf.instance.output_path, phase_path, phase_name)
+        sym_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name)
+        self.backup_path = "{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -277,9 +284,10 @@ class NonLinearOptimizer(object):
 
 class DownhillSimplex(NonLinearOptimizer):
 
-    def __init__(self, phase_path, phase_name, model_mapper=None, fmin=scipy.optimize.fmin):
+    def __init__(self, phase_name, phase_folders=None, model_mapper=None, fmin=scipy.optimize.fmin):
 
-        super(DownhillSimplex, self).__init__(phase_path=phase_path, phase_name=phase_name, model_mapper=model_mapper)
+        super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_folders=phase_folders,
+                                              model_mapper=model_mapper)
 
         self.xtol = self.config("xtol", float)
         self.ftol = self.config("ftol", float)
@@ -332,7 +340,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_path, phase_name, model_mapper=None, sigma_limit=3, run=pymultinest.run):
+    def __init__(self, phase_name, phase_folders=None, model_mapper=None, sigma_limit=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
@@ -340,7 +348,7 @@ class MultiNest(NonLinearOptimizer):
         are passed to each iteration of MultiNest.
         """
 
-        super(MultiNest, self).__init__(phase_path=phase_path, phase_name=phase_name, model_mapper=model_mapper)
+        super(MultiNest, self).__init__(phase_name=phase_name, phase_folders=phase_folders, model_mapper=model_mapper)
 
         self.file_summary = "{}/{}".format(self.path, 'multinestsummary.txt')
         self.file_weighted_samples = "{}/{}".format(self.path, 'multinest.txt')
@@ -694,7 +702,7 @@ class MultiNest(NonLinearOptimizer):
 
 class GridSearch(NonLinearOptimizer):
 
-    def __init__(self, phase_path, phase_name, step_size=None, model_mapper=None, grid=opt.grid):
+    def __init__(self, phase_name, phase_folders=None, step_size=None, model_mapper=None, grid=opt.grid):
         """
         Optimise by performing a grid search.
 
@@ -710,7 +718,7 @@ class GridSearch(NonLinearOptimizer):
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
-        super().__init__(phase_path=phase_path, phase_name=phase_name, model_mapper=model_mapper)
+        super().__init__(phase_name=phase_name, phase_folders=phase_folders, model_mapper=model_mapper)
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 

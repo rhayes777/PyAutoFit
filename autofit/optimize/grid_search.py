@@ -4,6 +4,7 @@ import numpy as np
 
 from autofit import conf
 from autofit import exc
+from autofit.tools import path_util
 from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
@@ -45,7 +46,7 @@ class GridSearchResult(object):
 
 class GridSearch(object):
 
-    def __init__(self, phase_path, phase_name, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex,
+    def __init__(self, phase_name, phase_folders=None, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex,
                  model_mapper=None, constant=None):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -65,12 +66,18 @@ class GridSearch(object):
         """
         self.variable = model_mapper or mm.ModelMapper()
         self.constant = constant or mm.ModelInstance()
-        self.phase_path = phase_path
+
+        self.phase_folders = phase_folders
+        if phase_folders is None:
+            self.phase_path = ''
+        else:
+            self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
+
         self.phase_name = phase_name
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
-        self.phase_output_path = "{}/{}/{}".format(conf.instance.output_path, phase_path, phase_name)
+        self.phase_output_path = "{}/{}/{}".format(conf.instance.output_path, self.phase_path, phase_name)
 
         sym_path = "{}/optimizer".format(self.phase_output_path)
         self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
@@ -166,7 +173,7 @@ class GridSearch(object):
 
             name_path = "{}/{}".format(self.phase_name, "_".join(labels))
             optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
-                                                      phase_path=self.phase_path, phase_name=name_path)
+                                                      phase_folders=self.phase_folders, phase_name=name_path)
             optimizer_instance.constant = self.constant
             result = optimizer_instance.fit(analysis)
             results.append(result)
