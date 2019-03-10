@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class Analysis(object):
+
     def fit(self, instance):
         raise NotImplementedError()
 
@@ -72,7 +73,7 @@ class IntervalCounter(object):
 def persistent_timer(func):
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
-        start_time_path = "{}/.start_time".format(optimizer_instance.phase_path)
+        start_time_path = "{}/.start_time".format(optimizer_instance.phase_output_path)
         try:
             with open(start_time_path) as f:
                 start = float(f.read())
@@ -86,10 +87,10 @@ def persistent_timer(func):
         execution_time = str(dt.timedelta(seconds=time.time() - start))
 
         logger.info("{} took {} to run".format(
-            optimizer_instance.name,
+            optimizer_instance.phase_name,
             execution_time
         ))
-        with open("{}/execution_time".format(optimizer_instance.phase_path), "w+") as f:
+        with open("{}/execution_time".format(optimizer_instance.phase_output_path), "w+") as f:
             f.write(execution_time)
         return result
 
@@ -98,7 +99,7 @@ def persistent_timer(func):
 
 class NonLinearOptimizer(object):
 
-    def __init__(self, model_mapper=None, name=None):
+    def __init__(self, phase_path, phase_name, model_mapper=None):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
@@ -109,15 +110,14 @@ class NonLinearOptimizer(object):
 
         """
         self.named_config = conf.instance.non_linear
+        self.phase_path = phase_path
+        self.phase_name = phase_name
 
-        name = name or "phase"
-        self.name = name
+        self.phase_output_path = "{}/{}/{}/".format(conf.instance.output_path, phase_path, phase_name)
+        self.opt_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, phase_path, phase_name)
 
-        self.phase_path = "{}/{}/".format(conf.instance.output_path, name)
-        self.opt_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
-
-        sym_path = "{}/{}/optimizer".format(conf.instance.output_path, name)
-        self.backup_path = "{}/{}/optimizer_backup".format(conf.instance.output_path, name)
+        sym_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, phase_path, phase_name)
+        self.backup_path = "{}/{}/{}/optimizer_backup".format(conf.instance.output_path, phase_path, phase_name)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -132,21 +132,21 @@ class NonLinearOptimizer(object):
         self.label_config = conf.instance.label
 
         self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
-        self.file_model_info = "{}/{}".format(self.phase_path, 'model.info')
+        self.file_model_info = "{}/{}".format(self.phase_output_path, 'model.info')
 
-        self.image_path = "{}image".format(self.phase_path)
+        self.image_path = "{}image/".format(self.phase_output_path)
 
         self.log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
 
         if not len(self.log_file) == 0:
-            log_path = "{}{}".format(self.phase_path, self.log_file)
+            log_path = "{}{}".format(self.phase_output_path, self.log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
 
-        self.image_path = "{}/image/".format(self.phase_path)
+        self.image_path = "{}/image/".format(self.phase_output_path)
         if not os.path.exists(self.image_path):
             os.makedirs(self.image_path)
 
@@ -277,8 +277,9 @@ class NonLinearOptimizer(object):
 
 class DownhillSimplex(NonLinearOptimizer):
 
-    def __init__(self, model_mapper=None, fmin=scipy.optimize.fmin, name=None):
-        super(DownhillSimplex, self).__init__(model_mapper=model_mapper, name=name)
+    def __init__(self, phase_path, phase_name, model_mapper=None, fmin=scipy.optimize.fmin):
+
+        super(DownhillSimplex, self).__init__(phase_path=phase_path, phase_name=phase_name, model_mapper=model_mapper)
 
         self.xtol = self.config("xtol", float)
         self.ftol = self.config("ftol", float)
@@ -302,7 +303,8 @@ class DownhillSimplex(NonLinearOptimizer):
             try:
                 instance = self.instance_from_physical_vector(vector)
                 likelihood = self.fit_instance(instance)
-            except exc.FitException:
+            except exc.FitException as e:
+                logger.info("Fit exception {} was thrown".format(e))
                 likelihood = -np.inf
             return -2 * likelihood
 
@@ -330,7 +332,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, model_mapper=None, sigma_limit=3, run=pymultinest.run, name=None):
+    def __init__(self, phase_path, phase_name, model_mapper=None, sigma_limit=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
@@ -338,11 +340,11 @@ class MultiNest(NonLinearOptimizer):
         are passed to each iteration of MultiNest.
         """
 
-        super(MultiNest, self).__init__(model_mapper=model_mapper, name=name)
+        super(MultiNest, self).__init__(phase_path=phase_path, phase_name=phase_name, model_mapper=model_mapper)
 
         self.file_summary = "{}/{}".format(self.path, 'multinestsummary.txt')
         self.file_weighted_samples = "{}/{}".format(self.path, 'multinest.txt')
-        self.file_results = "{}/{}".format(self.phase_path, 'model.results')
+        self.file_results = "{}/{}".format(self.phase_output_path, 'model.results')
         self._weighted_sample_model = None
         self.sigma_limit = sigma_limit
 
@@ -390,7 +392,8 @@ class MultiNest(NonLinearOptimizer):
             try:
                 instance = self.instance_from_physical_vector(cube)
                 likelihood = self.fit_instance(instance)
-            except exc.FitException:
+            except exc.FitException as e:
+                logger.info("Fit exception {} was thrown".format(e))
                 likelihood = -np.inf
 
             if likelihood > self.max_likelihood:
@@ -690,7 +693,8 @@ class MultiNest(NonLinearOptimizer):
 
 
 class GridSearch(NonLinearOptimizer):
-    def __init__(self, step_size=None, model_mapper=None, name=None, grid=opt.grid):
+
+    def __init__(self, phase_path, phase_name, step_size=None, model_mapper=None, grid=opt.grid):
         """
         Optimise by performing a grid search.
 
@@ -701,12 +705,12 @@ class GridSearch(NonLinearOptimizer):
             E.g. a step size of 0.5 will give steps 0.0, 0.5 and 1.0
         model_mapper: cls
             The model mapper class (used for testing)
-        name: str
+        phase_name: str
             The name of run (defaults to 'phase')
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
-        super().__init__(model_mapper=model_mapper, name=name)
+        super().__init__(phase_path=phase_path, phase_name=phase_name, model_mapper=model_mapper)
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 
@@ -764,7 +768,8 @@ class GridSearch(NonLinearOptimizer):
                 if self.should_save_grid_results():
                     self.save_results(self.all_fits.items())
                 return fit
-            except exc.FitException:
+            except exc.FitException as e:
+                logger.info("Fit exception {} was thrown".format(e))
                 return -np.inf
 
     @property
@@ -834,7 +839,7 @@ class GridSearch(NonLinearOptimizer):
             for item in all_fit_items:
                 results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
 
-            with open("{}/results".format(self.phase_path), "w+") as f:
+            with open("{}/results".format(self.phase_output_path), "w+") as f:
                 f.write("\n".join(map(lambda ls: ", ".join(
                     map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
                                       results_list)))
