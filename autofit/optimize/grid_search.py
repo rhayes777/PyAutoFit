@@ -45,8 +45,8 @@ class GridSearchResult(object):
 
 class GridSearch(object):
 
-    def __init__(self, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex, model_mapper=None,
-                 constant=None, name="grid_search"):
+    def __init__(self, phase_path, phase_name, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex,
+                 model_mapper=None, constant=None):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -60,19 +60,20 @@ class GridSearch(object):
             The class of the optimizer that is run at each step
         model_mapper: mm.ModelMapper | None
             The model mapper that maps between the optimizer and class model
-        name: str
+        phase_name: str
             The name of this grid search
         """
         self.variable = model_mapper or mm.ModelMapper()
         self.constant = constant or mm.ModelInstance()
-        self.name = name
+        self.phase_path = phase_path
+        self.phase_name = phase_name
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
-        self.phase_path = "{}/{}".format(conf.instance.output_path, name)
+        self.phase_output_path = "{}/{}/{}".format(conf.instance.output_path, phase_path, phase_name)
 
-        sym_path = "{}/optimizer".format(self.phase_path)
-        self.backup_path = "{}/optimizer_backup".format(self.phase_path)
+        sym_path = "{}/optimizer".format(self.phase_output_path)
+        self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -149,7 +150,7 @@ class GridSearch(object):
         results_list = [list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
         def write_results():
-            with open("{}/results".format(self.phase_path), "w+") as f:
+            with open("{}/results".format(self.phase_output_path), "w+") as f:
                 f.write("\n".join(map(lambda ls: ", ".join(
                     map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
                                       results_list)))
@@ -163,9 +164,9 @@ class GridSearch(object):
                 labels.append(
                     "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
-            name_path = "{}/{}".format(self.name, "_".join(labels))
+            name_path = "{}/{}".format(self.phase_name, "_".join(labels))
             optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
-                                                      name=name_path)
+                                                      phase_path=self.phase_path, phase_name=name_path)
             optimizer_instance.constant = self.constant
             result = optimizer_instance.fit(analysis)
             results.append(result)

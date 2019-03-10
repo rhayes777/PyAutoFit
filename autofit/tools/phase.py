@@ -42,7 +42,7 @@ class AbstractPhase(object):
         """
         self.phase_path = phase_path
         self.phase_name = phase_name
-        self.optimizer = optimizer_class(name=self.phase_name)
+        self.optimizer = optimizer_class(phase_path=self.phase_path, phase_name=self.phase_name)
         self.auto_link_priors = auto_link_priors
 
     @property
@@ -119,10 +119,11 @@ class AbstractPhase(object):
 
 def as_grid_search(phase_class):
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, number_of_steps=10, optimizer_class=non_linear.MultiNest, phase_name=None, **kwargs):
-            super().__init__(*args, optimizer_class=optimizer_class, phase_name=phase_name, **kwargs)
-            self.optimizer = grid_search.GridSearch(number_of_steps=number_of_steps, optimizer_class=optimizer_class,
-                                                    name=phase_name, model_mapper=self.variable, constant=self.constant)
+        def __init__(self, *args, phase_path, phase_name, number_of_steps=10, optimizer_class=non_linear.MultiNest, **kwargs):
+            super().__init__(*args, phase_path=phase_path, phase_name=phase_name, optimizer_class=optimizer_class, **kwargs)
+            self.optimizer = grid_search.GridSearch(phase_path=phase_path, number_of_steps=number_of_steps,
+                                                    optimizer_class=optimizer_class, phase_name=phase_name,
+                                                    model_mapper=self.variable, constant=self.constant)
 
         def run_analysis(self, analysis):
             return self.optimizer.fit(analysis, self.grid_priors)
