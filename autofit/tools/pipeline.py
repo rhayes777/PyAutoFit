@@ -144,6 +144,6 @@ class Pipeline(object):
         """
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
-            logger.info("Running Phase {} (Number {})".format(phase.optimizer.name, i))
+            logger.info("Running Phase {} (Number {})".format(phase.optimizer.phase_name, i))
             results.add(phase.phase_name, func(phase, results))
         return results
