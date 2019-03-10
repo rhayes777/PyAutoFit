@@ -28,8 +28,7 @@ def make_name(cls):
 
 class AbstractPhase(object):
 
-    def __init__(self, optimizer_class=non_linear.MultiNest, phase_name=None,
-                 auto_link_priors=False):
+    def __init__(self, phase_path, phase_name, optimizer_class=non_linear.MultiNest, auto_link_priors=False):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to fit_normal models and image
         passed to it.
@@ -41,7 +40,8 @@ class AbstractPhase(object):
         phase_name: str
             The name of this phase
         """
-        self.phase_name = phase_name or make_name(self.__class__)
+        self.phase_path = phase_path
+        self.phase_name = phase_name
         self.optimizer = optimizer_class(name=self.phase_name)
         self.auto_link_priors = auto_link_priors
 
