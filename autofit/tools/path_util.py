@@ -1,5 +1,13 @@
 import os
 
+def phase_folders_from_phase_folders_and_pipeline_name(phase_folders, pipeline_name):
+
+    if phase_folders is None:
+        return [pipeline_name]
+    else:
+        phase_folders.append(pipeline_name)
+        return phase_folders
+
 def path_from_folder_names(folder_names):
     """ For a given list of folder names, return the path test folder names create.
 

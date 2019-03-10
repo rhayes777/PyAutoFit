@@ -11,6 +11,22 @@ path = "{}/".format(os.path.dirname(os.path.realpath(__file__)))
 
 test_data_path = "{}/../test_files/array/".format(os.path.dirname(os.path.realpath(__file__)))
 
+class TestPhaseFoldersFromPipelineName:
+
+    def test__phase_folders_is_none__returns_pipeline_name(self):
+
+        phase_folders = path_util.phase_folders_from_phase_folders_and_pipeline_name(phase_folders=None,
+                                                                                     pipeline_name='test')
+
+        assert phase_folders == ['test']
+
+    def test__phase_folders_are_not_none__returns_phase_folders_and_pipeline_name(self):
+
+        phase_folders = path_util.phase_folders_from_phase_folders_and_pipeline_name(phase_folders=['folder1', 'folder2'],
+                                                                                     pipeline_name='test')
+
+        assert phase_folders == ['folder1', 'folder2', 'test']
+
 class PathFromFolderNames:
 
     def test__1_directory_input__makes_directory__returns_path(self):
