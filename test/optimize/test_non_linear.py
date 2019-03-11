@@ -24,11 +24,50 @@ def make_mock_list():
             autofit.mapper.prior_model.PriorModel(MockClassNLOx4)]
 
 
+class TestCopyWithNameExtension(object):
+    @staticmethod
+    def assert_non_linear_attributes_equal(copy, optimizer):
+        assert copy.phase_name == "phase_name/one"
+        assert copy.variable == optimizer.variable
+        assert copy.constant == optimizer.constant
+
+    def test_copy_with_name_extension(self):
+        optimizer = non_linear.NonLinearOptimizer("phase_name")
+        copy = optimizer.copy_with_name_extension("one")
+
+        self.assert_non_linear_attributes_equal(copy, optimizer)
+
+    def test_downhill_simplex(self):
+        optimizer = non_linear.DownhillSimplex("phase_name", fmin=lambda x: x)
+
+        copy = optimizer.copy_with_name_extension("one")
+        self.assert_non_linear_attributes_equal(copy, optimizer)
+        assert isinstance(copy, non_linear.DownhillSimplex)
+        assert copy.fmin is optimizer.fmin
+
+    def test_multinest(self):
+        optimizer = non_linear.MultiNest("phase_name", sigma_limit=2.0, run=lambda x: x)
+
+        copy = optimizer.copy_with_name_extension("one")
+        self.assert_non_linear_attributes_equal(copy, optimizer)
+        assert isinstance(copy, non_linear.MultiNest)
+        assert copy.sigma_limit is optimizer.sigma_limit
+        assert copy.run is optimizer.run
+
+    def test_grid_search(self):
+        optimizer = non_linear.GridSearch("phase_name", step_size=17, grid=lambda x: x)
+
+        copy = optimizer.copy_with_name_extension("one")
+        self.assert_non_linear_attributes_equal(copy, optimizer)
+        assert isinstance(copy, non_linear.GridSearch)
+        assert copy.step_size is optimizer.step_size
+        assert copy.grid is optimizer.grid
+
+
 # noinspection PyUnresolvedReferences
 class TestParamNames(object):
 
     def test_label_prior_model_tuples(self, mapper, mock_list):
-
         mapper.mock_list = mock_list
 
         assert [tup.name for tup in mapper.mock_list.label_prior_model_tuples] == ['0', '1']

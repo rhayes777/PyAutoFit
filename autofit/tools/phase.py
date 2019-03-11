@@ -86,14 +86,14 @@ class AbstractPhase(object):
         if self.__doc__ is not None:
             return self.__doc__.replace("  ", "").replace("\n", " ")
 
-    def pass_priors(self, previous_results):
+    def pass_priors(self, results):
         """
         Perform any prior or constant passing. This could involve setting model attributes equal to priors or constants
         from a previous phase.
 
         Parameters
         ----------
-        previous_results: ResultsCollection
+        results: ResultsCollection
             The result of the previous phase
         """
         pass
@@ -101,22 +101,22 @@ class AbstractPhase(object):
     # noinspection PyAbstractClass
     class Analysis(non_linear.Analysis):
 
-        def __init__(self, previous_results=None):
+        def __init__(self, results=None):
             """
             An lensing object
 
             Parameters
             ----------
-            previous_results: ResultsCollection
+            results: ResultsCollection
                 The results of all previous phases
             """
 
-            self.previous_results = previous_results
+            self.results = results
 
         @property
         def last_results(self):
-            if self.previous_results is not None:
-                return self.previous_results.last
+            if self.results is not None:
+                return self.results.last
 
     def make_result(self, result, analysis):
         raise NotImplementedError()

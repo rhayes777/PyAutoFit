@@ -15,9 +15,9 @@ import scipy.optimize
 
 from autofit import conf
 from autofit import exc
-from autofit.tools import path_util
 from autofit.mapper import model_mapper as mm, link
 from autofit.optimize import optimizer as opt
+from autofit.tools import path_util
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -274,12 +274,18 @@ class NonLinearOptimizer(object):
                 if self.should_visualise():
                     self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
 
-        #    if self.should_log():
-        #        logger.info(self.analysis.describe(instance))
+            #    if self.should_log():
+            #        logger.info(self.analysis.describe(instance))
             if self.should_backup():
                 self.nlo.backup()
 
             return likelihood
+
+    def copy_with_name_extension(self, extension):
+        name = "{}/{}".format(self.phase_name, extension)
+        new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable)
+        new_instance.constant = self.constant
+        return new_instance
 
 
 class DownhillSimplex(NonLinearOptimizer):
@@ -301,6 +307,11 @@ class DownhillSimplex(NonLinearOptimizer):
         self.fmin = fmin
 
         logger.debug("Creating DownhillSimplex NLO")
+
+    def copy_with_name_extension(self, extension):
+        copy = super().copy_with_name_extension(extension)
+        copy.fmin = self.fmin
+        return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(self, nlo, analysis, instance_from_physical_vector, constant, image_path):
@@ -378,6 +389,12 @@ class MultiNest(NonLinearOptimizer):
         self.run = run
 
         logger.debug("Creating MultiNest NLO")
+
+    def copy_with_name_extension(self, extension):
+        copy = super().copy_with_name_extension(extension)
+        copy.sigma_limit = self.sigma_limit
+        copy.run = self.run
+        return copy
 
     @property
     def pdf(self):
@@ -721,6 +738,14 @@ class GridSearch(NonLinearOptimizer):
         super().__init__(phase_name=phase_name, phase_folders=phase_folders, model_mapper=model_mapper)
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
+
+    def copy_with_name_extension(self, extension):
+        name = "{}/{}".format(self.phase_name, extension)
+        new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable,
+                                      step_size=self.step_size)
+        new_instance.constant = self.constant
+        new_instance.grid = self.grid
+        return new_instance
 
     class Result(Result):
         def __init__(self, result, variable, instances):

@@ -238,6 +238,31 @@ class TestGridNLOBehaviour(object):
             assert instance.profile.centre[1] == 2
 
 
+class MockResult(object):
+    def __init__(self, figure_of_merit):
+        self.figure_of_merit = figure_of_merit
+        self.variable = figure_of_merit
+
+
+@pytest.fixture(name="grid_search_result")
+def make_grid_search_result():
+    one = MockResult(1)
+    two = MockResult(2)
+
+    return gs.GridSearchResult([one, two], [[1], [2]])
+
+
+class TestGridSearchResult(object):
+    def test_best_result(self, grid_search_result):
+        assert grid_search_result.best_result.figure_of_merit == 2
+
+    def test_best_model(self, grid_search_result):
+        assert grid_search_result.best_model == 2
+
+    def test_all_models(self, grid_search_result):
+        assert grid_search_result.all_models == [1, 2]
+
+
 class TestMixin(object):
     def test_mixin(self, container):
         class MyPhase(phase.as_grid_search(phase.AbstractPhase)):
@@ -249,10 +274,13 @@ class TestMixin(object):
                 analysis = container.MockAnalysis()
                 return self.make_result(self.run_analysis(analysis), analysis)
 
-        optimizer = MyPhase(phase_name='', phase_folders=None, number_of_steps=2, optimizer_class=container.MockOptimizer)
+        optimizer = MyPhase(phase_name='', phase_folders=None, number_of_steps=2,
+                            optimizer_class=container.MockOptimizer)
         optimizer.variable.profile = mock.GeometryProfile
 
         result = optimizer.run()
 
         assert isinstance(result, gs.GridSearchResult)
         assert len(result.results) == 2
+
+        assert isinstance(result.best_result, non_linear.Result)
