@@ -740,10 +740,12 @@ class GridSearch(NonLinearOptimizer):
         self.grid = grid
 
     def copy_with_name_extension(self, extension):
-        copy = super().copy_with_name_extension(extension)
-        copy.step_size = self.step_size
-        copy.grid = self.grid
-        return copy
+        name = "{}/{}".format(self.phase_name, extension)
+        new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable,
+                                      step_size=self.step_size)
+        new_instance.constant = self.constant
+        new_instance.grid = self.grid
+        return new_instance
 
     class Result(Result):
         def __init__(self, result, variable, instances):
