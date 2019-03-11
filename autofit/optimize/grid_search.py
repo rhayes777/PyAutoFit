@@ -33,11 +33,39 @@ class GridSearchResult(object):
 
     @property
     def best_result(self):
+        """
+        The best result of the grid search. That is, the result output by the non linear search that had the highest
+        maximum figure of merit.
+
+        Returns
+        -------
+        best_result: Result
+        """
         best_result = None
         for result in self.results:
             if best_result is None or result.figure_of_merit > best_result.figure_of_merit:
                 best_result = result
         return best_result
+
+    @property
+    def best_model(self):
+        """
+        Returns
+        -------
+        best_model: mm.ModelMapper
+            The model mapper instance associated with the highest figure of merit from the grid search
+        """
+        return self.best_result.variable
+
+    @property
+    def all_models(self):
+        """
+        Returns
+        -------
+        all_models: [mm.ModelMapper]
+            All model mapper instances used in the grid search
+        """
+        return [result.variable for result in self.results]
 
     @property
     def figure_of_merit_array(self):

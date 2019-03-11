@@ -238,17 +238,29 @@ class TestGridNLOBehaviour(object):
             assert instance.profile.centre[1] == 2
 
 
+class MockResult(object):
+    def __init__(self, figure_of_merit):
+        self.figure_of_merit = figure_of_merit
+        self.variable = figure_of_merit
+
+
+@pytest.fixture(name="grid_search_result")
+def make_grid_search_result():
+    one = MockResult(1)
+    two = MockResult(2)
+
+    return gs.GridSearchResult([one, two], [[1], [2]])
+
+
 class TestGridSearchResult(object):
-    def test_best_result(self):
-        class MockResult(object):
-            def __init__(self, figure_of_merit):
-                self.figure_of_merit = figure_of_merit
+    def test_best_result(self, grid_search_result):
+        assert grid_search_result.best_result.figure_of_merit == 2
 
-        one = MockResult(1)
-        two = MockResult(2)
+    def test_best_model(self, grid_search_result):
+        assert grid_search_result.best_model == 2
 
-        grid_search_result = gs.GridSearchResult([one, two], [[1],[2]])
-        assert grid_search_result.best_result == two
+    def test_all_models(self, grid_search_result):
+        assert grid_search_result.all_models == [1, 2]
 
 
 class TestMixin(object):
