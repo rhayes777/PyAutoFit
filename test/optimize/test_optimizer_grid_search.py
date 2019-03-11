@@ -270,3 +270,5 @@ class TestMixin(object):
 
         assert isinstance(result, gs.GridSearchResult)
         assert len(result.results) == 2
+
+        assert isinstance(result.best_result, non_linear.Result)
