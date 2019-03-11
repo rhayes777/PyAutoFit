@@ -1,5 +1,6 @@
 import re
 
+from autofit.tools import path_util
 from autofit.optimize import grid_search
 from autofit.optimize import non_linear
 
@@ -28,8 +29,7 @@ def make_name(cls):
 
 class AbstractPhase(object):
 
-    def __init__(self, optimizer_class=non_linear.MultiNest, phase_name=None,
-                 auto_link_priors=False):
+    def __init__(self, phase_name, phase_folders=None, optimizer_class=non_linear.MultiNest, auto_link_priors=False):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to fit_normal models and image
         passed to it.
@@ -41,8 +41,13 @@ class AbstractPhase(object):
         phase_name: str
             The name of this phase
         """
-        self.phase_name = phase_name or make_name(self.__class__)
-        self.optimizer = optimizer_class(name=self.phase_name)
+        self.phase_folders = phase_folders
+        if phase_folders is None:
+            self.phase_path = ''
+        else:
+            self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
+        self.phase_name = phase_name
+        self.optimizer = optimizer_class(phase_folders=self.phase_folders, phase_name=self.phase_name)
         self.auto_link_priors = auto_link_priors
 
     @property
@@ -116,21 +121,15 @@ class AbstractPhase(object):
     def make_result(self, result, analysis):
         raise NotImplementedError()
 
-    class Result(non_linear.Result):
-
-        def __init__(self, constant, figure_of_merit, variable):
-            """
-            The result of a phase
-            """
-            super(AbstractPhase.Result, self).__init__(constant, figure_of_merit, variable)
-
 
 def as_grid_search(phase_class):
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, number_of_steps=10, optimizer_class=non_linear.MultiNest, phase_name=None, **kwargs):
-            super().__init__(*args, optimizer_class=optimizer_class, phase_name=phase_name, **kwargs)
-            self.optimizer = grid_search.GridSearch(number_of_steps=number_of_steps, optimizer_class=optimizer_class,
-                                                    name=phase_name, model_mapper=self.variable, constant=self.constant)
+        def __init__(self, *args, phase_name, phase_folders=None, number_of_steps=10, optimizer_class=non_linear.MultiNest, **kwargs):
+            super().__init__(*args, phase_name=phase_name, phase_folders=phase_folders, optimizer_class=optimizer_class,
+                             **kwargs)
+            self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_folders=phase_folders,
+                                                    number_of_steps=number_of_steps, optimizer_class=optimizer_class,
+                                                    model_mapper=self.variable, constant=self.constant)
 
         def run_analysis(self, analysis):
             return self.optimizer.fit(analysis, self.grid_priors)
