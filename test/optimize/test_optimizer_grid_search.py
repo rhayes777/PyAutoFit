@@ -238,6 +238,19 @@ class TestGridNLOBehaviour(object):
             assert instance.profile.centre[1] == 2
 
 
+class TestGridSearchResult(object):
+    def test_best_result(self):
+        class MockResult(object):
+            def __init__(self, figure_of_merit):
+                self.figure_of_merit = figure_of_merit
+
+        one = MockResult(1)
+        two = MockResult(2)
+
+        grid_search_result = gs.GridSearchResult([one, two], [[1],[2]])
+        assert grid_search_result.best_result == two
+
+
 class TestMixin(object):
     def test_mixin(self, container):
         class MyPhase(phase.as_grid_search(phase.AbstractPhase)):
@@ -249,7 +262,8 @@ class TestMixin(object):
                 analysis = container.MockAnalysis()
                 return self.make_result(self.run_analysis(analysis), analysis)
 
-        optimizer = MyPhase(phase_name='', phase_folders=None, number_of_steps=2, optimizer_class=container.MockOptimizer)
+        optimizer = MyPhase(phase_name='', phase_folders=None, number_of_steps=2,
+                            optimizer_class=container.MockOptimizer)
         optimizer.variable.profile = mock.GeometryProfile
 
         result = optimizer.run()

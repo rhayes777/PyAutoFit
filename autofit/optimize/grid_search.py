@@ -4,12 +4,12 @@ import numpy as np
 
 from autofit import conf
 from autofit import exc
-from autofit.tools import path_util
 from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.optimize import non_linear
 from autofit.optimize import optimizer
+from autofit.tools import path_util
 
 
 class GridSearchResult(object):
@@ -30,6 +30,14 @@ class GridSearchResult(object):
         self.no_dimensions = len(self.lists[0])
         self.no_steps = len(self.lists)
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
+
+    @property
+    def best_result(self):
+        best_result = None
+        for result in self.results:
+            if best_result is None or result.figure_of_merit > best_result.figure_of_merit:
+                best_result = result
+        return best_result
 
     @property
     def figure_of_merit_array(self):
