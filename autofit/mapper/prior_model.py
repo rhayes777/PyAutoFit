@@ -98,6 +98,12 @@ class AbstractPriorModel:
 
 
 class ListPriorModel(list, AbstractPriorModel):
+    def name_for_prior(self, prior):
+        for i, prior_model in enumerate(self):
+            prior_name = prior_model.name_for_prior(prior)
+            if prior_name is not None:
+                return "{}_{}".format(i, prior_name)
+
     @property
     def flat_prior_model_tuples(self):
         return [flat_prior_model for prior_model in self for flat_prior_model in prior_model.flat_prior_model_tuples]
