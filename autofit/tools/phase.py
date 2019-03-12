@@ -1,25 +1,8 @@
 import re
 
-from autofit.tools import path_util
 from autofit.optimize import grid_search
 from autofit.optimize import non_linear
-
-
-class ResultsCollection(list):
-    def __init__(self, results):
-        super().__init__(results)
-
-    @property
-    def last(self):
-        if len(self) > 0:
-            return self[-1]
-        return None
-
-    @property
-    def first(self):
-        if len(self) > 0:
-            return self[0]
-        return None
+from autofit.tools import path_util
 
 
 def make_name(cls):
@@ -124,7 +107,8 @@ class AbstractPhase(object):
 
 def as_grid_search(phase_class):
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, phase_name, phase_folders=None, number_of_steps=10, optimizer_class=non_linear.MultiNest, **kwargs):
+        def __init__(self, *args, phase_name, phase_folders=None, number_of_steps=10,
+                     optimizer_class=non_linear.MultiNest, **kwargs):
             super().__init__(*args, phase_name=phase_name, phase_folders=phase_folders, optimizer_class=optimizer_class,
                              **kwargs)
             self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_folders=phase_folders,
