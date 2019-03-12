@@ -170,7 +170,10 @@ class NonLinearOptimizer(object):
             shutil.rmtree(self.backup_path)
         except FileNotFoundError:
             pass
-        shutil.copytree(self.opt_path, self.backup_path)
+        try:
+            shutil.copytree(self.opt_path, self.backup_path)
+        except shutil.Error as e:
+            logger.exception(e)
 
     def restore(self):
         """
