@@ -44,6 +44,13 @@ class TestCopyWithNameExtension(object):
         self.assert_non_linear_attributes_equal(copy, optimizer)
         assert isinstance(copy, non_linear.DownhillSimplex)
         assert copy.fmin is optimizer.fmin
+        assert copy.xtol is optimizer.xtol
+        assert copy.ftol is optimizer.ftol
+        assert copy.maxiter is optimizer.maxiter
+        assert copy.maxfun is optimizer.maxfun
+        assert copy.full_output is optimizer.full_output
+        assert copy.disp is optimizer.disp
+        assert copy.retall is optimizer.retall
 
     def test_multinest(self):
         optimizer = non_linear.MultiNest("phase_name", sigma_limit=2.0, run=lambda x: x)

@@ -312,6 +312,13 @@ class DownhillSimplex(NonLinearOptimizer):
     def copy_with_name_extension(self, extension):
         copy = super().copy_with_name_extension(extension)
         copy.fmin = self.fmin
+        copy.xtol = self.xtol
+        copy.ftol = self.ftol
+        copy.maxiter = self.maxiter
+        copy.maxfun = self.maxfun
+        copy.full_output = self.full_output
+        copy.disp = self.disp
+        copy.retall = self.retall
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
