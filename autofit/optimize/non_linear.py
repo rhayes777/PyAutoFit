@@ -395,6 +395,25 @@ class MultiNest(NonLinearOptimizer):
         copy = super().copy_with_name_extension(extension)
         copy.sigma_limit = self.sigma_limit
         copy.run = self.run
+        copy.importance_nested_sampling = self.importance_nested_sampling
+        copy.multimodal = self.multimodal
+        copy.const_efficiency_mode = self.const_efficiency_mode
+        copy.n_live_points = self.n_live_points
+        copy.evidence_tolerance = self.evidence_tolerance
+        copy.sampling_efficiency = self.sampling_efficiency
+        copy.n_iter_before_update = self.n_iter_before_update
+        copy.null_log_evidence = self.null_log_evidence
+        copy.max_modes = self.max_modes
+        copy.mode_tolerance = self.mode_tolerance
+        copy.outputfiles_basename = self.outputfiles_basename
+        copy.seed = self.seed
+        copy.verbose = self.verbose
+        copy.resume = self.resume
+        copy.context = self.context
+        copy.write_output = self.write_output
+        copy.log_zero = self.log_zero
+        copy.max_iter = self.max_iter
+        copy.init_MPI = self.init_MPI
         return copy
 
     @property
