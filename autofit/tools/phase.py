@@ -5,11 +5,6 @@ from autofit.optimize import non_linear
 from autofit.tools import path_util
 
 
-def make_name(cls):
-    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', cls.__name__)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-
-
 class AbstractPhase(object):
 
     def __init__(self, phase_name, phase_folders=None, optimizer_class=non_linear.MultiNest, auto_link_priors=False):
