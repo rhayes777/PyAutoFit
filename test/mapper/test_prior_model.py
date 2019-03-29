@@ -47,3 +47,17 @@ class TestCase(object):
         prior_model = pm.PriorModel(ListClass, ls=[SimpleClass, SimpleClass])
 
         assert prior_model.prior_count == 4
+
+    def test_instantiate_with_list_arguments(self):
+        mapper = mm.ModelMapper()
+        mapper.list_object = pm.PriorModel(ListClass, ls=[SimpleClass, SimpleClass])
+
+        assert mapper.prior_count == 4
+
+        instance = mapper.instance_from_unit_vector([0.1, 0.2, 0.3, 0.4])
+
+        assert len(instance.list_object.ls) == 2
+        assert instance.list_object.ls[0].one == 0.1
+        assert instance.list_object.ls[0].two == 0.2
+        assert instance.list_object.ls[1].one == 0.3
+        assert instance.list_object.ls[1].two == 0.4
