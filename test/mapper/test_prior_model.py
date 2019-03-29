@@ -1,5 +1,3 @@
-import inspect
-
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior_model as pm
 
@@ -15,13 +13,13 @@ class ComplexClass(object):
         self.simple = simple
 
 
+class ListClass(object):
+    def __init__(self, ls: list):
+        self.ls = ls
+
+
 class TestCase(object):
     def test_complex_class(self):
-        arg_spec = inspect.getfullargspec(ComplexClass.__init__)
-        print(arg_spec)
-        arg_spec = inspect.getfullargspec(SimpleClass.__init__)
-        print(arg_spec)
-
         prior_model = pm.PriorModel(ComplexClass)
 
         assert hasattr(prior_model, "simple")
@@ -36,3 +34,16 @@ class TestCase(object):
 
         assert instance.complex.simple.one == 1.0
         assert instance.complex.simple.two == 0.0
+
+    def test_list_arguments(self):
+        prior_model = pm.PriorModel(ListClass)
+
+        assert prior_model.prior_count == 0
+
+        prior_model = pm.PriorModel(ListClass, ls=[SimpleClass])
+
+        assert prior_model.prior_count == 2
+
+        prior_model = pm.PriorModel(ListClass, ls=[SimpleClass, SimpleClass])
+
+        assert prior_model.prior_count == 4

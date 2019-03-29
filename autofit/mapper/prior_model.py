@@ -196,7 +196,7 @@ class PriorModel(AbstractPriorModel):
     def flat_prior_model_tuples(self):
         return [("", self)]
 
-    def __init__(self, cls):
+    def __init__(self, cls, **kwargs):
         """
         Parameters
         ----------
@@ -222,7 +222,9 @@ class PriorModel(AbstractPriorModel):
             args.remove('settings')
 
         for arg in args:
-            if arg in defaults and isinstance(defaults[arg], tuple):
+            if arg in kwargs:
+                setattr(self, arg, ListPriorModel(list(map(PriorModel, kwargs[arg]))))
+            elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
                 for i in range(len(defaults[arg])):
                     attribute_name = "{}_{}".format(arg, i)
@@ -369,7 +371,7 @@ class PriorModel(AbstractPriorModel):
         -------
         direct_priors: [(String, Prior)]
         """
-        return self.tuples_with_type(PriorModel)
+        return self.tuples_with_type(AbstractPriorModel)
 
     @property
     @cast_collection(PriorNameValue)
