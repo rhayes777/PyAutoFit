@@ -1,5 +1,3 @@
-import re
-
 from autofit.optimize import grid_search
 from autofit.optimize import non_linear
 from autofit.tools import path_util
