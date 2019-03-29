@@ -5,11 +5,11 @@ Filter and collate phase data in all subdirectories.
 
 Usage:
 
-./aggregator.py (root_directory) [pipeline=pipeline phase=phase lens=lens]
+./aggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]
 
 Example:
 
-./aggregator.py ../output pipeline=lens_mass_x1_source_x1_positions
+./aggregator.py ../output pipeline=data_mass_x1_source_x1_positions
 """
 
 import os
@@ -51,9 +51,9 @@ class PhaseOutput(object):
     @property
     def header(self) -> str:
         """
-        A header created by joining the pipeline, phase and lens names
+        A header created by joining the pipeline, phase and data names
         """
-        return "/".join((self.pipeline, self.phase, self.lens))
+        return "/".join((self.pipeline, self.phase, self.data))
 
     @property
     def optimizer(self) -> non_linear.NonLinearOptimizer:
@@ -94,7 +94,7 @@ class Aggregator(object):
     def phases_with(self, **kwargs) -> [PhaseOutput]:
         """
         Filters phases. If no arguments are passed all phases are returned. Arguments must be key value pairs, with
-        phase, lens or pipeline as the key.
+        phase, data or pipeline as the key.
 
         Parameters
         ----------
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     try:
         root_directory = argv[1]
     except IndexError:
-        print("Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase lens=lens]")
+        print("Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]")
         exit(1)
     filter_dict = {pair[0]: pair[1] for pair in [line.split("=") for line in argv[2:]]}
 
