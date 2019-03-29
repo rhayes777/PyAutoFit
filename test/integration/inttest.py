@@ -35,8 +35,8 @@ class Phase(p.AbstractPhase):
     profile = phase_property.PhaseProperty("profile")
     constant_profile = phase_property.PhaseProperty("constant_profile")
 
-    def __init__(self, phase_name, profile, constant_profile, optimizer_class=non_linear.MultiNest):
-        super().__init__(phase_name=phase_name, optimizer_class=optimizer_class)
+    def __init__(self, phase_folders, phase_name, profile, constant_profile, optimizer_class=non_linear.MultiNest):
+        super().__init__(phase_folders=phase_folders, phase_name=phase_name, optimizer_class=optimizer_class)
         self.profile = profile
         self.constant_profile = constant_profile
 
@@ -46,7 +46,7 @@ class Phase(p.AbstractPhase):
 
 class TestCase(object):
     def test_integration(self):
-        multinest = non_linear.MultiNest()
+        multinest = non_linear.MultiNest(phase_folders=['integration'], phase_name='test')
 
         multinest.variable.profile = mock.EllipticalProfile
 
@@ -58,7 +58,7 @@ class TestCase(object):
         assert 0 == pytest.approx(centre[1], abs=0.1)
 
     def test_grid(self):
-        grid_search = gs.GridSearch(name="integration_grid_search")
+        grid_search = gs.GridSearch(phase_name="integration_grid_search", phase_folders=['integration'])
         grid_search.variable.profile = mock.EllipticalProfile
 
         # noinspection PyUnresolvedReferences
@@ -68,7 +68,7 @@ class TestCase(object):
         print(result.figure_of_merit_array)
 
     def test_phase(self):
-        phase = Phase(phase_name="test_phase", profile=mock.EllipticalProfile,
+        phase = Phase( phase_name="test_phase", phase_folders=['integration'], profile=mock.EllipticalProfile,
                       constant_profile=mock.EllipticalProfile())
         result = phase.run_analysis(Analysis())
 
@@ -79,7 +79,7 @@ class TestCase(object):
 
     def test_classic_grid_search_phase(self):
         # noinspection PyTypeChecker
-        phase = Phase(phase_name="test_classic_grid_search_phase", profile=mock.EllipticalProfile,
+        phase = Phase(phase_name="test_classic_grid_search_phase", phase_folders=['integration'], profile=mock.EllipticalProfile,
                       constant_profile=mock.EllipticalProfile(), optimizer_class=non_linear.GridSearch)
         result = phase.run_analysis(Analysis())
 
@@ -96,7 +96,7 @@ class TestCase(object):
 
         constant_profile = mock.EllipticalProfile()
 
-        result = GridSearchPhase(number_of_steps=2, phase_name="grid_search_phase",
+        result = GridSearchPhase(phase_name="grid_search_phase", phase_folders=['integration'], number_of_steps=2,
                                  profile=mock.EllipticalProfile,
                                  constant_profile=constant_profile).run_analysis(Analysis())
 

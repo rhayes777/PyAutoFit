@@ -46,7 +46,7 @@ def tuple_lists_equal(l1, l2):
 
 class TestGridSearchOptimizer(object):
     def test_config(self):
-        assert non_linear.GridSearch().step_size == 0.1
+        assert non_linear.GridSearch(phase_name='').step_size == 0.1
 
     def test_1d(self):
         points = []
@@ -109,7 +109,7 @@ def make_grid_search():
         shutil.rmtree("{}/{}/".format(conf.instance.output_path, name))
     except FileNotFoundError:
         pass
-    return non_linear.GridSearch(name=name, step_size=0.1)
+    return non_linear.GridSearch(phase_name=name, step_size=0.1)
 
 
 class TestGridSearch(object):
@@ -143,7 +143,7 @@ class TestGridSearch(object):
         grid_search.variable.one = mock.Galaxy
         grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
 
         assert grid_search.is_checkpoint
         assert grid_search.checkpoint_count == 10
@@ -158,12 +158,12 @@ class TestGridSearch(object):
         grid_search.variable.one = mock.Galaxy
         grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
 
         with pytest.raises(exc.CheckpointException):
             grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.2)
+        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.2)
         grid_search.variable.one = mock.Galaxy
 
         with pytest.raises(exc.CheckpointException):
@@ -177,7 +177,7 @@ class TestGridSearch(object):
 
         grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
 
         grid_search.variable.one = mock.Galaxy
         grid_search.variable.two = mock.Galaxy
@@ -195,7 +195,7 @@ class TestGridSearch(object):
         with open(grid_search.checkpoint_path, "w+") as f:
             f.write(string)
 
-        grid_search = non_linear.GridSearch(name="grid_search", step_size=0.1)
+        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
 
         grid_search.variable.one = mock.Galaxy
         grid_search.variable.two = mock.Galaxy
@@ -208,15 +208,15 @@ class TestGridSearch(object):
         assert pytest.approx(result.constant.one.redshift) == 0.15
         assert pytest.approx(result.constant.two.redshift) == 0.65
 
-    def test__output_likelihoods(self, grid_search):
+    def test_instances(self, grid_search):
         grid_search.variable.one = mock.Galaxy
 
         analysis = MockAnalysis()
-        grid_search.fit(analysis)
+        result = grid_search.fit(analysis)
 
-        assert len(analysis.instances) == 10
+        assert len(result.instances) == 10
 
-        instance = analysis.instances[5]
+        instance = result.instances[5]
 
-        assert isinstance(instance.one, mock.Galaxy)
-        assert instance.one.redshift == 0.55
+        assert isinstance(instance[0].one, mock.Galaxy)
+        assert instance[0].one.redshift == 0.55

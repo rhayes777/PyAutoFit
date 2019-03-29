@@ -3,11 +3,11 @@ import os
 
 import pytest
 
-from autofit.mapper import prior_model as pm
 from autofit import conf
 from autofit import exc
 from autofit import mock
 from autofit.mapper import model_mapper, prior as p
+from autofit.mapper import prior_model as pm
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -33,8 +33,8 @@ class MockClassInf(object):
     def __init__(self, one, two):
         self.one = one
         self.two = two
-        
-        
+
+
 class TestParamNames(object):
     def test_has_prior(self):
         prior_model = pm.PriorModel(MockClassGaussian)
@@ -462,6 +462,32 @@ class TestRegression(object):
         mapper.with_tuple.tup_0 = mapper.with_float.value
 
         assert mapper.prior_count == 2
+
+    def test_param_name_ordering(self):
+        mm = model_mapper.ModelMapper()
+        mm.one = mock.RelativeWidth
+        mm.two = mock.RelativeWidth
+
+        mm.one.one.id = mm.two.three.id + 1
+
+        assert mm.param_names == [
+            "one_two",
+            "one_three",
+            "two_one",
+            "two_two",
+            "two_three",
+            "one_one",
+        ]
+
+    def test_param_name_distinction(self):
+        mm = model_mapper.ModelMapper()
+        mm.ls = pm.ListPriorModel([pm.PriorModel(mock.RelativeWidth), pm.PriorModel(mock.RelativeWidth)])
+        assert mm.param_names == ["ls_0_one",
+                                  "ls_0_two",
+                                  "ls_0_three",
+                                  "ls_1_one",
+                                  "ls_1_two",
+                                  "ls_1_three"]
 
     def test_tuple_parameter_float(self, mapper):
         mapper.with_float = WithFloat

@@ -22,10 +22,10 @@ class PhaseProperty(object):
 
         Examples
         --------
-        >>> class Phase:
-        >>>     my_property = PhaseProperty("my_property")
-        >>>     def __init__(self, my_property):
-        >>>         self.my_property = my_property
+        class Phase:
+            my_property = PhaseProperty("my_property")
+            def __init__(self, my_property):
+                self.my_property = my_property
         """
         self.name = name
 

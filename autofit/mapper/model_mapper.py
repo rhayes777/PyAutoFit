@@ -47,7 +47,7 @@ class ModelMapper(AbstractModel):
         mapper = ModelMapper()
 
         mapper.sersic = light_profiles.AbstractEllipticalSersic
-        mapper.gaussian = light_profiles.EllipticalGaussian)
+        mapper.gaussian = light_profiles.EllipticalGaussian
         mapper.any_class = SomeClass
 
         # A PriorModel instance is created each time we add a class to the mapper. We can access those models using
@@ -568,7 +568,7 @@ class ModelMapper(AbstractModel):
         The parameter names are determined from the class instance names of the model_mapper. Latex tags are \
         properties of each model class."""
 
-        return [self.name_for_prior(prior) for prior in self.priors]
+        return [self.name_for_prior(prior) for prior in sorted(self.priors, key=lambda prior: prior.id)]
 
     @property
     def constant_names(self):

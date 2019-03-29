@@ -19,10 +19,11 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return gs.GridSearch(model_mapper=mapper, number_of_steps=10)
+    return gs.GridSearch(phase_name='', model_mapper=mapper, number_of_steps=10)
 
 
 class TestGridSearchablePriors(object):
+
     def test_generated_models(self, grid_search):
         mappers = list(grid_search.model_mappers(
             grid_priors=[grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1]))
@@ -40,7 +41,7 @@ class TestGridSearchablePriors(object):
         assert mappers[-1].profile.centre_1.upper_limit == 1.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = gs.GridSearch(model_mapper=mapper, number_of_steps=10)
+        grid_search = gs.GridSearch(phase_name='', model_mapper=mapper, number_of_steps=10)
 
         mappers = list(grid_search.model_mappers(grid_priors=[mapper.profile.centre_0]))
 
@@ -116,9 +117,9 @@ class MockClassContainer(object):
         fit_instances = []
 
         class MockOptimizer(non_linear.NonLinearOptimizer):
-            def __init__(self, model_mapper=None, name="mock_optimizer"):
-                super().__init__(model_mapper, name)
-                init_args.append((model_mapper, name))
+            def __init__(self, phase_name="mock_optimizer", phase_folders=None, model_mapper=None):
+                super().__init__(phase_folders=phase_folders, phase_name=phase_name, model_mapper=model_mapper)
+                init_args.append((model_mapper, phase_name))
 
             def fit(self, analysis):
                 fit_args.append(analysis)
@@ -152,11 +153,13 @@ def make_mock_class_container():
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05(mapper, container):
     return gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=2,
-                         name="sample_name")
+                         phase_name="sample_name")
 
 
 class TestGridNLOBehaviour(object):
+
     def test_calls(self, grid_search_05, container, mapper):
+
         result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
         assert len(container.init_args) == 2
@@ -172,7 +175,7 @@ class TestGridNLOBehaviour(object):
 
     def test_round_names(self, container, mapper):
         grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=3,
-                                    name="sample_name")
+                                    phase_name="sample_name")
 
         grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
@@ -200,7 +203,7 @@ class TestGridNLOBehaviour(object):
                                                                 [1.0, 1.0]])).all()
 
         grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=10,
-                                    name="sample_name")
+                                    phase_name="sample_name")
         result = grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
 
         assert len(result.results) == 100
@@ -234,6 +237,46 @@ class TestGridNLOBehaviour(object):
             # noinspection PyUnresolvedReferences
             assert instance.profile.centre[1] == 2
 
+    def test_passes_attributes(self):
+        grid_search = gs.GridSearch(phase_name='', model_mapper=mm.ModelMapper(), number_of_steps=10,
+                                    optimizer_class=non_linear.MultiNest)
+
+        grid_search.n_live_points = 20
+        grid_search.sampling_efficiency = 0.3
+
+        model_mapper = mm.ModelMapper()
+
+        optimizer = grid_search.optimizer_instance(model_mapper, "name_path")
+
+        assert optimizer.n_live_points is grid_search.n_live_points
+        assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
+        assert optimizer.variable is model_mapper
+
+
+class MockResult(object):
+    def __init__(self, figure_of_merit):
+        self.figure_of_merit = figure_of_merit
+        self.variable = figure_of_merit
+
+
+@pytest.fixture(name="grid_search_result")
+def make_grid_search_result():
+    one = MockResult(1)
+    two = MockResult(2)
+
+    return gs.GridSearchResult([one, two], [[1], [2]])
+
+
+class TestGridSearchResult(object):
+    def test_best_result(self, grid_search_result):
+        assert grid_search_result.best_result.figure_of_merit == 2
+
+    def test_best_model(self, grid_search_result):
+        assert grid_search_result.best_model == 2
+
+    def test_all_models(self, grid_search_result):
+        assert grid_search_result.all_models == [1, 2]
+
 
 class TestMixin(object):
     def test_mixin(self, container):
@@ -246,10 +289,13 @@ class TestMixin(object):
                 analysis = container.MockAnalysis()
                 return self.make_result(self.run_analysis(analysis), analysis)
 
-        optimizer = MyPhase(number_of_steps=2, optimizer_class=container.MockOptimizer)
+        optimizer = MyPhase(phase_name='', phase_folders=None, number_of_steps=2,
+                            optimizer_class=container.MockOptimizer)
         optimizer.variable.profile = mock.GeometryProfile
 
         result = optimizer.run()
 
         assert isinstance(result, gs.GridSearchResult)
         assert len(result.results) == 2
+
+        assert isinstance(result.best_result, non_linear.Result)
