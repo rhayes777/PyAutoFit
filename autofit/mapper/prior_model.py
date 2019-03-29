@@ -133,6 +133,10 @@ class ListPriorModel(list, AbstractPriorModel):
         return [(prior_model.mapping_name if hasattr(prior_model, "mapping_name") else str(i), prior_model) for
                 i, prior_model in enumerate(self)]
 
+    @property
+    def prior_models(self):
+        return [obj for obj in self if isinstance(obj, AbstractPriorModel)]
+
     def instance_for_arguments(self, arguments):
         """
         Parameters
@@ -145,7 +149,13 @@ class ListPriorModel(list, AbstractPriorModel):
         model_instances: [object]
             A list of instances constructed from the list of prior models.
         """
-        return [prior_model.instance_for_arguments(arguments) for prior_model in self]
+        result = []
+        for obj in self:
+            if isinstance(obj, AbstractPriorModel):
+                result.append(obj.instance_for_arguments(arguments))
+            else:
+                result.append(obj)
+        return result
 
     def gaussian_prior_model_for_arguments(self, arguments):
         """
@@ -170,7 +180,7 @@ class ListPriorModel(list, AbstractPriorModel):
         -------
         priors: [(String, Union(Prior, TuplePrior))]
         """
-        return set([prior for prior_model in self for prior in prior_model.prior_tuples])
+        return set([prior for prior_model in self.prior_models for prior in prior_model.prior_tuples])
 
     @property
     @cast_collection(ConstantNameValue)
@@ -223,7 +233,14 @@ class PriorModel(AbstractPriorModel):
 
         for arg in args:
             if arg in kwargs:
-                setattr(self, arg, ListPriorModel(list(map(PriorModel, kwargs[arg]))))
+                ls = ListPriorModel([])
+                for obj in kwargs[arg]:
+                    if inspect.isclass(obj):
+                        ls.append(PriorModel(obj))
+                    else:
+                        ls.append(obj)
+
+                setattr(self, arg, ls)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
                 for i in range(len(defaults[arg])):

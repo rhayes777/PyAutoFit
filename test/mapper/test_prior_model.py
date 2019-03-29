@@ -61,3 +61,23 @@ class TestCase(object):
         assert instance.list_object.ls[0].two == 0.2
         assert instance.list_object.ls[1].one == 0.3
         assert instance.list_object.ls[1].two == 0.4
+
+    def test_mix_instances_and_models(self):
+        mapper = mm.ModelMapper()
+        mapper.list_object = pm.PriorModel(ListClass, ls=[SimpleClass, SimpleClass(1, 2)])
+
+        assert mapper.prior_count == 2
+
+        instance = mapper.instance_from_unit_vector([0.1, 0.2])
+
+        assert len(instance.list_object.ls) == 2
+        assert instance.list_object.ls[0].one == 0.1
+        assert instance.list_object.ls[0].two == 0.2
+        assert instance.list_object.ls[1].one == 1
+        assert instance.list_object.ls[1].two == 2
+
+    def test_mix_instances_in_list_prior_model(self):
+        prior_model = pm.ListPriorModel([pm.PriorModel(SimpleClass), SimpleClass(1, 2)])
+
+        assert len(prior_model.prior_models) == 1
+        assert prior_model.prior_count == 2
