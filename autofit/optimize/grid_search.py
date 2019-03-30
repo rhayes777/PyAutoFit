@@ -208,8 +208,7 @@ class GridSearch(object):
                     "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
             name_path = "{}/{}".format(self.phase_name, "_".join(labels))
-            optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
-                                                      phase_folders=self.phase_folders, phase_name=name_path)
+            optimizer_instance = self.optimizer_instance(model_mapper, name_path)
             optimizer_instance.constant = self.constant
             result = optimizer_instance.fit(analysis)
             results.append(result)
@@ -219,3 +218,11 @@ class GridSearch(object):
             write_results()
 
         return GridSearchResult(results, lists)
+
+    def optimizer_instance(self, model_mapper, name_path):
+        optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
+                                                  phase_folders=self.phase_folders,
+                                                  phase_name=name_path)
+        for key, value in self.__dict__.items():
+            setattr(optimizer_instance, key, value)
+        return optimizer_instance

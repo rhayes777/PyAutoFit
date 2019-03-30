@@ -237,6 +237,18 @@ class TestGridNLOBehaviour(object):
             # noinspection PyUnresolvedReferences
             assert instance.profile.centre[1] == 2
 
+    def test_passes_attributes(self):
+        grid_search = gs.GridSearch(phase_name='', model_mapper=mm.ModelMapper(), number_of_steps=10,
+                                    optimizer_class=non_linear.MultiNest)
+
+        grid_search.n_live_points = 20
+        grid_search.sampling_efficiency = 0.3
+
+        optimizer = grid_search.optimizer_instance(mm.ModelMapper(), "name_path")
+
+        assert optimizer.n_live_points is grid_search.n_live_points
+        assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
+
 
 class MockResult(object):
     def __init__(self, figure_of_merit):
