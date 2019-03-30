@@ -244,10 +244,13 @@ class TestGridNLOBehaviour(object):
         grid_search.n_live_points = 20
         grid_search.sampling_efficiency = 0.3
 
-        optimizer = grid_search.optimizer_instance(mm.ModelMapper(), "name_path")
+        model_mapper = mm.ModelMapper()
+
+        optimizer = grid_search.optimizer_instance(model_mapper, "name_path")
 
         assert optimizer.n_live_points is grid_search.n_live_points
         assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
+        assert optimizer.variable is model_mapper
 
 
 class MockResult(object):
