@@ -1,7 +1,7 @@
+import hashlib
 import logging
 import os
 import shutil
-import hashlib
 from os.path import expanduser
 
 SUB_PATH_LENGTH = 10
@@ -9,8 +9,10 @@ AUTOFIT_FOLDER = ".autofit"
 
 logger = logging.getLogger(__file__)
 
-home = expanduser("~")
-autolens_dir = "{}/{}".format(home, AUTOFIT_FOLDER)
+try:
+    autolens_dir = expanduser(os.environ["SYMDIR"])
+except KeyError:
+    autolens_dir = "{}/{}".format(expanduser("~"), ".autofit")
 
 try:
     os.mkdir(autolens_dir)

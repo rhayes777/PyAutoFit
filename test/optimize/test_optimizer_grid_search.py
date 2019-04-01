@@ -251,6 +251,7 @@ class TestGridNLOBehaviour(object):
         assert optimizer.n_live_points is grid_search.n_live_points
         assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
         assert optimizer.variable is model_mapper
+        assert grid_search.path != optimizer.path
 
 
 class MockResult(object):
