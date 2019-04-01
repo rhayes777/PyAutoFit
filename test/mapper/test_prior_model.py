@@ -81,3 +81,21 @@ class TestCase(object):
 
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
+
+        mapper = mm.ModelMapper()
+        mapper.ls = prior_model
+
+        instance = mapper.instance_from_unit_vector([0.1, 0.2])
+
+        assert len(instance.ls) == 2
+
+        assert instance.ls[0].one == 0.1
+        assert instance.ls[0].two == 0.2
+        assert instance.ls[1].one == 1
+        assert instance.ls[1].two == 2
+
+    def test_list_in_list_prior_model(self):
+        prior_model = pm.ListPriorModel([[SimpleClass]])
+
+        assert len(prior_model.prior_models) == 1
+        assert prior_model.prior_count == 2

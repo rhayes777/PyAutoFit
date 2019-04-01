@@ -1,11 +1,10 @@
 import copy
-import inspect
 import os
 
 from autofit import conf
 from autofit import exc
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, ConstantNameValue
-from autofit.mapper.prior_model import ListPriorModel, PriorModel, AbstractPriorModel, PriorModelNameValue
+from autofit.mapper.prior_model import ListPriorModel, AbstractPriorModel, PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -89,11 +88,7 @@ class ModelMapper(AbstractModel):
             self.__setattr__(name, cls)
 
     def __setattr__(self, key, value):
-        if isinstance(value, list) and len(value) > 0 and isinstance(value[0], AbstractPriorModel):
-            value = ListPriorModel(value)
-        elif inspect.isclass(value):
-            value = PriorModel(value)
-        super(ModelMapper, self).__setattr__(key, value)
+        super(ModelMapper, self).__setattr__(key, AbstractPriorModel(value))
 
     @property
     def prior_count(self):

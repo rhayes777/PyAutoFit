@@ -56,6 +56,15 @@ class AbstractPriorModel:
     """
     _ids = itertools.count()
 
+    def __new__(cls, *args, **kwargs):
+        if len(args) == 0:
+            return object.__new__(cls)
+        if inspect.isclass(args[0]):
+            return object.__new__(PriorModel)
+        if isinstance(args[0], list):
+            return ListPriorModel.__new__(ListPriorModel)
+        return args[0]
+
     @property
     def flat_prior_model_tuples(self):
         """
@@ -126,7 +135,7 @@ class ListPriorModel(list, AbstractPriorModel):
         """
         self.component_number = next(self._ids)
 
-        super().__init__([PriorModel(argument) if inspect.isclass(argument) else argument for argument in arguments])
+        super().__init__(list(map(AbstractPriorModel, arguments)))
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -214,6 +223,8 @@ class PriorModel(AbstractPriorModel):
         cls: class
             The class associated with this instance
         """
+        if cls is self:
+            return
 
         self.cls = cls
         self.component_number = next(self._ids)
@@ -237,7 +248,7 @@ class PriorModel(AbstractPriorModel):
                 ls = ListPriorModel([])
                 for obj in kwargs[arg]:
                     if inspect.isclass(obj):
-                        ls.append(PriorModel(obj))
+                        ls.append(AbstractPriorModel(obj))
                     else:
                         ls.append(obj)
 
