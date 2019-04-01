@@ -1,5 +1,6 @@
 import os
 import shutil
+from importlib import reload
 
 import pytest
 
@@ -18,6 +19,13 @@ def delete_trees(*paths):
 
 class TestCase(object):
     def test_create_dir(self):
+        assert os.path.exists(link.autolens_dir)
+
+    def test_environment_variable(self):
+        symdir = "~/.symdir"
+        os.environ["SYMDIR"] = symdir
+        reload(link)
+        assert ".symdir" in link.autolens_dir
         assert os.path.exists(link.autolens_dir)
 
     def test_consistent_dir(self):
