@@ -53,6 +53,8 @@ class AbstractPriorModel:
     """
     Abstract model that maps a set of priors to a particular class. Must be overridden by any prior model so that the \
     model mapper recognises its prior model attributes.
+
+    @DynamicAttrs
     """
     _ids = itertools.count()
 
