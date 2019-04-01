@@ -26,6 +26,7 @@ class TestCase(object):
         os.environ["SYMDIR"] = symdir
         reload(link)
         assert ".symdir" in link.autolens_dir
+        assert os.path.exists(link.autolens_dir)
 
     def test_consistent_dir(self):
         directory = link.path_for("/a/random/directory")
