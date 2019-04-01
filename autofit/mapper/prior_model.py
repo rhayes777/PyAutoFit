@@ -115,17 +115,18 @@ class ListPriorModel(list, AbstractPriorModel):
     def flat_prior_model_tuples(self):
         return [flat_prior_model for prior_model in self for flat_prior_model in prior_model.flat_prior_model_tuples]
 
-    def __init__(self, prior_models):
+    def __init__(self, arguments):
         """
         A prior model used to represent a list of prior models for convenience.
 
         Parameters
         ----------
-        prior_models: [PriorModel]
-            A list of prior models
+        arguments: list
+            A list classes, prior_models or instances
         """
         self.component_number = next(self._ids)
-        super().__init__(prior_models)
+
+        super().__init__([PriorModel(argument) if inspect.isclass(argument) else argument for argument in arguments])
 
     @property
     @cast_collection(PriorModelNameValue)

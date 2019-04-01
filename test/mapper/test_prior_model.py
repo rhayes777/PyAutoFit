@@ -77,7 +77,7 @@ class TestCase(object):
         assert instance.list_object.ls[1].two == 2
 
     def test_mix_instances_in_list_prior_model(self):
-        prior_model = pm.ListPriorModel([pm.PriorModel(SimpleClass), SimpleClass(1, 2)])
+        prior_model = pm.ListPriorModel([SimpleClass, SimpleClass(1, 2)])
 
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
