@@ -52,6 +52,9 @@ class TestCase(object):
         mapper = mm.ModelMapper()
         mapper.list_object = pm.PriorModel(ListClass, ls=[SimpleClass, SimpleClass])
 
+        assert len(mapper.list_object.ls) == 2
+
+        assert mapper.list_object.prior_count == 4
         assert mapper.prior_count == 4
 
         instance = mapper.instance_from_unit_vector([0.1, 0.2, 0.3, 0.4])
@@ -99,3 +102,8 @@ class TestCase(object):
 
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
+
+    # def test_list_prior_model_with_dictionary(self):
+    #     prior_model = pm.ListPriorModel({"simple": SimpleClass})
+    #
+    #     assert isinstance(prior_model.simple, pm.PriorModel)
