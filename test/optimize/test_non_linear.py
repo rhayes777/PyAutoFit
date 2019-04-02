@@ -44,6 +44,13 @@ class TestCopyWithNameExtension(object):
         self.assert_non_linear_attributes_equal(copy, optimizer)
         assert isinstance(copy, non_linear.DownhillSimplex)
         assert copy.fmin is optimizer.fmin
+        assert copy.xtol is optimizer.xtol
+        assert copy.ftol is optimizer.ftol
+        assert copy.maxiter is optimizer.maxiter
+        assert copy.maxfun is optimizer.maxfun
+        assert copy.full_output is optimizer.full_output
+        assert copy.disp is optimizer.disp
+        assert copy.retall is optimizer.retall
 
     def test_multinest(self):
         optimizer = non_linear.MultiNest("phase_name", sigma_limit=2.0, run=lambda x: x)
@@ -53,6 +60,25 @@ class TestCopyWithNameExtension(object):
         assert isinstance(copy, non_linear.MultiNest)
         assert copy.sigma_limit is optimizer.sigma_limit
         assert copy.run is optimizer.run
+        assert copy.importance_nested_sampling is optimizer.importance_nested_sampling
+        assert copy.multimodal is optimizer.multimodal
+        assert copy.const_efficiency_mode is optimizer.const_efficiency_mode
+        assert copy.n_live_points is optimizer.n_live_points
+        assert copy.evidence_tolerance is optimizer.evidence_tolerance
+        assert copy.sampling_efficiency is optimizer.sampling_efficiency
+        assert copy.n_iter_before_update is optimizer.n_iter_before_update
+        assert copy.null_log_evidence is optimizer.null_log_evidence
+        assert copy.max_modes is optimizer.max_modes
+        assert copy.mode_tolerance is optimizer.mode_tolerance
+        assert copy.outputfiles_basename is optimizer.outputfiles_basename
+        assert copy.seed is optimizer.seed
+        assert copy.verbose is optimizer.verbose
+        assert copy.resume is optimizer.resume
+        assert copy.context is optimizer.context
+        assert copy.write_output is optimizer.write_output
+        assert copy.log_zero is optimizer.log_zero
+        assert copy.max_iter is optimizer.max_iter
+        assert copy.init_MPI is optimizer.init_MPI
 
     def test_grid_search(self):
         optimizer = non_linear.GridSearch("phase_name", step_size=17, grid=lambda x: x)

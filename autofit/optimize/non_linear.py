@@ -100,7 +100,7 @@ def persistent_timer(func):
 
 class NonLinearOptimizer(object):
 
-    def __init__(self, phase_name, phase_folders=None, model_mapper=None):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
@@ -119,12 +119,17 @@ class NonLinearOptimizer(object):
             self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
 
         self.phase_name = phase_name
+        
+        if phase_tag is None:
+            self.phase_tag = ''
+        else:
+            self.phase_tag = '_' + phase_tag
 
-        self.phase_output_path = "{}/{}/{}/".format(conf.instance.output_path, self.phase_path, phase_name)
-        self.opt_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name)
+        self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
+        self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
 
-        sym_path = "{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name)
-        self.backup_path = "{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name)
+        sym_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
+        self.backup_path = "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -170,7 +175,10 @@ class NonLinearOptimizer(object):
             shutil.rmtree(self.backup_path)
         except FileNotFoundError:
             pass
-        shutil.copytree(self.opt_path, self.backup_path)
+        try:
+            shutil.copytree(self.opt_path, self.backup_path)
+        except shutil.Error as e:
+            logger.exception(e)
 
     def restore(self):
         """
@@ -274,8 +282,6 @@ class NonLinearOptimizer(object):
                 if self.should_visualise():
                     self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
 
-            #    if self.should_log():
-            #        logger.info(self.analysis.describe(instance))
             if self.should_backup():
                 self.nlo.backup()
 
@@ -290,9 +296,9 @@ class NonLinearOptimizer(object):
 
 class DownhillSimplex(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_folders=None, model_mapper=None, fmin=scipy.optimize.fmin):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, fmin=scipy.optimize.fmin):
 
-        super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_folders=phase_folders,
+        super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
                                               model_mapper=model_mapper)
 
         self.xtol = self.config("xtol", float)
@@ -311,6 +317,13 @@ class DownhillSimplex(NonLinearOptimizer):
     def copy_with_name_extension(self, extension):
         copy = super().copy_with_name_extension(extension)
         copy.fmin = self.fmin
+        copy.xtol = self.xtol
+        copy.ftol = self.ftol
+        copy.maxiter = self.maxiter
+        copy.maxfun = self.maxfun
+        copy.full_output = self.full_output
+        copy.disp = self.disp
+        copy.retall = self.retall
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
@@ -351,7 +364,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_folders=None, model_mapper=None, sigma_limit=3, run=pymultinest.run):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, sigma_limit=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
@@ -359,7 +372,8 @@ class MultiNest(NonLinearOptimizer):
         are passed to each iteration of MultiNest.
         """
 
-        super(MultiNest, self).__init__(phase_name=phase_name, phase_folders=phase_folders, model_mapper=model_mapper)
+        super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
+                                        model_mapper=model_mapper)
 
         self.file_summary = "{}/{}".format(self.path, 'multinestsummary.txt')
         self.file_weighted_samples = "{}/{}".format(self.path, 'multinest.txt')
@@ -394,6 +408,25 @@ class MultiNest(NonLinearOptimizer):
         copy = super().copy_with_name_extension(extension)
         copy.sigma_limit = self.sigma_limit
         copy.run = self.run
+        copy.importance_nested_sampling = self.importance_nested_sampling
+        copy.multimodal = self.multimodal
+        copy.const_efficiency_mode = self.const_efficiency_mode
+        copy.n_live_points = self.n_live_points
+        copy.evidence_tolerance = self.evidence_tolerance
+        copy.sampling_efficiency = self.sampling_efficiency
+        copy.n_iter_before_update = self.n_iter_before_update
+        copy.null_log_evidence = self.null_log_evidence
+        copy.max_modes = self.max_modes
+        copy.mode_tolerance = self.mode_tolerance
+        copy.outputfiles_basename = self.outputfiles_basename
+        copy.seed = self.seed
+        copy.verbose = self.verbose
+        copy.resume = self.resume
+        copy.context = self.context
+        copy.write_output = self.write_output
+        copy.log_zero = self.log_zero
+        copy.max_iter = self.max_iter
+        copy.init_MPI = self.init_MPI
         return copy
 
     @property
@@ -719,7 +752,7 @@ class MultiNest(NonLinearOptimizer):
 
 class GridSearch(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_folders=None, step_size=None, model_mapper=None, grid=opt.grid):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, step_size=None, model_mapper=None, grid=opt.grid):
         """
         Optimise by performing a grid search.
 
@@ -735,7 +768,7 @@ class GridSearch(NonLinearOptimizer):
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
-        super().__init__(phase_name=phase_name, phase_folders=phase_folders, model_mapper=model_mapper)
+        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders, model_mapper=model_mapper)
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 

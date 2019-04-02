@@ -479,6 +479,16 @@ class TestRegression(object):
             "one_one",
         ]
 
+    def test_param_name_distinction(self):
+        mm = model_mapper.ModelMapper()
+        mm.ls = pm.ListPriorModel([pm.PriorModel(mock.RelativeWidth), pm.PriorModel(mock.RelativeWidth)])
+        assert mm.param_names == ["ls_0_one",
+                                  "ls_0_two",
+                                  "ls_0_three",
+                                  "ls_1_one",
+                                  "ls_1_two",
+                                  "ls_1_three"]
+
     def test_tuple_parameter_float(self, mapper):
         mapper.with_float = WithFloat
         mapper.with_tuple = WithTuple

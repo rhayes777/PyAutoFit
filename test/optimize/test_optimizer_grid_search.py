@@ -117,8 +117,8 @@ class MockClassContainer(object):
         fit_instances = []
 
         class MockOptimizer(non_linear.NonLinearOptimizer):
-            def __init__(self, phase_name="mock_optimizer", phase_folders=None, model_mapper=None):
-                super().__init__(phase_folders=phase_folders, phase_name=phase_name, model_mapper=model_mapper)
+            def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=None, model_mapper=None):
+                super().__init__(phase_folders=phase_folders, phase_tag=phase_tag, phase_name=phase_name, model_mapper=model_mapper)
                 init_args.append((model_mapper, phase_name))
 
             def fit(self, analysis):
@@ -236,6 +236,22 @@ class TestGridNLOBehaviour(object):
             assert isinstance(instance.profile, mock.GeometryProfile)
             # noinspection PyUnresolvedReferences
             assert instance.profile.centre[1] == 2
+
+    def test_passes_attributes(self):
+        grid_search = gs.GridSearch(phase_name='', model_mapper=mm.ModelMapper(), number_of_steps=10,
+                                    optimizer_class=non_linear.MultiNest)
+
+        grid_search.n_live_points = 20
+        grid_search.sampling_efficiency = 0.3
+
+        model_mapper = mm.ModelMapper()
+
+        optimizer = grid_search.optimizer_instance(model_mapper, "name_path")
+
+        assert optimizer.n_live_points is grid_search.n_live_points
+        assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
+        assert optimizer.variable is model_mapper
+        assert grid_search.path != optimizer.path
 
 
 class MockResult(object):

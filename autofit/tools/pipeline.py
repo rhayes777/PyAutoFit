@@ -1,5 +1,7 @@
 import logging
+import pickle
 
+from autofit import conf
 from autofit import exc
 
 logger = logging.getLogger(__name__)
@@ -128,12 +130,22 @@ class Pipeline(object):
         """
         return self.__class__("{} + {}".format(self.pipeline_name, other.pipeline_name), *(self.phases + other.phases))
 
-    def run_function(self, func):
+    def save_metadata(self, phase, data_name):
+        path = "{}/{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name)
+        with open("{}/.metadata".format(path),
+                  "w+") as f:
+            f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
+                                                            data_name))
+        with open("{}/.optimizer.pickle".format(path), "w+b") as f:
+            f.write(pickle.dumps(phase.optimizer))
+
+    def run_function(self, func, data_name=None):
         """
         Run the function for each phase in the pipeline.
 
         Parameters
         ----------
+        data_name
         func
             A function that takes a phase and prior results, returning results for that phase
 
@@ -145,5 +157,6 @@ class Pipeline(object):
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info("Running Phase {} (Number {})".format(phase.optimizer.phase_name, i))
+            self.save_metadata(phase, data_name)
             results.add(phase.phase_name, func(phase, results))
         return results
