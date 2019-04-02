@@ -123,7 +123,7 @@ class NonLinearOptimizer(object):
         if phase_tag is None:
             self.phase_tag = ''
         else:
-            self.phase_tag = '_' + phase_tag
+            self.phase_tag = phase_tag
 
         self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
         self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)

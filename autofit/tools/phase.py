@@ -26,7 +26,7 @@ class AbstractPhase(object):
         if phase_tag is None:
             self.phase_tag = ''
         else:
-            self.phase_tag = '_' + phase_tag
+            self.phase_tag = phase_tag
 
         self.phase_name = phase_name
         self.optimizer = optimizer_class(phase_name=self.phase_name, phase_tag=phase_tag,
