@@ -46,6 +46,7 @@ class Phase(p.AbstractPhase):
 
 
 class TestCase(object):
+    
     def test_integration(self):
         multinest = non_linear.MultiNest(phase_folders=['integration'], phase_name='test')
 
@@ -68,6 +69,7 @@ class TestCase(object):
                                  [grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1])
 
     def test_phase(self):
+        
         phase = Phase( phase_name="test_phase", phase_tag='tag', phase_folders=['integration'],
                        profile=mock.EllipticalProfile, constant_profile=mock.EllipticalProfile())
         result = phase.run_analysis(Analysis())
@@ -109,6 +111,7 @@ class TestCase(object):
         assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[1, 0]
         assert result.figure_of_merit_array[1, 0] > result.figure_of_merit_array[1, 1]
         assert result.figure_of_merit_array[0, 1] > result.figure_of_merit_array[1, 1]
+
 
 
 if __name__ == "__main__":

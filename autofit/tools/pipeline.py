@@ -131,7 +131,7 @@ class Pipeline(object):
         return self.__class__("{} + {}".format(self.pipeline_name, other.pipeline_name), *(self.phases + other.phases))
 
     def save_metadata(self, phase, data_name):
-        path = "{}/{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name)
+        path = "{}/{}{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
         with open("{}/.metadata".format(path),
                   "w+") as f:
             f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
