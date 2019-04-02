@@ -23,8 +23,11 @@ class AbstractPhase(object):
         else:
             self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
 
+        if phase_tag is None:
+            self.phase_tag = ''
+        else:
+            self.phase_tag = '_' + phase_tag
 
-        self.phase_tag = phase_tag
         self.phase_name = phase_name
         self.optimizer = optimizer_class(phase_name=self.phase_name, phase_tag=phase_tag,
                                          phase_folders=self.phase_folders)
