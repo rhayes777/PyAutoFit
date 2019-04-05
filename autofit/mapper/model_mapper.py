@@ -581,6 +581,11 @@ class ModelMapper(AbstractModel):
 
         return constant_names
 
+    def __eq__(self, other):
+        return isinstance(other, ModelMapper) \
+               and self.priors == other.priors \
+               and self.prior_model_tuples == other.prior_model_tuples
+
 
 class ModelInstance(AbstractModel):
     """
