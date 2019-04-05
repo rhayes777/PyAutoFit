@@ -1,5 +1,6 @@
 import configparser
 import os
+from copy import deepcopy
 
 from autofit import exc
 
@@ -24,6 +25,14 @@ class NamedConfig(object):
         self.path = config_path
         self.parser = configparser.ConfigParser()
         self.parser.read(self.path)
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, v if k == "parser" else deepcopy(v, memo))
+        return result
 
     def get(self, section_name, attribute_name, attribute_type=str):
         """
