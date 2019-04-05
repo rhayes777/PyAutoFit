@@ -1,4 +1,5 @@
 import logging
+import os
 import pickle
 
 from autofit import conf
@@ -131,12 +132,9 @@ class Pipeline(object):
         return self.__class__("{} + {}".format(self.pipeline_name, other.pipeline_name), *(self.phases + other.phases))
 
     def save_metadata(self, phase, data_name):
-        path = "{}/{}{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
-        with open("{}/.metadata".format(path), "w+") as f:
+        with open("{}/.metadata".format(make_path(phase)), "w+") as f:
             f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
                                                             data_name))
-        with open("{}/.optimizer.pickle".format(path), "w+b") as f:
-            f.write(pickle.dumps(phase.optimizer))
 
     def run_function(self, func, data_name=None):
         """
@@ -156,6 +154,34 @@ class Pipeline(object):
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info("Running Phase {} (Number {})".format(phase.optimizer.phase_name, i))
+            assert_optimizer_pickle_matches_for_phase(phase)
+            save_optimizer_for_phase(phase)
             self.save_metadata(phase, data_name)
             results.add(phase.phase_name, func(phase, results))
         return results
+
+
+def make_optimizer_pickle_path(phase):
+    return "{}/.optimizer.pickle".format(make_path(phase))
+
+
+def make_path(phase):
+    return "{}/{}{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
+
+
+def save_optimizer_for_phase(phase):
+    with open(make_optimizer_pickle_path(phase), "w+b") as f:
+        f.write(pickle.dumps(phase.optimizer))
+
+
+def assert_optimizer_pickle_matches_for_phase(phase):
+    path = make_optimizer_pickle_path(phase)
+    if os.path.exists(path):
+        with open(path, "r+b") as f:
+            loaded_optimizer = pickle.loads(f.read(
+
+            ))
+            if phase.optimizer != loaded_optimizer:
+                raise exc.PipelineException(
+                    f"Can't restart phase at path {path} because settings don't match. "
+                    f"Did you change the optimizer settings or model?")
