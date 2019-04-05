@@ -132,6 +132,10 @@ class Pipeline(object):
         return self.__class__("{} + {}".format(self.pipeline_name, other.pipeline_name), *(self.phases + other.phases))
 
     def save_metadata(self, phase, data_name):
+        """
+        Save metadata associated with the phase, such as the name of the pipeline, the name of the phase and the name
+        of the data being fit
+        """
         with open("{}/.metadata".format(make_path(phase)), "w+") as f:
             f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
                                                             data_name))
@@ -161,26 +165,45 @@ class Pipeline(object):
         return results
 
 
-def make_optimizer_pickle_path(phase):
+def make_optimizer_pickle_path(phase) -> str:
+    """
+    Create the path at which the optimizer pickle should be saved
+    """
     return "{}/.optimizer.pickle".format(make_path(phase))
 
 
-def make_path(phase):
+def make_path(phase) -> str:
+    """
+    Create the path to the folder at which the metadata and optimizer pickle should be saved
+    """
     return "{}/{}{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
 
 
 def save_optimizer_for_phase(phase):
+    """
+    Save the optimizer associated with the phase as a pickle
+    """
     with open(make_optimizer_pickle_path(phase), "w+b") as f:
         f.write(pickle.dumps(phase.optimizer))
 
 
 def assert_optimizer_pickle_matches_for_phase(phase):
+    """
+    Assert that the previously saved optimizer is equal to the phase's optimizer if a saved optimizer is found.
+
+    Parameters
+    ----------
+    phase
+        The phase
+
+    Raises
+    -------
+    exc.PipelineException
+    """
     path = make_optimizer_pickle_path(phase)
     if os.path.exists(path):
         with open(path, "r+b") as f:
-            loaded_optimizer = pickle.loads(f.read(
-
-            ))
+            loaded_optimizer = pickle.loads(f.read())
             if phase.optimizer != loaded_optimizer:
                 raise exc.PipelineException(
                     f"Can't restart phase at path {path} because settings don't match. "
