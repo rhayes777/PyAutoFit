@@ -469,15 +469,24 @@ class ModelMapper(AbstractModel):
 
         return mapper
 
-    def mapper_from_gaussian_tuples(self, tuples):
+    def mapper_from_gaussian_tuples(self, tuples, a=None, r=None):
         """
         Creates a new model mapper from a list of floats describing the mean values of gaussian priors. The widths \
         of the new priors are taken from the width_config. The new gaussian priors must be provided in the same \
         order as the priors associated with model.
 
+        If a is not None then all priors are created with an absolute width of a.
+
+        If r is not None then all priors are created with a relative width of r.
+
         Parameters
         ----------
+        r
+            The relative width to be assigned to gaussian priors
+        a
+            The absolute width to be assigned to gaussian priors
         tuples
+            A list of tuples each containing the mean and width of a prior
 
         Returns
         -------
@@ -493,7 +502,16 @@ class ModelMapper(AbstractModel):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
             mean = tuples[i][0]
-            width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
+            if a is not None and r is not None:
+                raise exc.PriorException("Width of new priors cannot be both relative and absolute.")
+            if a is not None:
+                width_type = "a"
+                value = a
+            elif r is not None:
+                width_type = "r"
+                value = r
+            else:
+                width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
             if width_type == "r":
                 width = value * mean
             elif width_type == "a":
@@ -581,6 +599,11 @@ class ModelMapper(AbstractModel):
 
         return constant_names
 
+    def __eq__(self, other):
+        return isinstance(other, ModelMapper) \
+               and self.priors == other.priors \
+               and self.prior_model_tuples == other.prior_model_tuples
+
 
 class ModelInstance(AbstractModel):
     """
@@ -597,3 +620,6 @@ class ModelInstance(AbstractModel):
 
     def name_instance_tuples_for_class(self, cls):
         return [item for item in self.__dict__.items() if isinstance(item[1], cls)]
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__

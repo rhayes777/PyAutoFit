@@ -56,6 +56,9 @@ class AbstractPriorModel:
     """
     _ids = itertools.count()
 
+    def __init__(self):
+        self.id = next(self._ids)
+
     @property
     def flat_prior_model_tuples(self):
         """
@@ -74,6 +77,10 @@ class AbstractPriorModel:
     @cast_collection(PriorModelNameValue)
     def direct_prior_model_tuples(self):
         return [(name, value) for name, value in self.__dict__.items() if isinstance(value, AbstractPriorModel)]
+
+    def __eq__(self, other):
+        return isinstance(other, AbstractPriorModel) \
+               and self.direct_prior_model_tuples == other.direct_prior_model_tuples
 
     @property
     def constant_tuples(self):
@@ -95,6 +102,9 @@ class AbstractPriorModel:
         for name, p in prior_tuples:
             if p == prior:
                 return name
+
+    def __hash__(self):
+        return self.id
 
 
 class ListPriorModel(list, AbstractPriorModel):
@@ -223,6 +233,9 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, tuple_prior)
             else:
                 setattr(self, arg, self.make_prior(arg, cls))
+
+    def __eq__(self, other):
+        return isinstance(other, PriorModel) and self.cls == other.cls and self.prior_tuples == other.prior_tuples
 
     @staticmethod
     def make_prior(attribute_name, cls):

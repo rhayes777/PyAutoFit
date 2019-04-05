@@ -82,8 +82,8 @@ class GridSearchResult(object):
 
 class GridSearch(object):
 
-    def __init__(self, phase_name, phase_folders=None, number_of_steps=10, optimizer_class=non_linear.DownhillSimplex,
-                 model_mapper=None, constant=None):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, number_of_steps=10,
+                 optimizer_class=non_linear.DownhillSimplex, model_mapper=None, constant=None):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -110,10 +110,18 @@ class GridSearch(object):
             self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
 
         self.phase_name = phase_name
+
+        self.phase_tag_input = phase_tag
+
+        if phase_tag is None:
+            self.phase_tag = ''
+        else:
+            self.phase_tag = phase_tag
+
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
-        self.phase_output_path = "{}/{}/{}".format(conf.instance.output_path, self.phase_path, phase_name)
+        self.phase_output_path = "{}/{}/{}{}".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
 
         sym_path = "{}/optimizer".format(self.phase_output_path)
         self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
@@ -207,7 +215,7 @@ class GridSearch(object):
                 labels.append(
                     "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
-            name_path = "{}/{}".format(self.phase_name, "_".join(labels))
+            name_path = "{}{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
             optimizer_instance = self.optimizer_instance(model_mapper, name_path)
             optimizer_instance.constant = self.constant
             result = optimizer_instance.fit(analysis)
@@ -220,10 +228,10 @@ class GridSearch(object):
         return GridSearchResult(results, lists)
 
     def optimizer_instance(self, model_mapper, name_path):
-        optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
-                                                  phase_folders=self.phase_folders,
-                                                  phase_name=name_path)
+
+        optimizer_instance = self.optimizer_class(model_mapper=model_mapper, phase_name=name_path, phase_tag=None,
+                                                  phase_folders=self.phase_folders)
         for key, value in self.__dict__.items():
-            if key not in ("variable", "constant", "phase_name", "phase_folders", "phase_path", "path"):
+            if key not in ("variable", "constant", "phase_name", "phase_tag", "phase_folders", "phase_path", "path"):
                 setattr(optimizer_instance, key, value)
         return optimizer_instance
