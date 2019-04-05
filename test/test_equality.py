@@ -53,7 +53,7 @@ class TestCase(object):
         model_mapper.galaxy.light_profile.centre_0 = p.UniformPrior()
 
         assert model_mapper != model_mapper_copy
-        
+
     def test_model_instance_equality(self):
         model_instance = mm.ModelInstance()
         model_instance.profile = mock.GeometryProfile()
@@ -75,3 +75,13 @@ class TestCase(object):
         nlo.variable.profile.centre_0 = p.UniformPrior()
 
         assert nlo_copy != nlo
+
+    def test_multinest_equality(self):
+        nlo = non_linear.MultiNest("phase name")
+        nlo_copy = deepcopy(nlo)
+
+        assert nlo == nlo_copy
+
+        nlo.n_live_points += 1
+
+        assert nlo != nlo_copy
