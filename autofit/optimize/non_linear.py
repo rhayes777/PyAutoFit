@@ -56,17 +56,41 @@ class Result(object):
         self.gaussian_tuples = gaussian_tuples
 
     @property
-    def variable(self):
+    def variable(self) -> mm.ModelMapper:
+        """
+        A model mapper created by taking results from this phase and combining them with prior widths defined in the
+        configuration.
+        """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples)
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
             "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
 
-    def variable_absolute(self, a):
+    def variable_absolute(self, a: float) -> mm.ModelMapper:
+        """
+        Parameters
+        ----------
+        a
+            The absolute width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this phase and creating priors with the defined absolute width.
+        """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
 
-    def variable_relative(self, r):
+    def variable_relative(self, r: float) -> mm.ModelMapper:
+        """
+        Parameters
+        ----------
+        r
+            The relative width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this phase and creating priors with the defined relative width.
+        """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
 
 

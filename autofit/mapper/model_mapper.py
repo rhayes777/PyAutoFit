@@ -475,9 +475,18 @@ class ModelMapper(AbstractModel):
         of the new priors are taken from the width_config. The new gaussian priors must be provided in the same \
         order as the priors associated with model.
 
+        If a is not None then all priors are created with an absolute width of a.
+
+        If r is not None then all priors are created with a relative width of r.
+
         Parameters
         ----------
+        r
+            The relative width to be assigned to gaussian priors
+        a
+            The absolute width to be assigned to gaussian priors
         tuples
+            A list of tuples each containing the mean and width of a prior
 
         Returns
         -------
