@@ -224,6 +224,9 @@ class PriorModel(AbstractPriorModel):
             else:
                 setattr(self, arg, self.make_prior(arg, cls))
 
+    def __eq__(self, other):
+        return isinstance(other, PriorModel) and self.cls == other.cls and self.prior_tuples == other.prior_tuples
+
     @staticmethod
     def make_prior(attribute_name, cls):
         """
