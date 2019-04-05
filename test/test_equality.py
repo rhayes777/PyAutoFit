@@ -6,6 +6,7 @@ from autofit import mock
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.mapper import prior_model as pm
+from autofit.optimize import non_linear
 
 
 @pytest.fixture(name="prior_model")
@@ -52,3 +53,25 @@ class TestCase(object):
         model_mapper.galaxy.light_profile.centre_0 = p.UniformPrior()
 
         assert model_mapper != model_mapper_copy
+        
+    def test_model_instance_equality(self):
+        model_instance = mm.ModelInstance()
+        model_instance.profile = mock.GeometryProfile()
+        model_instance_copy = deepcopy(model_instance)
+
+        assert model_instance == model_instance_copy
+
+        model_instance.profile.centre = (1., 2.)
+
+        assert model_instance != model_instance_copy
+
+    def test_non_linear_equality(self):
+        nlo = non_linear.NonLinearOptimizer("phase name")
+        nlo.variable.profile = mock.GeometryProfile
+        nlo_copy = deepcopy(nlo)
+
+        assert nlo_copy == nlo
+
+        nlo.variable.profile.centre_0 = p.UniformPrior()
+
+        assert nlo_copy != nlo

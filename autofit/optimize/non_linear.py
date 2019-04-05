@@ -119,17 +119,20 @@ class NonLinearOptimizer(object):
             self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
 
         self.phase_name = phase_name
-        
+
         if phase_tag is None:
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
 
-        self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
-        self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
+        self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name,
+                                                      self.phase_tag)
+        self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name,
+                                                      self.phase_tag)
 
         sym_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
-        self.backup_path = "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
+        self.backup_path = "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name,
+                                                                self.phase_tag)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -166,6 +169,9 @@ class NonLinearOptimizer(object):
             os.makedirs("{}fits/".format(self.image_path))
 
         self.restore()
+
+    def __eq__(self, other):
+        return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
 
     def backup(self):
         """
@@ -364,7 +370,8 @@ class DownhillSimplex(NonLinearOptimizer):
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, sigma_limit=3, run=pymultinest.run):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, sigma_limit=3,
+                 run=pymultinest.run):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
@@ -752,7 +759,8 @@ class MultiNest(NonLinearOptimizer):
 
 class GridSearch(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, step_size=None, model_mapper=None, grid=opt.grid):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, step_size=None, model_mapper=None,
+                 grid=opt.grid):
         """
         Optimise by performing a grid search.
 
@@ -768,7 +776,8 @@ class GridSearch(NonLinearOptimizer):
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
-        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders, model_mapper=model_mapper)
+        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
+                         model_mapper=model_mapper)
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 

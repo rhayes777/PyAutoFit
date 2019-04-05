@@ -54,6 +54,9 @@ class GeometryProfile(object):
         """Abstract GeometryProfile, describing an object with y, x cartesian coordinates"""
         self.centre = centre
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
 
 class SphericalProfile(GeometryProfile):
 

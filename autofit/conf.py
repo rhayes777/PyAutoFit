@@ -34,6 +34,9 @@ class NamedConfig(object):
             setattr(result, k, v if k == "parser" else deepcopy(v, memo))
         return result
 
+    def __eq__(self, other):
+        return isinstance(other, NamedConfig) and self.path == other.path
+
     def get(self, section_name, attribute_name, attribute_type=str):
         """
 

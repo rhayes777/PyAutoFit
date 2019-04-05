@@ -602,3 +602,6 @@ class ModelInstance(AbstractModel):
 
     def name_instance_tuples_for_class(self, cls):
         return [item for item in self.__dict__.items() if isinstance(item[1], cls)]
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
