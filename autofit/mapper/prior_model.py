@@ -56,6 +56,9 @@ class AbstractPriorModel:
     """
     _ids = itertools.count()
 
+    def __init__(self):
+        self.id = next(self._ids)
+
     @property
     def flat_prior_model_tuples(self):
         """
@@ -99,6 +102,9 @@ class AbstractPriorModel:
         for name, p in prior_tuples:
             if p == prior:
                 return name
+
+    def __hash__(self):
+        return self.id
 
 
 class ListPriorModel(list, AbstractPriorModel):
