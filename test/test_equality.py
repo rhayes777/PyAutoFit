@@ -1,10 +1,11 @@
 from copy import deepcopy
 
+import pytest
+
 from autofit import mock
+from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.mapper import prior_model as pm
-from autofit.mapper import model_mapper as mm
-import pytest
 
 
 @pytest.fixture(name="prior_model")
@@ -38,5 +39,16 @@ class TestCase(object):
         assert model_mapper == model_mapper_copy
 
         model_mapper.prior_model.centre_0 = p.UniformPrior()
+
+        assert model_mapper != model_mapper_copy
+
+    def test_non_trivial_equality(self):
+        model_mapper = mm.ModelMapper()
+        model_mapper.galaxy = mock.GalaxyModel(light_profile=mock.GeometryProfile, mass_profile=mock.GeometryProfile)
+        model_mapper_copy = deepcopy(model_mapper)
+
+        assert model_mapper == model_mapper_copy
+
+        model_mapper.galaxy.light_profile.centre_0 = p.UniformPrior()
 
         assert model_mapper != model_mapper_copy

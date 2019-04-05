@@ -75,6 +75,10 @@ class AbstractPriorModel:
     def direct_prior_model_tuples(self):
         return [(name, value) for name, value in self.__dict__.items() if isinstance(value, AbstractPriorModel)]
 
+    def __eq__(self, other):
+        return isinstance(other, AbstractPriorModel) \
+               and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+
     @property
     def constant_tuples(self):
         raise NotImplementedError()
