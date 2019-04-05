@@ -469,7 +469,7 @@ class ModelMapper(AbstractModel):
 
         return mapper
 
-    def mapper_from_gaussian_tuples(self, tuples):
+    def mapper_from_gaussian_tuples(self, tuples, a=None, r=None):
         """
         Creates a new model mapper from a list of floats describing the mean values of gaussian priors. The widths \
         of the new priors are taken from the width_config. The new gaussian priors must be provided in the same \
@@ -493,7 +493,16 @@ class ModelMapper(AbstractModel):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
             mean = tuples[i][0]
-            width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
+            if a is not None and r is not None:
+                raise exc.PriorException("Width of new priors cannot be both relative and absolute.")
+            if a is not None:
+                width_type = "a"
+                value = a
+            elif r is not None:
+                width_type = "r"
+                value = r
+            else:
+                width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
             if width_type == "r":
                 width = value * mean
             elif width_type == "a":

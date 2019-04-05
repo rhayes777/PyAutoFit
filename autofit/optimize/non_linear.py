@@ -37,7 +37,7 @@ class Analysis(object):
 
 class Result(object):
 
-    def __init__(self, constant, figure_of_merit, variable=None):
+    def __init__(self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None):
         """
         The result of an optimization.
 
@@ -47,16 +47,27 @@ class Result(object):
             An instance object comprising the class instances that gave the optimal fit
         figure_of_merit: float
             A value indicating the figure of merit given by the optimal fit
-        variable: mm.ModelMapper
-            An object comprising priors determined by this stage of the lensing
+        previous_variable: mm.ModelMapper
+            The model mapper from the stage that produced this result
         """
         self.constant = constant
         self.figure_of_merit = figure_of_merit
-        self.variable = variable
+        self.previous_variable = previous_variable
+        self.gaussian_tuples = gaussian_tuples
+
+    @property
+    def variable(self):
+        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples)
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
             "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
+
+    def variable_absolute(self, a):
+        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
+
+    def variable_relative(self, r):
+        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
 
 
 class IntervalCounter(object):
@@ -360,7 +371,8 @@ class DownhillSimplex(NonLinearOptimizer):
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res.variable = self.variable.mapper_from_gaussian_means(output)
+        res.gaussian_tuples = [(mean, 0) for mean in output]
+        res.previous_variable = self.variable
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 
@@ -517,13 +529,13 @@ class MultiNest(NonLinearOptimizer):
 
         constant = self.most_likely_instance_from_summary()
         constant += self.constant
-        variable = self.variable.mapper_from_gaussian_tuples(
-            tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
         analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
 
         self.backup()
-        return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(), variable=variable)
+        return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(),
+                      previous_variable=self.variable,
+                      gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
     def open_summary_file(self):
 
@@ -790,7 +802,7 @@ class GridSearch(NonLinearOptimizer):
         return new_instance
 
     class Result(Result):
-        def __init__(self, result, variable, instances):
+        def __init__(self, result, instances, previous_variable, gaussian_tuples):
             """
             The result of an grid search optimization.
 
@@ -803,7 +815,7 @@ class GridSearch(NonLinearOptimizer):
             instances: [mm.ModelInstance]
                 A model instance for each point in the grid search
             """
-            super().__init__(result.constant, result.figure_of_merit, variable)
+            super().__init__(result.constant, result.figure_of_merit, previous_variable, gaussian_tuples)
             self.instances = instances
 
         def __str__(self):
@@ -940,7 +952,7 @@ class GridSearch(NonLinearOptimizer):
                      fitness_function.all_fits.items()]
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res = GridSearch.Result(res, self.variable.mapper_from_gaussian_means(fitness_function.best_cube), instances)
+        res = GridSearch.Result(res, instances, self.variable, [(mean, 0) for mean in fitness_function.best_cube])
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 
