@@ -5,7 +5,8 @@ from autofit.tools import path_util
 
 class AbstractPhase(object):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, optimizer_class=non_linear.MultiNest, auto_link_priors=False):
+    def __init__(self, phase_name, tag_phases=True, phase_tag=None, phase_folders=None,
+                 optimizer_class=non_linear.MultiNest, auto_link_priors=False):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to fit_normal models and image
         passed to it.
@@ -17,13 +18,16 @@ class AbstractPhase(object):
         phase_name: str
             The name of this phase
         """
+
+        self.tag_phases = tag_phases
+
         self.phase_folders = phase_folders
         if phase_folders is None:
             self.phase_path = ''
         else:
             self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
 
-        if phase_tag is None:
+        if phase_tag is None and tag_phases:
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
