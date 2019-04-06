@@ -5,7 +5,8 @@ from autofit.tools import path_util
 
 class AbstractPhase(object):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, optimizer_class=non_linear.MultiNest, auto_link_priors=False):
+    def __init__(self, phase_name, tag_phases=True, phase_tag=None, phase_folders=None,
+                 optimizer_class=non_linear.MultiNest, auto_link_priors=False):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to fit_normal models and image
         passed to it.
@@ -17,13 +18,16 @@ class AbstractPhase(object):
         phase_name: str
             The name of this phase
         """
+
+        self.tag_phases = tag_phases
+
         self.phase_folders = phase_folders
         if phase_folders is None:
             self.phase_path = ''
         else:
             self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
 
-        if phase_tag is None:
+        if phase_tag is None and tag_phases:
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
@@ -107,11 +111,11 @@ class AbstractPhase(object):
 
 def as_grid_search(phase_class):
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, phase_name, phase_tag=None, phase_folders=None, number_of_steps=10,
+        def __init__(self, *args, phase_name, tag_phases=True, phase_folders=None, number_of_steps=10,
                      optimizer_class=non_linear.MultiNest, **kwargs):
-            super().__init__(*args, phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
+            super().__init__(*args, phase_name=phase_name, tag_phases=tag_phases, phase_folders=phase_folders,
                              optimizer_class=optimizer_class, **kwargs)
-            self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
+            self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_tag=self.phase_tag, phase_folders=phase_folders,
                                                     number_of_steps=number_of_steps, optimizer_class=optimizer_class,
                                                     model_mapper=self.variable, constant=self.constant)
 

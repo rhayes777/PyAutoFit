@@ -37,7 +37,7 @@ class Analysis(object):
 
 class Result(object):
 
-    def __init__(self, constant, figure_of_merit, variable=None):
+    def __init__(self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None):
         """
         The result of an optimization.
 
@@ -47,16 +47,51 @@ class Result(object):
             An instance object comprising the class instances that gave the optimal fit
         figure_of_merit: float
             A value indicating the figure of merit given by the optimal fit
-        variable: mm.ModelMapper
-            An object comprising priors determined by this stage of the lensing
+        previous_variable: mm.ModelMapper
+            The model mapper from the stage that produced this result
         """
         self.constant = constant
         self.figure_of_merit = figure_of_merit
-        self.variable = variable
+        self.previous_variable = previous_variable
+        self.gaussian_tuples = gaussian_tuples
+
+    @property
+    def variable(self) -> mm.ModelMapper:
+        """
+        A model mapper created by taking results from this phase and combining them with prior widths defined in the
+        configuration.
+        """
+        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples)
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
             "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
+
+    def variable_absolute(self, a: float) -> mm.ModelMapper:
+        """
+        Parameters
+        ----------
+        a
+            The absolute width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this phase and creating priors with the defined absolute width.
+        """
+        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
+
+    def variable_relative(self, r: float) -> mm.ModelMapper:
+        """
+        Parameters
+        ----------
+        r
+            The relative width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this phase and creating priors with the defined relative width.
+        """
+        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
 
 
 class IntervalCounter(object):
@@ -119,17 +154,20 @@ class NonLinearOptimizer(object):
             self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
 
         self.phase_name = phase_name
-        
+
         if phase_tag is None:
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
 
-        self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
-        self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
+        self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name,
+                                                      self.phase_tag)
+        self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name,
+                                                      self.phase_tag)
 
         sym_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
-        self.backup_path = "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
+        self.backup_path = "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name,
+                                                                self.phase_tag)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -166,6 +204,9 @@ class NonLinearOptimizer(object):
             os.makedirs("{}fits/".format(self.image_path))
 
         self.restore()
+
+    def __eq__(self, other):
+        return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
 
     def backup(self):
         """
@@ -354,7 +395,8 @@ class DownhillSimplex(NonLinearOptimizer):
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res.variable = self.variable.mapper_from_gaussian_means(output)
+        res.gaussian_tuples = [(mean, 0) for mean in output]
+        res.previous_variable = self.variable
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 
@@ -364,7 +406,8 @@ class DownhillSimplex(NonLinearOptimizer):
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, sigma_limit=3, run=pymultinest.run):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, sigma_limit=3,
+                 run=pymultinest.run):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
@@ -510,13 +553,13 @@ class MultiNest(NonLinearOptimizer):
 
         constant = self.most_likely_instance_from_summary()
         constant += self.constant
-        variable = self.variable.mapper_from_gaussian_tuples(
-            tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
         analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
 
         self.backup()
-        return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(), variable=variable)
+        return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(),
+                      previous_variable=self.variable,
+                      gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
     def open_summary_file(self):
 
@@ -752,7 +795,8 @@ class MultiNest(NonLinearOptimizer):
 
 class GridSearch(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, step_size=None, model_mapper=None, grid=opt.grid):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None, step_size=None, model_mapper=None,
+                 grid=opt.grid):
         """
         Optimise by performing a grid search.
 
@@ -768,7 +812,8 @@ class GridSearch(NonLinearOptimizer):
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
-        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders, model_mapper=model_mapper)
+        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
+                         model_mapper=model_mapper)
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 
@@ -781,7 +826,7 @@ class GridSearch(NonLinearOptimizer):
         return new_instance
 
     class Result(Result):
-        def __init__(self, result, variable, instances):
+        def __init__(self, result, instances, previous_variable, gaussian_tuples):
             """
             The result of an grid search optimization.
 
@@ -794,7 +839,7 @@ class GridSearch(NonLinearOptimizer):
             instances: [mm.ModelInstance]
                 A model instance for each point in the grid search
             """
-            super().__init__(result.constant, result.figure_of_merit, variable)
+            super().__init__(result.constant, result.figure_of_merit, previous_variable, gaussian_tuples)
             self.instances = instances
 
         def __str__(self):
@@ -931,7 +976,7 @@ class GridSearch(NonLinearOptimizer):
                      fitness_function.all_fits.items()]
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res = GridSearch.Result(res, self.variable.mapper_from_gaussian_means(fitness_function.best_cube), instances)
+        res = GridSearch.Result(res, instances, self.variable, [(mean, 0) for mean in fitness_function.best_cube])
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 

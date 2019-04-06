@@ -7,6 +7,8 @@ import pytest
 
 import autofit.mapper.prior_model
 from autofit import conf
+from autofit import exc
+from autofit import mock
 from autofit.mapper import model_mapper, prior as p
 from autofit.optimize import non_linear
 
@@ -22,6 +24,41 @@ def make_mapper():
 def make_mock_list():
     return [autofit.mapper.prior_model.PriorModel(MockClassNLOx4),
             autofit.mapper.prior_model.PriorModel(MockClassNLOx4)]
+
+
+@pytest.fixture(name="result")
+def make_result():
+    mapper = model_mapper.ModelMapper()
+    mapper.profile = mock.GeometryProfile
+    # noinspection PyTypeChecker
+    return non_linear.Result(None, None, mapper, [(0, 0), (1, 0)])
+
+
+class TestResult(object):
+    def test_variable(self, result):
+        profile = result.variable.profile
+        assert profile.centre_0.mean == 0
+        assert profile.centre_1.mean == 1
+        assert profile.centre_0.sigma == 0.05
+        assert profile.centre_1.sigma == 0.05
+
+    def test_variable_absolute(self, result):
+        profile = result.variable_absolute(a=2.0).profile
+        assert profile.centre_0.mean == 0
+        assert profile.centre_1.mean == 1
+        assert profile.centre_0.sigma == 2.0
+        assert profile.centre_1.sigma == 2.0
+
+    def test_variable_relative(self, result):
+        profile = result.variable_relative(r=1.0).profile
+        assert profile.centre_0.mean == 0
+        assert profile.centre_1.mean == 1
+        assert profile.centre_0.sigma == 0.0
+        assert profile.centre_1.sigma == 1.0
+
+    def test_raises(self, result):
+        with pytest.raises(exc.PriorException):
+            result.variable.mapper_from_gaussian_tuples(result.gaussian_tuples, a=2.0, r=1.0)
 
 
 class TestCopyWithNameExtension(object):

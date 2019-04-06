@@ -1,5 +1,7 @@
+import inspect
+
 import autofit.mapper.prior_model
-from autofit.mapper import model_mapper as mm, prior as p
+from autofit.mapper import prior as p
 
 
 class Galaxy(object):
@@ -29,7 +31,9 @@ class GalaxyModel(autofit.mapper.prior_model.AbstractPriorModel):
 
     def __init__(self, variable_redshift=False, **kwargs):
         self.redshift = autofit.mapper.prior_model.PriorModel(Redshift) if variable_redshift else None
-        self.kwargs = kwargs
+        self.__dict__.update(
+            {key: autofit.mapper.prior_model.PriorModel(value) if inspect.isclass(value) else value
+             for key, value in kwargs.items()})
 
     @property
     @p.cast_collection(p.PriorNameValue)
@@ -49,6 +53,9 @@ class GeometryProfile(object):
     def __init__(self, centre=(0.0, 0.0)):
         """Abstract GeometryProfile, describing an object with y, x cartesian coordinates"""
         self.centre = centre
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 
 class SphericalProfile(GeometryProfile):
