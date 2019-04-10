@@ -278,20 +278,23 @@ current_directory = os.getcwd()
 
 try:
     workspace_path = os.environ['WORKSPACE']
-    instance = Config("{}/config".format(workspace_path), "{}/output/".format(workspace_path))
+    default = Config("{}/config".format(workspace_path), "{}/output/".format(workspace_path))
 except KeyError:
     if is_config_in(docker_workspace_directory):
         CONFIG_PATH = "{}/config".format(docker_workspace_directory)
-        instance = Config(CONFIG_PATH, "{}/output/".format(docker_workspace_directory))
+        default = Config(CONFIG_PATH, "{}/output/".format(docker_workspace_directory))
     elif is_config_in(current_directory):
         CONFIG_PATH = "{}/config".format(current_directory)
-        instance = Config(CONFIG_PATH, "{}/output/".format(current_directory))
+        default = Config(CONFIG_PATH, "{}/output/".format(current_directory))
     elif is_config_in("{}/../..".format(current_directory)):
         CONFIG_PATH = "{}/../../config".format(current_directory)
-        instance = Config(CONFIG_PATH, "{}/output/".format(current_directory))
+        default = Config(CONFIG_PATH, "{}/output/".format(current_directory))
     elif is_config_in("{}/../workspace".format(current_directory)):
         CONFIG_PATH = "{}/../workspace/config".format(current_directory)
-        instance = Config(CONFIG_PATH, "{}/../workspace/output/".format(current_directory))
+        default = Config(CONFIG_PATH, "{}/../workspace/output/".format(current_directory))
     else:
         CONFIG_PATH = "{}/../workspace/config".format(autofit_directory)
-        instance = Config(CONFIG_PATH, "{}/../workspace/output/".format(autofit_directory))
+        default = Config(CONFIG_PATH, "{}/../workspace/output/".format(autofit_directory))
+
+
+instance = default
