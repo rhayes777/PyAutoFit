@@ -196,7 +196,7 @@ class TestPriorLinking(object):
     def test_same_class(self, initial_model):
         new_model = initial_model.linked_model_for_class(MockClassMM)
 
-        assert new_model != initial_model
+        assert new_model is not initial_model
         assert new_model.one is initial_model.one
         assert new_model.two is initial_model.two
 

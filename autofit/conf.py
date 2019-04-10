@@ -1,5 +1,6 @@
 import configparser
 import os
+from copy import deepcopy
 
 from autofit import exc
 
@@ -24,6 +25,17 @@ class NamedConfig(object):
         self.path = config_path
         self.parser = configparser.ConfigParser()
         self.parser.read(self.path)
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, v if k == "parser" else deepcopy(v, memo))
+        return result
+
+    def __eq__(self, other):
+        return isinstance(other, NamedConfig) and self.path == other.path
 
     def get(self, section_name, attribute_name, attribute_type=str):
         """
@@ -266,20 +278,23 @@ current_directory = os.getcwd()
 
 try:
     workspace_path = os.environ['WORKSPACE']
-    instance = Config("{}/config".format(workspace_path), "{}/output/".format(workspace_path))
+    default = Config("{}/config".format(workspace_path), "{}/output/".format(workspace_path))
 except KeyError:
     if is_config_in(docker_workspace_directory):
         CONFIG_PATH = "{}/config".format(docker_workspace_directory)
-        instance = Config(CONFIG_PATH, "{}/output/".format(docker_workspace_directory))
+        default = Config(CONFIG_PATH, "{}/output/".format(docker_workspace_directory))
     elif is_config_in(current_directory):
         CONFIG_PATH = "{}/config".format(current_directory)
-        instance = Config(CONFIG_PATH, "{}/output/".format(current_directory))
+        default = Config(CONFIG_PATH, "{}/output/".format(current_directory))
     elif is_config_in("{}/../..".format(current_directory)):
         CONFIG_PATH = "{}/../../config".format(current_directory)
-        instance = Config(CONFIG_PATH, "{}/output/".format(current_directory))
+        default = Config(CONFIG_PATH, "{}/output/".format(current_directory))
     elif is_config_in("{}/../workspace".format(current_directory)):
         CONFIG_PATH = "{}/../workspace/config".format(current_directory)
-        instance = Config(CONFIG_PATH, "{}/../workspace/output/".format(current_directory))
+        default = Config(CONFIG_PATH, "{}/../workspace/output/".format(current_directory))
     else:
         CONFIG_PATH = "{}/../workspace/config".format(autofit_directory)
-        instance = Config(CONFIG_PATH, "{}/../workspace/output/".format(autofit_directory))
+        default = Config(CONFIG_PATH, "{}/../workspace/output/".format(autofit_directory))
+
+
+instance = default
