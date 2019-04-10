@@ -467,6 +467,11 @@ class ListPriorModel(AbstractPriorModel):
         setattr(self, str(self.item_number), AbstractPriorModel(item))
         self.item_number += 1
 
+    def remove(self, item):
+        for key, value in self.__dict__.copy().items():
+            if value == item:
+                del self.__dict__[key]
+
     @property
     @cast_collection(PriorModelNameValue)
     def label_prior_model_tuples(self):
