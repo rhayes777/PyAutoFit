@@ -431,7 +431,7 @@ class ListPriorModel(AbstractPriorModel):
     def flat_prior_model_tuples(self):
         return [flat_prior_model for prior_model in self for flat_prior_model in prior_model.flat_prior_model_tuples]
 
-    def __init__(self, arguments):
+    def __init__(self, arguments=None):
         """
         A prior model used to represent a list of prior models for convenience.
 
@@ -444,8 +444,24 @@ class ListPriorModel(AbstractPriorModel):
 
         self.item_number = 0
 
-        for argument in arguments:
+        for argument in arguments or []:
             self.append(argument)
+
+    def __add__(self, other):
+        new = ListPriorModel()
+        for item in self:
+            new.append(item)
+        for item in other:
+            new.append(item)
+        return new
+
+    def __eq__(self, other):
+        if len(self) != len(other):
+            return False
+        for i, item in enumerate(self):
+            if item != other[i]:
+                return False
+        return True
 
     def append(self, item):
         setattr(self, str(self.item_number), AbstractPriorModel(item))

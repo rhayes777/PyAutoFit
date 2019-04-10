@@ -1080,7 +1080,7 @@ class TestListPriorModel(object):
 
         gaussian_mapper = mapper.mapper_from_gaussian_tuples([(1, 5), (2, 5), (3, 5), (4, 5)])
 
-        assert isinstance(gaussian_mapper.list, list)
+        # assert isinstance(gaussian_mapper.list, list)
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1
         assert gaussian_mapper.list[0].two.mean == 2
@@ -1097,7 +1097,7 @@ class TestListPriorModel(object):
 
         gaussian_mapper = mapper.mapper_from_gaussian_tuples([(1, 0), (2, 0), (3, 0), (4, 0)])
 
-        assert isinstance(gaussian_mapper.list, list)
+        # assert isinstance(gaussian_mapper.list, list)
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1
         assert gaussian_mapper.list[0].two.mean == 2

@@ -89,6 +89,7 @@ class TestPhasePropertyList(object):
 
         list_phase.prop = objects
 
+        print(list_phase.variable.prop)
         assert list_phase.variable.prop == objects
         assert len(list_phase.constant.prop) == 0
 

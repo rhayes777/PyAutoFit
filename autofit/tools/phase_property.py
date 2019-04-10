@@ -119,6 +119,7 @@ class ListWrapper(object):
         return sorted(self.variable_items + self.constant_items, key=lambda item: item.phase_property_position)
 
     def __eq__(self, other):
+        print(list(self.items))
         return list(self.items) == other
 
     def __len__(self):
