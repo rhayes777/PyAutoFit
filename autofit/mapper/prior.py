@@ -332,6 +332,9 @@ class Constant(Attribute):
     def __hash__(self):
         return self.id
 
+    def __bool__(self):
+        return bool(self.value)
+
     @property
     def info(self):
         return 'Constant, value = {}'.format(self.value)
