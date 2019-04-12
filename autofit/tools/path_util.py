@@ -69,7 +69,9 @@ def make_and_return_path_from_path_and_folder_names(path, folder_names):
 
         path += folder_name + '/'
 
-        if not os.path.exists(path):
+        try:
             os.makedirs(path)
+        except FileExistsError:
+            pass
 
     return path
