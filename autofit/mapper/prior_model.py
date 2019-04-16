@@ -2,6 +2,7 @@ import copy
 import inspect
 import itertools
 import re
+import typing
 
 from autofit import conf, exc
 from autofit.mapper.model import ModelInstance
@@ -240,8 +241,14 @@ class PriorModel(AbstractPriorModel):
                     setattr(tuple_prior, attribute_name, self.make_prior(attribute_name))
                 setattr(self, arg, tuple_prior)
             elif arg in arg_spec.annotations and arg_spec.annotations[arg] != float:
-                if issubclass(arg_spec.annotations[arg], float):
-                    setattr(self, arg, AnnotationPriorModel(arg_spec.annotations[arg], cls, arg))
+                spec = arg_spec.annotations[arg]
+                if issubclass(spec, float):
+                    setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
+                elif isinstance(spec, typing.TupleMeta):
+                    tuple_prior = TuplePrior()
+                    for i, tuple_arg in enumerate(spec.__args__):
+                        attribute_name = "{}_{}".format(arg, i)
+                        setattr(tuple_prior, attribute_name, AnnotationPriorModel(spec, cls, arg))
                 else:
                     setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
             else:

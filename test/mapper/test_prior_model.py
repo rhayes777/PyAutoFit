@@ -1,3 +1,5 @@
+import typing
+
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior_model as pm
 
@@ -33,6 +35,11 @@ class DistanceClass:
         self.second = second
 
 
+class PositionClass:
+    def __init__(self, position: typing.Tuple[Distance, Distance]):
+        self.position = position
+
+
 class TestFloatAnnotation(object):
     def test_distance(self):
         mapper = mm.ModelMapper()
@@ -46,6 +53,19 @@ class TestFloatAnnotation(object):
         assert result.object.second == 1.0
 
         assert isinstance(result.object.first, Distance)
+
+    def test_position(self):
+        mapper = mm.ModelMapper()
+        mapper.object = PositionClass
+
+        assert mapper.prior_count == 2
+        result = mapper.instance_from_unit_vector([0.5, 1.0])
+        assert isinstance(result.object, PositionClass)
+        assert result.object.position[0] == 0.5
+        assert result.object.position[1] == 1.0
+
+        assert isinstance(result.object.position[0], Distance)
+        assert isinstance(result.object.position[1], Distance)
 
 
 class TestCase(object):
