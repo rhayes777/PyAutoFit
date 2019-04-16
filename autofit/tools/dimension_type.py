@@ -28,7 +28,8 @@ def _map_types(func, self, *args, **kwargs):
         if position is not None:
             arg_type = list(annotations.values())[position]
         if isinstance(arg_type, typing.TupleMeta):
-            return tuple(element_type(element_value) for element_type, element_value in zip(arg_type.__args__, value))
+            return tuple(element_value if isinstance(element_value, DimensionType) else element_type(element_value) for
+                         element_type, element_value in zip(arg_type.__args__, value))
 
         return arg_type(value)
 
