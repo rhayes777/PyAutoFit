@@ -95,7 +95,6 @@ class TestPhasePropertyList(object):
         objects = [galaxy_prior_0, mock.Galaxy()]
 
         list_phase.prop = objects
-        # assert_ordered(list_phase.prop)
 
         galaxy_prior_1 = mock.GalaxyModel()
         list_phase.prop[1] = galaxy_prior_1
