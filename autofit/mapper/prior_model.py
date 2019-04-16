@@ -59,14 +59,9 @@ class AbstractPriorModel:
     """
     _ids = itertools.count()
 
-    # def __new__(cls, *args, **kwargs):
-    #     if len(args) == 0:
-    #         return object.__new__(cls)
-    #     if inspect.isclass(args[0]):
-    #         return object.__new__(PriorModel)
-    #     if isinstance(args[0], list) or isinstance(args[0], dict):
-    #         return ListPriorModel.__new__(ListPriorModel)
-    #     return args[0]
+    @property
+    def name(self):
+        return self.__class__.__name__
 
     @staticmethod
     def from_object(t, *args, **kwargs):
@@ -84,6 +79,30 @@ class AbstractPriorModel:
         self.id = next(self._ids)
 
     @property
+    def info(self):
+        info = []
+
+        prior_model_iterator = self.prior_tuples + self.constant_tuples
+
+        for attribute_tuple in prior_model_iterator:
+            attribute = attribute_tuple[1]
+
+            line = attribute_tuple.name
+            info.append(line + ' ' * (60 - len(line)) + attribute.info)
+
+        for prior_model_name, prior_model in self.prior_model_tuples:
+            # TODO : clean this up
+
+            # if 'lens_galaxies' not in prior_model_name and 'source_galaxies' not in prior_model_name:
+
+            info.append(prior_model.name + '\n')
+            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
+
+            info.append('')
+
+        return info
+
+    @property
     def flat_prior_model_tuples(self):
         """
         Returns
@@ -92,6 +111,11 @@ class AbstractPriorModel:
             A list of prior models associated with this instance
         """
         raise NotImplementedError("PriorModels must implement the flat_prior_models property")
+
+    @property
+    @cast_collection(PriorModelNameValue)
+    def prior_model_tuples(self):
+        return self.tuples_with_type(AbstractPriorModel)
 
     @property
     def prior_tuples(self):
@@ -142,6 +166,10 @@ class PriorModel(AbstractPriorModel):
     """Object comprising class and associated priors
         @DynamicAttrs
     """
+
+    @property
+    def name(self):
+        return self.cls.__name__
 
     @property
     def flat_prior_model_tuples(self):
@@ -326,16 +354,6 @@ class PriorModel(AbstractPriorModel):
         direct_priors: [(String, Prior)]
         """
         return self.tuples_with_type(Prior)
-
-    @property
-    @cast_collection(PriorModelNameValue)
-    def prior_model_tuples(self):
-        """
-        Returns
-        -------
-        direct_priors: [(String, Prior)]
-        """
-        return self.tuples_with_type(AbstractPriorModel)
 
     @property
     @cast_collection(PriorNameValue)

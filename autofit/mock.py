@@ -38,6 +38,10 @@ class GalaxyModel(autofit.mapper.prior_model.AbstractPriorModel):
              for key, value in kwargs.items()})
 
     @property
+    def constant_tuples(self):
+        return []
+
+    @property
     @p.cast_collection(p.PriorNameValue)
     def prior_tuples(self):
         return [item for item in self.__dict__.items() if isinstance(item[1], p.Prior)] + [

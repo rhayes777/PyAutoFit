@@ -103,7 +103,14 @@ class TestCase(object):
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
 
-    # def test_list_prior_model_with_dictionary(self):
-    #     prior_model = pm.ListPriorModel({"simple": SimpleClass})
-    #
-    #     assert isinstance(prior_model.simple, pm.PriorModel)
+    def test_list_prior_model_with_dictionary(self):
+        prior_model = pm.CollectionPriorModel({"simple": SimpleClass})
+
+        assert isinstance(prior_model.simple, pm.PriorModel)
+
+    def test_labels(self):
+        mapper = mm.ModelMapper()
+
+        mapper.my_list = pm.CollectionPriorModel({"simple": SimpleClass})
+
+        assert mapper.info.split("\n")[2].startswith("my_list_simple_one")
