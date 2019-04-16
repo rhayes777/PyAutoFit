@@ -983,5 +983,5 @@ class TestLabels(object):
         autofit.mapper.prior_model.AbstractPriorModel._ids = itertools.count()
         optimizer.variable.prior_model = MockClassNLOx4
 
-        assert optimizer.param_labels == [r'x4p0_{\mathrm{a1}}', r'x4p1_{\mathrm{a1}}',
-                                          r'x4p2_{\mathrm{a1}}', r'x4p3_{\mathrm{a1}}']
+        assert optimizer.param_labels == [r'x4p0_{\mathrm{a2}}', r'x4p1_{\mathrm{a2}}',
+                                          r'x4p2_{\mathrm{a2}}', r'x4p3_{\mathrm{a2}}']
