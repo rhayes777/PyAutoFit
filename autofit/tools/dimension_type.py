@@ -5,7 +5,7 @@ from decorator import decorator
 
 
 class DimensionType(float):
-    def __new__(cls, value):
+    def __new__(cls, value, *args, **kwargs):
         # noinspection PyArgumentList
         return float.__new__(cls, value)
 
@@ -13,8 +13,7 @@ class DimensionType(float):
         float.__init__(value)
 
 
-@decorator
-def map_types(func, self, *args, **kwargs):
+def _map_types(func, self, *args, **kwargs):
     annotations = inspect.getfullargspec(func).annotations
 
     def map_to_type(value, name=None, position=None):
@@ -33,3 +32,6 @@ def map_types(func, self, *args, **kwargs):
 
     return func(self, *[map_to_type(value, position=index) for index, value in enumerate(args)],
                 **{name: map_to_type(value, name=name) for name, value in kwargs.items()})
+
+
+map_types = decorator(_map_types)
