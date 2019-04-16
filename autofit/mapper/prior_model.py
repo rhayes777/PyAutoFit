@@ -70,12 +70,14 @@ class AbstractPriorModel:
     @staticmethod
     def from_object(t, *args, **kwargs):
         if inspect.isclass(t):
-            t = object.__new__(PriorModel)
-            t.__init__(*args, **kwargs)
+            obj = object.__new__(PriorModel)
+            obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            t = object.__new__(ListPriorModel)
-            t.__init__(*args, **kwargs)
-        return t
+            obj = object.__new__(ListPriorModel)
+            obj.__init__(*args, **kwargs)
+        else:
+            obj = t
+        return obj
 
     def __init__(self):
         self.id = next(self._ids)
