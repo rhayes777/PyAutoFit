@@ -57,22 +57,6 @@ def make_list_phase():
     return MyPhase(phase_name='', optimizer_class=NLO)
 
 
-class TestPhaseProperty(object):
-    def test_phase_property(self, phase):
-        phase.prop = mock.GalaxyModel()
-
-        assert phase.variable.prop == phase.prop
-
-        galaxy = mock.Galaxy()
-        phase.prop = galaxy
-
-        assert phase.constant.prop == galaxy
-        assert not hasattr(phase.variable, "prop")
-
-        phase.prop = mock.GalaxyModel()
-        assert not hasattr(phase.constant, "prop")
-
-
 class TestPhasePropertyList(object):
     def test_constants(self, list_phase):
         objects = [mock.Galaxy(), mock.Galaxy()]
@@ -80,8 +64,6 @@ class TestPhasePropertyList(object):
         list_phase.prop = objects
 
         assert list_phase.constant.prop == objects
-        assert len(list_phase.variable.prop) == 0
-
         assert list_phase.prop == objects
 
     def test_classes(self, list_phase):
@@ -89,10 +71,7 @@ class TestPhasePropertyList(object):
 
         list_phase.prop = objects
 
-        print(list_phase.variable.prop)
         assert list_phase.variable.prop == objects
-        assert len(list_phase.constant.prop) == 0
-
         assert list_phase.prop == objects
 
     def test_abstract_prior_models(self, list_phase):
@@ -101,8 +80,6 @@ class TestPhasePropertyList(object):
         list_phase.prop = objects
 
         assert list_phase.variable.prop == objects
-        assert len(list_phase.constant.prop) == 0
-
         assert list_phase.prop == objects
 
     def test_mix(self, list_phase):
@@ -166,7 +143,7 @@ class TestPhasePropertyCollectionAttributes(object):
         list_phase.prop = [galaxy_model]
 
         # noinspection PyUnresolvedReferences
-        assert list_phase.prop.prop_0 == galaxy_model
+        assert getattr(list_phase.prop, "0") == galaxy_model
 
     def test_mix(self, list_phase):
         objects = dict(one=mock.GalaxyModel(), two=mock.Galaxy())
