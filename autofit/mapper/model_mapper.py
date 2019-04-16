@@ -5,6 +5,7 @@ from autofit import conf
 from autofit import exc
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model import ListPriorModel, AbstractPriorModel, PriorModelNameValue
+import inspect
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -88,7 +89,7 @@ class ModelMapper(AbstractModel):
             self.__setattr__(name, cls)
 
     def __setattr__(self, key, value):
-        super(ModelMapper, self).__setattr__(key, AbstractPriorModel(value))
+        super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
 
     @property
     def prior_count(self):

@@ -58,14 +58,24 @@ class AbstractPriorModel:
     """
     _ids = itertools.count()
 
-    def __new__(cls, *args, **kwargs):
-        if len(args) == 0:
-            return object.__new__(cls)
-        if inspect.isclass(args[0]):
-            return object.__new__(PriorModel)
-        if isinstance(args[0], list):
-            return ListPriorModel.__new__(ListPriorModel)
-        return args[0]
+    # def __new__(cls, *args, **kwargs):
+    #     if len(args) == 0:
+    #         return object.__new__(cls)
+    #     if inspect.isclass(args[0]):
+    #         return object.__new__(PriorModel)
+    #     if isinstance(args[0], list) or isinstance(args[0], dict):
+    #         return ListPriorModel.__new__(ListPriorModel)
+    #     return args[0]
+
+    @staticmethod
+    def from_object(t, *args, **kwargs):
+        if inspect.isclass(t):
+            t = object.__new__(PriorModel)
+            t.__init__(*args, **kwargs)
+        elif isinstance(t, list) or isinstance(t, dict):
+            t = object.__new__(ListPriorModel)
+            t.__init__(*args, **kwargs)
+        return t
 
     def __init__(self):
         self.id = next(self._ids)
@@ -166,7 +176,7 @@ class PriorModel(AbstractPriorModel):
                 ls = ListPriorModel([])
                 for obj in kwargs[arg]:
                     if inspect.isclass(obj):
-                        ls.append(AbstractPriorModel(obj))
+                        ls.append(AbstractPriorModel.from_object(obj))
                     else:
                         ls.append(obj)
 
@@ -456,8 +466,12 @@ class ListPriorModel(AbstractPriorModel):
 
         self.item_number = 0
 
-        for argument in arguments or []:
-            self.append(argument)
+        if isinstance(arguments, list):
+            for argument in arguments:
+                self.append(argument)
+        if isinstance(arguments, dict):
+            for key, value in arguments.items():
+                setattr(self, key, AbstractPriorModel.from_object(value))
 
     def __add__(self, other):
         new = ListPriorModel()
@@ -476,7 +490,7 @@ class ListPriorModel(AbstractPriorModel):
         return True
 
     def append(self, item):
-        setattr(self, str(self.item_number), AbstractPriorModel(item))
+        setattr(self, str(self.item_number), AbstractPriorModel.from_object(item))
         self.item_number += 1
 
     def remove(self, item):

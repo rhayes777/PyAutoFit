@@ -1,7 +1,6 @@
 import inspect
 
 import autofit.mapper.prior_model
-from autofit.mapper import model_mapper as mm
 
 
 def is_prior(value):
@@ -30,35 +29,13 @@ class PhaseProperty(object):
         self.name = name
 
     def fget(self, obj):
-        if hasattr(obj.optimizer.constant, self.name):
-            return getattr(obj.optimizer.constant, self.name)
-        elif hasattr(obj.optimizer.variable, self.name):
-            return getattr(obj.optimizer.variable, self.name)
+        return getattr(obj.optimizer.variable, self.name)
 
     def fset(self, obj, value):
-        if is_prior(value):
-            setattr(obj.optimizer.variable, self.name, value)
-            try:
-                delattr(obj.optimizer.constant, self.name)
-            except AttributeError:
-                pass
-        else:
-            setattr(obj.optimizer.constant, self.name, value)
-            try:
-                delattr(obj.optimizer.variable, self.name)
-            except AttributeError:
-                pass
+        setattr(obj.optimizer.variable, self.name, value)
 
     def fdel(self, obj):
-        try:
-            delattr(obj.optimizer.constant, self.name)
-        except AttributeError:
-            pass
-
-        try:
-            delattr(obj.optimizer.variable, self.name)
-        except AttributeError:
-            pass
+        delattr(obj.optimizer.variable, self.name)
 
     def __get__(self, obj, objtype=None):
         if obj is None:
