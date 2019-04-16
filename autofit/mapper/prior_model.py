@@ -498,6 +498,14 @@ class CollectionPriorModel(AbstractPriorModel):
         setattr(self, str(self.item_number), AbstractPriorModel.from_object(item))
         self.item_number += 1
 
+    def __setitem__(self, key, value):
+        obj = AbstractPriorModel.from_object(value)
+        try:
+            obj.id = getattr(self, str(key)).id
+        except AttributeError:
+            pass
+        setattr(self, str(key), obj)
+
     def remove(self, item):
         for key, value in self.__dict__.copy().items():
             if value == item:
