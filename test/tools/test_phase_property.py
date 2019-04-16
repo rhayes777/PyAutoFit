@@ -124,6 +124,7 @@ class TestPhasePropertyCollectionAttributes(object):
         galaxy_model = mock.GalaxyModel()
         list_phase.prop = dict(one=galaxy_model)
 
+        print(list_phase.prop.__dict__)
         assert len(list_phase.prop) == 1
         # noinspection PyUnresolvedReferences
         assert list_phase.prop.one == galaxy_model

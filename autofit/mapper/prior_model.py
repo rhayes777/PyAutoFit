@@ -4,6 +4,7 @@ import itertools
 import re
 
 from autofit import conf, exc
+from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, TuplePrior, UniformPrior, \
     LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue
 
@@ -73,7 +74,7 @@ class AbstractPriorModel:
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            obj = object.__new__(ListPriorModel)
+            obj = object.__new__(CollectionPriorModel)
             obj.__init__(arguments=t)
         else:
             obj = t
@@ -134,7 +135,7 @@ class AbstractPriorModel:
         return self.id
 
     def tuples_with_type(self, class_type):
-        return list(filter(lambda t: isinstance(t[1], class_type), self.__dict__.items()))
+        return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type), self.__dict__.items()))
 
 
 class PriorModel(AbstractPriorModel):
@@ -153,6 +154,7 @@ class PriorModel(AbstractPriorModel):
         cls: class
             The class associated with this instance
         """
+        super().__init__()
         if cls is self:
             return
 
@@ -175,7 +177,7 @@ class PriorModel(AbstractPriorModel):
 
         for arg in args:
             if arg in kwargs:
-                ls = ListPriorModel([])
+                ls = CollectionPriorModel([])
                 for obj in kwargs[arg]:
                     if inspect.isclass(obj):
                         ls.append(AbstractPriorModel.from_object(obj))
@@ -434,7 +436,7 @@ class PriorModel(AbstractPriorModel):
         return new_model
 
 
-class ListPriorModel(AbstractPriorModel):
+class CollectionPriorModel(AbstractPriorModel):
     def name_for_prior(self, prior):
         for i, prior_model in enumerate(self):
             prior_name = prior_model.name_for_prior(prior)
@@ -449,7 +451,7 @@ class ListPriorModel(AbstractPriorModel):
 
     @property
     def items(self):
-        return [value for key, value in self.__dict__.items() if key not in ('component_number', 'item_number')]
+        return [value for key, value in self.__dict__.items() if key not in ('component_number', 'item_number', 'id')]
 
     @property
     def flat_prior_model_tuples(self):
@@ -464,6 +466,7 @@ class ListPriorModel(AbstractPriorModel):
         arguments: list
             A list classes, prior_models or instances
         """
+        super().__init__()
         self.component_number = next(self._ids)
 
         self.item_number = 0
@@ -476,7 +479,7 @@ class ListPriorModel(AbstractPriorModel):
                 setattr(self, key, AbstractPriorModel.from_object(value))
 
     def __add__(self, other):
-        new = ListPriorModel()
+        new = CollectionPriorModel()
         for item in self:
             new.append(item)
         for item in other:
@@ -522,12 +525,11 @@ class ListPriorModel(AbstractPriorModel):
         model_instances: [object]
             A list of instances constructed from the list of prior models.
         """
-        result = []
-        for obj in self:
-            if isinstance(obj, AbstractPriorModel):
-                result.append(obj.instance_for_arguments(arguments))
-            else:
-                result.append(obj)
+        result = ModelInstance()
+        for key, value in self.__dict__.items():
+            if isinstance(value, AbstractPriorModel):
+                value = value.instance_for_arguments(arguments)
+            setattr(result, key, value)
         return result
 
     def gaussian_prior_model_for_arguments(self, arguments):
@@ -542,7 +544,7 @@ class ListPriorModel(AbstractPriorModel):
         prior_models: [PriorModel]
             A new list of prior models with gaussian priors
         """
-        return ListPriorModel(
+        return CollectionPriorModel(
             [prior_model.gaussian_prior_model_for_arguments(arguments) for prior_model in self])
 
     @property

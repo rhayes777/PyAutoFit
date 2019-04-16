@@ -3,11 +3,13 @@ import os
 
 import pytest
 
+import autofit.mapper.model
 from autofit import conf
 from autofit import exc
 from autofit import mock
 from autofit.mapper import model_mapper, prior as p
 from autofit.mapper import prior_model as pm
+from autofit.mapper import model
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -96,6 +98,9 @@ class TestPriorLimits(object):
     def test_out_of_limits(self):
         mm = model_mapper.ModelMapper()
         mm.mock_class_gaussian = MockClassGaussian
+
+        print(mm.prior_tuples)
+        print(mm.constant_tuples_ordered_by_id)
 
         assert mm.instance_from_physical_vector([1, 2]) is not None
 
@@ -267,8 +272,8 @@ class TestPriorLinking(object):
 
 class TestAddition(object):
     def test_abstract_plus_abstract(self):
-        one = model_mapper.AbstractModel()
-        two = model_mapper.AbstractModel()
+        one = autofit.mapper.model.AbstractModel()
+        two = autofit.mapper.model.AbstractModel()
         one.a = 'a'
         two.b = 'b'
 
@@ -278,8 +283,8 @@ class TestAddition(object):
         assert three.b == 'b'
 
     def test_list_properties(self):
-        one = model_mapper.AbstractModel()
-        two = model_mapper.AbstractModel()
+        one = autofit.mapper.model.AbstractModel()
+        two = autofit.mapper.model.AbstractModel()
         one.a = ['a']
         two.a = ['b']
 
@@ -288,8 +293,8 @@ class TestAddition(object):
         assert three.a == ['a', 'b']
 
     def test_instance_plus_instance(self):
-        one = model_mapper.ModelInstance()
-        two = model_mapper.ModelInstance()
+        one = autofit.mapper.model.ModelInstance()
+        two = autofit.mapper.model.ModelInstance()
         one.a = 'a'
         two.b = 'b'
 
@@ -481,7 +486,7 @@ class TestRegression(object):
 
     def test_param_name_distinction(self):
         mm = model_mapper.ModelMapper()
-        mm.ls = pm.ListPriorModel([pm.PriorModel(mock.RelativeWidth), pm.PriorModel(mock.RelativeWidth)])
+        mm.ls = pm.CollectionPriorModel([pm.PriorModel(mock.RelativeWidth), pm.PriorModel(mock.RelativeWidth)])
         assert mm.param_names == ["ls_0_one",
                                   "ls_0_two",
                                   "ls_0_three",
@@ -533,27 +538,27 @@ class TestModelingMapper(object):
 
 class TestModelInstance(object):
     def test_instances_of(self):
-        instance = model_mapper.ModelInstance()
+        instance = autofit.mapper.model.ModelInstance()
         instance.galaxy_1 = mock.Galaxy()
         instance.galaxy_2 = mock.Galaxy()
         assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1, instance.galaxy_2]
 
     def test_instances_of_filtering(self):
-        instance = model_mapper.ModelInstance()
+        instance = autofit.mapper.model.ModelInstance()
         instance.galaxy_1 = mock.Galaxy()
         instance.galaxy_2 = mock.Galaxy()
         instance.other = mock.GalaxyModel()
         assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1, instance.galaxy_2]
 
     def test_instances_from_list(self):
-        instance = model_mapper.ModelInstance()
+        instance = autofit.mapper.model.ModelInstance()
         galaxy_1 = mock.Galaxy()
         galaxy_2 = mock.Galaxy()
         instance.galaxies = [galaxy_1, galaxy_2]
         assert instance.instances_of(mock.Galaxy) == [galaxy_1, galaxy_2]
 
     def test_non_trivial_instances_of(self):
-        instance = model_mapper.ModelInstance()
+        instance = autofit.mapper.model.ModelInstance()
         galaxy_1 = mock.Galaxy(redshift=1)
         galaxy_2 = mock.Galaxy(redshift=2)
         instance.galaxies = [galaxy_1, galaxy_2, mock.GalaxyModel]
@@ -1055,7 +1060,7 @@ class TestIndependentPriorModel(object):
 
 @pytest.fixture(name="list_prior_model")
 def make_list_prior_model():
-    return pm.ListPriorModel(
+    return pm.CollectionPriorModel(
         [pm.PriorModel(MockClassMM, ), pm.PriorModel(MockClassMM, )])
 
 
@@ -1067,7 +1072,8 @@ class TestListPriorModel(object):
 
         instance = mapper.instance_from_physical_vector([0.1, 0.2, 0.3, 0.4])
 
-        assert isinstance(instance.list, list)
+        assert isinstance(instance.list, model.ModelInstance)
+        print(instance.list.items)
         assert len(instance.list) == 2
         assert instance.list[0].one == 0.1
         assert instance.list[0].two == 0.2
@@ -1113,7 +1119,7 @@ class TestListPriorModel(object):
         mapper.list = [pm.PriorModel(MockClassMM, ),
                        pm.PriorModel(MockClassMM, )]
 
-        assert isinstance(mapper.list, pm.ListPriorModel)
+        assert isinstance(mapper.list, pm.CollectionPriorModel)
 
 
 @pytest.fixture(name="mock_with_constant")
@@ -1176,7 +1182,7 @@ class TestConstant(object):
         prior_model.two = 4.
         assert isinstance(prior_model.one, p.Constant)
         mapper.mock_list = [prior_model]
-        assert isinstance(mapper.mock_list, pm.ListPriorModel)
+        assert isinstance(mapper.mock_list, pm.CollectionPriorModel)
         assert isinstance(prior_model.one, p.Constant)
         assert isinstance(mapper.mock_list[0].one, p.Constant)
         assert len(mapper.constant_tuples_ordered_by_id) == 2

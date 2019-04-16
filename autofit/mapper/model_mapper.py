@@ -3,27 +3,11 @@ import os
 
 from autofit import conf
 from autofit import exc
+from autofit.mapper.model import AbstractModel, ModelInstance
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, ConstantNameValue
-from autofit.mapper.prior_model import ListPriorModel, AbstractPriorModel, PriorModelNameValue
-import inspect
+from autofit.mapper.prior_model import CollectionPriorModel, AbstractPriorModel, PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
-
-
-class AbstractModel(object):
-    def __add__(self, other):
-        instance = self.__class__()
-
-        def add_items(item_dict):
-            for key, value in item_dict.items():
-                if isinstance(value, list) and hasattr(instance, key):
-                    setattr(instance, key, getattr(instance, key) + value)
-                else:
-                    setattr(instance, key, value)
-
-        add_items(self.__dict__)
-        add_items(other.__dict__)
-        return instance
 
 
 class ModelMapper(AbstractModel):
@@ -117,7 +101,7 @@ class ModelMapper(AbstractModel):
         -------
         list_prior_model_tuples: [(String, ListPriorModel)]
         """
-        return list(filter(lambda t: isinstance(t[1], ListPriorModel), self.__dict__.items()))
+        return list(filter(lambda t: isinstance(t[1], CollectionPriorModel), self.__dict__.items()))
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -249,7 +233,7 @@ class ModelMapper(AbstractModel):
     @property
     @cast_collection(PriorModelNameValue)
     def list_prior_model_tuples(self):
-        return [tup for tup in self.prior_model_tuples if isinstance(tup.value, ListPriorModel)]
+        return [tup for tup in self.prior_model_tuples if isinstance(tup.value, CollectionPriorModel)]
 
     @property
     def constant_prior_model_name_dict(self):
@@ -365,7 +349,7 @@ class ModelMapper(AbstractModel):
 
         Returns
         -------
-        model_instance : ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         """
@@ -389,7 +373,7 @@ class ModelMapper(AbstractModel):
 
         Returns
         -------
-        model_instance : ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         """
@@ -412,7 +396,7 @@ class ModelMapper(AbstractModel):
 
         Returns
         -------
-        model_instance : ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         """
@@ -599,23 +583,3 @@ class ModelMapper(AbstractModel):
         return isinstance(other, ModelMapper) \
                and self.priors == other.priors \
                and self.prior_model_tuples == other.prior_model_tuples
-
-
-class ModelInstance(AbstractModel):
-    """
-    An object to hold model instances produced by providing arguments to a model mapper.
-
-    @DynamicAttrs
-    """
-
-    def instances_of(self, cls):
-        return [instance for source in
-                [list(self.__dict__.values())] + [ls for ls in self.__dict__.values() if isinstance(ls, list)] for
-                instance in
-                source if isinstance(instance, cls)]
-
-    def name_instance_tuples_for_class(self, cls):
-        return [item for item in self.__dict__.items() if isinstance(item[1], cls)]
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
