@@ -7,9 +7,9 @@ import autofit.mapper.model
 from autofit import conf
 from autofit import exc
 from autofit import mock
+from autofit.mapper import model
 from autofit.mapper import model_mapper, prior as p
 from autofit.mapper import prior_model as pm
-from autofit.mapper import model
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -396,11 +396,12 @@ class TestGenerateModelInfo(object):
 
         model_info = mm.info
 
+        print(model_info)
+
         assert model_info == """MockClassMM
 
-mock_class_one                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-mock_class_two                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-"""
+mock_class_one                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+mock_class_two                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
     def test_with_constant(self):
         mm = model_mapper.ModelMapper()
@@ -410,11 +411,12 @@ mock_class_two                                              UniformPrior, lower_
 
         model_info = mm.info
 
+        print(model_info)
+
         assert model_info == """MockClassMM
 
-mock_class_one                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-mock_class_two                                              Constant, value = 1
-"""
+mock_class_one                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+mock_class_two                                                         Constant, value = 1"""
 
 
 class WithFloat(object):
