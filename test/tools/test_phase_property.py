@@ -150,24 +150,20 @@ class TestPhasePropertyCollectionAttributes(object):
 
         list_phase.prop = objects
 
-        assert list_phase.variable.prop == [objects["one"]]
-        assert list_phase.constant.prop == [objects["two"]]
-
         list_phase.prop.one = mock.Galaxy()
 
-        assert len(list_phase.variable.prop) == 0
-        assert len(list_phase.constant.prop) == 2
+        assert len(list_phase.variable.prop) == 2
 
     def test_named_attributes_in_variable(self, list_phase):
         galaxy_model = mock.GalaxyModel(variable_redshift=True)
         list_phase.prop = dict(one=galaxy_model)
 
         assert list_phase.variable.prior_count == 1
-        assert list_phase.variable.one == galaxy_model
+        assert list_phase.variable.prop.one == galaxy_model
 
         instance = list_phase.variable.instance_from_prior_medians()
 
-        assert instance.one is not None
+        assert instance.prop.one is not None
         assert len(instance.prop) == 1
 
     def test_named_attributes_in_variable_override(self, list_phase):
