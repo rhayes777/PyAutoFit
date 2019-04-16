@@ -39,6 +39,12 @@ class PositionClass:
 
 
 class TestFloatAnnotation(object):
+    def test_distance_from_distance(self):
+        original = Distance(1.0)
+        distance = DistanceClass(first=original, second=2.0)
+
+        assert distance.first is original
+
     def test_instantiate_distance(self):
         distance = DistanceClass(first=1.0, second=2.0)
 
