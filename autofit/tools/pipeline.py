@@ -140,12 +140,13 @@ class Pipeline(object):
             f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
                                                             data_name))
 
-    def run_function(self, func, data_name=None):
+    def run_function(self, func, data_name=None, assert_optimizer_pickle_matches=True):
         """
         Run the function for each phase in the pipeline.
 
         Parameters
         ----------
+        assert_optimizer_pickle_matches
         data_name
         func
             A function that takes a phase and prior results, returning results for that phase
@@ -158,7 +159,8 @@ class Pipeline(object):
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info("Running Phase {} (Number {})".format(phase.optimizer.phase_name, i))
-            assert_optimizer_pickle_matches_for_phase(phase)
+            if assert_optimizer_pickle_matches:
+                assert_optimizer_pickle_matches_for_phase(phase)
             save_optimizer_for_phase(phase)
             self.save_metadata(phase, data_name)
             results.add(phase.phase_name, func(phase, results))
