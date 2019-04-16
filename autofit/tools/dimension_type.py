@@ -17,6 +17,8 @@ def _map_types(func, self, *args, **kwargs):
     annotations = inspect.getfullargspec(func).annotations
 
     def map_to_type(value, name=None, position=None):
+        if isinstance(value, DimensionType):
+            return value
         arg_type = None
         if name is not None:
             try:
