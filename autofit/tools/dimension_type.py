@@ -1,5 +1,6 @@
-import functools
 import inspect
+
+from decorator import decorator
 
 
 class DimensionType(float):
@@ -11,7 +12,8 @@ class DimensionType(float):
         float.__init__(value)
 
 
-def map_types(func):
+@decorator
+def map_types(func, self, *args, **kwargs):
     annotations = inspect.getfullargspec(func).annotations
 
     def map_to_type(value, name=None, position=None):
@@ -23,9 +25,5 @@ def map_types(func):
         if position is not None:
             return list(annotations.values())[position](value)
 
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        return func(self, *[map_to_type(value, position=index) for index, value in enumerate(args)],
-                    **{name: map_to_type(value, name=name) for name, value in kwargs.items()})
-
-    return wrapper
+    return func(self, *[map_to_type(value, position=index) for index, value in enumerate(args)],
+                **{name: map_to_type(value, name=name) for name, value in kwargs.items()})
