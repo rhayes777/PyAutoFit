@@ -113,4 +113,4 @@ class TestCase(object):
 
         mapper.my_list = pm.CollectionPriorModel({"simple": SimpleClass})
 
-        assert mapper.info.split("\n")[2].startswith("my_list_simple_one")
+        assert mapper.info.split("\n")[4].startswith("my_list_simple_one")

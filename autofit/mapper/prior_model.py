@@ -82,7 +82,7 @@ class AbstractPriorModel:
     def info(self):
         info = []
 
-        prior_model_iterator = self.prior_tuples + self.constant_tuples
+        prior_model_iterator = self.direct_prior_tuples + self.direct_constant_tuples
 
         for attribute_tuple in prior_model_iterator:
             attribute = attribute_tuple[1]
@@ -91,16 +91,20 @@ class AbstractPriorModel:
             info.append(line + ' ' * (60 - len(line)) + attribute.info)
 
         for prior_model_name, prior_model in self.prior_model_tuples:
-            # TODO : clean this up
-
-            # if 'lens_galaxies' not in prior_model_name and 'source_galaxies' not in prior_model_name:
-
             info.append(prior_model.name + '\n')
             info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
 
-            info.append('')
-
         return info
+
+    @property
+    @cast_collection(PriorNameValue)
+    def direct_prior_tuples(self):
+        return self.tuples_with_type(Prior)
+
+    @property
+    @cast_collection(ConstantNameValue)
+    def direct_constant_tuples(self):
+        return self.tuples_with_type(Constant)
 
     @property
     def flat_prior_model_tuples(self):
