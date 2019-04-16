@@ -47,6 +47,14 @@ class TestFloatAnnotation(object):
         assert isinstance(distance.first, Distance)
         assert isinstance(distance.second, Distance)
 
+        distance = DistanceClass(1.0, 2.0)
+
+        assert distance.first == 1.0
+        assert distance.second == 2.0
+
+        assert isinstance(distance.first, Distance)
+        assert isinstance(distance.second, Distance)
+
     def test_distance(self):
         mapper = mm.ModelMapper()
         mapper.object = DistanceClass

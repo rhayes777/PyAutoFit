@@ -13,19 +13,19 @@ class DimensionType(float):
 
 def map_types(func):
     annotations = inspect.getfullargspec(func).annotations
-    print(annotations)
 
-    def map_to_type(name, value):
-        print(name)
-        print(value)
-        print(annotations[name])
-        try:
-            return annotations[name](value)
-        except KeyError:
-            pass
+    def map_to_type(value, name=None, position=None):
+        if name is not None:
+            try:
+                return annotations[name](value)
+            except KeyError:
+                pass
+        if position is not None:
+            return list(annotations.values())[position](value)
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **{name: map_to_type(name, value) for name, value in kwargs.items()})
+    def wrapper(self, *args, **kwargs):
+        return func(self, *[map_to_type(value, position=index) for index, value in enumerate(args)],
+                    **{name: map_to_type(value, name=name) for name, value in kwargs.items()})
 
     return wrapper
