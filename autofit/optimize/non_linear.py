@@ -198,11 +198,16 @@ class NonLinearOptimizer(object):
                 conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
 
         self.image_path = "{}/image/".format(self.phase_output_path)
-        if not os.path.exists(self.image_path):
-            os.makedirs(self.image_path)
 
-        if not os.path.exists("{}fits/".format(self.image_path)):
+        try:
+            os.makedirs(self.image_path)
+        except FileExistsError:
+            pass
+
+        try:
             os.makedirs("{}fits/".format(self.image_path))
+        except FileExistsError:
+            pass
 
         self.restore()
 
@@ -249,8 +254,11 @@ class NonLinearOptimizer(object):
         return self.named_config.get(self.__class__.__name__, attribute_name, attribute_type)
 
     def save_model_info(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)  # Create results folder if doesnt exist
+
+        try:
+            os.makedirs(self.path)
+        except FileExistsError:
+            pass
 
         self.create_paramnames_file()
         if not os.path.isfile(self.file_model_info):
