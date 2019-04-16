@@ -2,6 +2,7 @@ import typing
 
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior_model as pm
+from autofit.tools import dimension_type
 
 
 class SimpleClass(object):
@@ -20,16 +21,12 @@ class ListClass(object):
         self.ls = ls
 
 
-class Distance(float):
-    def __new__(cls, distance):
-        # noinspection PyArgumentList
-        return float.__new__(cls, distance)
-
-    def __init__(self, distance):
-        float.__init__(distance)
+class Distance(dimension_type.DimensionType):
+    pass
 
 
 class DistanceClass:
+    @dimension_type.map_types
     def __init__(self, first: Distance, second: Distance):
         self.first = first
         self.second = second
@@ -41,6 +38,15 @@ class PositionClass:
 
 
 class TestFloatAnnotation(object):
+    def test_instantiate_distance(self):
+        distance = DistanceClass(first=1.0, second=2.0)
+
+        assert distance.first == 1.0
+        assert distance.second == 2.0
+
+        assert isinstance(distance.first, Distance)
+        assert isinstance(distance.second, Distance)
+
     def test_distance(self):
         mapper = mm.ModelMapper()
         mapper.object = DistanceClass

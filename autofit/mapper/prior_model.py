@@ -248,7 +248,8 @@ class PriorModel(AbstractPriorModel):
                     tuple_prior = TuplePrior()
                     for i, tuple_arg in enumerate(spec.__args__):
                         attribute_name = "{}_{}".format(arg, i)
-                        setattr(tuple_prior, attribute_name, AnnotationPriorModel(spec, cls, arg))
+                        setattr(tuple_prior, attribute_name, self.make_prior(attribute_name))
+                    setattr(self, arg, tuple_prior)
                 else:
                     setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
             else:
