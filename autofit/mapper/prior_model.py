@@ -74,7 +74,7 @@ class AbstractPriorModel:
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
             obj = object.__new__(ListPriorModel)
-            obj.__init__(*args, **kwargs)
+            obj.__init__(arguments=t)
         else:
             obj = t
         return obj
