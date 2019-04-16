@@ -18,6 +18,29 @@ class ListClass(object):
         self.ls = ls
 
 
+class Distance(float):
+    def __new__(cls, distance):
+        # noinspection PyArgumentList
+        return float.__new__(cls, distance)
+
+    def __init__(self, distance):
+        float.__init__(distance)
+
+
+class DistanceClass:
+    def __init__(self, first: Distance, second: Distance):
+        self.first = first
+        self.second = second
+
+
+class TestFloatAnnotation(object):
+    def test_distance(self):
+        mapper = mm.ModelMapper()
+        mapper.object = DistanceClass
+
+        assert mapper.prior_count == 2
+
+
 class TestCase(object):
     def test_complex_class(self):
         prior_model = pm.PriorModel(ComplexClass)

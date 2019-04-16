@@ -166,6 +166,22 @@ class AbstractPriorModel:
         return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type), self.__dict__.items()))
 
 
+def prior_for_class_and_attribute_name(cls, attribute_name):
+    config_arr = conf.instance.prior_default.get_for_nearest_ancestor(cls, attribute_name)
+    if config_arr[0] == "u":
+        return UniformPrior(config_arr[1], config_arr[2])
+    elif config_arr[0] == "l":
+        return LogUniformPrior(config_arr[1], config_arr[2])
+    elif config_arr[0] == "g":
+        limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, attribute_name)
+        return GaussianPrior(config_arr[1], config_arr[2], *limits)
+    elif config_arr[0] == "c":
+        return Constant(config_arr[1])
+    raise exc.PriorException(
+        "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, c - Constant".format(
+            attribute_name))
+
+
 class PriorModel(AbstractPriorModel):
     """Object comprising class and associated priors
         @DynamicAttrs
@@ -221,18 +237,20 @@ class PriorModel(AbstractPriorModel):
                 tuple_prior = TuplePrior()
                 for i in range(len(defaults[arg])):
                     attribute_name = "{}_{}".format(arg, i)
-                    setattr(tuple_prior, attribute_name, self.make_prior(attribute_name, cls))
+                    setattr(tuple_prior, attribute_name, self.make_prior(attribute_name))
                 setattr(self, arg, tuple_prior)
             elif arg in arg_spec.annotations and arg_spec.annotations[arg] != float:
-                setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
+                if issubclass(arg_spec.annotations[arg], float):
+                    setattr(self, arg, AnnotationPriorModel(arg_spec.annotations[arg], cls, arg))
+                else:
+                    setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
             else:
-                setattr(self, arg, self.make_prior(arg, cls))
+                setattr(self, arg, self.make_prior(arg))
 
     def __eq__(self, other):
         return isinstance(other, PriorModel) and self.cls == other.cls and self.prior_tuples == other.prior_tuples
 
-    @staticmethod
-    def make_prior(attribute_name, cls):
+    def make_prior(self, attribute_name):
         """
         Create a prior for an attribute of a class with a given name. The prior is created by searching the default
         prior config for the attribute.
@@ -248,8 +266,6 @@ class PriorModel(AbstractPriorModel):
         ----------
         attribute_name: str
             The name of the attribute for which a prior is created
-        cls: class
-            The class to which the attribute belongs
 
         Returns
         -------
@@ -261,19 +277,7 @@ class PriorModel(AbstractPriorModel):
         exc.PriorException
             If no configuration can be found
         """
-        config_arr = conf.instance.prior_default.get_for_nearest_ancestor(cls, attribute_name)
-        if config_arr[0] == "u":
-            return UniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "l":
-            return LogUniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "g":
-            limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, attribute_name)
-            return GaussianPrior(config_arr[1], config_arr[2], *limits)
-        elif config_arr[0] == "c":
-            return Constant(config_arr[1])
-        raise exc.PriorException(
-            "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, c - Constant".format(
-                attribute_name))
+        return prior_for_class_and_attribute_name(self.cls, attribute_name)
 
     def linked_model_for_class(self, cls, make_constants_variable=False, **kwargs):
         """
@@ -456,6 +460,16 @@ class PriorModel(AbstractPriorModel):
             setattr(new_model, constant_tuple.name, constant_tuple.constant)
 
         return new_model
+
+
+class AnnotationPriorModel(PriorModel):
+    def __init__(self, cls, parent_class, true_argument_name, **kwargs):
+        self.parent_class = parent_class
+        self.true_argument_name = true_argument_name
+        super().__init__(cls, **kwargs)
+
+    def make_prior(self, attribute_name):
+        return prior_for_class_and_attribute_name(self.parent_class, self.true_argument_name)
 
 
 class CollectionPriorModel(AbstractPriorModel):
