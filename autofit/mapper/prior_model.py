@@ -553,7 +553,13 @@ class CollectionPriorModel(AbstractPriorModel):
             A new list of prior models with gaussian priors
         """
         return CollectionPriorModel(
-            [prior_model.gaussian_prior_model_for_arguments(arguments) for prior_model in self])
+            {
+                key: value.gaussian_prior_model_for_arguments(arguments)
+                if isinstance(value, AbstractPriorModel)
+                else value
+                for key, value in self.__dict__.items() if key not in ('component_number', 'item_number', 'id')
+            }
+        )
 
     @property
     @cast_collection(PriorNameValue)
