@@ -187,7 +187,10 @@ class TestPhasePropertyCollectionAttributes(object):
         assert len(galaxy_model.prior_tuples) == 1
 
         assert len(list_phase.variable.flat_prior_model_tuples) == 1
-        assert len(list_phase.variable.info.split('\n')) == 4
+
+        print(list_phase.variable.info)
+
+        assert len(list_phase.variable.info.split('\n')) == 7
 
     def test_shared_priors(self, list_phase):
         list_phase.prop = dict(one=mock.GalaxyModel(variable_redshift=True),
