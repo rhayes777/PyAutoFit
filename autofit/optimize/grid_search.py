@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 
+import autofit.mapper.model
 from autofit import conf
 from autofit import exc
 from autofit.mapper import link
@@ -101,7 +102,7 @@ class GridSearch(object):
             The name of this grid search
         """
         self.variable = model_mapper or mm.ModelMapper()
-        self.constant = constant or mm.ModelInstance()
+        self.constant = constant or autofit.mapper.model.ModelInstance()
 
         self.phase_folders = phase_folders
         if phase_folders is None:

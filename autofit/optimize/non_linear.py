@@ -13,6 +13,7 @@ import numpy as np
 import pymultinest
 import scipy.optimize
 
+import autofit.mapper.model
 from autofit import conf
 from autofit import exc
 from autofit.mapper import model_mapper as mm, link
@@ -43,7 +44,7 @@ class Result(object):
 
         Parameters
         ----------
-        constant: mm.ModelInstance
+        constant: autofit.mapper.model.ModelInstance
             An instance object comprising the class instances that gave the optimal fit
         figure_of_merit: float
             A value indicating the figure of merit given by the optimal fit
@@ -177,7 +178,7 @@ class NonLinearOptimizer(object):
         self.path = link.make_linked_folder(sym_path)
 
         self.variable = model_mapper or mm.ModelMapper()
-        self.constant = mm.ModelInstance()
+        self.constant = autofit.mapper.model.ModelInstance()
 
         self.label_config = conf.instance.label
 
@@ -197,11 +198,16 @@ class NonLinearOptimizer(object):
                 conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
 
         self.image_path = "{}/image/".format(self.phase_output_path)
-        if not os.path.exists(self.image_path):
-            os.makedirs(self.image_path)
 
-        if not os.path.exists("{}fits/".format(self.image_path)):
+        try:
+            os.makedirs(self.image_path)
+        except FileExistsError:
+            pass
+
+        try:
             os.makedirs("{}fits/".format(self.image_path))
+        except FileExistsError:
+            pass
 
         self.restore()
 
@@ -248,8 +254,11 @@ class NonLinearOptimizer(object):
         return self.named_config.get(self.__class__.__name__, attribute_name, attribute_type)
 
     def save_model_info(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)  # Create results folder if doesnt exist
+
+        try:
+            os.makedirs(self.path)
+        except FileExistsError:
+            pass
 
         self.create_paramnames_file()
         if not os.path.isfile(self.file_model_info):
