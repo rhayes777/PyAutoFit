@@ -40,6 +40,13 @@ class TestFloatAnnotation(object):
 
         assert mapper.prior_count == 2
 
+        result = mapper.instance_from_unit_vector([0.5, 1.0])
+        assert isinstance(result.object, DistanceClass)
+        assert result.object.first == 0.5
+        assert result.object.second == 1.0
+
+        assert isinstance(result.object.first, Distance)
+
 
 class TestCase(object):
     def test_complex_class(self):
