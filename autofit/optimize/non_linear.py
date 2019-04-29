@@ -161,14 +161,10 @@ class NonLinearOptimizer(object):
         else:
             self.phase_tag = phase_tag
 
-        self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                      self.phase_tag)
         self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name,
                                                       self.phase_tag)
 
         sym_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
-        self.backup_path = "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                                self.phase_tag)
 
         try:
             os.makedirs("/".join(sym_path.split("/")[:-1]))
@@ -210,6 +206,16 @@ class NonLinearOptimizer(object):
             pass
 
         self.restore()
+
+    @property
+    def backup_path(self):
+        return "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                                    self.phase_tag)
+
+    @property
+    def phase_output_path(self):
+        return "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                    self.phase_tag)
 
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
