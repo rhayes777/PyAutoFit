@@ -234,5 +234,8 @@ class GridSearch(object):
                                                   phase_folders=self.phase_folders)
         for key, value in self.__dict__.items():
             if key not in ("variable", "constant", "phase_name", "phase_tag", "phase_folders", "phase_path", "path"):
-                setattr(optimizer_instance, key, value)
+                try:
+                    setattr(optimizer_instance, key, value)
+                except AttributeError:
+                    pass
         return optimizer_instance

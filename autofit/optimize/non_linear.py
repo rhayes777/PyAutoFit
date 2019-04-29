@@ -108,6 +108,21 @@ class IntervalCounter(object):
 
 
 def persistent_timer(func):
+    """
+    Times the execution of a function. If the process is stopped and restarted then timing is continued using saved
+    files.
+
+    Parameters
+    ----------
+    func
+        Some function to be timed
+
+    Returns
+    -------
+    timed_function
+        The same function with a timer attached.
+    """
+
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
         start_time_path = "{}/.start_time".format(optimizer_instance.phase_output_path)
@@ -160,32 +175,17 @@ class NonLinearOptimizer(object):
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
-
-        self.phase_output_path = "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                      self.phase_tag)
-        self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                      self.phase_tag)
-
-        sym_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
-        self.backup_path = "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                                self.phase_tag)
-
         try:
-            os.makedirs("/".join(sym_path.split("/")[:-1]))
+            os.makedirs("/".join(self.sym_path.split("/")[:-1]))
         except FileExistsError:
             pass
 
-        self.path = link.make_linked_folder(sym_path)
+        self.path = link.make_linked_folder(self.sym_path)
 
         self.variable = model_mapper or mm.ModelMapper()
         self.constant = autofit.mapper.model.ModelInstance()
 
         self.label_config = conf.instance.label
-
-        self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
-        self.file_model_info = "{}/{}".format(self.phase_output_path, 'model.info')
-
-        self.image_path = "{}image/".format(self.phase_output_path)
 
         self.log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
 
@@ -196,8 +196,6 @@ class NonLinearOptimizer(object):
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
-
-        self.image_path = "{}/image/".format(self.phase_output_path)
 
         try:
             os.makedirs(self.image_path)
@@ -210,6 +208,47 @@ class NonLinearOptimizer(object):
             pass
 
         self.restore()
+
+    @property
+    def backup_path(self) -> str:
+        """
+        The path to the backed up optimizer folder.
+        """
+        return "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                                    self.phase_tag)
+
+    @property
+    def phase_output_path(self) -> str:
+        """
+        The path to the output information for a phase.
+        """
+        return "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                    self.phase_tag)
+
+    @property
+    def opt_path(self) -> str:
+        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                             self.phase_tag)
+
+    @property
+    def sym_path(self) -> str:
+        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                             self.phase_tag)
+
+    @property
+    def file_param_names(self) -> str:
+        return "{}/{}".format(self.opt_path, 'multinest.paramnames')
+
+    @property
+    def file_model_info(self) -> str:
+        return "{}/{}".format(self.phase_output_path, 'model.info')
+
+    @property
+    def image_path(self) -> str:
+        """
+        The path to the directory in which images are stored.
+        """
+        return "{}image/".format(self.phase_output_path)
 
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
@@ -843,8 +882,6 @@ class GridSearch(NonLinearOptimizer):
             ----------
             result: Result
                 The result
-            variable: mm.ModelMapper
-                A model mapper
             instances: [mm.ModelInstance]
                 A model instance for each point in the grid search
             """

@@ -89,6 +89,32 @@ class TestFloatAnnotation(object):
         assert isinstance(result.object.position[1], Distance)
 
 
+class TestHashing(object):
+    def test_is_hashable(self):
+        assert hash(pm.AbstractPriorModel()) is not None
+        assert hash(pm.PriorModel(SimpleClass)) is not None
+        assert hash(pm.AnnotationPriorModel(SimpleClass, SimpleClass, "one")) is not None
+
+    def test_prior_prior_model_hash_consecutive(self):
+        prior = pm.Prior(0, 1)
+        prior_model = pm.AbstractPriorModel()
+
+        assert prior.id + 1 == prior_model.id
+
+
+class StringDefault:
+    def __init__(self, value="a string"):
+        self.value = value
+
+
+class TestStringArguments(object):
+    def test_string_default(self):
+        prior_model = pm.PriorModel(StringDefault)
+        assert prior_model.prior_count == 0
+
+        assert prior_model.instance_for_arguments({}).value == "a string"
+
+
 class TestCase(object):
     def test_complex_class(self):
         prior_model = pm.PriorModel(ComplexClass)
