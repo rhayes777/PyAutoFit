@@ -209,19 +209,9 @@ class GridSearch(object):
                                       results_list)))
 
         for values in lists:
-            arguments = self.make_arguments(values, grid_priors)
-            model_mapper = self.variable.mapper_from_partial_prior_arguments(arguments)
+            job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors, values)
 
-            labels = []
-            for prior in arguments.values():
-                labels.append(
-                    "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
-
-            name_path = "{}{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
-            optimizer_instance = self.optimizer_instance(model_mapper, name_path)
-            optimizer_instance.constant = self.constant
-
-            result = Job(optimizer_instance, analysis, arguments).perform()
+            result = job.perform()
 
             results.append(result.result)
             results_list.append(result.result_list_row)
@@ -229,6 +219,21 @@ class GridSearch(object):
             write_results()
 
         return GridSearchResult(results, lists)
+
+    def job_for_analysis_grid_priors_and_values(self, analysis, grid_priors, values):
+        arguments = self.make_arguments(values, grid_priors)
+        model_mapper = self.variable.mapper_from_partial_prior_arguments(arguments)
+
+        labels = []
+        for prior in arguments.values():
+            labels.append(
+                "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
+
+        name_path = "{}{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
+        optimizer_instance = self.optimizer_instance(model_mapper, name_path)
+        optimizer_instance.constant = self.constant
+
+        return Job(optimizer_instance, analysis, arguments)
 
     def optimizer_instance(self, model_mapper, name_path):
 
