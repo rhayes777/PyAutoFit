@@ -160,28 +160,17 @@ class NonLinearOptimizer(object):
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
-
-        self.opt_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                      self.phase_tag)
-
-        sym_path = "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
-
         try:
-            os.makedirs("/".join(sym_path.split("/")[:-1]))
+            os.makedirs("/".join(self.sym_path.split("/")[:-1]))
         except FileExistsError:
             pass
 
-        self.path = link.make_linked_folder(sym_path)
+        self.path = link.make_linked_folder(self.sym_path)
 
         self.variable = model_mapper or mm.ModelMapper()
         self.constant = autofit.mapper.model.ModelInstance()
 
         self.label_config = conf.instance.label
-
-        self.file_param_names = "{}/{}".format(self.opt_path, 'multinest.paramnames')
-        self.file_model_info = "{}/{}".format(self.phase_output_path, 'model.info')
-
-        self.image_path = "{}image/".format(self.phase_output_path)
 
         self.log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
 
@@ -192,8 +181,6 @@ class NonLinearOptimizer(object):
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
-
-        self.image_path = "{}/image/".format(self.phase_output_path)
 
         try:
             os.makedirs(self.image_path)
@@ -216,6 +203,28 @@ class NonLinearOptimizer(object):
     def phase_output_path(self):
         return "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                     self.phase_tag)
+
+    @property
+    def opt_path(self):
+        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                             self.phase_tag)
+
+    @property
+    def sym_path(self):
+        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                             self.phase_tag)
+
+    @property
+    def file_param_names(self):
+        return "{}/{}".format(self.opt_path, 'multinest.paramnames')
+
+    @property
+    def file_model_info(self):
+        return "{}/{}".format(self.phase_output_path, 'model.info')
+
+    @property
+    def image_path(self):
+        return "{}image/".format(self.phase_output_path)
 
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
@@ -849,8 +858,6 @@ class GridSearch(NonLinearOptimizer):
             ----------
             result: Result
                 The result
-            variable: mm.ModelMapper
-                A model mapper
             instances: [mm.ModelInstance]
                 A model instance for each point in the grid search
             """
