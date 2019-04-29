@@ -13,6 +13,7 @@ from autofit.mapper import prior as p
 from autofit.optimize import non_linear
 from autofit.optimize import optimizer
 from autofit.tools import path_util
+from time import sleep
 
 logger = logging.getLogger(__name__)
 
@@ -321,13 +322,20 @@ class Process(multiprocessing.Process):
 
         self.job_queue = job_queue
         self.queue = multiprocessing.Queue()
+        self.count = 0
+        self.max_count = 5
 
-    def start(self):
+    def run(self):
         logger.info("starting process {}".format(self.name))
-        if self.job_queue.empty():
-            logger.info("terminating process {}".format(self.name))
-            self.job_queue.close()
-            self.terminate()
-        else:
-            job = self.job_queue.get()
-            self.queue.put(job.perform())
+        while True:
+            sleep(0.025)
+            if self.count >= self.max_count:
+                break
+            if self.job_queue.empty():
+                self.count += 1
+            else:
+                self.count = 0
+                job = self.job_queue.get()
+                self.queue.put(job.perform())
+        logger.info("terminating process {}".format(self.name))
+        self.job_queue.close()
