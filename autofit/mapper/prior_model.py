@@ -1,6 +1,5 @@
 import copy
 import inspect
-import itertools
 import re
 import typing
 
@@ -225,6 +224,9 @@ class PriorModel(AbstractPriorModel):
             args.remove('settings')
 
         for arg in args:
+            if isinstance(defaults.get(arg), str):
+                continue
+
             if arg in kwargs:
                 ls = CollectionPriorModel([])
                 for obj in kwargs[arg]:
@@ -242,6 +244,7 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, tuple_prior)
             elif arg in arg_spec.annotations and arg_spec.annotations[arg] != float:
                 spec = arg_spec.annotations[arg]
+                # noinspection PyUnresolvedReferences
                 if issubclass(spec, float):
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
                 elif isinstance(spec, typing.TupleMeta):
@@ -478,6 +481,9 @@ class AnnotationPriorModel(PriorModel):
 
     def make_prior(self, attribute_name):
         return prior_for_class_and_attribute_name(self.parent_class, self.true_argument_name)
+
+    def assert_within_limits(self, limits):
+        pass
 
 
 class CollectionPriorModel(AbstractPriorModel):

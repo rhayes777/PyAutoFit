@@ -102,6 +102,19 @@ class TestHashing(object):
         assert prior.id + 1 == prior_model.id
 
 
+class StringDefault:
+    def __init__(self, value="a string"):
+        self.value = value
+
+
+class TestStringArguments(object):
+    def test_string_default(self):
+        prior_model = pm.PriorModel(StringDefault)
+        assert prior_model.prior_count == 0
+
+        assert prior_model.instance_for_arguments({}).value == "a string"
+
+
 class TestCase(object):
     def test_complex_class(self):
         prior_model = pm.PriorModel(ComplexClass)
