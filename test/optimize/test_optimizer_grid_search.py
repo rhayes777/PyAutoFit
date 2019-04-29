@@ -210,6 +210,22 @@ class TestGridNLOBehaviour(object):
         assert result.no_dimensions == 2
         assert result.figure_of_merit_array.shape == (10, 10)
 
+    def test_results_parallel(self, grid_search_05, mapper, container):
+        result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
+
+        assert len(result.results) == 4
+        assert result.no_dimensions == 2
+        assert np.equal(result.figure_of_merit_array, np.array([[1.0, 1.0],
+                                                                [1.0, 1.0]])).all()
+
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=10,
+                                    phase_name="sample_name", parallel=True)
+        result = grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
+
+        assert len(result.results) == 100
+        assert result.no_dimensions == 2
+        assert result.figure_of_merit_array.shape == (10, 10)
+
     def test_generated_models_with_constants(self, grid_search, container):
         constant_profile = mock.GeometryProfile()
         grid_search.constant.constant_profile = constant_profile

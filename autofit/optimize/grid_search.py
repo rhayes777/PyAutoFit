@@ -1,3 +1,5 @@
+import logging
+import multiprocessing
 import os
 
 import numpy as np
@@ -11,6 +13,8 @@ from autofit.mapper import prior as p
 from autofit.optimize import non_linear
 from autofit.optimize import optimizer
 from autofit.tools import path_util
+
+logger = logging.getLogger(__name__)
 
 
 class GridSearchResult(object):
@@ -84,7 +88,7 @@ class GridSearchResult(object):
 class GridSearch(object):
 
     def __init__(self, phase_name, phase_tag=None, phase_folders=None, number_of_steps=10,
-                 optimizer_class=non_linear.DownhillSimplex, model_mapper=None, constant=None):
+                 optimizer_class=non_linear.DownhillSimplex, model_mapper=None, constant=None, parallel=False):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -103,6 +107,9 @@ class GridSearch(object):
         """
         self.variable = model_mapper or mm.ModelMapper()
         self.constant = constant or autofit.mapper.model.ModelInstance()
+
+        self.parallel = parallel
+        self.number_of_cores = conf.instance.non_linear.get("GridSearch", "number_of_cores", int)
 
         self.phase_folders = phase_folders
         if phase_folders is None:
@@ -196,17 +203,51 @@ class GridSearch(object):
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
+        if self.parallel:
+            return self.fit_parallel(analysis, grid_priors)
+        else:
+            return self.fit_sequential(analysis, grid_priors)
+
+    def fit_parallel(self, analysis, grid_priors):
         grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
 
         results_list = [list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
-        def write_results():
-            with open("{}/results".format(self.phase_output_path), "w+") as f:
-                f.write("\n".join(map(lambda ls: ", ".join(
-                    map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
-                                      results_list)))
+        job_queue = multiprocessing.Queue()
+
+        processes = [Process(str(number), job_queue) for number in range(self.number_of_cores - 1)]
+
+        for values in lists:
+            job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors, values)
+            job_queue.put(job)
+
+        for process in processes:
+            process.start()
+
+        while len(results) < len(lists):
+            for process in processes:
+                while not process.queue.empty():
+                    result = process.queue.get()
+                    results.append(result.result)
+                    results_list.append(result.result_list_row)
+
+                    self.write_results(results_list)
+
+        job_queue.close()
+
+        for process in processes:
+            process.join(timeout=1.0)
+
+        return GridSearchResult(results, lists)
+
+    def fit_sequential(self, analysis, grid_priors):
+        grid_priors = list(set(grid_priors))
+        results = []
+        lists = self.make_lists(grid_priors)
+
+        results_list = [list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
         for values in lists:
             job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors, values)
@@ -216,9 +257,15 @@ class GridSearch(object):
             results.append(result.result)
             results_list.append(result.result_list_row)
 
-            write_results()
+            self.write_results(results_list)
 
         return GridSearchResult(results, lists)
+
+    def write_results(self, results_list):
+        with open("{}/results".format(self.phase_output_path), "w+") as f:
+            f.write("\n".join(map(lambda ls: ", ".join(
+                map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
+                                  results_list)))
 
     def job_for_analysis_grid_priors_and_values(self, analysis, grid_priors, values):
         arguments = self.make_arguments(values, grid_priors)
@@ -265,3 +312,22 @@ class Job:
         result_list_row = [*[prior.lower_limit for prior in self.arguments.values()], result.figure_of_merit]
 
         return JobResult(result, result_list_row)
+
+
+class Process(multiprocessing.Process):
+    def __init__(self, name: str, job_queue: multiprocessing.Queue):
+        super().__init__(name=name)
+        logger.info("created process {}".format(name))
+
+        self.job_queue = job_queue
+        self.queue = multiprocessing.Queue()
+
+    def start(self):
+        logger.info("starting process {}".format(self.name))
+        if self.job_queue.empty():
+            logger.info("terminating process {}".format(self.name))
+            self.job_queue.close()
+            self.terminate()
+        else:
+            job = self.job_queue.get()
+            self.queue.put(job.perform())
