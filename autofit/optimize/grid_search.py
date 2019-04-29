@@ -210,6 +210,23 @@ class GridSearch(object):
             return self.fit_sequential(analysis, grid_priors)
 
     def fit_parallel(self, analysis, grid_priors):
+        """
+        Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
+        different process.
+
+        Parameters
+        ----------
+        analysis
+            An analysis
+        grid_priors
+            Priors describing the position in the grid
+
+        Returns
+        -------
+        result: GridSearchResult
+            The result of the grid search
+        """
+
         grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
@@ -244,6 +261,23 @@ class GridSearch(object):
         return GridSearchResult(results, lists)
 
     def fit_sequential(self, analysis, grid_priors):
+        """
+        Perform the grid search sequentially, with all the optimisation for each grid square being performed on the
+        same process.
+
+        Parameters
+        ----------
+        analysis
+            An analysis
+        grid_priors
+            Priors describing the position in the grid
+
+        Returns
+        -------
+        result: GridSearchResult
+            The result of the grid search
+        """
+
         grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
@@ -298,12 +332,34 @@ class GridSearch(object):
 
 class JobResult:
     def __init__(self, result, result_list_row):
+        """
+        The result of a job
+
+        Parameters
+        ----------
+        result
+            The result of a grid search
+        result_list_row
+            A row in the result list
+        """
         self.result = result
         self.result_list_row = result_list_row
 
 
 class Job:
     def __init__(self, optimizer_instance, analysis, arguments):
+        """
+        A job to be performed in parallel.
+
+        Parameters
+        ----------
+        optimizer_instance
+            An instance of an optimiser
+        analysis
+            An analysis
+        arguments
+            The grid search arguments
+        """
         self.optimizer_instance = optimizer_instance
         self.analysis = analysis
         self.arguments = arguments
@@ -317,6 +373,16 @@ class Job:
 
 class Process(multiprocessing.Process):
     def __init__(self, name: str, job_queue: multiprocessing.Queue):
+        """
+        A parallel process that consumes Jobs through the job queue and outputs results through its own queue.
+
+        Parameters
+        ----------
+        name: str
+            The name of the process
+        job_queue: multiprocessing.Queue
+            The queue through which jobs are submitted
+        """
         super().__init__(name=name)
         logger.info("created process {}".format(name))
 
