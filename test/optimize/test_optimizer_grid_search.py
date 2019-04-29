@@ -318,3 +318,7 @@ class TestMixin(object):
         assert len(result.results) == 2
 
         assert isinstance(result.best_result, non_linear.Result)
+
+    def test_parallel_flag(self):
+        my_phase = phase.as_grid_search(phase.AbstractPhase, parallel=True)(phase_name="phase name")
+        assert my_phase.optimizer.parallel
