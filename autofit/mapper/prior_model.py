@@ -6,6 +6,7 @@ import typing
 
 from autofit import conf, exc
 from autofit.mapper.model import ModelInstance
+from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, TuplePrior, UniformPrior, \
     LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue
 
@@ -51,14 +52,13 @@ class PriorModelNameValue(AttributeNameValue):
         return self.value
 
 
-class AbstractPriorModel:
+class AbstractPriorModel(ModelObject):
     """
     Abstract model that maps a set of priors to a particular class. Must be overridden by any prior model so that the \
     model mapper recognises its prior model attributes.
 
     @DynamicAttrs
     """
-    _ids = itertools.count()
 
     @property
     def name(self):
@@ -75,9 +75,6 @@ class AbstractPriorModel:
         else:
             obj = t
         return obj
-
-    def __init__(self):
-        self.id = next(self._ids)
 
     @property
     def info(self):
@@ -195,6 +192,9 @@ class PriorModel(AbstractPriorModel):
     @property
     def flat_prior_model_tuples(self):
         return [("", self)]
+
+    def __hash__(self):
+        return self.id
 
     def __init__(self, cls, **kwargs):
         """
@@ -328,7 +328,7 @@ class PriorModel(AbstractPriorModel):
         return new_model
 
     def __setattr__(self, key, value):
-        if key not in ("component_number", "phase_property_position", "mapping_name"):
+        if key not in ("component_number", "phase_property_position", "mapping_name", "id"):
             try:
                 if "_" in key:
                     name = key.split("_")[0]

@@ -1,4 +1,3 @@
-import itertools
 import math
 from functools import wraps
 
@@ -6,6 +5,7 @@ import numpy as np
 from scipy.special import erfcinv
 
 from autofit import exc
+from autofit.mapper.model_object import ModelObject
 
 
 def cast_collection(named_tuple):
@@ -137,14 +137,7 @@ class TuplePrior(object):
         return tuple_prior
 
 
-class Attribute(object):
-    _ids = itertools.count()
-
-    def __init__(self):
-        self.id = next(self._ids)
-
-
-class Prior(Attribute):
+class Prior(ModelObject):
     """An object used to mappers a unit value to an attribute value for a specific class attribute"""
 
     def __init__(self, lower_limit, upper_limit):
@@ -300,7 +293,7 @@ class LogUniformPrior(UniformPrior):
 prior_number = 0
 
 
-class Constant(Attribute):
+class Constant(ModelObject):
     def __init__(self, value):
         """
         Represents a constant value. No prior is added to the model mapper for constants reducing the dimensionality
