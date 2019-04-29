@@ -108,6 +108,21 @@ class IntervalCounter(object):
 
 
 def persistent_timer(func):
+    """
+    Times the execution of a function. If the process is stopped and restarted then timing is continued using saved
+    files.
+
+    Parameters
+    ----------
+    func
+        Some function to be timed
+
+    Returns
+    -------
+    timed_function
+        The same function with a timer attached.
+    """
+
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
         start_time_path = "{}/.start_time".format(optimizer_instance.phase_output_path)
@@ -195,35 +210,44 @@ class NonLinearOptimizer(object):
         self.restore()
 
     @property
-    def backup_path(self):
+    def backup_path(self) -> str:
+        """
+        The path to the backed up optimizer folder.
+        """
         return "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                                     self.phase_tag)
 
     @property
-    def phase_output_path(self):
+    def phase_output_path(self) -> str:
+        """
+        The path to the output information for a phase.
+        """
         return "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                     self.phase_tag)
 
     @property
-    def opt_path(self):
+    def opt_path(self) -> str:
         return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                              self.phase_tag)
 
     @property
-    def sym_path(self):
+    def sym_path(self) -> str:
         return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                              self.phase_tag)
 
     @property
-    def file_param_names(self):
+    def file_param_names(self) -> str:
         return "{}/{}".format(self.opt_path, 'multinest.paramnames')
 
     @property
-    def file_model_info(self):
+    def file_model_info(self) -> str:
         return "{}/{}".format(self.phase_output_path, 'model.info')
 
     @property
-    def image_path(self):
+    def image_path(self) -> str:
+        """
+        The path to the directory in which images are stored.
+        """
         return "{}image/".format(self.phase_output_path)
 
     def __eq__(self, other):
