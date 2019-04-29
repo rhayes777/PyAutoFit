@@ -122,7 +122,8 @@ class GridSearch(object):
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
-        self.phase_output_path = "{}/{}/{}{}".format(conf.instance.output_path, self.phase_path, phase_name, self.phase_tag)
+        self.phase_output_path = "{}/{}/{}{}".format(conf.instance.output_path, self.phase_path, phase_name,
+                                                     self.phase_tag)
 
         sym_path = "{}/optimizer".format(self.phase_output_path)
         self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
@@ -219,10 +220,11 @@ class GridSearch(object):
             name_path = "{}{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
             optimizer_instance = self.optimizer_instance(model_mapper, name_path)
             optimizer_instance.constant = self.constant
-            result = optimizer_instance.fit(analysis)
-            results.append(result)
 
-            results_list.append([*[prior.lower_limit for prior in arguments.values()], result.figure_of_merit])
+            result = Job(optimizer_instance, analysis, arguments).perform()
+
+            results.append(result.result)
+            results_list.append(result.result_list_row)
 
             write_results()
 
@@ -239,3 +241,22 @@ class GridSearch(object):
                 except AttributeError:
                     pass
         return optimizer_instance
+
+
+class JobResult:
+    def __init__(self, result, result_list_row):
+        self.result = result
+        self.result_list_row = result_list_row
+
+
+class Job:
+    def __init__(self, optimizer_instance, analysis, arguments):
+        self.optimizer_instance = optimizer_instance
+        self.analysis = analysis
+        self.arguments = arguments
+
+    def perform(self):
+        result = self.optimizer_instance.fit(self.analysis)
+        result_list_row = [*[prior.lower_limit for prior in self.arguments.values()], result.figure_of_merit]
+
+        return JobResult(result, result_list_row)
