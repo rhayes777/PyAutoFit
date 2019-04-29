@@ -470,6 +470,9 @@ class PriorModel(AbstractPriorModel):
         for constant_tuple in self.constant_tuples:
             setattr(new_model, constant_tuple.name, constant_tuple.constant)
 
+        for name, prior_model in self.direct_prior_model_tuples:
+            setattr(new_model, name, prior_model.gaussian_prior_model_for_arguments(arguments))
+
         return new_model
 
 
@@ -481,9 +484,6 @@ class AnnotationPriorModel(PriorModel):
 
     def make_prior(self, attribute_name):
         return prior_for_class_and_attribute_name(self.parent_class, self.true_argument_name)
-
-    def assert_within_limits(self, limits):
-        pass
 
 
 class CollectionPriorModel(AbstractPriorModel):
