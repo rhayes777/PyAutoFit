@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import pytest
 
+import autofit.mapper.model
 from autofit import mock
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
@@ -24,7 +25,7 @@ class TestCase(object):
         assert prior_model != prior_model_copy
 
     def test_list_prior_model(self, prior_model):
-        list_prior_model = pm.ListPriorModel([prior_model])
+        list_prior_model = pm.CollectionPriorModel([prior_model])
         list_prior_model_copy = deepcopy(list_prior_model)
         assert list_prior_model == list_prior_model_copy
 
@@ -55,7 +56,7 @@ class TestCase(object):
         assert model_mapper != model_mapper_copy
 
     def test_model_instance_equality(self):
-        model_instance = mm.ModelInstance()
+        model_instance = autofit.mapper.model.ModelInstance()
         model_instance.profile = mock.GeometryProfile()
         model_instance_copy = deepcopy(model_instance)
 

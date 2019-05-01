@@ -1,29 +1,13 @@
 import copy
-import inspect
 import os
 
 from autofit import conf
 from autofit import exc
+from autofit.mapper.model import AbstractModel, ModelInstance
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, ConstantNameValue
-from autofit.mapper.prior_model import ListPriorModel, PriorModel, AbstractPriorModel, PriorModelNameValue
+from autofit.mapper.prior_model import CollectionPriorModel, AbstractPriorModel, PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
-
-
-class AbstractModel(object):
-    def __add__(self, other):
-        instance = self.__class__()
-
-        def add_items(item_dict):
-            for key, value in item_dict.items():
-                if isinstance(value, list) and hasattr(instance, key):
-                    setattr(instance, key, getattr(instance, key) + value)
-                else:
-                    setattr(instance, key, value)
-
-        add_items(self.__dict__)
-        add_items(other.__dict__)
-        return instance
 
 
 class ModelMapper(AbstractModel):
@@ -89,11 +73,7 @@ class ModelMapper(AbstractModel):
             self.__setattr__(name, cls)
 
     def __setattr__(self, key, value):
-        if isinstance(value, list) and len(value) > 0 and isinstance(value[0], AbstractPriorModel):
-            value = ListPriorModel(value)
-        elif inspect.isclass(value):
-            value = PriorModel(value)
-        super(ModelMapper, self).__setattr__(key, value)
+        super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
 
     @property
     def prior_count(self):
@@ -121,7 +101,7 @@ class ModelMapper(AbstractModel):
         -------
         list_prior_model_tuples: [(String, ListPriorModel)]
         """
-        return list(filter(lambda t: isinstance(t[1], ListPriorModel), self.__dict__.items()))
+        return list(filter(lambda t: isinstance(t[1], CollectionPriorModel), self.__dict__.items()))
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -133,19 +113,11 @@ class ModelMapper(AbstractModel):
             A list of tuples with the names of prior models and associated prior models. Names are fully qualified by
             all objects in which they are embedded.
         """
-        all_flat_prior_model_tuples = [("{}".format(prior_model_name), flat_prior_model) for
-                                       prior_model_name, prior_model in
-                                       self.prior_model_tuples for
-                                       flat_prior_model_name, flat_prior_model in
-                                       prior_model.flat_prior_model_tuples]
-        filtered_flat_prior_model_tuples = []
-
-        # Prior models can be members of lists and attributes of the prior model simultaneously. This line prevents
-        #  duplication.
-        for flat_prior_model_tuple in all_flat_prior_model_tuples:
-            if flat_prior_model_tuple[1] not in [item[1] for item in filtered_flat_prior_model_tuples]:
-                filtered_flat_prior_model_tuples.append(flat_prior_model_tuple)
-        return filtered_flat_prior_model_tuples
+        return [("{}".format(prior_model_name), flat_prior_model) for
+                prior_model_name, prior_model in
+                self.prior_model_tuples for
+                flat_prior_model_name, flat_prior_model in
+                prior_model.flat_prior_model_tuples]
 
     @property
     @cast_collection(PriorNameValue)
@@ -253,7 +225,7 @@ class ModelMapper(AbstractModel):
     @property
     @cast_collection(PriorModelNameValue)
     def list_prior_model_tuples(self):
-        return [tup for tup in self.prior_model_tuples if isinstance(tup.value, ListPriorModel)]
+        return [tup for tup in self.prior_model_tuples if isinstance(tup.value, CollectionPriorModel)]
 
     @property
     def constant_prior_model_name_dict(self):
@@ -369,7 +341,7 @@ class ModelMapper(AbstractModel):
 
         Returns
         -------
-        model_instance : ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         """
@@ -393,7 +365,7 @@ class ModelMapper(AbstractModel):
 
         Returns
         -------
-        model_instance : ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         """
@@ -416,7 +388,7 @@ class ModelMapper(AbstractModel):
 
         Returns
         -------
-        model_instance : ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         """
@@ -553,23 +525,9 @@ class ModelMapper(AbstractModel):
         """
         info = []
 
-        for prior_model_name, prior_model in self.flat_prior_model_tuples:
-
-            # TODO : clean this up
-
-            if 'lens_galaxies' not in prior_model_name and 'source_galaxies' not in prior_model_name:
-
-                info.append(prior_model.cls.__name__ + '\n')
-
-                prior_model_iterator = prior_model.prior_tuples + prior_model.constant_tuples
-
-                for i, attribute_tuple in enumerate(prior_model_iterator):
-                    attribute = attribute_tuple[1]
-
-                    line = prior_model_name + '_' + attribute_tuple.name
-                    info.append(line + ' ' * (60 - len(line)) + attribute.info)
-
-                info.append('')
+        for prior_model_name, prior_model in self.prior_model_tuples:
+            info.append(prior_model.name + '\n')
+            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
 
         return '\n'.join(info)
 
@@ -603,23 +561,3 @@ class ModelMapper(AbstractModel):
         return isinstance(other, ModelMapper) \
                and self.priors == other.priors \
                and self.prior_model_tuples == other.prior_model_tuples
-
-
-class ModelInstance(AbstractModel):
-    """
-    An object to hold model instances produced by providing arguments to a model mapper.
-
-    @DynamicAttrs
-    """
-
-    def instances_of(self, cls):
-        return [instance for source in
-                [list(self.__dict__.values())] + [ls for ls in self.__dict__.values() if isinstance(ls, list)] for
-                instance in
-                source if isinstance(instance, cls)]
-
-    def name_instance_tuples_for_class(self, cls):
-        return [item for item in self.__dict__.items() if isinstance(item[1], cls)]
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__

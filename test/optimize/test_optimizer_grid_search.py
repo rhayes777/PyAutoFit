@@ -110,33 +110,37 @@ class TestGridSearchablePriors(object):
             list(grid_search.make_arguments([[0, 1]], grid_priors=[grid_search.variable.profile.centre_0]))
 
 
+init_args = []
+fit_args = []
+fit_instances = []
+
+
+class MockOptimizer(non_linear.NonLinearOptimizer):
+    def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=None, model_mapper=None):
+        super().__init__(phase_folders=phase_folders, phase_tag=phase_tag, phase_name=phase_name,
+                         model_mapper=model_mapper)
+        init_args.append((model_mapper, phase_name))
+
+    def fit(self, analysis):
+        fit_args.append(analysis)
+        # noinspection PyTypeChecker
+        return non_linear.Result(None, analysis.fit(None), None)
+
+
+class MockAnalysis(non_linear.Analysis):
+    def fit(self, instance):
+        fit_instances.append(instance)
+        return 1
+
+    def visualize(self, instance, image_path, during_analysis):
+        pass
+
+    def log(self, instance):
+        pass
+
+
 class MockClassContainer(object):
     def __init__(self):
-        init_args = []
-        fit_args = []
-        fit_instances = []
-
-        class MockOptimizer(non_linear.NonLinearOptimizer):
-            def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=None, model_mapper=None):
-                super().__init__(phase_folders=phase_folders, phase_tag=phase_tag, phase_name=phase_name, model_mapper=model_mapper)
-                init_args.append((model_mapper, phase_name))
-
-            def fit(self, analysis):
-                fit_args.append(analysis)
-                # noinspection PyTypeChecker
-                return non_linear.Result(None, analysis.fit(None), None)
-
-        class MockAnalysis(non_linear.Analysis):
-            def fit(self, instance):
-                fit_instances.append(instance)
-                return 1
-
-            def visualize(self, instance, image_path, during_analysis):
-                pass
-
-            def log(self, instance):
-                pass
-
         self.init_args = init_args
         self.fit_args = fit_args
         self.fit_instances = fit_instances
@@ -147,6 +151,9 @@ class MockClassContainer(object):
 
 @pytest.fixture(name="container")
 def make_mock_class_container():
+    init_args.clear()
+    fit_args.clear()
+    fit_instances.clear()
     return MockClassContainer()
 
 
@@ -210,6 +217,15 @@ class TestGridNLOBehaviour(object):
         assert result.no_dimensions == 2
         assert result.figure_of_merit_array.shape == (10, 10)
 
+    def test_results_parallel(self, mapper, container):
+        grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=10,
+                                    phase_name="sample_name", parallel=True)
+        result = grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
+
+        assert len(result.results) == 100
+        assert result.no_dimensions == 2
+        assert result.figure_of_merit_array.shape == (10, 10)
+
     def test_generated_models_with_constants(self, grid_search, container):
         constant_profile = mock.GeometryProfile()
         grid_search.constant.constant_profile = constant_profile
@@ -252,6 +268,8 @@ class TestGridNLOBehaviour(object):
         assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
         assert optimizer.variable is model_mapper
         assert grid_search.path != optimizer.path
+        assert grid_search.backup_path != optimizer.backup_path
+        assert grid_search.phase_output_path != optimizer.phase_output_path
 
 
 class MockResult(object):
@@ -300,3 +318,7 @@ class TestMixin(object):
         assert len(result.results) == 2
 
         assert isinstance(result.best_result, non_linear.Result)
+
+    def test_parallel_flag(self):
+        my_phase = phase.as_grid_search(phase.AbstractPhase, parallel=True)(phase_name="phase name")
+        assert my_phase.optimizer.parallel

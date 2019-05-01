@@ -1,9 +1,11 @@
 import copy
 import inspect
-import itertools
 import re
+import typing
 
 from autofit import conf, exc
+from autofit.mapper.model import ModelInstance
+from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, TuplePrior, UniformPrior, \
     LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue
 
@@ -49,15 +51,57 @@ class PriorModelNameValue(AttributeNameValue):
         return self.value
 
 
-class AbstractPriorModel:
+class AbstractPriorModel(ModelObject):
     """
     Abstract model that maps a set of priors to a particular class. Must be overridden by any prior model so that the \
     model mapper recognises its prior model attributes.
-    """
-    _ids = itertools.count()
 
-    def __init__(self):
-        self.id = next(self._ids)
+    @DynamicAttrs
+    """
+
+    @property
+    def name(self):
+        return self.__class__.__name__
+
+    @staticmethod
+    def from_object(t, *args, **kwargs):
+        if inspect.isclass(t):
+            obj = object.__new__(PriorModel)
+            obj.__init__(t, **kwargs)
+        elif isinstance(t, list) or isinstance(t, dict):
+            obj = object.__new__(CollectionPriorModel)
+            obj.__init__(arguments=t)
+        else:
+            obj = t
+        return obj
+
+    @property
+    def info(self):
+        info = []
+
+        prior_model_iterator = self.direct_prior_tuples + self.direct_constant_tuples
+
+        for attribute_tuple in prior_model_iterator:
+            attribute = attribute_tuple[1]
+
+            line = attribute_tuple.name
+            info.append(line + ' ' * (60 - len(line)) + attribute.info)
+
+        for prior_model_name, prior_model in self.prior_model_tuples:
+            info.append(prior_model.name + '\n')
+            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
+
+        return info
+
+    @property
+    @cast_collection(PriorNameValue)
+    def direct_prior_tuples(self):
+        return self.tuples_with_type(Prior)
+
+    @property
+    @cast_collection(ConstantNameValue)
+    def direct_constant_tuples(self):
+        return self.tuples_with_type(Constant)
 
     @property
     def flat_prior_model_tuples(self):
@@ -68,6 +112,11 @@ class AbstractPriorModel:
             A list of prior models associated with this instance
         """
         raise NotImplementedError("PriorModels must implement the flat_prior_models property")
+
+    @property
+    @cast_collection(PriorModelNameValue)
+    def prior_model_tuples(self):
+        return self.tuples_with_type(AbstractPriorModel)
 
     @property
     def prior_tuples(self):
@@ -93,6 +142,10 @@ class AbstractPriorModel:
     def instance_for_arguments(self, arguments):
         raise NotImplementedError()
 
+    @property
+    def prior_count(self):
+        return len(self.prior_tuples)
+
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.direct_prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
@@ -106,88 +159,24 @@ class AbstractPriorModel:
     def __hash__(self):
         return self.id
 
+    def tuples_with_type(self, class_type):
+        return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type), self.__dict__.items()))
 
-class ListPriorModel(list, AbstractPriorModel):
-    def name_for_prior(self, prior):
-        for i, prior_model in enumerate(self):
-            prior_name = prior_model.name_for_prior(prior)
-            if prior_name is not None:
-                return "{}_{}".format(i, prior_name)
 
-    @property
-    def flat_prior_model_tuples(self):
-        return [flat_prior_model for prior_model in self for flat_prior_model in prior_model.flat_prior_model_tuples]
-
-    def __init__(self, prior_models):
-        """
-        A prior model used to represent a list of prior models for convenience.
-
-        Parameters
-        ----------
-        prior_models: [PriorModel]
-            A list of prior models
-        """
-        self.component_number = next(self._ids)
-        super().__init__(prior_models)
-
-    @property
-    @cast_collection(PriorModelNameValue)
-    def label_prior_model_tuples(self):
-        return [(prior_model.mapping_name if hasattr(prior_model, "mapping_name") else str(i), prior_model) for
-                i, prior_model in enumerate(self)]
-
-    def instance_for_arguments(self, arguments):
-        """
-        Parameters
-        ----------
-        arguments: {Prior: float}
-            A dictionary of arguments
-
-        Returns
-        -------
-        model_instances: [object]
-            A list of instances constructed from the list of prior models.
-        """
-        return [prior_model.instance_for_arguments(arguments) for prior_model in self]
-
-    def gaussian_prior_model_for_arguments(self, arguments):
-        """
-        Parameters
-        ----------
-        arguments: {Prior: float}
-            A dictionary of arguments
-
-        Returns
-        -------
-        prior_models: [PriorModel]
-            A new list of prior models with gaussian priors
-        """
-        return ListPriorModel(
-            [prior_model.gaussian_prior_model_for_arguments(arguments) for prior_model in self])
-
-    @property
-    @cast_collection(PriorNameValue)
-    def prior_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Union(Prior, TuplePrior))]
-        """
-        return set([prior for prior_model in self for prior in prior_model.prior_tuples])
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Union(Prior, TuplePrior))]
-        """
-        return set([constant for prior_model in self for constant in prior_model.constant_tuples])
-
-    @property
-    def prior_class_dict(self):
-        return {prior: cls for prior_model in self for prior, cls in prior_model.prior_class_dict.items()}
+def prior_for_class_and_attribute_name(cls, attribute_name):
+    config_arr = conf.instance.prior_default.get_for_nearest_ancestor(cls, attribute_name)
+    if config_arr[0] == "u":
+        return UniformPrior(config_arr[1], config_arr[2])
+    elif config_arr[0] == "l":
+        return LogUniformPrior(config_arr[1], config_arr[2])
+    elif config_arr[0] == "g":
+        limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, attribute_name)
+        return GaussianPrior(config_arr[1], config_arr[2], *limits)
+    elif config_arr[0] == "c":
+        return Constant(config_arr[1])
+    raise exc.PriorException(
+        "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, c - Constant".format(
+            attribute_name))
 
 
 class PriorModel(AbstractPriorModel):
@@ -196,16 +185,26 @@ class PriorModel(AbstractPriorModel):
     """
 
     @property
+    def name(self):
+        return self.cls.__name__
+
+    @property
     def flat_prior_model_tuples(self):
         return [("", self)]
 
-    def __init__(self, cls):
+    def __hash__(self):
+        return self.id
+
+    def __init__(self, cls, **kwargs):
         """
         Parameters
         ----------
         cls: class
             The class associated with this instance
         """
+        super().__init__()
+        if cls is self:
+            return
 
         self.cls = cls
         self.component_number = next(self._ids)
@@ -225,20 +224,44 @@ class PriorModel(AbstractPriorModel):
             args.remove('settings')
 
         for arg in args:
-            if arg in defaults and isinstance(defaults[arg], tuple):
+            if isinstance(defaults.get(arg), str):
+                continue
+
+            if arg in kwargs:
+                ls = CollectionPriorModel([])
+                for obj in kwargs[arg]:
+                    if inspect.isclass(obj):
+                        ls.append(AbstractPriorModel.from_object(obj))
+                    else:
+                        ls.append(obj)
+
+                setattr(self, arg, ls)
+            elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
                 for i in range(len(defaults[arg])):
                     attribute_name = "{}_{}".format(arg, i)
-                    setattr(tuple_prior, attribute_name, self.make_prior(attribute_name, cls))
+                    setattr(tuple_prior, attribute_name, self.make_prior(attribute_name))
                 setattr(self, arg, tuple_prior)
+            elif arg in arg_spec.annotations and arg_spec.annotations[arg] != float:
+                spec = arg_spec.annotations[arg]
+                # noinspection PyUnresolvedReferences
+                if issubclass(spec, float):
+                    setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
+                elif isinstance(spec, typing.TupleMeta):
+                    tuple_prior = TuplePrior()
+                    for i, tuple_arg in enumerate(spec.__args__):
+                        attribute_name = "{}_{}".format(arg, i)
+                        setattr(tuple_prior, attribute_name, self.make_prior(attribute_name))
+                    setattr(self, arg, tuple_prior)
+                else:
+                    setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
             else:
-                setattr(self, arg, self.make_prior(arg, cls))
+                setattr(self, arg, self.make_prior(arg))
 
     def __eq__(self, other):
         return isinstance(other, PriorModel) and self.cls == other.cls and self.prior_tuples == other.prior_tuples
 
-    @staticmethod
-    def make_prior(attribute_name, cls):
+    def make_prior(self, attribute_name):
         """
         Create a prior for an attribute of a class with a given name. The prior is created by searching the default
         prior config for the attribute.
@@ -254,8 +277,6 @@ class PriorModel(AbstractPriorModel):
         ----------
         attribute_name: str
             The name of the attribute for which a prior is created
-        cls: class
-            The class to which the attribute belongs
 
         Returns
         -------
@@ -267,19 +288,7 @@ class PriorModel(AbstractPriorModel):
         exc.PriorException
             If no configuration can be found
         """
-        config_arr = conf.instance.prior_default.get_for_nearest_ancestor(cls, attribute_name)
-        if config_arr[0] == "u":
-            return UniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "l":
-            return LogUniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "g":
-            limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, attribute_name)
-            return GaussianPrior(config_arr[1], config_arr[2], *limits)
-        elif config_arr[0] == "c":
-            return Constant(config_arr[1])
-        raise exc.PriorException(
-            "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, c - Constant".format(
-                attribute_name))
+        return prior_for_class_and_attribute_name(self.cls, attribute_name)
 
     def linked_model_for_class(self, cls, make_constants_variable=False, **kwargs):
         """
@@ -322,7 +331,7 @@ class PriorModel(AbstractPriorModel):
         return new_model
 
     def __setattr__(self, key, value):
-        if key not in ("component_number", "phase_property_position", "mapping_name"):
+        if key not in ("component_number", "phase_property_position", "mapping_name", "id"):
             try:
                 if "_" in key:
                     name = key.split("_")[0]
@@ -353,7 +362,7 @@ class PriorModel(AbstractPriorModel):
         -------
         tuple_prior_tuples: [(String, TuplePrior)]
         """
-        return list(filter(lambda t: type(t[1]) is TuplePrior, self.__dict__.items()))
+        return self.tuples_with_type(TuplePrior)
 
     @property
     @cast_collection(PriorNameValue)
@@ -363,7 +372,7 @@ class PriorModel(AbstractPriorModel):
         -------
         direct_priors: [(String, Prior)]
         """
-        return list(filter(lambda t: isinstance(t[1], Prior), self.__dict__.items()))
+        return self.tuples_with_type(Prior)
 
     @property
     @cast_collection(PriorNameValue)
@@ -374,7 +383,10 @@ class PriorModel(AbstractPriorModel):
         priors: [(String, Prior))]
         """
         return [prior for tuple_prior in self.tuple_prior_tuples for prior in
-                tuple_prior[1].prior_tuples] + self.direct_prior_tuples
+                tuple_prior[1].prior_tuples] + self.direct_prior_tuples + [prior for prior_model in
+                                                                           self.prior_model_tuples
+                                                                           for prior in
+                                                                           prior_model[1].prior_tuples]
 
     @property
     @cast_collection(ConstantNameValue)
@@ -385,7 +397,7 @@ class PriorModel(AbstractPriorModel):
         constants: [(String, Constant)]
             A list of constants
         """
-        return list(filter(lambda t: isinstance(t[1], Constant), self.__dict__.items()))
+        return self.tuples_with_type(Constant)
 
     @property
     @cast_collection(ConstantNameValue)
@@ -426,6 +438,8 @@ class PriorModel(AbstractPriorModel):
         constant_arguments = {t.name: t.constant.value for t in self.direct_constant_tuples}
         for tuple_prior in self.tuple_prior_tuples:
             model_arguments[tuple_prior.name] = tuple_prior.prior.value_for_arguments(arguments)
+        for prior_model_tuple in self.direct_prior_model_tuples:
+            model_arguments[prior_model_tuple.name] = prior_model_tuple.prior_model.instance_for_arguments(arguments)
 
         return self.cls(**{**model_arguments, **constant_arguments})
 
@@ -456,4 +470,167 @@ class PriorModel(AbstractPriorModel):
         for constant_tuple in self.constant_tuples:
             setattr(new_model, constant_tuple.name, constant_tuple.constant)
 
+        for name, prior_model in self.direct_prior_model_tuples:
+            setattr(new_model, name, prior_model.gaussian_prior_model_for_arguments(arguments))
+
         return new_model
+
+
+class AnnotationPriorModel(PriorModel):
+    def __init__(self, cls, parent_class, true_argument_name, **kwargs):
+        self.parent_class = parent_class
+        self.true_argument_name = true_argument_name
+        super().__init__(cls, **kwargs)
+
+    def make_prior(self, attribute_name):
+        return prior_for_class_and_attribute_name(self.parent_class, self.true_argument_name)
+
+
+class CollectionPriorModel(AbstractPriorModel):
+    def name_for_prior(self, prior):
+        for i, prior_model in enumerate(self):
+            prior_name = prior_model.name_for_prior(prior)
+            if prior_name is not None:
+                return "{}_{}".format(i, prior_name)
+
+    def __getitem__(self, item):
+        return self.items[item]
+
+    def __len__(self):
+        return len(self.items)
+
+    @property
+    def items(self):
+        return [value for key, value in self.__dict__.items() if key not in ('component_number', 'item_number', 'id')]
+
+    @property
+    def flat_prior_model_tuples(self):
+        return [flat_prior_model for prior_model in self for flat_prior_model in prior_model.flat_prior_model_tuples]
+
+    def __init__(self, arguments=None):
+        """
+        A prior model used to represent a list of prior models for convenience.
+
+        Parameters
+        ----------
+        arguments: list
+            A list classes, prior_models or instances
+        """
+        super().__init__()
+        self.component_number = next(self._ids)
+
+        self.item_number = 0
+
+        if isinstance(arguments, list):
+            for argument in arguments:
+                self.append(argument)
+        if isinstance(arguments, dict):
+            for key, value in arguments.items():
+                setattr(self, key, AbstractPriorModel.from_object(value))
+
+    def __add__(self, other):
+        new = CollectionPriorModel()
+        for item in self:
+            new.append(item)
+        for item in other:
+            new.append(item)
+        return new
+
+    def __eq__(self, other):
+        if len(self) != len(other):
+            return False
+        for i, item in enumerate(self):
+            if item != other[i]:
+                return False
+        return True
+
+    def append(self, item):
+        setattr(self, str(self.item_number), AbstractPriorModel.from_object(item))
+        self.item_number += 1
+
+    def __setitem__(self, key, value):
+        obj = AbstractPriorModel.from_object(value)
+        try:
+            obj.id = getattr(self, str(key)).id
+        except AttributeError:
+            pass
+        setattr(self, str(key), obj)
+
+    def remove(self, item):
+        for key, value in self.__dict__.copy().items():
+            if value == item:
+                del self.__dict__[key]
+
+    @property
+    @cast_collection(PriorModelNameValue)
+    def label_prior_model_tuples(self):
+        return [(prior_model.mapping_name if hasattr(prior_model, "mapping_name") else str(i), prior_model) for
+                i, prior_model in enumerate(self)]
+
+    @property
+    def prior_models(self):
+        return [obj for obj in self if isinstance(obj, AbstractPriorModel)]
+
+    def instance_for_arguments(self, arguments):
+        """
+        Parameters
+        ----------
+        arguments: {Prior: float}
+            A dictionary of arguments
+
+        Returns
+        -------
+        model_instances: [object]
+            A list of instances constructed from the list of prior models.
+        """
+        result = ModelInstance()
+        for key, value in self.__dict__.items():
+            if isinstance(value, AbstractPriorModel):
+                value = value.instance_for_arguments(arguments)
+            setattr(result, key, value)
+        return result
+
+    def gaussian_prior_model_for_arguments(self, arguments):
+        """
+        Parameters
+        ----------
+        arguments: {Prior: float}
+            A dictionary of arguments
+
+        Returns
+        -------
+        prior_models: [PriorModel]
+            A new list of prior models with gaussian priors
+        """
+        return CollectionPriorModel(
+            {
+                key: value.gaussian_prior_model_for_arguments(arguments)
+                if isinstance(value, AbstractPriorModel)
+                else value
+                for key, value in self.__dict__.items() if key not in ('component_number', 'item_number', 'id')
+            }
+        )
+
+    @property
+    @cast_collection(PriorNameValue)
+    def prior_tuples(self):
+        """
+        Returns
+        -------
+        priors: [(String, Union(Prior, TuplePrior))]
+        """
+        return set([prior for prior_model in self.prior_models for prior in prior_model.prior_tuples])
+
+    @property
+    @cast_collection(ConstantNameValue)
+    def constant_tuples(self):
+        """
+        Returns
+        -------
+        priors: [(String, Union(Prior, TuplePrior))]
+        """
+        return set([constant for prior_model in self for constant in prior_model.constant_tuples])
+
+    @property
+    def prior_class_dict(self):
+        return {prior: cls for prior_model in self for prior, cls in prior_model.prior_class_dict.items()}

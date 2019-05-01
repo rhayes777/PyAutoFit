@@ -30,10 +30,16 @@ class GalaxyModel(autofit.mapper.prior_model.AbstractPriorModel):
             return Galaxy()
 
     def __init__(self, variable_redshift=False, **kwargs):
+        super().__init__()
         self.redshift = autofit.mapper.prior_model.PriorModel(Redshift) if variable_redshift else None
+        print(self.redshift)
         self.__dict__.update(
             {key: autofit.mapper.prior_model.PriorModel(value) if inspect.isclass(value) else value
              for key, value in kwargs.items()})
+
+    @property
+    def constant_tuples(self):
+        return []
 
     @property
     @p.cast_collection(p.PriorNameValue)

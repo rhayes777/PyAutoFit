@@ -52,25 +52,9 @@ def make_phase():
 @pytest.fixture(name='list_phase')
 def make_list_phase():
     class MyPhase(ph.AbstractPhase):
-        prop = phase_property.PhasePropertyCollection("prop")
+        prop = phase_property.PhaseProperty("prop")
 
     return MyPhase(phase_name='', optimizer_class=NLO)
-
-
-class TestPhaseProperty(object):
-    def test_phase_property(self, phase):
-        phase.prop = mock.GalaxyModel()
-
-        assert phase.variable.prop == phase.prop
-
-        galaxy = mock.Galaxy()
-        phase.prop = galaxy
-
-        assert phase.constant.prop == galaxy
-        assert not hasattr(phase.variable, "prop")
-
-        phase.prop = mock.GalaxyModel()
-        assert not hasattr(phase.constant, "prop")
 
 
 class TestPhasePropertyList(object):
@@ -80,8 +64,6 @@ class TestPhasePropertyList(object):
         list_phase.prop = objects
 
         assert list_phase.constant.prop == objects
-        assert len(list_phase.variable.prop) == 0
-
         assert list_phase.prop == objects
 
     def test_classes(self, list_phase):
@@ -90,8 +72,6 @@ class TestPhasePropertyList(object):
         list_phase.prop = objects
 
         assert list_phase.variable.prop == objects
-        assert len(list_phase.constant.prop) == 0
-
         assert list_phase.prop == objects
 
     def test_abstract_prior_models(self, list_phase):
@@ -100,8 +80,6 @@ class TestPhasePropertyList(object):
         list_phase.prop = objects
 
         assert list_phase.variable.prop == objects
-        assert len(list_phase.constant.prop) == 0
-
         assert list_phase.prop == objects
 
     def test_mix(self, list_phase):
@@ -109,9 +87,7 @@ class TestPhasePropertyList(object):
 
         list_phase.prop = objects
 
-        assert list_phase.variable.prop == [objects[0]]
-        assert list_phase.constant.prop == [objects[1]]
-
+        assert list_phase.variable.prop == objects
         assert list_phase.prop == objects
 
     def test_set_item(self, list_phase):
@@ -119,26 +95,16 @@ class TestPhasePropertyList(object):
         objects = [galaxy_prior_0, mock.Galaxy()]
 
         list_phase.prop = objects
-        assert_ordered(list_phase.prop)
 
         galaxy_prior_1 = mock.GalaxyModel()
         list_phase.prop[1] = galaxy_prior_1
 
-        assert_ordered(list_phase.prop)
-
-        assert list_phase.constant.prop == []
         assert list_phase.variable.prop == [galaxy_prior_0, galaxy_prior_1]
 
         galaxy = mock.Galaxy()
 
         list_phase.prop[0] = galaxy
-
-        assert_ordered(list_phase.prop)
-
         assert list_phase.prop == [galaxy, galaxy_prior_1]
-
-        assert list_phase.constant.prop == [galaxy]
-        assert list_phase.variable.prop == [galaxy_prior_1]
 
 
 class TestPhasePropertyCollectionAttributes(object):
@@ -165,47 +131,44 @@ class TestPhasePropertyCollectionAttributes(object):
         list_phase.prop = [galaxy_model]
 
         # noinspection PyUnresolvedReferences
-        assert list_phase.prop.prop_0 == galaxy_model
+        assert getattr(list_phase.prop, "0") == galaxy_model
 
     def test_mix(self, list_phase):
         objects = dict(one=mock.GalaxyModel(), two=mock.Galaxy())
 
         list_phase.prop = objects
 
-        assert list_phase.variable.prop == [objects["one"]]
-        assert list_phase.constant.prop == [objects["two"]]
-
         list_phase.prop.one = mock.Galaxy()
 
-        assert len(list_phase.variable.prop) == 0
-        assert len(list_phase.constant.prop) == 2
+        assert len(list_phase.variable.prop) == 2
 
     def test_named_attributes_in_variable(self, list_phase):
         galaxy_model = mock.GalaxyModel(variable_redshift=True)
         list_phase.prop = dict(one=galaxy_model)
 
         assert list_phase.variable.prior_count == 1
-        assert list_phase.variable.one == galaxy_model
+        assert list_phase.variable.prop.one == galaxy_model
 
         instance = list_phase.variable.instance_from_prior_medians()
 
-        assert instance.one is not None
+        assert instance.prop.one is not None
         assert len(instance.prop) == 1
 
     def test_named_attributes_in_variable_override(self, list_phase):
-        galaxy_model = mock.GalaxyModel(variable_redshift=True)
         list_phase.prop = dict(one=mock.GalaxyModel())
 
         assert list_phase.variable.prior_count == 0
 
+        galaxy_model = mock.GalaxyModel(variable_redshift=True)
+
         list_phase.prop.one = galaxy_model
 
         assert list_phase.variable.prior_count == 1
-        assert list_phase.variable.one == galaxy_model
+        # assert list_phase.variable.one == galaxy_model
 
         instance = list_phase.variable.instance_from_prior_medians()
 
-        assert instance.one is not None
+        # assert instance.one is not None
         assert len(instance.prop) == 1
 
     def test_named_attributes_in_constant(self, list_phase):
@@ -213,18 +176,21 @@ class TestPhasePropertyCollectionAttributes(object):
         list_phase.prop = dict(one=galaxy)
 
         assert list_phase.variable.prior_count == 0
-        assert list_phase.constant.one == galaxy
+        assert list_phase.variable.prop.one == galaxy
 
     def test_singular_model_info(self, list_phase):
         galaxy_model = mock.GalaxyModel(variable_redshift=True)
         list_phase.prop = dict(one=galaxy_model)
 
-        assert list_phase.variable.one == galaxy_model
+        assert list_phase.variable.prop.one == galaxy_model
         assert len(galaxy_model.flat_prior_model_tuples) == 1
         assert len(galaxy_model.prior_tuples) == 1
 
         assert len(list_phase.variable.flat_prior_model_tuples) == 1
-        assert len(list_phase.variable.info.split('\n')) == 4
+
+        print(list_phase.variable.info)
+
+        assert len(list_phase.variable.info.split('\n')) == 7
 
     def test_shared_priors(self, list_phase):
         list_phase.prop = dict(one=mock.GalaxyModel(variable_redshift=True),
@@ -255,7 +221,3 @@ class TestPhasePropertyCollectionAttributes(object):
         prior_model.phase_property_position = 0
 
         assert len(prior_model.constant_tuples) == 0
-
-
-def assert_ordered(items):
-    assert [n for n in range(len(items))] == [item.phase_property_position for item in items]
