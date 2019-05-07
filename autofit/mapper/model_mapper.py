@@ -128,8 +128,7 @@ class ModelMapper(AbstractModel):
         prior_tuple_dict: [(Prior, PriorTuple)]
             The set of all priors associated with this mapper
         """
-        return {prior_tuple.prior: PriorNameValue(prior_tuple.name if prior_tuple.name is not "value" else name,
-                                                  prior_tuple.prior)
+        return {prior_tuple.prior: prior_tuple
                 for name, prior_model in self.prior_model_tuples
                 for prior_tuple in prior_model.prior_tuples}.values()
 
