@@ -88,6 +88,26 @@ class TestFloatAnnotation(object):
         assert isinstance(result.object.position[0], Distance)
         assert isinstance(result.object.position[1], Distance)
 
+    def test_prior_linking(self):
+        mapper = mm.ModelMapper()
+        mapper.a = SimpleClass
+        mapper.b = SimpleClass
+
+        assert mapper.prior_count == 4
+
+        mapper.a.one = mapper.b.one
+
+        assert mapper.prior_count == 3
+
+        mapper.a.two = mapper.b.two
+
+        assert mapper.prior_count == 2
+
+        mapper.a.one = mapper.a.two
+        mapper.b.one = mapper.b.two
+
+        assert mapper.prior_count == 1
+
 
 class TestHashing(object):
     def test_is_hashable(self):

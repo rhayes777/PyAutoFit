@@ -109,15 +109,35 @@ class AbstractPhase(object):
         raise NotImplementedError()
 
 
-def as_grid_search(phase_class):
+def as_grid_search(phase_class, parallel=False):
+    """
+    Create a grid search phase class from a regular phase class. Instead of the phase being optimised by a single
+    non-linear optimiser, a new optimiser is created for each square in a grid.
+
+    Parameters
+    ----------
+    phase_class
+        The original phase class
+    parallel: bool
+        Indicates whether non linear searches in the grid should be performed on parallel processes.
+
+    Returns
+    -------
+    grid_search_phase_class: GridSearchExtension
+        A class that inherits from the original class, replacing the optimiser with a grid search optimiser.
+
+    """
+
     class GridSearchExtension(phase_class):
         def __init__(self, *args, phase_name, tag_phases=True, phase_folders=None, number_of_steps=10,
                      optimizer_class=non_linear.MultiNest, **kwargs):
             super().__init__(*args, phase_name=phase_name, tag_phases=tag_phases, phase_folders=phase_folders,
                              optimizer_class=optimizer_class, **kwargs)
-            self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_tag=self.phase_tag, phase_folders=phase_folders,
+            self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_tag=self.phase_tag,
+                                                    phase_folders=phase_folders,
                                                     number_of_steps=number_of_steps, optimizer_class=optimizer_class,
-                                                    model_mapper=self.variable, constant=self.constant)
+                                                    model_mapper=self.variable, constant=self.constant,
+                                                    parallel=parallel)
 
         def run_analysis(self, analysis):
             return self.optimizer.fit(analysis, self.grid_priors)

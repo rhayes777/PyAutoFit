@@ -1,7 +1,8 @@
 import copy
 import inspect
 import re
-import typing
+
+from typing_inspect import is_tuple_type
 
 from autofit import conf, exc
 from autofit.mapper.model import ModelInstance
@@ -247,7 +248,7 @@ class PriorModel(AbstractPriorModel):
                 # noinspection PyUnresolvedReferences
                 if issubclass(spec, float):
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
-                elif isinstance(spec, typing.TupleMeta):
+                elif is_tuple_type(spec):
                     tuple_prior = TuplePrior()
                     for i, tuple_arg in enumerate(spec.__args__):
                         attribute_name = "{}_{}".format(arg, i)
@@ -488,10 +489,10 @@ class AnnotationPriorModel(PriorModel):
 
 class CollectionPriorModel(AbstractPriorModel):
     def name_for_prior(self, prior):
-        for i, prior_model in enumerate(self):
+        for name, prior_model in self.prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
             if prior_name is not None:
-                return "{}_{}".format(i, prior_name)
+                return "{}_{}".format(name, prior_name)
 
     def __getitem__(self, item):
         return self.items[item]
