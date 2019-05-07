@@ -196,10 +196,12 @@ class TestGridNLOBehaviour(object):
 
         assert len(container.init_args) == 4
 
-        assert container.init_args[0][1] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
-        assert container.init_args[1][1] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
-        assert container.init_args[2][1] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
-        assert container.init_args[3][1] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
+        sorted_args = list(sorted(container.init_args[n][1] for n in range(4)))
+
+        assert sorted_args[0] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
+        assert sorted_args[1] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
+        assert sorted_args[2] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
+        assert sorted_args[3] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
 
     def test_results(self, grid_search_05, mapper, container):
         result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])

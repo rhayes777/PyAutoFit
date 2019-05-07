@@ -1,6 +1,7 @@
 import logging
 import multiprocessing
 import os
+from time import sleep
 
 import numpy as np
 
@@ -13,7 +14,6 @@ from autofit.mapper import prior as p
 from autofit.optimize import non_linear
 from autofit.optimize import optimizer
 from autofit.tools import path_util
-from time import sleep
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +278,7 @@ class GridSearch(object):
             The result of the grid search
         """
 
-        grid_priors = list(set(grid_priors))
+        grid_priors = list(sorted(set(grid_priors)))
         results = []
         lists = self.make_lists(grid_priors)
 
@@ -307,7 +307,7 @@ class GridSearch(object):
         model_mapper = self.variable.mapper_from_partial_prior_arguments(arguments)
 
         labels = []
-        for prior in arguments.values():
+        for prior in sorted(arguments.values()):
             labels.append(
                 "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
