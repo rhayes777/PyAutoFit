@@ -488,10 +488,10 @@ class AnnotationPriorModel(PriorModel):
 
 class CollectionPriorModel(AbstractPriorModel):
     def name_for_prior(self, prior):
-        for i, prior_model in enumerate(self):
+        for name, prior_model in self.prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
             if prior_name is not None:
-                return "{}_{}".format(i, prior_name)
+                return "{}_{}".format(name, prior_name)
 
     def __getitem__(self, item):
         return self.items[item]

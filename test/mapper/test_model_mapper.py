@@ -496,6 +496,10 @@ class TestRegression(object):
                                   "ls_1_two",
                                   "ls_1_three"]
 
+    def test_name_for_prior(self):
+        ls = pm.CollectionPriorModel([mock.RelativeWidth(1, 2, 3), pm.PriorModel(mock.RelativeWidth)])
+        assert ls.name_for_prior(ls[1].one) == "1_one"
+
     def test_tuple_parameter_float(self, mapper):
         mapper.with_float = WithFloat
         mapper.with_tuple = WithTuple
