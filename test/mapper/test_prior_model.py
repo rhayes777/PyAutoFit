@@ -214,6 +214,8 @@ class TestCase(object):
         assert instance.ls[1].one == 1
         assert instance.ls[1].two == 2
 
+        assert len(prior_model.prior_class_dict) == 2
+
     def test_list_in_list_prior_model(self):
         prior_model = pm.CollectionPriorModel([[SimpleClass]])
 
