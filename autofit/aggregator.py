@@ -73,6 +73,7 @@ class PhaseOutput(object):
 
 
 class Aggregator(object):
+
     def __init__(self, directory: str):
         """
         Class to aggregate phase results for all subdirectories in a given directory.

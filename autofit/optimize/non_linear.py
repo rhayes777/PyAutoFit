@@ -597,13 +597,13 @@ class MultiNest(NonLinearOptimizer):
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
 
-        constant = self.most_likely_instance_from_summary()
+        constant = self.most_likely_model_instance
         constant += self.constant
 
         analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
 
         self.backup()
-        return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(),
+        return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
                       previous_variable=self.variable,
                       gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
@@ -628,7 +628,8 @@ class MultiNest(NonLinearOptimizer):
 
         return vector
 
-    def most_probable_from_summary(self):
+    @property
+    def most_probable_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lensing.
@@ -639,7 +640,8 @@ class MultiNest(NonLinearOptimizer):
         """
         return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=0)
 
-    def most_likely_from_summary(self):
+    @property
+    def most_likely_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lensing.
@@ -649,19 +651,21 @@ class MultiNest(NonLinearOptimizer):
         """
         return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=56)
 
-    def max_likelihood_from_summary(self):
+    @property
+    def maximum_likelihood(self):
         return self.read_vector_from_summary(number_entries=2, offset=112)[0]
 
-    def max_log_likelihood_from_summary(self):
+    @property
+    def maximum_log_likelihood(self):
         return self.read_vector_from_summary(number_entries=2, offset=112)[1]
 
-    def most_probable_instance_from_summary(self):
-        most_probable = self.most_probable_from_summary()
-        return self.variable.instance_from_physical_vector(most_probable)
+    @property
+    def most_probable_model_instance(self):
+        return self.variable.instance_from_physical_vector(physical_vector=self.most_probable_model_parameters)
 
-    def most_likely_instance_from_summary(self):
-        most_likely = self.most_likely_from_summary()
-        return self.variable.instance_from_physical_vector(most_likely)
+    @property
+    def most_likely_model_instance(self):
+        return self.variable.instance_from_physical_vector(physical_vector=self.most_likely_model_parameters)
 
     def gaussian_priors_at_sigma_limit(self, sigma_limit):
         """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
@@ -674,21 +678,21 @@ class MultiNest(NonLinearOptimizer):
             PDF).
         """
 
-        means = self.most_probable_from_summary()
-        uppers = self.model_at_upper_sigma_limit(sigma_limit)
-        lowers = self.model_at_lower_sigma_limit(sigma_limit)
+        means = self.most_probable_model_parameters
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
 
         # noinspection PyArgumentList
         sigmas = list(map(lambda mean, upper, lower: max([upper - mean, mean - lower]), means, uppers, lowers))
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def model_at_sigma_limit(self, sigma_limit):
+    def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
         densities_1d = list(map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names))
         return list(map(lambda p: p.getLimits(limit), densities_1d))
 
-    def model_at_upper_sigma_limit(self, sigma_limit):
+    def model_parameters_at_upper_sigma_limit(self, sigma_limit):
         """Setup 1D vectors of the upper and lower limits of the multinest nlo.
 
         These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
@@ -700,9 +704,9 @@ class MultiNest(NonLinearOptimizer):
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(map(lambda param: param[1], self.model_at_sigma_limit(sigma_limit)))
+        return list(map(lambda param: param[1], self.model_parameters_at_sigma_limit(sigma_limit)))
 
-    def model_at_lower_sigma_limit(self, sigma_limit):
+    def model_parameters_at_lower_sigma_limit(self, sigma_limit):
         """Setup 1D vectors of the upper and lower limits of the multinest nlo.
 
         These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
@@ -714,14 +718,14 @@ class MultiNest(NonLinearOptimizer):
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(map(lambda param: param[0], self.model_at_sigma_limit(sigma_limit)))
+        return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
 
     def model_errors_at_sigma_limit(self, sigma_limit):
-        uppers = self.model_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
-    def weighted_sample_instance_from_weighted_samples(self, index):
+    def weighted_sample_model_instance_from_weighted_samples(self, index):
         """Setup a model instance of a weighted sample, including its weight and likelihood.
 
         Parameters
@@ -729,13 +733,13 @@ class MultiNest(NonLinearOptimizer):
         index : int
             The index of the weighted sample to return.
         """
-        model, weight, likelihood = self.weighted_sample_model_from_weighted_samples(index)
+        model, weight, likelihood = self.weighted_sample_model_parameters_from_weighted_samples(index)
 
         self._weighted_sample_model = model
 
         return self.variable.instance_from_physical_vector(model), weight, likelihood
 
-    def weighted_sample_model_from_weighted_samples(self, index):
+    def weighted_sample_model_parameters_from_weighted_samples(self, index):
         """From a weighted sample return the model, weight and likelihood hood.
 
         NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \
@@ -789,12 +793,10 @@ class MultiNest(NonLinearOptimizer):
 
             with open(self.file_results, 'w') as results:
 
-                max_likelihood = self.max_likelihood_from_summary()
-
-                results.write('Most likely model, Likelihood = {}\n'.format(rounded(max_likelihood)))
+                results.write('Most likely model, Likelihood = {}\n'.format(rounded(self.maximum_likelihood)))
                 results.write('\n')
 
-                most_likely = self.most_likely_from_summary()
+                most_likely = self.most_likely_model_parameters
 
                 if len(most_likely) != self.variable.prior_count:
                     raise exc.MultiNestException('MultiNest and GetDist have counted a different number of parameters.'
@@ -807,11 +809,11 @@ class MultiNest(NonLinearOptimizer):
 
                 if not during_analysis:
 
-                    most_probable = self.most_probable_from_summary()
+                    most_probable = self.most_probable_model_parameters
 
                     def write_for_sigma_limit(limit):
-                        lower_limit = self.model_at_lower_sigma_limit(sigma_limit=limit)
-                        upper_limit = self.model_at_upper_sigma_limit(sigma_limit=limit)
+                        lower_limit = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
+                        upper_limit = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
 
                         results.write('\n')
                         results.write('Most probable model ({} sigma limits)\n'.format(limit))
