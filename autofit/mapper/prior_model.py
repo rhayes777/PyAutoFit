@@ -506,7 +506,8 @@ class CollectionPriorModel(AbstractPriorModel):
 
     @property
     def flat_prior_model_tuples(self):
-        return [flat_prior_model for prior_model in self for flat_prior_model in prior_model.flat_prior_model_tuples]
+        return [flat_prior_model for prior_model in self.prior_models for flat_prior_model in
+                prior_model.flat_prior_model_tuples]
 
     def __init__(self, arguments=None):
         """
@@ -630,7 +631,7 @@ class CollectionPriorModel(AbstractPriorModel):
         -------
         priors: [(String, Union(Prior, TuplePrior))]
         """
-        return set([constant for prior_model in self for constant in prior_model.constant_tuples])
+        return set([constant for prior_model in self.prior_models for constant in prior_model.constant_tuples])
 
     @property
     def prior_class_dict(self):
