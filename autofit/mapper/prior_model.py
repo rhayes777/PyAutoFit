@@ -385,13 +385,15 @@ class PriorModel(AbstractPriorModel):
         priors: [(String, Prior))]
         """
         deeper = [
-            (prior_model[0] if isinstance(prior_model[1], dimension_type.DimensionType) else prior.name, prior.value)
+            (prior_model[0] if prior.name == "value" else prior.name, prior.value)
             for prior_model in
             self.prior_model_tuples
             for prior in
             prior_model[1].prior_tuples]
-        return [prior for tuple_prior in self.tuple_prior_tuples for prior in
-                tuple_prior[1].prior_tuples] + self.direct_prior_tuples + deeper
+        tuple_priors = [prior for tuple_prior in self.tuple_prior_tuples for prior in
+                        tuple_prior[1].prior_tuples]
+        direct_priors = self.direct_prior_tuples
+        return tuple_priors + direct_priors + deeper
 
     @property
     @cast_collection(ConstantNameValue)

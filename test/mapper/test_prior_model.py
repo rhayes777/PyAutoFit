@@ -108,6 +108,12 @@ class TestFloatAnnotation(object):
 
         assert mapper.prior_count == 1
 
+    def test_prior_tuples(self):
+        prior_model = pm.PriorModel(DistanceClass)
+
+        assert prior_model.prior_tuples[0].name == "first"
+        assert prior_model.prior_tuples[1].name == "second"
+
 
 class TestHashing(object):
     def test_is_hashable(self):
