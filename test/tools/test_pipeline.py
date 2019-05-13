@@ -71,3 +71,9 @@ class TestPipeline(object):
 
         with pytest.raises(exc.PipelineException):
             pipeline.assert_optimizer_pickle_matches_for_phase(phase)
+
+    def test_name_composition(self):
+        first = pipeline.Pipeline("first")
+        second = pipeline.Pipeline("second")
+
+        assert (first + second).pipeline_name == "first + second"
