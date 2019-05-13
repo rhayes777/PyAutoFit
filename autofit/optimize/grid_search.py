@@ -118,18 +118,18 @@ class GridSearch(object):
 
         self.phase_name = phase_name
 
-        self.phase_tag_input = phase_tag
-
         if phase_tag is None:
             self.phase_tag = ''
+            self.phase_tag_input = ''
         else:
+            self.phase_tag_input = phase_tag
             self.phase_tag = 'settings' + phase_tag
 
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
         self.phase_output_path = "{}/{}/{}/{}".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                      self.phase_tag)
+                                                      self.phase_tag_input)
 
         sym_path = "{}/optimizer".format(self.phase_output_path)
         self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
@@ -309,7 +309,7 @@ class GridSearch(object):
             labels.append(
                 "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
-        name_path = "{}/{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
+        name_path = "{}/{}/{}".format(self.phase_name, self.phase_tag_input, "_".join(labels))
         optimizer_instance = self.optimizer_instance(model_mapper, name_path)
 
         return Job(optimizer_instance, analysis, arguments)
