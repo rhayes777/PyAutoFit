@@ -88,6 +88,32 @@ class TestFloatAnnotation(object):
         assert isinstance(result.object.position[0], Distance)
         assert isinstance(result.object.position[1], Distance)
 
+    def test_prior_linking(self):
+        mapper = mm.ModelMapper()
+        mapper.a = SimpleClass
+        mapper.b = SimpleClass
+
+        assert mapper.prior_count == 4
+
+        mapper.a.one = mapper.b.one
+
+        assert mapper.prior_count == 3
+
+        mapper.a.two = mapper.b.two
+
+        assert mapper.prior_count == 2
+
+        mapper.a.one = mapper.a.two
+        mapper.b.one = mapper.b.two
+
+        assert mapper.prior_count == 1
+
+    def test_prior_tuples(self):
+        prior_model = pm.PriorModel(DistanceClass)
+
+        assert prior_model.prior_tuples[0].name == "first"
+        assert prior_model.prior_tuples[1].name == "second"
+
 
 class TestHashing(object):
     def test_is_hashable(self):
@@ -194,6 +220,8 @@ class TestCase(object):
         assert instance.ls[1].one == 1
         assert instance.ls[1].two == 2
 
+        assert len(prior_model.prior_class_dict) == 2
+
     def test_list_in_list_prior_model(self):
         prior_model = pm.CollectionPriorModel([[SimpleClass]])
 
@@ -211,3 +239,13 @@ class TestCase(object):
         mapper.my_list = pm.CollectionPriorModel({"simple": SimpleClass})
 
         assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
+
+    def test_override_with_constant(self):
+        prior_model = pm.CollectionPriorModel({"simple": SimpleClass})
+
+        simple_instance = SimpleClass(1, 2)
+
+        prior_model.simple = simple_instance
+
+        assert len(prior_model) == 1
+        assert prior_model.simple == simple_instance

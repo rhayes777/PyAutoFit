@@ -177,8 +177,8 @@ class TestGridNLOBehaviour(object):
         grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
         assert len(container.init_args) == 2
-        assert container.init_args[0][1] == "sample_name/profile_centre_0_0.00_0.50"
-        assert container.init_args[1][1] == "sample_name/profile_centre_0_0.50_1.00"
+        assert container.init_args[0][1] == "sample_name//profile_centre_0_0.00_0.50"
+        assert container.init_args[1][1] == "sample_name//profile_centre_0_0.50_1.00"
 
     def test_round_names(self, container, mapper):
         grid_search = gs.GridSearch(model_mapper=mapper, optimizer_class=container.MockOptimizer, number_of_steps=3,
@@ -187,19 +187,21 @@ class TestGridNLOBehaviour(object):
         grid_search.fit(container.MockAnalysis(), [mapper.profile.centre_0])
 
         assert len(container.init_args) == 3
-        assert container.init_args[0][1] == "sample_name/profile_centre_0_0.00_0.33"
-        assert container.init_args[1][1] == "sample_name/profile_centre_0_0.33_0.67"
-        assert container.init_args[2][1] == "sample_name/profile_centre_0_0.67_1.00"
+        assert container.init_args[0][1] == "sample_name//profile_centre_0_0.00_0.33"
+        assert container.init_args[1][1] == "sample_name//profile_centre_0_0.33_0.67"
+        assert container.init_args[2][1] == "sample_name//profile_centre_0_0.67_1.00"
 
     def test_names_2d(self, grid_search_05, mapper, container):
         grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
 
         assert len(container.init_args) == 4
 
-        assert container.init_args[0][1] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
-        assert container.init_args[1][1] == "sample_name/profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
-        assert container.init_args[2][1] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
-        assert container.init_args[3][1] == "sample_name/profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
+        sorted_args = list(sorted(container.init_args[n][1] for n in range(4)))
+
+        assert sorted_args[0] == "sample_name//profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
+        assert sorted_args[1] == "sample_name//profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
+        assert sorted_args[2] == "sample_name//profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
+        assert sorted_args[3] == "sample_name//profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
 
     def test_results(self, grid_search_05, mapper, container):
         result = grid_search_05.fit(container.MockAnalysis(), [mapper.profile.centre_0, mapper.profile.centre_1])
@@ -228,7 +230,7 @@ class TestGridNLOBehaviour(object):
 
     def test_generated_models_with_constants(self, grid_search, container):
         constant_profile = mock.GeometryProfile()
-        grid_search.constant.constant_profile = constant_profile
+        grid_search.variable.constant_profile = constant_profile
 
         analysis = container.MockAnalysis()
 

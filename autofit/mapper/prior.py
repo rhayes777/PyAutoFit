@@ -161,7 +161,10 @@ class Prior(ModelObject):
         raise NotImplementedError()
 
     def __eq__(self, other):
-        return self.id == other.id
+        try:
+            return self.id == other.id
+        except AttributeError:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)

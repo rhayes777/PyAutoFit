@@ -71,3 +71,34 @@ class TestPipeline(object):
 
         with pytest.raises(exc.PipelineException):
             pipeline.assert_optimizer_pickle_matches_for_phase(phase)
+
+    def test_name_composition(self):
+        first = pipeline.Pipeline("first")
+        second = pipeline.Pipeline("second")
+
+        assert (first + second).pipeline_name == "first + second"
+
+
+# noinspection PyUnresolvedReferences
+class TestPhasePipelineName(object):
+    def test_name_stamping(self):
+        one = MockPhase("one")
+        two = MockPhase("two")
+        pipeline.Pipeline("name", one, two)
+
+        assert one.pipeline_name == "name"
+        assert two.pipeline_name == "name"
+
+    def test_no_restamping(self):
+        one = MockPhase("one")
+        two = MockPhase("two")
+        pipeline_one = pipeline.Pipeline("one", one)
+        pipeline_two = pipeline.Pipeline("two", two)
+
+        composed_pipeline = pipeline_one + pipeline_two
+
+        assert composed_pipeline[0].pipeline_name == "one"
+        assert composed_pipeline[1].pipeline_name == "two"
+
+        assert one.pipeline_name == "one"
+        assert two.pipeline_name == "two"

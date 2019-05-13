@@ -1,13 +1,15 @@
 import copy
 import inspect
 import re
-import typing
+
+from typing_inspect import is_tuple_type
 
 from autofit import conf, exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, TuplePrior, UniformPrior, \
     LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue
+from autofit.tools import dimension_type
 
 
 def tuple_name(attribute_name):
@@ -247,7 +249,7 @@ class PriorModel(AbstractPriorModel):
                 # noinspection PyUnresolvedReferences
                 if issubclass(spec, float):
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
-                elif isinstance(spec, typing.TupleMeta):
+                elif is_tuple_type(spec):
                     tuple_prior = TuplePrior()
                     for i, tuple_arg in enumerate(spec.__args__):
                         attribute_name = "{}_{}".format(arg, i)
@@ -382,11 +384,16 @@ class PriorModel(AbstractPriorModel):
         -------
         priors: [(String, Prior))]
         """
-        return [prior for tuple_prior in self.tuple_prior_tuples for prior in
-                tuple_prior[1].prior_tuples] + self.direct_prior_tuples + [prior for prior_model in
-                                                                           self.prior_model_tuples
-                                                                           for prior in
-                                                                           prior_model[1].prior_tuples]
+        deeper = [
+            (prior_model[0] if prior.name == "value" else prior.name, prior.value)
+            for prior_model in
+            self.prior_model_tuples
+            for prior in
+            prior_model[1].prior_tuples]
+        tuple_priors = [prior for tuple_prior in self.tuple_prior_tuples for prior in
+                        tuple_prior[1].prior_tuples]
+        direct_priors = self.direct_prior_tuples
+        return tuple_priors + direct_priors + deeper
 
     @property
     @cast_collection(ConstantNameValue)
@@ -488,10 +495,10 @@ class AnnotationPriorModel(PriorModel):
 
 class CollectionPriorModel(AbstractPriorModel):
     def name_for_prior(self, prior):
-        for i, prior_model in enumerate(self):
+        for name, prior_model in self.prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
             if prior_name is not None:
-                return "{}_{}".format(i, prior_name)
+                return "{}_{}".format(name, prior_name)
 
     def __getitem__(self, item):
         return self.items[item]
@@ -505,7 +512,8 @@ class CollectionPriorModel(AbstractPriorModel):
 
     @property
     def flat_prior_model_tuples(self):
-        return [flat_prior_model for prior_model in self for flat_prior_model in prior_model.flat_prior_model_tuples]
+        return [flat_prior_model for prior_model in self.prior_models for flat_prior_model in
+                prior_model.flat_prior_model_tuples]
 
     def __init__(self, arguments=None):
         """
@@ -629,8 +637,8 @@ class CollectionPriorModel(AbstractPriorModel):
         -------
         priors: [(String, Union(Prior, TuplePrior))]
         """
-        return set([constant for prior_model in self for constant in prior_model.constant_tuples])
+        return set([constant for prior_model in self.prior_models for constant in prior_model.constant_tuples])
 
     @property
     def prior_class_dict(self):
-        return {prior: cls for prior_model in self for prior, cls in prior_model.prior_class_dict.items()}
+        return {prior: cls for prior_model in self.prior_models for prior, cls in prior_model.prior_class_dict.items()}

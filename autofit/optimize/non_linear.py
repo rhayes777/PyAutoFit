@@ -13,7 +13,6 @@ import numpy as np
 import pymultinest
 import scipy.optimize
 
-import autofit.mapper.model
 from autofit import conf
 from autofit import exc
 from autofit.mapper import model_mapper as mm, link
@@ -174,7 +173,8 @@ class NonLinearOptimizer(object):
         if phase_tag is None:
             self.phase_tag = ''
         else:
-            self.phase_tag = phase_tag
+            self.phase_tag = 'settings_' + phase_tag
+
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
         except FileExistsError:
@@ -183,7 +183,6 @@ class NonLinearOptimizer(object):
         self.path = link.make_linked_folder(self.sym_path)
 
         self.variable = model_mapper or mm.ModelMapper()
-        self.constant = autofit.mapper.model.ModelInstance()
 
         self.label_config = conf.instance.label
 
@@ -214,26 +213,26 @@ class NonLinearOptimizer(object):
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                                    self.phase_tag)
+        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                                     self.phase_tag)
 
     @property
     def phase_output_path(self) -> str:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                    self.phase_tag)
+        return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                     self.phase_tag)
 
     @property
     def opt_path(self) -> str:
-        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                             self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                              self.phase_tag)
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                             self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                              self.phase_tag)
 
     @property
     def file_param_names(self) -> str:
@@ -344,10 +343,9 @@ class NonLinearOptimizer(object):
                 paramnames.write(line + '\n')
 
     class Fitness(object):
-        def __init__(self, nlo, analysis, constant, image_path):
+        def __init__(self, nlo, analysis, image_path):
             self.nlo = nlo
             self.result = None
-            self.constant = constant
             self.max_likelihood = -np.inf
             self.image_path = image_path
             self.analysis = analysis
@@ -360,8 +358,6 @@ class NonLinearOptimizer(object):
             self.should_backup = IntervalCounter(backup_interval)
 
         def fit_instance(self, instance):
-            instance += self.constant
-
             likelihood = self.analysis.fit(instance)
 
             if likelihood > self.max_likelihood:
@@ -379,7 +375,6 @@ class NonLinearOptimizer(object):
     def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
         new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable)
-        new_instance.constant = self.constant
         return new_instance
 
 
@@ -416,8 +411,8 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, image_path):
-            super().__init__(nlo, analysis, constant, image_path)
+        def __init__(self, nlo, analysis, instance_from_physical_vector, image_path):
+            super().__init__(nlo, analysis, image_path)
             self.instance_from_physical_vector = instance_from_physical_vector
 
         def __call__(self, vector):
@@ -434,7 +429,7 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = self.variable.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(self, analysis, self.variable.instance_from_physical_vector,
-                                                   self.constant, self.image_path)
+                                                   self.image_path)
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
@@ -526,8 +521,8 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
 
-        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, output_results, image_path):
-            super().__init__(nlo, analysis, constant, image_path)
+        def __init__(self, nlo, analysis, instance_from_physical_vector, output_results, image_path):
+            super().__init__(nlo, analysis, image_path)
             self.instance_from_physical_vector = instance_from_physical_vector
             self.output_results = output_results
             self.accepted_samples = 0
@@ -566,7 +561,7 @@ class MultiNest(NonLinearOptimizer):
 
             return cube
 
-        fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector, self.constant,
+        fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector,
                                              self.output_results, self.image_path)
 
         logger.info("Running MultiNest...")
@@ -597,13 +592,12 @@ class MultiNest(NonLinearOptimizer):
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
 
-        constant = self.most_likely_instance_from_summary()
-        constant += self.constant
+        constant = self.most_likely_model_instance
 
         analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
 
         self.backup()
-        return Result(constant=constant, figure_of_merit=self.max_likelihood_from_summary(),
+        return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
                       previous_variable=self.variable,
                       gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
@@ -628,7 +622,8 @@ class MultiNest(NonLinearOptimizer):
 
         return vector
 
-    def most_probable_from_summary(self):
+    @property
+    def most_probable_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lensing.
@@ -639,7 +634,8 @@ class MultiNest(NonLinearOptimizer):
         """
         return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=0)
 
-    def most_likely_from_summary(self):
+    @property
+    def most_likely_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lensing.
@@ -649,19 +645,21 @@ class MultiNest(NonLinearOptimizer):
         """
         return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=56)
 
-    def max_likelihood_from_summary(self):
+    @property
+    def maximum_likelihood(self):
         return self.read_vector_from_summary(number_entries=2, offset=112)[0]
 
-    def max_log_likelihood_from_summary(self):
+    @property
+    def maximum_log_likelihood(self):
         return self.read_vector_from_summary(number_entries=2, offset=112)[1]
 
-    def most_probable_instance_from_summary(self):
-        most_probable = self.most_probable_from_summary()
-        return self.variable.instance_from_physical_vector(most_probable)
+    @property
+    def most_probable_model_instance(self):
+        return self.variable.instance_from_physical_vector(physical_vector=self.most_probable_model_parameters)
 
-    def most_likely_instance_from_summary(self):
-        most_likely = self.most_likely_from_summary()
-        return self.variable.instance_from_physical_vector(most_likely)
+    @property
+    def most_likely_model_instance(self):
+        return self.variable.instance_from_physical_vector(physical_vector=self.most_likely_model_parameters)
 
     def gaussian_priors_at_sigma_limit(self, sigma_limit):
         """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
@@ -674,21 +672,21 @@ class MultiNest(NonLinearOptimizer):
             PDF).
         """
 
-        means = self.most_probable_from_summary()
-        uppers = self.model_at_upper_sigma_limit(sigma_limit)
-        lowers = self.model_at_lower_sigma_limit(sigma_limit)
+        means = self.most_probable_model_parameters
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
 
         # noinspection PyArgumentList
         sigmas = list(map(lambda mean, upper, lower: max([upper - mean, mean - lower]), means, uppers, lowers))
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def model_at_sigma_limit(self, sigma_limit):
+    def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
         densities_1d = list(map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names))
         return list(map(lambda p: p.getLimits(limit), densities_1d))
 
-    def model_at_upper_sigma_limit(self, sigma_limit):
+    def model_parameters_at_upper_sigma_limit(self, sigma_limit):
         """Setup 1D vectors of the upper and lower limits of the multinest nlo.
 
         These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
@@ -700,9 +698,9 @@ class MultiNest(NonLinearOptimizer):
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(map(lambda param: param[1], self.model_at_sigma_limit(sigma_limit)))
+        return list(map(lambda param: param[1], self.model_parameters_at_sigma_limit(sigma_limit)))
 
-    def model_at_lower_sigma_limit(self, sigma_limit):
+    def model_parameters_at_lower_sigma_limit(self, sigma_limit):
         """Setup 1D vectors of the upper and lower limits of the multinest nlo.
 
         These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
@@ -714,14 +712,24 @@ class MultiNest(NonLinearOptimizer):
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(map(lambda param: param[0], self.model_at_sigma_limit(sigma_limit)))
+        return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
+
+    def model_errors_at_upper_sigma_limit(self, sigma_limit):
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        return list(
+            map(lambda upper, most_probable: upper - most_probable, uppers, self.most_probable_model_parameters))
+
+    def model_errors_at_lower_sigma_limit(self, sigma_limit):
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        return list(
+            map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
 
     def model_errors_at_sigma_limit(self, sigma_limit):
-        uppers = self.model_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
-    def weighted_sample_instance_from_weighted_samples(self, index):
+    def weighted_sample_model_instance_from_weighted_samples(self, index):
         """Setup a model instance of a weighted sample, including its weight and likelihood.
 
         Parameters
@@ -729,13 +737,13 @@ class MultiNest(NonLinearOptimizer):
         index : int
             The index of the weighted sample to return.
         """
-        model, weight, likelihood = self.weighted_sample_model_from_weighted_samples(index)
+        model, weight, likelihood = self.weighted_sample_model_parameters_from_weighted_samples(index)
 
         self._weighted_sample_model = model
 
         return self.variable.instance_from_physical_vector(model), weight, likelihood
 
-    def weighted_sample_model_from_weighted_samples(self, index):
+    def weighted_sample_model_parameters_from_weighted_samples(self, index):
         """From a weighted sample return the model, weight and likelihood hood.
 
         NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \
@@ -747,6 +755,9 @@ class MultiNest(NonLinearOptimizer):
             The index of the weighted sample to return.
         """
         return list(self.pdf.samples[index]), self.pdf.weights[index], -0.5 * self.pdf.loglikes[index]
+
+    def offset_values_from_input_model_parameters(self, input_model_parameters):
+        return list(map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
 
     def output_pdf_plots(self):
 
@@ -789,12 +800,10 @@ class MultiNest(NonLinearOptimizer):
 
             with open(self.file_results, 'w') as results:
 
-                max_likelihood = self.max_likelihood_from_summary()
-
-                results.write('Most likely model, Likelihood = {}\n'.format(rounded(max_likelihood)))
+                results.write('Most likely model, Likelihood = {}\n'.format(rounded(self.maximum_likelihood)))
                 results.write('\n')
 
-                most_likely = self.most_likely_from_summary()
+                most_likely = self.most_likely_model_parameters
 
                 if len(most_likely) != self.variable.prior_count:
                     raise exc.MultiNestException('MultiNest and GetDist have counted a different number of parameters.'
@@ -807,11 +816,11 @@ class MultiNest(NonLinearOptimizer):
 
                 if not during_analysis:
 
-                    most_probable = self.most_probable_from_summary()
+                    most_probable = self.most_probable_model_parameters
 
                     def write_for_sigma_limit(limit):
-                        lower_limit = self.model_at_lower_sigma_limit(sigma_limit=limit)
-                        upper_limit = self.model_at_upper_sigma_limit(sigma_limit=limit)
+                        lower_limit = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
+                        upper_limit = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
 
                         results.write('\n')
                         results.write('Most probable model ({} sigma limits)\n'.format(limit))
@@ -867,7 +876,6 @@ class GridSearch(NonLinearOptimizer):
         name = "{}/{}".format(self.phase_name, extension)
         new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable,
                                       step_size=self.step_size)
-        new_instance.constant = self.constant
         new_instance.grid = self.grid
         return new_instance
 
@@ -891,9 +899,9 @@ class GridSearch(NonLinearOptimizer):
                 "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, image_path, save_results,
+        def __init__(self, nlo, analysis, instance_from_unit_vector, image_path, save_results,
                      checkpoint_count=0, best_fit=-np.inf, best_cube=None):
-            super().__init__(nlo, analysis, constant, image_path)
+            super().__init__(nlo, analysis, image_path)
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
@@ -1001,7 +1009,6 @@ class GridSearch(NonLinearOptimizer):
         fitness_function = GridSearch.Fitness(self,
                                               analysis,
                                               self.variable.instance_from_unit_vector,
-                                              self.constant,
                                               self.image_path,
                                               save_results,
                                               checkpoint_count=checkpoint_count,
