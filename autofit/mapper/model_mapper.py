@@ -375,6 +375,11 @@ class ModelMapper(AbstractModel):
 
         return self.instance_for_arguments(arguments)
 
+    @property
+    def instance_tuples(self):
+        return [(key, value) for key, value in self.__dict__.items() if
+                isinstance(value, object) and not isinstance(value, AbstractPriorModel)]
+
     def instance_for_arguments(self, arguments):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding to every PriorModel
@@ -398,6 +403,9 @@ class ModelMapper(AbstractModel):
         for prior_model_tuple in self.prior_model_tuples:
             setattr(model_instance, prior_model_tuple.name,
                     prior_model_tuple.prior_model.instance_for_arguments(arguments))
+
+        for name, value in self.instance_tuples:
+            setattr(model_instance, name, value)
 
         return model_instance
 

@@ -41,18 +41,6 @@ class AbstractPhase(object):
         self.auto_link_priors = auto_link_priors
 
     @property
-    def constant(self):
-        """
-        Convenience method
-
-        Returns
-        -------
-        ModelInstance
-            A model instance comprising all the constant objects in this lensing
-        """
-        return self.optimizer.constant
-
-    @property
     def variable(self):
         """
         Convenience method
@@ -139,7 +127,7 @@ def as_grid_search(phase_class, parallel=False):
             self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_tag=self.phase_tag,
                                                     phase_folders=phase_folders,
                                                     number_of_steps=number_of_steps, optimizer_class=optimizer_class,
-                                                    model_mapper=self.variable, constant=self.constant,
+                                                    model_mapper=self.variable,
                                                     parallel=parallel)
 
         def run_analysis(self, analysis):

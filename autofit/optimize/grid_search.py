@@ -5,7 +5,6 @@ from time import sleep
 
 import numpy as np
 
-import autofit.mapper.model
 from autofit import conf
 from autofit import exc
 from autofit.mapper import link
@@ -89,7 +88,7 @@ class GridSearchResult(object):
 class GridSearch(object):
 
     def __init__(self, phase_name, phase_tag=None, phase_folders=None, number_of_steps=10,
-                 optimizer_class=non_linear.DownhillSimplex, model_mapper=None, constant=None, parallel=False):
+                 optimizer_class=non_linear.DownhillSimplex, model_mapper=None, parallel=False):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -107,7 +106,6 @@ class GridSearch(object):
             The name of this grid search
         """
         self.variable = model_mapper or mm.ModelMapper()
-        self.constant = constant or autofit.mapper.model.ModelInstance()
 
         self.parallel = parallel
         self.number_of_cores = conf.instance.non_linear.get("GridSearch", "number_of_cores", int)
@@ -134,7 +132,7 @@ class GridSearch(object):
         self.optimizer_class = optimizer_class
 
         self.phase_output_path = "{}/{}/{}/{}".format(conf.instance.output_path, self.phase_path, phase_name,
-                                                     self.phase_tag)
+                                                      self.phase_tag)
 
         sym_path = "{}/optimizer".format(self.phase_output_path)
         self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
@@ -316,7 +314,6 @@ class GridSearch(object):
 
         name_path = "{}/{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
         optimizer_instance = self.optimizer_instance(model_mapper, name_path)
-        optimizer_instance.constant = self.constant
 
         return Job(optimizer_instance, analysis, arguments)
 

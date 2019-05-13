@@ -230,7 +230,7 @@ class TestGridNLOBehaviour(object):
 
     def test_generated_models_with_constants(self, grid_search, container):
         constant_profile = mock.GeometryProfile()
-        grid_search.constant.constant_profile = constant_profile
+        grid_search.variable.constant_profile = constant_profile
 
         analysis = container.MockAnalysis()
 
