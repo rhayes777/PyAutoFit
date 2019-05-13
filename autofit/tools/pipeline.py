@@ -140,7 +140,7 @@ class Pipeline(object):
             f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
                                                             data_name))
 
-    def run_function(self, func, data_name=None, assert_optimizer_pickle_matches=True):
+    def run_function(self, func, data_name=None, assert_optimizer_pickle_matches=False):
         """
         Run the function for each phase in the pipeline.
 
