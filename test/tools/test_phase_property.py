@@ -58,13 +58,13 @@ def make_list_phase():
 
 
 class TestPhasePropertyList(object):
-    def test_constants(self, list_phase):
-        objects = [mock.Galaxy(), mock.Galaxy()]
-
-        list_phase.prop = objects
-
-        assert list_phase.constant.prop == objects
-        assert list_phase.prop == objects
+    # def test_constants(self, list_phase):
+    #     objects = [mock.Galaxy(), mock.Galaxy()]
+    #
+    #     list_phase.prop = objects
+    #
+    #     assert list_phase.constant.prop == objects
+    #     assert list_phase.prop == objects
 
     def test_classes(self, list_phase):
         objects = [mock.GalaxyModel(), mock.GalaxyModel()]

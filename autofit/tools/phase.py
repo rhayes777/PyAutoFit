@@ -47,7 +47,7 @@ class AbstractPhase(object):
         ModelInstance
             A model instance comprising all the constant objects in this lensing
         """
-        return self.optimizer.variable
+        return self.optimizer.constant
 
     @property
     def variable(self):
