@@ -720,6 +720,14 @@ class MultiNest(NonLinearOptimizer):
         """
         return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
 
+    def model_errors_at_upper_sigma_limit(self, sigma_limit):
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        return list(map(lambda upper, most_probable: upper - most_probable, uppers, self.most_probable_model_parameters))
+
+    def model_errors_at_lower_sigma_limit(self, sigma_limit):
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        return list(map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
+
     def model_errors_at_sigma_limit(self, sigma_limit):
         uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
         lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
@@ -751,6 +759,9 @@ class MultiNest(NonLinearOptimizer):
             The index of the weighted sample to return.
         """
         return list(self.pdf.samples[index]), self.pdf.weights[index], -0.5 * self.pdf.loglikes[index]
+
+    def offset_values_from_input_model_parameters(self, input_model_parameters):
+        return list(map(lambda input, mp :  mp - input, input_model_parameters, self.most_probable_model_parameters))
 
     def output_pdf_plots(self):
 

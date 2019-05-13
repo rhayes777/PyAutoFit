@@ -476,7 +476,8 @@ class TestMultiNest(object):
 
     class TestReadFromSummary:
 
-        def test__read_most_probable__1_class_4_params(self, mn_summary_path):
+        def test__most_probable_parameters_and_instance__1_class_4_params(self, mn_summary_path):
+
             conf.instance.output_path = mn_summary_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
@@ -485,7 +486,15 @@ class TestMultiNest(object):
 
             assert mn.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
 
-        def test__read_most_probable__2_classes_6_params(self, mn_summary_path):
+            most_probable = mn.most_probable_model_instance
+
+            assert most_probable.mock_class.one == 1.0
+            assert most_probable.mock_class.two == -2.0
+            assert most_probable.mock_class.three == 3.0
+            assert most_probable.mock_class.four == 4.0
+
+        def test__most_probable_parameters_and_instance__2_classes_6_params(self, mn_summary_path):
+
             conf.instance.output_path = mn_summary_path + '/2_classes'
 
             mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
@@ -494,28 +503,6 @@ class TestMultiNest(object):
             create_summary_10_parameters(path=mn.opt_path)
 
             assert mn.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
-
-        def test__most_probable__setup_model_instance__1_class_4_params(self, mn_summary_path):
-            conf.instance.output_path = mn_summary_path + '/1_class'
-
-            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_summary_4_parameters(path=mn.opt_path)
-
-            most_probable = mn.most_probable_model_instance
-
-            assert most_probable.mock_class.one == 1.0
-            assert most_probable.mock_class.two == -2.0
-            assert most_probable.mock_class.three == 3.0
-            assert most_probable.mock_class.four == 4.0
-
-        def test__most_probable__setup_model_instance__2_classes_6_params(self, mn_summary_path):
-            conf.instance.output_path = mn_summary_path + '/2_classes'
-
-            mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                              mock_class_2=MockClassNLOx6)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_summary_10_parameters(path=mn.opt_path)
 
             most_probable = mn.most_probable_model_instance
 
@@ -529,8 +516,8 @@ class TestMultiNest(object):
             assert most_probable.mock_class_2.three == 9.0
             assert most_probable.mock_class_2.four == 10.0
 
-        def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_constant(self,
-                                                                                          mn_summary_path):
+        def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_constant(self, mn_summary_path):
+
             conf.instance.output_path = mn_summary_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
@@ -547,7 +534,7 @@ class TestMultiNest(object):
             assert most_probable.mock_class.four == 4.0
             assert most_probable.mock_class.five == 10.0
 
-        def test__read_most_likely__1_class_4_params(self, mn_summary_path):
+        def test__most_likely_parameters_and_instance__1_class_4_params(self, mn_summary_path):
             conf.instance.output_path = mn_summary_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
@@ -555,8 +542,16 @@ class TestMultiNest(object):
             create_summary_4_parameters(path=mn.opt_path)
 
             assert mn.most_likely_model_parameters == [9.0, -10.0, -11.0, 12.0]
+            
+            most_likely = mn.most_likely_model_instance
 
-        def test__read_most_likely__2_classes_6_params(self, mn_summary_path):
+            assert most_likely.mock_class.one == 9.0
+            assert most_likely.mock_class.two == -10.0
+            assert most_likely.mock_class.three == -11.0
+            assert most_likely.mock_class.four == 12.0
+
+        def test__rmost_likely_parameters_and_instance__2_classes_6_params(self, mn_summary_path):
+            
             conf.instance.output_path = mn_summary_path + '/2_classes'
 
             mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
@@ -566,29 +561,6 @@ class TestMultiNest(object):
             create_summary_10_parameters(path=mn.opt_path)
 
             assert mn.most_likely_model_parameters == [21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0]
-
-        def test__most_likely__setup_model_instance__1_class_4_params(self, mn_summary_path):
-            conf.instance.output_path = mn_summary_path + '/1_class'
-
-            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_summary_4_parameters(path=mn.opt_path)
-
-            most_likely = mn.most_likely_model_instance
-
-            assert most_likely.mock_class.one == 9.0
-            assert most_likely.mock_class.two == -10.0
-            assert most_likely.mock_class.three == -11.0
-            assert most_likely.mock_class.four == 12.0
-
-        def test__most_likely__setup_model_instance__2_classes_6_params(self, mn_summary_path):
-            conf.instance.output_path = mn_summary_path + '/2_classes'
-
-            mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                              mock_class_2=MockClassNLOx6)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-
-            create_summary_10_parameters(path=mn.opt_path)
 
             most_likely = mn.most_likely_model_instance
 
@@ -602,8 +574,8 @@ class TestMultiNest(object):
             assert most_likely.mock_class_2.three == 29.0
             assert most_likely.mock_class_2.four == 30.0
 
-        def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_constant(self,
-                                                                                        mn_summary_path):
+
+        def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_constant(self, mn_summary_path):
             conf.instance.output_path = mn_summary_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
@@ -814,21 +786,55 @@ class TestMultiNest(object):
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_4_parameters(path=mn.opt_path)
-
-            assert mn.model_parameters_at_upper_sigma_limit(sigma_limit=3.0) == pytest.approx([1.12, 2.12, 3.12, 4.12], 1e-2)
-            assert mn.model_parameters_at_lower_sigma_limit(sigma_limit=3.0) == pytest.approx([0.88, 1.88, 2.88, 3.88], 1e-2)
+            
+            params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=3.0)
+            assert params_upper == pytest.approx([1.12, 2.12, 3.12, 4.12], 1e-2)
+            params_lower = mn.model_parameters_at_lower_sigma_limit(sigma_limit=3.0)
+            assert params_lower == pytest.approx([0.88, 1.88, 2.88, 3.88], 1e-2)
 
         def test__1_profile__change_limit_to_1_sigma(self, mn_samples_path):
+
             conf.instance.output_path = mn_samples_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_4_parameters(path=mn.opt_path)
 
-            assert mn.model_parameters_at_upper_sigma_limit(sigma_limit=1.0) == pytest.approx([1.07, 2.07, 3.07, 4.07], 1e-2)
-            assert mn.model_parameters_at_lower_sigma_limit(sigma_limit=1.0) == pytest.approx([0.93, 1.93, 2.93, 3.93], 1e-2)
+            params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=1.0)
+            assert params_upper == pytest.approx([1.07, 2.07, 3.07, 4.07], 1e-2)
+            params_lower = mn.model_parameters_at_lower_sigma_limit(sigma_limit=1.0)
+            assert params_lower == pytest.approx([0.93, 1.93, 2.93, 3.93], 1e-2)
 
-    class TestModelErrors(object):
+    # class TestModelErrors(object):
+    #
+    #     def test__1_species__upper_and_low_errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
+    #             self, mn_summary_path, mn_samples_path):
+    #
+    #         conf.instance.output_path = mn_samples_path + '/1_class'
+    #
+    #         mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+    #         mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
+    #         create_summary_4_parameters(path=mn_summary_path)
+    #         create_weighted_samples_4_parameters(path=mn_samples_path)
+    #
+    #         errors_upper = mn.model_errors_at_upper_sigma_limit(sigma_limit=3.0)
+    #         assert errors_upper == pytest.approx([0.12, 0.12, 0.12, 0.12], 1e-2)
+    #         errors_lower = mn.model_errors_at_lower_sigma_limit(sigma_limit=3.0)
+    #         assert errors_lower == pytest.approx([0.12, 0.12, 0.12, 0.12], 1e-2)
+    #
+    #
+    #     def test__1_species__upper_and_lower_change_limit_to_1_sigma(self, mn_samples_path):
+    #
+    #         conf.instance.output_path = mn_samples_path + '/1_class'
+    #
+    #         mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+    #         mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
+    #         create_weighted_samples_4_parameters(path=mn_samples_path)
+    #
+    #         errors_upper = mn.model_errors_at_upper_sigma_limit(sigma_limit=1.0)
+    #         assert errors_upper == pytest.approx([0.07, 0.07, 0.07, 0.07], 1e-2)
+    #         errors_lower = mn.model_errors_at_lower_sigma_limit(sigma_limit=1.0)
+    #         assert errors_lower == pytest.approx([0.07, 0.07, 0.07, 0.07], 1e-2)
 
         def test__1_species__errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(self,
                                                                                             mn_samples_path):
@@ -838,19 +844,52 @@ class TestMultiNest(object):
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_4_parameters(path=mn.opt_path)
 
-            assert mn.model_errors_at_sigma_limit(sigma_limit=3.0) == pytest.approx([1.12 - 0.88, 2.12 - 1.88,
-                                                                                     3.12 - 2.88, 4.12 - 3.88], 1e-2)
+            model_errors = mn.model_errors_at_sigma_limit(sigma_limit=3.0)
+            assert model_errors == pytest.approx([1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2)
+
 
         def test__1_species__change_limit_to_1_sigma(self, mn_samples_path):
+
             conf.instance.output_path = mn_samples_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_4_parameters(path=mn.opt_path)
 
-            assert mn.model_errors_at_sigma_limit(sigma_limit=1.0) == pytest.approx([1.07 - 0.93, 2.07 - 1.93,
-                                                                                     3.07 - 2.93, 4.07 - 3.93], 1e-1)
+            model_errors = mn.model_errors_at_sigma_limit(sigma_limit=1.0)
+            assert model_errors == pytest.approx([1.07 - 0.93, 2.07 - 1.93, 3.07 - 2.93, 4.07 - 3.93], 1e-1)
 
+    class TestOffsetFromInput:
+
+        def test__input_model_offset_from_most_probable__parameters_and_instance__1_class_4_params(self, mn_summary_path):
+
+            conf.instance.output_path = mn_summary_path + '/1_class'
+
+            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
+            create_summary_4_parameters(path=mn.opt_path)
+
+            # mn.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
+
+            offset_values = mn.offset_values_from_input_model_parameters(input_model_parameters=[1.0, 1.0, 2.0, 3.0])
+
+            assert offset_values == [0.0, -3.0, 1.0, 1.0]
+
+        def test__read_most_probable__2_classes_6_params(self, mn_summary_path):
+
+            conf.instance.output_path = mn_summary_path + '/2_classes'
+
+            mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
+                                              mock_class_2=MockClassNLOx6)
+            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
+            create_summary_10_parameters(path=mn.opt_path)
+
+            # mn.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
+
+            offset_values = mn.offset_values_from_input_model_parameters(
+                input_model_parameters=[1.0, 1.0, 2.0, 3.0, 10.0, 10.0, 10.0, 10.0, 10.0, 20.0])
+
+            assert offset_values == [0.0, 1.0, 1.0, 1.0, -15.0, -16.0, -17.0, -18.0, -1.0, -10.0]
 
 class MockAnalysis(object):
     def __init__(self):
