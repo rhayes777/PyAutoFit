@@ -13,7 +13,6 @@ import numpy as np
 import pymultinest
 import scipy.optimize
 
-import autofit.mapper.model
 from autofit import conf
 from autofit import exc
 from autofit.mapper import model_mapper as mm, link
@@ -175,6 +174,10 @@ class NonLinearOptimizer(object):
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
+            if len(self.phase_tag) > 1:
+                if self.phase_tag[0] is '_':
+                    self.phase_tag = self.phase_tag[1:]
+
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
         except FileExistsError:
@@ -183,7 +186,6 @@ class NonLinearOptimizer(object):
         self.path = link.make_linked_folder(self.sym_path)
 
         self.variable = model_mapper or mm.ModelMapper()
-        self.constant = autofit.mapper.model.ModelInstance()
 
         self.label_config = conf.instance.label
 
@@ -214,26 +216,26 @@ class NonLinearOptimizer(object):
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                                    self.phase_tag)
+        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                                     self.phase_tag)
 
     @property
     def phase_output_path(self) -> str:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                    self.phase_tag)
+        return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                     self.phase_tag)
 
     @property
     def opt_path(self) -> str:
-        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                             self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                              self.phase_tag)
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                             self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+                                              self.phase_tag)
 
     @property
     def file_param_names(self) -> str:
@@ -344,10 +346,9 @@ class NonLinearOptimizer(object):
                 paramnames.write(line + '\n')
 
     class Fitness(object):
-        def __init__(self, nlo, analysis, constant, image_path):
+        def __init__(self, nlo, analysis, image_path):
             self.nlo = nlo
             self.result = None
-            self.constant = constant
             self.max_likelihood = -np.inf
             self.image_path = image_path
             self.analysis = analysis
@@ -360,8 +361,6 @@ class NonLinearOptimizer(object):
             self.should_backup = IntervalCounter(backup_interval)
 
         def fit_instance(self, instance):
-            instance += self.constant
-
             likelihood = self.analysis.fit(instance)
 
             if likelihood > self.max_likelihood:
@@ -379,7 +378,6 @@ class NonLinearOptimizer(object):
     def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
         new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable)
-        new_instance.constant = self.constant
         return new_instance
 
 
@@ -416,8 +414,8 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, image_path):
-            super().__init__(nlo, analysis, constant, image_path)
+        def __init__(self, nlo, analysis, instance_from_physical_vector, image_path):
+            super().__init__(nlo, analysis, image_path)
             self.instance_from_physical_vector = instance_from_physical_vector
 
         def __call__(self, vector):
@@ -434,7 +432,7 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = self.variable.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(self, analysis, self.variable.instance_from_physical_vector,
-                                                   self.constant, self.image_path)
+                                                   self.image_path)
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
@@ -526,8 +524,8 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
 
-        def __init__(self, nlo, analysis, instance_from_physical_vector, constant, output_results, image_path):
-            super().__init__(nlo, analysis, constant, image_path)
+        def __init__(self, nlo, analysis, instance_from_physical_vector, output_results, image_path):
+            super().__init__(nlo, analysis, image_path)
             self.instance_from_physical_vector = instance_from_physical_vector
             self.output_results = output_results
             self.accepted_samples = 0
@@ -566,7 +564,7 @@ class MultiNest(NonLinearOptimizer):
 
             return cube
 
-        fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector, self.constant,
+        fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector,
                                              self.output_results, self.image_path)
 
         logger.info("Running MultiNest...")
@@ -598,7 +596,6 @@ class MultiNest(NonLinearOptimizer):
         self.output_pdf_plots()
 
         constant = self.most_likely_model_instance
-        constant += self.constant
 
         analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
 
@@ -720,6 +717,16 @@ class MultiNest(NonLinearOptimizer):
         """
         return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
 
+    def model_errors_at_upper_sigma_limit(self, sigma_limit):
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        return list(
+            map(lambda upper, most_probable: upper - most_probable, uppers, self.most_probable_model_parameters))
+
+    def model_errors_at_lower_sigma_limit(self, sigma_limit):
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        return list(
+            map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
+
     def model_errors_at_sigma_limit(self, sigma_limit):
         uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
         lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
@@ -751,6 +758,9 @@ class MultiNest(NonLinearOptimizer):
             The index of the weighted sample to return.
         """
         return list(self.pdf.samples[index]), self.pdf.weights[index], -0.5 * self.pdf.loglikes[index]
+
+    def offset_values_from_input_model_parameters(self, input_model_parameters):
+        return list(map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
 
     def output_pdf_plots(self):
 
@@ -869,7 +879,6 @@ class GridSearch(NonLinearOptimizer):
         name = "{}/{}".format(self.phase_name, extension)
         new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable,
                                       step_size=self.step_size)
-        new_instance.constant = self.constant
         new_instance.grid = self.grid
         return new_instance
 
@@ -893,9 +902,9 @@ class GridSearch(NonLinearOptimizer):
                 "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_unit_vector, constant, image_path, save_results,
+        def __init__(self, nlo, analysis, instance_from_unit_vector, image_path, save_results,
                      checkpoint_count=0, best_fit=-np.inf, best_cube=None):
-            super().__init__(nlo, analysis, constant, image_path)
+            super().__init__(nlo, analysis, image_path)
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
@@ -1003,7 +1012,6 @@ class GridSearch(NonLinearOptimizer):
         fitness_function = GridSearch.Fitness(self,
                                               analysis,
                                               self.variable.instance_from_unit_vector,
-                                              self.constant,
                                               self.image_path,
                                               save_results,
                                               checkpoint_count=checkpoint_count,

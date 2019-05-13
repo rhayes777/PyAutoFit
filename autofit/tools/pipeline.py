@@ -140,7 +140,7 @@ class Pipeline(object):
             f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
                                                             data_name))
 
-    def run_function(self, func, data_name=None, assert_optimizer_pickle_matches=True):
+    def run_function(self, func, data_name=None, assert_optimizer_pickle_matches=False):
         """
         Run the function for each phase in the pipeline.
 
@@ -178,7 +178,7 @@ def make_path(phase) -> str:
     """
     Create the path to the folder at which the metadata and optimizer pickle should be saved
     """
-    return "{}/{}{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
+    return "{}/{}{}/{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
 
 
 def save_optimizer_for_phase(phase):

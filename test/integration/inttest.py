@@ -35,9 +35,9 @@ class Phase(p.AbstractPhase):
     profile = phase_property.PhaseProperty("profile")
     constant_profile = phase_property.PhaseProperty("constant_profile")
 
-    def __init__(self, phase_name, phase_folders, profile, constant_profile, optimizer_class=non_linear.MultiNest,
-                 tag_phases=True):
-        super().__init__(phase_name=phase_name, phase_tag='_tag', phase_folders=phase_folders,
+    def __init__(self, phase_name, tag_phases, phase_folders, profile, constant_profile,
+                 optimizer_class=non_linear.MultiNest):
+        super().__init__(phase_name=phase_name, tag_phases=tag_phases, phase_tag='_tag', phase_folders=phase_folders,
                          optimizer_class=optimizer_class)
         self.profile = profile
         self.constant_profile = constant_profile
@@ -71,7 +71,7 @@ class TestCase(object):
 
     def test_phase(self):
         
-        phase = Phase( phase_name="test_phase", phase_tag='_tag', phase_folders=['integration'],
+        phase = Phase(phase_name="test_phase", tag_phases=True, phase_folders=['integration'],
                        profile=mock.EllipticalProfile, constant_profile=mock.EllipticalProfile())
         result = phase.run_analysis(Analysis())
 
@@ -82,7 +82,7 @@ class TestCase(object):
 
     def test_classic_grid_search_phase(self):
         # noinspection PyTypeChecker
-        phase = Phase(phase_name="phase_classic_grid_search_phase", phase_tag='tag', phase_folders=['integration'],
+        phase = Phase(phase_name="phase_classic_grid_search_phase",  tag_phases=True, phase_folders=['integration'],
                       profile=mock.EllipticalProfile, constant_profile=mock.EllipticalProfile(),
                       optimizer_class=non_linear.GridSearch)
         result = phase.run_analysis(Analysis())

@@ -31,23 +31,14 @@ class AbstractPhase(object):
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
+            if len(self.phase_tag) > 1:
+                if self.phase_tag[0] is '_':
+                    self.phase_tag = self.phase_tag[1:]
 
         self.phase_name = phase_name
         self.optimizer = optimizer_class(phase_name=self.phase_name, phase_tag=phase_tag,
                                          phase_folders=self.phase_folders)
         self.auto_link_priors = auto_link_priors
-
-    @property
-    def constant(self):
-        """
-        Convenience method
-
-        Returns
-        -------
-        ModelInstance
-            A model instance comprising all the constant objects in this lensing
-        """
-        return self.optimizer.variable
 
     @property
     def variable(self):
@@ -136,7 +127,7 @@ def as_grid_search(phase_class, parallel=False):
             self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_tag=self.phase_tag,
                                                     phase_folders=phase_folders,
                                                     number_of_steps=number_of_steps, optimizer_class=optimizer_class,
-                                                    model_mapper=self.variable, constant=self.constant,
+                                                    model_mapper=self.variable,
                                                     parallel=parallel)
 
         def run_analysis(self, analysis):
