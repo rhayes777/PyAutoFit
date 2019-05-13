@@ -123,7 +123,7 @@ class GridSearch(object):
         if phase_tag is None:
             self.phase_tag = ''
         else:
-            self.phase_tag = 'settings_' + phase_tag
+            self.phase_tag = 'settings' + phase_tag
 
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class

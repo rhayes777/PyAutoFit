@@ -173,7 +173,7 @@ class NonLinearOptimizer(object):
         if phase_tag is None:
             self.phase_tag = ''
         else:
-            self.phase_tag = 'settings_' + phase_tag
+            self.phase_tag = 'settings' + phase_tag
 
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
