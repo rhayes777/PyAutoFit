@@ -239,3 +239,13 @@ class TestCase(object):
         mapper.my_list = pm.CollectionPriorModel({"simple": SimpleClass})
 
         assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
+
+    def test_override_with_constant(self):
+        prior_model = pm.CollectionPriorModel({"simple": SimpleClass})
+
+        simple_instance = SimpleClass(1, 2)
+
+        prior_model.simple = simple_instance
+
+        assert len(prior_model) == 1
+        assert prior_model.simple == simple_instance
