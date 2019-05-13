@@ -143,7 +143,7 @@ class Pipeline(object):
         of the data being fit
         """
         with open("{}/.metadata".format(make_path(phase)), "w+") as f:
-            f.write("pipeline={}\nphase={}\ndata={}".format(self.pipeline_name, phase.phase_name,
+            f.write("pipeline={}\nphase={}\ndata={}".format(phase.pipeline_name, phase.phase_name,
                                                             data_name))
 
     def run_function(self, func, data_name=None, assert_optimizer_pickle_matches=False):
