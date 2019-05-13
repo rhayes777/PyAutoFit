@@ -175,6 +175,10 @@ class NonLinearOptimizer(object):
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
+            if len(self.phase_tag) > 1:
+                if self.phase_tag[0] is '_':
+                    self.phase_tag = self.phase_tag[1:]
+
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
         except FileExistsError:
@@ -214,7 +218,7 @@ class NonLinearOptimizer(object):
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
+        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                                     self.phase_tag)
 
     @property
@@ -222,17 +226,17 @@ class NonLinearOptimizer(object):
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
+        return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                     self.phase_tag)
 
     @property
     def opt_path(self) -> str:
-        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                              self.phase_tag)
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
+        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
                                              self.phase_tag)
 
     @property

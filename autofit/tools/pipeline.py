@@ -178,7 +178,7 @@ def make_path(phase) -> str:
     """
     Create the path to the folder at which the metadata and optimizer pickle should be saved
     """
-    return "{}/{}{}{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
+    return "{}/{}{}/{}".format(conf.instance.output_path, phase.phase_path, phase.phase_name, phase.phase_tag)
 
 
 def save_optimizer_for_phase(phase):

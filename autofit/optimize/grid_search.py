@@ -126,11 +126,14 @@ class GridSearch(object):
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
+            if len(self.phase_tag) > 1:
+                if self.phase_tag[0] is '_':
+                    self.phase_tag = self.phase_tag[1:]
 
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
-        self.phase_output_path = "{}/{}/{}{}".format(conf.instance.output_path, self.phase_path, phase_name,
+        self.phase_output_path = "{}/{}/{}/{}".format(conf.instance.output_path, self.phase_path, phase_name,
                                                      self.phase_tag)
 
         sym_path = "{}/optimizer".format(self.phase_output_path)
@@ -311,7 +314,7 @@ class GridSearch(object):
             labels.append(
                 "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
 
-        name_path = "{}{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
+        name_path = "{}/{}/{}".format(self.phase_name, self.phase_tag, "_".join(labels))
         optimizer_instance = self.optimizer_instance(model_mapper, name_path)
         optimizer_instance.constant = self.constant
 

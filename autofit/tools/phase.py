@@ -31,6 +31,9 @@ class AbstractPhase(object):
             self.phase_tag = ''
         else:
             self.phase_tag = phase_tag
+            if len(self.phase_tag) > 1:
+                if self.phase_tag[0] is '_':
+                    self.phase_tag = self.phase_tag[1:]
 
         self.phase_name = phase_name
         self.optimizer = optimizer_class(phase_name=self.phase_name, phase_tag=phase_tag,
