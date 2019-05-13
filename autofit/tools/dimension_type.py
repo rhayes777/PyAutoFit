@@ -1,5 +1,5 @@
 import inspect
-import typing
+import typing_inspect
 
 from decorator import decorator
 
@@ -27,7 +27,7 @@ def _map_types(func, self, *args, **kwargs):
                 pass
         if position is not None:
             arg_type = list(annotations.values())[position]
-        if isinstance(arg_type, typing.TupleMeta):
+        if typing_inspect.is_tuple_type(arg_type):
             return tuple(element_value if isinstance(element_value, DimensionType) else element_type(element_value) for
                          element_type, element_value in zip(arg_type.__args__, value))
 
