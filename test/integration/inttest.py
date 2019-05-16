@@ -114,6 +114,28 @@ class TestCase(object):
         assert result.figure_of_merit_array[1, 0] > result.figure_of_merit_array[1, 1]
         assert result.figure_of_merit_array[0, 1] > result.figure_of_merit_array[1, 1]
 
+    def test_grid_search_phase_parallel(self):
+
+        class GridSearchPhase(p.as_grid_search(Phase, parallel=True)):
+            @property
+            def grid_priors(self):
+                return [self.variable.profile.centre_0, self.variable.profile.centre_1]
+
+        constant_profile = mock.EllipticalProfile()
+
+        result = GridSearchPhase(phase_name="grid_search_phase_parallel", tag_phases=True, phase_folders=['integration'],
+                                 number_of_steps=2, profile=mock.EllipticalProfile,
+                                 constant_profile=constant_profile).run_analysis(Analysis())
+
+        assert result.results[0].constant.constant_profile == constant_profile
+
+        print(result.figure_of_merit_array)
+
+        assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[0, 1]
+        assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[1, 0]
+        assert result.figure_of_merit_array[1, 0] > result.figure_of_merit_array[1, 1]
+        assert result.figure_of_merit_array[0, 1] > result.figure_of_merit_array[1, 1]
+
 
 
 if __name__ == "__main__":
