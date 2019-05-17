@@ -49,6 +49,7 @@ class Phase(p.AbstractPhase):
 class TestCase(object):
     
     def test_integration(self):
+
         multinest = non_linear.MultiNest(phase_folders=['integration'], phase_name='test')
 
         multinest.variable.profile = mock.EllipticalProfile

@@ -236,7 +236,7 @@ class NonLinearOptimizer(object):
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.opt_path, 'multinest.paramnames')
+        return "{}/{}".format(self.backup_path, 'multinest.paramnames')
 
     @property
     def file_model_info(self) -> str:
@@ -256,10 +256,12 @@ class NonLinearOptimizer(object):
         """
         Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
         """
+
         try:
             shutil.rmtree(self.backup_path)
         except FileNotFoundError:
             pass
+
         try:
             shutil.copytree(self.opt_path, self.backup_path)
         except shutil.Error as e:
@@ -294,7 +296,7 @@ class NonLinearOptimizer(object):
     def save_model_info(self):
 
         try:
-            os.makedirs(self.path)
+            os.makedirs(self.backup_path)
         except FileExistsError:
             pass
 
@@ -434,6 +436,8 @@ class DownhillSimplex(NonLinearOptimizer):
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
         logger.info("DownhillSimplex complete")
+
+        self.backup()
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
@@ -441,8 +445,6 @@ class DownhillSimplex(NonLinearOptimizer):
         res.previous_variable = self.variable
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
-
-        self.backup()
         return res
 
 
@@ -460,8 +462,8 @@ class MultiNest(NonLinearOptimizer):
         super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
                                         model_mapper=model_mapper)
 
-        self.file_summary = "{}/{}".format(self.opt_path, 'multinestsummary.txt')
-        self.file_weighted_samples = "{}/{}".format(self.opt_path, 'multinest.txt')
+        self.file_summary = "{}/{}".format(self.backup_path, 'multinestsummary.txt')
+        self.file_weighted_samples = "{}/{}".format(self.backup_path, 'multinest.txt')
         self.file_results = "{}/{}".format(self.phase_output_path, 'model.results')
         self._weighted_sample_model = None
         self.sigma_limit = sigma_limit
@@ -517,7 +519,7 @@ class MultiNest(NonLinearOptimizer):
     @property
     def pdf(self):
         import getdist
-        return getdist.mcsamples.loadMCSamples(self.opt_path + '/multinest')
+        return getdist.mcsamples.loadMCSamples(self.backup_path + '/multinest')
 
     class Fitness(NonLinearOptimizer.Fitness):
 
@@ -550,6 +552,7 @@ class MultiNest(NonLinearOptimizer):
 
     @persistent_timer
     def fit(self, analysis):
+
         self.save_model_info()
 
         # noinspection PyUnusedLocal
@@ -589,14 +592,13 @@ class MultiNest(NonLinearOptimizer):
                  init_MPI=self.init_MPI)
         logger.info("MultiNest complete")
 
+        self.backup()
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
 
         constant = self.most_likely_model_instance
 
         analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
-
-        self.backup()
         return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
                       previous_variable=self.variable,
                       gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
@@ -1019,6 +1021,7 @@ class GridSearch(NonLinearOptimizer):
         self.grid(fitness_function, self.variable.prior_count, self.step_size)
 
         logger.info("grid search complete")
+        self.backup()
 
         res = fitness_function.result
 
@@ -1030,5 +1033,4 @@ class GridSearch(NonLinearOptimizer):
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 
-        self.backup()
         return res
