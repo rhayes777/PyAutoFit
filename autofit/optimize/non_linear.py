@@ -460,8 +460,8 @@ class MultiNest(NonLinearOptimizer):
         super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
                                         model_mapper=model_mapper)
 
-        self.file_summary = "{}/{}".format(self.path, 'multinestsummary.txt')
-        self.file_weighted_samples = "{}/{}".format(self.path, 'multinest.txt')
+        self.file_summary = "{}/{}".format(self.opt_path, 'multinestsummary.txt')
+        self.file_weighted_samples = "{}/{}".format(self.opt_path, 'multinest.txt')
         self.file_results = "{}/{}".format(self.phase_output_path, 'model.results')
         self._weighted_sample_model = None
         self.sigma_limit = sigma_limit
@@ -714,6 +714,11 @@ class MultiNest(NonLinearOptimizer):
         """
         return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
 
+    def model_errors_at_sigma_limit(self, sigma_limit):
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
+
     def model_errors_at_upper_sigma_limit(self, sigma_limit):
         uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
         return list(
@@ -723,11 +728,6 @@ class MultiNest(NonLinearOptimizer):
         lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
         return list(
             map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
-
-    def model_errors_at_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
     def weighted_sample_model_instance_from_weighted_samples(self, index):
         """Setup a model instance of a weighted sample, including its weight and likelihood.
