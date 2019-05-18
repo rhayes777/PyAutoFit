@@ -635,7 +635,7 @@ class TestMultiNest(object):
             assert gaussian_priors[2][1] == pytest.approx(3.0 - lower_sigmas[2], 5e-2)
             assert gaussian_priors[3][1] == pytest.approx(4.1 - lower_sigmas[3], 5e-2)
 
-    class TestWeightedSamples(object):
+    class TestSamples(object):
 
         def test__1_class___model_parameters_instance_weight_and_likelihood(self, mn_samples_path):
             
@@ -645,11 +645,12 @@ class TestMultiNest(object):
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_4_parameters(path=mn.backup_path)
 
-            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=0)
-            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=0)
-            weight = mn.weighted_sample_weight_from_sample_index(sample_index=0)
-            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=0)
+            model = mn.sample_model_parameters_from_sample_index(sample_index=0)
+            instance = mn.sample_model_instance_from_sample_index(sample_index=0)
+            weight = mn.sample_weight_from_sample_index(sample_index=0)
+            likelihood = mn.sample_likelihood_from_sample_index(sample_index=0)
 
+            assert mn.total_samples == 10
             assert model == [1.1, 2.1, 3.1, 4.1]
             assert instance.mock_class.one == 1.1
             assert instance.mock_class.two == 2.1
@@ -659,11 +660,12 @@ class TestMultiNest(object):
             assert likelihood == -0.5 * 9999999.9
             
 
-            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=5)
-            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=5)
-            weight = mn.weighted_sample_weight_from_sample_index(sample_index=5)
-            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=5)
+            model = mn.sample_model_parameters_from_sample_index(sample_index=5)
+            instance = mn.sample_model_instance_from_sample_index(sample_index=5)
+            weight = mn.sample_weight_from_sample_index(sample_index=5)
+            likelihood = mn.sample_likelihood_from_sample_index(sample_index=5)
 
+            assert mn.total_samples == 10
             assert model == [1.0, 2.0, 3.0, 4.0]
             assert instance.mock_class.one == 1.0
             assert instance.mock_class.two == 2.0
@@ -681,11 +683,12 @@ class TestMultiNest(object):
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_10_parameters(path=mn.backup_path)
 
-            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=0)
-            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=0)
-            weight = mn.weighted_sample_weight_from_sample_index(sample_index=0)
-            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=0)
+            model = mn.sample_model_parameters_from_sample_index(sample_index=0)
+            instance = mn.sample_model_instance_from_sample_index(sample_index=0)
+            weight = mn.sample_weight_from_sample_index(sample_index=0)
+            likelihood = mn.sample_likelihood_from_sample_index(sample_index=0)
 
+            assert mn.total_samples == 10
             assert model == [1.1, 2.1, 3.1, 4.1, -5.1, -6.1, -7.1, -8.1, 9.1, 10.1]
             assert instance.mock_class_1.one == 1.1
             assert instance.mock_class_1.two == 2.1
@@ -698,11 +701,12 @@ class TestMultiNest(object):
             assert weight == 0.02
             assert likelihood == -0.5 * 9999999.9
 
-            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=5)
-            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=5)
-            weight = mn.weighted_sample_weight_from_sample_index(sample_index=5)
-            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=5)
+            model = mn.sample_model_parameters_from_sample_index(sample_index=5)
+            instance = mn.sample_model_instance_from_sample_index(sample_index=5)
+            weight = mn.sample_weight_from_sample_index(sample_index=5)
+            likelihood = mn.sample_likelihood_from_sample_index(sample_index=5)
 
+            assert mn.total_samples == 10
             assert model == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
             assert instance.mock_class_1.one == 1.0
             assert instance.mock_class_1.two == 2.0

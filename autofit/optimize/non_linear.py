@@ -731,7 +731,11 @@ class MultiNest(NonLinearOptimizer):
         return list(
             map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
 
-    def weighted_sample_model_instance_from_sample_index(self, sample_index):
+    @property
+    def total_samples(self):
+        return len(self.pdf.weights)
+
+    def sample_model_instance_from_sample_index(self, sample_index):
         """Setup a model instance of a weighted sample.
 
         Parameters
@@ -739,12 +743,12 @@ class MultiNest(NonLinearOptimizer):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        model_parameters = self.weighted_sample_model_parameters_from_sample_index(sample_index=sample_index)
+        model_parameters = self.sample_model_parameters_from_sample_index(sample_index=sample_index)
 
         return self.variable.instance_from_physical_vector(physical_vector=model_parameters)
 
-    def weighted_sample_model_parameters_from_sample_index(self, sample_index):
-        """From a weighted sample return the model parameters.
+    def sample_model_parameters_from_sample_index(self, sample_index):
+        """From a sample return the model parameters.
 
         Parameters
         -----------
@@ -753,8 +757,8 @@ class MultiNest(NonLinearOptimizer):
         """
         return list(self.pdf.samples[sample_index])
 
-    def weighted_sample_weight_from_sample_index(self, sample_index):
-        """From a weighted sample return the sample weight.
+    def sample_weight_from_sample_index(self, sample_index):
+        """From a sample return the sample weight.
 
         Parameters
         -----------
@@ -763,8 +767,8 @@ class MultiNest(NonLinearOptimizer):
         """
         return self.pdf.weights[sample_index]
 
-    def weighted_sample_likelihood_from_sample_index(self, sample_index):
-        """From a weighted sample return the likelihood.
+    def sample_likelihood_from_sample_index(self, sample_index):
+        """From a sample return the likelihood.
 
         NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \
         -2.0*likelihood. This routine converts these back to likelihood.
