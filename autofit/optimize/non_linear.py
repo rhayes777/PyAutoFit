@@ -236,7 +236,7 @@ class NonLinearOptimizer(object):
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.backup_path, 'multinest.paramnames')
+        return "{}/{}".format(self.opt_path, 'multinest.paramnames')
 
     @property
     def file_model_info(self) -> str:
