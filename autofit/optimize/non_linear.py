@@ -462,9 +462,6 @@ class MultiNest(NonLinearOptimizer):
         super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
                                         model_mapper=model_mapper)
 
-        self.file_summary = "{}/{}".format(self.backup_path, 'multinestsummary.txt')
-        self.file_weighted_samples = "{}/{}".format(self.backup_path, 'multinest.txt')
-        self.file_results = "{}/{}".format(self.phase_output_path, 'model.results')
         self._weighted_sample_model = None
         self.sigma_limit = sigma_limit
 
@@ -490,6 +487,18 @@ class MultiNest(NonLinearOptimizer):
         self.run = run
 
         logger.debug("Creating MultiNest NLO")
+
+    @property
+    def file_summary(self) -> str:
+        return "{}/{}".format(self.backup_path, 'multinestsummary.txt')
+
+    @property
+    def file_weighted_samples(self):
+        return "{}/{}".format(self.backup_path, 'multinest.txt')
+
+    @property
+    def file_results(self):
+        return "{}/{}".format(self.phase_output_path, 'model.results')
 
     def copy_with_name_extension(self, extension):
         copy = super().copy_with_name_extension(extension)
