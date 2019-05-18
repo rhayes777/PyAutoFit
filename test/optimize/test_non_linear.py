@@ -650,7 +650,7 @@ class TestMultiNest(object):
             weight = mn.sample_weight_from_sample_index(sample_index=0)
             likelihood = mn.sample_likelihood_from_sample_index(sample_index=0)
 
-            assert mn.total_samples == 4
+            assert mn.total_samples == 10
             assert model == [1.1, 2.1, 3.1, 4.1]
             assert instance.mock_class.one == 1.1
             assert instance.mock_class.two == 2.1
@@ -665,7 +665,7 @@ class TestMultiNest(object):
             weight = mn.sample_weight_from_sample_index(sample_index=5)
             likelihood = mn.sample_likelihood_from_sample_index(sample_index=5)
 
-            assert mn.total_samples == 4
+            assert mn.total_samples == 10
             assert model == [1.0, 2.0, 3.0, 4.0]
             assert instance.mock_class.one == 1.0
             assert instance.mock_class.two == 2.0
