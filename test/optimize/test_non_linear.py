@@ -35,6 +35,7 @@ def make_result():
 
 
 class TestResult(object):
+
     def test_variable(self, result):
         profile = result.variable.profile
         assert profile.centre_0.mean == 0
@@ -445,9 +446,11 @@ class MockClassNLOx6(object):
 
 
 class TestNonLinearOptimizer(object):
+
     class TestDirectorySetup:
 
         def test__1_class__correct_directory(self, nlo_setup_path):
+
             conf.instance.output_path = nlo_setup_path + '1_class'
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
             non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
@@ -457,6 +460,7 @@ class TestNonLinearOptimizer(object):
     class TestTotalParameters:
 
         def test__1_class__four_parameters(self, nlo_setup_path):
+
             conf.instance.output_path = nlo_setup_path + '1_class'
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
             nlo = non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
@@ -464,6 +468,7 @@ class TestNonLinearOptimizer(object):
             assert nlo.variable.prior_count == 4
 
         def test__2_classes__six_parameters(self, nlo_setup_path):
+
             conf.instance.output_path = nlo_setup_path + '2_classes'
             mapper = model_mapper.ModelMapper(class_1=MockClassNLOx4, class_2=MockClassNLOx6)
             nlo = non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
@@ -472,6 +477,7 @@ class TestNonLinearOptimizer(object):
 
 
 class TestMultiNest(object):
+
     class TestReadFromSummary:
 
         def test__most_probable_parameters_and_instance__1_class_4_params(self, mn_summary_path):
@@ -631,33 +637,43 @@ class TestMultiNest(object):
 
     class TestWeightedSamples(object):
 
-        def test__1_class__1st_first_weighted_sample__model_weight_and_likelihood(self, mn_samples_path):
+        def test__1_class___model_parameters_instance_weight_and_likelihood(self, mn_samples_path):
+            
             conf.instance.output_path = mn_samples_path + '/1_class'
 
             mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_4_parameters(path=mn.backup_path)
 
-            model, weight, likelihood = mn.weighted_sample_model_parameters_from_weighted_samples(index=0)
+            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=0)
+            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=0)
+            weight = mn.weighted_sample_weight_from_sample_index(sample_index=0)
+            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=0)
 
             assert model == [1.1, 2.1, 3.1, 4.1]
+            assert instance.mock_class.one == 1.1
+            assert instance.mock_class.two == 2.1
+            assert instance.mock_class.three == 3.1
+            assert instance.mock_class.four == 4.1
             assert weight == 0.02
             assert likelihood == -0.5 * 9999999.9
+            
 
-        def test__1_class__5th_weighted_sample__model_weight_and_likelihood(self, mn_samples_path):
-            conf.instance.output_path = mn_samples_path + '/1_class'
-
-            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_weighted_samples_4_parameters(path=mn.backup_path)
-
-            model, weight, likelihood = mn.weighted_sample_model_parameters_from_weighted_samples(index=5)
+            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=5)
+            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=5)
+            weight = mn.weighted_sample_weight_from_sample_index(sample_index=5)
+            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=5)
 
             assert model == [1.0, 2.0, 3.0, 4.0]
+            assert instance.mock_class.one == 1.0
+            assert instance.mock_class.two == 2.0
+            assert instance.mock_class.three == 3.0
+            assert instance.mock_class.four == 4.0
             assert weight == 0.1
             assert likelihood == -0.5 * 9999999.9
 
-        def test__2_classes__1st_weighted_sample__model_weight_and_likelihood(self, mn_samples_path):
+        def test__2_classes__model_parameters_instance_weight_and_likelihood(self, mn_samples_path):
+
             conf.instance.output_path = mn_samples_path + '/2_classes'
 
             mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
@@ -665,109 +681,39 @@ class TestMultiNest(object):
             mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
             create_weighted_samples_10_parameters(path=mn.backup_path)
 
-            model, weight, likelihood = mn.weighted_sample_model_parameters_from_weighted_samples(index=0)
+            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=0)
+            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=0)
+            weight = mn.weighted_sample_weight_from_sample_index(sample_index=0)
+            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=0)
 
             assert model == [1.1, 2.1, 3.1, 4.1, -5.1, -6.1, -7.1, -8.1, 9.1, 10.1]
+            assert instance.mock_class_1.one == 1.1
+            assert instance.mock_class_1.two == 2.1
+            assert instance.mock_class_1.three == 3.1
+            assert instance.mock_class_1.four == 4.1
+            assert instance.mock_class_2.one == (-5.1, -6.1)
+            assert instance.mock_class_2.two == (-7.1, -8.1)
+            assert instance.mock_class_2.three == 9.1
+            assert instance.mock_class_2.four == 10.1
             assert weight == 0.02
             assert likelihood == -0.5 * 9999999.9
 
-        def test__2_classes__5th_weighted_sample__model_weight_and_likelihood(self, mn_samples_path):
-            conf.instance.output_path = mn_samples_path + '/2_classes'
-
-            mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                              mock_class_2=MockClassNLOx6)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_weighted_samples_10_parameters(path=mn.backup_path)
-
-            model, weight, likelihood = mn.weighted_sample_model_parameters_from_weighted_samples(index=5)
+            model = mn.weighted_sample_model_parameters_from_sample_index(sample_index=5)
+            instance = mn.weighted_sample_model_instance_from_sample_index(sample_index=5)
+            weight = mn.weighted_sample_weight_from_sample_index(sample_index=5)
+            likelihood = mn.weighted_sample_likelihood_from_sample_index(sample_index=5)
 
             assert model == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
+            assert instance.mock_class_1.one == 1.0
+            assert instance.mock_class_1.two == 2.0
+            assert instance.mock_class_1.three == 3.0
+            assert instance.mock_class_1.four == 4.0
+            assert instance.mock_class_2.one == (-5.0, -6.0)
+            assert instance.mock_class_2.two == (-7.0, -8.0)
+            assert instance.mock_class_2.three == 9.0
+            assert instance.mock_class_2.four == 10.0
             assert weight == 0.1
             assert likelihood == -0.5 * 9999999.9
-
-        def test__1_class__1st_weighted_sample_model_instance__include_weight_and_likelihood(self,
-                                                                                             mn_samples_path):
-            conf.instance.output_path = mn_samples_path + '/1_class'
-
-            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_weighted_samples_4_parameters(path=mn.backup_path)
-
-            weighted_sample_model, weight, likelihood = mn.weighted_sample_model_instance_from_weighted_samples(index=0)
-
-            assert weight == 0.02
-            assert likelihood == -0.5 * 9999999.9
-
-            assert weighted_sample_model.mock_class.one == 1.1
-            assert weighted_sample_model.mock_class.two == 2.1
-            assert weighted_sample_model.mock_class.three == 3.1
-            assert weighted_sample_model.mock_class.four == 4.1
-
-        def test__1_class__5th_weighted_sample_model_instance__include_weight_and_likelihood(self,
-                                                                                             mn_samples_path):
-            conf.instance.output_path = mn_samples_path + '/1_class'
-
-            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_weighted_samples_4_parameters(path=mn.backup_path)
-
-            weighted_sample_model, weight, likelihood = mn.weighted_sample_model_instance_from_weighted_samples(index=5)
-
-            assert weight == 0.1
-            assert likelihood == -0.5 * 9999999.9
-
-            assert weighted_sample_model.mock_class.one == 1.0
-            assert weighted_sample_model.mock_class.two == 2.0
-            assert weighted_sample_model.mock_class.three == 3.0
-            assert weighted_sample_model.mock_class.four == 4.0
-
-        def test__2_classes__1st_weighted_sample_model_instance__include_weight_and_likelihood(self,
-                                                                                               mn_samples_path):
-            conf.instance.output_path = mn_samples_path + '/2_classes'
-
-            mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                              mock_class_2=MockClassNLOx6)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_weighted_samples_10_parameters(path=mn.backup_path)
-
-            weighted_sample_model, weight, likelihood = mn.weighted_sample_model_instance_from_weighted_samples(index=0)
-
-            assert weight == 0.02
-            assert likelihood == -0.5 * 9999999.9
-
-            assert weighted_sample_model.mock_class_1.one == 1.1
-            assert weighted_sample_model.mock_class_1.two == 2.1
-            assert weighted_sample_model.mock_class_1.three == 3.1
-            assert weighted_sample_model.mock_class_1.four == 4.1
-
-            assert weighted_sample_model.mock_class_2.one == (-5.1, -6.1)
-            assert weighted_sample_model.mock_class_2.two == (-7.1, -8.1)
-            assert weighted_sample_model.mock_class_2.three == 9.1
-            assert weighted_sample_model.mock_class_2.four == 10.1
-
-        def test__2_classes__5th_weighted_sample_model_instance__include_weight_and_likelihood(self,
-                                                                                               mn_samples_path):
-            conf.instance.output_path = mn_samples_path + '/2_classes'
-
-            mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                              mock_class_2=MockClassNLOx6)
-            mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
-            create_weighted_samples_10_parameters(path=mn.backup_path)
-
-            weighted_sample_model, weight, likelihood = mn.weighted_sample_model_instance_from_weighted_samples(index=5)
-
-            assert weight == 0.1
-            assert likelihood == -0.5 * 9999999.9
-
-            assert weighted_sample_model.mock_class_1.one == 1.0
-            assert weighted_sample_model.mock_class_1.two == 2.0
-            assert weighted_sample_model.mock_class_1.three == 3.0
-            assert weighted_sample_model.mock_class_1.four == 4.0
-
-            assert weighted_sample_model.mock_class_2.one == (-5.0, -6.0)
-            assert weighted_sample_model.mock_class_2.two == (-7.0, -8.0)
-            assert weighted_sample_model.mock_class_2.three == 9.0
-            assert weighted_sample_model.mock_class_2.four == 10.0
 
     class TestLimits(object):
 
