@@ -345,7 +345,9 @@ class NonLinearOptimizer(object):
                 paramnames.write(line + '\n')
 
     class Fitness(object):
+
         def __init__(self, nlo, analysis, image_path):
+
             self.nlo = nlo
             self.result = None
             self.max_likelihood = -np.inf
