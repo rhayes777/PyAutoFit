@@ -365,14 +365,15 @@ class NonLinearOptimizer(object):
             likelihood = self.analysis.fit(instance)
 
             if likelihood > self.max_likelihood:
+
                 self.max_likelihood = likelihood
                 self.result = Result(instance, likelihood)
 
                 if self.should_visualise():
                     self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
 
-            if self.should_backup():
-                self.nlo.backup()
+                if self.should_backup():
+                    self.nlo.backup()
 
             return likelihood
 
