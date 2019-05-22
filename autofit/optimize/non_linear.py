@@ -15,6 +15,7 @@ import scipy.optimize
 
 from autofit import conf
 from autofit import exc
+from autofit.tools import text_util
 from autofit.mapper import model_mapper as mm, link
 from autofit.optimize import optimizer as opt
 from autofit.tools import path_util
@@ -340,8 +341,8 @@ class NonLinearOptimizer(object):
         paramnames_labels = self.param_labels
         with open(self.file_param_names, 'w') as paramnames:
             for i in range(self.variable.prior_count):
-                line = paramnames_names[i]
-                line += ' ' * (70 - len(line)) + paramnames_labels[i]
+                line = text_util.label_and_label_string(label0=paramnames_names[i],
+                                                        label1=paramnames_labels[i], whitespace=70)
                 paramnames.write(line + '\n')
 
     class Fitness(object):
