@@ -1,5 +1,10 @@
 from autofit.tools import text_util
 
+import shutil
+import os
+
+text_path = "{}/../test_files/text/".format(os.path.dirname(os.path.realpath(__file__)))
+
 def test__label_and_label_string():
 
     string0 = text_util.label_and_label_string(label0='param0', label1='mass', whitespace=10)
@@ -32,7 +37,30 @@ def test__label_and_value_string():
 
     assert string == 'param11        3.00e+00'
 
-def test__label_unit_and_value_string():
+def test__label_value_and_limits_string():
+
+    string0 = text_util.label_value_and_limits_string(label='param0', value=2.0, upper_limit=2.5, lower_limit=1.5,
+                                                      whitespace=10, format_str='{:.2f}')
+    string1 = text_util.label_value_and_limits_string(label='param00', value=2.0, upper_limit=2.7, lower_limit=1.3,
+                                                      whitespace=10, format_str='{:.2f}')
+    string2 = text_util.label_value_and_limits_string(label='param000', value=2.0, upper_limit=2.9, lower_limit=1.1,
+                                                      whitespace=10, format_str='{:.2f}')
+
+    assert string0 == 'param0    2.00 (1.50, 2.50)'
+    assert string1 == 'param00   2.00 (1.30, 2.70)'
+    assert string2 == 'param000  2.00 (1.10, 2.90)'
+
+    string = text_util.label_value_and_limits_string(label='param11', value=3.00, upper_limit=40000.0, lower_limit=0.0001,
+                                                     whitespace=20, format_str='{:.4f}')
+
+    assert string == 'param11             3.0000 (0.0001, 40000.0000)'
+
+    string = text_util.label_value_and_limits_string(label='param11', value=3.00, upper_limit=500.0, lower_limit=1.0,
+                                                     whitespace=15, format_str='{:.2e}')
+
+    assert string == 'param11        3.00e+00 (1.00e+00, 5.00e+02)'
+
+def test__label_value_and_unit_string():
 
     string0 = text_util.label_value_and_unit_string(label='param0', value=2.0, unit='arcsec', whitespace=10, format_str='{:.2f}')
     string1 = text_util.label_value_and_unit_string(label='param00', value=2.0, unit='mass', whitespace=10, format_str='{:.2f}')
@@ -49,3 +77,17 @@ def test__label_unit_and_value_string():
     string = text_util.label_value_and_unit_string(label='param11', value=3.00, unit='kgs', whitespace=15, format_str='{:.2e}')
 
     assert string == 'param11        3.00e+00 kgs'
+
+def test__output_results_to_file():
+
+    if os.path.exists(text_path):
+        shutil.rmtree(text_path)
+
+    os.mkdir(text_path)
+
+    results = ['hi\n', 'hello']
+    text_util.output_results_to_file(file=text_path + 'model.results', results=results)
+
+    file = open(text_path+'model.results', 'r')
+
+    assert file.readlines() == ['hi\n', 'hello']

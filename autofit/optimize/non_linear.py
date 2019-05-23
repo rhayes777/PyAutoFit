@@ -830,60 +830,61 @@ class MultiNest(NonLinearOptimizer):
 
         decimal_places = conf.instance.general.get("output", "model_results_decimal_places", int)
 
-        def rounded(num):
-            return np.round(num, decimal_places)
+        format_str = '{:.' + str(decimal_places) + 'f}'
 
         if os.path.isfile(self.file_summary):
 
-            with open(self.file_results, 'w') as results:
+            results = []
 
-                results.write('Most likely model, Likelihood = {}\n'.format(rounded(self.maximum_likelihood)))
-                results.write('\n')
+            likelihood = '{:.8f}'.format(self.maximum_likelihood)
+            results += ['Most likely model, Likelihood = {}\n\n'.format(likelihood)]
 
-                most_likely = self.most_likely_model_parameters
+            most_likely = self.most_likely_model_parameters
 
-                if len(most_likely) != self.variable.prior_count:
-                    raise exc.MultiNestException('MultiNest and GetDist have counted a different number of parameters.'
-                                                 'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
+            if len(most_likely) != self.variable.prior_count:
+                raise exc.MultiNestException('MultiNest and GetDist have counted a different number of parameters.'
+                                             'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
 
-                for j in range(self.variable.prior_count):
-                    most_likely_line = self.variable.param_names[j]
-                    most_likely_line += ' ' * (60 - len(most_likely_line)) + str(rounded(most_likely[j]))
-                    results.write(most_likely_line + '\n')
+            for j in range(self.variable.prior_count):
+                line = text_util.label_and_value_string(label=self.variable.param_names[j], value=most_likely[j],
+                                                        whitespace=60, format_str=format_str)
+                results += [line + '\n']
 
-                if not during_analysis:
+            if not during_analysis:
 
-                    most_probable = self.most_probable_model_parameters
+                most_probable_params = self.most_probable_model_parameters
 
-                    def write_for_sigma_limit(limit):
-                        lower_limit = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
-                        upper_limit = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
+                def results_from_sigma_limit(limit):
 
-                        results.write('\n')
-                        results.write('Most probable model ({} sigma limits)\n'.format(limit))
-                        results.write('\n')
+                    lower_limits = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
+                    upper_limits = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
 
-                        for i in range(self.variable.prior_count):
-                            line = self.variable.param_names[i]
-                            line += ' ' * (60 - len(line)) + str(
-                                rounded(most_probable[i])) + ' (' + str(rounded(lower_limit[i])) + ', ' + str(
-                                rounded(upper_limit[i])) + ')'
-                            results.write(line + '\n')
+                    results = ['\n\nMost probable model ({} sigma limits)\n\n'.format(limit)]
 
-                    write_for_sigma_limit(3.0)
-                    write_for_sigma_limit(1.0)
+                    for i in range(self.variable.prior_count):
 
-                results.write('\n')
-                results.write('Constants' + '\n')
-                results.write('\n')
+                        line = text_util.label_value_and_limits_string(
+                            label=self.variable.param_names[i], value=most_probable_params[i], lower_limit=lower_limits[i],
+                            upper_limit=upper_limits[i], whitespace=60, format_str=format_str)
 
-                constant_names = self.variable.constant_names
-                constants = self.variable.constant_tuples_ordered_by_id
+                        results += [line + '\n']
 
-                for j in range(self.variable.constant_count):
-                    constant_line = constant_names[j]
-                    constant_line += ' ' * (60 - len(constant_line)) + str(constants[j][1].value)
+                    return results
 
+                results += results_from_sigma_limit(limit=3.0)
+                results += results_from_sigma_limit(limit=1.0)
+
+            results += ['\n\nConstants\n\n']
+
+            constant_names = self.variable.constant_names
+            constants = self.variable.constant_tuples_ordered_by_id
+
+            for j in range(self.variable.constant_count):
+                line = text_util.label_and_value_string(label=constant_names[j], value=constants[j][1].value,
+                                                        whitespace=60, format_str=format_str)
+                results += [line + '\n']
+
+            text_util.output_results_to_file(file=self.file_results, results=results)
 
 class GridSearch(NonLinearOptimizer):
 
