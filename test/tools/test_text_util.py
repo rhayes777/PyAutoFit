@@ -78,7 +78,7 @@ def test__label_value_and_unit_string():
 
     assert string == 'param11        3.00e+00 kgs'
 
-def test__output_results_to_file():
+def test__output_list_of_strings_to_file():
 
     if os.path.exists(text_path):
         shutil.rmtree(text_path)
@@ -86,7 +86,7 @@ def test__output_results_to_file():
     os.mkdir(text_path)
 
     results = ['hi\n', 'hello']
-    text_util.output_results_to_file(file=text_path + 'model.results', results=results)
+    text_util.output_list_of_strings_to_file(file=text_path + 'model.results', list_of_strings=results)
 
     file = open(text_path+'model.results', 'r')
 

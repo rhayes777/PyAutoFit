@@ -17,8 +17,8 @@ def label_value_and_unit_string(label, value, unit, whitespace, format_str='{:.4
     value = (format_str + ' {}').format(value, unit)
     return label + value.rjust(whitespace - len(label) + len(value))
 
-def output_results_to_file(file, results):
+def output_list_of_strings_to_file(file, list_of_strings):
 
     file = open(file, 'w')
-    file.write(''.join(results))
+    file.write(''.join(list_of_strings))
     file.close()

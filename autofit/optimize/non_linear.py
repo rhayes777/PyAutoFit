@@ -302,10 +302,8 @@ class NonLinearOptimizer(object):
             pass
 
         self.create_paramnames_file()
-        if not os.path.isfile(self.file_model_info):
-            with open(self.file_model_info, 'w') as file:
-                file.write(self.variable.info)
-            file.close()
+
+        text_util.output_list_of_strings_to_file(file=self.file_model_info, list_of_strings=self.variable.info)
 
     def fit(self, analysis):
         raise NotImplementedError("Fitness function must be overridden by non linear optimizers")
@@ -339,11 +337,15 @@ class NonLinearOptimizer(object):
         properties of each model class."""
         paramnames_names = self.variable.param_names
         paramnames_labels = self.param_labels
-        with open(self.file_param_names, 'w') as paramnames:
-            for i in range(self.variable.prior_count):
-                line = text_util.label_and_label_string(label0=paramnames_names[i],
-                                                        label1=paramnames_labels[i], whitespace=70)
-                paramnames.write(line + '\n')
+
+        paramnames = []
+
+        for i in range(self.variable.prior_count):
+            line = text_util.label_and_label_string(label0=paramnames_names[i],
+                                                    label1=paramnames_labels[i], whitespace=70)
+            paramnames += [line + '\n']
+
+        text_util.output_list_of_strings_to_file(file=self.file_param_names, list_of_strings=paramnames)
 
     class Fitness(object):
 
@@ -884,7 +886,7 @@ class MultiNest(NonLinearOptimizer):
                                                         whitespace=60, format_str=format_str)
                 results += [line + '\n']
 
-            text_util.output_results_to_file(file=self.file_results, results=results)
+            text_util.output_list_of_strings_to_file(file=self.file_results, list_of_strings=results)
 
 class GridSearch(NonLinearOptimizer):
 
