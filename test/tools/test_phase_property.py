@@ -3,6 +3,7 @@ import os
 import pytest
 
 import autofit.mapper.prior_model
+import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import mock
 from autofit.mapper import model_mapper as mm
@@ -16,7 +17,7 @@ conf.instance = conf.Config("{}/../../workspace/config".format(directory),
                             "{}/../../workspace/output/".format(directory))
 
 
-class NLO(non_linear.NonLinearOptimizer):
+class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def fit(self, analysis):
         class Fitness(object):
             def __init__(self, instance_from_physical_vector, constant):
@@ -30,7 +31,7 @@ class NLO(non_linear.NonLinearOptimizer):
                     setattr(instance, key, value)
 
                 likelihood = analysis.fit(instance)
-                self.result = non_linear.Result(instance, likelihood)
+                self.result = autofit.optimize.non_linear.non_linear.Result(instance, likelihood)
 
                 # Return Chi squared
                 return -2 * likelihood

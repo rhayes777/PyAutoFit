@@ -1,6 +1,8 @@
 import os
 import pickle
 
+import autofit.optimize.non_linear.multi_nest
+import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
 from autofit.optimize import grid_search
@@ -11,7 +13,7 @@ from autofit.tools import path_util
 class AbstractPhase(object):
 
     def __init__(self, phase_name, tag_phases=True, phase_tag=None, phase_folders=None,
-                 optimizer_class=non_linear.MultiNest, auto_link_priors=False):
+                 optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest, auto_link_priors=False):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to fit_normal models and image
         passed to it.
@@ -79,7 +81,7 @@ class AbstractPhase(object):
         pass
 
     # noinspection PyAbstractClass
-    class Analysis(non_linear.Analysis):
+    class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
 
         def __init__(self, results=None):
             """
@@ -171,7 +173,7 @@ def as_grid_search(phase_class, parallel=False):
 
     class GridSearchExtension(phase_class):
         def __init__(self, *args, phase_name, tag_phases=True, phase_folders=None, number_of_steps=10,
-                     optimizer_class=non_linear.MultiNest, **kwargs):
+                     optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest, **kwargs):
             super().__init__(*args, phase_name=phase_name, tag_phases=tag_phases, phase_folders=phase_folders,
                              optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(phase_name=phase_name, phase_tag=self.phase_tag,

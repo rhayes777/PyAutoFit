@@ -3,6 +3,8 @@ from copy import deepcopy
 import pytest
 
 import autofit.mapper.model
+import autofit.optimize.non_linear.multi_nest
+import autofit.optimize.non_linear.non_linear
 from autofit import mock
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
@@ -67,7 +69,7 @@ class TestCase(object):
         assert model_instance != model_instance_copy
 
     def test_non_linear_equality(self):
-        nlo = non_linear.NonLinearOptimizer("phase name")
+        nlo = autofit.optimize.non_linear.non_linear.NonLinearOptimizer("phase name")
         nlo.variable.profile = mock.GeometryProfile
         nlo_copy = deepcopy(nlo)
 
@@ -78,7 +80,7 @@ class TestCase(object):
         assert nlo_copy != nlo
 
     def test_multinest_equality(self):
-        nlo = non_linear.MultiNest("phase name")
+        nlo = autofit.optimize.non_linear.multi_nest.MultiNest("phase name")
         nlo_copy = deepcopy(nlo)
 
         assert nlo == nlo_copy

@@ -15,6 +15,7 @@ Example:
 import os
 import pickle
 
+import autofit.optimize.non_linear.non_linear
 from autofit.optimize import non_linear
 
 
@@ -56,7 +57,7 @@ class PhaseOutput(object):
         return "/".join((self.pipeline, self.phase, self.data))
 
     @property
-    def optimizer(self) -> non_linear.NonLinearOptimizer:
+    def optimizer(self) -> autofit.optimize.non_linear.non_linear.NonLinearOptimizer:
         """
         The optimizer object that was used in this phase
         """
@@ -105,7 +106,7 @@ class Aggregator(object):
         return [phase for phase in self.phases if
                 all([getattr(phase, key) == value for key, value in kwargs.items()])]
 
-    def optimizers_with(self, **kwargs) -> [non_linear.NonLinearOptimizer]:
+    def optimizers_with(self, **kwargs) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
         """
         Load a list of optimizers for phases in the directory with zero or more filters applied.
 

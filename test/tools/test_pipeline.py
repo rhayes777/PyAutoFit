@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+import autofit.optimize.non_linear.non_linear
 from autofit import exc
 from autofit import mock
 from autofit.mapper import prior as p
@@ -59,7 +60,7 @@ class TestPipeline(object):
             pipeline.Pipeline("name", MockPhase("one"), MockPhase("one"))
 
     def test_optimizer_assertion(self):
-        optimizer = non_linear.NonLinearOptimizer("Phase Name")
+        optimizer = autofit.optimize.non_linear.non_linear.NonLinearOptimizer("Phase Name")
         optimizer.variable.profile = mock.GeometryProfile
         phase = MockPhase("phase_name", optimizer)
 

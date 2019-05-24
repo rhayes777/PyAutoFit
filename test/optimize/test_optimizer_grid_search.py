@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+import autofit.optimize.non_linear.multi_nest
+import autofit.optimize.non_linear.non_linear
 from autofit import exc
 from autofit import mock
 from autofit.mapper import model_mapper as mm
@@ -115,7 +117,7 @@ fit_args = []
 fit_instances = []
 
 
-class MockOptimizer(non_linear.NonLinearOptimizer):
+class MockOptimizer(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=None, model_mapper=None):
         super().__init__(phase_folders=phase_folders, phase_tag=phase_tag, phase_name=phase_name,
                          model_mapper=model_mapper)
@@ -124,10 +126,10 @@ class MockOptimizer(non_linear.NonLinearOptimizer):
     def fit(self, analysis):
         fit_args.append(analysis)
         # noinspection PyTypeChecker
-        return non_linear.Result(None, analysis.fit(None), None)
+        return autofit.optimize.non_linear.non_linear.Result(None, analysis.fit(None), None)
 
 
-class MockAnalysis(non_linear.Analysis):
+class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):
     def fit(self, instance):
         fit_instances.append(instance)
         return 1
@@ -257,7 +259,7 @@ class TestGridNLOBehaviour(object):
 
     def test_passes_attributes(self):
         grid_search = gs.GridSearch(phase_name='', model_mapper=mm.ModelMapper(), number_of_steps=10,
-                                    optimizer_class=non_linear.MultiNest)
+                                    optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest)
 
         grid_search.n_live_points = 20
         grid_search.sampling_efficiency = 0.3
@@ -319,7 +321,7 @@ class TestMixin(object):
         assert isinstance(result, gs.GridSearchResult)
         assert len(result.results) == 2
 
-        assert isinstance(result.best_result, non_linear.Result)
+        assert isinstance(result.best_result, autofit.optimize.non_linear.non_linear.Result)
 
     def test_parallel_flag(self):
         my_phase = phase.as_grid_search(phase.AbstractPhase, parallel=True)(phase_name="phase name")
