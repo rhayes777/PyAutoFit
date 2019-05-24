@@ -7,6 +7,7 @@ from autofit import mock
 from autofit.mapper import prior as p
 from autofit.optimize import non_linear
 from autofit.tools import pipeline
+from autofit.tools import phase as ph
 
 
 @pytest.fixture(name="results")
@@ -40,9 +41,12 @@ class TestResultsCollection(object):
             results.add("second phase", "three")
 
 
-class MockPhase(object):
+class MockPhase(ph.AbstractPhase):
+    def make_result(self, result, analysis):
+        pass
+
     def __init__(self, phase_name, optimizer=None):
-        self.phase_name = phase_name
+        super().__init__(phase_name)
         self.optimizer = optimizer
         self.phase_path = phase_name
         self.phase_tag = phase_name
@@ -60,17 +64,17 @@ class TestPipeline(object):
         phase = MockPhase("phase_name", optimizer)
 
         try:
-            os.makedirs(pipeline.make_path(phase))
+            os.makedirs(phase.make_path())
         except FileExistsError:
             pass
 
-        pipeline.save_optimizer_for_phase(phase)
-        pipeline.assert_optimizer_pickle_matches_for_phase(phase)
+        phase.save_optimizer_for_phase()
+        phase.assert_optimizer_pickle_matches_for_phase()
 
         optimizer.variable.profile.centre_0 = p.UniformPrior()
 
         with pytest.raises(exc.PipelineException):
-            pipeline.assert_optimizer_pickle_matches_for_phase(phase)
+            phase.assert_optimizer_pickle_matches_for_phase()
 
     def test_name_composition(self):
         first = pipeline.Pipeline("first")

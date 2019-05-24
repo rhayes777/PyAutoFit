@@ -1,3 +1,8 @@
+import os
+import pickle
+
+from autofit import conf
+from autofit import exc
 from autofit.optimize import grid_search
 from autofit.optimize import non_linear
 from autofit.tools import path_util
@@ -95,6 +100,42 @@ class AbstractPhase(object):
 
     def make_result(self, result, analysis):
         raise NotImplementedError()
+
+    def make_optimizer_pickle_path(self) -> str:
+        """
+        Create the path at which the optimizer pickle should be saved
+        """
+        return "{}/.optimizer.pickle".format(self.make_path())
+
+    def make_path(self) -> str:
+        """
+        Create the path to the folder at which the metadata and optimizer pickle should be saved
+        """
+        return "{}/{}{}/{}".format(conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag)
+
+    def save_optimizer_for_phase(self):
+        """
+        Save the optimizer associated with the phase as a pickle
+        """
+        with open(self.make_optimizer_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(self.optimizer))
+
+    def assert_optimizer_pickle_matches_for_phase(self):
+        """
+        Assert that the previously saved optimizer is equal to the phase's optimizer if a saved optimizer is found.
+
+        Raises
+        -------
+        exc.PipelineException
+        """
+        path = self.make_optimizer_pickle_path()
+        if os.path.exists(path):
+            with open(path, "r+b") as f:
+                loaded_optimizer = pickle.loads(f.read())
+                if self.optimizer != loaded_optimizer:
+                    raise exc.PipelineException(
+                        f"Can't restart phase at path {path} because settings don't match. "
+                        f"Did you change the optimizer settings or model?")
 
 
 def as_grid_search(phase_class, parallel=False):
