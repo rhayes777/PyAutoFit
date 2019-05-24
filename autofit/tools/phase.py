@@ -145,6 +145,10 @@ class AbstractPhase(object):
                         f"Can't restart phase at path {path} because settings don't match. "
                         f"Did you change the optimizer settings or model?")
 
+    def assert_and_save_pickle(self):
+        self.assert_optimizer_pickle_matches_for_phase()
+        self.save_optimizer_for_phase()
+
 
 def as_grid_search(phase_class, parallel=False):
     """

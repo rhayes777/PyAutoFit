@@ -153,9 +153,6 @@ class Pipeline(object):
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info("Running Phase {} (Number {})".format(phase.optimizer.phase_name, i))
-            if assert_optimizer_pickle_matches:
-                phase.assert_optimizer_pickle_matches_for_phase()
-            phase.save_optimizer_for_phase()
             phase.save_metadata(data_name, self.pipeline_name)
             results.add(phase.phase_name, func(phase, results))
         return results
