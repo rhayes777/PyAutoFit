@@ -6,7 +6,6 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
 from autofit.optimize import grid_search
-from autofit.optimize import non_linear
 from autofit.tools import path_util
 
 
@@ -148,7 +147,8 @@ class AbstractPhase(object):
                         f"Did you change the optimizer settings or model?")
 
     def assert_and_save_pickle(self):
-        self.assert_optimizer_pickle_matches_for_phase()
+        if conf.instance.general.get("output", "assert_pickle_matches", bool):
+            self.assert_optimizer_pickle_matches_for_phase()
         self.save_optimizer_for_phase()
 
 
