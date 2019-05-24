@@ -134,16 +134,6 @@ class Pipeline(object):
         """
         return self.__class__("{} + {}".format(self.pipeline_name, other.pipeline_name), *(self.phases + other.phases))
 
-    @staticmethod
-    def save_metadata(phase, data_name):
-        """
-        Save metadata associated with the phase, such as the name of the pipeline, the name of the phase and the name
-        of the data being fit
-        """
-        with open("{}/.metadata".format(phase.make_path()), "w+") as f:
-            f.write("pipeline={}\nphase={}\ndata={}".format(phase.pipeline_name, phase.phase_name,
-                                                            data_name))
-
     def run_function(self, func, data_name=None, assert_optimizer_pickle_matches=False):
         """
         Run the function for each phase in the pipeline.
@@ -166,6 +156,6 @@ class Pipeline(object):
             if assert_optimizer_pickle_matches:
                 phase.assert_optimizer_pickle_matches_for_phase()
             phase.save_optimizer_for_phase()
-            self.save_metadata(phase, data_name)
+            phase.save_metadata(data_name, self.pipeline_name)
             results.add(phase.phase_name, func(phase, results))
         return results

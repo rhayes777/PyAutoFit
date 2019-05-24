@@ -120,6 +120,14 @@ class AbstractPhase(object):
         with open(self.make_optimizer_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.optimizer))
 
+    def save_metadata(self, data_name, pipeline_name):
+        """
+        Save metadata associated with the phase, such as the name of the pipeline, the name of the phase and the name
+        of the data being fit
+        """
+        with open("{}/.metadata".format(self.make_path()), "w+") as f:
+            f.write("pipeline={}\nphase={}\ndata={}".format(pipeline_name, self.phase_name, data_name))
+
     def assert_optimizer_pickle_matches_for_phase(self):
         """
         Assert that the previously saved optimizer is equal to the phase's optimizer if a saved optimizer is found.
