@@ -15,10 +15,10 @@ import scipy.optimize
 
 from autofit import conf
 from autofit import exc
-from autofit.tools import text_util
 from autofit.mapper import model_mapper as mm, link
 from autofit.optimize import optimizer as opt
 from autofit.tools import path_util
+from autofit.tools import text_util
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -267,6 +267,10 @@ class NonLinearOptimizer(object):
             shutil.copytree(self.opt_path, self.backup_path)
         except shutil.Error as e:
             logger.exception(e)
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.restore()
 
     def restore(self):
         """
@@ -864,9 +868,9 @@ class MultiNest(NonLinearOptimizer):
                     results = ['\n\nMost probable model ({} sigma limits)\n\n'.format(limit)]
 
                     for i in range(self.variable.prior_count):
-
                         line = text_util.label_value_and_limits_string(
-                            label=self.variable.param_names[i], value=most_probable_params[i], lower_limit=lower_limits[i],
+                            label=self.variable.param_names[i], value=most_probable_params[i],
+                            lower_limit=lower_limits[i],
                             upper_limit=upper_limits[i], whitespace=60, format_str=format_str)
 
                         results += [line + '\n']
@@ -887,6 +891,7 @@ class MultiNest(NonLinearOptimizer):
                 results += [line + '\n']
 
             text_util.output_list_of_strings_to_file(file=self.file_results, list_of_strings=results)
+
 
 class GridSearch(NonLinearOptimizer):
 
