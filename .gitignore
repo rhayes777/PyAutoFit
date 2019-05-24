@@ -107,3 +107,4 @@ venv.bak/
 workspace/output/
 output
 test/optimize/test_fit
+test/test_files/text/

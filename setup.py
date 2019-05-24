@@ -41,7 +41,8 @@ setup(
         'scipy',
         'numpy',
         'pymultinest',
-        'matplotlib'
+        'matplotlib',
+        'typing_inspect==0.4.0'
     ],
 setup_requires=["pytest-runner"],
     tests_require=["pytest"],
