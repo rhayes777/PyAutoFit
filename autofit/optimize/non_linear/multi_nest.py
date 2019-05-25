@@ -173,18 +173,9 @@ class MultiNest(NonLinearOptimizer):
                       previous_variable=self.variable,
                       gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
-    def open_summary_file(self):
+    def read_list_of_results_from_summary_file(self, number_entries, offset):
 
         summary = open(self.file_summary)
-        summary.seek(1)
-
-        return summary
-
-    def read_vector_from_summary(self, number_entries, offset):
-
-        summary = self.open_summary_file()
-
-        summary.seek(1)
         summary.read(2 + offset * self.variable.prior_count)
         vector = []
         for param in range(number_entries):
@@ -204,7 +195,7 @@ class MultiNest(NonLinearOptimizer):
         model in the second half of entries. The offset parameter is used to start at the desired model.
 
         """
-        return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=0)
+        return self.read_list_of_results_from_summary_file(number_entries=self.variable.prior_count, offset=0)
 
     @property
     def most_likely_model_parameters(self):
@@ -215,35 +206,15 @@ class MultiNest(NonLinearOptimizer):
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
         """
-        return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=56)
+        return self.read_list_of_results_from_summary_file(number_entries=self.variable.prior_count, offset=56)
 
     @property
     def maximum_likelihood(self):
-        return self.read_vector_from_summary(number_entries=2, offset=112)[0]
+        return self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[0]
 
     @property
     def maximum_log_likelihood(self):
-        return self.read_vector_from_summary(number_entries=2, offset=112)[1]
-
-    def gaussian_priors_at_sigma_limit(self, sigma_limit):
-        """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
-        most probable values (e.g the means of their PDF) and computing the error at an input sigma_limit.
-
-        Parameters
-        -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
-            PDF).
-        """
-
-        means = self.most_probable_model_parameters
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-
-        # noinspection PyArgumentList
-        sigmas = list(map(lambda mean, upper, lower: max([upper - mean, mean - lower]), means, uppers, lowers))
-
-        return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
+        return self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[1]
 
     def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))

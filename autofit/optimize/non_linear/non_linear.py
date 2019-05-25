@@ -201,6 +201,8 @@ class NonLinearOptimizer(object):
 
         return paramnames_labels
 
+    def latex_results_at_sigma_limit(self, sigma_limit):
+
     def create_paramnames_file(self):
         """The param_names file lists every parameter's analysis_path and Latex tag, and is used for *GetDist*
         visualization.
@@ -281,7 +283,24 @@ class NonLinearOptimizer(object):
         raise NotImplementedError()
 
     def gaussian_priors_at_sigma_limit(self, sigma_limit):
-        raise NotImplementedError()
+        """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
+        most probable values (e.g the means of their PDF) and computing the error at an input sigma_limit.
+
+        Parameters
+        -----------
+        sigma_limit : float
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
+            PDF).
+        """
+
+        means = self.most_probable_model_parameters
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+
+        # noinspection PyArgumentList
+        sigmas = list(map(lambda mean, upper, lower: max([upper - mean, mean - lower]), means, uppers, lowers))
+
+        return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
     def model_parameters_at_sigma_limit(self, sigma_limit):
         raise NotImplementedError()
@@ -342,6 +361,7 @@ class NonLinearOptimizer(object):
 
     def offset_values_from_input_model_parameters(self, input_model_parameters):
         return list(map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
+
 
 class Analysis(object):
 

@@ -6,6 +6,7 @@ from functools import wraps
 import pytest
 
 import autofit.mapper.prior_model
+from autofit.mapper import model_mapper, prior as p
 import autofit.optimize.non_linear.downhill_simplex
 import autofit.optimize.non_linear.grid_search
 import autofit.optimize.non_linear.multi_nest
@@ -14,7 +15,7 @@ from autofit import conf
 from autofit import exc
 from autofit import mock
 from autofit.mapper import model_mapper
-from test.mock.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis
+from test.mock.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis, MockNonLinearOptimizer
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 
@@ -22,6 +23,7 @@ pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 def do_something():
     conf.instance = conf.Config(
         "{}/../test_files/configs/non_linear".format(os.path.dirname(os.path.realpath(__file__))))
+
 
 @pytest.fixture(name='mapper')
 def make_mapper():
@@ -71,6 +73,7 @@ class TestResult(object):
 
 
 class TestCopyWithNameExtension(object):
+
     @staticmethod
     def assert_non_linear_attributes_equal(copy, optimizer):
         assert copy.phase_name == "phase_name/one"
@@ -81,49 +84,6 @@ class TestCopyWithNameExtension(object):
         copy = optimizer.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy, optimizer)
-
-    def test_downhill_simplex(self):
-        optimizer = autofit.optimize.non_linear.downhill_simplex.DownhillSimplex("phase_name", fmin=lambda x: x)
-
-        copy = optimizer.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy, optimizer)
-        assert isinstance(copy, autofit.optimize.non_linear.downhill_simplex.DownhillSimplex)
-        assert copy.fmin is optimizer.fmin
-        assert copy.xtol is optimizer.xtol
-        assert copy.ftol is optimizer.ftol
-        assert copy.maxiter is optimizer.maxiter
-        assert copy.maxfun is optimizer.maxfun
-        assert copy.full_output is optimizer.full_output
-        assert copy.disp is optimizer.disp
-        assert copy.retall is optimizer.retall
-
-    def test_multinest(self):
-        optimizer = autofit.optimize.non_linear.multi_nest.MultiNest("phase_name", sigma_limit=2.0, run=lambda x: x)
-
-        copy = optimizer.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy, optimizer)
-        assert isinstance(copy, autofit.optimize.non_linear.multi_nest.MultiNest)
-        assert copy.sigma_limit is optimizer.sigma_limit
-        assert copy.run is optimizer.run
-        assert copy.importance_nested_sampling is optimizer.importance_nested_sampling
-        assert copy.multimodal is optimizer.multimodal
-        assert copy.const_efficiency_mode is optimizer.const_efficiency_mode
-        assert copy.n_live_points is optimizer.n_live_points
-        assert copy.evidence_tolerance is optimizer.evidence_tolerance
-        assert copy.sampling_efficiency is optimizer.sampling_efficiency
-        assert copy.n_iter_before_update is optimizer.n_iter_before_update
-        assert copy.null_log_evidence is optimizer.null_log_evidence
-        assert copy.max_modes is optimizer.max_modes
-        assert copy.mode_tolerance is optimizer.mode_tolerance
-        assert copy.outputfiles_basename is optimizer.outputfiles_basename
-        assert copy.seed is optimizer.seed
-        assert copy.verbose is optimizer.verbose
-        assert copy.resume is optimizer.resume
-        assert copy.context is optimizer.context
-        assert copy.write_output is optimizer.write_output
-        assert copy.log_zero is optimizer.log_zero
-        assert copy.max_iter is optimizer.max_iter
-        assert copy.init_MPI is optimizer.init_MPI
 
     def test_grid_search(self):
         optimizer = autofit.optimize.non_linear.grid_search.GridSearch("phase_name", step_size=17, grid=lambda x: x)
@@ -208,84 +168,217 @@ def test_nlo_wrong_info():
     return nlo_wrong_info_path
 
 
-class TestNonLinearOptimizer(object):
+class TestDirectorySetup:
 
-    class TestDirectorySetup:
+    def test__1_class__correct_directory(self, nlo_setup_path):
 
-        def test__1_class__correct_directory(self, nlo_setup_path):
+        conf.instance.output_path = nlo_setup_path + '1_class'
+        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+        autofit.optimize.non_linear.non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
 
-            conf.instance.output_path = nlo_setup_path + '1_class'
-            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-            autofit.optimize.non_linear.non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
-
-            assert os.path.exists(nlo_setup_path + '1_class')
-
-    class TestTotalParameters:
-
-        def test__1_class__four_parameters(self, nlo_setup_path):
-
-            conf.instance.output_path = nlo_setup_path + '1_class'
-            mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-            nlo = autofit.optimize.non_linear.non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
-
-            assert nlo.variable.prior_count == 4
-
-        def test__2_classes__six_parameters(self, nlo_setup_path):
-
-            conf.instance.output_path = nlo_setup_path + '2_classes'
-            mapper = model_mapper.ModelMapper(class_1=MockClassNLOx4, class_2=MockClassNLOx6)
-            nlo = autofit.optimize.non_linear.non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
-
-            assert nlo.variable.prior_count == 10
+        assert os.path.exists(nlo_setup_path + '1_class')
 
 
-@pytest.fixture(name="downhill_simplex")
-def make_downhill_simplex():
-    def fmin(fitness_function, x0):
-        fitness_function(x0)
-        return x0
+class TestTotalParameters:
 
-    return autofit.optimize.non_linear.downhill_simplex.DownhillSimplex(fmin=fmin, phase_name='', model_mapper=model_mapper.ModelMapper())
+    def test__1_class__four_parameters(self, nlo_setup_path):
+
+        conf.instance.output_path = nlo_setup_path + '1_class'
+        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+        nlo = autofit.optimize.non_linear.non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
+
+        assert nlo.variable.prior_count == 4
+
+    def test__2_classes__six_parameters(self, nlo_setup_path):
+
+        conf.instance.output_path = nlo_setup_path + '2_classes'
+        mapper = model_mapper.ModelMapper(class_1=MockClassNLOx4, class_2=MockClassNLOx6)
+        nlo = autofit.optimize.non_linear.non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
+
+        assert nlo.variable.prior_count == 10
+
+@pytest.fixture(name='nlo_priors_path')
+def test_nlo_priors():
+    nlo_priors_path = "{}/../test_files/non_linear/nlo/priors".format(os.path.dirname(os.path.realpath(__file__)))
+
+    if os.path.exists(nlo_priors_path):
+        shutil.rmtree(nlo_priors_path)
+
+    os.mkdir(nlo_priors_path)
+
+    return nlo_priors_path
 
 
-class TestDownhillSimplex(object):
+def create_path(func):
+    @wraps(func)
+    def wrapper(path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return func(path)
 
-    def test_constant(self, downhill_simplex):
-        downhill_simplex.variable.mock_class = MockClassNLOx4()
+    return wrapper
 
-        assert len(downhill_simplex.variable.instance_tuples) == 1
-        assert hasattr(downhill_simplex.variable.instance_from_unit_vector([]), "mock_class")
+@create_path
+def create_weighted_samples_4_parameters(path):
+    with open(path + '/nlo.txt', 'w+') as weighted_samples:
+        weighted_samples.write(
+            '    0.020000000000000000E+00    0.999999990000000000E+07    0.110000000000000000E+01    '
+            '0.210000000000000000E+01    0.310000000000000000E+01    0.410000000000000000E+01\n'
+            '    0.020000000000000000E+00    0.999999990000000000E+07    0.090000000000000000E+01    '
+            '0.190000000000000000E+01    0.290000000000000000E+01    0.390000000000000000E+01\n'
+            '    0.010000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
+            '    0.050000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
+            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
+            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
+            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
+            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
+            '    0.200000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
+            '    0.300000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
+            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01')
 
-        result = downhill_simplex.fit(MockAnalysis())
 
-        assert result.constant.mock_class.one == 1
-        assert result.constant.mock_class.two == 2
-        assert result.figure_of_merit == 1
+class TestMostProbableAndLikely(object):
 
-    def test_variable(self, downhill_simplex):
-        downhill_simplex.variable.mock_class = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
-        result = downhill_simplex.fit(MockAnalysis())
+    def test__most_probable_parameters_and_instance__2_classes_6_params(self):
 
-        assert result.constant.mock_class.one == 0.0
-        assert result.constant.mock_class.two == 0.0
-        assert result.figure_of_merit == 1
+        mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
+                                          mock_class_2=MockClassNLOx6)
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper,
+                                     most_probable=[1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0])
 
-        assert result.variable.mock_class.one.mean == 0.0
-        assert result.variable.mock_class.two.mean == 0.0
+        most_probable = nlo.most_probable_model_instance
 
-    def test_constant_and_variable(self, downhill_simplex):
-        downhill_simplex.variable.constant = MockClassNLOx4()
-        downhill_simplex.variable.variable = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
+        assert most_probable.mock_class_1.one == 1.0
+        assert most_probable.mock_class_1.two == 2.0
+        assert most_probable.mock_class_1.three == 3.0
+        assert most_probable.mock_class_1.four == 4.0
 
-        result = downhill_simplex.fit(MockAnalysis())
+        assert most_probable.mock_class_2.one == (-5.0, -6.0)
+        assert most_probable.mock_class_2.two == (-7.0, -8.0)
+        assert most_probable.mock_class_2.three == 9.0
+        assert most_probable.mock_class_2.four == 10.0
 
-        assert result.constant.constant.one == 1
-        assert result.constant.constant.two == 2
-        assert result.constant.variable.one == 0.0
-        assert result.constant.variable.two == 0.0
-        assert result.variable.variable.one.mean == 0.0
-        assert result.variable.variable.two.mean == 0.0
-        assert result.figure_of_merit == 1
+    def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_constant(self):
+
+        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
+        mapper.mock_class.five = p.Constant(10.0)
+
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, -2.0, 3.0, 4.0, 10.0])
+
+        most_probable = nlo.most_probable_model_instance
+
+        assert most_probable.mock_class.one == 1.0
+        assert most_probable.mock_class.two == -2.0
+        assert most_probable.mock_class.three == 3.0
+        assert most_probable.mock_class.four == 4.0
+        assert most_probable.mock_class.five == 10.0
+
+    def test__most_likely_parameters_and_instance__2_classes_6_params(self):
+
+        mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
+                                          mock_class_2=MockClassNLOx6)
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper,
+                                     most_likely=[21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0])
+
+        most_likely = nlo.most_likely_model_instance
+
+        assert most_likely.mock_class_1.one == 21.0
+        assert most_likely.mock_class_1.two == 22.0
+        assert most_likely.mock_class_1.three == 23.0
+        assert most_likely.mock_class_1.four == 24.0
+
+        assert most_likely.mock_class_2.one == (25.0, -26.0)
+        assert most_likely.mock_class_2.two == (-27.0, 28.0)
+        assert most_likely.mock_class_2.three == 29.0
+        assert most_likely.mock_class_2.four == 30.0
+
+    def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_constant(self):
+
+        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
+        mapper.mock_class.five = p.Constant(10.0)
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_likely=[9.0, -10.0, -11.0, 12.0, 10.0])
+
+        most_likely = nlo.most_likely_model_instance
+
+        assert most_likely.mock_class.one == 9.0
+        assert most_likely.mock_class.two == -10.0
+        assert most_likely.mock_class.three == -11.0
+        assert most_likely.mock_class.four == 12.0
+        assert most_likely.mock_class.five == 10.0
+
+
+class TestGaussianPriors(object):
+
+    def test__1_class__gaussian_priors_at_3_sigma_confidence(self, nlo_priors_path):
+        
+        conf.instance.output_path = nlo_priors_path
+
+        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.1])
+
+        create_weighted_samples_4_parameters(path=nlo.backup_path)
+        gaussian_priors = nlo.gaussian_priors_at_sigma_limit(sigma_limit=3.0)
+
+        assert gaussian_priors[0][0] == 1.0
+        assert gaussian_priors[1][0] == 2.0
+        assert gaussian_priors[2][0] == 3.0
+        assert gaussian_priors[3][0] == 4.1
+
+        assert gaussian_priors[0][1] == pytest.approx(0.12, 1e-2)
+        assert gaussian_priors[1][1] == pytest.approx(0.12, 1e-2)
+        assert gaussian_priors[2][1] == pytest.approx(0.12, 1e-2)
+        assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
+
+    def test__1_profile__gaussian_priors_at_1_sigma_confidence(self, nlo_priors_path):
+
+        conf.instance.output_path = nlo_priors_path
+
+        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.1])
+        create_weighted_samples_4_parameters(path=nlo.backup_path)
+
+        gaussian_priors = nlo.gaussian_priors_at_sigma_limit(sigma_limit=1.0)
+
+        assert gaussian_priors[0][0] == 1.0
+        assert gaussian_priors[1][0] == 2.0
+        assert gaussian_priors[2][0] == 3.0
+        assert gaussian_priors[3][0] == 4.1
+
+        assert gaussian_priors[0][1] == pytest.approx(1.0 - 0.927, 5e-2)
+        assert gaussian_priors[1][1] == pytest.approx(2.0 - 1.928, 5e-2)
+        assert gaussian_priors[2][1] == pytest.approx(3.0 - 2.928, 5e-2)
+        assert gaussian_priors[3][1] == pytest.approx(4.1 - 3.928, 5e-2)
+
+
+class TestOffsetFromInput:
+
+    def test__input_model_offset_from_most_probable__parameters_and_instance__1_class_4_params(self):
+
+        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper,
+                                     most_probable=[1.0, -2.0, 3.0, 4.0])
+
+
+        offset_values = nlo.offset_values_from_input_model_parameters(input_model_parameters=[1.0, 1.0, 2.0, 3.0])
+
+        assert offset_values == [0.0, -3.0, 1.0, 1.0]
+
+        mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
+                                          mock_class_2=MockClassNLOx6)
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper,
+                                     most_probable=[1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0])
+
+        offset_values = nlo.offset_values_from_input_model_parameters(
+            input_model_parameters=[1.0, 1.0, 2.0, 3.0, 10.0, 10.0, 10.0, 10.0, 10.0, 20.0])
+
+        assert offset_values == [0.0, 1.0, 1.0, 1.0, -15.0, -16.0, -17.0, -18.0, -1.0, -10.0]
 
 
 @pytest.fixture(name='optimizer')
@@ -318,3 +411,8 @@ class TestLabels(object):
 
         assert optimizer.param_labels == [r'x4p0_{\mathrm{a2}}', r'x4p1_{\mathrm{a2}}',
                                           r'x4p2_{\mathrm{a2}}', r'x4p3_{\mathrm{a2}}']
+
+
+class TestLatex(object):
+
+    def test__results_for_
