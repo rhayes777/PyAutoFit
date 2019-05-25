@@ -201,7 +201,24 @@ class NonLinearOptimizer(object):
 
         return paramnames_labels
 
-    def latex_results_at_sigma_limit(self, sigma_limit):
+    def latex_results_at_sigma_limit(self, sigma_limit, format_str='{:.2f}'):
+
+        labels = self.param_labels
+        most_probables = self.most_probable_model_parameters
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+
+        line = []
+
+        for i in range(len(labels)):
+
+            most_probable = format_str.format(most_probables[i])
+            upper = format_str.format(uppers[i])
+            lower = format_str.format(lowers[i])
+
+            line += [labels[i] + ' = ' + most_probable + '^{+' + upper + '}_{-' + lower + '} & ']
+
+        return line
 
     def create_paramnames_file(self):
         """The param_names file lists every parameter's analysis_path and Latex tag, and is used for *GetDist*

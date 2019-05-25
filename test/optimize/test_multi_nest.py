@@ -532,7 +532,6 @@ class TestLimits(object):
         assert model_errors == pytest.approx([1.07 - 0.93, 2.07 - 1.93, 3.07 - 2.93, 4.07 - 3.93], 1e-1)
 
 
-
 @pytest.fixture(name="multi_nest")
 def make_multi_nest():
 

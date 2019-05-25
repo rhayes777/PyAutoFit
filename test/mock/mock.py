@@ -4,13 +4,15 @@ import math
 class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
 
     def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None,
-                 most_probable=None, most_likely=None):
+                 most_probable=None, most_likely=None, model_upper_params=None, model_lower_params=None):
 
         super(MockNonLinearOptimizer, self).__init__(phase_name=phase_name, phase_tag=phase_tag,
                                                      phase_folders=phase_folders, model_mapper=model_mapper)
 
         self.most_probable = most_probable
         self.most_likely = most_likely
+        self.model_upper_params = model_upper_params
+        self.model_lower_params = model_lower_params
 
     @property
     def most_probable_model_parameters(self):
@@ -35,43 +37,11 @@ class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
         """
         return self.most_likely
 
-    def model_parameters_at_sigma_limit(self, sigma_limit):
-        limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
-        densities_1d = list(map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names))
-        return list(map(lambda p: p.getLimits(limit), densities_1d))
-
-    @property
-    def pdf(self):
-        import getdist
-        return getdist.mcsamples.loadMCSamples(self.backup_path + '/nlo')
-
     def model_parameters_at_upper_sigma_limit(self, sigma_limit):
-        """Setup 1D vectors of the upper and lower limits of the multinest nlo.
-
-        These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
-        each parameter estimate
-
-        Parameters
-        -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
-            PDF).
-        """
-        return list(map(lambda param: param[1], self.model_parameters_at_sigma_limit(sigma_limit)))
+        return self.model_upper_params
 
     def model_parameters_at_lower_sigma_limit(self, sigma_limit):
-        """Setup 1D vectors of the upper and lower limits of the multinest nlo.
-
-        These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
-        each parameter estimate
-
-        Parameters
-        -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
-            PDF).
-        """
-        return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
+        return self.model_lower_params
 
 
 class MockClassNLOx4(object):

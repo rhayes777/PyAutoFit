@@ -133,17 +133,6 @@ def test_nlo_setup():
     return nlo_setup_path
 
 
-@pytest.fixture(name='nlo_paramnames_path')
-def test_nlo_paramnames():
-    nlo_paramnames_path = "{}/../test_files/non_linear/nlo/paramnames/".format(
-        os.path.dirname(os.path.realpath(__file__)))
-
-    if os.path.exists(nlo_paramnames_path):
-        shutil.rmtree(nlo_paramnames_path)
-
-    return nlo_paramnames_path
-
-
 @pytest.fixture(name='nlo_model_info_path')
 def test_nlo_model_info():
     nlo_model_info_path = "{}/../test_files/non_linear/nlo/model_info/".format(
@@ -196,52 +185,6 @@ class TestTotalParameters:
         nlo = autofit.optimize.non_linear.non_linear.NonLinearOptimizer(phase_name='', model_mapper=mapper)
 
         assert nlo.variable.prior_count == 10
-
-@pytest.fixture(name='nlo_priors_path')
-def test_nlo_priors():
-    nlo_priors_path = "{}/../test_files/non_linear/nlo/priors".format(os.path.dirname(os.path.realpath(__file__)))
-
-    if os.path.exists(nlo_priors_path):
-        shutil.rmtree(nlo_priors_path)
-
-    os.mkdir(nlo_priors_path)
-
-    return nlo_priors_path
-
-
-def create_path(func):
-    @wraps(func)
-    def wrapper(path):
-        if not os.path.exists(path):
-            os.makedirs(path)
-        return func(path)
-
-    return wrapper
-
-@create_path
-def create_weighted_samples_4_parameters(path):
-    with open(path + '/nlo.txt', 'w+') as weighted_samples:
-        weighted_samples.write(
-            '    0.020000000000000000E+00    0.999999990000000000E+07    0.110000000000000000E+01    '
-            '0.210000000000000000E+01    0.310000000000000000E+01    0.410000000000000000E+01\n'
-            '    0.020000000000000000E+00    0.999999990000000000E+07    0.090000000000000000E+01    '
-            '0.190000000000000000E+01    0.290000000000000000E+01    0.390000000000000000E+01\n'
-            '    0.010000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
-            '    0.050000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
-            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
-            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
-            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
-            '    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
-            '    0.200000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01\n'
-            '    0.300000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    '
-            '0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01')
 
 
 class TestMostProbableAndLikely(object):
@@ -316,14 +259,13 @@ class TestMostProbableAndLikely(object):
 
 class TestGaussianPriors(object):
 
-    def test__1_class__gaussian_priors_at_3_sigma_confidence(self, nlo_priors_path):
-        
-        conf.instance.output_path = nlo_priors_path
+    def test__1_class__gaussian_priors_at_3_sigma_confidence(self):
 
         mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.1])
+        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.1],
+                                     model_lower_params=[0.88, 1.88, 2.88, 3.88],
+                                     model_upper_params=[1.12, 2.12, 3.12, 4.12])
 
-        create_weighted_samples_4_parameters(path=nlo.backup_path)
         gaussian_priors = nlo.gaussian_priors_at_sigma_limit(sigma_limit=3.0)
 
         assert gaussian_priors[0][0] == 1.0
@@ -335,26 +277,6 @@ class TestGaussianPriors(object):
         assert gaussian_priors[1][1] == pytest.approx(0.12, 1e-2)
         assert gaussian_priors[2][1] == pytest.approx(0.12, 1e-2)
         assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
-
-    def test__1_profile__gaussian_priors_at_1_sigma_confidence(self, nlo_priors_path):
-
-        conf.instance.output_path = nlo_priors_path
-
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.1])
-        create_weighted_samples_4_parameters(path=nlo.backup_path)
-
-        gaussian_priors = nlo.gaussian_priors_at_sigma_limit(sigma_limit=1.0)
-
-        assert gaussian_priors[0][0] == 1.0
-        assert gaussian_priors[1][0] == 2.0
-        assert gaussian_priors[2][0] == 3.0
-        assert gaussian_priors[3][0] == 4.1
-
-        assert gaussian_priors[0][1] == pytest.approx(1.0 - 0.927, 5e-2)
-        assert gaussian_priors[1][1] == pytest.approx(2.0 - 1.928, 5e-2)
-        assert gaussian_priors[2][1] == pytest.approx(3.0 - 2.928, 5e-2)
-        assert gaussian_priors[3][1] == pytest.approx(4.1 - 3.928, 5e-2)
 
 
 class TestOffsetFromInput:
@@ -415,4 +337,17 @@ class TestLabels(object):
 
 class TestLatex(object):
 
-    def test__results_for_
+   def test__results_at_sigma_limit(self):
+
+       mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+       nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.0],
+                                    model_lower_params=[0.5, 1.5, 2.5, 3.5],
+                                    model_upper_params=[1.5, 2.5, 3.5, 4.5])
+
+       latex = nlo.latex_results_at_sigma_limit(sigma_limit=3.0)
+
+       i = 0
+       assert latex[i] == 'x4p0_{\\mathrm{a2}} = 1.00^{+1.50}_{-0.50} & ' ; i+=1
+       assert latex[i] == 'x4p1_{\\mathrm{a2}} = 2.00^{+2.50}_{-1.50} & ' ; i+=1
+       assert latex[i] == 'x4p2_{\\mathrm{a2}} = 3.00^{+3.50}_{-2.50} & ' ; i+=1
+       assert latex[i] == 'x4p3_{\\mathrm{a2}} = 4.00^{+4.50}_{-3.50} & ' ; i+=1
