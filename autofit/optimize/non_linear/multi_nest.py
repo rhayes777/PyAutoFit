@@ -225,14 +225,6 @@ class MultiNest(NonLinearOptimizer):
     def maximum_log_likelihood(self):
         return self.read_vector_from_summary(number_entries=2, offset=112)[1]
 
-    @property
-    def most_probable_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_probable_model_parameters)
-
-    @property
-    def most_likely_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_likely_model_parameters)
-
     def gaussian_priors_at_sigma_limit(self, sigma_limit):
         """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
         most probable values (e.g the means of their PDF) and computing the error at an input sigma_limit.
@@ -286,36 +278,9 @@ class MultiNest(NonLinearOptimizer):
         """
         return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
 
-    def model_errors_at_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
-
-    def model_errors_at_upper_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        return list(
-            map(lambda upper, most_probable: upper - most_probable, uppers, self.most_probable_model_parameters))
-
-    def model_errors_at_lower_sigma_limit(self, sigma_limit):
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-        return list(
-            map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
-
     @property
     def total_samples(self):
         return len(self.pdf.weights)
-
-    def sample_model_instance_from_sample_index(self, sample_index):
-        """Setup a model instance of a weighted sample.
-
-        Parameters
-        -----------
-        sample_index : int
-            The sample index of the weighted sample to return.
-        """
-        model_parameters = self.sample_model_parameters_from_sample_index(sample_index=sample_index)
-
-        return self.variable.instance_from_physical_vector(physical_vector=model_parameters)
 
     def sample_model_parameters_from_sample_index(self, sample_index):
         """From a sample return the model parameters.
@@ -349,9 +314,6 @@ class MultiNest(NonLinearOptimizer):
             The sample index of the weighted sample to return.
         """
         return -0.5 * self.pdf.loglikes[sample_index]
-
-    def offset_values_from_input_model_parameters(self, input_model_parameters):
-        return list(map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
 
     def output_pdf_plots(self):
 

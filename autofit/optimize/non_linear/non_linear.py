@@ -257,6 +257,91 @@ class NonLinearOptimizer(object):
         new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable)
         return new_instance
 
+    @property
+    def most_probable_model_parameters(self):
+        raise NotImplementedError()
+
+    @property
+    def most_likely_model_parameters(self):
+        """
+        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
+        multinest lensing.
+
+        This file stores the parameters of the most probable model in the first half of entries and the most likely
+        model in the second half of entries. The offset parameter is used to start at the desired model.
+        """
+        raise NotImplementedError()
+
+    @property
+    def maximum_likelihood(self):
+        raise NotImplementedError()
+
+    @property
+    def maximum_log_likelihood(self):
+        raise NotImplementedError()
+
+    def gaussian_priors_at_sigma_limit(self, sigma_limit):
+        raise NotImplementedError()
+
+    def model_parameters_at_sigma_limit(self, sigma_limit):
+        raise NotImplementedError()
+
+    def model_parameters_at_upper_sigma_limit(self, sigma_limit):
+        raise NotImplementedError()
+
+    def model_parameters_at_lower_sigma_limit(self, sigma_limit):
+        raise NotImplementedError
+
+    @property
+    def total_samples(self):
+        raise NotImplementedError()
+
+    def sample_model_parameters_from_sample_index(self, sample_index):
+        raise NotImplementedError()
+
+    @property
+    def most_probable_model_instance(self):
+        return self.variable.instance_from_physical_vector(physical_vector=self.most_probable_model_parameters)
+
+    @property
+    def most_likely_model_instance(self):
+        return self.variable.instance_from_physical_vector(physical_vector=self.most_likely_model_parameters)
+
+    def model_errors_at_sigma_limit(self, sigma_limit):
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
+
+    def model_errors_at_upper_sigma_limit(self, sigma_limit):
+        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+        return list(
+            map(lambda upper, most_probable: upper - most_probable, uppers, self.most_probable_model_parameters))
+
+    def model_errors_at_lower_sigma_limit(self, sigma_limit):
+        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        return list(
+            map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
+
+    def sample_model_instance_from_sample_index(self, sample_index):
+        """Setup a model instance of a weighted sample.
+
+        Parameters
+        -----------
+        sample_index : int
+            The sample index of the weighted sample to return.
+        """
+        model_parameters = self.sample_model_parameters_from_sample_index(sample_index=sample_index)
+
+        return self.variable.instance_from_physical_vector(physical_vector=model_parameters)
+
+    def sample_weight_from_sample_index(self, sample_index):
+        raise NotImplementedError()
+
+    def sample_likelihood_from_sample_index(self, sample_index):
+        raise NotImplementedError()
+
+    def offset_values_from_input_model_parameters(self, input_model_parameters):
+        return list(map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
 
 class Analysis(object):
 
