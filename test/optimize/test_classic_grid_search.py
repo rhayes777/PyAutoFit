@@ -3,6 +3,8 @@ import shutil
 
 import pytest
 
+import autofit.optimize.non_linear.grid_search
+import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
 from autofit import mock
@@ -16,7 +18,7 @@ def do_something():
         "{}/../../workspace/config".format(os.path.dirname(os.path.realpath(__file__))))
 
 
-class MockAnalysis(non_linear.Analysis):
+class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):
     def __init__(self):
         self.instances = []
 
@@ -46,7 +48,7 @@ def tuple_lists_equal(l1, l2):
 
 class TestGridSearchOptimizer(object):
     def test_config(self):
-        assert non_linear.GridSearch(phase_name='').step_size == 0.1
+        assert autofit.optimize.non_linear.grid_search.GridSearch(phase_name='').step_size == 0.1
 
     def test_1d(self):
         points = []
@@ -109,7 +111,7 @@ def make_grid_search():
         shutil.rmtree("{}/{}/".format(conf.instance.output_path, name))
     except FileNotFoundError:
         pass
-    return non_linear.GridSearch(phase_name=name, step_size=0.1)
+    return autofit.optimize.non_linear.grid_search.GridSearch(phase_name=name, step_size=0.1)
 
 
 class TestGridSearch(object):
@@ -143,7 +145,7 @@ class TestGridSearch(object):
         grid_search.variable.one = mock.Galaxy
         grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
 
         assert grid_search.is_checkpoint
         assert grid_search.checkpoint_count == 10
@@ -158,12 +160,12 @@ class TestGridSearch(object):
         grid_search.variable.one = mock.Galaxy
         grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
 
         with pytest.raises(exc.CheckpointException):
             grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.2)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.2)
         grid_search.variable.one = mock.Galaxy
 
         with pytest.raises(exc.CheckpointException):
@@ -177,7 +179,7 @@ class TestGridSearch(object):
 
         grid_search.fit(analysis)
 
-        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
 
         grid_search.variable.one = mock.Galaxy
         grid_search.variable.two = mock.Galaxy
@@ -195,7 +197,7 @@ class TestGridSearch(object):
         with open(grid_search.checkpoint_path, "w+") as f:
             f.write(string)
 
-        grid_search = non_linear.GridSearch(phase_name="grid_search", step_size=0.1)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
 
         grid_search.variable.one = mock.Galaxy
         grid_search.variable.two = mock.Galaxy

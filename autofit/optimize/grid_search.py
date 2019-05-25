@@ -5,12 +5,12 @@ from time import sleep
 
 import numpy as np
 
+import autofit.optimize.non_linear.downhill_simplex
 from autofit import conf
 from autofit import exc
 from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
-from autofit.optimize import non_linear
 from autofit.optimize import optimizer
 from autofit.tools import path_util
 
@@ -88,7 +88,8 @@ class GridSearchResult(object):
 class GridSearch(object):
 
     def __init__(self, phase_name, phase_tag=None, phase_folders=None, number_of_steps=10,
-                 optimizer_class=non_linear.DownhillSimplex, model_mapper=None, parallel=False):
+                 optimizer_class=autofit.optimize.non_linear.downhill_simplex.DownhillSimplex, model_mapper=None,
+                 parallel=False):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -192,7 +193,7 @@ class GridSearch(object):
 
         Parameters
         ----------
-        analysis: non_linear.Analysis
+        analysis: autofit.optimize.non_linear.non_linear.Analysis
             An analysis used to determine the fitness of a given model instance
         grid_priors: [p.Prior]
             A list of priors to be substituted for uniform priors across the grid.

@@ -9,7 +9,6 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, TuplePrior, UniformPrior, \
     LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue
-from autofit.tools import dimension_type
 
 
 def tuple_name(attribute_name):
