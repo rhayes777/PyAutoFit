@@ -144,6 +144,7 @@ class NonLinearOptimizer(object):
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
         if os.path.exists(self.backup_path):
+            self.path = link.make_linked_folder(self.sym_path)
             for file in glob.glob(self.backup_path + "/*"):
                 shutil.copy(file, self.path)
 
