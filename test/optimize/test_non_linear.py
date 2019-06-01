@@ -347,7 +347,7 @@ class TestLatex(object):
        latex = nlo.latex_results_at_sigma_limit(sigma_limit=3.0)
 
        i = 0
-       assert latex[i] == 'x4p0_{\\mathrm{a2}} = 1.00^{+1.50}_{-0.50} & ' ; i+=1
-       assert latex[i] == 'x4p1_{\\mathrm{a2}} = 2.00^{+2.50}_{-1.50} & ' ; i+=1
-       assert latex[i] == 'x4p2_{\\mathrm{a2}} = 3.00^{+3.50}_{-2.50} & ' ; i+=1
-       assert latex[i] == 'x4p3_{\\mathrm{a2}} = 4.00^{+4.50}_{-3.50} & ' ; i+=1
+       assert latex[i] == r'x4p0_{\mathrm{a2}} = 1.00^{+1.50}_{-0.50} & ' ; i+=1
+       assert latex[i] == r'x4p1_{\mathrm{a2}} = 2.00^{+2.50}_{-1.50} & ' ; i+=1
+       assert latex[i] == r'x4p2_{\mathrm{a2}} = 3.00^{+3.50}_{-2.50} & ' ; i+=1
+       assert latex[i] == r'x4p3_{\mathrm{a2}} = 4.00^{+4.50}_{-3.50} & ' ; i+=1
