@@ -335,19 +335,19 @@ class TestLabels(object):
                                           r'x4p2_{\mathrm{a2}}', r'x4p3_{\mathrm{a2}}']
 
 
-class TestLatex(object):
-
-   def test__results_at_sigma_limit(self):
-
-       mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-       nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.0],
-                                    model_lower_params=[0.5, 1.5, 2.5, 3.5],
-                                    model_upper_params=[1.5, 2.5, 3.5, 4.5])
-
-       latex = nlo.latex_results_at_sigma_limit(sigma_limit=3.0)
-
-       i = 0
-       assert latex[i] == r'x4p0_{\mathrm{a2}} = 1.00^{+1.50}_{-0.50} & ' ; i+=1
-       assert latex[i] == r'x4p1_{\mathrm{a2}} = 2.00^{+2.50}_{-1.50} & ' ; i+=1
-       assert latex[i] == r'x4p2_{\mathrm{a2}} = 3.00^{+3.50}_{-2.50} & ' ; i+=1
-       assert latex[i] == r'x4p3_{\mathrm{a2}} = 4.00^{+4.50}_{-3.50} & ' ; i+=1
+# class TestLatex(object):
+#
+#    def test__results_at_sigma_limit(self):
+#
+#        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+#        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.0],
+#                                     model_lower_params=[0.5, 1.5, 2.5, 3.5],
+#                                     model_upper_params=[1.5, 2.5, 3.5, 4.5])
+#
+#        latex = nlo.latex_results_at_sigma_limit(sigma_limit=3.0)
+#
+#        i = 0
+#        assert latex[i] == r'x4p0_{\mathrm{a2}} = 1.00^{+1.50}_{-0.50} & ' ; i+=1
+#        assert latex[i] == r'x4p1_{\mathrm{a2}} = 2.00^{+2.50}_{-1.50} & ' ; i+=1
+#        assert latex[i] == r'x4p2_{\mathrm{a2}} = 3.00^{+3.50}_{-2.50} & ' ; i+=1
+#        assert latex[i] == r'x4p3_{\mathrm{a2}} = 4.00^{+4.50}_{-3.50} & ' ; i+=1
