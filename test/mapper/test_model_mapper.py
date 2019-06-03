@@ -549,6 +549,22 @@ class TestModelInstance(object):
         instance.galaxy_2 = mock.Galaxy()
         assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1, instance.galaxy_2]
 
+    def test_name_instance_tuples_for_class(self):
+        sub = autofit.mapper.model.ModelInstance()
+        instance = autofit.mapper.model.ModelInstance()
+
+        galaxy_1 = mock.Galaxy()
+        sub.galaxy_1 = galaxy_1
+
+        galaxy_2 = mock.Galaxy()
+        instance.galaxy_2 = galaxy_2
+        instance.sub = sub
+
+        result = instance.name_instance_tuples_for_class(mock.Galaxy)
+
+        assert result[0] == ("galaxy_2", galaxy_2)
+        assert result[1] == ("sub_galaxy_1", galaxy_1)
+
     def test_instances_of_filtering(self):
         instance = autofit.mapper.model.ModelInstance()
         instance.galaxy_1 = mock.Galaxy()
