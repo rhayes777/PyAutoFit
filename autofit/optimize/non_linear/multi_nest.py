@@ -104,13 +104,21 @@ class MultiNest(NonLinearOptimizer):
                 "output",
                 "number_of_accepted_samples_between_output",
                 int)
+            self.stagger_resampling_likelihood = conf.instance.non_linear.get('MultiNest','stagger_resampling_likelihood', bool)
+            self.stagger_resampling_value = conf.instance.non_linear.get('MultiNest','stagger_resampling_value', float)
+            self.resampling_likelihood = conf.instance.non_linear.get('MultiNest', 'null_log_evidence', float)
 
         def __call__(self, cube, ndim, nparams, lnew):
             try:
                 instance = self.instance_from_physical_vector(cube)
                 likelihood = self.fit_instance(instance)
             except exc.FitException:
-                likelihood = -np.inf
+
+                if not self.stagger_resampling_likelihood:
+                    likelihood = -np.inf
+                else:
+                    self.resampling_likelihood += self.stagger_resampling_value
+                    likelihood = self.resampling_likelihood
 
             if likelihood > self.max_likelihood:
 
@@ -165,28 +173,17 @@ class MultiNest(NonLinearOptimizer):
         logger.info("MultiNest complete")
 
         self.backup()
+        constant = self.most_likely_model_instance
+        analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
-
-        constant = self.most_likely_model_instance
-
-        analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
         return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
                       previous_variable=self.variable,
                       gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
 
-    def open_summary_file(self):
+    def read_list_of_results_from_summary_file(self, number_entries, offset):
 
         summary = open(self.file_summary)
-        summary.seek(1)
-
-        return summary
-
-    def read_vector_from_summary(self, number_entries, offset):
-
-        summary = self.open_summary_file()
-
-        summary.seek(1)
         summary.read(2 + offset * self.variable.prior_count)
         vector = []
         for param in range(number_entries):
@@ -206,7 +203,7 @@ class MultiNest(NonLinearOptimizer):
         model in the second half of entries. The offset parameter is used to start at the desired model.
 
         """
-        return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=0)
+        return self.read_list_of_results_from_summary_file(number_entries=self.variable.prior_count, offset=0)
 
     @property
     def most_likely_model_parameters(self):
@@ -217,43 +214,15 @@ class MultiNest(NonLinearOptimizer):
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
         """
-        return self.read_vector_from_summary(number_entries=self.variable.prior_count, offset=56)
+        return self.read_list_of_results_from_summary_file(number_entries=self.variable.prior_count, offset=56)
 
     @property
     def maximum_likelihood(self):
-        return self.read_vector_from_summary(number_entries=2, offset=112)[0]
+        return self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[0]
 
     @property
     def maximum_log_likelihood(self):
-        return self.read_vector_from_summary(number_entries=2, offset=112)[1]
-
-    @property
-    def most_probable_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_probable_model_parameters)
-
-    @property
-    def most_likely_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_likely_model_parameters)
-
-    def gaussian_priors_at_sigma_limit(self, sigma_limit):
-        """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
-        most probable values (e.g the means of their PDF) and computing the error at an input sigma_limit.
-
-        Parameters
-        -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
-            PDF).
-        """
-
-        means = self.most_probable_model_parameters
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-
-        # noinspection PyArgumentList
-        sigmas = list(map(lambda mean, upper, lower: max([upper - mean, mean - lower]), means, uppers, lowers))
-
-        return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
+        return self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[1]
 
     def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
@@ -288,36 +257,9 @@ class MultiNest(NonLinearOptimizer):
         """
         return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
 
-    def model_errors_at_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
-
-    def model_errors_at_upper_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        return list(
-            map(lambda upper, most_probable: upper - most_probable, uppers, self.most_probable_model_parameters))
-
-    def model_errors_at_lower_sigma_limit(self, sigma_limit):
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-        return list(
-            map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
-
     @property
     def total_samples(self):
         return len(self.pdf.weights)
-
-    def sample_model_instance_from_sample_index(self, sample_index):
-        """Setup a model instance of a weighted sample.
-
-        Parameters
-        -----------
-        sample_index : int
-            The sample index of the weighted sample to return.
-        """
-        model_parameters = self.sample_model_parameters_from_sample_index(sample_index=sample_index)
-
-        return self.variable.instance_from_physical_vector(physical_vector=model_parameters)
 
     def sample_model_parameters_from_sample_index(self, sample_index):
         """From a sample return the model parameters.
@@ -351,9 +293,6 @@ class MultiNest(NonLinearOptimizer):
             The sample index of the weighted sample to return.
         """
         return -0.5 * self.pdf.loglikes[sample_index]
-
-    def offset_values_from_input_model_parameters(self, input_model_parameters):
-        return list(map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
 
     def output_pdf_plots(self):
 

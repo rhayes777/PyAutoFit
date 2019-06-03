@@ -28,7 +28,13 @@ class ModelInstance(AbstractModel):
                 source if isinstance(instance, cls)]
 
     def name_instance_tuples_for_class(self, cls):
-        return [item for item in self.__dict__.items() if isinstance(item[1], cls)]
+        flat = [item for item in self.__dict__.items() if isinstance(item[1], cls)]
+        if not cls == ModelInstance:
+            sub_instances = self.name_instance_tuples_for_class(ModelInstance)
+            sub = [("{}_{}".format(instance[0], item[0]), item[1]) for instance in sub_instances for item in
+                   instance[1].name_instance_tuples_for_class(cls)]
+            return flat + sub
+        return flat
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
