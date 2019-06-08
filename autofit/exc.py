@@ -26,3 +26,7 @@ class PriorLimitException(FitException, PriorException):
 
 class PipelineException(Exception):
     pass
+
+
+class DeferredInstanceException(Exception):
+    pass

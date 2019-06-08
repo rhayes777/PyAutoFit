@@ -480,7 +480,7 @@ class PriorModel(AbstractPriorModel):
             )
             for value in model_arguments.values()
         ]):
-            return DeferredInstance(self, constructor_arguments)
+            return DeferredInstance(self.cls, constructor_arguments)
         return self.cls(**constructor_arguments)
 
     def gaussian_prior_model_for_arguments(self, arguments):
@@ -689,6 +689,24 @@ class CollectionPriorModel(AbstractPriorModel):
 
 
 class DeferredInstance:
-    def __init__(self, prior_model, constructor_arguments):
-        self.prior_model = prior_model
+    def __init__(self, cls, constructor_arguments):
+        self.cls = cls
         self.constructor_arguments = constructor_arguments
+
+    @property
+    def deferred_argument_names(self):
+        return [name for name, value
+                in self.constructor_arguments.items()
+                if isinstance(value, DeferredArgument)]
+
+    def __call__(self, **kwargs):
+        return self.cls(**{**self.constructor_arguments, **kwargs})
+
+    def __getattr__(self, item):
+        try:
+            super().__getattribute__(item)
+        except AttributeError:
+            raise exc.DeferredInstanceException(
+                f"{self.cls.__name__} cannot be called until it is instantiated with"
+                f"deferred arguments {self.deferred_argument_names}"
+            )
