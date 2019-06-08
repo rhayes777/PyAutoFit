@@ -1,13 +1,19 @@
+import typing
+
 from autofit.optimize import non_linear
-import math
+from autofit.tools import dimension_type
+
 
 class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None,
-                 most_probable=None, most_likely=None, model_upper_params=None, model_lower_params=None):
-
-        super(MockNonLinearOptimizer, self).__init__(phase_name=phase_name, phase_tag=phase_tag,
-                                                     phase_folders=phase_folders, model_mapper=model_mapper)
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+                 model_mapper=None,
+                 most_probable=None, most_likely=None, model_upper_params=None,
+                 model_lower_params=None):
+        super(MockNonLinearOptimizer, self).__init__(phase_name=phase_name,
+                                                     phase_tag=phase_tag,
+                                                     phase_folders=phase_folders,
+                                                     model_mapper=model_mapper)
 
         self.most_probable = most_probable
         self.most_likely = most_likely
@@ -85,3 +91,36 @@ class MockAnalysis(object):
     # noinspection PyUnusedLocal
     def visualize(self, instance, *args, **kwargs):
         self.visualise_instance = instance
+
+
+class SimpleClass(object):
+    def __init__(self, one, two: float):
+        self.one = one
+        self.two = two
+
+
+class ComplexClass(object):
+    def __init__(self, simple: SimpleClass):
+        self.simple = simple
+
+
+class ListClass(object):
+    def __init__(self, ls: list):
+        self.ls = ls
+
+
+class Distance(dimension_type.DimensionType):
+    pass
+
+
+class DistanceClass:
+    @dimension_type.map_types
+    def __init__(self, first: Distance, second: Distance):
+        self.first = first
+        self.second = second
+
+
+class PositionClass:
+    @dimension_type.map_types
+    def __init__(self, position: typing.Tuple[Distance, Distance]):
+        self.position = position

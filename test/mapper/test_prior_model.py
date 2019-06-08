@@ -1,41 +1,7 @@
-import typing
-
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior_model as pm
-from autofit.tools import dimension_type
-
-
-class SimpleClass(object):
-    def __init__(self, one, two: float):
-        self.one = one
-        self.two = two
-
-
-class ComplexClass(object):
-    def __init__(self, simple: SimpleClass):
-        self.simple = simple
-
-
-class ListClass(object):
-    def __init__(self, ls: list):
-        self.ls = ls
-
-
-class Distance(dimension_type.DimensionType):
-    pass
-
-
-class DistanceClass:
-    @dimension_type.map_types
-    def __init__(self, first: Distance, second: Distance):
-        self.first = first
-        self.second = second
-
-
-class PositionClass:
-    @dimension_type.map_types
-    def __init__(self, position: typing.Tuple[Distance, Distance]):
-        self.position = position
+from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
+    DistanceClass, PositionClass
 
 
 class TestFloatAnnotation(object):
