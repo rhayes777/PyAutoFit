@@ -9,7 +9,8 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
     TuplePrior, UniformPrior, \
-    LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue
+    LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue, \
+    DeferredArgument
 
 
 def tuple_name(attribute_name):
@@ -440,6 +441,7 @@ class PriorModel(AbstractPriorModel):
     def prior_class_dict(self):
         return {prior[1]: self.cls for prior in self.prior_tuples}
 
+    # noinspection PyUnresolvedReferences
     def instance_for_arguments(self, arguments: {Prior: object}):
         """
         Create an instance of the associated class for a set of arguments
@@ -463,11 +465,23 @@ class PriorModel(AbstractPriorModel):
             model_arguments[tuple_prior.name] = tuple_prior.prior.value_for_arguments(
                 arguments)
         for prior_model_tuple in self.direct_prior_model_tuples:
+            prior_model = prior_model_tuple.prior_model
             model_arguments[
-                prior_model_tuple.name] = prior_model_tuple.prior_model.instance_for_arguments(
-                arguments)
+                prior_model_tuple.name] = prior_model.instance_for_arguments(
+                arguments
+            )
 
-        return self.cls(**{**model_arguments, **constant_arguments})
+        constructor_arguments = {**model_arguments, **constant_arguments}
+
+        if any([
+            isinstance(
+                value,
+                DeferredArgument
+            )
+            for value in model_arguments.values()
+        ]):
+            return DeferredInstance(self, constructor_arguments)
+        return self.cls(**constructor_arguments)
 
     def gaussian_prior_model_for_arguments(self, arguments):
         """
@@ -674,5 +688,7 @@ class CollectionPriorModel(AbstractPriorModel):
                 prior_model.prior_class_dict.items()}
 
 
-class DeferredInstance(object):
-    pass
+class DeferredInstance:
+    def __init__(self, prior_model, constructor_arguments):
+        self.prior_model = prior_model
+        self.constructor_arguments = constructor_arguments
