@@ -641,3 +641,7 @@ class CollectionPriorModel(AbstractPriorModel):
     @property
     def prior_class_dict(self):
         return {prior: cls for prior_model in self.prior_models for prior, cls in prior_model.prior_class_dict.items()}
+
+
+class DeferredInstance(object):
+    pass
