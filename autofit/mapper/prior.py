@@ -354,4 +354,8 @@ class Constant(ModelObject):
 
 
 class DeferredArgument(object):
+    """
+    A deferred argument which is passed into the construct the final instance after
+    model mapper instance generation
+    """
     pass
