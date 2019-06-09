@@ -759,5 +759,5 @@ class DeferredInstance:
         except AttributeError:
             raise exc.DeferredInstanceException(
                 f"{self.cls.__name__} cannot be called until it is instantiated with"
-                f"deferred arguments {self.deferred_argument_names}"
+                f" deferred arguments {self.deferred_argument_names}"
             )
