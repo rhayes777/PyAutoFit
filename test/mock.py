@@ -124,3 +124,9 @@ class PositionClass:
     @dimension_type.map_types
     def __init__(self, position: typing.Tuple[Distance, Distance]):
         self.position = position
+
+
+class DeferredClass:
+    def __init__(self, one, two):
+        self.one = one
+        self.two = two

@@ -10,7 +10,7 @@ from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
     TuplePrior, UniformPrior, \
     LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue, \
-    DeferredArgument
+    DeferredArgument, DeferredNameValue
 
 
 def tuple_name(attribute_name):
@@ -181,9 +181,14 @@ def prior_for_class_and_attribute_name(cls, attribute_name):
         return GaussianPrior(config_arr[1], config_arr[2], *limits)
     elif config_arr[0] == "c":
         return Constant(config_arr[1])
+    elif config_arr[0] == "d":
+        return DeferredArgument()
     raise exc.PriorException(
-        "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, c - Constant".format(
-            attribute_name))
+        "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, "
+        "c - Constant, d - Deferred)".format(
+            attribute_name
+        )
+    )
 
 
 class PriorModel(AbstractPriorModel):
@@ -421,6 +426,11 @@ class PriorModel(AbstractPriorModel):
         return self.tuples_with_type(Constant)
 
     @property
+    @cast_collection(DeferredNameValue)
+    def direct_deferred_tuples(self):
+        return self.tuples_with_type(DeferredArgument)
+
+    @property
     @cast_collection(ConstantNameValue)
     def constant_tuples(self):
         """
@@ -441,8 +451,12 @@ class PriorModel(AbstractPriorModel):
     def prior_class_dict(self):
         return {prior[1]: self.cls for prior in self.prior_tuples}
 
+    @property
+    def is_deferred_arguments(self):
+        return len(self.direct_deferred_tuples) > 0
+
     # noinspection PyUnresolvedReferences
-    def instance_for_arguments(self, arguments: {Prior: object}):
+    def instance_for_arguments(self, arguments: {ModelObject: object}):
         """
         Create an instance of the associated class for a set of arguments
 
@@ -458,9 +472,14 @@ class PriorModel(AbstractPriorModel):
         for prior, value in arguments.items():
             if isinstance(value, float) or isinstance(value, int):
                 prior.assert_within_limits(value)
-        model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}
-        constant_arguments = {t.name: t.constant.value for t in
-                              self.direct_constant_tuples}
+        model_arguments = {
+            t.name: arguments[t.prior]
+            for t in self.direct_prior_tuples
+        }
+        constant_arguments = {
+            t.name: t.constant.value for t in
+            self.direct_constant_tuples
+        }
         for tuple_prior in self.tuple_prior_tuples:
             model_arguments[tuple_prior.name] = tuple_prior.prior.value_for_arguments(
                 arguments)
@@ -473,13 +492,7 @@ class PriorModel(AbstractPriorModel):
 
         constructor_arguments = {**model_arguments, **constant_arguments}
 
-        if any([
-            isinstance(
-                value,
-                DeferredArgument
-            )
-            for value in model_arguments.values()
-        ]):
+        if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
         return self.cls(**constructor_arguments)
 

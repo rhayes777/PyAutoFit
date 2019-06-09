@@ -63,6 +63,12 @@ class ConstantNameValue(AttributeNameValue):
         return self.value
 
 
+class DeferredNameValue(AttributeNameValue):
+    @property
+    def deferred(self):
+        return self.value
+
+
 class TuplePrior(object):
     """
     A prior comprising one or more priors in a tuple
