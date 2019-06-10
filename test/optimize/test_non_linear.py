@@ -1,12 +1,11 @@
 import itertools
 import os
 import shutil
-from functools import wraps
 
 import pytest
 
 import autofit.mapper.prior_model
-from autofit.mapper import model_mapper, prior as p
+from autofit.mapper import prior as p
 import autofit.optimize.non_linear.downhill_simplex
 import autofit.optimize.non_linear.grid_search
 import autofit.optimize.non_linear.multi_nest
@@ -15,7 +14,8 @@ from autofit import conf
 from autofit import exc
 from autofit import mock
 from autofit.mapper import model_mapper
-from test.mock.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis, MockNonLinearOptimizer
+from test.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
+    MockNonLinearOptimizer
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 

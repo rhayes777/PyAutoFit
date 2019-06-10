@@ -4,8 +4,10 @@ import os
 from autofit import conf
 from autofit import exc
 from autofit.mapper.model import AbstractModel, ModelInstance
-from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, ConstantNameValue
-from autofit.mapper.prior_model import CollectionPriorModel, AbstractPriorModel, PriorModelNameValue
+from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
+    ConstantNameValue
+from autofit.mapper.prior_model import CollectionPriorModel, AbstractPriorModel, \
+    PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -91,7 +93,8 @@ class ModelMapper(AbstractModel):
         -------
         prior_model_tuples: [(String, PriorModel)]
         """
-        return list(filter(lambda t: isinstance(t[1], AbstractPriorModel), self.__dict__.items()))
+        return list(filter(lambda t: isinstance(t[1], AbstractPriorModel),
+                           self.__dict__.items()))
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -101,7 +104,8 @@ class ModelMapper(AbstractModel):
         -------
         list_prior_model_tuples: [(String, ListPriorModel)]
         """
-        return list(filter(lambda t: isinstance(t[1], CollectionPriorModel), self.__dict__.items()))
+        return list(filter(lambda t: isinstance(t[1], CollectionPriorModel),
+                           self.__dict__.items()))
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -138,7 +142,8 @@ class ModelMapper(AbstractModel):
 
     @property
     def prior_prior_name_dict(self):
-        return {prior_tuple.prior: prior_tuple.name for prior_tuple in self.prior_tuples}
+        return {prior_tuple.prior: prior_tuple.name for prior_tuple in
+                self.prior_tuples}
 
     @property
     @cast_collection(ConstantNameValue)
@@ -162,7 +167,8 @@ class ModelMapper(AbstractModel):
         priors: [Prior]
             An ordered list of unique priors associated with this mapper
         """
-        return sorted(list(self.prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id)
+        return sorted(list(self.prior_tuples),
+                      key=lambda prior_tuple: prior_tuple.prior.id)
 
     @property
     @cast_collection(ConstantNameValue)
@@ -173,7 +179,8 @@ class ModelMapper(AbstractModel):
         constants: [(str, Constant)]
             A list of tuples mapping strings to constants constants ordered by id
         """
-        return sorted(list(self.constant_tuple_dict), key=lambda constant_tuple: constant_tuple.constant.id)
+        return sorted(list(self.constant_tuple_dict),
+                      key=lambda constant_tuple: constant_tuple.constant.id)
 
     @property
     def prior_class_dict(self):
@@ -198,7 +205,8 @@ class ModelMapper(AbstractModel):
             A dictionary mapping priors to associated prior models. Each prior will only have one prior model; if a
             prior is shared by two prior models then one of those prior models will be in this dictionary.
         """
-        return {prior: prior_model[1] for prior_model in self.prior_model_tuples for _, prior in
+        return {prior: prior_model[1] for prior_model in self.prior_model_tuples for
+                _, prior in
                 prior_model[1].prior_tuples}
 
     @property
@@ -212,11 +220,15 @@ class ModelMapper(AbstractModel):
             dictionary.
         """
         prior_prior_model_name_dict = {prior_tuple.prior: prior_model_tuple.name
-                                       for prior_model_tuple in self.flat_prior_model_tuples
-                                       for prior_tuple in prior_model_tuple.prior_model.prior_tuples}
+                                       for prior_model_tuple in
+                                       self.flat_prior_model_tuples
+                                       for prior_tuple in
+                                       prior_model_tuple.prior_model.prior_tuples}
         prior_list_prior_model_name_dict = {
-            prior_tuple.value: "{}_{}".format(list_prior_model_tuple.name, label_prior_model_tuple.name) for
-            list_prior_model_tuple in self.list_prior_model_tuples for label_prior_model_tuple in
+            prior_tuple.value: "{}_{}".format(list_prior_model_tuple.name,
+                                              label_prior_model_tuple.name) for
+            list_prior_model_tuple in self.list_prior_model_tuples for
+            label_prior_model_tuple in
             list_prior_model_tuple.value.label_prior_model_tuples for prior_tuple in
             label_prior_model_tuple.value.prior_tuples}
         prior_prior_model_name_dict.update(prior_list_prior_model_name_dict)
@@ -225,7 +237,8 @@ class ModelMapper(AbstractModel):
     @property
     @cast_collection(PriorModelNameValue)
     def list_prior_model_tuples(self):
-        return [tup for tup in self.prior_model_tuples if isinstance(tup.value, CollectionPriorModel)]
+        return [tup for tup in self.prior_model_tuples if
+                isinstance(tup.value, CollectionPriorModel)]
 
     @property
     def constant_prior_model_name_dict(self):
@@ -249,7 +262,8 @@ class ModelMapper(AbstractModel):
         class_priors_dict: {String: [Prior]}
             A dictionary mapping_matrix the names of priors to lists of associated priors
         """
-        return {name: list(prior_model.prior_tuples) for name, prior_model in self.prior_model_tuples}
+        return {name: list(prior_model.prior_tuples) for name, prior_model in
+                self.prior_model_tuples}
 
     @property
     def prior_model_name_constant_tuples_dict(self):
@@ -259,7 +273,8 @@ class ModelMapper(AbstractModel):
         class_constants_dict: {String: [Constant]}
             A dictionary mapping_matrix the names of priors to lists of associated constants
         """
-        return {name: list(prior_model.constant_tuples) for name, prior_model in self.prior_model_tuples}
+        return {name: list(prior_model.constant_tuples) for name, prior_model in
+                self.prior_model_tuples}
 
     def physical_vector_from_hypercube_vector(self, hypercube_vector):
         """
@@ -274,7 +289,8 @@ class ModelMapper(AbstractModel):
             A vector with values output by priors
         """
         return list(
-            map(lambda prior_tuple, unit: prior_tuple.prior.value_for(unit), self.prior_tuples_ordered_by_id,
+            map(lambda prior_tuple, unit: prior_tuple.prior.value_for(unit),
+                self.prior_tuples_ordered_by_id,
                 hypercube_vector))
 
     def physical_values_ordered_by_class(self, hypercube_vector):
@@ -312,7 +328,8 @@ class ModelMapper(AbstractModel):
         physical_values: [float]
             A list of physical values constructed by taking the mean possible value from each prior.
         """
-        return self.physical_vector_from_hypercube_vector([0.5] * len(self.prior_tuples))
+        return self.physical_vector_from_hypercube_vector(
+            [0.5] * len(self.prior_tuples))
 
     def instance_from_prior_medians(self):
         """
@@ -324,7 +341,8 @@ class ModelMapper(AbstractModel):
             A list of physical values
 
         """
-        return self.instance_from_unit_vector(unit_vector=[0.5] * len(self.prior_tuples))
+        return self.instance_from_unit_vector(
+            unit_vector=[0.5] * len(self.prior_tuples))
 
     def instance_from_unit_vector(self, unit_vector):
         """
@@ -346,8 +364,15 @@ class ModelMapper(AbstractModel):
 
         """
         arguments = dict(
-            map(lambda prior_tuple, unit: (prior_tuple.prior, prior_tuple.prior.value_for(unit)),
-                self.prior_tuples_ordered_by_id, unit_vector))
+            map(
+                lambda prior_tuple, unit: (
+                    prior_tuple.prior,
+                    prior_tuple.prior.value_for(unit)
+                ),
+                self.prior_tuples_ordered_by_id,
+                unit_vector
+            )
+        )
 
         return self.instance_for_arguments(arguments)
 
@@ -370,8 +395,11 @@ class ModelMapper(AbstractModel):
 
         """
         arguments = dict(
-            map(lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit), self.prior_tuples_ordered_by_id,
-                physical_vector))
+            map(
+                lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
+                self.prior_tuples_ordered_by_id,
+                physical_vector)
+        )
 
         return self.instance_for_arguments(arguments)
 
@@ -445,7 +473,8 @@ class ModelMapper(AbstractModel):
 
         for prior_model_tuple in self.prior_model_tuples:
             setattr(mapper, prior_model_tuple.name,
-                    prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(arguments))
+                    prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
+                        arguments))
 
         return mapper
 
@@ -483,7 +512,8 @@ class ModelMapper(AbstractModel):
             cls = prior_class_dict[prior]
             mean = tuples[i][0]
             if a is not None and r is not None:
-                raise exc.PriorException("Width of new priors cannot be both relative and absolute.")
+                raise exc.PriorException(
+                    "Width of new priors cannot be both relative and absolute.")
             if a is not None:
                 width_type = "a"
                 value = a
@@ -491,17 +521,20 @@ class ModelMapper(AbstractModel):
                 width_type = "r"
                 value = r
             else:
-                width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(cls, prior_tuple.name)
+                width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(
+                    cls, prior_tuple.name)
             if width_type == "r":
                 width = value * mean
             elif width_type == "a":
                 width = value
             else:
-                raise exc.PriorException("Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0")
+                raise exc.PriorException(
+                    "Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0")
             if isinstance(prior, GaussianPrior):
                 limits = (prior.lower_limit, prior.upper_limit)
             else:
-                limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, prior_tuple.name)
+                limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls,
+                                                                            prior_tuple.name)
             arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
 
         return self.mapper_from_prior_arguments(arguments)
@@ -552,7 +585,8 @@ class ModelMapper(AbstractModel):
         The parameter names are determined from the class instance names of the model_mapper. Latex tags are \
         properties of each model class."""
 
-        return [self.name_for_prior(prior) for prior in sorted(self.priors, key=lambda prior: prior.id)]
+        return [self.name_for_prior(prior) for prior in
+                sorted(self.priors, key=lambda prior: prior.id)]
 
     @property
     def constant_names(self):
@@ -561,7 +595,8 @@ class ModelMapper(AbstractModel):
         constant_prior_model_name_dict = self.constant_prior_model_name_dict
 
         for constant_name, constant in self.constant_tuples_ordered_by_id:
-            constant_names.append(constant_prior_model_name_dict[constant] + '_' + constant_name)
+            constant_names.append(
+                constant_prior_model_name_dict[constant] + '_' + constant_name)
 
         return constant_names
 

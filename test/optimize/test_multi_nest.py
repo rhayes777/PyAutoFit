@@ -1,4 +1,3 @@
-import itertools
 import os
 import shutil
 from functools import wraps
@@ -10,7 +9,7 @@ from autofit.optimize import non_linear as nl
 from autofit import conf
 from autofit.mapper import model_mapper, prior as p
 
-from test.mock.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis
+from test.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 
