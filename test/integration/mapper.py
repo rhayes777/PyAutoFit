@@ -6,7 +6,7 @@ class TestCase(object):
     def test(self):
         source = mapper.PriorModel(
             mock.Galaxy,
-            light_profiles=mapper.PriorModel(
+            light_profiles=mapper.CollectionPriorModel(
                 dict(
                     light=mock.EllipticalLP
                 )
@@ -15,12 +15,12 @@ class TestCase(object):
 
         lens = mapper.PriorModel(
             mock.Galaxy,
-            light_profiles=mapper.PriorModel(
+            light_profiles=mapper.CollectionPriorModel(
                 dict(
                     light=mock.EllipticalLP
                 )
             ),
-            mass_profiles=mapper.PriorModel(
+            mass_profiles=mapper.CollectionPriorModel(
                 dict(
                     light=mock.EllipticalMassProfile
                 )

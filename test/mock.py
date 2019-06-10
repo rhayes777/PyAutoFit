@@ -141,8 +141,8 @@ class DeferredClass:
 class Galaxy(object):
     def __init__(
             self,
-            light_profiles=None,
-            mass_profiles=None,
+            light_profiles: list = None,
+            mass_profiles: list = None,
             redshift=None
     ):
         self.redshift = redshift
@@ -518,7 +518,7 @@ class EllipticalGaussian(EllipticalLP):
 
 
 class Tracer:
-    def __init__(self, lens_galaxy, source_galaxy, grid):
+    def __init__(self, lens_galaxy: Galaxy, source_galaxy: Galaxy, grid):
         self.lens_galaxy = lens_galaxy
         self.source_galaxy = source_galaxy
         self.grid = grid
