@@ -29,7 +29,7 @@ def make_tracer_prior_model(source):
             light=mock.EllipticalLP
         ),
         mass_profiles=mapper.CollectionPriorModel(
-            light=mock.EllipticalMassProfile
+            mass=mock.EllipticalMassProfile
         )
     )
 
@@ -59,9 +59,6 @@ class TestCase(object):
     def test_simple_model(self, source, source_light_profiles):
         assert source.prior_count == 5
 
-        print(source_light_profiles.__dict__)
-        print(source.light_profiles.__dict__)
-
         instance = source.instance_for_arguments(
             {
                 source.light_profiles.light.centre_0: 0.5,
@@ -74,7 +71,7 @@ class TestCase(object):
 
         assert instance.light_profiles.light.centre[0] == 0.5
 
-    def test(self, tracer_prior_model):
+    def test_integration(self, tracer_prior_model):
         assert tracer_prior_model.prior_count == 14
 
         model_mapper = mapper.ModelMapper()
@@ -82,9 +79,15 @@ class TestCase(object):
 
         assert model_mapper.prior_count == 14
 
+        prior = tracer_prior_model.source_galaxy.light_profiles.light.axis_ratio
+        tracer_prior_model.lens_galaxy.mass_profiles.mass.axis_ratio = prior
+
+        assert model_mapper.prior_count == 13
+
         instance = model_mapper.instance_from_prior_medians()
         grid = np.ndarray([0])
         tracer = instance.Tracer(grid=grid)
 
         assert isinstance(tracer, mock.Tracer)
         assert tracer.lens_galaxy.light_profiles.light.axis_ratio == 1.0
+        assert tracer.grid is grid
