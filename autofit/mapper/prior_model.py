@@ -498,6 +498,7 @@ class PriorModel(AbstractPriorModel):
         for prior, value in arguments.items():
             if isinstance(value, float) or isinstance(value, int):
                 prior.assert_within_limits(value)
+
         model_arguments = {
             t.name: arguments[t.prior]
             for t in self.direct_prior_tuples
@@ -510,6 +511,7 @@ class PriorModel(AbstractPriorModel):
             key: value for key, value in self.__dict__.items()
             if key in self.constructor_argument_names
         }
+
         for tuple_prior in self.tuple_prior_tuples:
             model_arguments[tuple_prior.name] = tuple_prior.prior.value_for_arguments(
                 arguments)
