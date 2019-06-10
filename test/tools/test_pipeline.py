@@ -3,8 +3,9 @@ import os
 import pytest
 
 import autofit.optimize.non_linear.non_linear
+import test.mock
 from autofit import exc
-from autofit import mock
+from test import mock
 from autofit.mapper import prior as p
 from autofit.optimize import non_linear
 from autofit.tools import phase as ph
@@ -61,7 +62,7 @@ class TestPipeline(object):
 
     def test_optimizer_assertion(self):
         optimizer = autofit.optimize.non_linear.non_linear.NonLinearOptimizer("Phase Name")
-        optimizer.variable.profile = mock.GeometryProfile
+        optimizer.variable.profile = test.mock.GeometryProfile
         phase = MockPhase("phase_name", optimizer)
 
         try:
@@ -89,7 +90,7 @@ class TestPipeline(object):
         phase.assert_and_save_pickle()
         phase.assert_and_save_pickle()
 
-        phase.variable.galaxy = mock.Galaxy
+        phase.variable.galaxy = test.mock.Galaxy
 
         with pytest.raises(exc.PipelineException):
             phase.assert_and_save_pickle()

@@ -5,6 +5,7 @@ import shutil
 import pytest
 
 import autofit.mapper.prior_model
+import test.mock
 from autofit.mapper import prior as p
 import autofit.optimize.non_linear.downhill_simplex
 import autofit.optimize.non_linear.grid_search
@@ -12,7 +13,7 @@ import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
-from autofit import mock
+from test import mock
 from autofit.mapper import model_mapper
 from test.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
     MockNonLinearOptimizer
@@ -39,7 +40,7 @@ def make_mock_list():
 @pytest.fixture(name="result")
 def make_result():
     mapper = model_mapper.ModelMapper()
-    mapper.profile = mock.GeometryProfile
+    mapper.profile = test.mock.GeometryProfile
     # noinspection PyTypeChecker
     return autofit.optimize.non_linear.non_linear.Result(None, None, mapper, [(0, 0), (1, 0)])
 
