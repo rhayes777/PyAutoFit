@@ -6,6 +6,7 @@ from scipy.special import erfcinv
 
 from autofit import conf
 from autofit import exc
+from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.model_object import ModelObject
 
 
@@ -389,9 +390,3 @@ class Constant(ModelObject):
         return 'Constant, value = {}'.format(self.value)
 
 
-class DeferredArgument(object):
-    """
-    A deferred argument which is passed into the construct the final instance after
-    model mapper instance generation
-    """
-    pass

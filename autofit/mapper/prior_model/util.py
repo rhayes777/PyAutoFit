@@ -1,9 +1,6 @@
 import re
 
-from autofit import conf, exc
-from autofit.mapper.prior import UniformPrior, GaussianPrior, Constant, \
-    DeferredArgument, \
-    LogUniformPrior, AttributeNameValue
+from autofit.mapper.prior import AttributeNameValue
 
 
 def tuple_name(attribute_name):

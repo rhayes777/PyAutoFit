@@ -3,12 +3,13 @@ import inspect
 
 from typing_inspect import is_tuple_type
 
-from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
     TuplePrior, Constant, Prior, AttributeNameValue, \
-    DeferredArgument, DeferredNameValue
+    DeferredNameValue
+from autofit.mapper.prior_model.deferred import DeferredArgument
+from autofit.mapper.prior_model.deferred import DeferredInstance
 from autofit.mapper.prior_model.util import tuple_name, is_tuple_like_attribute_name, \
     PriorModelNameValue
 
@@ -687,63 +688,3 @@ class CollectionPriorModel(AbstractPriorModel):
                 prior_model.prior_class_dict.items()}
 
 
-class DeferredInstance:
-    def __init__(
-            self,
-            cls: type,
-            constructor_arguments: {str: object}
-    ):
-        """
-        An instance that has been deferred for later construction
-
-        Parameters
-        ----------
-        cls
-            The class to be constructed
-        constructor_arguments
-            The arguments provided by the optimiser
-        """
-        self.cls = cls
-        self.constructor_arguments = constructor_arguments
-
-    @property
-    def deferred_argument_names(self) -> [str]:
-        """
-        The names of arguments still required to instantiate the class
-        """
-        return [
-            name for name, value
-            in self.constructor_arguments.items()
-            if isinstance(value, DeferredArgument)
-        ]
-
-    def __call__(self, **kwargs):
-        """
-        Constructs an instance of the class provided that all unset arguments are
-        passed.
-
-        Parameters
-        ----------
-        kwargs
-            Key value pairs for arguments that should be set
-
-        Returns
-        -------
-        instance: self.cls
-            An instance of the class
-        """
-        return self.cls(**{**self.constructor_arguments, **kwargs})
-
-    def __getattr__(self, item):
-        """
-        Failing to get an attribute is considered to indicate an attempt to use a
-        deferred instance without first instantiating it. As such an exception is
-        raised to warn the user that they need to instantiate the class.
-        """
-        try:
-            super().__getattribute__(item)
-        except AttributeError:
-            raise exc.DeferredInstanceException(
-                f"{self.cls.__name__} cannot be called until it is instantiated with"
-                f" deferred arguments {self.deferred_argument_names}"
-            )
