@@ -35,8 +35,8 @@ class TestCase(object):
 
         tracer = mapper.PriorModel(
             mock.Tracer,
-            lens=lens,
-            source=source
+            lens_galaxy=lens,
+            source_galaxy=source
         )
 
         assert tracer.prior_count == 14
