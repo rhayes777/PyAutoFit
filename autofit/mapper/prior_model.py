@@ -256,7 +256,7 @@ class PriorModel(AbstractPriorModel):
 
             if arg in kwargs:
                 keyword_arg = kwargs[arg]
-                try:
+                if isinstance(keyword_arg, list):
                     ls = CollectionPriorModel([])
                     for obj in keyword_arg:
                         if inspect.isclass(obj):
@@ -264,7 +264,7 @@ class PriorModel(AbstractPriorModel):
                         else:
                             ls.append(obj)
                     setattr(self, arg, ls)
-                except TypeError:
+                else:
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()

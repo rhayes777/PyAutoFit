@@ -56,8 +56,23 @@ class TestCase(object):
 
         assert instance.light.centre[0] == 0.5
 
-    def test_simple_model(self, source):
+    def test_simple_model(self, source, source_light_profiles):
         assert source.prior_count == 5
+
+        print(source_light_profiles.__dict__)
+        print(source.light_profiles.__dict__)
+
+        instance = source.instance_for_arguments(
+            {
+                source.light_profiles.light.centre_0: 0.5,
+                source.light_profiles.light.centre_1: 0.5,
+                source.light_profiles.light.axis_ratio: 0.5,
+                source.light_profiles.light.phi: 0.5,
+                source.redshift: 0.5
+            }
+        )
+
+        assert instance.light_profiles.light.centre[0] == 0.5
 
     def test(self, tracer_prior_model):
         assert tracer_prior_model.prior_count == 14
