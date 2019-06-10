@@ -3,6 +3,7 @@ from copy import deepcopy
 import pytest
 
 import autofit.mapper.model
+import autofit.mapper.prior_model.collection_prior_model
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 import test.mock
@@ -26,7 +27,7 @@ class TestCase(object):
         assert prior_model != prior_model_copy
 
     def test_list_prior_model(self, prior_model):
-        list_prior_model = pm.CollectionPriorModel([prior_model])
+        list_prior_model = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel([prior_model])
         list_prior_model_copy = deepcopy(list_prior_model)
         assert list_prior_model == list_prior_model_copy
 

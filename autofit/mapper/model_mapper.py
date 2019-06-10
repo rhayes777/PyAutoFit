@@ -6,8 +6,7 @@ from autofit import exc
 from autofit.mapper.model import AbstractModel, ModelInstance
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue
-from autofit.mapper.prior_model.prior_model import CollectionPriorModel
-from autofit.mapper import AbstractPriorModel
+from autofit.mapper import AbstractPriorModel, CollectionPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))

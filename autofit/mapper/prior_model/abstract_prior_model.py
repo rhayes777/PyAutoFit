@@ -27,7 +27,7 @@ class AbstractPriorModel(ModelObject):
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            from .prior_model import CollectionPriorModel
+            from autofit.mapper import CollectionPriorModel
             obj = object.__new__(CollectionPriorModel)
             obj.__init__(t)
         else:

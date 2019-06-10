@@ -4,6 +4,7 @@ import os
 import pytest
 
 import autofit.mapper.model
+import autofit.mapper.prior_model.collection_prior_model
 import autofit.mapper.prior_model.util
 import test.mock
 from autofit import conf
@@ -489,7 +490,7 @@ class TestRegression(object):
 
     def test_param_name_distinction(self):
         mm = model_mapper.ModelMapper()
-        mm.ls = pm.CollectionPriorModel([pm.PriorModel(test.mock.RelativeWidth), pm.PriorModel(
+        mm.ls = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel([pm.PriorModel(test.mock.RelativeWidth), pm.PriorModel(
             test.mock.RelativeWidth)])
         assert mm.param_names == ["ls_0_one",
                                   "ls_0_two",
@@ -499,7 +500,7 @@ class TestRegression(object):
                                   "ls_1_three"]
 
     def test_name_for_prior(self):
-        ls = pm.CollectionPriorModel([test.mock.RelativeWidth(1, 2, 3), pm.PriorModel(
+        ls = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel([test.mock.RelativeWidth(1, 2, 3), pm.PriorModel(
             test.mock.RelativeWidth)])
         assert ls.name_for_prior(ls[1].one) == "1_one"
 
@@ -1087,7 +1088,7 @@ class TestIndependentPriorModel(object):
 
 @pytest.fixture(name="list_prior_model")
 def make_list_prior_model():
-    return pm.CollectionPriorModel(
+    return autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel(
         [pm.PriorModel(MockClassMM, ), pm.PriorModel(MockClassMM, )])
 
 
@@ -1146,7 +1147,8 @@ class TestListPriorModel(object):
         mapper.list = [pm.PriorModel(MockClassMM, ),
                        pm.PriorModel(MockClassMM, )]
 
-        assert isinstance(mapper.list, pm.CollectionPriorModel)
+        assert isinstance(mapper.list,
+                          autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel)
 
 
 @pytest.fixture(name="mock_with_constant")
@@ -1209,7 +1211,8 @@ class TestConstant(object):
         prior_model.two = 4.
         assert isinstance(prior_model.one, p.Constant)
         mapper.mock_list = [prior_model]
-        assert isinstance(mapper.mock_list, pm.CollectionPriorModel)
+        assert isinstance(mapper.mock_list,
+                          autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel)
         assert isinstance(prior_model.one, p.Constant)
         assert isinstance(mapper.mock_list[0].one, p.Constant)
         assert len(mapper.constant_tuples_ordered_by_id) == 2
