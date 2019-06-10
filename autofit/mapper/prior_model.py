@@ -69,6 +69,7 @@ class AbstractPriorModel(ModelObject):
     def name(self):
         return self.__class__.__name__
 
+    # noinspection PyUnusedLocal
     @staticmethod
     def from_object(t, *args, **kwargs):
         if inspect.isclass(t):
@@ -90,7 +91,9 @@ class AbstractPriorModel(ModelObject):
         for attribute_tuple in prior_model_iterator:
             attribute = attribute_tuple[1]
 
+            # noinspection PyUnresolvedReferences
             line = attribute_tuple.name
+            # noinspection PyUnresolvedReferences
             info.append(line + ' ' * (60 - len(line)) + attribute.info)
 
         for prior_model_name, prior_model in self.prior_model_tuples:
@@ -353,8 +356,9 @@ class PriorModel(AbstractPriorModel):
         for attribute_tuple in attribute_tuples:
             name = attribute_tuple.name
             if name in constructor_args or (
-                    is_tuple_like_attribute_name(name) and tuple_name(
-                name) in constructor_args):
+                    is_tuple_like_attribute_name(
+                        name
+                    ) and tuple_name(name) in constructor_args):
                 attribute = kwargs[name] if name in kwargs else attribute_tuple.value
                 if make_constants_variable and isinstance(attribute, Constant):
                     new_attribute = getattr(new_model, name)
@@ -420,6 +424,7 @@ class PriorModel(AbstractPriorModel):
         -------
         priors: [(String, Prior))]
         """
+        # noinspection PyUnresolvedReferences
         deeper = [
             (prior_model[0] if prior.name == "value" else prior.name, prior.value)
             for prior_model in
