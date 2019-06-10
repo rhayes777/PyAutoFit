@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-import autofit.mapper.prior_model
+import autofit.mapper.prior_model.prior_model
 from autofit import conf
 from autofit.mapper import model_mapper
 from autofit.optimize import non_linear as nl
@@ -49,7 +49,7 @@ class TestDownhillSimplex(object):
         assert result.figure_of_merit == 1
 
     def test_variable(self, downhill_simplex):
-        downhill_simplex.variable.mock_class = autofit.mapper.prior_model.PriorModel(
+        downhill_simplex.variable.mock_class = autofit.mapper.prior_model.prior_model.PriorModel(
             MockClassNLOx4)
         result = downhill_simplex.fit(MockAnalysis())
 
@@ -62,7 +62,7 @@ class TestDownhillSimplex(object):
 
     def test_constant_and_variable(self, downhill_simplex):
         downhill_simplex.variable.constant = MockClassNLOx4()
-        downhill_simplex.variable.variable = autofit.mapper.prior_model.PriorModel(
+        downhill_simplex.variable.variable = autofit.mapper.prior_model.prior_model.PriorModel(
             MockClassNLOx4)
 
         result = downhill_simplex.fit(MockAnalysis())

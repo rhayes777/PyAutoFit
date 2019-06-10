@@ -4,7 +4,9 @@ from functools import wraps
 import numpy as np
 from scipy.special import erfcinv
 
+from autofit import conf
 from autofit import exc
+from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.model_object import ModelObject
 
 
@@ -147,7 +149,8 @@ class TuplePrior(object):
 
 
 class Prior(ModelObject):
-    """An object used to mappers a unit value to an attribute value for a specific class attribute"""
+    """An object used to mappers a unit value to an attribute value for a specific
+    class attribute """
 
     def __init__(self, lower_limit, upper_limit):
         if lower_limit >= upper_limit:
@@ -160,9 +163,39 @@ class Prior(ModelObject):
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(
-                "The physical value {} for a prior was not within its limits {}, {}".format(
+                "The physical value {} for a prior "
+                "was not within its limits {}, {}".format(
                     value, self.lower_limit,
-                    self.upper_limit))
+                    self.upper_limit
+                )
+            )
+
+    @staticmethod
+    def for_class_and_attribute_name(cls, attribute_name):
+        config_arr = conf.instance.prior_default.get_for_nearest_ancestor(
+            cls,
+            attribute_name
+        )
+        if config_arr[0] == "u":
+            return UniformPrior(config_arr[1], config_arr[2])
+        elif config_arr[0] == "l":
+            return LogUniformPrior(config_arr[1], config_arr[2])
+        elif config_arr[0] == "g":
+            limits = conf.instance.prior_limit.get_for_nearest_ancestor(
+                cls,
+                attribute_name
+            )
+            return GaussianPrior(config_arr[1], config_arr[2], *limits)
+        elif config_arr[0] == "c":
+            return Constant(config_arr[1])
+        elif config_arr[0] == "d":
+            return DeferredArgument()
+        raise exc.PriorException(
+            "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, "
+            "c - Constant, d - Deferred)".format(
+                attribute_name
+            )
+        )
 
     @property
     def width(self):
@@ -220,11 +253,15 @@ class GaussianPrior(Prior):
             self.sigma)
 
     def __repr__(self):
-        return "<GaussianPrior id={} mean={} sigma={} lower_limit={} upper_limit={}>".format(
-            self.id, self.mean,
-            self.sigma,
-            self.lower_limit,
-            self.upper_limit)
+        return (
+            "<GaussianPrior id={} mean={} sigma={} "
+            "lower_limit={} upper_limit={}>".format(
+                self.id, self.mean,
+                self.sigma,
+                self.lower_limit,
+                self.upper_limit
+            )
+        )
 
 
 class UniformPrior(Prior):
@@ -316,8 +353,8 @@ prior_number = 0
 class Constant(ModelObject):
     def __init__(self, value):
         """
-        Represents a constant value. No prior is added to the model mapper for constants reducing the dimensionality
-        of the nonlinear search.
+        Represents a constant value. No prior is added to the model mapper for
+        constants reducing the dimensionality of the nonlinear search.
 
         Parameters
         ----------
@@ -353,9 +390,3 @@ class Constant(ModelObject):
         return 'Constant, value = {}'.format(self.value)
 
 
-class DeferredArgument(object):
-    """
-    A deferred argument which is passed into the construct the final instance after
-    model mapper instance generation
-    """
-    pass

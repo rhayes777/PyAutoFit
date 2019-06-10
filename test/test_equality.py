@@ -3,18 +3,18 @@ from copy import deepcopy
 import pytest
 
 import autofit.mapper.model
+import autofit.mapper.prior_model.collection
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-from autofit import mock
+import test.mock
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
-from autofit.mapper import prior_model as pm
-from autofit.optimize import non_linear
+from autofit.mapper.prior_model import prior_model as pm
 
 
 @pytest.fixture(name="prior_model")
 def make_prior_model():
-    return pm.PriorModel(mock.GeometryProfile)
+    return pm.PriorModel(test.mock.GeometryProfile)
 
 
 class TestCase(object):
@@ -27,7 +27,7 @@ class TestCase(object):
         assert prior_model != prior_model_copy
 
     def test_list_prior_model(self, prior_model):
-        list_prior_model = pm.CollectionPriorModel([prior_model])
+        list_prior_model = autofit.mapper.prior_model.collection.CollectionPriorModel([prior_model])
         list_prior_model_copy = deepcopy(list_prior_model)
         assert list_prior_model == list_prior_model_copy
 
@@ -48,7 +48,7 @@ class TestCase(object):
 
     def test_non_trivial_equality(self):
         model_mapper = mm.ModelMapper()
-        model_mapper.galaxy = mock.GalaxyModel(light_profile=mock.GeometryProfile, mass_profile=mock.GeometryProfile)
+        model_mapper.galaxy = test.mock.GalaxyModel(light_profile=test.mock.GeometryProfile, mass_profile=test.mock.GeometryProfile)
         model_mapper_copy = deepcopy(model_mapper)
 
         assert model_mapper == model_mapper_copy
@@ -59,7 +59,7 @@ class TestCase(object):
 
     def test_model_instance_equality(self):
         model_instance = autofit.mapper.model.ModelInstance()
-        model_instance.profile = mock.GeometryProfile()
+        model_instance.profile = test.mock.GeometryProfile()
         model_instance_copy = deepcopy(model_instance)
 
         assert model_instance == model_instance_copy
@@ -70,7 +70,7 @@ class TestCase(object):
 
     def test_non_linear_equality(self):
         nlo = autofit.optimize.non_linear.non_linear.NonLinearOptimizer("phase name")
-        nlo.variable.profile = mock.GeometryProfile
+        nlo.variable.profile = test.mock.GeometryProfile
         nlo_copy = deepcopy(nlo)
 
         assert nlo_copy == nlo
