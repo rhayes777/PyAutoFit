@@ -15,7 +15,8 @@ from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameVa
 
 def tuple_name(attribute_name):
     """
-    Extract the name of a tuple attribute from the name of one of its components, e.g. centre_0 -> origin
+    Extract the name of a tuple attribute from the name of one of its components,
+    e.g. centre_0 -> origin
 
     Parameters
     ----------
@@ -32,7 +33,8 @@ def tuple_name(attribute_name):
 
 def is_tuple_like_attribute_name(attribute_name):
     """
-    Determine if a string matches the pattern "{attribute_name}_#", that is if it seems to be a tuple.
+    Determine if a string matches the pattern "{attribute_name}_#", that is if it
+    seems to be a tuple.
 
     Parameters
     ----------
@@ -56,8 +58,9 @@ class PriorModelNameValue(AttributeNameValue):
 
 class AbstractPriorModel(ModelObject):
     """
-    Abstract model that maps a set of priors to a particular class. Must be overridden by any prior model so that the \
-    model mapper recognises its prior model attributes.
+    Abstract model that maps a set of priors to a particular class. Must be
+    overridden by any prior model so that the model mapper recognises its prior \
+    model attributes.
 
     @DynamicAttrs
     """
@@ -274,20 +277,24 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, self.make_prior(arg))
 
     def __eq__(self, other):
-        return isinstance(other,
-                          PriorModel) and self.cls == other.cls and self.prior_tuples == other.prior_tuples
+        return isinstance(
+            other,
+            PriorModel) \
+               and self.cls == other.cls \
+               and self.prior_tuples == other.prior_tuples
 
     def make_prior(self, attribute_name):
         """
-        Create a prior for an attribute of a class with a given name. The prior is created by searching the default
-        prior config for the attribute.
+        Create a prior for an attribute of a class with a given name. The prior is
+        created by searching the default prior config for the attribute.
 
-        Entries in configuration with a u become uniform priors; with a g become gaussian priors; with a c become
-        constants.
+        Entries in configuration with a u become uniform priors; with a g become
+        gaussian priors; with a c become constants.
 
-        If prior configuration for a given attribute is not specified in the configuration for a class then the
-        configuration corresponding to the parents of that class is searched. If no configuration can be found then a
-        prior exception is raised.
+        If prior configuration for a given attribute is not specified in the
+        configuration for a class then the configuration corresponding to the parents
+        of that class is searched. If no configuration can be found then a prior
+        exception is raised.
 
         Parameters
         ----------
@@ -308,22 +315,25 @@ class PriorModel(AbstractPriorModel):
 
     def linked_model_for_class(self, cls, make_constants_variable=False, **kwargs):
         """
-        Create a PriorModel wrapping the specified class with attributes from this instance. Priors can be overridden
-        using keyword arguments. Any constructor arguments of the new class for which there is no attribute associated
-        with this class and no keyword argument are created from config.
+        Create a PriorModel wrapping the specified class with attributes from this
+        instance. Priors can be overridden using keyword arguments. Any constructor
+        arguments of the new class for which there is no attribute associated with
+        this class and no keyword argument are created from config.
 
-        If make_constants_variable is True then constants associated with this instance will be used to set the mean
-        of priors in the new instance rather than overriding them.
+        If make_constants_variable is True then constants associated with this
+        instance will be used to set the mean of priors in the new instance rather
+        than overriding them.
 
         Parameters
         ----------
         cls: class
             The class that the new PriorModel will wrap
         make_constants_variable: bool
-            If True constants from this instance will be used to determine the mean values for priors in the new
-            instance rather than overriding them
+            If True constants from this instance will be used to determine the mean
+            values for priors in the new instance rather than overriding them
         kwargs
-            Keyword arguments passed in here are used to override attributes from this instance or add new attributes
+            Keyword arguments passed in here are used to override attributes from this
+            instance or add new attributes
 
         Returns
         -------
@@ -498,8 +508,8 @@ class PriorModel(AbstractPriorModel):
 
     def gaussian_prior_model_for_arguments(self, arguments):
         """
-        Create a new instance of model mapper with a set of Gaussian priors based on tuples provided by a previous \
-        nonlinear search.
+        Create a new instance of model mapper with a set of Gaussian priors based on \
+        tuples provided by a previous nonlinear search.
 
         Parameters
         ----------
