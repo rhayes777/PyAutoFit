@@ -1,3 +1,4 @@
+import autofit.mapper.prior_model.abstract_prior_model
 from autofit import mapper as m
 from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
     DistanceClass, PositionClass, Galaxy, Tracer
@@ -85,13 +86,14 @@ class TestFloatAnnotation(object):
 
 class TestHashing(object):
     def test_is_hashable(self):
-        assert hash(m.AbstractPriorModel()) is not None
+        assert hash(
+            autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel()) is not None
         assert hash(m.PriorModel(SimpleClass)) is not None
         assert hash(m.AnnotationPriorModel(SimpleClass, SimpleClass, "one")) is not None
 
     def test_prior_prior_model_hash_consecutive(self):
         prior = m.Prior(0, 1)
-        prior_model = m.AbstractPriorModel()
+        prior_model = autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel()
 
         assert prior.id + 1 == prior_model.id
 

@@ -4,6 +4,7 @@ import shutil
 
 import pytest
 
+import autofit.mapper.prior_model.abstract_prior_model
 import autofit.mapper.prior_model.prior_model
 import test.mock
 from autofit.mapper import prior as p
@@ -328,7 +329,7 @@ class TestLabels(object):
         assert conf.instance.label.label("four") == "x4p3"
 
     def test_labels(self, optimizer):
-        autofit.mapper.prior_model.prior_model.AbstractPriorModel._ids = itertools.count()
+        autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel._ids = itertools.count()
         optimizer.variable.prior_model = MockClassNLOx4
 
         assert optimizer.param_labels == [r'x4p0_{\mathrm{a2}}', r'x4p1_{\mathrm{a2}}',
