@@ -4,14 +4,20 @@ from test import mock
 
 class TestCase(object):
     def test(self):
-        source = mapper.PriorModel(
-            mock.Galaxy,
-            light_profiles=mapper.CollectionPriorModel(
-                dict(
-                    light=mock.EllipticalLP
-                )
+        source_light_profiles = mapper.CollectionPriorModel(
+            dict(
+                light=mock.EllipticalLP
             )
         )
+        assert len(source_light_profiles) == 1
+        assert source_light_profiles.prior_count == 4
+
+        source = mapper.PriorModel(
+            mock.Galaxy,
+            light_profiles=source_light_profiles
+        )
+
+        assert source.prior_count == 5
 
         lens = mapper.PriorModel(
             mock.Galaxy,
@@ -27,12 +33,15 @@ class TestCase(object):
             )
         )
 
-        model_mapper = mapper.ModelMapper()
-
-        model_mapper.tracer = mapper.PriorModel(
+        tracer = mapper.PriorModel(
             mock.Tracer,
             lens=lens,
             source=source
         )
+
+        assert tracer.prior_count == 14
+
+        model_mapper = mapper.ModelMapper()
+        model_mapper.tracer = tracer
 
         assert model_mapper.prior_count == 14
