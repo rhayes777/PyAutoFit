@@ -5,9 +5,7 @@ from test import mock
 class TestCase(object):
     def test(self):
         source_light_profiles = mapper.CollectionPriorModel(
-            dict(
-                light=mock.EllipticalLP
-            )
+            light=mock.EllipticalLP
         )
         assert len(source_light_profiles) == 1
         assert source_light_profiles.prior_count == 4
@@ -22,14 +20,10 @@ class TestCase(object):
         lens = mapper.PriorModel(
             mock.Galaxy,
             light_profiles=mapper.CollectionPriorModel(
-                dict(
-                    light=mock.EllipticalLP
-                )
+                light=mock.EllipticalLP
             ),
             mass_profiles=mapper.CollectionPriorModel(
-                dict(
-                    light=mock.EllipticalMassProfile
-                )
+                light=mock.EllipticalMassProfile
             )
         )
 
