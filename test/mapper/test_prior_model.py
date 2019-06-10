@@ -1,4 +1,5 @@
 import autofit.mapper.prior_model.abstract_prior_model
+import autofit.mapper.prior_model.annotation
 import autofit.mapper.prior_model.collection_prior_model
 from autofit import mapper as m
 from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
@@ -90,7 +91,8 @@ class TestHashing(object):
         assert hash(
             autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel()) is not None
         assert hash(m.PriorModel(SimpleClass)) is not None
-        assert hash(m.AnnotationPriorModel(SimpleClass, SimpleClass, "one")) is not None
+        assert hash(
+            autofit.mapper.prior_model.annotation.AnnotationPriorModel(SimpleClass, SimpleClass, "one")) is not None
 
     def test_prior_prior_model_hash_consecutive(self):
         prior = m.Prior(0, 1)

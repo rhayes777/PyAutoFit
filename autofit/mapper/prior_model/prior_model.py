@@ -2,7 +2,6 @@ import copy
 import inspect
 
 from typing_inspect import is_tuple_type
-
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
     TuplePrior, Constant, Prior, AttributeNameValue, \
@@ -91,6 +90,8 @@ class PriorModel(AbstractPriorModel):
                 spec = arg_spec.annotations[arg]
                 # noinspection PyUnresolvedReferences
                 if issubclass(spec, float):
+                    from autofit.mapper.prior_model.annotation import \
+                        AnnotationPriorModel
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
                 elif is_tuple_type(spec):
                     tuple_prior = TuplePrior()
@@ -384,14 +385,3 @@ class PriorModel(AbstractPriorModel):
         return new_model
 
 
-class AnnotationPriorModel(PriorModel):
-    def __init__(self, cls, parent_class, true_argument_name, **kwargs):
-        self.parent_class = parent_class
-        self.true_argument_name = true_argument_name
-        super().__init__(cls, **kwargs)
-
-    def make_prior(self, attribute_name):
-        return Prior.for_class_and_attribute_name(
-            self.parent_class,
-            self.true_argument_name
-        )
