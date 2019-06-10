@@ -1,15 +1,17 @@
 from autofit import mapper as m
 from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
-    DistanceClass, PositionClass, Galaxy
+    DistanceClass, PositionClass, Galaxy, Tracer
 
 
 class TestFloatAnnotation(object):
     def test_distance_from_distance(self):
         original = Distance(1.0)
+        # noinspection PyTypeChecker
         distance = DistanceClass(first=original, second=2.0)
 
         assert distance.first is original
 
+    # noinspection PyTypeChecker
     def test_instantiate_distance(self):
         distance = DistanceClass(first=1.0, second=2.0)
 
@@ -53,6 +55,7 @@ class TestFloatAnnotation(object):
         assert isinstance(result.object.position[0], Distance)
         assert isinstance(result.object.position[1], Distance)
 
+    # noinspection PyUnresolvedReferences
     def test_prior_linking(self):
         mapper = m.ModelMapper()
         mapper.a = SimpleClass
@@ -126,6 +129,35 @@ class TestPriorModelArguments(object):
 
         assert prior_model.prior_count == 1
         assert prior_model.priors[0] is prior
+
+        prior_model = m.PriorModel(Galaxy, redshift=4.0)
+        assert prior_model.prior_count == 0
+        assert prior_model.redshift == 4.0
+
+        instance = prior_model.instance_for_arguments({})
+        assert instance.redshift == 4.0
+
+    def test_model_argument(self):
+        lens_galaxy = m.PriorModel(Galaxy)
+        source_galaxy = Galaxy()
+        tracer = m.PriorModel(
+            Tracer,
+            lens_galaxy=lens_galaxy,
+            source_galaxy=source_galaxy
+        )
+
+        assert tracer.lens_galaxy is lens_galaxy
+        assert tracer.prior_count == 1
+
+        deferred_instance = tracer.instance_for_arguments(
+            {
+                lens_galaxy.redshift: 0.5
+            }
+        )
+        instance = deferred_instance(grid=None)
+
+        assert instance.lens_galaxy.redshift == 0.5
+        assert instance.source_galaxy is source_galaxy
 
 
 class TestCase(object):
