@@ -217,6 +217,10 @@ class PriorModel(AbstractPriorModel):
     def __hash__(self):
         return self.id
 
+    @property
+    def constructor_argument_names(self):
+        return inspect.getfullargspec(self.cls.__init__).args[1:]
+
     def __init__(self, cls, **kwargs):
         """
         Parameters
@@ -239,7 +243,7 @@ class PriorModel(AbstractPriorModel):
         except TypeError:
             defaults = {}
 
-        args = arg_spec.args[1:]
+        args = self.constructor_argument_names
 
         if 'settings' in defaults:
             del defaults['settings']
@@ -502,6 +506,10 @@ class PriorModel(AbstractPriorModel):
             t.name: t.constant.value for t in
             self.direct_constant_tuples
         }
+        attribute_arguments = {
+            key: value for key, value in self.__dict__.items()
+            if key in self.constructor_argument_names
+        }
         for tuple_prior in self.tuple_prior_tuples:
             model_arguments[tuple_prior.name] = tuple_prior.prior.value_for_arguments(
                 arguments)
@@ -512,7 +520,11 @@ class PriorModel(AbstractPriorModel):
                 arguments
             )
 
-        constructor_arguments = {**model_arguments, **constant_arguments}
+        constructor_arguments = {
+            **attribute_arguments,
+            **model_arguments,
+            **constant_arguments
+        }
 
         if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
