@@ -1,13 +1,13 @@
 import inspect
 import typing
 
-import autofit.mapper
 from autofit.mapper import prior as p
-
+from autofit.mapper import prior_model as pm
 from autofit.optimize import non_linear
 from autofit.tools import dimension_type
 
 
+# noinspection PyAbstractClass
 class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
 
     def __init__(self, phase_name, phase_tag=None, phase_folders=None,
@@ -27,11 +27,12 @@ class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
     @property
     def most_probable_model_parameters(self):
         """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        Read the most probable or most likely model values from the 'obj_summary.txt'
+        file which nlo from a multinest lensing.
 
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
+        This file stores the parameters of the most probable model in the first half
+        of entries and the most likely model in the second half of entries. The
+        offset parameter is used to start at the desired model.
 
         """
         return self.most_probable
@@ -39,11 +40,12 @@ class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
     @property
     def most_likely_model_parameters(self):
         """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        Read the most probable or most likely model values from the 'obj_summary.txt'
+        file which nlo from a \ multinest lensing.
 
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
+        This file stores the parameters of the most probable model in the first half
+        of entries and the most likely model in the second half of entries. The
+        offset parameter is used to start at the desired model.
         """
         return self.most_likely
 
@@ -153,7 +155,8 @@ class Redshift(object):
         self.redshift = redshift
 
 
-class GalaxyModel(autofit.mapper.prior_model.AbstractPriorModel):
+# noinspection PyAbstractClass
+class GalaxyModel(pm.AbstractPriorModel):
     def instance_for_arguments(self, arguments):
         try:
             return Galaxy(redshift=self.redshift.instance_for_arguments(arguments))
@@ -162,10 +165,10 @@ class GalaxyModel(autofit.mapper.prior_model.AbstractPriorModel):
 
     def __init__(self, variable_redshift=False, **kwargs):
         super().__init__()
-        self.redshift = autofit.mapper.prior_model.PriorModel(Redshift) if variable_redshift else None
+        self.redshift = pm.PriorModel(Redshift) if variable_redshift else None
         print(self.redshift)
         self.__dict__.update(
-            {key: autofit.mapper.prior_model.PriorModel(value) if inspect.isclass(value) else value
+            {key: pm.PriorModel(value) if inspect.isclass(value) else value
              for key, value in kwargs.items()})
 
     @property
@@ -175,20 +178,25 @@ class GalaxyModel(autofit.mapper.prior_model.AbstractPriorModel):
     @property
     @p.cast_collection(p.PriorNameValue)
     def prior_tuples(self):
-        return [item for item in self.__dict__.items() if isinstance(item[1], p.Prior)] + [
-            ("redshift", self.redshift.redshift)] if self.redshift is not None else []
+        return [item for item in self.__dict__.items() if
+                isinstance(item[1], p.Prior)] + [
+                   ("redshift",
+                    self.redshift.redshift)] if self.redshift is not None else []
 
     @property
-    @p.cast_collection(autofit.mapper.prior_model.PriorModelNameValue)
+    @p.cast_collection(pm.PriorModelNameValue)
     def flat_prior_model_tuples(self):
-        return [item for item in self.__dict__.items() if isinstance(item[1],
-                                                                     autofit.mapper.prior_model.AbstractPriorModel)]
+        return [
+            item for item in self.__dict__.items()
+            if isinstance(item[1], pm.AbstractPriorModel)
+        ]
 
 
 class GeometryProfile(object):
 
     def __init__(self, centre=(0.0, 0.0)):
-        """Abstract GeometryProfile, describing an object with y, x cartesian coordinates"""
+        """Abstract GeometryProfile, describing an object with y, x cartesian
+        coordinates """
         self.centre = centre
 
     def __eq__(self, other):
@@ -198,7 +206,8 @@ class GeometryProfile(object):
 class SphericalProfile(GeometryProfile):
 
     def __init__(self, centre=(0.0, 0.0)):
-        """ Generic circular profiles class to contain functions shared by light and mass profiles.
+        """ Generic circular profiles class to contain functions shared by light and
+        mass profiles.
 
         Parameters
         ----------
@@ -211,7 +220,8 @@ class SphericalProfile(GeometryProfile):
 class EllipticalProfile(SphericalProfile):
 
     def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):
-        """ Generic elliptical profiles class to contain functions shared by light and mass profiles.
+        """ Generic elliptical profiles class to contain functions shared by light
+        and mass profiles.
 
         Parameters
         ----------
@@ -247,10 +257,11 @@ class EllipticalLP(EllipticalProfile):
 
 class AbstractEllipticalSersic(EllipticalProfile):
 
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, effective_radius=0.6,
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1,
+                 effective_radius=0.6,
                  sersic_index=4.0):
-        """ Abstract base class for an elliptical Sersic profile, used for computing its effective radius and
-        Sersic constant.
+        """ Abstract base class for an elliptical Sersic profile, used for computing
+        its effective radius and Sersic constant.
 
         Parameters
         ----------
@@ -293,6 +304,7 @@ class MassProfile(object):
         raise NotImplementedError()
 
 
+# noinspection PyAbstractClass
 class EllipticalMassProfile(EllipticalProfile, MassProfile):
 
     def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):
@@ -313,9 +325,11 @@ class EllipticalMassProfile(EllipticalProfile, MassProfile):
         self.phi = phi
 
 
+# noinspection PyAbstractClass
 class EllipticalCoredPowerLaw(EllipticalMassProfile, MassProfile):
 
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, einstein_radius=1.0, slope=2.0, core_radius=0.01):
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, einstein_radius=1.0,
+                 slope=2.0, core_radius=0.01):
         """
         Represents a cored elliptical power-law density distribution
 
@@ -326,7 +340,8 @@ class EllipticalCoredPowerLaw(EllipticalMassProfile, MassProfile):
         axis_ratio : float
             Elliptical mass profile's minor-to-major axis ratio (b/a)
         phi : float
-            Rotation angle of mass profile's ellipse counter-clockwise from positive x-axis
+            Rotation angle of mass profile's ellipse counter-clockwise from positive
+            x-axis
         einstein_radius : float
             Einstein radius of power-law mass profiles
         slope : float
@@ -340,11 +355,14 @@ class EllipticalCoredPowerLaw(EllipticalMassProfile, MassProfile):
         self.core_radius = core_radius
 
 
+# noinspection PyAbstractClass
 class EllipticalCoredIsothermal(EllipticalCoredPowerLaw):
 
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, einstein_radius=1.0, core_radius=0.05):
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, einstein_radius=1.0,
+                 core_radius=0.05):
         """
-        Represents a cored elliptical isothermal density distribution, which is equivalent to the elliptical power-law
+        Represents a cored elliptical isothermal density distribution, which is
+        equivalent to the elliptical power-law
         density distribution for the value slope=2.0
 
         Parameters
@@ -354,20 +372,23 @@ class EllipticalCoredIsothermal(EllipticalCoredPowerLaw):
         axis_ratio : float
             Elliptical mass profile's minor-to-major axis ratio (b/a)
         phi : float
-            Rotation angle of mass profile's ellipse counter-clockwise from positive x-axis
+            Rotation angle of mass profile's ellipse counter-clockwise from positive
+            x-axis
         einstein_radius : float
             Einstein radius of power-law mass profiles
         core_radius : float
             The radius of the inner core
         """
 
-        super(EllipticalCoredIsothermal, self).__init__(centre, axis_ratio, phi, einstein_radius, 2.0,
+        super(EllipticalCoredIsothermal, self).__init__(centre, axis_ratio, phi,
+                                                        einstein_radius, 2.0,
                                                         core_radius)
 
 
 class EllipticalSersic(AbstractEllipticalSersic, EllipticalLP):
 
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, effective_radius=0.6,
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1,
+                 effective_radius=0.6,
                  sersic_index=4.0):
         """ The elliptical Sersic profile, used for fitting a model_galaxy's light.
 
@@ -380,21 +401,26 @@ class EllipticalSersic(AbstractEllipticalSersic, EllipticalLP):
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
         intensity : float
-            Overall intensity normalisation of the light profiles (electrons per second).
+            Overall intensity normalisation of the light profiles (electrons per
+            second).
         effective_radius : float
             The circular radius containing half the light of this profile.
         sersic_index : Int
             Controls the concentration of the of the light profile.
         """
-        super(EllipticalSersic, self).__init__(centre, axis_ratio, phi, intensity, effective_radius,
+        super(EllipticalSersic, self).__init__(centre, axis_ratio, phi, intensity,
+                                               effective_radius,
                                                sersic_index)
 
 
 class EllipticalCoreSersic(EllipticalSersic):
 
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, effective_radius=0.6,
-                 sersic_index=4.0, radius_break=0.01, intensity_break=0.05, gamma=0.25, alpha=3.0):
-        """ The elliptical cored-Sersic profile, used for fitting a model_galaxy's light.
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1,
+                 effective_radius=0.6,
+                 sersic_index=4.0, radius_break=0.01, intensity_break=0.05, gamma=0.25,
+                 alpha=3.0):
+        """ The elliptical cored-Sersic profile, used for fitting a model_galaxy's
+        light.
 
         Parameters
         ----------
@@ -405,21 +431,25 @@ class EllipticalCoreSersic(EllipticalSersic):
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
         intensity : float
-            Overall intensity normalisation of the light profiles (electrons per second).
+            Overall intensity normalisation of the light profiles (electrons per
+            second).
         effective_radius : float
             The circular radius containing half the light of this profile.
         sersic_index : Int
             Controls the concetration of the of the light profile.
         radius_break : Float
-            The break radius separating the inner power-law (with logarithmic slope gamma) and outer Sersic function.
+            The break radius separating the inner power-law (with logarithmic slope
+            gamma) and outer Sersic function.
         intensity_break : Float
             The intensity at the break radius.
         gamma : Float
             The logarithmic power-law slope of the inner core profiles
         alpha :
-            Controls the sharpness of the transition between the inner core / outer Sersic profiles.
+            Controls the sharpness of the transition between the inner core / outer
+            Sersic profiles.
         """
-        super(EllipticalCoreSersic, self).__init__(centre, axis_ratio, phi, intensity, effective_radius, sersic_index,
+        super(EllipticalCoreSersic, self).__init__(centre, axis_ratio, phi, intensity,
+                                                   effective_radius, sersic_index,
                                                    )
         self.radius_break = radius_break
         self.intensity_break = intensity_break
@@ -429,10 +459,12 @@ class EllipticalCoreSersic(EllipticalSersic):
 
 class EllipticalExponential(EllipticalSersic):
 
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, effective_radius=0.6):
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1,
+                 effective_radius=0.6):
         """ The elliptical exponential profile, used for fitting a model_galaxy's light.
 
-        This is a subset of the elliptical Sersic profile, specific to the case that sersic_index = 1.0.
+        This is a subset of the elliptical Sersic profile, specific to the case that
+        sersic_index = 1.0.
 
         Parameters
         ----------
@@ -443,16 +475,19 @@ class EllipticalExponential(EllipticalSersic):
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
         intensity : float
-            Overall intensity normalisation of the light profiles (electrons per second).
+            Overall intensity normalisation of the light profiles (electrons per
+            second).
         effective_radius : float
             The circular radius containing half the light of this profile.
         """
-        super(EllipticalExponential, self).__init__(centre, axis_ratio, phi, intensity, effective_radius, 1.0)
+        super(EllipticalExponential, self).__init__(centre, axis_ratio, phi, intensity,
+                                                    effective_radius, 1.0)
 
 
 class EllipticalGaussian(EllipticalLP):
 
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01):
+    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1,
+                 sigma=0.01):
         """ The elliptical Gaussian profile.
 
         Parameters
@@ -464,7 +499,8 @@ class EllipticalGaussian(EllipticalLP):
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
         intensity : float
-            Overall intensity normalisation of the light profiles (electrons per second).
+            Overall intensity normalisation of the light profiles (electrons per
+            second).
         sigma : float
             The full-width half-maximum of the Gaussian.
         """
