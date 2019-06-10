@@ -1,14 +1,13 @@
 import numpy as np
 import pytest
 
-import autofit.mapper.prior_model.collection
 from autofit import mapper
 from test import mock
 
 
 @pytest.fixture(name="source_light_profiles")
 def make_source_light_profiles():
-    source_light_profiles = autofit.mapper.prior_model.collection.CollectionPriorModel(
+    source_light_profiles = mapper.CollectionPriorModel(
         light=mock.EllipticalLP
     )
     return source_light_profiles
@@ -26,10 +25,10 @@ def make_source(source_light_profiles):
 def make_tracer_prior_model(source):
     lens = mapper.PriorModel(
         mock.Galaxy,
-        light_profiles=autofit.mapper.prior_model.collection.CollectionPriorModel(
+        light_profiles=mapper.CollectionPriorModel(
             light=mock.EllipticalLP
         ),
-        mass_profiles=autofit.mapper.prior_model.collection.CollectionPriorModel(
+        mass_profiles=mapper.CollectionPriorModel(
             mass=mock.EllipticalMassProfile
         )
     )
