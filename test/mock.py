@@ -1,8 +1,9 @@
 import inspect
 import typing
 
+import autofit.mapper.prior_model.util
 from autofit.mapper import prior as p
-from autofit.mapper import prior_model as pm
+from autofit.mapper.prior_model import prior_model as pm
 from autofit.optimize import non_linear
 from autofit.tools import dimension_type
 
@@ -191,7 +192,7 @@ class GalaxyModel(pm.AbstractPriorModel):
                     self.redshift.redshift)] if self.redshift is not None else []
 
     @property
-    @p.cast_collection(pm.PriorModelNameValue)
+    @p.cast_collection(autofit.mapper.prior_model.util.PriorModelNameValue)
     def flat_prior_model_tuples(self):
         return [
             item for item in self.__dict__.items()

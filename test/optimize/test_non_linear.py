@@ -4,7 +4,7 @@ import shutil
 
 import pytest
 
-import autofit.mapper.prior_model
+import autofit.mapper.prior_model.prior_model
 import test.mock
 from autofit.mapper import prior as p
 import autofit.optimize.non_linear.downhill_simplex
@@ -13,7 +13,6 @@ import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
-from test import mock
 from autofit.mapper import model_mapper
 from test.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
     MockNonLinearOptimizer
@@ -33,8 +32,8 @@ def make_mapper():
 
 @pytest.fixture(name="mock_list")
 def make_mock_list():
-    return [autofit.mapper.prior_model.PriorModel(MockClassNLOx4),
-            autofit.mapper.prior_model.PriorModel(MockClassNLOx4)]
+    return [autofit.mapper.prior_model.prior_model.PriorModel(MockClassNLOx4),
+            autofit.mapper.prior_model.prior_model.PriorModel(MockClassNLOx4)]
 
 
 @pytest.fixture(name="result")
@@ -105,8 +104,8 @@ class TestParamNames(object):
         assert [tup.name for tup in mapper.mock_list.label_prior_model_tuples] == ['0', '1']
 
     def test_label_prior_model_tuples_with_mapping_name(self, mapper):
-        one = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
-        two = autofit.mapper.prior_model.PriorModel(MockClassNLOx4)
+        one = autofit.mapper.prior_model.prior_model.PriorModel(MockClassNLOx4)
+        two = autofit.mapper.prior_model.prior_model.PriorModel(MockClassNLOx4)
 
         one.mapping_name = "one"
         two.mapping_name = "two"
@@ -329,7 +328,7 @@ class TestLabels(object):
         assert conf.instance.label.label("four") == "x4p3"
 
     def test_labels(self, optimizer):
-        autofit.mapper.prior_model.AbstractPriorModel._ids = itertools.count()
+        autofit.mapper.prior_model.prior_model.AbstractPriorModel._ids = itertools.count()
         optimizer.variable.prior_model = MockClassNLOx4
 
         assert optimizer.param_labels == [r'x4p0_{\mathrm{a2}}', r'x4p1_{\mathrm{a2}}',

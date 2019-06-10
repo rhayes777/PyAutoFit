@@ -4,13 +4,13 @@ import os
 import pytest
 
 import autofit.mapper.model
+import autofit.mapper.prior_model.util
 import test.mock
 from autofit import conf
 from autofit import exc
-from test import mock
 from autofit.mapper import model
 from autofit.mapper import model_mapper, prior as p
-from autofit.mapper import prior_model as pm
+from autofit.mapper.prior_model import prior_model as pm
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -259,16 +259,16 @@ class TestPriorLinking(object):
         assert new_model.centre_1 is initial_model.centre_1
 
     def test_is_tuple_like_attribute_name(self):
-        assert pm.is_tuple_like_attribute_name("centre_0")
-        assert pm.is_tuple_like_attribute_name("centre_1")
-        assert not pm.is_tuple_like_attribute_name("centre")
-        assert pm.is_tuple_like_attribute_name("centre_why_not_0")
-        assert not pm.is_tuple_like_attribute_name("centre_why_not")
+        assert autofit.mapper.prior_model.util.is_tuple_like_attribute_name("centre_0")
+        assert autofit.mapper.prior_model.util.is_tuple_like_attribute_name("centre_1")
+        assert not autofit.mapper.prior_model.util.is_tuple_like_attribute_name("centre")
+        assert autofit.mapper.prior_model.util.is_tuple_like_attribute_name("centre_why_not_0")
+        assert not autofit.mapper.prior_model.util.is_tuple_like_attribute_name("centre_why_not")
 
     def test_tuple_name(self):
-        assert pm.tuple_name("centre_0") == "centre"
-        assert pm.tuple_name("centre_1") == "centre"
-        assert pm.tuple_name("centre_why_not_0") == "centre_why_not"
+        assert autofit.mapper.prior_model.util.tuple_name("centre_0") == "centre"
+        assert autofit.mapper.prior_model.util.tuple_name("centre_1") == "centre"
+        assert autofit.mapper.prior_model.util.tuple_name("centre_why_not_0") == "centre_why_not"
 
 
 class TestAddition(object):

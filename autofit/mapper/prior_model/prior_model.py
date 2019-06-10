@@ -1,59 +1,16 @@
 import copy
 import inspect
-import re
 
 from typing_inspect import is_tuple_type
 
-from autofit import conf, exc
+from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
-    TuplePrior, UniformPrior, \
-    LogUniformPrior, GaussianPrior, Constant, Prior, AttributeNameValue, \
+    TuplePrior, Constant, Prior, AttributeNameValue, \
     DeferredArgument, DeferredNameValue
-
-
-def tuple_name(attribute_name):
-    """
-    Extract the name of a tuple attribute from the name of one of its components,
-    e.g. centre_0 -> origin
-
-    Parameters
-    ----------
-    attribute_name: str
-        The name of an attribute which is a component of a tuple
-
-    Returns
-    -------
-    tuple_name: str
-        The name of the tuple of which the attribute is a member
-    """
-    return "_".join(attribute_name.split("_")[:-1])
-
-
-def is_tuple_like_attribute_name(attribute_name):
-    """
-    Determine if a string matches the pattern "{attribute_name}_#", that is if it
-    seems to be a tuple.
-
-    Parameters
-    ----------
-    attribute_name: str
-        The name of some attribute that may refer to a tuple.
-
-    Returns
-    -------
-    is_tuple_like: bool
-        True iff the attribute name looks like that which refers to a tuple.
-    """
-    pattern = re.compile("^[a-zA-Z_0-9]*_[0-9]$")
-    return pattern.match(attribute_name)
-
-
-class PriorModelNameValue(AttributeNameValue):
-    @property
-    def prior_model(self):
-        return self.value
+from autofit.mapper.prior_model.util import tuple_name, is_tuple_like_attribute_name, \
+    PriorModelNameValue
 
 
 class AbstractPriorModel(ModelObject):
@@ -177,28 +134,6 @@ class AbstractPriorModel(ModelObject):
     def tuples_with_type(self, class_type):
         return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type),
                            self.__dict__.items()))
-
-
-def prior_for_class_and_attribute_name(cls, attribute_name):
-    config_arr = conf.instance.prior_default.get_for_nearest_ancestor(cls,
-                                                                      attribute_name)
-    if config_arr[0] == "u":
-        return UniformPrior(config_arr[1], config_arr[2])
-    elif config_arr[0] == "l":
-        return LogUniformPrior(config_arr[1], config_arr[2])
-    elif config_arr[0] == "g":
-        limits = conf.instance.prior_limit.get_for_nearest_ancestor(cls, attribute_name)
-        return GaussianPrior(config_arr[1], config_arr[2], *limits)
-    elif config_arr[0] == "c":
-        return Constant(config_arr[1])
-    elif config_arr[0] == "d":
-        return DeferredArgument()
-    raise exc.PriorException(
-        "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, "
-        "c - Constant, d - Deferred)".format(
-            attribute_name
-        )
-    )
 
 
 class PriorModel(AbstractPriorModel):
@@ -325,7 +260,10 @@ class PriorModel(AbstractPriorModel):
         exc.PriorException
             If no configuration can be found
         """
-        return prior_for_class_and_attribute_name(self.cls, attribute_name)
+        return Prior.for_class_and_attribute_name(
+            self.cls,
+            attribute_name
+        )
 
     def linked_model_for_class(self, cls, make_constants_variable=False, **kwargs):
         """
@@ -574,8 +512,10 @@ class AnnotationPriorModel(PriorModel):
         super().__init__(cls, **kwargs)
 
     def make_prior(self, attribute_name):
-        return prior_for_class_and_attribute_name(self.parent_class,
-                                                  self.true_argument_name)
+        return Prior.for_class_and_attribute_name(
+            self.parent_class,
+            self.true_argument_name
+        )
 
 
 class CollectionPriorModel(AbstractPriorModel):

@@ -4,7 +4,7 @@ from functools import wraps
 
 import pytest
 
-import autofit.mapper.prior_model
+import autofit.mapper.prior_model.prior_model
 from autofit.optimize import non_linear as nl
 from autofit import conf
 from autofit.mapper import model_mapper, prior as p
@@ -566,7 +566,7 @@ class TestFitting(object):
 
     def test_variable(self, multi_nest):
 
-        multi_nest.variable.mock_class = autofit.mapper.prior_model.PriorModel(MockClassNLOx4, )
+        multi_nest.variable.mock_class = autofit.mapper.prior_model.prior_model.PriorModel(MockClassNLOx4, )
         result = multi_nest.fit(MockAnalysis())
 
         assert result.constant.mock_class.one == 9.0

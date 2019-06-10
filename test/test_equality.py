@@ -6,11 +6,9 @@ import autofit.mapper.model
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 import test.mock
-from test import mock
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
-from autofit.mapper import prior_model as pm
-from autofit.optimize import non_linear
+from autofit.mapper.prior_model import prior_model as pm
 
 
 @pytest.fixture(name="prior_model")

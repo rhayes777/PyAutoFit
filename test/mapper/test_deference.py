@@ -3,7 +3,7 @@ import pytest
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
-from autofit.mapper import prior_model as pm
+from autofit.mapper.prior_model import prior_model as pm
 from test import mock
 from test.mock import DeferredClass
 
