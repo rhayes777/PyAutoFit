@@ -154,6 +154,10 @@ class AbstractPriorModel(ModelObject):
     def prior_count(self):
         return len(self.prior_tuples)
 
+    @property
+    def priors(self):
+        return [prior_tuple.prior for prior_tuple in self.prior_tuples]
+
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.direct_prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
@@ -244,14 +248,17 @@ class PriorModel(AbstractPriorModel):
                 continue
 
             if arg in kwargs:
-                ls = CollectionPriorModel([])
-                for obj in kwargs[arg]:
-                    if inspect.isclass(obj):
-                        ls.append(AbstractPriorModel.from_object(obj))
-                    else:
-                        ls.append(obj)
-
-                setattr(self, arg, ls)
+                keyword_arg = kwargs[arg]
+                try:
+                    ls = CollectionPriorModel([])
+                    for obj in keyword_arg:
+                        if inspect.isclass(obj):
+                            ls.append(AbstractPriorModel.from_object(obj))
+                        else:
+                            ls.append(obj)
+                    setattr(self, arg, ls)
+                except TypeError:
+                    setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
                 for i in range(len(defaults[arg])):
