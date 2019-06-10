@@ -1,6 +1,6 @@
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue
-from autofit.mapper.prior_model.abstract_prior_model import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 

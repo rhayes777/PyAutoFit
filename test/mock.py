@@ -1,7 +1,7 @@
 import inspect
 import typing
 
-import autofit.mapper.prior_model.abstract_prior_model
+import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.util
 from autofit.mapper import prior as p
 from autofit.mapper.prior_model import prior_model as pm
@@ -165,7 +165,7 @@ class Redshift(object):
 
 
 # noinspection PyAbstractClass
-class GalaxyModel(autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel):
+class GalaxyModel(autofit.mapper.prior_model.abstract.AbstractPriorModel):
     def instance_for_arguments(self, arguments):
         try:
             return Galaxy(redshift=self.redshift.instance_for_arguments(arguments))
@@ -198,7 +198,7 @@ class GalaxyModel(autofit.mapper.prior_model.abstract_prior_model.AbstractPriorM
         return [
             item for item in self.__dict__.items()
             if isinstance(item[1],
-                          autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel)
+                          autofit.mapper.prior_model.abstract.AbstractPriorModel)
         ]
 
 

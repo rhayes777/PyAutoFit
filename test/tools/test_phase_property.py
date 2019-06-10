@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-import autofit.mapper.prior_model.abstract_prior_model
+import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.prior_model
 import autofit.optimize.non_linear.non_linear
 import test.mock
@@ -75,7 +75,7 @@ class TestPhasePropertyList(object):
         assert list_phase.prop == objects
 
     def test_abstract_prior_models(self, list_phase):
-        objects = [autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel(), autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel()]
+        objects = [autofit.mapper.prior_model.abstract.AbstractPriorModel(), autofit.mapper.prior_model.abstract.AbstractPriorModel()]
 
         list_phase.prop = objects
 

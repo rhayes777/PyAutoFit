@@ -1,6 +1,6 @@
-import autofit.mapper.prior_model.abstract_prior_model
+import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.annotation
-import autofit.mapper.prior_model.collection_prior_model
+import autofit.mapper.prior_model.collection
 from autofit import mapper as m
 from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
     DistanceClass, PositionClass, Galaxy, Tracer
@@ -89,14 +89,14 @@ class TestFloatAnnotation(object):
 class TestHashing(object):
     def test_is_hashable(self):
         assert hash(
-            autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel()) is not None
+            autofit.mapper.prior_model.abstract.AbstractPriorModel()) is not None
         assert hash(m.PriorModel(SimpleClass)) is not None
         assert hash(
             autofit.mapper.prior_model.annotation.AnnotationPriorModel(SimpleClass, SimpleClass, "one")) is not None
 
     def test_prior_prior_model_hash_consecutive(self):
         prior = m.Prior(0, 1)
-        prior_model = autofit.mapper.prior_model.abstract_prior_model.AbstractPriorModel()
+        prior_model = autofit.mapper.prior_model.abstract.AbstractPriorModel()
 
         assert prior.id + 1 == prior_model.id
 
@@ -217,7 +217,7 @@ class TestCase(object):
 
 class TestCollectionPriorModel(object):
     def test_keyword_arguments(self):
-        prior_model = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel(
+        prior_model = autofit.mapper.prior_model.collection.CollectionPriorModel(
             one=SimpleClass,
             two=SimpleClass(1, 2)
         )
@@ -239,7 +239,7 @@ class TestCollectionPriorModel(object):
         assert instance.two.two == 2
 
     def test_mix_instances_in_list_prior_model(self):
-        prior_model = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel([SimpleClass, SimpleClass(1, 2)])
+        prior_model = autofit.mapper.prior_model.collection.CollectionPriorModel([SimpleClass, SimpleClass(1, 2)])
 
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
@@ -259,25 +259,25 @@ class TestCollectionPriorModel(object):
         assert len(prior_model.prior_class_dict) == 2
 
     def test_list_in_list_prior_model(self):
-        prior_model = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel([[SimpleClass]])
+        prior_model = autofit.mapper.prior_model.collection.CollectionPriorModel([[SimpleClass]])
 
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
 
     def test_list_prior_model_with_dictionary(self):
-        prior_model = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel({"simple": SimpleClass})
+        prior_model = autofit.mapper.prior_model.collection.CollectionPriorModel({"simple": SimpleClass})
 
         assert isinstance(prior_model.simple, m.PriorModel)
 
     def test_labels(self):
         mapper = m.ModelMapper()
 
-        mapper.my_list = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel({"simple": SimpleClass})
+        mapper.my_list = autofit.mapper.prior_model.collection.CollectionPriorModel({"simple": SimpleClass})
 
         assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
 
     def test_override_with_constant(self):
-        prior_model = autofit.mapper.prior_model.collection_prior_model.CollectionPriorModel({"simple": SimpleClass})
+        prior_model = autofit.mapper.prior_model.collection.CollectionPriorModel({"simple": SimpleClass})
 
         simple_instance = SimpleClass(1, 2)
 

@@ -6,7 +6,7 @@ from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
     TuplePrior, Constant, Prior, AttributeNameValue, \
     DeferredNameValue
-from autofit.mapper.prior_model.abstract_prior_model import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.deferred import DeferredInstance
 from autofit.mapper.prior_model.util import tuple_name, is_tuple_like_attribute_name
@@ -68,7 +68,7 @@ class PriorModel(AbstractPriorModel):
             if arg in kwargs:
                 keyword_arg = kwargs[arg]
                 if isinstance(keyword_arg, list):
-                    from autofit.mapper.prior_model.collection_prior_model import \
+                    from autofit.mapper.prior_model.collection import \
                         CollectionPriorModel
                     ls = CollectionPriorModel([])
                     for obj in keyword_arg:
