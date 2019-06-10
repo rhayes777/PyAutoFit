@@ -209,6 +209,30 @@ class TestCase(object):
         assert instance.list_object.ls[1].one == 1
         assert instance.list_object.ls[1].two == 2
 
+
+class TestCollectionPriorModel(object):
+    def test_keyword_arguments(self):
+        prior_model = m.CollectionPriorModel(
+            one=SimpleClass,
+            two=SimpleClass(1, 2)
+        )
+
+        assert len(prior_model.prior_models) == 1
+        assert len(prior_model) == 2
+
+        instance = prior_model.instance_for_arguments(
+            {
+                prior_model.one.one: 0.1,
+                prior_model.one.two: 0.2
+            }
+        )
+
+        assert instance.one.one == 0.1
+        assert instance.one.two == 0.2
+
+        assert instance.two.one == 1
+        assert instance.two.two == 2
+
     def test_mix_instances_in_list_prior_model(self):
         prior_model = m.CollectionPriorModel([SimpleClass, SimpleClass(1, 2)])
 

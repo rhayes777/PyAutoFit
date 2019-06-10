@@ -77,7 +77,7 @@ class AbstractPriorModel(ModelObject):
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
             obj = object.__new__(CollectionPriorModel)
-            obj.__init__(arguments=t)
+            obj.__init__(t)
         else:
             obj = t
         return obj
@@ -602,7 +602,7 @@ class CollectionPriorModel(AbstractPriorModel):
                 flat_prior_model in
                 prior_model.flat_prior_model_tuples]
 
-    def __init__(self, arguments=None):
+    def __init__(self, *arguments, **kwargs):
         """
         A prior model used to represent a list of prior models for convenience.
 
@@ -612,19 +612,29 @@ class CollectionPriorModel(AbstractPriorModel):
             A list classes, prior_models or instances
         """
         super().__init__()
-        self.component_number = next(self._ids)
+        arguments = list(arguments)
+        if len(arguments) == 0:
+            self.add_dict_items(kwargs)
+        elif len(arguments) == 1:
+            arguments = arguments[0]
 
-        self.item_number = 0
+            self.component_number = next(self._ids)
+            self.item_number = 0
 
-        if isinstance(arguments, list):
-            for argument in arguments:
-                self.append(argument)
-        if isinstance(arguments, dict):
-            for key, value in arguments.items():
-                setattr(self, key, AbstractPriorModel.from_object(value))
+            if isinstance(arguments, list):
+                for argument in arguments:
+                    self.append(argument)
+            if isinstance(arguments, dict):
+                self.add_dict_items(arguments)
+        else:
+            raise AssertionError("TODO")
+
+    def add_dict_items(self, item_dict):
+        for key, value in item_dict.items():
+            setattr(self, key, AbstractPriorModel.from_object(value))
 
     def __add__(self, other):
-        new = CollectionPriorModel()
+        new = CollectionPriorModel([])
         for item in self:
             new.append(item)
         for item in other:
