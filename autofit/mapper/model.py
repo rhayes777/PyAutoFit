@@ -19,6 +19,12 @@ class AbstractModel(object):
     def copy(self):
         return copy.deepcopy(self)
 
+    def object_for_path(self, path):
+        instance = self
+        for name in path:
+            instance = getattr(instance, name)
+        return instance
+
 
 class ModelInstance(AbstractModel):
     """
