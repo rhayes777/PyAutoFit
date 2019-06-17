@@ -589,6 +589,12 @@ class ModelMapper(AbstractModel):
         path_priors_tuples = self.path_instance_tuples_for_class(
             Prior
         )
+
+        path_priors_tuples = [(t[0][:-1], t[1])
+                              if t[0][-1] == "value"
+                              else t
+                              for t in path_priors_tuples]
+
         path_float_tuples = self.path_instance_tuples_for_class(
             float,
             ignore_class=Prior
@@ -602,7 +608,7 @@ class ModelMapper(AbstractModel):
         return '\n'.join(
             info_dict_to_list(
                 info_dict,
-                line_length=70,
+                line_length=100,
                 indent=4
             )
         )
