@@ -1,7 +1,9 @@
 import copy
 
+from .model_object import ModelObject
 
-class AbstractModel(object):
+
+class AbstractModel(ModelObject):
     def __add__(self, other):
         instance = self.__class__()
 
@@ -19,11 +21,95 @@ class AbstractModel(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    def object_for_path(self, path):
+    def object_for_path(self, path: (str,)) -> object:
+        """
+        Get the object at a given path.
+
+        Parameters
+        ----------
+        path
+            A tuple describing the path to an object in the model tree
+
+        Returns
+        -------
+        object
+            The object
+        """
         instance = self
         for name in path:
             instance = getattr(instance, name)
         return instance
+
+    def instances_of(self, cls: type) -> [object]:
+        """
+        Traverse the model tree returning all instances of the class
+
+        Parameters
+        ----------
+        cls
+            The type of objects to return
+
+        Returns
+        -------
+        instances
+            A list of instances of the type
+        """
+        return [
+            instance for source in
+            [
+                list(self.__dict__.values())
+            ] +
+            [
+                ls for ls in self.__dict__.values() if
+                isinstance(
+                    ls,
+                    list
+                )
+            ] for
+            instance in
+            source if isinstance(
+                instance,
+                cls
+            )
+        ]
+
+    def path_instance_tuples_for_class(self, cls: type, ignore_class=None):
+        """
+        Tuples containing the path tuple and instance for every instance of the class
+        in the model tree.
+
+        Parameters
+        ----------
+        ignore_class
+            Children of instances of this class are ignored
+        cls
+            The type to find instances of
+
+        Returns
+        -------
+        path_instance_tuples: [((str,), object)]
+            Tuples containing the path to and instance of objects of the given type.
+        """
+        return path_instances_of_class(self, cls, ignore_class=ignore_class)
+
+    def tuples_with_type(self, class_type):
+        return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type),
+                           self.__dict__.items()))
+
+
+def path_instances_of_class(obj, cls, ignore_class=None):
+    if ignore_class is not None and isinstance(obj, ignore_class):
+        return []
+    if isinstance(obj, cls):
+        return [(tuple(), obj)]
+    results = []
+    try:
+        for key, value in obj.__dict__.items():
+            for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
+                results.append(((key, *item[0]), item[1]))
+        return results
+    except AttributeError:
+        return []
 
 
 class ModelInstance(AbstractModel):
@@ -32,33 +118,6 @@ class ModelInstance(AbstractModel):
 
     @DynamicAttrs
     """
-
-    def instances_of(self, cls):
-        return [instance for source in
-                [list(self.__dict__.values())] + [ls for ls in self.__dict__.values() if
-                                                  isinstance(ls, list)] for
-                instance in
-                source if isinstance(instance, cls)]
-
-    def name_instance_tuples_for_class(self, cls):
-        return [
-            (
-                "_".join(
-                    item[0]
-                ),
-                item[1]
-            ) for item in self.path_instance_tuples_for_class(cls)]
-
-    def path_instance_tuples_for_class(self, cls):
-        flat = [((item[0],), item[1]) for item in self.__dict__.items() if
-                isinstance(item[1], cls)]
-        if not cls == ModelInstance:
-            sub_instances = self.path_instance_tuples_for_class(ModelInstance)
-            sub = [((*instance[0], *item[0]), item[1]) for instance in
-                   sub_instances for item in
-                   instance[1].path_instance_tuples_for_class(cls)]
-            return flat + sub
-        return flat
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

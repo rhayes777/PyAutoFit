@@ -3,10 +3,10 @@ import os
 
 from autofit import conf
 from autofit import exc
+from autofit.mapper import AbstractPriorModel, CollectionPriorModel
 from autofit.mapper.model import AbstractModel, ModelInstance
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
-    ConstantNameValue
-from autofit.mapper import AbstractPriorModel, CollectionPriorModel
+    ConstantNameValue, Prior
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
@@ -89,7 +89,7 @@ class ModelMapper(AbstractModel):
 
     @property
     def constant_count(self):
-        return len(self.constant_tuples_ordered_by_id)
+        return len(self.constant_tuples)
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -159,11 +159,11 @@ class ModelMapper(AbstractModel):
 
     @property
     @cast_collection(ConstantNameValue)
-    def constant_tuple_dict(self):
+    def constant_tuples(self):
         """
         Returns
         -------
-        constant_tuple_dict: {Constant: ConstantTuple}
+        constant_tuples: [(str, float)]
             The set of all constants associated with this mapper
         """
         return {
@@ -183,18 +183,6 @@ class ModelMapper(AbstractModel):
         """
         return sorted(list(self.prior_tuples),
                       key=lambda prior_tuple: prior_tuple.prior.id)
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples_ordered_by_id(self):
-        """
-        Returns
-        -------
-        constants: [(str, Constant)]
-            A list of tuples mapping strings to constants constants ordered by id
-        """
-        return sorted(list(self.constant_tuple_dict),
-                      key=lambda constant_tuple: constant_tuple.constant.id)
 
     @property
     def prior_class_dict(self):
@@ -328,14 +316,17 @@ class ModelMapper(AbstractModel):
         result = []
         for instance_key in sorted(model_instance.__dict__.keys()):
             instance = model_instance.__dict__[instance_key]
-            for attribute_key in sorted(instance.__dict__.keys()):
+            try:
+                for attribute_key in sorted(instance.__dict__.keys()):
 
-                value = instance.__dict__[attribute_key]
+                    value = instance.__dict__[attribute_key]
 
-                if isinstance(value, tuple):
-                    result.extend(list(value))
-                else:
-                    result.append(value)
+                    if isinstance(value, tuple):
+                        result.extend(list(value))
+                    else:
+                        result.append(value)
+            except AttributeError:
+                pass
         return result
 
     @property
@@ -425,8 +416,12 @@ class ModelMapper(AbstractModel):
 
     @property
     def instance_tuples(self):
-        return [(key, value) for key, value in self.__dict__.items() if
-                isinstance(value, object) and not isinstance(value, AbstractPriorModel)]
+        return [
+            (key, value) for key, value in self.__dict__.items() if
+            isinstance(value, object)
+            and not isinstance(value, AbstractPriorModel)
+            and not key == "id"
+        ]
 
     def instance_for_arguments(self, arguments):
         """
@@ -590,13 +585,27 @@ class ModelMapper(AbstractModel):
 
         This information is extracted from each priors *model_info* property.
         """
-        info = []
 
-        for prior_model_name, prior_model in self.prior_model_tuples:
-            info.append(prior_model.name + '\n')
-            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
+        path_priors_tuples = self.path_instance_tuples_for_class(
+            Prior
+        )
+        path_float_tuples = self.path_instance_tuples_for_class(
+            float,
+            ignore_class=Prior
+        )
 
-        return '\n'.join(info)
+        info_dict = dict()
+
+        for t in path_priors_tuples + path_float_tuples:
+            add_to_info_dict(t, info_dict)
+
+        return '\n'.join(
+            info_dict_to_list(
+                info_dict,
+                line_length=70,
+                indent=4
+            )
+        )
 
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.prior_model_tuples:
@@ -621,7 +630,7 @@ class ModelMapper(AbstractModel):
 
         constant_prior_model_name_dict = self.constant_prior_model_name_dict
 
-        for constant_name, constant in self.constant_tuples_ordered_by_id:
+        for constant_name, constant in self.constant_tuples:
             constant_names.append(
                 constant_prior_model_name_dict[constant] + '_' + constant_name)
 
@@ -631,3 +640,44 @@ class ModelMapper(AbstractModel):
         return isinstance(other, ModelMapper) \
                and self.priors == other.priors \
                and self.prior_model_tuples == other.prior_model_tuples
+
+
+def add_to_info_dict(path_item_tuple, info_dict):
+    path_tuple = path_item_tuple[0]
+    key = path_tuple[0]
+    if len(path_tuple) == 1:
+        info_dict[key] = path_item_tuple[1]
+    else:
+        if key not in info_dict:
+            info_dict[key] = dict()
+        add_to_info_dict(
+            (path_item_tuple[0][1:], path_item_tuple[1]),
+            info_dict=info_dict[key]
+        )
+
+
+def info_dict_to_list(
+        info_dict,
+        line_length=15,
+        indent=4
+):
+    lines = []
+    for key, value in info_dict.items():
+        indent_string = indent * " "
+        if isinstance(value, dict):
+            sub_lines = info_dict_to_list(
+                value,
+                line_length=line_length - indent,
+                indent=indent
+            )
+            lines.append(key)
+            for line in sub_lines:
+                lines.append(f"{indent_string}{line}")
+        else:
+            value_string = str(value)
+            space_string = max((line_length - len(value_string) - len(key)),
+                               1) * " "
+            lines.append(
+                f"{key}{space_string}{value_string}"
+            )
+    return lines

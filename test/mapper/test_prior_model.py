@@ -269,12 +269,12 @@ class TestCollectionPriorModel(object):
 
         assert isinstance(prior_model.simple, m.PriorModel)
 
-    def test_labels(self):
-        mapper = m.ModelMapper()
-
-        mapper.my_list = autofit.mapper.prior_model.collection.CollectionPriorModel({"simple": SimpleClass})
-
-        assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
+    # def test_labels(self):
+    #     mapper = m.ModelMapper()
+    #
+    #     mapper.my_list = autofit.mapper.prior_model.collection.CollectionPriorModel({"simple": SimpleClass})
+    #
+    #     assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
 
     def test_override_with_constant(self):
         prior_model = autofit.mapper.prior_model.collection.CollectionPriorModel({"simple": SimpleClass})
