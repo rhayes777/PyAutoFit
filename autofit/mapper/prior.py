@@ -4,7 +4,9 @@ from functools import wraps
 import numpy as np
 from scipy.special import erfcinv
 
+from autofit import conf
 from autofit import exc
+from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.model_object import ModelObject
 
 
@@ -63,6 +65,12 @@ class ConstantNameValue(AttributeNameValue):
         return self.value
 
 
+class DeferredNameValue(AttributeNameValue):
+    @property
+    def deferred(self):
+        return self.value
+
+
 class TuplePrior(object):
     """
     A prior comprising one or more priors in a tuple
@@ -97,7 +105,9 @@ class TuplePrior(object):
         constants: [(String, Constant)]
             A list of constants
         """
-        return list(sorted(filter(lambda t: isinstance(t[1], Constant), self.__dict__.items()), key=lambda tup: tup[0]))
+        return list(
+            sorted(filter(lambda t: isinstance(t[1], Constant), self.__dict__.items()),
+                   key=lambda tup: tup[0]))
 
     def value_for_arguments(self, arguments):
         """
@@ -117,7 +127,8 @@ class TuplePrior(object):
                 return arguments[tup.prior]
             return tup.constant.value
 
-        return tuple(map(convert, sorted(self.prior_tuples + self.constant_tuples, key=lambda tup: tup.name)))
+        return tuple(map(convert, sorted(self.prior_tuples + self.constant_tuples,
+                                         key=lambda tup: tup.name)))
 
     def gaussian_tuple_prior_for_arguments(self, arguments):
         """
@@ -138,11 +149,13 @@ class TuplePrior(object):
 
 
 class Prior(ModelObject):
-    """An object used to mappers a unit value to an attribute value for a specific class attribute"""
+    """An object used to mappers a unit value to an attribute value for a specific
+    class attribute """
 
     def __init__(self, lower_limit, upper_limit):
         if lower_limit >= upper_limit:
-            raise exc.PriorException("The upper limit of a prior must be greater than its lower limit")
+            raise exc.PriorException(
+                "The upper limit of a prior must be greater than its lower limit")
         super().__init__()
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
@@ -150,8 +163,39 @@ class Prior(ModelObject):
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(
-                "The physical value {} for a prior was not within its limits {}, {}".format(value, self.lower_limit,
-                                                                                            self.upper_limit))
+                "The physical value {} for a prior "
+                "was not within its limits {}, {}".format(
+                    value, self.lower_limit,
+                    self.upper_limit
+                )
+            )
+
+    @staticmethod
+    def for_class_and_attribute_name(cls, attribute_name):
+        config_arr = conf.instance.prior_default.get_for_nearest_ancestor(
+            cls,
+            attribute_name
+        )
+        if config_arr[0] == "u":
+            return UniformPrior(config_arr[1], config_arr[2])
+        elif config_arr[0] == "l":
+            return LogUniformPrior(config_arr[1], config_arr[2])
+        elif config_arr[0] == "g":
+            limits = conf.instance.prior_limit.get_for_nearest_ancestor(
+                cls,
+                attribute_name
+            )
+            return GaussianPrior(config_arr[1], config_arr[2], *limits)
+        elif config_arr[0] == "c":
+            return Constant(config_arr[1])
+        elif config_arr[0] == "d":
+            return DeferredArgument()
+        raise exc.PriorException(
+            "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, "
+            "c - Constant, d - Deferred)".format(
+                attribute_name
+            )
+        )
 
     @property
     def width(self):
@@ -173,8 +217,9 @@ class Prior(ModelObject):
         return hash(self.id)
 
     def __repr__(self):
-        return "<{} id={} lower_limit={} upper_limit={}>".format(self.__class__.__name__, self.id, self.lower_limit,
-                                                                 self.upper_limit)
+        return "<{} id={} lower_limit={} upper_limit={}>".format(
+            self.__class__.__name__, self.id, self.lower_limit,
+            self.upper_limit)
 
 
 class GaussianPrior(Prior):
@@ -204,13 +249,19 @@ class GaussianPrior(Prior):
     @property
     def info(self):
         """The line of text describing this prior for the model_mapper.info file"""
-        return 'GaussianPrior, mean = ' + str(self.mean) + ', sigma = ' + str(self.sigma)
+        return 'GaussianPrior, mean = ' + str(self.mean) + ', sigma = ' + str(
+            self.sigma)
 
     def __repr__(self):
-        return "<GaussianPrior id={} mean={} sigma={} lower_limit={} upper_limit={}>".format(self.id, self.mean,
-                                                                                             self.sigma,
-                                                                                             self.lower_limit,
-                                                                                             self.upper_limit)
+        return (
+            "<GaussianPrior id={} mean={} sigma={} "
+            "lower_limit={} upper_limit={}>".format(
+                self.id, self.mean,
+                self.sigma,
+                self.lower_limit,
+                self.upper_limit
+            )
+        )
 
 
 class UniformPrior(Prior):
@@ -255,7 +306,8 @@ class UniformPrior(Prior):
     @property
     def info(self):
         """The line of text describing this prior for the model_mapper.info file"""
-        return 'UniformPrior, lower_limit = ' + str(self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
+        return 'UniformPrior, lower_limit = ' + str(
+            self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
 
 
 class LogUniformPrior(UniformPrior):
@@ -285,12 +337,14 @@ class LogUniformPrior(UniformPrior):
         value: Float
             A value for the attribute between the upper and lower limits
         """
-        return 10.0 ** (np.log10(self.lower_limit) + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit)))
+        return 10.0 ** (np.log10(self.lower_limit) + unit * (
+                np.log10(self.upper_limit) - np.log10(self.lower_limit)))
 
     @property
     def info(self):
         """The line of text describing this prior for the model_mapper.info file"""
-        return 'LogUniformPrior, lower_limit = ' + str(self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
+        return 'LogUniformPrior, lower_limit = ' + str(
+            self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
 
 
 prior_number = 0
@@ -299,8 +353,8 @@ prior_number = 0
 class Constant(ModelObject):
     def __init__(self, value):
         """
-        Represents a constant value. No prior is added to the model mapper for constants reducing the dimensionality
-        of the nonlinear search.
+        Represents a constant value. No prior is added to the model mapper for
+        constants reducing the dimensionality of the nonlinear search.
 
         Parameters
         ----------
@@ -334,3 +388,5 @@ class Constant(ModelObject):
     @property
     def info(self):
         return 'Constant, value = {}'.format(self.value)
+
+

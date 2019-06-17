@@ -26,3 +26,11 @@ class PriorLimitException(FitException, PriorException):
 
 class PipelineException(Exception):
     pass
+
+
+class DeferredInstanceException(Exception):
+    """
+    Exception raised when an attempt is made to access an attribute or function of a
+    deferred instance prior to instantiation
+    """
+    pass

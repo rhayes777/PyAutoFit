@@ -4,7 +4,8 @@ from os import path
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-from autofit import mock
+import test.mock
+from test import mock
 from autofit.optimize import grid_search as gs
 from autofit.optimize import non_linear
 
@@ -32,7 +33,7 @@ class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
 if __name__ == "__main__":
     grid_search = gs.GridSearch(phase_name="phase_grid_search", phase_tag='_tag', phase_folders=['integration'],
                                 optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest, parallel=True)
-    grid_search.variable.profile = mock.EllipticalProfile
+    grid_search.variable.profile = test.mock.EllipticalProfile
 
     # noinspection PyUnresolvedReferences
     result = grid_search.fit(Analysis(),
