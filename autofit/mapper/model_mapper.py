@@ -586,18 +586,18 @@ class ModelMapper(AbstractModel):
         This information is extracted from each priors *model_info* property.
         """
 
-        path_priors_tuples = self.path_instance_tuples_for_class(Prior)
-        path_float_tuples = self.path_instance_tuples_for_class(float)
-
-        print(path_priors_tuples)
-        print(path_float_tuples)
+        path_priors_tuples = self.path_instance_tuples_for_class(
+            Prior
+        )
+        path_float_tuples = self.path_instance_tuples_for_class(
+            float,
+            ignore_class=Prior
+        )
 
         info_dict = dict()
 
         for t in path_priors_tuples + path_float_tuples:
             add_to_info_dict(t, info_dict)
-
-        print(info_dict)
 
         return '\n'.join(
             info_dict_to_list(

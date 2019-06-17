@@ -433,16 +433,11 @@ class TestGenerateModelInfo(object):
     def test_basic(self):
         mm = model_mapper.ModelMapper()
         mm.mock_class = MockClassMM
-
-        print(mm.mock_class)
-
         model_info = mm.info
-        print(model_info)
 
-        assert model_info == """MockClassMM
-
-mock_class_one                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-mock_class_two                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+        assert model_info == """mock_class
+    one             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two             UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
     def test_with_constant(self):
         mm = model_mapper.ModelMapper()
