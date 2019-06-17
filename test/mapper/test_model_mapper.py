@@ -434,7 +434,10 @@ class TestGenerateModelInfo(object):
         mm = model_mapper.ModelMapper()
         mm.mock_class = MockClassMM
 
+        print(mm.mock_class)
+
         model_info = mm.info
+        print(model_info)
 
         assert model_info == """MockClassMM
 

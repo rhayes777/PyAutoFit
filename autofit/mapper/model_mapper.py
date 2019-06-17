@@ -589,18 +589,23 @@ class ModelMapper(AbstractModel):
         path_priors_tuples = self.path_instance_tuples_for_class(Prior)
         path_float_tuples = self.path_instance_tuples_for_class(float)
 
+        print(path_priors_tuples)
+        print(path_float_tuples)
+
         info_dict = dict()
 
         for t in path_priors_tuples + path_float_tuples:
             add_to_info_dict(t, info_dict)
 
-        info = []
+        print(info_dict)
 
-        for prior_model_name, prior_model in self.prior_model_tuples:
-            info.append(prior_model.name + '\n')
-            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
-
-        return '\n'.join(info)
+        return '\n'.join(
+            info_dict_to_list(
+                info_dict,
+                line_length=70,
+                indent=4
+            )
+        )
 
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.prior_model_tuples:
