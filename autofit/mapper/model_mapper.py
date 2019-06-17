@@ -6,7 +6,7 @@ from autofit import exc
 from autofit.mapper import AbstractPriorModel, CollectionPriorModel
 from autofit.mapper.model import AbstractModel, ModelInstance
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
-    ConstantNameValue
+    ConstantNameValue, Prior
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
@@ -585,6 +585,15 @@ class ModelMapper(AbstractModel):
 
         This information is extracted from each priors *model_info* property.
         """
+
+        path_priors_tuples = self.path_instance_tuples_for_class(Prior)
+        path_float_tuples = self.path_instance_tuples_for_class(float)
+
+        info_dict = dict()
+
+        for t in path_priors_tuples + path_float_tuples:
+            add_to_info_dict(t, info_dict)
+
         info = []
 
         for prior_model_name, prior_model in self.prior_model_tuples:
@@ -626,3 +635,17 @@ class ModelMapper(AbstractModel):
         return isinstance(other, ModelMapper) \
                and self.priors == other.priors \
                and self.prior_model_tuples == other.prior_model_tuples
+
+
+def add_to_info_dict(path_item_tuple, info_dict):
+    path_tuple = path_item_tuple[0]
+    key = path_tuple[0]
+    if len(path_tuple) == 1:
+        info_dict[key] = path_item_tuple[1]
+    else:
+        if key not in info_dict:
+            info_dict[key] = dict()
+        add_to_info_dict(
+            (path_item_tuple[0][1:], path_item_tuple[1]),
+            info_dict=info_dict[key]
+        )

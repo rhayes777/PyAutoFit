@@ -393,6 +393,34 @@ class MockProfile(object):
 
 
 class TestGenerateModelInfo(object):
+    def test_add_to_info_dict(self):
+        info_dict = dict()
+        model_mapper.add_to_info_dict([("one", "one"), 1], info_dict)
+        model_mapper.add_to_info_dict([("one", "two"), 2], info_dict)
+
+        assert info_dict == {
+            "one": {
+                "one": 1,
+                "two": 2
+            }
+        }
+
+        model_mapper.add_to_info_dict([("one", "three", "four"), 4], info_dict)
+        model_mapper.add_to_info_dict([("three", "four"), 4], info_dict)
+
+        assert info_dict == {
+            "one": {
+                "one": 1,
+                "two": 2,
+                "three": {
+                    "four": 4
+                }
+            },
+            "three": {
+                "four": 4
+            }
+        }
+
     def test_basic(self):
         mm = model_mapper.ModelMapper()
         mm.mock_class = MockClassMM
