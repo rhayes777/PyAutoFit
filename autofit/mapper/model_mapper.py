@@ -649,3 +649,30 @@ def add_to_info_dict(path_item_tuple, info_dict):
             (path_item_tuple[0][1:], path_item_tuple[1]),
             info_dict=info_dict[key]
         )
+
+
+def info_dict_to_list(
+        info_dict,
+        line_length=15,
+        indent=4
+):
+    lines = []
+    for key, value in info_dict.items():
+        indent_string = indent * " "
+        if isinstance(value, dict):
+            sub_lines = info_dict_to_list(
+                value,
+                line_length=line_length - indent,
+                indent=indent
+            )
+            lines.append(key)
+            for line in sub_lines:
+                lines.append(f"{indent_string}{line}")
+        else:
+            value_string = str(value)
+            space_string = max((line_length - len(value_string) - len(key)),
+                               1) * " "
+            lines.append(
+                f"{key}{space_string}{value_string}"
+            )
+    return lines

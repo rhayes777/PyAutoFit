@@ -392,22 +392,19 @@ class MockProfile(object):
         self.intensity = intensity
 
 
+@pytest.fixture(name="info_dict")
+def make_info_dict():
+    info_dict = dict()
+    model_mapper.add_to_info_dict([("one", "one"), 1], info_dict)
+    model_mapper.add_to_info_dict([("one", "two"), 2], info_dict)
+    model_mapper.add_to_info_dict([("one", "three", "four"), 4], info_dict)
+    model_mapper.add_to_info_dict([("three", "four"), 4], info_dict)
+
+    return info_dict
+
+
 class TestGenerateModelInfo(object):
-    def test_add_to_info_dict(self):
-        info_dict = dict()
-        model_mapper.add_to_info_dict([("one", "one"), 1], info_dict)
-        model_mapper.add_to_info_dict([("one", "two"), 2], info_dict)
-
-        assert info_dict == {
-            "one": {
-                "one": 1,
-                "two": 2
-            }
-        }
-
-        model_mapper.add_to_info_dict([("one", "three", "four"), 4], info_dict)
-        model_mapper.add_to_info_dict([("three", "four"), 4], info_dict)
-
+    def test_add_to_info_dict(self, info_dict):
         assert info_dict == {
             "one": {
                 "one": 1,
@@ -420,6 +417,18 @@ class TestGenerateModelInfo(object):
                 "four": 4
             }
         }
+
+    def test_info_string(self, info_dict):
+        ls = model_mapper.info_dict_to_list(info_dict, line_length=20, indent=4)
+
+        assert ls[0] == "one"
+        assert len(ls[1]) == 20
+        assert ls[1] == "    one            1"
+        assert ls[2] == "    two            2"
+        assert ls[3] == "    three"
+        assert ls[4] == "        four       4"
+        assert ls[5] == "three"
+        assert ls[6] == "    four           4"
 
     def test_basic(self):
         mm = model_mapper.ModelMapper()
