@@ -415,8 +415,7 @@ class MultiNest(NonLinearOptimizer):
             for j in range(self.variable.constant_count):
                 line = text_util.label_and_value_string(label=constant_names[j],
                                                         value=constants[j][1].value,
-                                                        whitespace=60,
-                                                        format_str=format_str)
+                                                        whitespace=60)
                 results += [line + '\n']
 
             text_util.output_list_of_strings_to_file(file=self.file_results,
