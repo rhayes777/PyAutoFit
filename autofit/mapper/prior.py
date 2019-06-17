@@ -236,8 +236,7 @@ class GaussianPrior(Prior):
         """
         return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
 
-    @property
-    def info(self):
+    def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return 'GaussianPrior, mean = ' + str(self.mean) + ', sigma = ' + str(
             self.sigma)
@@ -293,8 +292,7 @@ class UniformPrior(Prior):
         self.lower_limit += difference
         self.upper_limit += difference
 
-    @property
-    def info(self):
+    def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return 'UniformPrior, lower_limit = ' + str(
             self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
@@ -330,8 +328,7 @@ class LogUniformPrior(UniformPrior):
         return 10.0 ** (np.log10(self.lower_limit) + unit * (
                 np.log10(self.upper_limit) - np.log10(self.lower_limit)))
 
-    @property
-    def info(self):
+    def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return 'LogUniformPrior, lower_limit = ' + str(
             self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)

@@ -46,7 +46,7 @@ class AbstractPriorModel(AbstractModel):
             # noinspection PyUnresolvedReferences
             line = attribute_tuple.name
             # noinspection PyUnresolvedReferences
-            info.append(line + ' ' * (60 - len(line)) + attribute.info)
+            info.append(line + ' ' * (60 - len(line)) + str(attribute))
 
         for prior_model_name, prior_model in self.prior_model_tuples:
             info.append(prior_model.name + '\n')
