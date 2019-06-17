@@ -1091,7 +1091,7 @@ class TestConstant(object):
 
     def test_list_prior_model_constants(self, mapper):
         prior_model = pm.PriorModel(MockClassMM, )
-        prior_model.one = 3
+        prior_model.one = 3.
         prior_model.two = 4.
 
         mapper.mock_list = [prior_model]

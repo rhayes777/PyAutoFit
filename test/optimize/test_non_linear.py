@@ -212,7 +212,7 @@ class TestMostProbableAndLikely(object):
     def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_constant(self):
 
         mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
-        mapper.mock_class.five = p.Constant(10.0)
+        mapper.mock_class.five = 10.0
 
         nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, -2.0, 3.0, 4.0, 10.0])
 
@@ -246,7 +246,7 @@ class TestMostProbableAndLikely(object):
     def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_constant(self):
 
         mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
-        mapper.mock_class.five = p.Constant(10.0)
+        mapper.mock_class.five = 10.0
         nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_likely=[9.0, -10.0, -11.0, 12.0, 10.0])
 
         most_likely = nlo.most_likely_model_instance

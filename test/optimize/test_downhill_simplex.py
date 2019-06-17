@@ -38,6 +38,8 @@ class TestDownhillSimplex(object):
     def test_constant(self, downhill_simplex):
         downhill_simplex.variable.mock_class = MockClassNLOx4()
 
+        print(downhill_simplex.variable.instance_tuples)
+
         assert len(downhill_simplex.variable.instance_tuples) == 1
         assert hasattr(downhill_simplex.variable.instance_from_unit_vector([]),
                        "mock_class")

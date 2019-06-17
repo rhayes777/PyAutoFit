@@ -6,14 +6,16 @@ import pymultinest
 from matplotlib import pyplot as plt
 
 from autofit import conf, exc
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer, \
+    Result
 from autofit.optimize.non_linear.non_linear import logger
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer, Result
 from autofit.tools import text_util
 
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, sigma_limit=3,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+                 model_mapper=None, sigma_limit=3,
                  run=pymultinest.run):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
@@ -22,13 +24,15 @@ class MultiNest(NonLinearOptimizer):
         are passed to each iteration of MultiNest.
         """
 
-        super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
+        super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag,
+                                        phase_folders=phase_folders,
                                         model_mapper=model_mapper)
 
         self._weighted_sample_model = None
         self.sigma_limit = sigma_limit
 
-        self.importance_nested_sampling = self.config('importance_nested_sampling', bool)
+        self.importance_nested_sampling = self.config('importance_nested_sampling',
+                                                      bool)
         self.multimodal = self.config('multimodal', bool)
         self.const_efficiency_mode = self.config('const_efficiency_mode', bool)
         self.n_live_points = self.config('n_live_points', int)
@@ -95,7 +99,8 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
 
-        def __init__(self, nlo, analysis, instance_from_physical_vector, output_results, image_path):
+        def __init__(self, nlo, analysis, instance_from_physical_vector, output_results,
+                     image_path):
             super().__init__(nlo, analysis, image_path)
             self.instance_from_physical_vector = instance_from_physical_vector
             self.output_results = output_results
@@ -104,9 +109,14 @@ class MultiNest(NonLinearOptimizer):
                 "output",
                 "number_of_accepted_samples_between_output",
                 int)
-            self.stagger_resampling_likelihood = conf.instance.non_linear.get('MultiNest','stagger_resampling_likelihood', bool)
-            self.stagger_resampling_value = conf.instance.non_linear.get('MultiNest','stagger_resampling_value', float)
-            self.resampling_likelihood = conf.instance.non_linear.get('MultiNest', 'null_log_evidence', float)
+            self.stagger_resampling_likelihood = conf.instance.non_linear.get(
+                'MultiNest', 'stagger_resampling_likelihood', bool)
+            self.stagger_resampling_value = conf.instance.non_linear.get('MultiNest',
+                                                                         'stagger_resampling_value',
+                                                                         float)
+            self.resampling_likelihood = conf.instance.non_linear.get('MultiNest',
+                                                                      'null_log_evidence',
+                                                                      float)
 
         def __call__(self, cube, ndim, nparams, lnew):
             try:
@@ -137,14 +147,16 @@ class MultiNest(NonLinearOptimizer):
 
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-            phys_cube = self.variable.physical_vector_from_hypercube_vector(hypercube_vector=cube)
+            phys_cube = self.variable.physical_vector_from_hypercube_vector(
+                hypercube_vector=cube)
 
             for i in range(self.variable.prior_count):
                 cube[i] = phys_cube[i]
 
             return cube
 
-        fitness_function = MultiNest.Fitness(self, analysis, self.variable.instance_from_physical_vector,
+        fitness_function = MultiNest.Fitness(self, analysis,
+                                             self.variable.instance_from_physical_vector,
                                              self.output_results, self.image_path)
 
         logger.info("Running MultiNest...")
@@ -174,12 +186,14 @@ class MultiNest(NonLinearOptimizer):
 
         self.backup()
         constant = self.most_likely_model_instance
-        analysis.visualize(instance=constant, image_path=self.image_path, during_analysis=False)
+        analysis.visualize(instance=constant, image_path=self.image_path,
+                           during_analysis=False)
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
         return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
                       previous_variable=self.variable,
-                      gaussian_tuples=self.gaussian_priors_at_sigma_limit(self.sigma_limit))
+                      gaussian_tuples=self.gaussian_priors_at_sigma_limit(
+                          self.sigma_limit))
 
     def read_list_of_results_from_summary_file(self, number_entries, offset):
 
@@ -203,7 +217,8 @@ class MultiNest(NonLinearOptimizer):
         model in the second half of entries. The offset parameter is used to start at the desired model.
 
         """
-        return self.read_list_of_results_from_summary_file(number_entries=self.variable.prior_count, offset=0)
+        return self.read_list_of_results_from_summary_file(
+            number_entries=self.variable.prior_count, offset=0)
 
     @property
     def most_likely_model_parameters(self):
@@ -214,19 +229,23 @@ class MultiNest(NonLinearOptimizer):
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
         """
-        return self.read_list_of_results_from_summary_file(number_entries=self.variable.prior_count, offset=56)
+        return self.read_list_of_results_from_summary_file(
+            number_entries=self.variable.prior_count, offset=56)
 
     @property
     def maximum_likelihood(self):
-        return self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[0]
+        return \
+        self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[0]
 
     @property
     def maximum_log_likelihood(self):
-        return self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[1]
+        return \
+        self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[1]
 
     def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
-        densities_1d = list(map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names))
+        densities_1d = list(
+            map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names))
         return list(map(lambda p: p.getLimits(limit), densities_1d))
 
     def model_parameters_at_upper_sigma_limit(self, sigma_limit):
@@ -241,7 +260,8 @@ class MultiNest(NonLinearOptimizer):
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(map(lambda param: param[1], self.model_parameters_at_sigma_limit(sigma_limit)))
+        return list(map(lambda param: param[1],
+                        self.model_parameters_at_sigma_limit(sigma_limit)))
 
     def model_parameters_at_lower_sigma_limit(self, sigma_limit):
         """Setup 1D vectors of the upper and lower limits of the multinest nlo.
@@ -255,7 +275,8 @@ class MultiNest(NonLinearOptimizer):
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(map(lambda param: param[0], self.model_parameters_at_sigma_limit(sigma_limit)))
+        return list(map(lambda param: param[0],
+                        self.model_parameters_at_sigma_limit(sigma_limit)))
 
     @property
     def total_samples(self):
@@ -299,17 +320,20 @@ class MultiNest(NonLinearOptimizer):
         import getdist.plots
         pdf_plot = getdist.plots.GetDistPlotter()
 
-        plot_pdf_1d_params = conf.instance.general.get('output', 'plot_pdf_1d_params', bool)
+        plot_pdf_1d_params = conf.instance.general.get('output', 'plot_pdf_1d_params',
+                                                       bool)
 
         if plot_pdf_1d_params:
 
             for param_name in self.variable.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(fname='{}/pdf_{}_1D.png'.format(self.image_path, param_name))
+                pdf_plot.export(
+                    fname='{}/pdf_{}_1D.png'.format(self.image_path, param_name))
 
         plt.close()
 
-        plot_pdf_triangle = conf.instance.general.get('output', 'plot_pdf_triangle', bool)
+        plot_pdf_triangle = conf.instance.general.get('output', 'plot_pdf_triangle',
+                                                      bool)
 
         if plot_pdf_triangle:
 
@@ -318,15 +342,17 @@ class MultiNest(NonLinearOptimizer):
                 pdf_plot.export(fname='{}/pdf_triangle.png'.format(self.image_path))
             except Exception as e:
                 print(type(e))
-                print('The PDF triangle of this non-linear search could not be plotted. This is most likely due to a '
-                      'lack of smoothness in the sampling of parameter space. Sampler further by decreasing the '
-                      'parameter evidence_tolerance.')
+                print(
+                    'The PDF triangle of this non-linear search could not be plotted. This is most likely due to a '
+                    'lack of smoothness in the sampling of parameter space. Sampler further by decreasing the '
+                    'parameter evidence_tolerance.')
 
         plt.close()
 
     def output_results(self, during_analysis=False):
 
-        decimal_places = conf.instance.general.get("output", "model_results_decimal_places", int)
+        decimal_places = conf.instance.general.get("output",
+                                                   "model_results_decimal_places", int)
 
         format_str = '{:.' + str(decimal_places) + 'f}'
 
@@ -340,12 +366,14 @@ class MultiNest(NonLinearOptimizer):
             most_likely = self.most_likely_model_parameters
 
             if len(most_likely) != self.variable.prior_count:
-                raise exc.MultiNestException('MultiNest and GetDist have counted a different number of parameters.'
-                                             'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
+                raise exc.MultiNestException(
+                    'MultiNest and GetDist have counted a different number of parameters.'
+                    'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
 
             for j in range(self.variable.prior_count):
-                line = text_util.label_and_value_string(label=self.variable.param_names[j], value=most_likely[j],
-                                                        whitespace=60, format_str=format_str)
+                line = text_util.label_and_value_string(
+                    label=self.variable.param_names[j], value=most_likely[j],
+                    whitespace=60, format_str=format_str)
                 results += [line + '\n']
 
             if not during_analysis:
@@ -354,16 +382,21 @@ class MultiNest(NonLinearOptimizer):
 
                 def results_from_sigma_limit(limit):
 
-                    lower_limits = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
-                    upper_limits = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
+                    lower_limits = self.model_parameters_at_lower_sigma_limit(
+                        sigma_limit=limit)
+                    upper_limits = self.model_parameters_at_upper_sigma_limit(
+                        sigma_limit=limit)
 
-                    results = ['\n\nMost probable model ({} sigma limits)\n\n'.format(limit)]
+                    results = [
+                        '\n\nMost probable model ({} sigma limits)\n\n'.format(limit)]
 
                     for i in range(self.variable.prior_count):
                         line = text_util.label_value_and_limits_string(
-                            label=self.variable.param_names[i], value=most_probable_params[i],
+                            label=self.variable.param_names[i],
+                            value=most_probable_params[i],
                             lower_limit=lower_limits[i],
-                            upper_limit=upper_limits[i], whitespace=60, format_str=format_str)
+                            upper_limit=upper_limits[i], whitespace=60,
+                            format_str=format_str)
 
                         results += [line + '\n']
 
@@ -375,11 +408,14 @@ class MultiNest(NonLinearOptimizer):
             results += ['\n\nConstants\n\n']
 
             constant_names = self.variable.constant_names
-            constants = self.variable.constant_tuples_ordered_by_id
+            constants = self.variable.constant_tuples
 
             for j in range(self.variable.constant_count):
-                line = text_util.label_and_value_string(label=constant_names[j], value=constants[j][1].value,
-                                                        whitespace=60, format_str=format_str)
+                line = text_util.label_and_value_string(label=constant_names[j],
+                                                        value=constants[j][1].value,
+                                                        whitespace=60,
+                                                        format_str=format_str)
                 results += [line + '\n']
 
-            text_util.output_list_of_strings_to_file(file=self.file_results, list_of_strings=results)
+            text_util.output_list_of_strings_to_file(file=self.file_results,
+                                                     list_of_strings=results)

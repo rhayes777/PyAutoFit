@@ -3,10 +3,10 @@ import os
 
 from autofit import conf
 from autofit import exc
+from autofit.mapper import AbstractPriorModel, CollectionPriorModel
 from autofit.mapper.model import AbstractModel, ModelInstance
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue
-from autofit.mapper import AbstractPriorModel, CollectionPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
@@ -89,7 +89,7 @@ class ModelMapper(AbstractModel):
 
     @property
     def constant_count(self):
-        return len(self.constant_tuples_ordered_by_id)
+        return len(self.constant_tuples)
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -316,14 +316,17 @@ class ModelMapper(AbstractModel):
         result = []
         for instance_key in sorted(model_instance.__dict__.keys()):
             instance = model_instance.__dict__[instance_key]
-            for attribute_key in sorted(instance.__dict__.keys()):
+            try:
+                for attribute_key in sorted(instance.__dict__.keys()):
 
-                value = instance.__dict__[attribute_key]
+                    value = instance.__dict__[attribute_key]
 
-                if isinstance(value, tuple):
-                    result.extend(list(value))
-                else:
-                    result.append(value)
+                    if isinstance(value, tuple):
+                        result.extend(list(value))
+                    else:
+                        result.append(value)
+            except AttributeError:
+                pass
         return result
 
     @property
@@ -413,8 +416,12 @@ class ModelMapper(AbstractModel):
 
     @property
     def instance_tuples(self):
-        return [(key, value) for key, value in self.__dict__.items() if
-                isinstance(value, object) and not isinstance(value, AbstractPriorModel)]
+        return [
+            (key, value) for key, value in self.__dict__.items() if
+            isinstance(value, object)
+            and not isinstance(value, AbstractPriorModel)
+            and not key == "id"
+        ]
 
     def instance_for_arguments(self, arguments):
         """
