@@ -38,14 +38,6 @@ class AbstractModel(object):
             instance = getattr(instance, name)
         return instance
 
-
-class ModelInstance(AbstractModel):
-    """
-    An object to hold model instances produced by providing arguments to a model mapper.
-
-    @DynamicAttrs
-    """
-
     def instances_of(self, cls: type) -> [object]:
         """
         Traverse the model tree returning all instances of the class
@@ -104,6 +96,13 @@ class ModelInstance(AbstractModel):
             return flat + sub
         return flat
 
+
+class ModelInstance(AbstractModel):
+    """
+    An object to hold model instances produced by providing arguments to a model mapper.
+
+    @DynamicAttrs
+    """
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
