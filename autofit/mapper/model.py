@@ -1,7 +1,8 @@
 import copy
+from .model_object import ModelObject
 
 
-class AbstractModel(object):
+class AbstractModel(ModelObject):
     def __add__(self, other):
         instance = self.__class__()
 
@@ -95,6 +96,10 @@ class AbstractModel(object):
                    instance[1].path_instance_tuples_for_class(cls)]
             return flat + sub
         return flat
+
+    def tuples_with_type(self, class_type):
+        return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type),
+                           self.__dict__.items()))
 
 
 class ModelInstance(AbstractModel):

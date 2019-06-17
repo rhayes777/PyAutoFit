@@ -221,4 +221,5 @@ class TestPhasePropertyCollectionAttributes(object):
         prior_model = autofit.mapper.prior_model.prior_model.PriorModel(test.mock.Galaxy)
         prior_model.phase_property_position = 0
 
+        print(prior_model.constant_tuples)
         assert len(prior_model.constant_tuples) == 0

@@ -1,12 +1,12 @@
 import inspect
 
-from autofit.mapper.prior import Prior, Constant
-from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior import Prior
+from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 
-class AbstractPriorModel(ModelObject):
+class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
     overridden by any prior model so that the model mapper recognises its prior \
@@ -62,7 +62,7 @@ class AbstractPriorModel(ModelObject):
     @property
     @cast_collection(ConstantNameValue)
     def direct_constant_tuples(self):
-        return self.tuples_with_type(Constant)
+        return self.tuples_with_type(float)
 
     @property
     def flat_prior_model_tuples(self):
@@ -125,7 +125,3 @@ class AbstractPriorModel(ModelObject):
 
     def __hash__(self):
         return self.id
-
-    def tuples_with_type(self, class_type):
-        return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type),
-                           self.__dict__.items()))

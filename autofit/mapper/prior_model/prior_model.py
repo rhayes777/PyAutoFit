@@ -2,9 +2,10 @@ import copy
 import inspect
 
 from typing_inspect import is_tuple_type
+
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
-    TuplePrior, Constant, Prior, AttributeNameValue, \
+    TuplePrior, Prior, AttributeNameValue, \
     DeferredNameValue
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredArgument
@@ -182,10 +183,16 @@ class PriorModel(AbstractPriorModel):
                         name
                     ) and tuple_name(name) in constructor_args):
                 attribute = kwargs[name] if name in kwargs else attribute_tuple.value
-                if make_constants_variable and isinstance(attribute, Constant):
+                if make_constants_variable and (isinstance(
+                        attribute,
+                        float
+                ) or isinstance(
+                    attribute,
+                    int
+                )):
                     new_attribute = getattr(new_model, name)
                     if isinstance(new_attribute, Prior):
-                        new_attribute.mean = attribute.value
+                        new_attribute.mean = attribute
                         continue
                 setattr(new_model, name, attribute)
         return new_model
@@ -202,9 +209,6 @@ class PriorModel(AbstractPriorModel):
                     return
             except IndexError:
                 pass
-            if isinstance(value, float) or isinstance(value, int):
-                super().__setattr__(key, Constant(value))
-                return
         super(PriorModel, self).__setattr__(key, value)
 
     def __getattr__(self, item):
@@ -259,17 +263,6 @@ class PriorModel(AbstractPriorModel):
         return tuple_priors + direct_priors + deeper
 
     @property
-    @cast_collection(ConstantNameValue)
-    def direct_constant_tuples(self):
-        """
-        Returns
-        -------
-        constants: [(String, Constant)]
-            A list of constants
-        """
-        return self.tuples_with_type(Constant)
-
-    @property
     @cast_collection(DeferredNameValue)
     def direct_deferred_tuples(self):
         return self.tuples_with_type(DeferredArgument)
@@ -321,10 +314,6 @@ class PriorModel(AbstractPriorModel):
             t.name: arguments[t.prior]
             for t in self.direct_prior_tuples
         }
-        constant_arguments = {
-            t.name: t.constant.value for t in
-            self.direct_constant_tuples
-        }
         attribute_arguments = {
             key: value for key, value in self.__dict__.items()
             if key in self.constructor_argument_names
@@ -342,8 +331,7 @@ class PriorModel(AbstractPriorModel):
 
         constructor_arguments = {
             **attribute_arguments,
-            **model_arguments,
-            **constant_arguments
+            **model_arguments
         }
 
         if self.is_deferred_arguments:
@@ -383,5 +371,3 @@ class PriorModel(AbstractPriorModel):
                     prior_model.gaussian_prior_model_for_arguments(arguments))
 
         return new_model
-
-

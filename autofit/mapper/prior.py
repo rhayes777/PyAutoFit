@@ -6,8 +6,8 @@ from scipy.special import erfcinv
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior_model.deferred import DeferredArgument
 
 
 def cast_collection(named_tuple):
@@ -75,16 +75,6 @@ class TuplePrior(object):
     """
     A prior comprising one or more priors in a tuple
     """
-
-    def __setattr__(self, key, value):
-        try:
-            if isinstance(value, float) or isinstance(value, int):
-                super().__setattr__(key, Constant(value))
-                return
-        except IndexError:
-            pass
-        super(TuplePrior, self).__setattr__(key, value)
-
     @property
     @cast_collection(PriorNameValue)
     def prior_tuples(self):
@@ -106,7 +96,7 @@ class TuplePrior(object):
             A list of constants
         """
         return list(
-            sorted(filter(lambda t: isinstance(t[1], Constant), self.__dict__.items()),
+            sorted(filter(lambda t: isinstance(t[1], float), self.__dict__.items()),
                    key=lambda tup: tup[0]))
 
     def value_for_arguments(self, arguments):
@@ -125,7 +115,7 @@ class TuplePrior(object):
         def convert(tup):
             if hasattr(tup, "prior"):
                 return arguments[tup.prior]
-            return tup.constant.value
+            return tup.constant
 
         return tuple(map(convert, sorted(self.prior_tuples + self.constant_tuples,
                                          key=lambda tup: tup.name)))
@@ -187,7 +177,7 @@ class Prior(ModelObject):
             )
             return GaussianPrior(config_arr[1], config_arr[2], *limits)
         elif config_arr[0] == "c":
-            return Constant(config_arr[1])
+            return config_arr[1]
         elif config_arr[0] == "d":
             return DeferredArgument()
         raise exc.PriorException(
@@ -345,48 +335,3 @@ class LogUniformPrior(UniformPrior):
         """The line of text describing this prior for the model_mapper.info file"""
         return 'LogUniformPrior, lower_limit = ' + str(
             self.lower_limit) + ', upper_limit = ' + str(self.upper_limit)
-
-
-prior_number = 0
-
-
-class Constant(ModelObject):
-    def __init__(self, value):
-        """
-        Represents a constant value. No prior is added to the model mapper for
-        constants reducing the dimensionality of the nonlinear search.
-
-        Parameters
-        ----------
-        value: Union(float, tuple)
-            The value this constant should take.
-        """
-        self.value = value
-        super().__init__()
-
-    def __eq__(self, other):
-        return self.value == other
-
-    def __gt__(self, other):
-        return self.value > other
-
-    def __lt__(self, other):
-        return self.value < other
-
-    def __ne__(self, other):
-        return self.value != other
-
-    def __str__(self):
-        return "Constant {}".format(self.value)
-
-    def __hash__(self):
-        return self.id
-
-    def __bool__(self):
-        return bool(self.value)
-
-    @property
-    def info(self):
-        return 'Constant, value = {}'.format(self.value)
-
-

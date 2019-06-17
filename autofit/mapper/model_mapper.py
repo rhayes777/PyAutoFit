@@ -159,11 +159,11 @@ class ModelMapper(AbstractModel):
 
     @property
     @cast_collection(ConstantNameValue)
-    def constant_tuple_dict(self):
+    def constant_tuples(self):
         """
         Returns
         -------
-        constant_tuple_dict: {Constant: ConstantTuple}
+        constant_tuples: [(str, float)]
             The set of all constants associated with this mapper
         """
         return {
@@ -183,18 +183,6 @@ class ModelMapper(AbstractModel):
         """
         return sorted(list(self.prior_tuples),
                       key=lambda prior_tuple: prior_tuple.prior.id)
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples_ordered_by_id(self):
-        """
-        Returns
-        -------
-        constants: [(str, Constant)]
-            A list of tuples mapping strings to constants constants ordered by id
-        """
-        return sorted(list(self.constant_tuple_dict),
-                      key=lambda constant_tuple: constant_tuple.constant.id)
 
     @property
     def prior_class_dict(self):
@@ -621,7 +609,7 @@ class ModelMapper(AbstractModel):
 
         constant_prior_model_name_dict = self.constant_prior_model_name_dict
 
-        for constant_name, constant in self.constant_tuples_ordered_by_id:
+        for constant_name, constant in self.constant_tuples:
             constant_names.append(
                 constant_prior_model_name_dict[constant] + '_' + constant_name)
 
