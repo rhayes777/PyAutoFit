@@ -235,12 +235,12 @@ class MultiNest(NonLinearOptimizer):
     @property
     def maximum_likelihood(self):
         return \
-        self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[0]
+            self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[0]
 
     @property
     def maximum_log_likelihood(self):
         return \
-        self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[1]
+            self.read_list_of_results_from_summary_file(number_entries=2, offset=112)[1]
 
     def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
@@ -367,13 +367,14 @@ class MultiNest(NonLinearOptimizer):
 
             if len(most_likely) != self.variable.prior_count:
                 raise exc.MultiNestException(
-                    'MultiNest and GetDist have counted a different number of parameters.'
-                    'See github issue https://github.com/Jammy2211/PyAutoLens/issues/49')
+                    'MultiNest and GetDist have counted a different number of '
+                    'parameters.See github issue '
+                    'https://github.com/Jammy2211/PyAutoLens/issues/49')
 
             for j in range(self.variable.prior_count):
                 line = text_util.label_and_value_string(
                     label=self.variable.param_names[j], value=most_likely[j],
-                    whitespace=60, format_str=format_str)
+                    whitespace=60, format_string=format_str)
                 results += [line + '\n']
 
             if not during_analysis:
@@ -395,8 +396,9 @@ class MultiNest(NonLinearOptimizer):
                             label=self.variable.param_names[i],
                             value=most_probable_params[i],
                             lower_limit=lower_limits[i],
-                            upper_limit=upper_limits[i], whitespace=60,
-                            format_str=format_str)
+                            upper_limit=upper_limits[i],
+                            whitespace=60,
+                            format_string=format_str)
 
                         results += [line + '\n']
 
