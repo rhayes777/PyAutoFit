@@ -443,16 +443,13 @@ class TestGenerateModelInfo(object):
         mm = model_mapper.ModelMapper()
         mm.mock_class = MockClassMM
 
-        mm.mock_class.two = 1
+        mm.mock_class.two = 1.0
 
         model_info = mm.info
 
-        print(model_info)
-
-        assert model_info == """MockClassMM
-
-mock_class_one                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-mock_class_two                                                         Constant, value = 1"""
+        assert model_info == """mock_class
+    one             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                            1.0"""
 
 
 class WithFloat(object):
