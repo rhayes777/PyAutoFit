@@ -1,8 +1,32 @@
+import configparser
+
 from autofit import conf
 
 
-def format_string_for_label(label):
-    return conf.instance.label_format.get("format", label)
+def format_string_for_label(label: str) -> str:
+    """
+    Get the format for the label. Attempts to extract the key string associated with
+    the dimension. Seems dodgy.
+
+    Parameters
+    ----------
+    label
+        A string label
+
+    Returns
+    -------
+    format
+        The format string (e.g {:.2f})
+    """
+    label = label.split("_within_")[0]
+    label = label.split("_at_")[0]
+    try:
+        return conf.instance.label_format.get("format", label)
+    except configparser.NoOptionError:
+        label = "_".join(label.split("_")[1:])
+        if len(label) == 0:
+            raise
+        return format_string_for_label(label)
 
 
 def label_and_label_string(label0, label1, whitespace):
@@ -15,7 +39,7 @@ def label_and_value_string(
         whitespace,
         format_string=None
 ):
-    format_str = format_string or format_string_for_label(label.split("_within_")[0])
+    format_str = format_string or format_string_for_label(label)
     value = format_str.format(value)
     return label + value.rjust(whitespace - len(label) + len(value))
 
@@ -28,7 +52,7 @@ def label_value_and_limits_string(
         whitespace,
         format_string=None
 ):
-    format_str = format_string or format_string_for_label(label.split("_within_")[0])
+    format_str = format_string or format_string_for_label(label)
     value = format_str.format(value)
     upper_limit = format_str.format(upper_limit)
     lower_limit = format_str.format(lower_limit)
@@ -43,7 +67,7 @@ def label_value_and_unit_string(
         whitespace,
         format_string=None
 ):
-    format_str = format_string or format_string_for_label(label.split("_within_")[0])
+    format_str = format_string or format_string_for_label(label)
     value = (format_str + ' {}').format(value, unit)
     return label + value.rjust(whitespace - len(label) + len(value))
 
