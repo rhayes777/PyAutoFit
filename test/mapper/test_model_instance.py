@@ -1,7 +1,32 @@
+import pytest
+
 from autofit.mapper import model
 from autofit.mapper import model_mapper, prior as p
 from test import mock
 from test.mapper.test_model_mapper import MockClassMM, MockProfile
+
+
+@pytest.fixture(name="galaxy_1")
+def make_galaxy_1():
+    return mock.Galaxy()
+
+
+@pytest.fixture(name="galaxy_2")
+def make_galaxy_2():
+    return mock.Galaxy()
+
+
+@pytest.fixture(name="instance")
+def make_instance(galaxy_1, galaxy_2):
+    sub = model.ModelInstance()
+
+    instance = model.ModelInstance()
+    sub.galaxy_1 = galaxy_1
+
+    instance.galaxy_2 = galaxy_2
+    instance.sub = sub
+
+    return instance
 
 
 class TestModelInstance(object):
@@ -12,21 +37,24 @@ class TestModelInstance(object):
         assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1,
                                                       instance.galaxy_2]
 
-    def test_name_instance_tuples_for_class(self):
-        sub = model.ModelInstance()
-        instance = model.ModelInstance()
-
-        galaxy_1 = mock.Galaxy()
-        sub.galaxy_1 = galaxy_1
-
-        galaxy_2 = mock.Galaxy()
-        instance.galaxy_2 = galaxy_2
-        instance.sub = sub
-
+    def test_name_instance_tuples_for_class(self, instance, galaxy_1, galaxy_2):
         result = instance.name_instance_tuples_for_class(mock.Galaxy)
 
         assert result[0] == ("galaxy_2", galaxy_2)
         assert result[1] == ("sub_galaxy_1", galaxy_1)
+
+    def test_path_instance_tuples_for_class(self, instance, galaxy_1, galaxy_2):
+        result = instance.path_instance_tuples_for_class(mock.Galaxy)
+        assert result[0] == (("galaxy_2",), galaxy_2)
+        assert result[1] == (("sub", "galaxy_1"), galaxy_1)
+
+        sub_2 = model.ModelInstance()
+        sub_2.galaxy_1 = galaxy_1
+
+        instance.sub.sub = sub_2
+
+        result = instance.path_instance_tuples_for_class(mock.Galaxy)
+        assert result[2] == (("sub", "sub", "galaxy_1"), galaxy_1)
 
     def test_instances_of_filtering(self):
         instance = model.ModelInstance()
