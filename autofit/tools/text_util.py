@@ -12,9 +12,10 @@ def label_and_label_string(label0, label1, whitespace):
 def label_and_value_string(
         label,
         value,
-        whitespace
+        whitespace,
+        format_string=None
 ):
-    format_str = format_string_for_label(label.split("_within_")[0])
+    format_str = format_string or format_string_for_label(label.split("_within_")[0])
     value = format_str.format(value)
     return label + value.rjust(whitespace - len(label) + len(value))
 
@@ -24,9 +25,10 @@ def label_value_and_limits_string(
         value,
         lower_limit,
         upper_limit,
-        whitespace
+        whitespace,
+        format_string=None
 ):
-    format_str = format_string_for_label(label.split("_within_")[0])
+    format_str = format_string or format_string_for_label(label.split("_within_")[0])
     value = format_str.format(value)
     upper_limit = format_str.format(upper_limit)
     lower_limit = format_str.format(lower_limit)
@@ -38,9 +40,10 @@ def label_value_and_unit_string(
         label,
         value,
         unit,
-        whitespace
+        whitespace,
+        format_string=None
 ):
-    format_str = format_string_for_label(label.split("_within_")[0])
+    format_str = format_string or format_string_for_label(label.split("_within_")[0])
     value = (format_str + ' {}').format(value, unit)
     return label + value.rjust(whitespace - len(label) + len(value))
 
