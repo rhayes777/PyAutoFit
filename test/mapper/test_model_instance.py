@@ -47,12 +47,6 @@ class TestModelInstance(object):
         assert instance.object_for_path(("sub", "galaxy_1")) == galaxy_1
         assert instance.object_for_path(("sub", "sub", "galaxy_1")) == galaxy_1
 
-    def test_name_instance_tuples_for_class(self, instance, galaxy_1, galaxy_2):
-        result = instance.name_instance_tuples_for_class(mock.Galaxy)
-
-        assert result[0] == ("galaxy_2", galaxy_2)
-        assert result[1] == ("sub_galaxy_1", galaxy_1)
-
     def test_path_instance_tuples_for_class(self, instance, galaxy_1, galaxy_2):
         result = instance.path_instance_tuples_for_class(mock.Galaxy)
         assert result[0] == (("galaxy_2",), galaxy_2)
