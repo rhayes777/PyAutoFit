@@ -32,10 +32,6 @@ class TestResultsCollection(object):
         with pytest.raises(af.exc.PipelineException):
             results.from_phase("third phase")
 
-    def test_duplicate_result(self, results):
-        with pytest.raises(af.exc.PipelineException):
-            results.add("second phase", "three")
-
 
 class MockPhase(af.AbstractPhase):
     def make_result(self, result, analysis):
@@ -43,12 +39,31 @@ class MockPhase(af.AbstractPhase):
 
     def __init__(self, phase_name, optimizer=None):
         super().__init__(phase_name)
-        self.optimizer = optimizer
+        self.optimizer = optimizer or af.NonLinearOptimizer(phase_name)
         self.phase_path = phase_name
         self.phase_tag = phase_name
 
+    def save_metadata(self, data_name, pipeline_name):
+        pass
+
+
+class MockHyperPhase(MockPhase, af.HyperPhase):
+    pass
+
 
 class TestPipeline(object):
+    def test_hyper_phase_naming(self):
+        pipeline = af.Pipeline("name", MockPhase("one"), MockHyperPhase("hyper"))
+
+        # noinspection PyUnusedLocal,PyShadowingNames
+        def func(phase, results):
+            pass
+
+        results = pipeline.run_function(func)
+
+        assert len(results) == 2
+        assert "hyper" not in results
+
     def test_unique_phases(self):
         af.Pipeline("name", MockPhase("one"), MockPhase("two"))
         with pytest.raises(af.exc.PipelineException):
