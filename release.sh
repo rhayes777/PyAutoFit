@@ -9,7 +9,7 @@ VERSION=$1
 
 git flow release start $VERSION
 
-cat $PACKAGE_NAME/__init__.py | grep -v __version__ > $PACKAGE_NAME/__init__.py
+echo `cat $PACKAGE_NAME/__init__.py | grep -v __version__` > $PACKAGE_NAME/__init__.py
 
 echo "__version__ = '"$VERSION"'" >> $PACKAGE_NAME/__init__.py
 
