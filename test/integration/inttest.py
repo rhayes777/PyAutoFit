@@ -4,15 +4,13 @@ from os import path
 
 import pytest
 
-import autofit.optimize.non_linear.grid_search
-import autofit.optimize.non_linear.multi_nest
-import autofit.optimize.non_linear.non_linear
-import test.mock
-from test import mock
-from autofit.tools import phase as p
-from autofit.tools import phase_property
+
 from autofit.optimize import grid_search as gs
-from autofit.optimize import non_linear
+
+import test.mock
+
+
+import autofit as af
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +22,7 @@ except FileNotFoundError:
     logging.info("Not found")
 
 
-class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
+class Analysis(af.Analysis):
     def fit(self, instance):
         return -(instance.profile.centre[0] ** 2 + instance.profile.centre[1] ** 2)
 
@@ -35,12 +33,12 @@ class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
         return "{}, {}".format(*instance.profile.centre)
 
 
-class Phase(p.AbstractPhase):
-    profile = phase_property.PhaseProperty("profile")
-    constant_profile = phase_property.PhaseProperty("constant_profile")
+class Phase(af.AbstractPhase):
+    profile = af.PhaseProperty("profile")
+    constant_profile = af.PhaseProperty("constant_profile")
 
     def __init__(self, phase_name, tag_phases, phase_folders, profile, constant_profile,
-                 optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest):
+                 optimizer_class=af.MultiNest):
         super().__init__(phase_name=phase_name, tag_phases=tag_phases, phase_tag='_tag', phase_folders=phase_folders,
                          optimizer_class=optimizer_class)
         self.profile = profile
@@ -54,7 +52,7 @@ class TestCase(object):
     
     def test_integration(self):
 
-        multinest = autofit.optimize.non_linear.multi_nest.MultiNest(phase_folders=['integration'], phase_name='test')
+        multinest = af.MultiNest(phase_folders=['integration'], phase_name='test')
 
         multinest.variable.profile = test.mock.EllipticalProfile
 
@@ -89,7 +87,7 @@ class TestCase(object):
         # noinspection PyTypeChecker
         phase = Phase(phase_name="phase_classic_grid_search_phase", tag_phases=True, phase_folders=['integration'],
                       profile=test.mock.EllipticalProfile, constant_profile=test.mock.EllipticalProfile(),
-                      optimizer_class=autofit.optimize.non_linear.grid_search.GridSearch)
+                      optimizer_class=af.GridSearch)
         result = phase.run_analysis(Analysis())
 
         centre = result.constant.profile.centre
@@ -99,7 +97,7 @@ class TestCase(object):
 
     def test_grid_search_phase(self):
 
-        class GridSearchPhase(p.as_grid_search(Phase)):
+        class GridSearchPhase(af.as_grid_search(Phase)):
             @property
             def grid_priors(self):
                 return [self.variable.profile.centre_0, self.variable.profile.centre_1]
@@ -112,8 +110,6 @@ class TestCase(object):
 
         assert result.results[0].constant.constant_profile == constant_profile
 
-        print(result.figure_of_merit_array)
-
         assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[0, 1]
         assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[1, 0]
         assert result.figure_of_merit_array[1, 0] > result.figure_of_merit_array[1, 1]
@@ -121,7 +117,7 @@ class TestCase(object):
 
     def test_grid_search_phase_parallel(self):
 
-        class GridSearchPhase(p.as_grid_search(Phase, parallel=True)):
+        class GridSearchPhase(af.as_grid_search(Phase, parallel=True)):
             @property
             def grid_priors(self):
                 return [self.variable.profile.centre_0, self.variable.profile.centre_1]

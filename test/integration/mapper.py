@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from autofit import mapper
+import autofit as af
 from test import mock
 
 

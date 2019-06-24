@@ -3,9 +3,7 @@ from os import path
 import pytest
 
 import test.mock
-from autofit import conf
-from autofit import exc
-from autofit.tools import text_util
+import autofit as af
 
 directory = path.dirname(path.realpath(__file__))
 
@@ -16,7 +14,7 @@ class MockClass(object):
 
 @pytest.fixture(name="label_config")
 def make_label_config():
-    return conf.LabelConfig("{}/test_files/config/label.ini".format(directory))
+    return af.conf.LabelConfig("{}/test_files/config/label.ini".format(directory))
 
 
 class TestLabel(object):
@@ -35,15 +33,15 @@ class TestLabel(object):
         assert label_config.subscript(test.mock.EllipticalGaussian) == "l"
 
     def test_exception(self, label_config):
-        with pytest.raises(exc.PriorException):
+        with pytest.raises(af.exc.PriorException):
             label_config.subscript(MockClass)
 
 
 class TestTextUtil(object):
     def test_string(self):
-        assert text_util.format_string_for_label("radius") == "radius_value"
-        assert text_util.format_string_for_label("mass") == "mass_value"
+        assert af.text_util.format_string_for_label("radius") == "radius_value"
+        assert af.text_util.format_string_for_label("mass") == "mass_value"
 
     def test_substring(self):
-        assert text_util.format_string_for_label("einstein_radius") == "radius_value"
-        assert text_util.format_string_for_label("mass_something") == "mass_value"
+        assert af.text_util.format_string_for_label("einstein_radius") == "radius_value"
+        assert af.text_util.format_string_for_label("mass_something") == "mass_value"

@@ -2,18 +2,16 @@ import os
 
 import pytest
 
+import autofit as af
 import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.prior_model
 import autofit.optimize.non_linear.non_linear
 import test.mock
-from autofit import conf
-from autofit.tools import phase as ph
-from autofit.tools import phase_property
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
-conf.instance = conf.Config("{}/../../workspace/config".format(directory),
-                            "{}/../../workspace/output/".format(directory))
+af.conf.instance = af.conf.Config("{}/../../workspace/config".format(directory),
+                                  "{}/../../workspace/output/".format(directory))
 
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
@@ -30,12 +28,14 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
                     setattr(instance, key, value)
 
                 likelihood = analysis.fit(instance)
-                self.result = autofit.optimize.non_linear.non_linear.Result(instance, likelihood)
+                self.result = autofit.optimize.non_linear.non_linear.Result(instance,
+                                                                            likelihood)
 
                 # Return Chi squared
                 return -2 * likelihood
 
-        fitness_function = Fitness(self.variable.instance_from_physical_vector, self.constant)
+        fitness_function = Fitness(self.variable.instance_from_physical_vector,
+                                   self.constant)
         fitness_function(self.variable.prior_count * [0.5])
 
         return fitness_function.result
@@ -43,16 +43,16 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
 
 @pytest.fixture(name='phase')
 def make_phase():
-    class MyPhase(ph.AbstractPhase):
-        prop = phase_property.PhaseProperty("prop")
+    class MyPhase(af.AbstractPhase):
+        prop = af.PhaseProperty("prop")
 
     return MyPhase(phase_name='', optimizer_class=NLO)
 
 
 @pytest.fixture(name='list_phase')
 def make_list_phase():
-    class MyPhase(ph.AbstractPhase):
-        prop = phase_property.PhaseProperty("prop")
+    class MyPhase(af.AbstractPhase):
+        prop = af.PhaseProperty("prop")
 
     return MyPhase(phase_name='', optimizer_class=NLO)
 
@@ -75,7 +75,7 @@ class TestPhasePropertyList(object):
         assert list_phase.prop == objects
 
     def test_abstract_prior_models(self, list_phase):
-        objects = [autofit.mapper.prior_model.abstract.AbstractPriorModel(), autofit.mapper.prior_model.abstract.AbstractPriorModel()]
+        objects = [af.AbstractPriorModel(), af.AbstractPriorModel()]
 
         list_phase.prop = objects
 
@@ -213,12 +213,12 @@ class TestPhasePropertyCollectionAttributes(object):
 
     def test_position_not_a_prior(self, list_phase):
         list_phase.prop = [
-            autofit.mapper.prior_model.prior_model.PriorModel(test.mock.Galaxy)]
+            af.PriorModel(test.mock.Galaxy)]
 
         assert list_phase.variable.prior_count == 1
         assert "redshift" == list_phase.variable.prior_tuples_ordered_by_id[0][0]
 
-        prior_model = autofit.mapper.prior_model.prior_model.PriorModel(test.mock.Galaxy)
+        prior_model = af.PriorModel(test.mock.Galaxy)
         prior_model.phase_property_position = 0
 
         print(prior_model.constant_tuples)

@@ -3,7 +3,7 @@ import os
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper import AbstractPriorModel, CollectionPriorModel
+from autofit.mapper.prior_model import AbstractPriorModel, CollectionPriorModel
 from autofit.mapper.model import AbstractModel, ModelInstance
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue, Prior
