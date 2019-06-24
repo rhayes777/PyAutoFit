@@ -6,8 +6,8 @@ import pymultinest
 from matplotlib import pyplot as plt
 
 from autofit import conf, exc
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer, \
-    Result
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer
+from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import logger
 from autofit.tools import text_util
 
@@ -20,8 +20,8 @@ class MultiNest(NonLinearOptimizer):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
-        This interfaces with an input model_mapper, which is used for setting up the individual model instances that \
-        are passed to each iteration of MultiNest.
+        This interfaces with an input model_mapper, which is used for setting up the \
+        individual model instances that are passed to each iteration of MultiNest.
         """
 
         super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag,
@@ -414,7 +414,7 @@ class MultiNest(NonLinearOptimizer):
 
             for j in range(self.variable.constant_count):
                 line = text_util.label_and_value_string(label=constant_names[j],
-                                                        value=constants[j][1].value,
+                                                        value=constants[j][1],
                                                         whitespace=60)
                 results += [line + '\n']
 
