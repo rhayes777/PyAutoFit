@@ -5,13 +5,13 @@ from time import sleep
 
 import numpy as np
 
-import autofit.optimize.non_linear.downhill_simplex
 from autofit import conf
 from autofit import exc
 from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
 from autofit.mapper import prior as p
 from autofit.optimize import optimizer
+from autofit.optimize.non_linear import DownhillSimplex
 from autofit.tools import path_util
 
 logger = logging.getLogger(__name__)
@@ -87,8 +87,10 @@ class GridSearchResult(object):
 
 class GridSearch(object):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, number_of_steps=10,
-                 optimizer_class=autofit.optimize.non_linear.downhill_simplex.DownhillSimplex, model_mapper=None,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+                 number_of_steps=10,
+                 optimizer_class=DownhillSimplex,
+                 model_mapper=None,
                  parallel=False):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -109,13 +111,18 @@ class GridSearch(object):
         self.variable = model_mapper or mm.ModelMapper()
 
         self.parallel = parallel
-        self.number_of_cores = conf.instance.non_linear.get("GridSearch", "number_of_cores", int)
+        self.number_of_cores = conf.instance.non_linear.get(
+            "GridSearch",
+            "number_of_cores",
+            int
+        )
 
         self.phase_folders = phase_folders
         if phase_folders is None:
             self.phase_path = ''
         else:
-            self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
+            self.phase_path = path_util.path_from_folder_names(
+                folder_names=phase_folders)
 
         self.phase_name = phase_name
 
@@ -129,7 +136,8 @@ class GridSearch(object):
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
 
-        self.phase_output_path = "{}/{}/{}/{}".format(conf.instance.output_path, self.phase_path, phase_name,
+        self.phase_output_path = "{}/{}/{}/{}".format(conf.instance.output_path,
+                                                      self.phase_path, phase_name,
                                                       self.phase_tag_input)
 
         sym_path = "{}/optimizer".format(self.phase_output_path)
@@ -166,15 +174,19 @@ class GridSearch(object):
         -------
         lists: [[float]]
         """
-        return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size, centre_steps=False)
+        return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size,
+                                    centre_steps=False)
 
     def make_arguments(self, values, grid_priors):
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
-            if float("-inf") == grid_prior.lower_limit or float('inf') == grid_prior.upper_limit:
-                raise exc.PriorException("Priors passed to the grid search must have definite limits")
+            if float("-inf") == grid_prior.lower_limit or float(
+                    'inf') == grid_prior.upper_limit:
+                raise exc.PriorException(
+                    "Priors passed to the grid search must have definite limits")
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
-            upper_limit = grid_prior.lower_limit + (value + self.hyper_step_size) * grid_prior.width
+            upper_limit = grid_prior.lower_limit + (
+                    value + self.hyper_step_size) * grid_prior.width
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
         return arguments
@@ -230,14 +242,17 @@ class GridSearch(object):
         results = []
         lists = self.make_lists(grid_priors)
 
-        results_list = [list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
+        results_list = [
+            list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
         job_queue = multiprocessing.Queue()
 
-        processes = [Process(str(number), job_queue) for number in range(self.number_of_cores - 1)]
+        processes = [Process(str(number), job_queue) for number in
+                     range(self.number_of_cores - 1)]
 
         for values in lists:
-            job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors, values)
+            job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors,
+                                                               values)
             job_queue.put(job)
 
         for process in processes:
@@ -281,10 +296,12 @@ class GridSearch(object):
         results = []
         lists = self.make_lists(grid_priors)
 
-        results_list = [list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
+        results_list = [
+            list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
         for values in lists:
-            job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors, values)
+            job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors,
+                                                               values)
 
             result = job.perform()
 
@@ -298,7 +315,9 @@ class GridSearch(object):
     def write_results(self, results_list):
         with open("{}/results".format(self.phase_output_path), "w+") as f:
             f.write("\n".join(map(lambda ls: ", ".join(
-                map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
+                map(lambda value: "{:.2f}".format(value) if isinstance(value,
+                                                                       float) else str(
+                    value), ls)),
                                   results_list)))
 
     def job_for_analysis_grid_priors_and_values(self, analysis, grid_priors, values):
@@ -308,19 +327,24 @@ class GridSearch(object):
         labels = []
         for prior in sorted(arguments.values()):
             labels.append(
-                "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior), prior.lower_limit, prior.upper_limit))
+                "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior),
+                                          prior.lower_limit, prior.upper_limit))
 
-        name_path = "{}/{}/{}".format(self.phase_name, self.phase_tag_input, "_".join(labels))
+        name_path = "{}/{}/{}".format(self.phase_name, self.phase_tag_input,
+                                      "_".join(labels))
         optimizer_instance = self.optimizer_instance(model_mapper, name_path)
 
         return Job(optimizer_instance, analysis, arguments)
 
     def optimizer_instance(self, model_mapper, name_path):
 
-        optimizer_instance = self.optimizer_class(model_mapper=model_mapper, phase_name=name_path, phase_tag=None,
+        optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
+                                                  phase_name=name_path, phase_tag=None,
                                                   phase_folders=self.phase_folders)
         for key, value in self.__dict__.items():
-            if key not in ("variable", "constant", "phase_name", "phase_tag", "phase_folders", "phase_path", "path"):
+            if key not in (
+                    "variable", "constant", "phase_name", "phase_tag", "phase_folders",
+                    "phase_path", "path"):
                 try:
                     setattr(optimizer_instance, key, value)
                 except AttributeError:
@@ -364,7 +388,8 @@ class Job:
 
     def perform(self):
         result = self.optimizer_instance.fit(self.analysis)
-        result_list_row = [*[prior.lower_limit for prior in self.arguments.values()], result.figure_of_merit]
+        result_list_row = [*[prior.lower_limit for prior in self.arguments.values()],
+                           result.figure_of_merit]
 
         return JobResult(result, result_list_row)
 
