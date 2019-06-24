@@ -32,7 +32,7 @@ def format_string_for_label(label: str) -> str:
     except KeyError:
         pass
     raise configparser.NoSectionError(
-        "Could not find section format for label {} in config at path {}".format(
+        "Could not find format for label {} in config at path {}".format(
             label,
             label_conf.path))
 
