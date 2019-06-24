@@ -64,6 +64,16 @@ class TestPipeline(object):
         assert len(results) == 2
         assert "hyper" not in results
 
+    def test_hyper_phase_must_be_after_normal_phase(self):
+        pipeline = af.Pipeline("name", MockHyperPhase("hyper"), MockPhase("one"))
+
+        # noinspection PyUnusedLocal,PyShadowingNames
+        def func(phase, results):
+            pass
+
+        with pytest.raises(af.exc.PipelineException):
+            pipeline.run_function(func)
+
     def test_unique_phases(self):
         af.Pipeline("name", MockPhase("one"), MockPhase("two"))
         with pytest.raises(af.exc.PipelineException):

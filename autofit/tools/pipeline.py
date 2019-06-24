@@ -164,7 +164,12 @@ class Pipeline(object):
                 "Running Phase {} (Number {})".format(phase.optimizer.phase_name, i))
             phase.save_metadata(data_name, self.pipeline_name)
             if isinstance(phase, HyperPhase):
-                name = self.phases[i - 1].phase_name
+                previous_phase = self.phases[i - 1]
+                if i == 0:
+                    raise exc.PipelineException(
+                        f"Hyper Phase {phase.phase_name} must be after a normal phase"
+                    )
+                name = previous_phase.phase_name
             else:
                 name = phase.phase_name
             results.add(name, func(phase, results))
