@@ -4,6 +4,7 @@ from .dimension_type import map_types
 from .dimension_type import map_types
 from .fit import DataFit
 from .fit import DataFit1D
+from . import fit_util
 from .phase import AbstractPhase
 from .phase_property import PhaseProperty
 from .pipeline import Pipeline
