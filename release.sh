@@ -9,7 +9,9 @@ VERSION=$1
 
 git flow release start $VERSION
 
-echo "__version__ = '"$VERSION"'" > $PACKAGE_NAME/__init__.py
+lines=`cat $PACKAGE_NAME/__init__.py | grep -v __version__`
+
+echo "$lines\n__version__ = '"$VERSION"'" > $PACKAGE_NAME/__init__.py
 
 git add $PACKAGE_NAME/__init__.py
 
