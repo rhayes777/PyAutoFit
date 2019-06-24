@@ -143,8 +143,8 @@ class AbstractPhase(object):
                 loaded_optimizer = pickle.loads(f.read())
                 if self.optimizer != loaded_optimizer:
                     raise exc.PipelineException(
-                        f"Can't restart phase at path {path} because settings don't match. "
-                        f"Did you change the optimizer settings or model?")
+                        f"Can't restart phase at path {path} because settings don't "
+                        f"match. Did you change the optimizer settings or model?")
 
     def assert_and_save_pickle(self):
         if conf.instance.general.get("output", "assert_pickle_matches", bool):

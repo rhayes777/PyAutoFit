@@ -1,14 +1,14 @@
 import pickle
 
-import autofit.optimize.non_linear.multi_nest
+
 import test.mock
 from test import mock
-from autofit.optimize import non_linear as nl
+import autofit as af
 
 
 class TestCase(object):
     def test_simple_pickle(self):
-        optimiser = autofit.optimize.non_linear.multi_nest.MultiNest("phasename")
+        optimiser = af.MultiNest("phasename")
         optimiser.variable.profile = test.mock.EllipticalProfile
         pickled_optimiser = pickle.loads(pickle.dumps(optimiser))
 

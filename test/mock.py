@@ -1,16 +1,11 @@
 import inspect
 import typing
 
-import autofit.mapper.prior_model.abstract
-import autofit.mapper.prior_model.util
-from autofit.mapper import prior as p
-from autofit.mapper.prior_model import prior_model as pm
-from autofit.optimize import non_linear
-from autofit.tools import dimension_type
+import autofit as af
 
 
 # noinspection PyAbstractClass
-class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
+class MockNonLinearOptimizer(af.NonLinearOptimizer):
 
     def __init__(self, phase_name, phase_tag=None, phase_folders=None,
                  model_mapper=None,
@@ -34,7 +29,7 @@ class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
 
         This file stores the parameters of the most probable model in the first half
         of entries and the most likely model in the second half of entries. The
-        offset parameter is used to start at the desired model.
+        offset parameter is used to start at the desiredaf.
 
         """
         return self.most_probable
@@ -47,7 +42,7 @@ class MockNonLinearOptimizer(non_linear.NonLinearOptimizer):
 
         This file stores the parameters of the most probable model in the first half
         of entries and the most likely model in the second half of entries. The
-        offset parameter is used to start at the desired model.
+        offset parameter is used to start at the desiredaf.
         """
         return self.most_likely
 
@@ -117,19 +112,19 @@ class ListClass(object):
         self.ls = ls
 
 
-class Distance(dimension_type.DimensionType):
+class Distance(af.DimensionType):
     pass
 
 
 class DistanceClass:
-    @dimension_type.map_types
+    @af.map_types
     def __init__(self, first: Distance, second: Distance):
         self.first = first
         self.second = second
 
 
 class PositionClass:
-    @dimension_type.map_types
+    @af.map_types
     def __init__(self, position: typing.Tuple[Distance, Distance]):
         self.position = position
 
@@ -165,7 +160,7 @@ class Redshift(object):
 
 
 # noinspection PyAbstractClass
-class GalaxyModel(autofit.mapper.prior_model.abstract.AbstractPriorModel):
+class GalaxyModel(af.AbstractPriorModel):
     def instance_for_arguments(self, arguments):
         try:
             return Galaxy(redshift=self.redshift.instance_for_arguments(arguments))
@@ -174,10 +169,10 @@ class GalaxyModel(autofit.mapper.prior_model.abstract.AbstractPriorModel):
 
     def __init__(self, variable_redshift=False, **kwargs):
         super().__init__()
-        self.redshift = pm.PriorModel(Redshift) if variable_redshift else None
+        self.redshift = af.PriorModel(Redshift) if variable_redshift else None
         print(self.redshift)
         self.__dict__.update(
-            {key: pm.PriorModel(value) if inspect.isclass(value) else value
+            {key: af.PriorModel(value) if inspect.isclass(value) else value
              for key, value in kwargs.items()})
 
     @property
@@ -185,20 +180,20 @@ class GalaxyModel(autofit.mapper.prior_model.abstract.AbstractPriorModel):
         return []
 
     @property
-    @p.cast_collection(p.PriorNameValue)
+    @af.cast_collection(af.PriorNameValue)
     def prior_tuples(self):
         return [item for item in self.__dict__.items() if
-                isinstance(item[1], p.Prior)] + [
+                isinstance(item[1], af.Prior)] + [
                    ("redshift",
                     self.redshift.redshift)] if self.redshift is not None else []
 
     @property
-    @p.cast_collection(autofit.mapper.prior_model.util.PriorModelNameValue)
+    @af.cast_collection(af.PriorModelNameValue)
     def flat_prior_model_tuples(self):
         return [
             item for item in self.__dict__.items()
             if isinstance(item[1],
-                          autofit.mapper.prior_model.abstract.AbstractPriorModel)
+                          af.AbstractPriorModel)
         ]
 
 
