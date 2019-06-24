@@ -5,6 +5,7 @@ import pytest
 import test.mock
 from autofit import conf
 from autofit import exc
+from autofit.tools import text_util
 
 directory = path.dirname(path.realpath(__file__))
 
@@ -36,3 +37,13 @@ class TestLabel(object):
     def test_exception(self, label_config):
         with pytest.raises(exc.PriorException):
             label_config.subscript(MockClass)
+
+
+class TestTextUtil(object):
+    def test_string(self):
+        assert text_util.format_string_for_label("radius") == "radius_value"
+        assert text_util.format_string_for_label("mass") == "mass_value"
+
+    def test_substring(self):
+        assert text_util.format_string_for_label("einstein_radius") == "radius_value"
+        assert text_util.format_string_for_label("mass_something") == "mass_value"
