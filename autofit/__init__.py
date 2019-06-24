@@ -9,4 +9,4 @@ from . import exc
 from . import conf
 
 
-__version__ = '0.25.5'
+__version__ = '0.26.0'
