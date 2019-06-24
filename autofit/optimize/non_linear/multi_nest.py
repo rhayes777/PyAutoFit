@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 
@@ -5,11 +6,13 @@ import numpy as np
 import pymultinest
 from matplotlib import pyplot as plt
 
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear.non_linear import persistent_timer
+import autofit as af
+
 from autofit import conf, exc
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer
-from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.non_linear import logger
-from autofit.tools import text_util
+
+logger = logging.getLogger(__name__)
 
 
 class MultiNest(NonLinearOptimizer):
@@ -190,10 +193,10 @@ class MultiNest(NonLinearOptimizer):
                            during_analysis=False)
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
-        return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
-                      previous_variable=self.variable,
-                      gaussian_tuples=self.gaussian_priors_at_sigma_limit(
-                          self.sigma_limit))
+        return af.Result(constant=constant, figure_of_merit=self.maximum_likelihood,
+                         previous_variable=self.variable,
+                         gaussian_tuples=self.gaussian_priors_at_sigma_limit(
+                             self.sigma_limit))
 
     def read_list_of_results_from_summary_file(self, number_entries, offset):
 
@@ -372,7 +375,7 @@ class MultiNest(NonLinearOptimizer):
                     'https://github.com/Jammy2211/PyAutoLens/issues/49')
 
             for j in range(self.variable.prior_count):
-                line = text_util.label_and_value_string(
+                line = af.text_util.label_and_value_string(
                     label=self.variable.param_names[j], value=most_likely[j],
                     whitespace=60, format_string=format_str)
                 results += [line + '\n']
@@ -392,7 +395,7 @@ class MultiNest(NonLinearOptimizer):
                         '\n\nMost probable model ({} sigma limits)\n\n'.format(limit)]
 
                     for i in range(self.variable.prior_count):
-                        line = text_util.label_value_and_limits_string(
+                        line = af.text_util.label_value_and_limits_string(
                             label=self.variable.param_names[i],
                             value=most_probable_params[i],
                             lower_limit=lower_limits[i],
@@ -413,10 +416,10 @@ class MultiNest(NonLinearOptimizer):
             constants = self.variable.constant_tuples
 
             for j in range(self.variable.constant_count):
-                line = text_util.label_and_value_string(label=constant_names[j],
-                                                        value=constants[j][1],
-                                                        whitespace=60)
+                line = af.text_util.label_and_value_string(label=constant_names[j],
+                                                           value=constants[j][1],
+                                                           whitespace=60)
                 results += [line + '\n']
 
-            text_util.output_list_of_strings_to_file(file=self.file_results,
-                                                     list_of_strings=results)
+            af.text_util.output_list_of_strings_to_file(file=self.file_results,
+                                                        list_of_strings=results)
