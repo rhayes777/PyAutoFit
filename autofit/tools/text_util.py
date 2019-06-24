@@ -18,15 +18,23 @@ def format_string_for_label(label: str) -> str:
     format
         The format string (e.g {:.2f})
     """
-    label = label.split("_within_")[0]
-    label = label.split("_at_")[0]
+    label_conf = conf.instance.label_format
+
     try:
-        return conf.instance.label_format.get("format", label)
-    except configparser.NoOptionError:
-        label = "_".join(label.split("_")[1:])
-        if len(label) == 0:
-            raise
-        return format_string_for_label(label)
+        # noinspection PyProtectedMember
+        for key, value in sorted(
+                label_conf.parser._sections["format"].items(),
+                key=lambda item: len(item[0]),
+                reverse=True
+        ):
+            if key in label:
+                return value
+    except KeyError:
+        pass
+    raise configparser.NoSectionError(
+        "Could not find format for label {} in config at path {}".format(
+            label,
+            label_conf.path))
 
 
 def label_and_label_string(label0, label1, whitespace):
