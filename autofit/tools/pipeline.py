@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class ResultsCollection(object):
+
     def __init__(self):
         """
         A collection of results from previous phases. Results can be obtained using an index or the name of the phase
