@@ -57,11 +57,13 @@ class NamedConfig(object):
             string_value = self.parser.get(section_name, attribute_name)
         except configparser.NoSectionError:
             raise configparser.NoSectionError(
-                "Could not find section {} in config at path {}".format(section_name, self.path))
+                "Could not find section {} in config at path {}".format(section_name,
+                                                                        self.path))
         except configparser.NoOptionError as e:
             raise configparser.NoOptionError(
-                "could not find option {} in section {} of config at path {}".format(attribute_name, section_name,
-                                                                                     self.path), e.section)
+                "could not find option {} in section {} of config at path {}".format(
+                    attribute_name, section_name,
+                    self.path), e.section)
         if string_value == "None":
             return None
         if attribute_type is bool:
@@ -95,10 +97,13 @@ class LabelConfig(NamedConfig):
 
         ini_filename = cls.__module__.split(".")[-1]
         raise exc.PriorException(
-            "The prior config at {}/{} does not a subscript for {} or any of its parents".format(self.path,
-                                                                                                 ini_filename,
-                                                                                                 cls.__name__
-                                                                                                 ))
+            "The prior config at {}/{} does not a subscript for {} or any of its "
+            "parents".format(
+                self.path,
+                ini_filename,
+                cls.__name__
+            )
+        )
 
 
 class AncestorConfig(object):
@@ -121,13 +126,15 @@ class AncestorConfig(object):
         Parameters
         ----------
         module_name: String
-            The analysis_path of the module for which a config is to be read (priors relate one to one with configs).
+            The analysis_path of the module for which a config is to be read (priors
+            relate one to one with configs).
         """
         self.parser.read("{}/{}.ini".format(self.path, module_name.split(".")[-1]))
 
     def get_for_nearest_ancestor(self, cls, attribute_name):
         """
-        Find a prior with the attribute analysis_path from the config for this class or one of its ancestors
+        Find a prior with the attribute analysis_path from the config for this class or
+        one of its ancestors
 
         Parameters
         ----------
@@ -142,15 +149,19 @@ class AncestorConfig(object):
         """
         for family_cls in family(cls):
             if self.has(family_cls.__module__, family_cls.__name__, attribute_name):
-                return self.get(family_cls.__module__, family_cls.__name__, attribute_name)
+                return self.get(family_cls.__module__, family_cls.__name__,
+                                attribute_name)
 
         ini_filename = cls.__module__.split(".")[-1]
         raise exc.PriorException(
-            "The prior config at {}/{} does not contain {} in {} or any of its parents".format(self.path,
-                                                                                               ini_filename,
-                                                                                               attribute_name,
-                                                                                               cls.__name__
-                                                                                               ))
+            "The prior config at {}/{} does not contain {} in {} or any of its "
+            "parents".format(
+                self.path,
+                ini_filename,
+                attribute_name,
+                cls.__name__
+            )
+        )
 
     def get(self, module_name, class_name, attribute_name):
         """
@@ -212,7 +223,9 @@ class DefaultPriorConfig(AncestorConfig):
         prior_array: []
             An array describing a prior
         """
-        arr = super(DefaultPriorConfig, self).get(module_name, class_name, attribute_name).replace(" ", "").split(",")
+        arr = super(DefaultPriorConfig, self).get(module_name, class_name,
+                                                  attribute_name).replace(" ",
+                                                                          "").split(",")
         return [arr[0]] + list(map(float, arr[1:]))
 
 
@@ -234,10 +247,12 @@ class LimitConfig(AncestorConfig):
         Returns
         -------
         prior_limits: ()
-            A tuple containing the limits of the range of values an attribute can take with an exception being thrown
-            if a nonlinear search produces a value outside of that range.
+            A tuple containing the limits of the range of values an attribute can take
+            with an exception being thrown if a nonlinear search produces a value
+            outside of that range.
         """
-        arr = super(LimitConfig, self).get(module_name, class_name, attribute_name).replace(" ", "").split(",")
+        arr = super(LimitConfig, self).get(module_name, class_name,
+                                           attribute_name).replace(" ", "").split(",")
         return tuple(map(float, arr[:2]))
 
 
@@ -253,7 +268,9 @@ class Config(object):
         self.prior_limit = LimitConfig("{}/priors/limit".format(config_path))
         self.non_linear = NamedConfig("{}/non_linear.ini".format(config_path))
         self.label = LabelConfig("{}/label.ini".format(config_path))
+        self.label_format = NamedConfig("{}/label_format.ini".format(config_path))
         self.general = NamedConfig("{}/general.ini".format(config_path))
+        self.visualize = NamedConfig("{}/visualize.ini".format(config_path))
         self.output_path = output_path
 
 
@@ -265,11 +282,12 @@ def is_config_in(folder):
 Search for default configuration and put output in the same folder as config.
 
 The search is performed in this order:
-1) workspace. This is assumed to be in the same directory as autolens in the Docker container
-2) current working directory. This is to allow for installation and use with pip where users would expect the
-   configuration in their current directory to be used.
-3) relative. This is a backup for when no configuration is found. In this case it is still assumed a workspace directory
-   exists in the same directory as autofit.
+1) workspace. This is assumed to be in the same directory as autolens in the Docker 
+   container
+2) current working directory. This is to allow for installation and use with pip where 
+   users would expect the configuration in their current directory to be used.
+3) relative. This is a backup for when no configuration is found. In this case it is 
+   still assumed a workspace directory exists in the same directory as autofit.
 """
 
 autofit_directory = os.path.dirname(os.path.realpath(__file__))
@@ -278,7 +296,8 @@ current_directory = os.getcwd()
 
 try:
     workspace_path = os.environ['WORKSPACE']
-    default = Config("{}/config".format(workspace_path), "{}/output/".format(workspace_path))
+    default = Config("{}/config".format(workspace_path),
+                     "{}/output/".format(workspace_path))
 except KeyError:
     if is_config_in(docker_workspace_directory):
         CONFIG_PATH = "{}/config".format(docker_workspace_directory)
@@ -291,10 +310,11 @@ except KeyError:
         default = Config(CONFIG_PATH, "{}/output/".format(current_directory))
     elif is_config_in("{}/../workspace".format(current_directory)):
         CONFIG_PATH = "{}/../workspace/config".format(current_directory)
-        default = Config(CONFIG_PATH, "{}/../workspace/output/".format(current_directory))
+        default = Config(CONFIG_PATH,
+                         "{}/../workspace/output/".format(current_directory))
     else:
         CONFIG_PATH = "{}/../workspace/config".format(autofit_directory)
-        default = Config(CONFIG_PATH, "{}/../workspace/output/".format(autofit_directory))
-
+        default = Config(CONFIG_PATH,
+                         "{}/../workspace/output/".format(autofit_directory))
 
 instance = default

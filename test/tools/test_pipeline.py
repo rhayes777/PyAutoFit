@@ -2,18 +2,13 @@ import os
 
 import pytest
 
-import autofit.optimize.non_linear.non_linear
-from autofit import exc
-from autofit import mock
-from autofit.mapper import prior as p
-from autofit.optimize import non_linear
-from autofit.tools import phase as ph
-from autofit.tools import pipeline
+import autofit as af
+import test.mock
 
 
 @pytest.fixture(name="results")
 def make_results_collection():
-    results = pipeline.ResultsCollection()
+    results = af.ResultsCollection()
 
     results.add("first phase", "one")
     results.add("second phase", "two")
@@ -34,34 +29,59 @@ class TestResultsCollection(object):
         assert len(results) == 2
 
     def test_missing_result(self, results):
-        with pytest.raises(exc.PipelineException):
+        with pytest.raises(af.exc.PipelineException):
             results.from_phase("third phase")
 
-    def test_duplicate_result(self, results):
-        with pytest.raises(exc.PipelineException):
-            results.add("second phase", "three")
 
-
-class MockPhase(ph.AbstractPhase):
+class MockPhase(af.AbstractPhase):
     def make_result(self, result, analysis):
         pass
 
     def __init__(self, phase_name, optimizer=None):
         super().__init__(phase_name)
-        self.optimizer = optimizer
+        self.optimizer = optimizer or af.NonLinearOptimizer(phase_name)
         self.phase_path = phase_name
         self.phase_tag = phase_name
 
+    def save_metadata(self, data_name, pipeline_name):
+        pass
+
+
+class MockHyperPhase(MockPhase, af.HyperPhase):
+    pass
+
 
 class TestPipeline(object):
+    def test_hyper_phase_naming(self):
+        pipeline = af.Pipeline("name", MockPhase("one"), MockHyperPhase("hyper"))
+
+        # noinspection PyUnusedLocal,PyShadowingNames
+        def func(phase, results):
+            pass
+
+        results = pipeline.run_function(func)
+
+        assert len(results) == 2
+        assert "hyper" not in results
+
+    def test_hyper_phase_must_be_after_normal_phase(self):
+        pipeline = af.Pipeline("name", MockHyperPhase("hyper"), MockPhase("one"))
+
+        # noinspection PyUnusedLocal,PyShadowingNames
+        def func(phase, results):
+            pass
+
+        with pytest.raises(af.exc.PipelineException):
+            pipeline.run_function(func)
+
     def test_unique_phases(self):
-        pipeline.Pipeline("name", MockPhase("one"), MockPhase("two"))
-        with pytest.raises(exc.PipelineException):
-            pipeline.Pipeline("name", MockPhase("one"), MockPhase("one"))
+        af.Pipeline("name", MockPhase("one"), MockPhase("two"))
+        with pytest.raises(af.exc.PipelineException):
+            af.Pipeline("name", MockPhase("one"), MockPhase("one"))
 
     def test_optimizer_assertion(self):
-        optimizer = autofit.optimize.non_linear.non_linear.NonLinearOptimizer("Phase Name")
-        optimizer.variable.profile = mock.GeometryProfile
+        optimizer = af.NonLinearOptimizer("Phase Name")
+        optimizer.variable.profile = test.mock.GeometryProfile
         phase = MockPhase("phase_name", optimizer)
 
         try:
@@ -72,26 +92,26 @@ class TestPipeline(object):
         phase.save_optimizer_for_phase()
         phase.assert_optimizer_pickle_matches_for_phase()
 
-        optimizer.variable.profile.centre_0 = p.UniformPrior()
+        optimizer.variable.profile.centre_0 = af.UniformPrior()
 
-        with pytest.raises(exc.PipelineException):
+        with pytest.raises(af.exc.PipelineException):
             phase.assert_optimizer_pickle_matches_for_phase()
 
     def test_name_composition(self):
-        first = pipeline.Pipeline("first")
-        second = pipeline.Pipeline("second")
+        first = af.Pipeline("first")
+        second = af.Pipeline("second")
 
         assert (first + second).pipeline_name == "first + second"
 
     def test_assert_and_save_pickle(self):
-        phase = ph.AbstractPhase("name")
+        phase = af.AbstractPhase("name")
 
         phase.assert_and_save_pickle()
         phase.assert_and_save_pickle()
 
-        phase.variable.galaxy = mock.Galaxy
+        phase.variable.galaxy = test.mock.Galaxy
 
-        with pytest.raises(exc.PipelineException):
+        with pytest.raises(af.exc.PipelineException):
             phase.assert_and_save_pickle()
 
 
@@ -100,7 +120,7 @@ class TestPhasePipelineName(object):
     def test_name_stamping(self):
         one = MockPhase("one")
         two = MockPhase("two")
-        pipeline.Pipeline("name", one, two)
+        af.Pipeline("name", one, two)
 
         assert one.pipeline_name == "name"
         assert two.pipeline_name == "name"
@@ -108,8 +128,8 @@ class TestPhasePipelineName(object):
     def test_no_restamping(self):
         one = MockPhase("one")
         two = MockPhase("two")
-        pipeline_one = pipeline.Pipeline("one", one)
-        pipeline_two = pipeline.Pipeline("two", two)
+        pipeline_one = af.Pipeline("one", one)
+        pipeline_two = af.Pipeline("two", two)
 
         composed_pipeline = pipeline_one + pipeline_two
 

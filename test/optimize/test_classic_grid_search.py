@@ -5,9 +5,10 @@ import pytest
 
 import autofit.optimize.non_linear.grid_search
 import autofit.optimize.non_linear.non_linear
+import test.mock
 from autofit import conf
 from autofit import exc
-from autofit import mock
+from test import mock
 from autofit.optimize import non_linear
 from autofit.optimize.optimizer import grid
 
@@ -116,7 +117,7 @@ def make_grid_search():
 
 class TestGridSearch(object):
     def test_1d(self, grid_search):
-        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
 
         analysis = MockAnalysis()
         grid_search.fit(analysis)
@@ -125,12 +126,12 @@ class TestGridSearch(object):
 
         instance = analysis.instances[5]
 
-        assert isinstance(instance.one, mock.Galaxy)
+        assert isinstance(instance.one, test.mock.Galaxy)
         assert instance.one.redshift == 0.55
 
     def test_2d(self, grid_search):
-        grid_search.variable.one = mock.Galaxy
-        grid_search.variable.two = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
+        grid_search.variable.two = test.mock.Galaxy
 
         analysis = MockAnalysis()
 
@@ -142,7 +143,7 @@ class TestGridSearch(object):
     def test_checkpoint_properties(self, grid_search):
         analysis = MockAnalysis()
 
-        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
         grid_search.fit(analysis)
 
         grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
@@ -157,7 +158,7 @@ class TestGridSearch(object):
     def test_recover_bad_checkpoint(self, grid_search):
         analysis = MockAnalysis()
 
-        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
         grid_search.fit(analysis)
 
         grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
@@ -166,7 +167,7 @@ class TestGridSearch(object):
             grid_search.fit(analysis)
 
         grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.2)
-        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
 
         with pytest.raises(exc.CheckpointException):
             grid_search.fit(analysis)
@@ -174,15 +175,15 @@ class TestGridSearch(object):
     def test_recover_checkpoint(self, grid_search):
         analysis = MockAnalysis()
 
-        grid_search.variable.one = mock.Galaxy
-        grid_search.variable.two = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
+        grid_search.variable.two = test.mock.Galaxy
 
         grid_search.fit(analysis)
 
         grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
 
-        grid_search.variable.one = mock.Galaxy
-        grid_search.variable.two = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
+        grid_search.variable.two = test.mock.Galaxy
 
         analysis = MockAnalysis()
 
@@ -199,8 +200,8 @@ class TestGridSearch(object):
 
         grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
 
-        grid_search.variable.one = mock.Galaxy
-        grid_search.variable.two = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
+        grid_search.variable.two = test.mock.Galaxy
 
         analysis = MockAnalysis()
 
@@ -211,7 +212,7 @@ class TestGridSearch(object):
         assert pytest.approx(result.constant.two.redshift) == 0.65
 
     def test_instances(self, grid_search):
-        grid_search.variable.one = mock.Galaxy
+        grid_search.variable.one = test.mock.Galaxy
 
         analysis = MockAnalysis()
         result = grid_search.fit(analysis)
@@ -220,5 +221,5 @@ class TestGridSearch(object):
 
         instance = result.instances[5]
 
-        assert isinstance(instance[0].one, mock.Galaxy)
+        assert isinstance(instance[0].one, test.mock.Galaxy)
         assert instance[0].one.redshift == 0.55

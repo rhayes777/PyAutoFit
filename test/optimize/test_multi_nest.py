@@ -1,23 +1,21 @@
-import itertools
 import os
 import shutil
 from functools import wraps
 
 import pytest
 
-import autofit.mapper.prior_model
-from autofit.optimize import non_linear as nl
-from autofit import conf
-from autofit.mapper import model_mapper, prior as p
-
-from test.mock.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis
+import autofit as af
+from test.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 
+
 @pytest.fixture(scope="session", autouse=True)
 def do_something():
-    conf.instance = conf.Config(
-        "{}/../test_files/configs/non_linear".format(os.path.dirname(os.path.realpath(__file__))))
+    af.conf.instance = af.conf.Config(
+        "{}/../test_files/configs/non_linear".format(
+            os.path.dirname(os.path.realpath(__file__))))
+
 
 @pytest.fixture(name='mn_summary_path')
 def test_mn_summary():
@@ -34,7 +32,8 @@ def test_mn_summary():
 
 @pytest.fixture(name='mn_priors_path')
 def test_mn_priors():
-    mn_priors_path = "{}/../test_files/non_linear/multinest/priors".format(os.path.dirname(os.path.realpath(__file__)))
+    mn_priors_path = "{}/../test_files/non_linear/multinest/priors".format(
+        os.path.dirname(os.path.realpath(__file__)))
 
     if os.path.exists(mn_priors_path):
         shutil.rmtree(mn_priors_path)
@@ -81,79 +80,85 @@ def create_path(func):
 @create_path
 def create_summary_4_parameters(path):
     summary = open(path + '/multinestsummary.txt', 'w')
-    summary.write('    0.100000000000000000E+01   -0.200000000000000000E+01    0.300000000000000000E+01'
-                  '    0.400000000000000000E+01   -0.500000000000000000E+01    0.600000000000000000E+01'
-                  '    0.700000000000000000E+01    0.800000000000000000E+01'
-                  '    0.900000000000000000E+01   -1.000000000000000000E+01   -1.100000000000000000E+01'
-                  '    1.200000000000000000E+01    1.300000000000000000E+01   -1.400000000000000000E+01'
-                  '   -1.500000000000000000E+01    1.600000000000000000E+01'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07\n')
-    summary.write('    0.100000000000000000E+01   -0.200000000000000000E+01    0.300000000000000000E+01'
-                  '    0.400000000000000000E+01   -0.500000000000000000E+01    0.600000000000000000E+01'
-                  '    0.700000000000000000E+01    0.800000000000000000E+01'
-                  '    0.900000000000000000E+01   -1.000000000000000000E+01   -1.100000000000000000E+01'
-                  '    1.200000000000000000E+01    1.300000000000000000E+01   -1.400000000000000000E+01'
-                  '   -1.500000000000000000E+01    1.600000000000000000E+01'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07')
+    summary.write(
+        '    0.100000000000000000E+01   -0.200000000000000000E+01    0.300000000000000000E+01'
+        '    0.400000000000000000E+01   -0.500000000000000000E+01    0.600000000000000000E+01'
+        '    0.700000000000000000E+01    0.800000000000000000E+01'
+        '    0.900000000000000000E+01   -1.000000000000000000E+01   -1.100000000000000000E+01'
+        '    1.200000000000000000E+01    1.300000000000000000E+01   -1.400000000000000000E+01'
+        '   -1.500000000000000000E+01    1.600000000000000000E+01'
+        '    0.020000000000000000E+00    0.999999990000000000E+07'
+        '    0.020000000000000000E+00    0.999999990000000000E+07\n')
+    summary.write(
+        '    0.100000000000000000E+01   -0.200000000000000000E+01    0.300000000000000000E+01'
+        '    0.400000000000000000E+01   -0.500000000000000000E+01    0.600000000000000000E+01'
+        '    0.700000000000000000E+01    0.800000000000000000E+01'
+        '    0.900000000000000000E+01   -1.000000000000000000E+01   -1.100000000000000000E+01'
+        '    1.200000000000000000E+01    1.300000000000000000E+01   -1.400000000000000000E+01'
+        '   -1.500000000000000000E+01    1.600000000000000000E+01'
+        '    0.020000000000000000E+00    0.999999990000000000E+07')
     summary.close()
 
 
 @create_path
 def create_summary_10_parameters(path):
     summary = open(path + '/multinestsummary.txt', 'w')
-    summary.write('    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
-                  '    0.400000000000000000E+01   -0.500000000000000000E+01   -0.600000000000000000E+01'
-                  '   -0.700000000000000000E+01   -0.800000000000000000E+01    0.900000000000000000E+01'
-                  '    1.000000000000000000E+01    1.100000000000000000E+01    1.200000000000000000E+01'
-                  '    1.300000000000000000E+01    1.400000000000000000E+01    1.500000000000000000E+01'
-                  '    1.600000000000000000E+01   -1.700000000000000000E+01   -1.800000000000000000E+01'
-                  '    1.900000000000000000E+01    2.000000000000000000E+01    2.100000000000000000E+01'
-                  '    2.200000000000000000E+01    2.300000000000000000E+01    2.400000000000000000E+01'
-                  '    2.500000000000000000E+01   -2.600000000000000000E+01   -2.700000000000000000E+01'
-                  '    2.800000000000000000E+01    2.900000000000000000E+01    3.000000000000000000E+01'
-                  '    3.100000000000000000E+01    3.200000000000000000E+01    3.300000000000000000E+01'
-                  '    3.400000000000000000E+01   -3.500000000000000000E+01   -3.600000000000000000E+01'
-                  '    3.700000000000000000E+01   -3.800000000000000000E+01   -3.900000000000000000E+01'
-                  '    4.000000000000000000E+01'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07\n')
-    summary.write('    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
-                  '    0.400000000000000000E+01   -0.500000000000000000E+01   -0.600000000000000000E+01'
-                  '   -0.700000000000000000E+01   -0.800000000000000000E+01    0.900000000000000000E+01'
-                  '    1.000000000000000000E+01    1.100000000000000000E+01    1.200000000000000000E+01'
-                  '    1.300000000000000000E+01    1.400000000000000000E+01    1.500000000000000000E+01'
-                  '    1.600000000000000000E+01   -1.700000000000000000E+01   -1.800000000000000000E+01'
-                  '    1.900000000000000000E+01    2.000000000000000000E+01    2.100000000000000000E+01'
-                  '    2.200000000000000000E+01    2.300000000000000000E+01    2.400000000000000000E+01'
-                  '    2.500000000000000000E+01   -2.600000000000000000E+01   -2.700000000000000000E+01'
-                  '    2.800000000000000000E+01    2.900000000000000000E+01    3.000000000000000000E+01'
-                  '    3.100000000000000000E+01    3.200000000000000000E+01    3.300000000000000000E+01'
-                  '    3.400000000000000000E+01   -3.500000000000000000E+01   -3.600000000000000000E+01'
-                  '    3.700000000000000000E+01   -3.800000000000000000E+01   -3.900000000000000000E+01'
-                  '    4.000000000000000000E+01'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07')
+    summary.write(
+        '    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
+        '    0.400000000000000000E+01   -0.500000000000000000E+01   -0.600000000000000000E+01'
+        '   -0.700000000000000000E+01   -0.800000000000000000E+01    0.900000000000000000E+01'
+        '    1.000000000000000000E+01    1.100000000000000000E+01    1.200000000000000000E+01'
+        '    1.300000000000000000E+01    1.400000000000000000E+01    1.500000000000000000E+01'
+        '    1.600000000000000000E+01   -1.700000000000000000E+01   -1.800000000000000000E+01'
+        '    1.900000000000000000E+01    2.000000000000000000E+01    2.100000000000000000E+01'
+        '    2.200000000000000000E+01    2.300000000000000000E+01    2.400000000000000000E+01'
+        '    2.500000000000000000E+01   -2.600000000000000000E+01   -2.700000000000000000E+01'
+        '    2.800000000000000000E+01    2.900000000000000000E+01    3.000000000000000000E+01'
+        '    3.100000000000000000E+01    3.200000000000000000E+01    3.300000000000000000E+01'
+        '    3.400000000000000000E+01   -3.500000000000000000E+01   -3.600000000000000000E+01'
+        '    3.700000000000000000E+01   -3.800000000000000000E+01   -3.900000000000000000E+01'
+        '    4.000000000000000000E+01'
+        '    0.020000000000000000E+00    0.999999990000000000E+07'
+        '    0.020000000000000000E+00    0.999999990000000000E+07\n')
+    summary.write(
+        '    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
+        '    0.400000000000000000E+01   -0.500000000000000000E+01   -0.600000000000000000E+01'
+        '   -0.700000000000000000E+01   -0.800000000000000000E+01    0.900000000000000000E+01'
+        '    1.000000000000000000E+01    1.100000000000000000E+01    1.200000000000000000E+01'
+        '    1.300000000000000000E+01    1.400000000000000000E+01    1.500000000000000000E+01'
+        '    1.600000000000000000E+01   -1.700000000000000000E+01   -1.800000000000000000E+01'
+        '    1.900000000000000000E+01    2.000000000000000000E+01    2.100000000000000000E+01'
+        '    2.200000000000000000E+01    2.300000000000000000E+01    2.400000000000000000E+01'
+        '    2.500000000000000000E+01   -2.600000000000000000E+01   -2.700000000000000000E+01'
+        '    2.800000000000000000E+01    2.900000000000000000E+01    3.000000000000000000E+01'
+        '    3.100000000000000000E+01    3.200000000000000000E+01    3.300000000000000000E+01'
+        '    3.400000000000000000E+01   -3.500000000000000000E+01   -3.600000000000000000E+01'
+        '    3.700000000000000000E+01   -3.800000000000000000E+01   -3.900000000000000000E+01'
+        '    4.000000000000000000E+01'
+        '    0.020000000000000000E+00    0.999999990000000000E+07')
     summary.close()
 
 
 @create_path
 def create_gaussian_prior_summary_4_parameters(path):
     summary = open(path + '/multinestsummary.txt', 'w')
-    summary.write('    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
-                  '    0.410000000000000000E+01    0.500000000000000000E+01    0.600000000000000000E+01'
-                  '    0.700000000000000000E+01    0.800000000000000000E+01'
-                  '    0.900000000000000000E+01    1.000000000000000000E+01    1.100000000000000000E+01'
-                  '    1.200000000000000000E+01    1.300000000000000000E+01    1.400000000000000000E+01'
-                  '    1.500000000000000000E+01    1.600000000000000000E+01'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07\n')
-    summary.write('    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
-                  '    0.410000000000000000E+01    0.500000000000000000E+01    0.600000000000000000E+01'
-                  '    0.700000000000000000E+01    0.800000000000000000E+01'
-                  '    0.900000000000000000E+01    1.000000000000000000E+01    1.100000000000000000E+01'
-                  '    1.200000000000000000E+01    1.300000000000000000E+01    1.400000000000000000E+01'
-                  '    1.500000000000000000E+01    1.600000000000000000E+01'
-                  '    0.020000000000000000E+00    0.999999990000000000E+07')
+    summary.write(
+        '    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
+        '    0.410000000000000000E+01    0.500000000000000000E+01    0.600000000000000000E+01'
+        '    0.700000000000000000E+01    0.800000000000000000E+01'
+        '    0.900000000000000000E+01    1.000000000000000000E+01    1.100000000000000000E+01'
+        '    1.200000000000000000E+01    1.300000000000000000E+01    1.400000000000000000E+01'
+        '    1.500000000000000000E+01    1.600000000000000000E+01'
+        '    0.020000000000000000E+00    0.999999990000000000E+07'
+        '    0.020000000000000000E+00    0.999999990000000000E+07\n')
+    summary.write(
+        '    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01'
+        '    0.410000000000000000E+01    0.500000000000000000E+01    0.600000000000000000E+01'
+        '    0.700000000000000000E+01    0.800000000000000000E+01'
+        '    0.900000000000000000E+01    1.000000000000000000E+01    1.100000000000000000E+01'
+        '    1.200000000000000000E+01    1.300000000000000000E+01    1.400000000000000000E+01'
+        '    1.500000000000000000E+01    1.600000000000000000E+01'
+        '    0.020000000000000000E+00    0.999999990000000000E+07')
     summary.close()
 
 
@@ -233,15 +238,15 @@ def create_weighted_samples_10_parameters(path):
 class TestNLOInheritance:
 
     def test__most_probable_parameters_and_instance(self, mn_summary_path):
+        af.conf.instance.output_path = mn_summary_path + '/2_classes'
 
-        conf.instance.output_path = mn_summary_path + '/2_classes'
-
-        mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                          mock_class_2=MockClassNLOx6)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class_1=MockClassNLOx4,
+                                mock_class_2=MockClassNLOx6)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_summary_10_parameters(path=mn.backup_path)
 
-        assert mn.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
+        assert mn.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0,
+                                                     -7.0, -8.0, 9.0, 10.0]
 
         most_probable = mn.most_probable_model_instance
 
@@ -255,12 +260,12 @@ class TestNLOInheritance:
         assert most_probable.mock_class_2.three == 9.0
         assert most_probable.mock_class_2.four == 10.0
 
-        conf.instance.output_path = mn_summary_path + '/1_class'
+        af.conf.instance.output_path = mn_summary_path + '/1_class'
 
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
-        mapper.mock_class.five = p.Constant(10.0)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx5)
+        mapper.mock_class.five = 10.0
 
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_summary_4_parameters(path=mn.backup_path)
 
         most_probable = mn.most_probable_model_instance
@@ -272,16 +277,16 @@ class TestNLOInheritance:
         assert most_probable.mock_class.five == 10.0
 
     def test__most_likely_parameters_and_instance(self, mn_summary_path):
+        af.conf.instance.output_path = mn_summary_path + '/2_classes'
 
-        conf.instance.output_path = mn_summary_path + '/2_classes'
-
-        mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                          mock_class_2=MockClassNLOx6)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class_1=MockClassNLOx4,
+                                mock_class_2=MockClassNLOx6)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
 
         create_summary_10_parameters(path=mn.backup_path)
 
-        assert mn.most_likely_model_parameters == [21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0]
+        assert mn.most_likely_model_parameters == [21.0, 22.0, 23.0, 24.0, 25.0, -26.0,
+                                                   -27.0, 28.0, 29.0, 30.0]
 
         most_likely = mn.most_likely_model_instance
 
@@ -295,9 +300,9 @@ class TestNLOInheritance:
         assert most_likely.mock_class_2.three == 29.0
         assert most_likely.mock_class_2.four == 30.0
 
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx5)
-        mapper.mock_class.five = p.Constant(10.0)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx5)
+        mapper.mock_class.five = 10.0
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_summary_4_parameters(path=mn.backup_path)
 
         most_likely = mn.most_likely_model_instance
@@ -309,11 +314,10 @@ class TestNLOInheritance:
         assert most_likely.mock_class.five == 10.0
 
     def test__gaussian_priors(self, mn_priors_path):
+        af.conf.instance.output_path = mn_priors_path
 
-        conf.instance.output_path = mn_priors_path
-
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
 
         create_gaussian_prior_summary_4_parameters(path=mn.backup_path)
         create_weighted_samples_4_parameters(path=mn.backup_path)
@@ -342,41 +346,44 @@ class TestNLOInheritance:
         assert gaussian_priors[3][1] == pytest.approx(4.1 - 3.928, 5e-2)
 
     def test__offset_from_input(self, mn_summary_path):
+        af.conf.instance.output_path = mn_summary_path + '/1_class'
 
-        conf.instance.output_path = mn_summary_path + '/1_class'
-
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_summary_4_parameters(path=mn.backup_path)
 
         # mn.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
 
-        offset_values = mn.offset_values_from_input_model_parameters(input_model_parameters=[1.0, 1.0, 2.0, 3.0])
+        offset_values = mn.offset_values_from_input_model_parameters(
+            input_model_parameters=[1.0, 1.0, 2.0, 3.0])
 
         assert offset_values == [0.0, -3.0, 1.0, 1.0]
 
-        conf.instance.output_path = mn_summary_path + '/2_classes'
+        af.conf.instance.output_path = mn_summary_path + '/2_classes'
 
-        mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                          mock_class_2=MockClassNLOx6)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class_1=MockClassNLOx4,
+                                mock_class_2=MockClassNLOx6)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_summary_10_parameters(path=mn.backup_path)
 
         # mn.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
 
         offset_values = mn.offset_values_from_input_model_parameters(
-            input_model_parameters=[1.0, 1.0, 2.0, 3.0, 10.0, 10.0, 10.0, 10.0, 10.0, 20.0])
+            input_model_parameters=[1.0, 1.0, 2.0, 3.0, 10.0, 10.0, 10.0, 10.0, 10.0,
+                                    20.0])
 
-        assert offset_values == [0.0, 1.0, 1.0, 1.0, -15.0, -16.0, -17.0, -18.0, -1.0, -10.0]
+        assert offset_values == [0.0, 1.0, 1.0, 1.0, -15.0, -16.0, -17.0, -18.0, -1.0,
+                                 -10.0]
 
 
 class TestSamples(object):
 
-    def test__1_class___model_parameters_instance_weight_and_likelihood(self, mn_samples_path):
-        conf.instance.output_path = mn_samples_path + '/1_class'
+    def test__1_class___model_parameters_instance_weight_and_likelihood(self,
+                                                                        mn_samples_path):
+        af.conf.instance.output_path = mn_samples_path + '/1_class'
 
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_weighted_samples_4_parameters(path=mn.backup_path)
 
         model = mn.sample_model_parameters_from_sample_index(sample_index=0)
@@ -407,12 +414,13 @@ class TestSamples(object):
         assert weight == 0.1
         assert likelihood == -0.5 * 9999999.9
 
-    def test__2_classes__model_parameters_instance_weight_and_likelihood(self, mn_samples_path):
-        conf.instance.output_path = mn_samples_path + '/2_classes'
+    def test__2_classes__model_parameters_instance_weight_and_likelihood(self,
+                                                                         mn_samples_path):
+        af.conf.instance.output_path = mn_samples_path + '/2_classes'
 
-        mapper = model_mapper.ModelMapper(mock_class_1=MockClassNLOx4,
-                                          mock_class_2=MockClassNLOx6)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class_1=MockClassNLOx4,
+                                mock_class_2=MockClassNLOx6)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_weighted_samples_10_parameters(path=mn.backup_path)
 
         model = mn.sample_model_parameters_from_sample_index(sample_index=0)
@@ -454,12 +462,13 @@ class TestSamples(object):
 
 class TestLimits(object):
 
-    def test__1_profile__limits_1d_vectors_via_weighted_samples__1d_vectors_are_correct(self,
-                                                                                        mn_samples_path):
-        conf.instance.output_path = mn_samples_path + '/1_class'
+    def test__1_profile__limits_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
+            self,
+            mn_samples_path):
+        af.conf.instance.output_path = mn_samples_path + '/1_class'
 
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_weighted_samples_4_parameters(path=mn.backup_path)
 
         params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=3.0)
@@ -468,10 +477,10 @@ class TestLimits(object):
         assert params_lower == pytest.approx([0.88, 1.88, 2.88, 3.88], 1e-2)
 
     def test__1_profile__change_limit_to_1_sigma(self, mn_samples_path):
-        conf.instance.output_path = mn_samples_path + '/1_class'
+        af.conf.instance.output_path = mn_samples_path + '/1_class'
 
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_weighted_samples_4_parameters(path=mn.backup_path)
 
         params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=1.0)
@@ -484,9 +493,9 @@ class TestLimits(object):
     #     def test__1_species__upper_and_low_errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
     #             self, mn_summary_path, mn_samples_path):
     #
-    #         conf.instance.output_path = mn_samples_path + '/1_class'
+    #         af.conf.instance.output_path = mn_samples_path + '/1_class'
     #
-    #         mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+    #         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
     #         mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
     #         create_summary_4_parameters(path=mn_summary_path)
     #         create_weighted_samples_4_parameters(path=mn_samples_path)
@@ -499,9 +508,9 @@ class TestLimits(object):
     #
     #     def test__1_species__upper_and_lower_change_limit_to_1_sigma(self, mn_samples_path):
     #
-    #         conf.instance.output_path = mn_samples_path + '/1_class'
+    #         af.conf.instance.output_path = mn_samples_path + '/1_class'
     #
-    #         mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
+    #         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
     #         mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
     #         create_weighted_samples_4_parameters(path=mn_samples_path)
     #
@@ -510,31 +519,33 @@ class TestLimits(object):
     #         errors_lower = mn.model_errors_at_lower_sigma_limit(sigma_limit=1.0)
     #         assert errors_lower == pytest.approx([0.07, 0.07, 0.07, 0.07], 1e-2)
 
-    def test__1_species__errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(self,
-                                                                                        mn_samples_path):
-        conf.instance.output_path = mn_samples_path + '/1_class'
+    def test__1_species__errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
+            self,
+            mn_samples_path):
+        af.conf.instance.output_path = mn_samples_path + '/1_class'
 
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_weighted_samples_4_parameters(path=mn.backup_path)
 
         model_errors = mn.model_errors_at_sigma_limit(sigma_limit=3.0)
-        assert model_errors == pytest.approx([1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2)
+        assert model_errors == pytest.approx(
+            [1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2)
 
     def test__1_species__change_limit_to_1_sigma(self, mn_samples_path):
-        conf.instance.output_path = mn_samples_path + '/1_class'
+        af.conf.instance.output_path = mn_samples_path + '/1_class'
 
-        mapper = model_mapper.ModelMapper(mock_class=MockClassNLOx4)
-        mn = nl.MultiNest(phase_name='', model_mapper=mapper)
+        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
+        mn = af.MultiNest(phase_name='', model_mapper=mapper)
         create_weighted_samples_4_parameters(path=mn.backup_path)
 
         model_errors = mn.model_errors_at_sigma_limit(sigma_limit=1.0)
-        assert model_errors == pytest.approx([1.07 - 0.93, 2.07 - 1.93, 3.07 - 2.93, 4.07 - 3.93], 1e-1)
+        assert model_errors == pytest.approx(
+            [1.07 - 0.93, 2.07 - 1.93, 3.07 - 2.93, 4.07 - 3.93], 1e-1)
 
 
 @pytest.fixture(name="multi_nest")
 def make_multi_nest():
-
     mn_fit_path = "{}/test_fit".format(os.path.dirname(os.path.realpath(__file__)))
 
     try:
@@ -542,20 +553,26 @@ def make_multi_nest():
     except FileNotFoundError as e:
         print(e)
 
-    conf.instance.output_path = mn_fit_path
+    af.conf.instance.output_path = mn_fit_path
 
     # noinspection PyUnusedLocal,PyPep8Naming
-    def run(fitness_function, prior, total_parameters, outputfiles_basename, n_clustering_params=None,
-            wrapped_params=None, importance_nested_sampling=True, multimodal=True, const_efficiency_mode=False,
-            n_live_points=400, evidence_tolerance=0.5, sampling_efficiency=0.8, n_iter_before_update=100,
-            null_log_evidence=-1e+90, max_modes=100, mode_tolerance=-1e+90, seed=-1, verbose=False, resume=True,
+    def run(fitness_function, prior, total_parameters, outputfiles_basename,
+            n_clustering_params=None,
+            wrapped_params=None, importance_nested_sampling=True, multimodal=True,
+            const_efficiency_mode=False,
+            n_live_points=400, evidence_tolerance=0.5, sampling_efficiency=0.8,
+            n_iter_before_update=100,
+            null_log_evidence=-1e+90, max_modes=100, mode_tolerance=-1e+90, seed=-1,
+            verbose=False, resume=True,
             context=0,
-            write_output=True, log_zero=-1e+100, max_iter=0, init_MPI=False, dump_callback=None):
+            write_output=True, log_zero=-1e+100, max_iter=0, init_MPI=False,
+            dump_callback=None):
 
-        fitness_function([1 for _ in range(total_parameters)], total_parameters, total_parameters, None)
+        fitness_function([1 for _ in range(total_parameters)], total_parameters,
+                         total_parameters, None)
 
-    multi_nest = nl.MultiNest(run=run, phase_name='',
-                                                                  model_mapper=model_mapper.ModelMapper())
+    multi_nest = af.MultiNest(run=run, phase_name='',
+                              model_mapper=af.ModelMapper())
 
     create_weighted_samples_4_parameters(multi_nest.opt_path)
     create_summary_4_parameters(multi_nest.opt_path)
@@ -566,8 +583,8 @@ def make_multi_nest():
 class TestFitting(object):
 
     def test_variable(self, multi_nest):
-
-        multi_nest.variable.mock_class = autofit.mapper.prior_model.PriorModel(MockClassNLOx4, )
+        multi_nest.variable.mock_class = af.PriorModel(
+            MockClassNLOx4, )
         result = multi_nest.fit(MockAnalysis())
 
         assert result.constant.mock_class.one == 9.0
@@ -586,12 +603,11 @@ class TestCopyWithNameExtension(object):
         assert copy.variable == optimizer.variable
 
     def test_multinest(self):
-
-        optimizer = nl.MultiNest("phase_name", sigma_limit=2.0, run=lambda x: x)
+        optimizer = af.MultiNest("phase_name", sigma_limit=2.0, run=lambda x: x)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy, optimizer)
-        assert isinstance(copy, nl.MultiNest)
+        assert isinstance(copy, af.MultiNest)
         assert copy.sigma_limit is optimizer.sigma_limit
         assert copy.run is optimizer.run
         assert copy.importance_nested_sampling is optimizer.importance_nested_sampling

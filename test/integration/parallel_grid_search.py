@@ -2,11 +2,12 @@ import logging
 import shutil
 from os import path
 
-import autofit.optimize.non_linear.multi_nest
-import autofit.optimize.non_linear.non_linear
-from autofit import mock
-from autofit.optimize import grid_search as gs
-from autofit.optimize import non_linear
+
+
+import test.mock
+from test import mock
+import autofit as af
+import autofit as af
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ except FileNotFoundError:
     logging.info("Not found")
 
 
-class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
+class Analysis(af.Analysis):
     def fit(self, instance):
         return -(instance.profile.centre[0] ** 2 + instance.profile.centre[1] ** 2)
 
@@ -31,8 +32,8 @@ class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
 
 if __name__ == "__main__":
     grid_search = gs.GridSearch(phase_name="phase_grid_search", phase_tag='_tag', phase_folders=['integration'],
-                                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest, parallel=True)
-    grid_search.variable.profile = mock.EllipticalProfile
+                                optimizer_class=af.MultiNest, parallel=True)
+    grid_search.variable.profile = test.mock.EllipticalProfile
 
     # noinspection PyUnresolvedReferences
     result = grid_search.fit(Analysis(),
