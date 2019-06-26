@@ -247,13 +247,14 @@ class NonLinearOptimizer(object):
             self.max_likelihood = -np.inf
             self.image_path = image_path
             self.analysis = analysis
-            visualise_interval = conf.instance.general.get('output', 'visualise_interval', int)
+
             log_interval = conf.instance.general.get('output', 'log_interval', int)
             backup_interval = conf.instance.general.get('output', 'backup_interval', int)
+            visualize_interval = conf.instance.visualize.get('figures', 'visualize_interval', int)
 
             self.should_log = IntervalCounter(log_interval)
-            self.should_visualise = IntervalCounter(visualise_interval)
             self.should_backup = IntervalCounter(backup_interval)
+            self.should_visualize = IntervalCounter(visualize_interval)
 
         def fit_instance(self, instance):
             likelihood = self.analysis.fit(instance)
@@ -263,7 +264,7 @@ class NonLinearOptimizer(object):
                 self.max_likelihood = likelihood
                 self.result = Result(instance, likelihood)
 
-                if self.should_visualise():
+                if self.should_visualize():
                     self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
 
                 if self.should_backup():

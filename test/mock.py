@@ -85,7 +85,7 @@ class MockAnalysis(object):
     def __init__(self):
         self.kwargs = None
         self.instance = None
-        self.visualise_instance = None
+        self.visualize_instance = None
 
     def fit(self, instance):
         self.instance = instance
@@ -93,7 +93,7 @@ class MockAnalysis(object):
 
     # noinspection PyUnusedLocal
     def visualize(self, instance, *args, **kwargs):
-        self.visualise_instance = instance
+        self.visualize_instance = instance
 
 
 class SimpleClass(object):
