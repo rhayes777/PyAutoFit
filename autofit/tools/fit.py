@@ -44,9 +44,6 @@ class DataFit(object):
         self.residual_map = fit_util.residual_map_from_data_mask_and_model_data(
             data=data, mask=mask, model_data=model_data)
 
-        self.normalized_residual_map = fit_util.normalized_residual_map_from_residual_map_noise_map_and_mask(
-            residual_map=self.residual_map, noise_map=self.noise_map, mask=self.mask)
-
         self.chi_squared_map = fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(
             residual_map=self.residual_map, noise_map=self.noise_map, mask=self.mask)
 
@@ -62,6 +59,11 @@ class DataFit(object):
 
         self.likelihood = fit_util.likelihood_from_chi_squared_and_noise_normalization(
             chi_squared=self.chi_squared, noise_normalization=self.noise_normalization)
+
+    @property
+    def normalized_residual_map(self):
+        return fit_util.normalized_residual_map_from_residual_map_noise_map_and_mask(
+            residual_map=self.residual_map, noise_map=self.noise_map, mask=self.mask)
 
     @property
     def signal_to_noise_map(self):
@@ -112,10 +114,6 @@ class DataFit1D(object):
         self.residual_map_1d = fit_util.residual_map_from_data_mask_and_model_data(
             data=data_1d, mask=mask_1d, model_data=model_data_1d)
 
-        self.normalized_residual_map_1d = fit_util.normalized_residual_map_from_residual_map_noise_map_and_mask(
-            residual_map=self.residual_map_1d, noise_map=self.noise_map_1d,
-            mask=self.mask_1d)
-
         self.chi_squared_map_1d = fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(
             residual_map=self.residual_map_1d, noise_map=self.noise_map_1d,
             mask=self.mask_1d)
@@ -123,13 +121,21 @@ class DataFit1D(object):
         self.chi_squared = fit_util.chi_squared_from_chi_squared_map_and_mask(
             chi_squared_map=self.chi_squared_map_1d,
             mask=self.mask_1d)
+
         self.reduced_chi_squared = self.chi_squared / int(
             np.size(self.mask_1d) - np.sum(self.mask_1d))
+
         self.noise_normalization = fit_util.noise_normalization_from_noise_map_and_mask(
             noise_map=self.noise_map_1d,
             mask=self.mask_1d)
+
         self.likelihood = fit_util.likelihood_from_chi_squared_and_noise_normalization(
             chi_squared=self.chi_squared, noise_normalization=self.noise_normalization)
+
+    @property
+    def normalized_residual_map_1d(self):
+        return fit_util.normalized_residual_map_from_residual_map_noise_map_and_mask(
+            residual_map=self.residual_map_1d, noise_map=self.noise_map_1d, mask=self.mask_1d)
 
     @property
     def signal_to_noise_map_1d(self):
