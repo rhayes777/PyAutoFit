@@ -18,6 +18,23 @@ def residual_map_from_data_mask_and_model_data(data, mask, model_data):
     return np.subtract(data, model_data, out=np.zeros_like(data), where=np.asarray(mask) == 0)
 
 
+def normalized_residual_map_from_residual_map_noise_map_and_mask(residual_map, noise_map, mask):
+    """Compute the normalized residual map between a masked observed data and model data, where:
+
+    Normalized_Residual = (Data - Model_Data) / Noise
+
+    Parameters
+    -----------
+    residual_map : np.ndarray
+        The residual-map of the model-data fit to the observed data.
+    noise_map : np.ndarray
+        The noise-map of the observed data.
+    mask : np.ndarray
+        The mask applied to the residual-map, where *False* entries are included in the calculation.
+    """
+    return np.divide(residual_map, noise_map, out=np.zeros_like(residual_map), where=np.asarray(mask) == 0)
+
+
 def chi_squared_map_from_residual_map_noise_map_and_mask(residual_map, noise_map, mask):
     """Computes the chi-squared map between a masked residual-map and noise-map, where:
 
