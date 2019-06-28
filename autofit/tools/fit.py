@@ -44,6 +44,9 @@ class DataFit(object):
         self.residual_map = fit_util.residual_map_from_data_mask_and_model_data(
             data=data, mask=mask, model_data=model_data)
 
+        self.normalized_residual_map = fit_util.normalized_residual_map_from_residual_map_noise_map_and_mask(
+            residual_map=self.residual_map, noise_map=self.noise_map, mask=self.mask)
+
         self.chi_squared_map = fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(
             residual_map=self.residual_map, noise_map=self.noise_map, mask=self.mask)
 
@@ -108,6 +111,10 @@ class DataFit1D(object):
 
         self.residual_map_1d = fit_util.residual_map_from_data_mask_and_model_data(
             data=data_1d, mask=mask_1d, model_data=model_data_1d)
+
+        self.normalized_residual_map_1d = fit_util.normalized_residual_map_from_residual_map_noise_map_and_mask(
+            residual_map=self.residual_map_1d, noise_map=self.noise_map_1d,
+            mask=self.mask_1d)
 
         self.chi_squared_map_1d = fit_util.chi_squared_map_from_residual_map_noise_map_and_mask(
             residual_map=self.residual_map_1d, noise_map=self.noise_map_1d,
