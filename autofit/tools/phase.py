@@ -15,9 +15,15 @@ class HyperPhase(object):
 
 class AbstractPhase(object):
 
-    def __init__(self, phase_name, tag_phases=True, phase_tag=None, phase_folders=None,
-                 optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                 auto_link_priors=False):
+    def __init__(
+            self,
+            phase_name,
+            tag_phases=True,
+            phase_tag=None,
+            phase_folders=None,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            auto_link_priors=False
+    ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
         fit_normal models and image passed to it.
