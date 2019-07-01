@@ -396,6 +396,9 @@ class Analysis(object):
 
 
 class Result(object):
+    """
+    @DynamicAttrs
+    """
 
     def __init__(self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None):
         """
