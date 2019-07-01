@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
                  model_mapper=None, sigma_limit=3,
                  run=pymultinest.run):
         """
@@ -323,8 +323,7 @@ class MultiNest(NonLinearOptimizer):
         import getdist.plots
         pdf_plot = getdist.plots.GetDistPlotter()
 
-        plot_pdf_1d_params = conf.instance.general.get('output', 'plot_pdf_1d_params',
-                                                       bool)
+        plot_pdf_1d_params = conf.instance.visualize.get('plots', 'plot_pdf_1d_params', bool)
 
         if plot_pdf_1d_params:
 
@@ -335,8 +334,7 @@ class MultiNest(NonLinearOptimizer):
 
         plt.close()
 
-        plot_pdf_triangle = conf.instance.general.get('output', 'plot_pdf_triangle',
-                                                      bool)
+        plot_pdf_triangle = conf.instance.visualize.get('plots', 'plot_pdf_triangle', bool)
 
         if plot_pdf_triangle:
 
@@ -354,8 +352,7 @@ class MultiNest(NonLinearOptimizer):
 
     def output_results(self, during_analysis=False):
 
-        decimal_places = conf.instance.general.get("output",
-                                                   "model_results_decimal_places", int)
+        decimal_places = conf.instance.general.get("output", "model_results_decimal_places", int)
 
         format_str = '{:.' + str(decimal_places) + 'f}'
 

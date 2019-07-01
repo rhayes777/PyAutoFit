@@ -270,6 +270,7 @@ class Config(object):
         self.label = LabelConfig("{}/label.ini".format(config_path))
         self.label_format = NamedConfig("{}/label_format.ini".format(config_path))
         self.general = NamedConfig("{}/general.ini".format(config_path))
+        self.visualize = NamedConfig("{}/visualize.ini".format(config_path))
         self.output_path = output_path
 
 

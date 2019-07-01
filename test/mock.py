@@ -7,7 +7,7 @@ import autofit as af
 # noinspection PyAbstractClass
 class MockNonLinearOptimizer(af.NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
                  model_mapper=None,
                  most_probable=None, most_likely=None, model_upper_params=None,
                  model_lower_params=None):
@@ -85,7 +85,7 @@ class MockAnalysis(object):
     def __init__(self):
         self.kwargs = None
         self.instance = None
-        self.visualise_instance = None
+        self.visualize_instance = None
 
     def fit(self, instance):
         self.instance = instance
@@ -93,7 +93,7 @@ class MockAnalysis(object):
 
     # noinspection PyUnusedLocal
     def visualize(self, instance, *args, **kwargs):
-        self.visualise_instance = instance
+        self.visualize_instance = instance
 
 
 class SimpleClass(object):

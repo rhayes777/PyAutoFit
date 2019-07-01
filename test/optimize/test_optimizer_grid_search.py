@@ -124,7 +124,7 @@ fit_instances = []
 
 
 class MockOptimizer(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
-    def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=None,
+    def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=tuple(),
                  model_mapper=None):
         super().__init__(phase_folders=phase_folders, phase_tag=phase_tag,
                          phase_name=phase_name,
@@ -337,7 +337,7 @@ class TestMixin(object):
                 analysis = container.MockAnalysis()
                 return self.make_result(self.run_analysis(analysis), analysis)
 
-        optimizer = MyPhase(phase_name='', phase_folders=None, number_of_steps=2,
+        optimizer = MyPhase(phase_name='', phase_folders=tuple(), number_of_steps=2,
                             optimizer_class=container.MockOptimizer)
         optimizer.variable.profile = test.mock.GeometryProfile
 
