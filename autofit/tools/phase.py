@@ -6,7 +6,6 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
 from autofit.optimize import grid_search
-from autofit.tools import path_util
 
 
 class HyperPhase(object):
@@ -37,22 +36,18 @@ class AbstractPhase(object):
         """
 
         self.tag_phases = tag_phases
-
-        self.phase_folders = phase_folders
-        if phase_folders is None:
-            self.phase_path = ''
-        else:
-            self.phase_path = path_util.path_from_folder_names(
-                folder_names=phase_folders)
+        self.phase_path = "/".join(phase_folders)
 
         if phase_tag is None and tag_phases:
             self.phase_tag = ''
         else:
             self.phase_tag = 'settings' + phase_tag
 
-        self.optimizer = optimizer_class(phase_name=phase_name,
-                                         phase_tag=phase_tag,
-                                         phase_folders=self.phase_folders)
+        self.optimizer = optimizer_class(
+            phase_name=phase_name,
+            phase_tag=phase_tag,
+            phase_folders=phase_folders
+        )
         self.auto_link_priors = auto_link_priors
 
     @property

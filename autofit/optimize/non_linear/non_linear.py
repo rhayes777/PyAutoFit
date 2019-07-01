@@ -10,7 +10,7 @@ import numpy as np
 
 from autofit import conf
 from autofit.mapper import link, model_mapper as mm
-from autofit.tools import path_util, text_util
+from autofit.tools import text_util
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -30,11 +30,7 @@ class NonLinearOptimizer(object):
         """
         self.named_config = conf.instance.non_linear
 
-        self.phase_folders = phase_folders
-        if phase_folders is None:
-            self.phase_path = ''
-        else:
-            self.phase_path = path_util.path_from_folder_names(folder_names=phase_folders)
+        self.phase_path = "/".join(phase_folders)
 
         self.phase_name = phase_name
 
@@ -81,7 +77,8 @@ class NonLinearOptimizer(object):
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path, self.phase_name,
+        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path,
+                                                     self.phase_name,
                                                      self.phase_tag)
 
     @property
@@ -211,7 +208,6 @@ class NonLinearOptimizer(object):
         line = []
 
         for i in range(len(labels)):
-
             most_probable = format_str.format(most_probables[i])
             upper = format_str.format(uppers[i])
             lower = format_str.format(lowers[i])
@@ -274,7 +270,8 @@ class NonLinearOptimizer(object):
 
     def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
-        new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable)
+        new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders,
+                                      model_mapper=self.variable)
         return new_instance
 
     @property
@@ -352,12 +349,14 @@ class NonLinearOptimizer(object):
     def model_errors_at_upper_sigma_limit(self, sigma_limit):
         uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
         return list(
-            map(lambda upper, most_probable: upper - most_probable, uppers, self.most_probable_model_parameters))
+            map(lambda upper, most_probable: upper - most_probable, uppers,
+                self.most_probable_model_parameters))
 
     def model_errors_at_lower_sigma_limit(self, sigma_limit):
         lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
         return list(
-            map(lambda lower, most_probable: most_probable - lower, lowers, self.most_probable_model_parameters))
+            map(lambda lower, most_probable: most_probable - lower, lowers,
+                self.most_probable_model_parameters))
 
     def sample_model_instance_from_sample_index(self, sample_index):
         """Setup a model instance of a weighted sample.
@@ -378,7 +377,8 @@ class NonLinearOptimizer(object):
         raise NotImplementedError()
 
     def offset_values_from_input_model_parameters(self, input_model_parameters):
-        return list(map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
+        return list(
+            map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
 
 
 class Analysis(object):
