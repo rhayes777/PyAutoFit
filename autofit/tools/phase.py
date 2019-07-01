@@ -36,7 +36,6 @@ class AbstractPhase(object):
         """
 
         self.tag_phases = tag_phases
-        self.phase_path = "/".join(phase_folders)
 
         if phase_tag is None and tag_phases:
             self.phase_tag = ''
@@ -49,6 +48,14 @@ class AbstractPhase(object):
             phase_folders=phase_folders
         )
         self.auto_link_priors = auto_link_priors
+
+    @property
+    def phase_path(self):
+        return self.optimizer.phase_path
+
+    @phase_path.setter
+    def phase_path(self, phase_path):
+        self.optimizer.phase_path = phase_path
 
     @property
     def phase_name(self):
