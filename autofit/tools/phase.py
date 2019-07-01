@@ -50,11 +50,18 @@ class AbstractPhase(object):
         else:
             self.phase_tag = 'settings' + phase_tag
 
-        self.phase_name = phase_name
-        self.optimizer = optimizer_class(phase_name=self.phase_name,
+        self.optimizer = optimizer_class(phase_name=phase_name,
                                          phase_tag=phase_tag,
                                          phase_folders=self.phase_folders)
         self.auto_link_priors = auto_link_priors
+
+    @property
+    def phase_name(self):
+        return self.optimizer.phase_name
+
+    @phase_name.setter
+    def phase_name(self, phase_name):
+        self.optimizer.phase_name = phase_name
 
     @property
     def variable(self):
