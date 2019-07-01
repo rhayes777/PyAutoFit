@@ -664,7 +664,7 @@ def add_to_info_dict(path_item_tuple, info_dict):
 
 def info_dict_to_list(
         info_dict,
-        line_length=15,
+        line_length=130,
         indent=4
 ):
     lines = []
