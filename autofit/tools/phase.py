@@ -19,7 +19,7 @@ class AbstractPhase(object):
             phase_name,
             tag_phases=True,
             phase_tag=None,
-            phase_folders=None,
+            phase_folders=tuple(),
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             auto_link_priors=False
     ):

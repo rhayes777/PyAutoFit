@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class NonLinearOptimizer(object):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
