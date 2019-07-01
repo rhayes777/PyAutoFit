@@ -7,7 +7,7 @@ import autofit as af
 # noinspection PyAbstractClass
 class MockNonLinearOptimizer(af.NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
                  model_mapper=None,
                  most_probable=None, most_likely=None, model_upper_params=None,
                  model_lower_params=None):

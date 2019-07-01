@@ -202,7 +202,7 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, phase_name, tag_phases=True, phase_folders=None,
+        def __init__(self, *args, phase_name, tag_phases=True, phase_folders=tuple(),
                      number_of_steps=10,
                      optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
                      **kwargs):

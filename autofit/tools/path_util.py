@@ -1,12 +1,5 @@
 import os
 
-def phase_folders_from_phase_folders_and_pipeline_name(phase_folders, pipeline_name):
-
-    if phase_folders is None:
-        return [pipeline_name]
-    else:
-        phase_folders.append(pipeline_name)
-        return phase_folders
 
 def make_and_return_path_from_path_and_folder_names(path, folder_names):
     """ For a given path, create a directory structure composed of a set of folders and return the path to the \

@@ -71,6 +71,10 @@ class NonLinearOptimizer(object):
         self.restore()
 
     @property
+    def phase_folders(self):
+        return self.phase_path.split("/")
+
+    @property
     def backup_path(self) -> str:
         """
         The path to the backed up optimizer folder.

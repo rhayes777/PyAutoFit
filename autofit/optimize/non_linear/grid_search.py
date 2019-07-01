@@ -11,7 +11,7 @@ from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, Result, I
 
 class GridSearch(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, step_size=None, model_mapper=None,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), step_size=None, model_mapper=None,
                  grid=opt.grid):
         """
         Optimise by performing a grid search.

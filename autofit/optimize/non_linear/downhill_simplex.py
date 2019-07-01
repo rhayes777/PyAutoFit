@@ -8,7 +8,7 @@ from autofit.optimize.non_linear.non_linear import logger
 
 class DownhillSimplex(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None, model_mapper=None, fmin=scipy.optimize.fmin):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None, fmin=scipy.optimize.fmin):
 
         super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
                                               model_mapper=model_mapper)
