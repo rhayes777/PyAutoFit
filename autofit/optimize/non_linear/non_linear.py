@@ -29,9 +29,7 @@ class NonLinearOptimizer(object):
 
         """
         self.named_config = conf.instance.non_linear
-
         self.phase_path = "/".join(phase_folders)
-
         self.phase_name = phase_name
 
         if phase_tag is None:
