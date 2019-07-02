@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
                  model_mapper=None, sigma_limit=3,
                  run=pymultinest.run):
         """

@@ -6,7 +6,6 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
 from autofit.optimize import grid_search
-from autofit.tools import path_util
 
 
 class HyperPhase(object):
@@ -15,9 +14,15 @@ class HyperPhase(object):
 
 class AbstractPhase(object):
 
-    def __init__(self, phase_name, tag_phases=True, phase_tag=None, phase_folders=None,
-                 optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                 auto_link_priors=False):
+    def __init__(
+            self,
+            phase_name,
+            tag_phases=True,
+            phase_tag=None,
+            phase_folders=tuple(),
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            auto_link_priors=False
+    ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
         fit_normal models and image passed to it.
@@ -32,23 +37,33 @@ class AbstractPhase(object):
 
         self.tag_phases = tag_phases
 
-        self.phase_folders = phase_folders
-        if phase_folders is None:
-            self.phase_path = ''
-        else:
-            self.phase_path = path_util.path_from_folder_names(
-                folder_names=phase_folders)
-
         if phase_tag is None and tag_phases:
             self.phase_tag = ''
         else:
             self.phase_tag = 'settings' + phase_tag
 
-        self.phase_name = phase_name
-        self.optimizer = optimizer_class(phase_name=self.phase_name,
-                                         phase_tag=phase_tag,
-                                         phase_folders=self.phase_folders)
+        self.optimizer = optimizer_class(
+            phase_name=phase_name,
+            phase_tag=phase_tag,
+            phase_folders=phase_folders
+        )
         self.auto_link_priors = auto_link_priors
+
+    @property
+    def phase_path(self):
+        return self.optimizer.phase_path
+
+    @phase_path.setter
+    def phase_path(self, phase_path):
+        self.optimizer.phase_path = phase_path
+
+    @property
+    def phase_name(self):
+        return self.optimizer.phase_name
+
+    @phase_name.setter
+    def phase_name(self, phase_name):
+        self.optimizer.phase_name = phase_name
 
     @property
     def variable(self):
@@ -120,8 +135,8 @@ class AbstractPhase(object):
         Create the path to the folder at which the metadata and optimizer pickle should
         be saved
         """
-        return "{}/{}{}/{}".format(conf.instance.output_path, self.phase_path,
-                                   self.phase_name, self.phase_tag)
+        return "{}/{}{}/{}/".format(conf.instance.output_path, self.phase_path,
+                                    self.phase_name, self.phase_tag)
 
     def save_optimizer_for_phase(self):
         """
@@ -187,7 +202,7 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, phase_name, tag_phases=True, phase_folders=None,
+        def __init__(self, *args, phase_name, tag_phases=True, phase_folders=tuple(),
                      number_of_steps=10,
                      optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
                      **kwargs):

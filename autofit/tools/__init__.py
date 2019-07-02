@@ -8,7 +8,6 @@ from .fit import DataFit
 from .fit import DataFit1D
 from .phase import AbstractPhase
 from .phase import as_grid_search
-from .phase import HyperPhase
 from .phase_property import PhaseProperty
 from .pipeline import Pipeline
 from .pipeline import ResultsCollection

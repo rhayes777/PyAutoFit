@@ -87,7 +87,7 @@ class GridSearchResult(object):
 
 class GridSearch(object):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=None,
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
                  number_of_steps=10,
                  optimizer_class=DownhillSimplex,
                  model_mapper=None,
@@ -118,12 +118,7 @@ class GridSearch(object):
         )
 
         self.phase_folders = phase_folders
-        if phase_folders is None:
-            self.phase_path = ''
-        else:
-            self.phase_path = path_util.path_from_folder_names(
-                folder_names=phase_folders)
-
+        self.phase_path = "/".join(phase_folders)
         self.phase_name = phase_name
 
         if phase_tag is None:
