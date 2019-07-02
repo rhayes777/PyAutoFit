@@ -135,8 +135,8 @@ class AbstractPhase(object):
         Create the path to the folder at which the metadata and optimizer pickle should
         be saved
         """
-        return "{}/{}{}/{}".format(conf.instance.output_path, self.phase_path,
-                                   self.phase_name, self.phase_tag)
+        return "{}/{}{}/{}/".format(conf.instance.output_path, self.phase_path,
+                                    self.phase_name, self.phase_tag)
 
     def save_optimizer_for_phase(self):
         """
