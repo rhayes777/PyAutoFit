@@ -70,9 +70,6 @@ class NonLinearOptimizer(object):
 
         self.restore()
 
-    def update_path(self):
-        self.path = link.make_linked_folder(self.sym_path)
-
     @property
     def phase_folders(self):
         return self.phase_path.split("/")
