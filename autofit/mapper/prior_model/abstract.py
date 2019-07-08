@@ -1,7 +1,8 @@
+import copy
 import inspect
 
-from autofit.mapper.prior import Prior
 from autofit.mapper.model import AbstractModel
+from autofit.mapper.prior import Prior
 from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
@@ -125,3 +126,19 @@ class AbstractPriorModel(AbstractModel):
 
     def __hash__(self):
         return self.id
+
+    def __add__(self, other):
+        result = copy.deepcopy(self)
+
+        for key, value in other.__dict__.items():
+            if not hasattr(result, key) or isinstance(value, Prior):
+                setattr(result, key, value)
+                continue
+            result_value = getattr(result, key)
+            if isinstance(value, AbstractPriorModel):
+                if isinstance(result_value, AbstractPriorModel):
+                    setattr(result, key, result_value + value)
+                else:
+                    setattr(result, key, value)
+
+        return result

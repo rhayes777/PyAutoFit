@@ -29,6 +29,12 @@ class PriorModel(AbstractPriorModel):
     def __hash__(self):
         return self.id
 
+    def __add__(self, other):
+        if self.cls != other.cls:
+            raise TypeError(f"Cannot add PriorModels with different classes "
+                            f"({self.cls.__name__} and {other.cls.__name__})")
+        return super().__add__(other)
+
     @property
     def constructor_argument_names(self):
         return inspect.getfullargspec(self.cls.__init__).args[1:]
