@@ -59,14 +59,6 @@ class CollectionPriorModel(AbstractPriorModel):
         for key, value in item_dict.items():
             setattr(self, key, AbstractPriorModel.from_object(value))
 
-    def __add__(self, other):
-        new = CollectionPriorModel([])
-        for item in self:
-            new.append(item)
-        for item in other:
-            new.append(item)
-        return new
-
     def __eq__(self, other):
         if len(self) != len(other):
             return False

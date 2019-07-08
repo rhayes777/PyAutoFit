@@ -12,7 +12,7 @@ from autofit.mapper.prior_model.util import PriorModelNameValue
 path = os.path.dirname(os.path.realpath(__file__))
 
 
-class ModelMapper(AbstractModel):
+class ModelMapper(AbstractPriorModel):
     """A mapper of priors formed by passing in classes to be reconstructed
         @DynamicAttrs
     """

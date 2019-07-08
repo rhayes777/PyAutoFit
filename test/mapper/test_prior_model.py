@@ -1,9 +1,30 @@
-
-
-
 import autofit as af
+import pytest
 from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
-    DistanceClass, PositionClass, Galaxy, Tracer
+    DistanceClass, PositionClass, Galaxy, Tracer, EllipticalLP, EllipticalMassProfile
+
+
+class TestSum(object):
+    def test_add_prior_models(self):
+        profile_1 = af.PriorModel(EllipticalLP)
+        profile_2 = af.PriorModel(EllipticalLP)
+
+        profile_1.axis_ratio = 1.0
+        profile_2.phi = 0.0
+
+        result = profile_1 + profile_2
+
+        assert isinstance(result, af.PriorModel)
+        assert result.cls == EllipticalLP
+        assert isinstance(result.axis_ratio, af.Prior)
+        assert isinstance(result.phi, af.Prior)
+
+    def test_fail_for_mismatch(self):
+        profile_1 = af.PriorModel(EllipticalLP)
+        profile_2 = af.PriorModel(EllipticalMassProfile)
+
+        with pytest.raises(TypeError):
+            profile_1 + profile_2
 
 
 class TestFloatAnnotation(object):
@@ -202,7 +223,7 @@ class TestCase(object):
     def test_mix_instances_and_models(self):
         mapper = af.ModelMapper()
         mapper.list_object = af.PriorModel(ListClass,
-                                          ls=[SimpleClass, SimpleClass(1, 2)])
+                                           ls=[SimpleClass, SimpleClass(1, 2)])
 
         assert mapper.prior_count == 2
 
