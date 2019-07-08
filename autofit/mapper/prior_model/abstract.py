@@ -133,5 +133,12 @@ class AbstractPriorModel(AbstractModel):
         for key, value in other.__dict__.items():
             if not hasattr(result, key) or isinstance(value, Prior):
                 setattr(result, key, value)
+                continue
+            result_value = getattr(result, key)
+            if isinstance(value, AbstractPriorModel):
+                if isinstance(result_value, AbstractPriorModel):
+                    setattr(result, key, result_value + value)
+                else:
+                    setattr(result, key, value)
 
         return result

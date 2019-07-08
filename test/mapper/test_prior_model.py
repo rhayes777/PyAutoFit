@@ -1,5 +1,6 @@
-import autofit as af
 import pytest
+
+import autofit as af
 from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
     DistanceClass, PositionClass, Galaxy, Tracer, EllipticalLP, EllipticalMassProfile
 
@@ -25,6 +26,59 @@ class TestSum(object):
 
         with pytest.raises(TypeError):
             profile_1 + profile_2
+
+    def test_add_children(self):
+        galaxy_1 = af.PriorModel(
+            Galaxy,
+            light_profiles=af.CollectionPriorModel(
+                light_1=EllipticalLP
+            ),
+            mass_profiles=af.CollectionPriorModel(
+                mass_1=EllipticalMassProfile
+            )
+        )
+        galaxy_2 = af.PriorModel(
+            Galaxy,
+            light_profiles=af.CollectionPriorModel(
+                light_2=EllipticalLP
+            ),
+            mass_profiles=af.CollectionPriorModel(
+                mass_2=EllipticalMassProfile
+            )
+        )
+
+        result = galaxy_1 + galaxy_2
+
+        assert result.light_profiles.light_1 == galaxy_1.light_profiles.light_1
+        assert result.light_profiles.light_2 == galaxy_2.light_profiles.light_2
+
+        assert result.mass_profiles.mass_1 == galaxy_1.mass_profiles.mass_1
+        assert result.mass_profiles.mass_2 == galaxy_2.mass_profiles.mass_2
+
+    def test_prior_model_override(self):
+        galaxy_1 = af.PriorModel(
+            Galaxy,
+            light_profiles=af.CollectionPriorModel(
+                light=EllipticalLP()
+            ),
+            mass_profiles=af.CollectionPriorModel(
+                mass=EllipticalMassProfile
+            )
+        )
+        galaxy_2 = af.PriorModel(
+            Galaxy,
+            light_profiles=af.CollectionPriorModel(
+                light=EllipticalLP
+            ),
+            mass_profiles=af.CollectionPriorModel(
+                mass=EllipticalMassProfile()
+            )
+        )
+
+        result = galaxy_1 + galaxy_2
+
+        assert result.mass_profiles.mass == galaxy_1.mass_profiles.mass
+        assert result.light_profiles.light == galaxy_2.light_profiles.light
 
 
 class TestFloatAnnotation(object):
