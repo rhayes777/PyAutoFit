@@ -72,7 +72,7 @@ class NonLinearOptimizer(object):
 
     @property
     def phase_folders(self):
-        return self.phase_path.split("/")
+        return tuple(self.phase_path.split("/"))
 
     @property
     def backup_path(self) -> str:
@@ -272,8 +272,12 @@ class NonLinearOptimizer(object):
 
     def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
-        new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders,
-                                      model_mapper=self.variable)
+        new_instance = self.__class__(
+            phase_name=name,
+            phase_folders=self.phase_folders,
+            model_mapper=self.variable
+        )
+        new_instance.phase_tag = self.phase_tag
         return new_instance
 
     @property
@@ -396,6 +400,9 @@ class Analysis(object):
 
 
 class Result(object):
+    """
+    @DynamicAttrs
+    """
 
     def __init__(self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None):
         """

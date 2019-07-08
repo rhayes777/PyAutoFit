@@ -5,8 +5,8 @@ import numpy as np
 
 from autofit import conf, exc
 from autofit.optimize import optimizer as opt
-from autofit.optimize.non_linear.non_linear import logger
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, Result, IntervalCounter, persistent_timer
+from autofit.optimize.non_linear.non_linear import logger
 
 
 class GridSearch(NonLinearOptimizer):
@@ -35,8 +35,12 @@ class GridSearch(NonLinearOptimizer):
 
     def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
-        new_instance = self.__class__(phase_name=name, phase_folders=self.phase_folders, model_mapper=self.variable,
-                                      step_size=self.step_size)
+        new_instance = self.__class__(
+            phase_name=name,
+            phase_folders=self.phase_folders,
+            model_mapper=self.variable,
+            step_size=self.step_size
+        )
         new_instance.grid = self.grid
         return new_instance
 
@@ -149,7 +153,8 @@ class GridSearch(NonLinearOptimizer):
 
         if self.is_checkpoint:
             if not self.checkpoint_prior_count == self.variable.prior_count:
-                raise exc.CheckpointException("The number of dimensions does not match that found in the checkpoint")
+                raise exc.CheckpointException(
+                    "The number of dimensions does not match that found in the checkpoint")
             if not self.checkpoint_step_size == self.step_size:
                 raise exc.CheckpointException("The step size does not match that found in the checkpoint")
 
@@ -188,7 +193,8 @@ class GridSearch(NonLinearOptimizer):
                      fitness_function.all_fits.items()]
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res = GridSearch.Result(res, instances, self.variable, [(mean, 0) for mean in fitness_function.best_cube])
+        res = GridSearch.Result(res, instances, self.variable,
+                                [(mean, 0) for mean in fitness_function.best_cube])
 
         analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
 

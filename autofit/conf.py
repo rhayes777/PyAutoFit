@@ -223,9 +223,7 @@ class DefaultPriorConfig(AncestorConfig):
         prior_array: []
             An array describing a prior
         """
-        arr = super(DefaultPriorConfig, self).get(module_name, class_name,
-                                                  attribute_name).replace(" ",
-                                                                          "").split(",")
+        arr = super(DefaultPriorConfig, self).get(module_name, class_name, attribute_name).replace(" ", "").split(",")
         return [arr[0]] + list(map(float, arr[1:]))
 
 
