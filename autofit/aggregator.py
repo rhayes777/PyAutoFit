@@ -26,7 +26,7 @@ class PhaseOutput(object):
 
     def __init__(self, directory: str):
         """
-        Represents the output of a single phase. Comprises a .metadata file and other data files.
+        Represents the output of a single phase. Comprises a metadata file and other data files.
 
         Parameters
         ----------
@@ -35,7 +35,7 @@ class PhaseOutput(object):
         """
         self.directory = directory
         self.__optimizer = None
-        self.file_path = os.path.join(directory, ".metadata")
+        self.file_path = os.path.join(directory, "metadata")
         with open(self.file_path) as f:
             self.text = f.read()
             pairs = [line.split("=") for line in self.text.split("\n")]
@@ -62,7 +62,7 @@ class PhaseOutput(object):
         The optimizer object that was used in this phase
         """
         if self.__optimizer is None:
-            with open(os.path.join(self.directory, ".optimizer.pickle"), "r+b") as f:
+            with open(os.path.join(self.directory, "optimizer.pickle"), "r+b") as f:
                 self.__optimizer = pickle.loads(f.read())
         return self.__optimizer
 
@@ -80,7 +80,7 @@ class Aggregator(object):
         Class to aggregate phase results for all subdirectories in a given directory.
 
         The whole directory structure is traversed and a Phase object created for each directory that contains a
-        .metadata file.
+        metadata file.
 
         Parameters
         ----------
@@ -90,7 +90,7 @@ class Aggregator(object):
         self.phases = []
 
         for root, _, filenames in os.walk(directory):
-            if ".metadata" in filenames:
+            if "metadata" in filenames:
                 self.phases.append(PhaseOutput(root))
 
     def phases_with(self, **kwargs) -> [PhaseOutput]:
