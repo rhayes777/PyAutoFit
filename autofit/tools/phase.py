@@ -128,7 +128,7 @@ class AbstractPhase(object):
         """
         Create the path at which the optimizer pickle should be saved
         """
-        return "{}/.optimizer.pickle".format(self.make_path())
+        return "{}/optimizer.pickle".format(self.make_path())
 
     def make_path(self) -> str:
         """
@@ -150,7 +150,7 @@ class AbstractPhase(object):
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the data being fit
         """
-        with open("{}/.metadata".format(self.make_path()), "w+") as f:
+        with open("{}/metadata".format(self.make_path()), "w+") as f:
             f.write(
                 "pipeline={}\nphase={}\ndata={}".format(pipeline_name, self.phase_name,
                                                         data_name))
