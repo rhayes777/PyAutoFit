@@ -3,11 +3,10 @@ import os
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper.prior_model import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
-
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue, Prior
+from autofit.mapper.prior_model import AbstractPriorModel
 from autofit.mapper.prior_model import CollectionPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
@@ -593,6 +592,10 @@ class ModelMapper(AbstractPriorModel):
             ],
             key=lambda item: item[1].id
         )
+
+    @property
+    def paths(self):
+        return [item[0] for item in self.path_priors_tuples]
 
     @property
     def info(self):

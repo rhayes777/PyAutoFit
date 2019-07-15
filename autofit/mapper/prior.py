@@ -75,6 +75,7 @@ class TuplePrior(object):
     """
     A prior comprising one or more priors in a tuple
     """
+
     @property
     @cast_collection(PriorNameValue)
     def prior_tuples(self):
