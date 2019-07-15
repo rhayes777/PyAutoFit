@@ -3,10 +3,12 @@ import os
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper.prior_model import AbstractPriorModel, CollectionPriorModel
-from autofit.mapper.model import AbstractModel, ModelInstance
+from autofit.mapper.prior_model import AbstractPriorModel
+from autofit.mapper.model import ModelInstance
+
 from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue, Prior
+from autofit.mapper.prior_model import CollectionPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 path = os.path.dirname(os.path.realpath(__file__))
@@ -578,6 +580,21 @@ class ModelMapper(AbstractPriorModel):
         return self.mapper_from_gaussian_tuples([(mean, 0) for mean in means])
 
     @property
+    def path_priors_tuples(self):
+        path_priors_tuples = self.path_instance_tuples_for_class(
+            Prior
+        )
+        return sorted(
+            [
+                (t[0][:-1], t[1])
+                if t[0][-1] == "value"
+                else t
+                for t in path_priors_tuples
+            ],
+            key=lambda item: item[1].id
+        )
+
+    @property
     def info(self):
         """
         Use the priors that make up the model_mapper to generate information on each
@@ -585,16 +602,6 @@ class ModelMapper(AbstractPriorModel):
 
         This information is extracted from each priors *model_info* property.
         """
-
-        path_priors_tuples = self.path_instance_tuples_for_class(
-            Prior
-        )
-
-        path_priors_tuples = [(t[0][:-1], t[1])
-                              if t[0][-1] == "value"
-                              else t
-                              for t in path_priors_tuples]
-
         path_float_tuples = self.path_instance_tuples_for_class(
             float,
             ignore_class=Prior
@@ -602,7 +609,7 @@ class ModelMapper(AbstractPriorModel):
 
         info_dict = dict()
 
-        for t in path_priors_tuples + path_float_tuples:
+        for t in self.path_priors_tuples + path_float_tuples:
             add_to_info_dict(t, info_dict)
 
         return '\n'.join(
