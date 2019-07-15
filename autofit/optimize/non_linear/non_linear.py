@@ -421,17 +421,7 @@ class Result(object):
         self.figure_of_merit = figure_of_merit
         self.previous_variable = previous_variable
         self.gaussian_tuples = gaussian_tuples
-        self.__variable = None
-
-    @property
-    def variable(self) -> mm.ModelMapper:
-        """
-        A model mapper created by taking results from this phase and combining them with prior widths defined in the
-        configuration.
-        """
-        if self.__variable is None:
-            self.__variable = self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples)
-        return self.__variable
+        self.variable = self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples)
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
