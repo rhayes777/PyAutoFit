@@ -610,18 +610,12 @@ class ModelMapper(AbstractPriorModel):
             ignore_class=Prior
         )
 
-        info_dict = dict()
+        formatter = TextFormatter()
 
         for t in self.path_priors_tuples + path_float_tuples:
-            add_to_info_dict(t, info_dict)
+            formatter.add(t)
 
-        return '\n'.join(
-            info_dict_to_list(
-                info_dict,
-                line_length=100,
-                indent=4
-            )
-        )
+        return formatter.text
 
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.prior_model_tuples:
@@ -658,42 +652,67 @@ class ModelMapper(AbstractPriorModel):
                and self.prior_model_tuples == other.prior_model_tuples
 
 
-def add_to_info_dict(path_item_tuple, info_dict):
-    path_tuple = path_item_tuple[0]
-    key = path_tuple[0]
-    if len(path_tuple) == 1:
-        info_dict[key] = path_item_tuple[1]
-    else:
-        if key not in info_dict:
-            info_dict[key] = dict()
-        add_to_info_dict(
-            (path_item_tuple[0][1:], path_item_tuple[1]),
-            info_dict=info_dict[key]
+class TextFormatter:
+    def __init__(
+            self,
+            line_length=100,
+            indent=4
+    ):
+        self.dict = dict()
+        self.line_length = line_length
+        self.indent = indent
+
+    def add_to_dict(self, path_item_tuple: tuple, info_dict: dict):
+        path_tuple = path_item_tuple[0]
+        key = path_tuple[0]
+        if len(path_tuple) == 1:
+            info_dict[key] = path_item_tuple[1]
+        else:
+            if key not in info_dict:
+                info_dict[key] = dict()
+            self.add_to_dict(
+                (
+                    path_item_tuple[0][1:],
+                    path_item_tuple[1]
+                ),
+                info_dict[key]
+            )
+
+    def add(self, path_item_tuple: tuple):
+        self.add_to_dict(path_item_tuple, self.dict)
+
+    def dict_to_list(
+            self,
+            info_dict,
+            line_length
+    ):
+        lines = []
+        for key, value in info_dict.items():
+            indent_string = self.indent * " "
+            if isinstance(value, dict):
+                sub_lines = self.dict_to_list(
+                    value,
+                    line_length=line_length - self.indent
+                )
+                lines.append(key)
+                for line in sub_lines:
+                    lines.append(f"{indent_string}{line}")
+            else:
+                value_string = str(value)
+                space_string = max((line_length - len(key)),
+                                   1) * " "
+                lines.append(
+                    f"{key}{space_string}{value_string}"
+                )
+        return lines
+
+    @property
+    def list(self):
+        return self.dict_to_list(
+            self.dict,
+            line_length=self.line_length
         )
 
-
-def info_dict_to_list(
-        info_dict,
-        line_length=110,
-        indent=4
-):
-    lines = []
-    for key, value in info_dict.items():
-        indent_string = indent * " "
-        if isinstance(value, dict):
-            sub_lines = info_dict_to_list(
-                value,
-                line_length=line_length - indent,
-                indent=indent
-            )
-            lines.append(key)
-            for line in sub_lines:
-                lines.append(f"{indent_string}{line}")
-        else:
-            value_string = str(value)
-            space_string = max((line_length - len(key)),
-                               1) * " "
-            lines.append(
-                f"{key}{space_string}{value_string}"
-            )
-    return lines
+    @property
+    def text(self):
+        return "\n".join(self.list)
