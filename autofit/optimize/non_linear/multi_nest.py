@@ -373,7 +373,7 @@ class MultiNest(NonLinearOptimizer):
                     'parameters.See github issue '
                     'https://github.com/Jammy2211/PyAutoLens/issues/49')
 
-            formatter = text_util.TextFormatter()
+            formatter = model_mapper.TextFormatter()
 
             for i, prior_path in enumerate(
                     self.variable.paths
@@ -387,7 +387,7 @@ class MultiNest(NonLinearOptimizer):
 
             results += ['\n\nConstants\n\n']
 
-            formatter = text_util.TextFormatter()
+            formatter = model_mapper.TextFormatter()
 
             for t in self.variable.path_float_tuples:
                 formatter.add(t)
@@ -404,7 +404,7 @@ class MultiNest(NonLinearOptimizer):
         upper_limits = self.model_parameters_at_upper_sigma_limit(
             sigma_limit=limit)
 
-        sigma_formatter = autofit.tools.text_util.TextFormatter()
+        sigma_formatter = model_mapper.TextFormatter()
 
         for i, prior_path in enumerate(
                 self.variable.paths
