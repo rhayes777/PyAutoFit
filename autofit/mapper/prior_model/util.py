@@ -1,6 +1,6 @@
 import re
 
-from autofit.mapper.prior import AttributeNameValue
+from autofit.mapper.prior_model.prior import AttributeNameValue
 
 
 def tuple_name(attribute_name):

@@ -4,7 +4,7 @@ import os
 from autofit import conf
 from autofit import exc
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
+from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue, Prior
 from autofit.mapper.prior_model import AbstractPriorModel
 from autofit.mapper.prior_model import CollectionPriorModel

@@ -2,8 +2,8 @@ import copy
 import inspect
 
 from autofit.mapper.model import AbstractModel
-from autofit.mapper.prior import Prior
-from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue
+from autofit.mapper.prior_model.prior import Prior
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 
