@@ -42,9 +42,15 @@ class TestModelInstance(object):
                                                       instance.galaxy_2]
 
     def test_object_for_path(self, instance, galaxy_1, galaxy_2):
-        assert instance.object_for_path(("galaxy_2",)) == galaxy_2
-        assert instance.object_for_path(("sub", "galaxy_1")) == galaxy_1
-        assert instance.object_for_path(("sub", "sub", "galaxy_1")) == galaxy_1
+        assert instance.object_for_path(("galaxy_2",)) is galaxy_2
+        assert instance.object_for_path(("sub", "galaxy_1")) is galaxy_1
+        assert instance.object_for_path(("sub", "sub", "galaxy_1")) is galaxy_1
+        setattr(
+            instance.object_for_path(("galaxy_2",)),
+            "galaxy",
+            galaxy_1
+        )
+        assert galaxy_2.galaxy is galaxy_1
 
     def test_path_instance_tuples_for_class(self, instance, galaxy_1, galaxy_2):
         result = instance.path_instance_tuples_for_class(mock.Galaxy)
