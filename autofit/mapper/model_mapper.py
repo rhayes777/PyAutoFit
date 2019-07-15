@@ -664,7 +664,7 @@ def add_to_info_dict(path_item_tuple, info_dict):
 
 def info_dict_to_list(
         info_dict,
-        line_length=130,
+        line_length=110,
         indent=4
 ):
     lines = []
@@ -681,7 +681,7 @@ def info_dict_to_list(
                 lines.append(f"{indent_string}{line}")
         else:
             value_string = str(value)
-            space_string = max((line_length - len(value_string) - len(key)),
+            space_string = max((line_length - len(key)),
                                1) * " "
             lines.append(
                 f"{key}{space_string}{value_string}"

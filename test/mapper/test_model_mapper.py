@@ -417,13 +417,13 @@ class TestGenerateModelInfo(object):
         ls = info_dict_to_list(info_dict, line_length=20, indent=4)
 
         assert ls[0] == "one"
-        assert len(ls[1]) == 20
-        assert ls[1] == "    one            1"
-        assert ls[2] == "    two            2"
+        assert len(ls[1]) == 21
+        assert ls[1] == "    one             1"
+        assert ls[2] == "    two             2"
         assert ls[3] == "    three"
-        assert ls[4] == "        four       4"
+        assert ls[4] == "        four        4"
         assert ls[5] == "three"
-        assert ls[6] == "    four           4"
+        assert ls[6] == "    four            4"
 
     def test_basic(self):
         mm = af.ModelMapper()
@@ -431,8 +431,8 @@ class TestGenerateModelInfo(object):
         model_info = mm.info
 
         assert model_info == """mock_class
-    one                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+    one                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
     def test_with_constant(self):
         mm = af.ModelMapper()
@@ -441,10 +441,11 @@ class TestGenerateModelInfo(object):
         mm.mock_class.two = 1.0
 
         model_info = mm.info
+        print(model_info)
 
         assert model_info == """mock_class
-    one                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                                                                          1.0"""
+    one                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                                             1.0"""
 
 
 class WithFloat(object):
