@@ -5,6 +5,7 @@ from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model.prior import Prior
 from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
+from autofit.mapper.prior_model.dimension_type import DimensionType
 
 
 class AbstractPriorModel(AbstractModel):
@@ -179,7 +180,13 @@ def transfer_classes(instance, mapper, variable_classes):
     for key, instance_value in instance.__dict__.items():
         try:
             mapper_value = getattr(mapper, key)
-            if isinstance(mapper_value, Prior):
+            if isinstance(
+                    mapper_value,
+                    Prior
+            ) or isinstance(
+                mapper_value,
+                DimensionType
+            ):
                 setattr(mapper, key, instance_value)
             if not any(
                     isinstance(
