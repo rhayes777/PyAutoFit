@@ -6,13 +6,12 @@ import numpy as np
 import pymultinest
 from matplotlib import pyplot as plt
 
-
-from autofit.tools import text_util
-from autofit.optimize.non_linear.non_linear import Result
 from autofit import conf, exc
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
-from autofit.optimize.non_linear.non_linear import persistent_timer
 from autofit.mapper import model_mapper
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear.non_linear import Result
+from autofit.optimize.non_linear.non_linear import persistent_timer
+from autofit.tools import text_util
 
 logger = logging.getLogger(__name__)
 
@@ -196,9 +195,9 @@ class MultiNest(NonLinearOptimizer):
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
         return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
-                         previous_variable=self.variable,
-                         gaussian_tuples=self.gaussian_priors_at_sigma_limit(
-                             self.sigma_limit))
+                      previous_variable=self.variable,
+                      gaussian_tuples=self.gaussian_priors_at_sigma_limit(
+                          self.sigma_limit))
 
     def read_list_of_results_from_summary_file(self, number_entries, offset):
 
@@ -390,11 +389,7 @@ class MultiNest(NonLinearOptimizer):
                     upper_limits = self.model_parameters_at_upper_sigma_limit(
                         sigma_limit=limit)
 
-                    results = [
-                        '\n\nMost probable model ({} sigma limits)\n\n'.format(limit)
-                    ]
-
-                    info_dict = dict()
+                    formatter = model_mapper.TextFormatter()
 
                     for i, prior_path in enumerate(
                             self.variable.paths
@@ -403,15 +398,13 @@ class MultiNest(NonLinearOptimizer):
                         upper_limit = format_str.format(upper_limits[i])
                         lower_limit = format_str.format(lower_limits[i])
                         value = value + ' (' + lower_limit + ', ' + upper_limit + ')'
-                        model_mapper.add_to_info_dict(
-                            (prior_path, value),
-                            info_dict
+                        formatter.add(
+                            (prior_path, value)
                         )
 
-                    return "\n".join(
-                        model_mapper.info_dict_to_list(
-                        info_dict
-                    )
+                    return '\n\nMost probable model ({} sigma limits)\n\n{}'.format(
+                        limit,
+                        formatter.text
                     )
 
                 results += results_from_sigma_limit(limit=3.0)
@@ -424,9 +417,9 @@ class MultiNest(NonLinearOptimizer):
 
             for j in range(self.variable.constant_count):
                 line = text_util.label_and_value_string(label=constant_names[j],
-                                                           value=constants[j][1],
-                                                           whitespace=60)
+                                                        value=constants[j][1],
+                                                        whitespace=60)
                 results += [line + '\n']
 
             text_util.output_list_of_strings_to_file(file=self.file_results,
-                                                        list_of_strings=results)
+                                                     list_of_strings=results)
