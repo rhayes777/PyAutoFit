@@ -379,7 +379,7 @@ class MultiNest(NonLinearOptimizer):
                     self.variable.paths
             ):
                 formatter.add((prior_path, self.format_str.format(most_likely[i])))
-                results += [formatter.text + '\n']
+            results += [formatter.text + '\n']
 
             if not during_analysis:
                 results += self.results_from_sigma_limit(limit=3.0)
