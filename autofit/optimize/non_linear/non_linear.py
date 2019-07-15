@@ -421,7 +421,19 @@ class Result(object):
         self.figure_of_merit = figure_of_merit
         self.previous_variable = previous_variable
         self.gaussian_tuples = gaussian_tuples
-        self.variable = self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples)
+        self.__variable = None
+
+    @property
+    def variable(self):
+        if self.__variable is None:
+            self.__variable = self.previous_variable.mapper_from_gaussian_tuples(
+                self.gaussian_tuples
+            )
+        return self.__variable
+
+    @variable.setter
+    def variable(self, variable):
+        self.__variable = variable
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
