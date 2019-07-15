@@ -351,11 +351,12 @@ class MultiNest(NonLinearOptimizer):
 
         plt.close()
 
-    def output_results(self, during_analysis=False):
-
+    @property
+    def format_str(self):
         decimal_places = conf.instance.general.get("output", "model_results_decimal_places", int)
+        return '{:.' + str(decimal_places) + 'f}'
 
-        format_str = '{:.' + str(decimal_places) + 'f}'
+    def output_results(self, during_analysis=False):
 
         if os.path.isfile(self.file_summary):
 
@@ -372,54 +373,51 @@ class MultiNest(NonLinearOptimizer):
                     'parameters.See github issue '
                     'https://github.com/Jammy2211/PyAutoLens/issues/49')
 
-            for j in range(self.variable.prior_count):
-                line = text_util.label_and_value_string(
-                    label=self.variable.param_names[j], value=most_likely[j],
-                    whitespace=60, format_string=format_str)
-                results += [line + '\n']
+            formatter = text_util.TextFormatter()
+
+            for i, prior_path in enumerate(
+                    self.variable.paths
+            ):
+                formatter.add((prior_path, self.format_str.format(most_likely[i])))
+                results += [formatter.text + '\n']
 
             if not during_analysis:
-
-                most_probable_params = self.most_probable_model_parameters
-
-                def results_from_sigma_limit(limit):
-
-                    lower_limits = self.model_parameters_at_lower_sigma_limit(
-                        sigma_limit=limit)
-                    upper_limits = self.model_parameters_at_upper_sigma_limit(
-                        sigma_limit=limit)
-
-                    formatter = model_mapper.TextFormatter()
-
-                    for i, prior_path in enumerate(
-                            self.variable.paths
-                    ):
-                        value = format_str.format(most_probable_params[i])
-                        upper_limit = format_str.format(upper_limits[i])
-                        lower_limit = format_str.format(lower_limits[i])
-                        value = value + ' (' + lower_limit + ', ' + upper_limit + ')'
-                        formatter.add(
-                            (prior_path, value)
-                        )
-
-                    return '\n\nMost probable model ({} sigma limits)\n\n{}'.format(
-                        limit,
-                        formatter.text
-                    )
-
-                results += results_from_sigma_limit(limit=3.0)
-                results += results_from_sigma_limit(limit=1.0)
+                results += self.results_from_sigma_limit(limit=3.0)
+                results += self.results_from_sigma_limit(limit=1.0)
 
             results += ['\n\nConstants\n\n']
 
-            constant_names = self.variable.constant_names
-            constants = self.variable.constant_tuples
+            formatter = text_util.TextFormatter()
 
-            for j in range(self.variable.constant_count):
-                line = text_util.label_and_value_string(label=constant_names[j],
-                                                        value=constants[j][1],
-                                                        whitespace=60)
-                results += [line + '\n']
+            for t in self.variable.path_float_tuples:
+                formatter.add(t)
+
+            results += ["\n" + formatter.text]
 
             text_util.output_list_of_strings_to_file(file=self.file_results,
                                                      list_of_strings=results)
+
+    def results_from_sigma_limit(self, limit):
+
+        lower_limits = self.model_parameters_at_lower_sigma_limit(
+            sigma_limit=limit)
+        upper_limits = self.model_parameters_at_upper_sigma_limit(
+            sigma_limit=limit)
+
+        sigma_formatter = autofit.tools.text_util.TextFormatter()
+
+        for i, prior_path in enumerate(
+                self.variable.paths
+        ):
+            value = self.format_str.format(self.most_probable_model_parameters[i])
+            upper_limit = self.format_str.format(upper_limits[i])
+            lower_limit = self.format_str.format(lower_limits[i])
+            value = value + ' (' + lower_limit + ', ' + upper_limit + ')'
+            sigma_formatter.add(
+                (prior_path, value)
+            )
+
+        return '\n\nMost probable model ({} sigma limits)\n\n{}'.format(
+            limit,
+            sigma_formatter.text
+        )

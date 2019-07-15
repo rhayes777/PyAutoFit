@@ -598,6 +598,13 @@ class ModelMapper(AbstractPriorModel):
         return [item[0] for item in self.path_priors_tuples]
 
     @property
+    def path_float_tuples(self):
+        return self.path_instance_tuples_for_class(
+            float,
+            ignore_class=Prior
+        )
+
+    @property
     def info(self):
         """
         Use the priors that make up the model_mapper to generate information on each
@@ -605,14 +612,9 @@ class ModelMapper(AbstractPriorModel):
 
         This information is extracted from each priors *model_info* property.
         """
-        path_float_tuples = self.path_instance_tuples_for_class(
-            float,
-            ignore_class=Prior
-        )
-
         formatter = TextFormatter()
 
-        for t in self.path_priors_tuples + path_float_tuples:
+        for t in self.path_priors_tuples + self.path_float_tuples:
             formatter.add(t)
 
         return formatter.text
