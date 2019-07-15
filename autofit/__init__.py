@@ -6,4 +6,4 @@ from . import conf
 from .aggregator import Aggregator
 
 
-__version__ = '0.28.3'
+__version__ = '0.29.0'

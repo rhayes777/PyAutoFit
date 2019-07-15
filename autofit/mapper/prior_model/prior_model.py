@@ -4,7 +4,7 @@ import inspect
 from typing_inspect import is_tuple_type
 
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue, \
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
     TuplePrior, Prior, AttributeNameValue, \
     DeferredNameValue
 from autofit.mapper.prior_model.abstract import AbstractPriorModel

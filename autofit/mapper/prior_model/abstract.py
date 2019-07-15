@@ -2,8 +2,8 @@ import copy
 import inspect
 
 from autofit.mapper.model import AbstractModel
-from autofit.mapper.prior import Prior
-from autofit.mapper.prior import cast_collection, PriorNameValue, ConstantNameValue
+from autofit.mapper.prior_model.prior import Prior
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 
@@ -142,3 +142,59 @@ class AbstractPriorModel(AbstractModel):
                     setattr(result, key, value)
 
         return result
+
+    def copy_with_fixed_priors(
+            self,
+            instance,
+            excluded_classes=tuple()
+    ):
+        """
+        Recursively overwrite priors in the mapper with constant values from the
+        instance except where the containing class is the descendant of a listed class.
+
+        Parameters
+        ----------
+        excluded_classes
+            Classes that should be left variable
+        instance
+            The best fit from the previous phase
+        """
+        mapper = copy.deepcopy(self)
+        transfer_classes(instance, mapper, excluded_classes)
+        return mapper
+
+
+def transfer_classes(instance, mapper, variable_classes):
+    """
+    Recursively overwrite priors in the mapper with constant values from the
+    instance except where the containing class is the descendant of a listed class.
+
+    Parameters
+    ----------
+    instance
+        The best fit from the previous phase
+    mapper
+        The prior variable from the previous phase
+    """
+    for key, instance_value in instance.__dict__.items():
+        try:
+            mapper_value = getattr(mapper, key)
+            if isinstance(mapper_value, Prior):
+                setattr(mapper, key, instance_value)
+            if not any(
+                    isinstance(
+                        instance_value,
+                        cls
+                    )
+                    for cls in variable_classes
+            ):
+                try:
+                    transfer_classes(
+                        instance_value,
+                        mapper_value,
+                        variable_classes
+                    )
+                except AttributeError:
+                    setattr(mapper, key, instance_value)
+        except AttributeError:
+            pass

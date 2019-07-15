@@ -6,7 +6,7 @@ import autofit.optimize.non_linear.non_linear
 import test.mock
 from autofit import exc
 from autofit.mapper import model_mapper as mm
-from autofit.mapper import prior as p
+from autofit.mapper.prior_model import prior as p
 from autofit.optimize import grid_search as gs
 from autofit.tools import phase
 
