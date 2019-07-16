@@ -33,15 +33,30 @@ class GridSearch(NonLinearOptimizer):
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 
-    def copy_with_name_extension(self, extension):
+    def copy_with_name_extension(self, extension, include_phase_tag=False):
         name = "{}/{}".format(self.phase_name, extension)
-        new_instance = self.__class__(
-            phase_name=name,
-            phase_folders=self.phase_folders,
-            model_mapper=self.variable,
-            step_size=self.step_size
-        )
-        new_instance.grid = self.grid
+
+        if not include_phase_tag:
+
+            new_instance = self.__class__(
+                phase_name=name,
+                phase_folders=self.phase_folders,
+                model_mapper=self.variable,
+                step_size=self.step_size
+            )
+            new_instance.grid = self.grid
+
+        else:
+
+            new_instance = self.__class__(
+                phase_name=name,
+                phase_folders=self.phase_folders,
+                phase_tag=self.phase_tag,
+                model_mapper=self.variable,
+                step_size=self.step_size
+            )
+            new_instance.grid = self.grid
+
         return new_instance
 
     class Result(Result):
