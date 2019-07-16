@@ -1,6 +1,6 @@
 import copy
 
-from .model_object import ModelObject
+from autofit.mapper.model_object import ModelObject
 
 
 class AbstractModel(ModelObject):

@@ -6,11 +6,12 @@ import numpy as np
 import pymultinest
 from matplotlib import pyplot as plt
 
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
-from autofit.optimize.non_linear.non_linear import persistent_timer
-import autofit as af
-
 from autofit import conf, exc
+from autofit.mapper import model_mapper
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear.non_linear import Result
+from autofit.optimize.non_linear.non_linear import persistent_timer
+from autofit.tools import text_util
 
 logger = logging.getLogger(__name__)
 
@@ -193,10 +194,10 @@ class MultiNest(NonLinearOptimizer):
                            during_analysis=False)
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
-        return af.Result(constant=constant, figure_of_merit=self.maximum_likelihood,
-                         previous_variable=self.variable,
-                         gaussian_tuples=self.gaussian_priors_at_sigma_limit(
-                             self.sigma_limit))
+        return Result(constant=constant, figure_of_merit=self.maximum_likelihood,
+                      previous_variable=self.variable,
+                      gaussian_tuples=self.gaussian_priors_at_sigma_limit(
+                          self.sigma_limit))
 
     def read_list_of_results_from_summary_file(self, number_entries, offset):
 
@@ -350,11 +351,12 @@ class MultiNest(NonLinearOptimizer):
 
         plt.close()
 
-    def output_results(self, during_analysis=False):
-
+    @property
+    def format_str(self):
         decimal_places = conf.instance.general.get("output", "model_results_decimal_places", int)
+        return '{:.' + str(decimal_places) + 'f}'
 
-        format_str = '{:.' + str(decimal_places) + 'f}'
+    def output_results(self, during_analysis=False):
 
         if os.path.isfile(self.file_summary):
 
@@ -371,52 +373,51 @@ class MultiNest(NonLinearOptimizer):
                     'parameters.See github issue '
                     'https://github.com/Jammy2211/PyAutoLens/issues/49')
 
-            for j in range(self.variable.prior_count):
-                line = af.text_util.label_and_value_string(
-                    label=self.variable.param_names[j], value=most_likely[j],
-                    whitespace=60, format_string=format_str)
-                results += [line + '\n']
+            formatter = model_mapper.TextFormatter()
+
+            for i, prior_path in enumerate(
+                    self.variable.paths
+            ):
+                formatter.add((prior_path, self.format_str.format(most_likely[i])))
+            results += [formatter.text + '\n']
 
             if not during_analysis:
-
-                most_probable_params = self.most_probable_model_parameters
-
-                def results_from_sigma_limit(limit):
-
-                    lower_limits = self.model_parameters_at_lower_sigma_limit(
-                        sigma_limit=limit)
-                    upper_limits = self.model_parameters_at_upper_sigma_limit(
-                        sigma_limit=limit)
-
-                    results = [
-                        '\n\nMost probable model ({} sigma limits)\n\n'.format(limit)]
-
-                    for i in range(self.variable.prior_count):
-                        line = af.text_util.label_value_and_limits_string(
-                            label=self.variable.param_names[i],
-                            value=most_probable_params[i],
-                            lower_limit=lower_limits[i],
-                            upper_limit=upper_limits[i],
-                            whitespace=60,
-                            format_string=format_str)
-
-                        results += [line + '\n']
-
-                    return results
-
-                results += results_from_sigma_limit(limit=3.0)
-                results += results_from_sigma_limit(limit=1.0)
+                results += self.results_from_sigma_limit(limit=3.0)
+                results += self.results_from_sigma_limit(limit=1.0)
 
             results += ['\n\nConstants\n\n']
 
-            constant_names = self.variable.constant_names
-            constants = self.variable.constant_tuples
+            formatter = model_mapper.TextFormatter()
 
-            for j in range(self.variable.constant_count):
-                line = af.text_util.label_and_value_string(label=constant_names[j],
-                                                           value=constants[j][1],
-                                                           whitespace=60)
-                results += [line + '\n']
+            for t in self.variable.path_float_tuples:
+                formatter.add(t)
 
-            af.text_util.output_list_of_strings_to_file(file=self.file_results,
-                                                        list_of_strings=results)
+            results += ["\n" + formatter.text]
+
+            text_util.output_list_of_strings_to_file(file=self.file_results,
+                                                     list_of_strings=results)
+
+    def results_from_sigma_limit(self, limit):
+
+        lower_limits = self.model_parameters_at_lower_sigma_limit(
+            sigma_limit=limit)
+        upper_limits = self.model_parameters_at_upper_sigma_limit(
+            sigma_limit=limit)
+
+        sigma_formatter = model_mapper.TextFormatter()
+
+        for i, prior_path in enumerate(
+                self.variable.paths
+        ):
+            value = self.format_str.format(self.most_probable_model_parameters[i])
+            upper_limit = self.format_str.format(upper_limits[i])
+            lower_limit = self.format_str.format(lower_limits[i])
+            value = value + ' (' + lower_limit + ', ' + upper_limit + ')'
+            sigma_formatter.add(
+                (prior_path, value)
+            )
+
+        return '\n\nMost probable model ({} sigma limits)\n\n{}'.format(
+            limit,
+            sigma_formatter.text
+        )

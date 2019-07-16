@@ -3,9 +3,10 @@ import os
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper.prior_model import AbstractPriorModel, CollectionPriorModel
-from autofit.mapper.model import AbstractModel, ModelInstance
-from autofit.mapper.prior import GaussianPrior, cast_collection, PriorNameValue, \
+from autofit.mapper.model import ModelInstance
+from autofit.mapper.prior_model import AbstractPriorModel
+from autofit.mapper.prior_model import CollectionPriorModel
+from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue, Prior
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
@@ -578,6 +579,32 @@ class ModelMapper(AbstractPriorModel):
         return self.mapper_from_gaussian_tuples([(mean, 0) for mean in means])
 
     @property
+    def path_priors_tuples(self):
+        path_priors_tuples = self.path_instance_tuples_for_class(
+            Prior
+        )
+        return sorted(
+            [
+                (t[0][:-1], t[1])
+                if t[0][-1] == "value"
+                else t
+                for t in path_priors_tuples
+            ],
+            key=lambda item: item[1].id
+        )
+
+    @property
+    def paths(self):
+        return [item[0] for item in self.path_priors_tuples]
+
+    @property
+    def path_float_tuples(self):
+        return self.path_instance_tuples_for_class(
+            float,
+            ignore_class=Prior
+        )
+
+    @property
     def info(self):
         """
         Use the priors that make up the model_mapper to generate information on each
@@ -585,33 +612,12 @@ class ModelMapper(AbstractPriorModel):
 
         This information is extracted from each priors *model_info* property.
         """
+        formatter = TextFormatter()
 
-        path_priors_tuples = self.path_instance_tuples_for_class(
-            Prior
-        )
+        for t in self.path_priors_tuples + self.path_float_tuples:
+            formatter.add(t)
 
-        path_priors_tuples = [(t[0][:-1], t[1])
-                              if t[0][-1] == "value"
-                              else t
-                              for t in path_priors_tuples]
-
-        path_float_tuples = self.path_instance_tuples_for_class(
-            float,
-            ignore_class=Prior
-        )
-
-        info_dict = dict()
-
-        for t in path_priors_tuples + path_float_tuples:
-            add_to_info_dict(t, info_dict)
-
-        return '\n'.join(
-            info_dict_to_list(
-                info_dict,
-                line_length=100,
-                indent=4
-            )
-        )
+        return formatter.text
 
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.prior_model_tuples:
@@ -648,42 +654,67 @@ class ModelMapper(AbstractPriorModel):
                and self.prior_model_tuples == other.prior_model_tuples
 
 
-def add_to_info_dict(path_item_tuple, info_dict):
-    path_tuple = path_item_tuple[0]
-    key = path_tuple[0]
-    if len(path_tuple) == 1:
-        info_dict[key] = path_item_tuple[1]
-    else:
-        if key not in info_dict:
-            info_dict[key] = dict()
-        add_to_info_dict(
-            (path_item_tuple[0][1:], path_item_tuple[1]),
-            info_dict=info_dict[key]
+class TextFormatter:
+    def __init__(
+            self,
+            line_length=100,
+            indent=4
+    ):
+        self.dict = dict()
+        self.line_length = line_length
+        self.indent = indent
+
+    def add_to_dict(self, path_item_tuple: tuple, info_dict: dict):
+        path_tuple = path_item_tuple[0]
+        key = path_tuple[0]
+        if len(path_tuple) == 1:
+            info_dict[key] = path_item_tuple[1]
+        else:
+            if key not in info_dict:
+                info_dict[key] = dict()
+            self.add_to_dict(
+                (
+                    path_item_tuple[0][1:],
+                    path_item_tuple[1]
+                ),
+                info_dict[key]
+            )
+
+    def add(self, path_item_tuple: tuple):
+        self.add_to_dict(path_item_tuple, self.dict)
+
+    def dict_to_list(
+            self,
+            info_dict,
+            line_length
+    ):
+        lines = []
+        for key, value in info_dict.items():
+            indent_string = self.indent * " "
+            if isinstance(value, dict):
+                sub_lines = self.dict_to_list(
+                    value,
+                    line_length=line_length - self.indent
+                )
+                lines.append(key)
+                for line in sub_lines:
+                    lines.append(f"{indent_string}{line}")
+            else:
+                value_string = str(value)
+                space_string = max((line_length - len(key)),
+                                   1) * " "
+                lines.append(
+                    f"{key}{space_string}{value_string}"
+                )
+        return lines
+
+    @property
+    def list(self):
+        return self.dict_to_list(
+            self.dict,
+            line_length=self.line_length
         )
 
-
-def info_dict_to_list(
-        info_dict,
-        line_length=130,
-        indent=4
-):
-    lines = []
-    for key, value in info_dict.items():
-        indent_string = indent * " "
-        if isinstance(value, dict):
-            sub_lines = info_dict_to_list(
-                value,
-                line_length=line_length - indent,
-                indent=indent
-            )
-            lines.append(key)
-            for line in sub_lines:
-                lines.append(f"{indent_string}{line}")
-        else:
-            value_string = str(value)
-            space_string = max((line_length - len(value_string) - len(key)),
-                               1) * " "
-            lines.append(
-                f"{key}{space_string}{value_string}"
-            )
-    return lines
+    @property
+    def text(self):
+        return "\n".join(self.list)

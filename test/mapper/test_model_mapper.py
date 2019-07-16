@@ -5,8 +5,7 @@ import pytest
 
 import autofit as af
 import test.mock
-from autofit.mapper.model_mapper import add_to_info_dict
-from autofit.mapper.model_mapper import info_dict_to_list
+from autofit.mapper.model_mapper import TextFormatter
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -387,20 +386,24 @@ class MockProfile(object):
         self.intensity = intensity
 
 
-@pytest.fixture(name="info_dict")
+@pytest.fixture(name="formatter")
 def make_info_dict():
-    info_dict = dict()
-    add_to_info_dict([("one", "one"), 1], info_dict)
-    add_to_info_dict([("one", "two"), 2], info_dict)
-    add_to_info_dict([("one", "three", "four"), 4], info_dict)
-    add_to_info_dict([("three", "four"), 4], info_dict)
+    formatter = TextFormatter(
+        line_length=20,
+        indent=4
+    )
+    formatter.add((("one", "one"), 1))
+    formatter.add((("one", "two"), 2))
+    formatter.add((("one", "three", "four"), 4))
+    formatter.add((("three", "four"), 4))
 
-    return info_dict
+    return formatter
 
 
 class TestGenerateModelInfo(object):
-    def test_add_to_info_dict(self, info_dict):
-        assert info_dict == {
+    def test_add_to_info_dict(self, formatter):
+        print(formatter.dict)
+        assert formatter.dict == {
             "one": {
                 "one": 1,
                 "two": 2,
@@ -413,17 +416,17 @@ class TestGenerateModelInfo(object):
             }
         }
 
-    def test_info_string(self, info_dict):
-        ls = info_dict_to_list(info_dict, line_length=20, indent=4)
+    def test_info_string(self, formatter):
+        ls = formatter.list
 
         assert ls[0] == "one"
-        assert len(ls[1]) == 20
-        assert ls[1] == "    one            1"
-        assert ls[2] == "    two            2"
+        assert len(ls[1]) == 21
+        assert ls[1] == "    one             1"
+        assert ls[2] == "    two             2"
         assert ls[3] == "    three"
-        assert ls[4] == "        four       4"
+        assert ls[4] == "        four        4"
         assert ls[5] == "three"
-        assert ls[6] == "    four           4"
+        assert ls[6] == "    four            4"
 
     def test_basic(self):
         mm = af.ModelMapper()
@@ -431,8 +434,8 @@ class TestGenerateModelInfo(object):
         model_info = mm.info
 
         assert model_info == """mock_class
-    one                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+    one                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
     def test_with_constant(self):
         mm = af.ModelMapper()
@@ -441,10 +444,11 @@ class TestGenerateModelInfo(object):
         mm.mock_class.two = 1.0
 
         model_info = mm.info
+        print(model_info)
 
         assert model_info == """mock_class
-    one                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                                                                          1.0"""
+    one                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                                             1.0"""
 
 
 class WithFloat(object):

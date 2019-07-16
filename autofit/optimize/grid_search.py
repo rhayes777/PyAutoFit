@@ -9,10 +9,9 @@ from autofit import conf
 from autofit import exc
 from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
-from autofit.mapper import prior as p
+from autofit.mapper.prior_model import prior as p
 from autofit.optimize import optimizer
 from autofit.optimize.non_linear import DownhillSimplex
-from autofit.tools import path_util
 
 logger = logging.getLogger(__name__)
 
