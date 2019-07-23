@@ -657,7 +657,7 @@ class ModelMapper(AbstractPriorModel):
 class TextFormatter:
     def __init__(
             self,
-            line_length=100,
+            line_length=90,
             indent=4
     ):
         self.dict = dict()
