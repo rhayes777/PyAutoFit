@@ -21,3 +21,9 @@ class TestCase:
             instance
         )
         assert result.prior_count == 0
+        assert result.profile.centre == (0.0, 0.0)
+        assert isinstance(result.profile, af.PriorModel)
+
+        instance = result.instance_from_unit_vector([])
+        assert result.profile.centre == (0.0, 0.0)
+        assert isinstance(instance.profile, mock.GeometryProfile)
