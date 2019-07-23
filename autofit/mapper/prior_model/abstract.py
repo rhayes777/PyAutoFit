@@ -38,6 +38,7 @@ class AbstractPriorModel(AbstractModel):
     @staticmethod
     def from_instance(instance):
         from .collection import CollectionPriorModel
+        from autofit.mapper.model import ModelInstance
         if isinstance(instance, list):
             return CollectionPriorModel(
                 list(map(
@@ -45,6 +46,8 @@ class AbstractPriorModel(AbstractModel):
                     instance
                 ))
             )
+        if isinstance(instance, ModelInstance):
+            instance = instance.dict
         if isinstance(instance, dict):
             return CollectionPriorModel(
                 {

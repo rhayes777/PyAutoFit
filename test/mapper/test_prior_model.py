@@ -41,6 +41,16 @@ class TestFromInstance:
         assert isinstance(prior_model.simple, af.PriorModel)
         assert prior_model.simple.one == 1.0
 
+        new_instance = prior_model.instance_for_arguments({})
+        assert isinstance(new_instance.simple, SimpleClass)
+
+        prior_model = af.AbstractPriorModel.from_instance(
+            new_instance
+        )
+        assert isinstance(prior_model, af.CollectionPriorModel)
+        assert isinstance(prior_model.simple, af.PriorModel)
+        assert prior_model.simple.one == 1.0
+
 
 class TestSum(object):
     def test_add_prior_models(self):
