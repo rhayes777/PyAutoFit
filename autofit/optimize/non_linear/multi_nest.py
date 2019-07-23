@@ -376,7 +376,7 @@ class MultiNest(NonLinearOptimizer):
             formatter = autofit.tools.text_formatter.TextFormatter()
 
             for i, prior_path in enumerate(
-                    self.variable.paths
+                    self.variable.unique_prior_paths
             ):
                 formatter.add((prior_path, self.format_str.format(most_likely[i])))
             results += [formatter.text + '\n']
@@ -385,7 +385,7 @@ class MultiNest(NonLinearOptimizer):
                 results += self.results_from_sigma_limit(limit=3.0)
                 results += self.results_from_sigma_limit(limit=1.0)
 
-            results += ['\n\nConstants\n\n']
+            results += ['\n\nConstants\n']
 
             formatter = autofit.tools.text_formatter.TextFormatter()
 
@@ -407,7 +407,7 @@ class MultiNest(NonLinearOptimizer):
         sigma_formatter = autofit.tools.text_formatter.TextFormatter()
 
         for i, prior_path in enumerate(
-                self.variable.paths
+                self.variable.unique_prior_paths
         ):
             value = self.format_str.format(self.most_probable_model_parameters[i])
             upper_limit = self.format_str.format(upper_limits[i])
