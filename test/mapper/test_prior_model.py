@@ -27,6 +27,8 @@ class TestFromInstance:
             instance
         )
         assert isinstance(prior_model, af.CollectionPriorModel)
+        assert isinstance(prior_model[0], af.PriorModel)
+        assert prior_model[0].one == 1.0
 
 
 class TestSum(object):
