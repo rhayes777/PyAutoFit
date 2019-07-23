@@ -9,7 +9,7 @@ from autofit.mapper.prior_model import CollectionPriorModel
 from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue, Prior
 from autofit.mapper.prior_model.util import PriorModelNameValue
-from autofit.mapper.text_formatter import TextFormatter
+from autofit.tools.text_formatter import TextFormatter
 
 path = os.path.dirname(os.path.realpath(__file__))
 
