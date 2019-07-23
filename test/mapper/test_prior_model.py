@@ -21,6 +21,17 @@ def make_list_prior_model():
     )
 
 
+class TestAsVariable:
+    def test_instance(self, instance_prior_model):
+        variable = instance_prior_model.as_variable()
+        assert variable.prior_count == 2
+
+    def test_list(self, list_prior_model):
+        variable = list_prior_model.as_variable()
+        assert isinstance(variable, af.CollectionPriorModel)
+        assert variable.prior_count == 2
+
+
 class TestFromInstance:
     def test_instance(self, instance_prior_model):
         assert instance_prior_model.cls == SimpleClass

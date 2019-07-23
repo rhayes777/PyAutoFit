@@ -18,9 +18,24 @@ class CollectionPriorModel(AbstractPriorModel):
         return len(self.items)
 
     @property
+    def dict(self):
+        return {key: value for key, value in self.__dict__.items() if
+                key not in ('component_number', 'item_number', 'id')}
+
+    @property
     def items(self):
-        return [value for key, value in self.__dict__.items() if
-                key not in ('component_number', 'item_number', 'id')]
+        return list(self.dict.values())
+
+    def as_variable(self):
+        return CollectionPriorModel(
+            {
+                key: value.as_variable()
+                if isinstance(value, AbstractPriorModel)
+                else value
+                for key, value
+                in self.dict.items()
+            }
+        )
 
     @property
     def flat_prior_model_tuples(self):
