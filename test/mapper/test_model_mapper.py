@@ -5,7 +5,7 @@ import pytest
 
 import autofit as af
 import test.mock
-from autofit.mapper.model_mapper import TextFormatter
+from autofit.tools.text_formatter import TextFormatter
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -434,8 +434,8 @@ class TestGenerateModelInfo(object):
         model_info = mm.info
 
         assert model_info == """mock_class
-    one                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+    one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
     def test_with_constant(self):
         mm = af.ModelMapper()
@@ -447,8 +447,8 @@ class TestGenerateModelInfo(object):
         print(model_info)
 
         assert model_info == """mock_class
-    one                                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                                                                             1.0"""
+    one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                                   1.0"""
 
 
 class WithFloat(object):

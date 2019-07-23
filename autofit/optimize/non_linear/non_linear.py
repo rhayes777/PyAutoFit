@@ -272,12 +272,14 @@ class NonLinearOptimizer(object):
 
     def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
+
         new_instance = self.__class__(
             phase_name=name,
             phase_folders=self.phase_folders,
             model_mapper=self.variable
         )
         new_instance.phase_tag = self.phase_tag
+
         return new_instance
 
     @property

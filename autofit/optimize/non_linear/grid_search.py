@@ -35,6 +35,7 @@ class GridSearch(NonLinearOptimizer):
 
     def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
+
         new_instance = self.__class__(
             phase_name=name,
             phase_folders=self.phase_folders,
@@ -42,6 +43,7 @@ class GridSearch(NonLinearOptimizer):
             step_size=self.step_size
         )
         new_instance.grid = self.grid
+
         return new_instance
 
     class Result(Result):
