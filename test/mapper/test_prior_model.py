@@ -21,7 +21,7 @@ class TestFromInstance:
         assert new_instance.one == 1.0
         assert new_instance.two == 2.0
 
-    def test_collection_prior_model(self):
+    def test_list(self):
         instance = [SimpleClass(1.0, 2.0)]
         prior_model = af.AbstractPriorModel.from_instance(
             instance
@@ -29,6 +29,17 @@ class TestFromInstance:
         assert isinstance(prior_model, af.CollectionPriorModel)
         assert isinstance(prior_model[0], af.PriorModel)
         assert prior_model[0].one == 1.0
+
+    def test_dict(self):
+        instance = {
+            "simple": SimpleClass(1.0, 2.0)
+        }
+        prior_model = af.AbstractPriorModel.from_instance(
+            instance
+        )
+        assert isinstance(prior_model, af.CollectionPriorModel)
+        assert isinstance(prior_model.simple, af.PriorModel)
+        assert prior_model.simple.one == 1.0
 
 
 class TestSum(object):

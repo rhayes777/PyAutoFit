@@ -45,6 +45,16 @@ class AbstractPriorModel(AbstractModel):
                     instance
                 ))
             )
+        if isinstance(instance, dict):
+            return CollectionPriorModel(
+                {
+                    key: AbstractPriorModel.from_instance(
+                        value
+                    )
+                    for key, value
+                    in instance.items()
+                }
+            )
 
         from .prior_model import PriorModel
         return PriorModel(
