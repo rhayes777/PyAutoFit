@@ -73,10 +73,19 @@ class AbstractPriorModel(AbstractModel):
             )
 
         from .prior_model import PriorModel
-        return PriorModel(
-            instance.__class__,
-            **instance.__dict__
-        )
+        try:
+            return PriorModel(
+                instance.__class__,
+                **{
+                    key: AbstractPriorModel.from_instance(
+                        value
+                    )
+                    for key, value
+                    in instance.__dict__.items()
+                }
+            )
+        except AttributeError:
+            return instance
 
     @property
     def info(self):
