@@ -71,8 +71,8 @@ class MultiNest(NonLinearOptimizer):
     def file_results(self):
         return "{}/{}".format(self.phase_output_path, 'model.results')
 
-    def copy_with_name_extension(self, extension, include_phase_tag=False):
-        copy = super().copy_with_name_extension(extension=extension, include_phase_tag=include_phase_tag)
+    def copy_with_name_extension(self, extension):
+        copy = super().copy_with_name_extension(extension=extension)
         copy.sigma_limit = self.sigma_limit
         copy.run = self.run
         copy.importance_nested_sampling = self.importance_nested_sampling
