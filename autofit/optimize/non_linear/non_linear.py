@@ -270,26 +270,15 @@ class NonLinearOptimizer(object):
 
             return likelihood
 
-    def copy_with_name_extension(self, extension, include_phase_tag=False):
+    def copy_with_name_extension(self, extension):
         name = "{}/{}".format(self.phase_name, extension)
 
-        if not include_phase_tag:
-
-            new_instance = self.__class__(
-                phase_name=name,
-                phase_folders=self.phase_folders,
-                model_mapper=self.variable
-            )
-            new_instance.phase_tag = self.phase_tag
-
-        else:
-
-            new_instance = self.__class__(
-                phase_name=name,
-                phase_folders=self.phase_folders,
-                phase_tag=self.phase_tag,
-                model_mapper=self.variable
-            )
+        new_instance = self.__class__(
+            phase_name=name,
+            phase_folders=self.phase_folders,
+            model_mapper=self.variable
+        )
+        new_instance.phase_tag = self.phase_tag
 
         return new_instance
 
