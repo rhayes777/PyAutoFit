@@ -37,6 +37,19 @@ class AbstractPriorModel(AbstractModel):
 
     @staticmethod
     def from_instance(instance):
+        """
+        Recursively create an prior object model from an object model.
+
+        Parameters
+        ----------
+        instance
+            A dictionary, list, class instance or model instance
+
+        Returns
+        -------
+        abstract_prior_model
+            A concrete child of an abstract prior model
+        """
         from .collection import CollectionPriorModel
         from autofit.mapper.model import ModelInstance
         if isinstance(instance, list):
