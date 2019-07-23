@@ -39,6 +39,12 @@ class TestAsVariable:
         assert isinstance(variable, af.CollectionPriorModel)
         assert variable.prior_count == 2
 
+    def test_complex(self, complex_prior_model):
+        assert complex_prior_model.prior_count == 0
+        variable = complex_prior_model.as_variable()
+        assert variable.prior_count == 2
+        assert variable.simple.prior_count == 2
+
 
 class TestFromInstance:
     def test_instance(self, instance_prior_model):
