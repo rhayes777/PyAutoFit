@@ -50,13 +50,6 @@ class PriorModel(AbstractPriorModel):
         if cls is self:
             return
 
-        if not inspect.isclass(cls):
-            kwargs = {
-                **kwargs,
-                **cls.__dict__
-            }
-            cls = cls.__class__
-
         self.cls = cls
         self.component_number = next(self._ids)
 

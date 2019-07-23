@@ -8,7 +8,9 @@ from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
 class TestFromInstance:
     def test_prior_model_from_instance(self):
         instance = SimpleClass(1.0, 2.0)
-        prior_model = af.PriorModel(instance)
+        prior_model = af.AbstractPriorModel.from_instance(
+            instance
+        )
         assert prior_model.cls == SimpleClass
         assert prior_model.prior_count == 0
         assert prior_model.one == 1.0
@@ -18,6 +20,13 @@ class TestFromInstance:
         assert isinstance(new_instance, SimpleClass)
         assert new_instance.one == 1.0
         assert new_instance.two == 2.0
+
+    def test_collection_prior_model(self):
+        instance = [SimpleClass(1.0, 2.0)]
+        prior_model = af.AbstractPriorModel.from_instance(
+            instance
+        )
+        assert isinstance(prior_model, af.CollectionPriorModel)
 
 
 class TestSum(object):

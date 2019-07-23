@@ -35,6 +35,23 @@ class AbstractPriorModel(AbstractModel):
             obj = t
         return obj
 
+    @staticmethod
+    def from_instance(instance):
+        from .collection import CollectionPriorModel
+        if isinstance(instance, list):
+            return CollectionPriorModel(
+                list(map(
+                    AbstractPriorModel.from_instance,
+                    instance
+                ))
+            )
+
+        from .prior_model import PriorModel
+        return PriorModel(
+            instance.__class__,
+            **instance.__dict__
+        )
+
     @property
     def info(self):
         info = []
