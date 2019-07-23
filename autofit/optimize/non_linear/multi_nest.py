@@ -385,7 +385,7 @@ class MultiNest(NonLinearOptimizer):
                 results += self.results_from_sigma_limit(limit=3.0)
                 results += self.results_from_sigma_limit(limit=1.0)
 
-            results += ['\n\nConstants\n\n']
+            results += ['\n\nConstants\n']
 
             formatter = autofit.tools.text_formatter.TextFormatter()
 
