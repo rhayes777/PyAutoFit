@@ -354,7 +354,8 @@ class ModelMapper(AbstractPriorModel):
 
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * len(self.prior_tuples))
+            unit_vector=[0.5] * len(self.prior_tuples)
+        )
 
     def instance_from_unit_vector(self, unit_vector):
         """
