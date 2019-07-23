@@ -11,7 +11,7 @@ from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import optimizer
-from autofit.optimize.non_linear import DownhillSimplex
+from autofit.optimize.non_linear.downhill_simplex import DownhillSimplex
 
 logger = logging.getLogger(__name__)
 

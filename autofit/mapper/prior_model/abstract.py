@@ -28,7 +28,7 @@ class AbstractPriorModel(AbstractModel):
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            from autofit.mapper import CollectionPriorModel
+            from autofit.mapper.prior_model.collection import CollectionPriorModel
             obj = object.__new__(CollectionPriorModel)
             obj.__init__(t)
         else:
@@ -171,6 +171,7 @@ def transfer_classes(instance, mapper, variable_classes):
 
     Parameters
     ----------
+    variable_classes
     instance
         The best fit from the previous phase
     mapper
