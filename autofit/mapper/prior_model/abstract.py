@@ -88,26 +88,6 @@ class AbstractPriorModel(AbstractModel):
             return instance
 
     @property
-    def info(self):
-        info = []
-
-        prior_model_iterator = self.direct_prior_tuples + self.direct_constant_tuples
-
-        for attribute_tuple in prior_model_iterator:
-            attribute = attribute_tuple[1]
-
-            # noinspection PyUnresolvedReferences
-            line = attribute_tuple.name
-            # noinspection PyUnresolvedReferences
-            info.append(line + ' ' * (60 - len(line)) + str(attribute))
-
-        for prior_model_name, prior_model in self.prior_model_tuples:
-            info.append(prior_model.name + '\n')
-            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
-
-        return info
-
-    @property
     @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
         return self.tuples_with_type(Prior)
