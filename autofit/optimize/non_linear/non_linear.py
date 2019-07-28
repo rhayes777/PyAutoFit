@@ -63,6 +63,11 @@ class NonLinearOptimizer(object):
         except FileExistsError:
             pass
 
+        try:
+            os.makedirs(self.pdf_path)
+        except FileExistsError:
+            pass
+
         self.restore()
 
     @property
@@ -110,6 +115,13 @@ class NonLinearOptimizer(object):
         The path to the directory in which images are stored.
         """
         return "{}image/".format(self.phase_output_path)
+
+    @property
+    def pdf_path(self) -> str:
+        """
+        The path to the directory in which images are stored.
+        """
+        return "{}pdf/".format(self.image_path)
 
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__

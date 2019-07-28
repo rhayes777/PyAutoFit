@@ -331,7 +331,7 @@ class MultiNest(NonLinearOptimizer):
             for param_name in self.variable.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
                 pdf_plot.export(
-                    fname='{}/pdf_{}_1D.png'.format(self.image_path, param_name))
+                    fname='{}/pdf_{}_1D.png'.format(self.pdf_path, param_name))
 
         plt.close()
 
@@ -341,7 +341,7 @@ class MultiNest(NonLinearOptimizer):
 
             try:
                 pdf_plot.triangle_plot(roots=self.pdf)
-                pdf_plot.export(fname='{}/pdf_triangle.png'.format(self.image_path))
+                pdf_plot.export(fname='{}/pdf_triangle.png'.format(self.pdf_path))
             except Exception as e:
                 print(type(e))
                 print(
