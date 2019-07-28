@@ -373,6 +373,16 @@ class NonLinearOptimizer(object):
             map(lambda lower, most_probable: most_probable - lower, lowers,
                 self.most_probable_model_parameters))
 
+    def model_errors_instance_at_sigma_limit(self, sigma_limit):
+        return self.variable.instance_from_physical_vector(physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit))
+
+    def model_errors_instance_at_upper_sigma_limit(self, sigma_limit):
+        return self.variable.instance_from_physical_vector(physical_vector=self.model_errors_at_upper_sigma_limit(sigma_limit=sigma_limit))
+
+    def model_errors_instance_at_lower_sigma_limit(self, sigma_limit):
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.model_errors_at_lower_sigma_limit(sigma_limit=sigma_limit))
+
     def sample_model_instance_from_sample_index(self, sample_index):
         """Setup a model instance of a weighted sample.
 
