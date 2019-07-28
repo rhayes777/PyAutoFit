@@ -496,7 +496,7 @@ class TestLimits(object):
     #         af.conf.instance.output_path = mn_samples_path + '/1_class'
     #
     #         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-    #         mn = non_linear.MultiNest(phase_name='', model_mapper=mapper)
+    #         mn = af.MultiNest(phase_name='', model_mapper=mapper)
     #         create_summary_4_parameters(path=mn_summary_path)
     #         create_weighted_samples_4_parameters(path=mn_samples_path)
     #
@@ -504,7 +504,7 @@ class TestLimits(object):
     #         assert errors_upper == pytest.approx([0.12, 0.12, 0.12, 0.12], 1e-2)
     #         errors_lower = mn.model_errors_at_lower_sigma_limit(sigma_limit=3.0)
     #         assert errors_lower == pytest.approx([0.12, 0.12, 0.12, 0.12], 1e-2)
-    #
+
     #
     #     def test__1_species__upper_and_lower_change_limit_to_1_sigma(self, mn_samples_path):
     #
@@ -531,6 +531,12 @@ class TestLimits(object):
         model_errors = mn.model_errors_at_sigma_limit(sigma_limit=3.0)
         assert model_errors == pytest.approx(
             [1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2)
+
+        model_errors_instance = mn.model_errors_instance_at_sigma_limit(sigma_limit=3.0)
+        assert model_errors_instance.mock_class.one == pytest.approx(1.12 - 0.88, 1e-2)
+        assert model_errors_instance.mock_class.two == pytest.approx(2.12 - 1.88, 1e-2)
+        assert model_errors_instance.mock_class.three == pytest.approx(3.12 - 2.88, 1e-2)
+        assert model_errors_instance.mock_class.four == pytest.approx(4.12 - 3.88, 1e-2)
 
     def test__1_species__change_limit_to_1_sigma(self, mn_samples_path):
         af.conf.instance.output_path = mn_samples_path + '/1_class'
