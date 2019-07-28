@@ -63,11 +63,6 @@ class NonLinearOptimizer(object):
         except FileExistsError:
             pass
 
-        try:
-            os.makedirs("{}fits/".format(self.image_path))
-        except FileExistsError:
-            pass
-
         self.restore()
 
     @property
