@@ -5,6 +5,98 @@ from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
     DistanceClass, PositionClass, Galaxy, Tracer, EllipticalLP, EllipticalMassProfile
 
 
+@pytest.fixture(name="instance_prior_model")
+def make_instance_prior_model():
+    instance = SimpleClass(1.0, 2.0)
+    return af.AbstractPriorModel.from_instance(
+        instance
+    )
+
+
+@pytest.fixture(name="list_prior_model")
+def make_list_prior_model():
+    instance = [SimpleClass(1.0, 2.0)]
+    return af.AbstractPriorModel.from_instance(
+        instance
+    )
+
+
+@pytest.fixture(name="complex_prior_model")
+def make_complex_prior_model():
+    instance = ComplexClass(SimpleClass(1.0, 2.0))
+    return af.AbstractPriorModel.from_instance(
+        instance
+    )
+
+
+class TestAsVariable:
+    def test_instance(self, instance_prior_model):
+        variable = instance_prior_model.as_variable()
+        assert variable.prior_count == 2
+
+    def test_list(self, list_prior_model):
+        variable = list_prior_model.as_variable()
+        assert isinstance(variable, af.CollectionPriorModel)
+        assert variable.prior_count == 2
+
+    def test_complex(self, complex_prior_model):
+        assert complex_prior_model.prior_count == 0
+        variable = complex_prior_model.as_variable()
+        assert variable.prior_count == 2
+        assert variable.simple.prior_count == 2
+
+
+class TestFromInstance:
+    def test_instance(self, instance_prior_model):
+        assert instance_prior_model.cls == SimpleClass
+        assert instance_prior_model.prior_count == 0
+        assert instance_prior_model.one == 1.0
+        assert instance_prior_model.two == 2.0
+
+        new_instance = instance_prior_model.instance_for_arguments({})
+        assert isinstance(new_instance, SimpleClass)
+        assert new_instance.one == 1.0
+        assert new_instance.two == 2.0
+
+    def test_complex(self, complex_prior_model):
+        assert complex_prior_model.cls == ComplexClass
+        assert complex_prior_model.prior_count == 0
+        assert isinstance(complex_prior_model.simple, af.PriorModel)
+        assert complex_prior_model.simple.cls == SimpleClass
+        assert complex_prior_model.simple.one == 1.0
+
+        new_instance = complex_prior_model.instance_for_arguments({})
+        assert isinstance(new_instance, ComplexClass)
+        assert isinstance(new_instance.simple, SimpleClass)
+        assert new_instance.simple.one == 1.0
+
+    def test_list(self, list_prior_model):
+        assert isinstance(list_prior_model, af.CollectionPriorModel)
+        assert isinstance(list_prior_model[0], af.PriorModel)
+        assert list_prior_model[0].one == 1.0
+
+    def test_dict(self):
+        instance = {
+            "simple": SimpleClass(1.0, 2.0)
+        }
+        prior_model = af.AbstractPriorModel.from_instance(
+            instance
+        )
+        assert isinstance(prior_model, af.CollectionPriorModel)
+        assert isinstance(prior_model.simple, af.PriorModel)
+        assert prior_model.simple.one == 1.0
+
+        new_instance = prior_model.instance_for_arguments({})
+        assert isinstance(new_instance.simple, SimpleClass)
+
+        prior_model = af.AbstractPriorModel.from_instance(
+            new_instance
+        )
+        assert isinstance(prior_model, af.CollectionPriorModel)
+        assert isinstance(prior_model.simple, af.PriorModel)
+        assert prior_model.simple.one == 1.0
+
+
 class TestSum(object):
     def test_add_prior_models(self):
         profile_1 = af.PriorModel(EllipticalLP)

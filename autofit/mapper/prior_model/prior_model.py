@@ -4,12 +4,12 @@ import inspect
 from typing_inspect import is_tuple_type
 
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
-    TuplePrior, Prior, AttributeNameValue, \
-    DeferredNameValue
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.deferred import DeferredInstance
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
+    TuplePrior, Prior, AttributeNameValue, \
+    DeferredNameValue
 from autofit.mapper.prior_model.util import tuple_name, is_tuple_like_attribute_name
 
 
@@ -21,6 +21,11 @@ class PriorModel(AbstractPriorModel):
     @property
     def name(self):
         return self.cls.__name__
+
+    def as_variable(self):
+        return PriorModel(
+            self.cls
+        )
 
     @property
     def flat_prior_model_tuples(self):
