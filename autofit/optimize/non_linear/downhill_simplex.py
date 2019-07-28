@@ -27,7 +27,7 @@ class DownhillSimplex(NonLinearOptimizer):
         logger.debug("Creating DownhillSimplex NLO")
 
     def copy_with_name_extension(self, extension, include_phase_tag=False):
-        copy = super().copy_with_name_extension(extension=extension, include_phase_tag=include_phase_tag)
+        copy = super().copy_with_name_extension(extension=extension)
         copy.fmin = self.fmin
         copy.xtol = self.xtol
         copy.ftol = self.ftol

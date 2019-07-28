@@ -6,8 +6,8 @@ import numpy as np
 import pymultinest
 from matplotlib import pyplot as plt
 
+import autofit.tools.text_formatter
 from autofit import conf, exc
-from autofit.mapper import model_mapper
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import persistent_timer
@@ -71,8 +71,8 @@ class MultiNest(NonLinearOptimizer):
     def file_results(self):
         return "{}/{}".format(self.phase_output_path, 'model.results')
 
-    def copy_with_name_extension(self, extension, include_phase_tag=False):
-        copy = super().copy_with_name_extension(extension=extension, include_phase_tag=include_phase_tag)
+    def copy_with_name_extension(self, extension):
+        copy = super().copy_with_name_extension(extension=extension)
         copy.sigma_limit = self.sigma_limit
         copy.run = self.run
         copy.importance_nested_sampling = self.importance_nested_sampling
@@ -373,10 +373,10 @@ class MultiNest(NonLinearOptimizer):
                     'parameters.See github issue '
                     'https://github.com/Jammy2211/PyAutoLens/issues/49')
 
-            formatter = model_mapper.TextFormatter()
+            formatter = autofit.tools.text_formatter.TextFormatter()
 
             for i, prior_path in enumerate(
-                    self.variable.paths
+                    self.variable.unique_prior_paths
             ):
                 formatter.add((prior_path, self.format_str.format(most_likely[i])))
             results += [formatter.text + '\n']
@@ -385,9 +385,9 @@ class MultiNest(NonLinearOptimizer):
                 results += self.results_from_sigma_limit(limit=3.0)
                 results += self.results_from_sigma_limit(limit=1.0)
 
-            results += ['\n\nConstants\n\n']
+            results += ['\n\nConstants\n']
 
-            formatter = model_mapper.TextFormatter()
+            formatter = autofit.tools.text_formatter.TextFormatter()
 
             for t in self.variable.path_float_tuples:
                 formatter.add(t)
@@ -404,10 +404,10 @@ class MultiNest(NonLinearOptimizer):
         upper_limits = self.model_parameters_at_upper_sigma_limit(
             sigma_limit=limit)
 
-        sigma_formatter = model_mapper.TextFormatter()
+        sigma_formatter = autofit.tools.text_formatter.TextFormatter()
 
         for i, prior_path in enumerate(
-                self.variable.paths
+                self.variable.unique_prior_paths
         ):
             value = self.format_str.format(self.most_probable_model_parameters[i])
             upper_limit = self.format_str.format(upper_limits[i])

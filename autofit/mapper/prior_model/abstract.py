@@ -28,7 +28,7 @@ class AbstractPriorModel(AbstractModel):
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            from autofit.mapper import CollectionPriorModel
+            from autofit.mapper.prior_model.collection import CollectionPriorModel
             obj = object.__new__(CollectionPriorModel)
             obj.__init__(t)
         else:
@@ -164,19 +164,22 @@ class AbstractPriorModel(AbstractModel):
         return mapper
 
 
-def transfer_classes(instance, mapper, variable_classes):
+def transfer_classes(instance, mapper, variable_classes=None):
     """
     Recursively overwrite priors in the mapper with constant values from the
     instance except where the containing class is the descendant of a listed class.
 
     Parameters
     ----------
+    variable_classes
+        Classes whose descendants should not be overwritten
     instance
         The best fit from the previous phase
     mapper
         The prior variable from the previous phase
     """
     from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+    variable_classes = variable_classes or []
     for key, instance_value in instance.__dict__.items():
         try:
             mapper_value = getattr(mapper, key)

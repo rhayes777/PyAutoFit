@@ -1,6 +1,6 @@
 import numpy as np
 
-import autofit as af
+from autofit.tools import fit
 
 
 class TestDataFit:
@@ -13,7 +13,7 @@ class TestDataFit:
 
         model_data = np.array([1.0, 2.0, 3.0, 4.0])
 
-        data_fit = af.fit.DataFit(
+        data_fit = fit.DataFit(
             data=data, noise_map=noise_map, mask=mask, model_data=model_data)
 
         assert (data_fit.data == np.array([1.0, 2.0, 3.0, 4.0])).all()
@@ -39,7 +39,7 @@ class TestDataFit:
 
         model_data = np.array([1.0, 1.0, 1.0, 1.0])
 
-        data_fit = af.fit.DataFit(
+        data_fit = fit.DataFit(
             data=data, noise_map=noise_map, mask=mask, model_data=model_data)
 
         assert (data_fit.data == np.array([1.0, 2.0, 3.0, 4.0])).all()
@@ -67,7 +67,7 @@ class TestDataFit:
 
         model_data = np.array([1.0, 1.0, 1.0, 1.0])
 
-        data_fit = af.fit.DataFit(data=data, noise_map=noise_map, mask=mask,
+        data_fit = fit.DataFit(data=data, noise_map=noise_map, mask=mask,
                                   model_data=model_data)
 
         assert (data_fit.data == np.array([1.0, 2.0, 3.0, 4.0])).all()
@@ -95,7 +95,7 @@ class TestDataFit1d:
         mask_1d = np.array([False, True, True, False])
         model_data_1d = np.array([1.0, 1.0, 1.0, 1.0])
 
-        data_fit_1d = af.fit.DataFit1D(
+        data_fit_1d = fit.DataFit1D(
             data_1d=data_1d, noise_map_1d=noise_map_1d, mask_1d=mask_1d, model_data_1d=model_data_1d)
 
         assert (data_fit_1d.data_1d == np.array([1.0, 2.0, 3.0, 4.0])).all()
