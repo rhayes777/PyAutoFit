@@ -35,25 +35,57 @@ class AbstractPriorModel(AbstractModel):
             obj = t
         return obj
 
-    @property
-    def info(self):
-        info = []
+    @staticmethod
+    def from_instance(instance):
+        """
+        Recursively create an prior object model from an object model.
 
-        prior_model_iterator = self.direct_prior_tuples + self.direct_constant_tuples
+        Parameters
+        ----------
+        instance
+            A dictionary, list, class instance or model instance
 
-        for attribute_tuple in prior_model_iterator:
-            attribute = attribute_tuple[1]
+        Returns
+        -------
+        abstract_prior_model
+            A concrete child of an abstract prior model
+        """
+        from .collection import CollectionPriorModel
+        from autofit.mapper.model import ModelInstance
+        if isinstance(instance, list):
+            return CollectionPriorModel(
+                list(map(
+                    AbstractPriorModel.from_instance,
+                    instance
+                ))
+            )
+        if isinstance(instance, ModelInstance):
+            instance = instance.dict
+        if isinstance(instance, dict):
+            return CollectionPriorModel(
+                {
+                    key: AbstractPriorModel.from_instance(
+                        value
+                    )
+                    for key, value
+                    in instance.items()
+                }
+            )
 
-            # noinspection PyUnresolvedReferences
-            line = attribute_tuple.name
-            # noinspection PyUnresolvedReferences
-            info.append(line + ' ' * (60 - len(line)) + str(attribute))
-
-        for prior_model_name, prior_model in self.prior_model_tuples:
-            info.append(prior_model.name + '\n')
-            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
-
-        return info
+        from .prior_model import PriorModel
+        try:
+            return PriorModel(
+                instance.__class__,
+                **{
+                    key: AbstractPriorModel.from_instance(
+                        value
+                    )
+                    for key, value
+                    in instance.__dict__.items()
+                }
+            )
+        except AttributeError:
+            return instance
 
     @property
     @cast_collection(PriorNameValue)

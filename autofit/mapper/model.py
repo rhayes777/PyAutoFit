@@ -127,8 +127,12 @@ class ModelInstance(AbstractModel):
 
     @property
     def items(self):
-        return [value for key, value in self.__dict__.items() if
-                key not in ("id", "component_number", "item_number")]
+        return list(self.dict.values())
+
+    @property
+    def dict(self):
+        return {key: value for key, value in self.__dict__.items() if
+                key not in ("id", "component_number", "item_number")}
 
     def __len__(self):
         return len(self.items)
