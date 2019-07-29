@@ -55,6 +55,40 @@ class TestFromInstance:
         )
         assert model.prior_count == 2
 
+    def test_list_with_variable_classes(self):
+        instance = [
+            SimpleClass(1.0, 2.0),
+            ComplexClass(SimpleClass(1.0, 2.0))
+        ]
+        model = af.AbstractPriorModel.from_instance(
+            instance,
+            variable_classes=(ComplexClass,)
+        )
+
+        assert model.prior_count == 2
+        assert model[0].prior_count == 0
+        assert model[1].prior_count == 2
+
+    def test_dict_with_variable_classes(self):
+        instance = {
+            "one": SimpleClass(1.0, 2.0),
+            "two": ComplexClass(SimpleClass(1.0, 2.0))
+        }
+        model = af.AbstractPriorModel.from_instance(
+            instance,
+            variable_classes=(ComplexClass,)
+        )
+
+        assert model.prior_count == 2
+        assert model[0].prior_count == 0
+        assert model[1].prior_count == 2
+
+        assert model.one.one == 1.0
+        assert model.one.two == 2.0
+
+        assert isinstance(model.two.simple.one, af.Prior)
+        assert isinstance(model.two.simple.two, af.Prior)
+
     def test_instance(self, instance_prior_model):
         assert instance_prior_model.cls == SimpleClass
         assert instance_prior_model.prior_count == 0
