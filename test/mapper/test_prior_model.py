@@ -1,13 +1,12 @@
 import pytest
 
 import autofit as af
-from test.mock import SimpleClass, ComplexClass, ListClass, Distance, \
-    DistanceClass, PositionClass, Galaxy, Tracer, EllipticalLP, EllipticalMassProfile
+from test import mock
 
 
 @pytest.fixture(name="instance_prior_model")
 def make_instance_prior_model():
-    instance = SimpleClass(1.0, 2.0)
+    instance = mock.SimpleClass(1.0, 2.0)
     return af.AbstractPriorModel.from_instance(
         instance
     )
@@ -15,7 +14,7 @@ def make_instance_prior_model():
 
 @pytest.fixture(name="list_prior_model")
 def make_list_prior_model():
-    instance = [SimpleClass(1.0, 2.0)]
+    instance = [mock.SimpleClass(1.0, 2.0)]
     return af.AbstractPriorModel.from_instance(
         instance
     )
@@ -23,7 +22,7 @@ def make_list_prior_model():
 
 @pytest.fixture(name="complex_prior_model")
 def make_complex_prior_model():
-    instance = ComplexClass(SimpleClass(1.0, 2.0))
+    instance = mock.ComplexClass(mock.SimpleClass(1.0, 2.0))
     return af.AbstractPriorModel.from_instance(
         instance
     )
@@ -49,7 +48,7 @@ class TestAsVariable:
 class TestFromInstance:
     def test_model_mapper(self):
         instance = af.ModelInstance()
-        instance.simple = SimpleClass(1.0, 2.0)
+        instance.simple = mock.SimpleClass(1.0, 2.0)
 
         result = af.AbstractPriorModel.from_instance(
             instance
@@ -58,21 +57,21 @@ class TestFromInstance:
         assert isinstance(result, af.ModelMapper)
 
     def test_with_variable_classes(self):
-        instance = ComplexClass(SimpleClass(1.0, 2.0))
+        instance = mock.ComplexClass(mock.SimpleClass(1.0, 2.0))
         model = af.AbstractPriorModel.from_instance(
             instance,
-            variable_classes=(SimpleClass,)
+            variable_classes=(mock.SimpleClass,)
         )
         assert model.prior_count == 2
 
     def test_list_with_variable_classes(self):
         instance = [
-            SimpleClass(1.0, 2.0),
-            ComplexClass(SimpleClass(1.0, 2.0))
+            mock.SimpleClass(1.0, 2.0),
+            mock.ComplexClass(mock.SimpleClass(1.0, 2.0))
         ]
         model = af.AbstractPriorModel.from_instance(
             instance,
-            variable_classes=(ComplexClass,)
+            variable_classes=(mock.ComplexClass,)
         )
 
         assert model.prior_count == 2
@@ -81,12 +80,12 @@ class TestFromInstance:
 
     def test_dict_with_variable_classes(self):
         instance = {
-            "one": SimpleClass(1.0, 2.0),
-            "two": ComplexClass(SimpleClass(1.0, 2.0))
+            "one": mock.SimpleClass(1.0, 2.0),
+            "two": mock.ComplexClass(mock.SimpleClass(1.0, 2.0))
         }
         model = af.AbstractPriorModel.from_instance(
             instance,
-            variable_classes=(ComplexClass,)
+            variable_classes=(mock.ComplexClass,)
         )
 
         assert model.prior_count == 2
@@ -100,26 +99,26 @@ class TestFromInstance:
         assert isinstance(model.two.simple.two, af.Prior)
 
     def test_instance(self, instance_prior_model):
-        assert instance_prior_model.cls == SimpleClass
+        assert instance_prior_model.cls == mock.SimpleClass
         assert instance_prior_model.prior_count == 0
         assert instance_prior_model.one == 1.0
         assert instance_prior_model.two == 2.0
 
         new_instance = instance_prior_model.instance_for_arguments({})
-        assert isinstance(new_instance, SimpleClass)
+        assert isinstance(new_instance, mock.SimpleClass)
         assert new_instance.one == 1.0
         assert new_instance.two == 2.0
 
     def test_complex(self, complex_prior_model):
-        assert complex_prior_model.cls == ComplexClass
+        assert complex_prior_model.cls == mock.ComplexClass
         assert complex_prior_model.prior_count == 0
         assert isinstance(complex_prior_model.simple, af.PriorModel)
-        assert complex_prior_model.simple.cls == SimpleClass
+        assert complex_prior_model.simple.cls == mock.SimpleClass
         assert complex_prior_model.simple.one == 1.0
 
         new_instance = complex_prior_model.instance_for_arguments({})
-        assert isinstance(new_instance, ComplexClass)
-        assert isinstance(new_instance.simple, SimpleClass)
+        assert isinstance(new_instance, mock.ComplexClass)
+        assert isinstance(new_instance.simple, mock.SimpleClass)
         assert new_instance.simple.one == 1.0
 
     def test_list(self, list_prior_model):
@@ -129,7 +128,7 @@ class TestFromInstance:
 
     def test_dict(self):
         instance = {
-            "simple": SimpleClass(1.0, 2.0)
+            "simple": mock.SimpleClass(1.0, 2.0)
         }
         prior_model = af.AbstractPriorModel.from_instance(
             instance
@@ -139,7 +138,7 @@ class TestFromInstance:
         assert prior_model.simple.one == 1.0
 
         new_instance = prior_model.instance_for_arguments({})
-        assert isinstance(new_instance.simple, SimpleClass)
+        assert isinstance(new_instance.simple, mock.SimpleClass)
 
         prior_model = af.AbstractPriorModel.from_instance(
             new_instance
@@ -148,11 +147,32 @@ class TestFromInstance:
         assert isinstance(prior_model.simple, af.PriorModel)
         assert prior_model.simple.one == 1.0
 
+    def test_dimension_types(self):
+        instance = mock.DistanceClass(
+            mock.Distance(1.0),
+            mock.Distance(2.0)
+        )
+        result = af.AbstractPriorModel.from_instance(
+            instance,
+            variable_classes=mock.DistanceClass
+        )
+        assert isinstance(result.first, af.PriorModel)
+
+        new_instance = result.instance_for_arguments(
+            {
+                result.first: 1.0,
+                result.second: 2.0
+            }
+        )
+        assert isinstance(new_instance, mock.DistanceClass)
+        assert isinstance(new_instance.first, mock.Distance)
+        assert new_instance.first == 1.0
+
 
 class TestSum(object):
     def test_add_prior_models(self):
-        profile_1 = af.PriorModel(EllipticalLP)
-        profile_2 = af.PriorModel(EllipticalLP)
+        profile_1 = af.PriorModel(mock.EllipticalLP)
+        profile_2 = af.PriorModel(mock.EllipticalLP)
 
         profile_1.axis_ratio = 1.0
         profile_2.phi = 0.0
@@ -160,34 +180,34 @@ class TestSum(object):
         result = profile_1 + profile_2
 
         assert isinstance(result, af.PriorModel)
-        assert result.cls == EllipticalLP
+        assert result.cls == mock.EllipticalLP
         assert isinstance(result.axis_ratio, af.Prior)
         assert isinstance(result.phi, af.Prior)
 
     def test_fail_for_mismatch(self):
-        profile_1 = af.PriorModel(EllipticalLP)
-        profile_2 = af.PriorModel(EllipticalMassProfile)
+        profile_1 = af.PriorModel(mock.EllipticalLP)
+        profile_2 = af.PriorModel(mock.EllipticalMassProfile)
 
         with pytest.raises(TypeError):
             profile_1 + profile_2
 
     def test_add_children(self):
         galaxy_1 = af.PriorModel(
-            Galaxy,
+            mock.Galaxy,
             light_profiles=af.CollectionPriorModel(
-                light_1=EllipticalLP
+                light_1=mock.EllipticalLP
             ),
             mass_profiles=af.CollectionPriorModel(
-                mass_1=EllipticalMassProfile
+                mass_1=mock.EllipticalMassProfile
             )
         )
         galaxy_2 = af.PriorModel(
-            Galaxy,
+            mock.Galaxy,
             light_profiles=af.CollectionPriorModel(
-                light_2=EllipticalLP
+                light_2=mock.EllipticalLP
             ),
             mass_profiles=af.CollectionPriorModel(
-                mass_2=EllipticalMassProfile
+                mass_2=mock.EllipticalMassProfile
             )
         )
 
@@ -201,21 +221,21 @@ class TestSum(object):
 
     def test_prior_model_override(self):
         galaxy_1 = af.PriorModel(
-            Galaxy,
+            mock.Galaxy,
             light_profiles=af.CollectionPriorModel(
-                light=EllipticalLP()
+                light=mock.EllipticalLP()
             ),
             mass_profiles=af.CollectionPriorModel(
-                mass=EllipticalMassProfile
+                mass=mock.EllipticalMassProfile
             )
         )
         galaxy_2 = af.PriorModel(
-            Galaxy,
+            mock.Galaxy,
             light_profiles=af.CollectionPriorModel(
-                light=EllipticalLP
+                light=mock.EllipticalLP
             ),
             mass_profiles=af.CollectionPriorModel(
-                mass=EllipticalMassProfile()
+                mass=mock.EllipticalMassProfile()
             )
         )
 
@@ -227,61 +247,61 @@ class TestSum(object):
 
 class TestFloatAnnotation(object):
     def test_distance_from_distance(self):
-        original = Distance(1.0)
+        original = mock.Distance(1.0)
         # noinspection PyTypeChecker
-        distance = DistanceClass(first=original, second=2.0)
+        distance = mock.DistanceClass(first=original, second=2.0)
 
         assert distance.first is original
 
     # noinspection PyTypeChecker
     def test_instantiate_distance(self):
-        distance = DistanceClass(first=1.0, second=2.0)
+        distance = mock.DistanceClass(first=1.0, second=2.0)
 
         assert distance.first == 1.0
         assert distance.second == 2.0
 
-        assert isinstance(distance.first, Distance)
-        assert isinstance(distance.second, Distance)
+        assert isinstance(distance.first, mock.Distance)
+        assert isinstance(distance.second, mock.Distance)
 
-        distance = DistanceClass(1.0, 2.0)
+        distance = mock.DistanceClass(1.0, 2.0)
 
         assert distance.first == 1.0
         assert distance.second == 2.0
 
-        assert isinstance(distance.first, Distance)
-        assert isinstance(distance.second, Distance)
+        assert isinstance(distance.first, mock.Distance)
+        assert isinstance(distance.second, mock.Distance)
 
     def test_distance(self):
         mapper = af.ModelMapper()
-        mapper.object = DistanceClass
+        mapper.object = mock.DistanceClass
 
         assert mapper.prior_count == 2
 
         result = mapper.instance_from_unit_vector([0.5, 1.0])
-        assert isinstance(result.object, DistanceClass)
+        assert isinstance(result.object, mock.DistanceClass)
         assert result.object.first == 0.5
         assert result.object.second == 1.0
 
-        assert isinstance(result.object.first, Distance)
+        assert isinstance(result.object.first, mock.Distance)
 
     def test_position(self):
         mapper = af.ModelMapper()
-        mapper.object = PositionClass
+        mapper.object = mock.PositionClass
 
         assert mapper.prior_count == 2
         result = mapper.instance_from_unit_vector([0.5, 1.0])
-        assert isinstance(result.object, PositionClass)
+        assert isinstance(result.object, mock.PositionClass)
         assert result.object.position[0] == 0.5
         assert result.object.position[1] == 1.0
 
-        assert isinstance(result.object.position[0], Distance)
-        assert isinstance(result.object.position[1], Distance)
+        assert isinstance(result.object.position[0], mock.Distance)
+        assert isinstance(result.object.position[1], mock.Distance)
 
     # noinspection PyUnresolvedReferences
     def test_prior_linking(self):
         mapper = af.ModelMapper()
-        mapper.a = SimpleClass
-        mapper.b = SimpleClass
+        mapper.a = mock.SimpleClass
+        mapper.b = mock.SimpleClass
 
         assert mapper.prior_count == 4
 
@@ -299,7 +319,7 @@ class TestFloatAnnotation(object):
         assert mapper.prior_count == 1
 
     def test_prior_tuples(self):
-        prior_model = af.PriorModel(DistanceClass)
+        prior_model = af.PriorModel(mock.DistanceClass)
 
         assert prior_model.prior_tuples[0].name == "first"
         assert prior_model.prior_tuples[1].name == "second"
@@ -309,9 +329,9 @@ class TestHashing(object):
     def test_is_hashable(self):
         assert hash(
             af.AbstractPriorModel()) is not None
-        assert hash(af.PriorModel(SimpleClass)) is not None
+        assert hash(af.PriorModel(mock.SimpleClass)) is not None
         assert hash(
-            af.AnnotationPriorModel(SimpleClass, SimpleClass, "one")) is not None
+            af.AnnotationPriorModel(mock.SimpleClass, mock.SimpleClass, "one")) is not None
 
     def test_prior_prior_model_hash_consecutive(self):
         prior = af.Prior(0, 1)
@@ -335,26 +355,26 @@ class TestStringArguments(object):
 
 class TestPriorModelArguments(object):
     def test_list_arguments(self):
-        prior_model = af.PriorModel(ListClass)
+        prior_model = af.PriorModel(mock.ListClass)
 
         assert prior_model.prior_count == 0
 
-        prior_model = af.PriorModel(ListClass, ls=[SimpleClass])
+        prior_model = af.PriorModel(mock.ListClass, ls=[mock.SimpleClass])
 
         assert prior_model.prior_count == 2
 
-        prior_model = af.PriorModel(ListClass, ls=[SimpleClass, SimpleClass])
+        prior_model = af.PriorModel(mock.ListClass, ls=[mock.SimpleClass, mock.SimpleClass])
 
         assert prior_model.prior_count == 4
 
     def test_float_argument(self):
         prior = af.UniformPrior(0.5, 2.0)
-        prior_model = af.PriorModel(Galaxy, redshift=prior)
+        prior_model = af.PriorModel(mock.Galaxy, redshift=prior)
 
         assert prior_model.prior_count == 1
         assert prior_model.priors[0] is prior
 
-        prior_model = af.PriorModel(Galaxy, redshift=4.0)
+        prior_model = af.PriorModel(mock.Galaxy, redshift=4.0)
         assert prior_model.prior_count == 0
         assert prior_model.redshift == 4.0
 
@@ -362,10 +382,10 @@ class TestPriorModelArguments(object):
         assert instance.redshift == 4.0
 
     def test_model_argument(self):
-        lens_galaxy = af.PriorModel(Galaxy)
-        source_galaxy = Galaxy()
+        lens_galaxy = af.PriorModel(mock.Galaxy)
+        source_galaxy = mock.Galaxy()
         tracer = af.PriorModel(
-            Tracer,
+            mock.Tracer,
             lens_galaxy=lens_galaxy,
             source_galaxy=source_galaxy
         )
@@ -386,7 +406,7 @@ class TestPriorModelArguments(object):
 
 class TestCase(object):
     def test_complex_class(self):
-        prior_model = af.PriorModel(ComplexClass)
+        prior_model = af.PriorModel(mock.ComplexClass)
 
         assert hasattr(prior_model, "simple")
         assert prior_model.simple.prior_count == 2
@@ -394,7 +414,7 @@ class TestCase(object):
 
     def test_create_instance(self):
         mapper = af.ModelMapper()
-        mapper.complex = ComplexClass
+        mapper.complex = mock.ComplexClass
 
         instance = mapper.instance_from_unit_vector([1.0, 0.0])
 
@@ -403,7 +423,7 @@ class TestCase(object):
 
     def test_instantiate_with_list_arguments(self):
         mapper = af.ModelMapper()
-        mapper.list_object = af.PriorModel(ListClass, ls=[SimpleClass, SimpleClass])
+        mapper.list_object = af.PriorModel(mock.ListClass, ls=[mock.SimpleClass, mock.SimpleClass])
 
         assert len(mapper.list_object.ls) == 2
 
@@ -420,8 +440,8 @@ class TestCase(object):
 
     def test_mix_instances_and_models(self):
         mapper = af.ModelMapper()
-        mapper.list_object = af.PriorModel(ListClass,
-                                           ls=[SimpleClass, SimpleClass(1, 2)])
+        mapper.list_object = af.PriorModel(mock.ListClass,
+                                           ls=[mock.SimpleClass, mock.SimpleClass(1, 2)])
 
         assert mapper.prior_count == 2
 
@@ -437,8 +457,8 @@ class TestCase(object):
 class TestCollectionPriorModel(object):
     def test_keyword_arguments(self):
         prior_model = af.CollectionPriorModel(
-            one=SimpleClass,
-            two=SimpleClass(1, 2)
+            one=mock.SimpleClass,
+            two=mock.SimpleClass(1, 2)
         )
 
         assert len(prior_model.prior_models) == 1
@@ -458,7 +478,7 @@ class TestCollectionPriorModel(object):
         assert instance.two.two == 2
 
     def test_mix_instances_in_list_prior_model(self):
-        prior_model = af.CollectionPriorModel([SimpleClass, SimpleClass(1, 2)])
+        prior_model = af.CollectionPriorModel([mock.SimpleClass, mock.SimpleClass(1, 2)])
 
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
@@ -478,27 +498,27 @@ class TestCollectionPriorModel(object):
         assert len(prior_model.prior_class_dict) == 2
 
     def test_list_in_list_prior_model(self):
-        prior_model = af.CollectionPriorModel([[SimpleClass]])
+        prior_model = af.CollectionPriorModel([[mock.SimpleClass]])
 
         assert len(prior_model.prior_models) == 1
         assert prior_model.prior_count == 2
 
     def test_list_prior_model_with_dictionary(self):
-        prior_model = af.CollectionPriorModel({"simple": SimpleClass})
+        prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})
 
         assert isinstance(prior_model.simple, af.PriorModel)
 
     # def test_labels(self):
     #     mapper = af.ModelMapper()
     #
-    #     mapper.my_list = af.CollectionPriorModel({"simple": SimpleClass})
+    #     mapper.my_list = af.CollectionPriorModel({"simple": mock.SimpleClass})
     #
     #     assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
 
     def test_override_with_constant(self):
-        prior_model = af.CollectionPriorModel({"simple": SimpleClass})
+        prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})
 
-        simple_instance = SimpleClass(1, 2)
+        simple_instance = mock.SimpleClass(1, 2)
 
         prior_model.simple = simple_instance
 
