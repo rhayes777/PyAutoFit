@@ -144,8 +144,6 @@ class TestFromInstance:
         prior_model = af.AbstractPriorModel.from_instance(
             new_instance
         )
-        print(type(prior_model))
-        print(prior_model)
         assert isinstance(prior_model, af.CollectionPriorModel)
         assert isinstance(prior_model.simple, af.PriorModel)
         assert prior_model.simple.one == 1.0
