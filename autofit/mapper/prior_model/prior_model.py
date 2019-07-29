@@ -332,10 +332,7 @@ class PriorModel(AbstractPriorModel):
             if isinstance(value, float) or isinstance(value, int):
                 prior.assert_within_limits(value)
 
-        model_arguments = {
-            t.name: arguments[t.prior]
-            for t in self.direct_prior_tuples
-        }
+        model_arguments = dict()
         attribute_arguments = {
             key: value for key, value in self.__dict__.items()
             if key in self.constructor_argument_names
@@ -353,7 +350,11 @@ class PriorModel(AbstractPriorModel):
 
         constructor_arguments = {
             **attribute_arguments,
-            **model_arguments
+            **model_arguments,
+            **{
+                t.name: arguments[t.prior]
+                for t in self.direct_prior_tuples
+            }
         }
 
         if self.is_deferred_arguments:
