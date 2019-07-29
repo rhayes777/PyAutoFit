@@ -116,6 +116,15 @@ class PriorModel(AbstractPriorModel):
                     setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
             else:
                 setattr(self, arg, self.make_prior(arg))
+        for key, value in kwargs.items():
+            if not hasattr(self, key):
+                setattr(
+                    self,
+                    key,
+                    PriorModel(value)
+                    if inspect.isclass(value)
+                    else value
+                )
 
     def __eq__(self, other):
         return isinstance(
@@ -347,7 +356,17 @@ class PriorModel(AbstractPriorModel):
 
         if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
-        return self.cls(**constructor_arguments)
+
+        result = self.cls(**constructor_arguments)
+
+        for key, value in self.__dict__.items():
+            if not hasattr(result, key):
+                try:
+                    setattr(result, key, value)
+                except AttributeError:
+                    pass
+
+        return result
 
     def gaussian_prior_model_for_arguments(self, arguments):
         """

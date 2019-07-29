@@ -149,6 +149,7 @@ class AbstractPriorModel(AbstractModel):
                         )
                         for key, value
                         in instance.__dict__.items()
+                        if key != "cls"
                     }
                 )
 

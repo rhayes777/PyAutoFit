@@ -286,36 +286,6 @@ class ModelMapper(CollectionPriorModel):
                 self.prior_tuples_ordered_by_id,
                 hypercube_vector))
 
-    def physical_values_ordered_by_class(self, hypercube_vector):
-        """
-        Parameters
-        ----------
-        hypercube_vector: [float]
-            A unit vector
-
-        Returns
-        -------
-        physical_values: [float]
-            A list of physical values constructed by passing the values in the hypercube
-            vector through associated priors.
-        """
-        model_instance = self.instance_from_unit_vector(hypercube_vector)
-        result = []
-        for instance_key in sorted(model_instance.__dict__.keys()):
-            instance = model_instance.__dict__[instance_key]
-            try:
-                for attribute_key in sorted(instance.__dict__.keys()):
-
-                    value = instance.__dict__[attribute_key]
-
-                    if isinstance(value, tuple):
-                        result.extend(list(value))
-                    else:
-                        result.append(value)
-            except AttributeError:
-                pass
-        return result
-
     @property
     def physical_values_from_prior_medians(self):
         """
