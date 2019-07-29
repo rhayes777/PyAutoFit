@@ -607,18 +607,6 @@ class ModelMapper(CollectionPriorModel):
         return [self.name_for_prior(prior) for prior in
                 sorted(self.priors, key=lambda prior: prior.id)]
 
-    @property
-    def constant_names(self):
-        constant_names = []
-
-        constant_prior_model_name_dict = self.constant_prior_model_name_dict
-
-        for constant_name, constant in self.constant_tuples:
-            constant_names.append(
-                constant_prior_model_name_dict[constant] + '_' + constant_name)
-
-        return constant_names
-
     def __eq__(self, other):
         return isinstance(other, ModelMapper) \
                and self.priors == other.priors \
