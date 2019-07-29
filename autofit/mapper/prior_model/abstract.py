@@ -189,6 +189,10 @@ class AbstractPriorModel(AbstractModel):
         return self.tuples_with_type(AbstractPriorModel)
 
     @property
+    def prior_models(self):
+        return [item[1] for item in self.prior_model_tuples]
+
+    @property
     def prior_tuples(self):
         raise NotImplementedError()
 
