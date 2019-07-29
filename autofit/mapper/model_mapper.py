@@ -172,18 +172,6 @@ class ModelMapper(CollectionPriorModel):
         }.values()
 
     @property
-    @cast_collection(PriorNameValue)
-    def prior_tuples_ordered_by_id(self):
-        """
-        Returns
-        -------
-        priors: [Prior]
-            An ordered list of unique priors associated with this mapper
-        """
-        return sorted(list(self.prior_tuples),
-                      key=lambda prior_tuple: prior_tuple.prior.id)
-
-    @property
     def prior_class_dict(self):
         """
         Returns
@@ -353,38 +341,6 @@ class ModelMapper(CollectionPriorModel):
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * len(self.prior_tuples)
         )
-
-    def instance_from_unit_vector(self, unit_vector):
-        """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every PriorModel attributed to this instance.
-
-        This method takes as input a unit vector of parameter values, converting each to
-        physical values via their priors.
-
-        Parameters
-        ----------
-        unit_vector: [float]
-            A vector of physical parameter values.
-
-        Returns
-        -------
-        model_instance : autofit.mapper.model.ModelInstance
-            An object containing reconstructed model_mapper instances
-
-        """
-        arguments = dict(
-            map(
-                lambda prior_tuple, unit: (
-                    prior_tuple.prior,
-                    prior_tuple.prior.value_for(unit)
-                ),
-                self.prior_tuples_ordered_by_id,
-                unit_vector
-            )
-        )
-
-        return self.instance_for_arguments(arguments)
 
     def instance_from_physical_vector(self, physical_vector):
         """

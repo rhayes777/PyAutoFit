@@ -5,6 +5,7 @@ from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model.prior import Prior
 from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
+from autofit.mapper.prior_model.dimension_type import DimensionType
 
 
 class AbstractPriorModel(AbstractModel):
@@ -34,6 +35,50 @@ class AbstractPriorModel(AbstractModel):
         else:
             obj = t
         return obj
+
+    def instance_from_unit_vector(self, unit_vector):
+        """
+        Creates a ModelInstance, which has an attribute and class instance corresponding
+        to every PriorModel attributed to this instance.
+
+        This method takes as input a unit vector of parameter values, converting each to
+        physical values via their priors.
+
+        Parameters
+        ----------
+        unit_vector: [float]
+            A vector of physical parameter values.
+
+        Returns
+        -------
+        model_instance : autofit.mapper.model.ModelInstance
+            An object containing reconstructed model_mapper instances
+
+        """
+        arguments = dict(
+            map(
+                lambda prior_tuple, unit: (
+                    prior_tuple.prior,
+                    prior_tuple.prior.value_for(unit)
+                ),
+                self.prior_tuples_ordered_by_id,
+                unit_vector
+            )
+        )
+
+        return self.instance_for_arguments(arguments)
+
+    @property
+    @cast_collection(PriorNameValue)
+    def prior_tuples_ordered_by_id(self):
+        """
+        Returns
+        -------
+        priors: [Prior]
+            An ordered list of unique priors associated with this mapper
+        """
+        return sorted(list(self.prior_tuples),
+                      key=lambda prior_tuple: prior_tuple.prior.id)
 
     @staticmethod
     def from_instance(
@@ -90,6 +135,8 @@ class AbstractPriorModel(AbstractModel):
                     in instance.items()
                 }
             )
+        elif isinstance(instance, DimensionType):
+            return instance
         else:
             from .prior_model import PriorModel
             try:

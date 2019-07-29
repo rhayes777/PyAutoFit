@@ -154,19 +154,16 @@ class TestFromInstance:
         )
         result = af.AbstractPriorModel.from_instance(
             instance,
-            variable_classes=mock.DistanceClass
+            variable_classes=(mock.DistanceClass,)
         )
         assert isinstance(result.first, af.PriorModel)
 
-        new_instance = result.instance_for_arguments(
-            {
-                result.first: 1.0,
-                result.second: 2.0
-            }
+        new_instance = result.instance_from_unit_vector(
+            [0.1, 0.2]
         )
         assert isinstance(new_instance, mock.DistanceClass)
         assert isinstance(new_instance.first, mock.Distance)
-        assert new_instance.first == 1.0
+        assert new_instance.first == 0.1
 
 
 class TestSum(object):
