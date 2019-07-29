@@ -181,10 +181,10 @@ class ModelMapper(CollectionPriorModel):
             one class; if a prior is shared by two classes then only one of those
             classes will be in this dictionary.
         """
-        return {prior: cls
-                for prior_model_tuple in self.prior_model_tuples
-                for prior, cls in
-                prior_model_tuple.prior_model.prior_class_dict.items()}
+        d = dict()
+        for prior_model in self.direct_prior_model_tuples:
+            d.update(prior_model[1].prior_class_dict)
+        return d
 
     @property
     def prior_prior_model_dict(self):
