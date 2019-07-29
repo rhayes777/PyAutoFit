@@ -90,6 +90,8 @@ class PriorModel(AbstractPriorModel):
                             ls.append(obj)
                     setattr(self, arg, ls)
                 else:
+                    if inspect.isclass(keyword_arg):
+                        keyword_arg = PriorModel(keyword_arg)
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
