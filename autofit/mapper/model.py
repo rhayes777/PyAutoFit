@@ -136,3 +136,13 @@ class ModelInstance(AbstractModel):
 
     def __len__(self):
         return len(self.items)
+
+    def as_variable(
+            self,
+            variable_classes=tuple()
+    ):
+        from autofit.mapper.prior_model.abstract import AbstractPriorModel
+        return AbstractPriorModel.from_instance(
+            self,
+            variable_classes
+        )
