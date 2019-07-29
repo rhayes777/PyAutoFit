@@ -44,7 +44,9 @@ class NonLinearOptimizer(object):
 
         self.path = link.make_linked_folder(self.sym_path)
 
-        self.variable = model_mapper or mm.ModelMapper()
+        if model_mapper is None:
+            model_mapper = mm.ModelMapper()
+        self.variable = model_mapper
 
         self.label_config = conf.instance.label
 
@@ -374,10 +376,12 @@ class NonLinearOptimizer(object):
                 self.most_probable_model_parameters))
 
     def model_errors_instance_at_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit))
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit))
 
     def model_errors_instance_at_upper_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(physical_vector=self.model_errors_at_upper_sigma_limit(sigma_limit=sigma_limit))
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.model_errors_at_upper_sigma_limit(sigma_limit=sigma_limit))
 
     def model_errors_instance_at_lower_sigma_limit(self, sigma_limit):
         return self.variable.instance_from_physical_vector(

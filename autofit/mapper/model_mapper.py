@@ -14,7 +14,7 @@ from autofit.tools.text_formatter import TextFormatter
 path = os.path.dirname(os.path.realpath(__file__))
 
 
-class ModelMapper(AbstractPriorModel):
+class ModelMapper(CollectionPriorModel):
     """A mapper of priors formed by passing in classes to be reconstructed
         @DynamicAttrs
     """
@@ -77,10 +77,7 @@ class ModelMapper(AbstractPriorModel):
             lens_light_profile=light_profile.EllipticalCoreSersic
         )
         """
-        super(ModelMapper, self).__init__()
-
-        for name, cls in classes.items():
-            self.__setattr__(name, cls)
+        super(ModelMapper, self).__init__(**classes)
 
     def __setattr__(self, key, value):
         super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))

@@ -56,8 +56,6 @@ class AbstractPriorModel(AbstractModel):
         """
         from .collection import CollectionPriorModel
         from autofit.mapper.model import ModelInstance
-        if isinstance(instance, ModelInstance):
-            instance = instance.dict
 
         if isinstance(instance, list):
             result = CollectionPriorModel(
@@ -69,6 +67,18 @@ class AbstractPriorModel(AbstractModel):
                     for item in instance
                 ]
             )
+        elif isinstance(instance, ModelInstance):
+            from autofit.mapper.model_mapper import ModelMapper
+            result = ModelMapper()
+            for key, value in instance.dict.items():
+                setattr(
+                    result,
+                    key,
+                    AbstractPriorModel.from_instance(
+                        value,
+                        variable_classes=variable_classes
+                    )
+                )
         elif isinstance(instance, dict):
             result = CollectionPriorModel(
                 {

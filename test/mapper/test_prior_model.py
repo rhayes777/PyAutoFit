@@ -47,6 +47,16 @@ class TestAsVariable:
 
 
 class TestFromInstance:
+    def test_model_mapper(self):
+        instance = af.ModelInstance()
+        instance.simple = SimpleClass(1.0, 2.0)
+
+        result = af.AbstractPriorModel.from_instance(
+            instance
+        )
+
+        assert isinstance(result, af.ModelMapper)
+
     def test_with_variable_classes(self):
         instance = ComplexClass(SimpleClass(1.0, 2.0))
         model = af.AbstractPriorModel.from_instance(
