@@ -659,60 +659,6 @@ class TestConfigFunctions:
                           test.mock.EllipticalExponential)
 
 
-class TestHyperCube:
-
-    def test__in_order_of_class_constructor__one_profile(self):
-        mapper = af.ModelMapper(
-
-            geometry_profile=test.mock.EllipticalProfile)
-
-        assert mapper.physical_values_ordered_by_class([0.5, 0.5, 0.5, 0.5]) == [1.0,
-                                                                                 0.5,
-                                                                                 0.5,
-                                                                                 1.0]
-
-    def test__in_order_of_class_constructor__multiple_profiles(self):
-        mapper = af.ModelMapper(
-
-            profile_1=test.mock.EllipticalProfile, profile_2=test.mock.GeometryProfile,
-            profile_3=test.mock.EllipticalProfile)
-
-        unit_vector = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-
-        assert mapper.physical_values_ordered_by_class(unit_vector) == [1.0, 0.5, 0.5,
-                                                                        1.0, 0.5, 0.5,
-                                                                        1.0, 0.5, 0.5,
-                                                                        1.0]
-
-    def test__in_order_of_class_constructor__multiple_profiles_bigger_range_of_unit_values(
-            self):
-        mapper = af.ModelMapper(
-
-            profile_1=test.mock.EllipticalProfile, profile_2=test.mock.GeometryProfile,
-            profile_3=test.mock.EllipticalProfile)
-
-        unit_vector = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-
-        assert mapper.physical_values_ordered_by_class(unit_vector) == [0.6, 0.1, 0.2,
-                                                                        0.8, 0.5, 0.6,
-                                                                        1.8, 0.7, 0.8,
-                                                                        2.0]
-
-    def test__order_maintained_with_prior_change(self):
-        mapper = af.ModelMapper(
-
-            profile_1=test.mock.EllipticalProfile, profile_2=test.mock.GeometryProfile,
-            profile_3=test.mock.EllipticalProfile)
-
-        unit_vector = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-
-        before = mapper.physical_values_ordered_by_class(unit_vector)
-
-        mapper.profile_1.axis_ratio = af.UniformPrior(0, 2)
-
-        assert mapper.physical_values_ordered_by_class(unit_vector) == before
-
-
 class TestModelInstancesRealClasses(object):
 
     def test__in_order_of_class_constructor__one_profile(self):
@@ -905,13 +851,6 @@ class TestUtility(object):
         assert mapper.prior_model_name_prior_tuples_dict["mock_class_1"] == \
                mapper.prior_model_name_prior_tuples_dict[
                    "mock_class_2"]
-
-    def test_value_vector_for_hypercube_vector(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
-
-        mapper.mock_class.two = af.UniformPrior(upper_limit=100.)
-
-        assert mapper.physical_values_ordered_by_class([1., 0.5]) == [1., 50.]
 
     def test_prior_prior_model_dict(self):
         mapper = af.ModelMapper(mock_class=MockClassMM)
