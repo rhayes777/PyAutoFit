@@ -138,6 +138,9 @@ class TuplePrior(object):
             setattr(tuple_prior, prior_tuple.name, arguments[prior_tuple.prior])
         return tuple_prior
 
+    def __getitem__(self, item):
+        return self.prior_tuples[item][1]
+
 
 class Prior(ModelObject):
     """An object used to mappers a unit value to an attribute value for a specific
