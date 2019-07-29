@@ -308,7 +308,12 @@ class PriorModel(AbstractPriorModel):
 
     @property
     def prior_class_dict(self):
-        return {prior[1]: self.cls for prior in self.prior_tuples}
+        d = {prior[1]: self.cls for prior in self.prior_tuples}
+        for prior_model in self.prior_model_tuples:
+            d.update(
+                prior_model[1].prior_class_dict
+            )
+        return d
 
     @property
     def is_deferred_arguments(self):
