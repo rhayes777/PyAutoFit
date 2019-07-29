@@ -36,12 +36,16 @@ class AbstractPriorModel(AbstractModel):
         return obj
 
     @staticmethod
-    def from_instance(instance):
+    def from_instance(
+            instance,
+            variable_classes=tuple()
+    ):
         """
         Recursively create an prior object model from an object model.
 
         Parameters
         ----------
+        variable_classes
         instance
             A dictionary, list, class instance or model instance
 
@@ -52,40 +56,53 @@ class AbstractPriorModel(AbstractModel):
         """
         from .collection import CollectionPriorModel
         from autofit.mapper.model import ModelInstance
-        if isinstance(instance, list):
-            return CollectionPriorModel(
-                list(map(
-                    AbstractPriorModel.from_instance,
-                    instance
-                ))
-            )
         if isinstance(instance, ModelInstance):
             instance = instance.dict
-        if isinstance(instance, dict):
-            return CollectionPriorModel(
+
+        if isinstance(instance, list):
+            result = CollectionPriorModel(
+                [
+                    AbstractPriorModel.from_instance(
+                        item,
+                        variable_classes=variable_classes
+                    )
+                    for item in instance
+                ]
+            )
+        elif isinstance(instance, dict):
+            result = CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
-                        value
+                        value,
+                        variable_classes=variable_classes
                     )
                     for key, value
                     in instance.items()
                 }
             )
+        else:
+            from .prior_model import PriorModel
+            try:
+                result = PriorModel(
+                    instance.__class__,
+                    **{
+                        key: AbstractPriorModel.from_instance(
+                            value,
+                            variable_classes=variable_classes
+                        )
+                        for key, value
+                        in instance.__dict__.items()
+                    }
+                )
 
-        from .prior_model import PriorModel
-        try:
-            return PriorModel(
-                instance.__class__,
-                **{
-                    key: AbstractPriorModel.from_instance(
-                        value
-                    )
-                    for key, value
-                    in instance.__dict__.items()
-                }
-            )
-        except AttributeError:
-            return instance
+            except AttributeError:
+                return instance
+        if any([
+            isinstance(instance, cls)
+            for cls in variable_classes
+        ]):
+            return result.as_variable()
+        return result
 
     @property
     @cast_collection(PriorNameValue)

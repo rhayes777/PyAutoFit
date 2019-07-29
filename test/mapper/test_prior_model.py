@@ -47,6 +47,14 @@ class TestAsVariable:
 
 
 class TestFromInstance:
+    def test_with_variable_classes(self):
+        instance = ComplexClass(SimpleClass(1.0, 2.0))
+        model = af.AbstractPriorModel.from_instance(
+            instance,
+            variable_classes=(SimpleClass,)
+        )
+        assert model.prior_count == 2
+
     def test_instance(self, instance_prior_model):
         assert instance_prior_model.cls == SimpleClass
         assert instance_prior_model.prior_count == 0
@@ -92,6 +100,8 @@ class TestFromInstance:
         prior_model = af.AbstractPriorModel.from_instance(
             new_instance
         )
+        print(type(prior_model))
+        print(prior_model)
         assert isinstance(prior_model, af.CollectionPriorModel)
         assert isinstance(prior_model.simple, af.PriorModel)
         assert prior_model.simple.one == 1.0
