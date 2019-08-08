@@ -44,6 +44,16 @@ class TestAsVariable:
         assert variable.prior_count == 2
         assert variable.simple.prior_count == 2
 
+    def test_galaxy_list(self):
+        galaxies = af.ModelInstance()
+        galaxies.one = mock.Galaxy()
+        instance = af.ModelInstance()
+        instance.galaxies = galaxies
+        variable = instance.as_variable(
+            variable_classes=(mock.Galaxy,)
+        )
+        assert variable.prior_count == 1
+
 
 class TestFromInstance:
     def test_model_mapper(self):
