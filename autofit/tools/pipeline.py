@@ -15,6 +15,12 @@ class ResultsCollection(object):
         self.__result_list = []
         self.__result_dict = {}
 
+    def copy(self):
+        collection = ResultsCollection()
+        collection.__result_dict = self.__result_dict
+        collection.__result_list = self.__result_list
+        return collection
+
     @property
     def last(self):
         """
