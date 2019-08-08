@@ -370,6 +370,10 @@ class PriorModel(AbstractPriorModel):
 
         for key, value in self.__dict__.items():
             if not hasattr(result, key) and not isinstance(value, Prior):
+                if isinstance(value, PriorModel):
+                    value = value.instance_for_arguments(arguments)
+                elif isinstance(value, Prior):
+                    value = arguments[value]
                 try:
                     setattr(result, key, value)
                 except AttributeError:
