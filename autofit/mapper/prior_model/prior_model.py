@@ -4,12 +4,12 @@ import inspect
 from typing_inspect import is_tuple_type
 
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
-    TuplePrior, Prior, AttributeNameValue, \
-    DeferredNameValue
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.deferred import DeferredInstance
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
+    TuplePrior, Prior, AttributeNameValue, \
+    DeferredNameValue
 from autofit.mapper.prior_model.util import tuple_name, is_tuple_like_attribute_name
 
 
@@ -21,6 +21,11 @@ class PriorModel(AbstractPriorModel):
     @property
     def name(self):
         return self.cls.__name__
+
+    def as_variable(self):
+        return PriorModel(
+            self.cls
+        )
 
     @property
     def flat_prior_model_tuples(self):
@@ -85,6 +90,8 @@ class PriorModel(AbstractPriorModel):
                             ls.append(obj)
                     setattr(self, arg, ls)
                 else:
+                    if inspect.isclass(keyword_arg):
+                        keyword_arg = PriorModel(keyword_arg)
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
@@ -111,6 +118,15 @@ class PriorModel(AbstractPriorModel):
                     setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
             else:
                 setattr(self, arg, self.make_prior(arg))
+        for key, value in kwargs.items():
+            if not hasattr(self, key):
+                setattr(
+                    self,
+                    key,
+                    PriorModel(value)
+                    if inspect.isclass(value)
+                    else value
+                )
 
     def __eq__(self, other):
         return isinstance(
@@ -292,7 +308,14 @@ class PriorModel(AbstractPriorModel):
 
     @property
     def prior_class_dict(self):
-        return {prior[1]: self.cls for prior in self.prior_tuples}
+        from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+        d = {prior[1]: self.cls for prior in self.prior_tuples}
+        for prior_model in self.prior_model_tuples:
+            if not isinstance(prior_model[1], AnnotationPriorModel):
+                d.update(
+                    prior_model[1].prior_class_dict
+                )
+        return d
 
     @property
     def is_deferred_arguments(self):
@@ -316,10 +339,7 @@ class PriorModel(AbstractPriorModel):
             if isinstance(value, float) or isinstance(value, int):
                 prior.assert_within_limits(value)
 
-        model_arguments = {
-            t.name: arguments[t.prior]
-            for t in self.direct_prior_tuples
-        }
+        model_arguments = dict()
         attribute_arguments = {
             key: value for key, value in self.__dict__.items()
             if key in self.constructor_argument_names
@@ -337,12 +357,26 @@ class PriorModel(AbstractPriorModel):
 
         constructor_arguments = {
             **attribute_arguments,
-            **model_arguments
+            **model_arguments,
+            **{
+                t.name: arguments[t.prior]
+                for t in self.direct_prior_tuples
+            }
         }
 
         if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
-        return self.cls(**constructor_arguments)
+
+        result = self.cls(**constructor_arguments)
+
+        for key, value in self.__dict__.items():
+            if not hasattr(result, key):
+                try:
+                    setattr(result, key, value)
+                except AttributeError:
+                    pass
+
+        return result
 
     def gaussian_prior_model_for_arguments(self, arguments):
         """

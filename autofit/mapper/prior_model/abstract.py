@@ -5,6 +5,10 @@ from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model.prior import Prior
 from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
+from autofit.mapper.prior_model.dimension_type import DimensionType
+import autofit.mapper.prior_model.collection
+import autofit.mapper.model
+import autofit.mapper.model_mapper
 
 
 class AbstractPriorModel(AbstractModel):
@@ -28,32 +32,133 @@ class AbstractPriorModel(AbstractModel):
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            from autofit.mapper.prior_model.collection import CollectionPriorModel
-            obj = object.__new__(CollectionPriorModel)
+            obj = object.__new__(autofit.mapper.prior_model.collection.CollectionPriorModel)
             obj.__init__(t)
         else:
             obj = t
         return obj
 
+    def instance_from_unit_vector(self, unit_vector):
+        """
+        Creates a ModelInstance, which has an attribute and class instance corresponding
+        to every PriorModel attributed to this instance.
+
+        This method takes as input a unit vector of parameter values, converting each to
+        physical values via their priors.
+
+        Parameters
+        ----------
+        unit_vector: [float]
+            A vector of physical parameter values.
+
+        Returns
+        -------
+        model_instance : autofit.mapper.model.ModelInstance
+            An object containing reconstructed model_mapper instances
+
+        """
+        arguments = dict(
+            map(
+                lambda prior_tuple, unit: (
+                    prior_tuple.prior,
+                    prior_tuple.prior.value_for(unit)
+                ),
+                self.prior_tuples_ordered_by_id,
+                unit_vector
+            )
+        )
+
+        return self.instance_for_arguments(arguments)
+
     @property
-    def info(self):
-        info = []
+    @cast_collection(PriorNameValue)
+    def prior_tuples_ordered_by_id(self):
+        """
+        Returns
+        -------
+        priors: [Prior]
+            An ordered list of unique priors associated with this mapper
+        """
+        return sorted(list(self.prior_tuples),
+                      key=lambda prior_tuple: prior_tuple.prior.id)
 
-        prior_model_iterator = self.direct_prior_tuples + self.direct_constant_tuples
+    @staticmethod
+    def from_instance(
+            instance,
+            variable_classes=tuple()
+    ):
+        """
+        Recursively create an prior object model from an object model.
 
-        for attribute_tuple in prior_model_iterator:
-            attribute = attribute_tuple[1]
+        Parameters
+        ----------
+        variable_classes
+        instance
+            A dictionary, list, class instance or model instance
 
-            # noinspection PyUnresolvedReferences
-            line = attribute_tuple.name
-            # noinspection PyUnresolvedReferences
-            info.append(line + ' ' * (60 - len(line)) + str(attribute))
+        Returns
+        -------
+        abstract_prior_model
+            A concrete child of an abstract prior model
+        """
+        if isinstance(instance, list):
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+                [
+                    AbstractPriorModel.from_instance(
+                        item,
+                        variable_classes=variable_classes
+                    )
+                    for item in instance
+                ]
+            )
+        elif isinstance(instance, autofit.mapper.model.ModelInstance):
+            result = autofit.mapper.model_mapper.ModelMapper()
+            for key, value in instance.dict.items():
+                setattr(
+                    result,
+                    key,
+                    AbstractPriorModel.from_instance(
+                        value,
+                        variable_classes=variable_classes
+                    )
+                )
+        elif isinstance(instance, dict):
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+                {
+                    key: AbstractPriorModel.from_instance(
+                        value,
+                        variable_classes=variable_classes
+                    )
+                    for key, value
+                    in instance.items()
+                }
+            )
+        elif isinstance(instance, DimensionType):
+            return instance
+        else:
+            from .prior_model import PriorModel
+            try:
+                result = PriorModel(
+                    instance.__class__,
+                    **{
+                        key: AbstractPriorModel.from_instance(
+                            value,
+                            variable_classes=variable_classes
+                        )
+                        for key, value
+                        in instance.__dict__.items()
+                        if key != "cls"
+                    }
+                )
 
-        for prior_model_name, prior_model in self.prior_model_tuples:
-            info.append(prior_model.name + '\n')
-            info.extend([f"{prior_model_name}_{item}" for item in prior_model.info])
-
-        return info
+            except AttributeError:
+                return instance
+        if any([
+            isinstance(instance, cls)
+            for cls in variable_classes
+        ]):
+            return result.as_variable()
+        return result
 
     @property
     @cast_collection(PriorNameValue)
@@ -80,6 +185,10 @@ class AbstractPriorModel(AbstractModel):
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
         return self.tuples_with_type(AbstractPriorModel)
+
+    @property
+    def prior_models(self):
+        return [item[1] for item in self.prior_model_tuples]
 
     @property
     def prior_tuples(self):

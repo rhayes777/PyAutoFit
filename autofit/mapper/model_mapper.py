@@ -14,7 +14,7 @@ from autofit.tools.text_formatter import TextFormatter
 path = os.path.dirname(os.path.realpath(__file__))
 
 
-class ModelMapper(AbstractPriorModel):
+class ModelMapper(CollectionPriorModel):
     """A mapper of priors formed by passing in classes to be reconstructed
         @DynamicAttrs
     """
@@ -77,10 +77,7 @@ class ModelMapper(AbstractPriorModel):
             lens_light_profile=light_profile.EllipticalCoreSersic
         )
         """
-        super(ModelMapper, self).__init__()
-
-        for name, cls in classes.items():
-            self.__setattr__(name, cls)
+        super(ModelMapper, self).__init__(**classes)
 
     def __setattr__(self, key, value):
         super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
@@ -175,18 +172,6 @@ class ModelMapper(AbstractPriorModel):
         }.values()
 
     @property
-    @cast_collection(PriorNameValue)
-    def prior_tuples_ordered_by_id(self):
-        """
-        Returns
-        -------
-        priors: [Prior]
-            An ordered list of unique priors associated with this mapper
-        """
-        return sorted(list(self.prior_tuples),
-                      key=lambda prior_tuple: prior_tuple.prior.id)
-
-    @property
     def prior_class_dict(self):
         """
         Returns
@@ -196,10 +181,10 @@ class ModelMapper(AbstractPriorModel):
             one class; if a prior is shared by two classes then only one of those
             classes will be in this dictionary.
         """
-        return {prior: cls
-                for prior_model_tuple in self.prior_model_tuples
-                for prior, cls in
-                prior_model_tuple.prior_model.prior_class_dict.items()}
+        d = dict()
+        for prior_model in self.direct_prior_model_tuples:
+            d.update(prior_model[1].prior_class_dict)
+        return d
 
     @property
     def prior_prior_model_dict(self):
@@ -301,36 +286,6 @@ class ModelMapper(AbstractPriorModel):
                 self.prior_tuples_ordered_by_id,
                 hypercube_vector))
 
-    def physical_values_ordered_by_class(self, hypercube_vector):
-        """
-        Parameters
-        ----------
-        hypercube_vector: [float]
-            A unit vector
-
-        Returns
-        -------
-        physical_values: [float]
-            A list of physical values constructed by passing the values in the hypercube
-            vector through associated priors.
-        """
-        model_instance = self.instance_from_unit_vector(hypercube_vector)
-        result = []
-        for instance_key in sorted(model_instance.__dict__.keys()):
-            instance = model_instance.__dict__[instance_key]
-            try:
-                for attribute_key in sorted(instance.__dict__.keys()):
-
-                    value = instance.__dict__[attribute_key]
-
-                    if isinstance(value, tuple):
-                        result.extend(list(value))
-                    else:
-                        result.append(value)
-            except AttributeError:
-                pass
-        return result
-
     @property
     def physical_values_from_prior_medians(self):
         """
@@ -356,38 +311,6 @@ class ModelMapper(AbstractPriorModel):
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * len(self.prior_tuples)
         )
-
-    def instance_from_unit_vector(self, unit_vector):
-        """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every PriorModel attributed to this instance.
-
-        This method takes as input a unit vector of parameter values, converting each to
-        physical values via their priors.
-
-        Parameters
-        ----------
-        unit_vector: [float]
-            A vector of physical parameter values.
-
-        Returns
-        -------
-        model_instance : autofit.mapper.model.ModelInstance
-            An object containing reconstructed model_mapper instances
-
-        """
-        arguments = dict(
-            map(
-                lambda prior_tuple, unit: (
-                    prior_tuple.prior,
-                    prior_tuple.prior.value_for(unit)
-                ),
-                self.prior_tuples_ordered_by_id,
-                unit_vector
-            )
-        )
-
-        return self.instance_for_arguments(arguments)
 
     def instance_from_physical_vector(self, physical_vector):
         """
@@ -653,18 +576,6 @@ class ModelMapper(AbstractPriorModel):
 
         return [self.name_for_prior(prior) for prior in
                 sorted(self.priors, key=lambda prior: prior.id)]
-
-    @property
-    def constant_names(self):
-        constant_names = []
-
-        constant_prior_model_name_dict = self.constant_prior_model_name_dict
-
-        for constant_name, constant in self.constant_tuples:
-            constant_names.append(
-                constant_prior_model_name_dict[constant] + '_' + constant_name)
-
-        return constant_names
 
     def __eq__(self, other):
         return isinstance(other, ModelMapper) \

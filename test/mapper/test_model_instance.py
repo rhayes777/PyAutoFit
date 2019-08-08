@@ -34,6 +34,12 @@ def make_instance(galaxy_1, galaxy_2):
 
 
 class TestModelInstance(object):
+    def test_as_variable(self, instance):
+        variable = instance.as_variable()
+        assert isinstance(variable, af.ModelMapper)
+        assert isinstance(variable.galaxy_2, af.PriorModel)
+        assert variable.galaxy_2.cls == mock.Galaxy
+
     def test_instances_of(self):
         instance = af.ModelInstance()
         instance.galaxy_1 = mock.Galaxy()

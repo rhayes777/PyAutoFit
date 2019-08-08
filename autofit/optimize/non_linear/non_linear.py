@@ -44,7 +44,9 @@ class NonLinearOptimizer(object):
 
         self.path = link.make_linked_folder(self.sym_path)
 
-        self.variable = model_mapper or mm.ModelMapper()
+        if model_mapper is None:
+            model_mapper = mm.ModelMapper()
+        self.variable = model_mapper
 
         self.label_config = conf.instance.label
 
@@ -64,7 +66,7 @@ class NonLinearOptimizer(object):
             pass
 
         try:
-            os.makedirs("{}fits/".format(self.image_path))
+            os.makedirs(self.pdf_path)
         except FileExistsError:
             pass
 
@@ -115,6 +117,13 @@ class NonLinearOptimizer(object):
         The path to the directory in which images are stored.
         """
         return "{}image/".format(self.phase_output_path)
+
+    @property
+    def pdf_path(self) -> str:
+        """
+        The path to the directory in which images are stored.
+        """
+        return "{}pdf/".format(self.image_path)
 
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
@@ -365,6 +374,18 @@ class NonLinearOptimizer(object):
         return list(
             map(lambda lower, most_probable: most_probable - lower, lowers,
                 self.most_probable_model_parameters))
+
+    def model_errors_instance_at_sigma_limit(self, sigma_limit):
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit))
+
+    def model_errors_instance_at_upper_sigma_limit(self, sigma_limit):
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.model_errors_at_upper_sigma_limit(sigma_limit=sigma_limit))
+
+    def model_errors_instance_at_lower_sigma_limit(self, sigma_limit):
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.model_errors_at_lower_sigma_limit(sigma_limit=sigma_limit))
 
     def sample_model_instance_from_sample_index(self, sample_index):
         """Setup a model instance of a weighted sample.
