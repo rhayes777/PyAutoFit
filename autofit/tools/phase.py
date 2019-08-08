@@ -34,7 +34,7 @@ class AbstractPhase(object):
             The name of this phase
         """
 
-        self.phase_tag = 'phase_tag' + phase_tag
+        self.phase_tag = 'phase_tag_' + phase_tag
 
         self.optimizer = optimizer_class(
             phase_name=phase_name,
