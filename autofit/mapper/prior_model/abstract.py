@@ -8,6 +8,7 @@ from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.mapper.prior_model.dimension_type import DimensionType
 import autofit.mapper.prior_model.collection
 import autofit.mapper.model
+import autofit.mapper.model_mapper
 
 
 class AbstractPriorModel(AbstractModel):
@@ -111,8 +112,7 @@ class AbstractPriorModel(AbstractModel):
                 ]
             )
         elif isinstance(instance, autofit.mapper.model.ModelInstance):
-            from autofit.mapper.model_mapper import ModelMapper
-            result = ModelMapper()
+            result = autofit.mapper.model_mapper.ModelMapper()
             for key, value in instance.dict.items():
                 setattr(
                     result,
