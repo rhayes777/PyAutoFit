@@ -32,10 +32,10 @@ class NonLinearOptimizer(object):
         self.phase_path = "/".join(phase_folders)
         self.phase_name = phase_name
 
-        if phase_tag is None:
-            self.phase_tag = ''
+        if phase_tag is not None:
+            self.phase_tag = phase_tag
         else:
-            self.phase_tag = 'settings' + phase_tag
+            self.phase_tag = ''
 
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))

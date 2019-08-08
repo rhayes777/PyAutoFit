@@ -7,6 +7,10 @@ class ModelObject(object):
     def __init__(self):
         self.id = next(self._ids)
 
+    @property
+    def component_number(self):
+        return self.id
+
     def __hash__(self):
         return self.id
 

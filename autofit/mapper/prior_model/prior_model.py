@@ -56,7 +56,6 @@ class PriorModel(AbstractPriorModel):
             return
 
         self.cls = cls
-        self.component_number = next(self._ids)
 
         arg_spec = inspect.getfullargspec(cls.__init__)
 
@@ -370,7 +369,7 @@ class PriorModel(AbstractPriorModel):
         result = self.cls(**constructor_arguments)
 
         for key, value in self.__dict__.items():
-            if not hasattr(result, key):
+            if not hasattr(result, key) and not isinstance(value, Prior):
                 try:
                     setattr(result, key, value)
                 except AttributeError:
