@@ -56,7 +56,6 @@ class PriorModel(AbstractPriorModel):
             return
 
         self.cls = cls
-        self.component_number = next(self._ids)
 
         arg_spec = inspect.getfullargspec(cls.__init__)
 

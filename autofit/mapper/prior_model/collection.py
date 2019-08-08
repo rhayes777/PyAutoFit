@@ -59,7 +59,6 @@ class CollectionPriorModel(AbstractPriorModel):
         elif len(arguments) == 1:
             arguments = arguments[0]
 
-            self.component_number = next(self._ids)
             self.item_number = 0
 
             if isinstance(arguments, list):
