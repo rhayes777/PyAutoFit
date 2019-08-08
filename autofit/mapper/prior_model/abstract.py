@@ -6,6 +6,8 @@ from autofit.mapper.prior_model.prior import Prior
 from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.mapper.prior_model.dimension_type import DimensionType
+import autofit.mapper.prior_model.collection
+import autofit.mapper.model
 
 
 class AbstractPriorModel(AbstractModel):
@@ -29,8 +31,7 @@ class AbstractPriorModel(AbstractModel):
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            from autofit.mapper.prior_model.collection import CollectionPriorModel
-            obj = object.__new__(CollectionPriorModel)
+            obj = object.__new__(autofit.mapper.prior_model.collection.CollectionPriorModel)
             obj.__init__(t)
         else:
             obj = t
@@ -99,11 +100,8 @@ class AbstractPriorModel(AbstractModel):
         abstract_prior_model
             A concrete child of an abstract prior model
         """
-        from .collection import CollectionPriorModel
-        from autofit.mapper.model import ModelInstance
-
         if isinstance(instance, list):
-            result = CollectionPriorModel(
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(
                         item,
@@ -112,7 +110,7 @@ class AbstractPriorModel(AbstractModel):
                     for item in instance
                 ]
             )
-        elif isinstance(instance, ModelInstance):
+        elif isinstance(instance, autofit.mapper.model.ModelInstance):
             from autofit.mapper.model_mapper import ModelMapper
             result = ModelMapper()
             for key, value in instance.dict.items():
@@ -125,7 +123,7 @@ class AbstractPriorModel(AbstractModel):
                     )
                 )
         elif isinstance(instance, dict):
-            result = CollectionPriorModel(
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
                         value,
