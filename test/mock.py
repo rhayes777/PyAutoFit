@@ -140,7 +140,8 @@ class Galaxy(object):
             self,
             light_profiles: list = None,
             mass_profiles: list = None,
-            redshift=None
+            redshift=None,
+            **kwargs
     ):
         self.redshift = redshift
         self.light_profiles = light_profiles
