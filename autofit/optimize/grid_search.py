@@ -120,12 +120,12 @@ class GridSearch(object):
         self.phase_path = "/".join(phase_folders)
         self.phase_name = phase_name
 
-        if phase_tag is None:
+        if phase_tag is not None:
+            self.phase_tag = phase_tag
+            self.phase_tag_input = phase_tag
+        else:
             self.phase_tag = ''
             self.phase_tag_input = ''
-        else:
-            self.phase_tag_input = phase_tag
-            self.phase_tag = 'settings' + phase_tag
 
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
