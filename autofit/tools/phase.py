@@ -17,7 +17,6 @@ class AbstractPhase(object):
     def __init__(
             self,
             phase_name,
-            tag_phases=True,
             phase_tag=None,
             phase_folders=tuple(),
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
@@ -35,12 +34,10 @@ class AbstractPhase(object):
             The name of this phase
         """
 
-        self.tag_phases = tag_phases
-
-        if phase_tag is None and tag_phases:
-            self.phase_tag = ''
+        if phase_tag is not None:
+            self.phase_tag = 'phase_tag' + phase_tag
         else:
-            self.phase_tag = 'settings' + phase_tag
+            self.phase_tag = ''
 
         self.optimizer = optimizer_class(
             phase_name=phase_name,
@@ -202,11 +199,11 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, phase_name, tag_phases=True, phase_folders=tuple(),
+        def __init__(self, *args, phase_name, phase_folders=tuple(),
                      number_of_steps=10,
                      optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
                      **kwargs):
-            super().__init__(*args, phase_name=phase_name, tag_phases=tag_phases,
+            super().__init__(*args, phase_name=phase_name,
                              phase_folders=phase_folders,
                              optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(phase_name=phase_name,

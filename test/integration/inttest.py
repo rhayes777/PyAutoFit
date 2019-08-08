@@ -37,9 +37,9 @@ class Phase(af.AbstractPhase):
     profile = af.PhaseProperty("profile")
     constant_profile = af.PhaseProperty("constant_profile")
 
-    def __init__(self, phase_name, tag_phases, phase_folders, profile, constant_profile,
+    def __init__(self, phase_name, phase_folders, profile, constant_profile,
                  optimizer_class=af.MultiNest):
-        super().__init__(phase_name=phase_name, tag_phases=tag_phases, phase_tag='_tag', phase_folders=phase_folders,
+        super().__init__(phase_name=phase_name, phase_tag='_tag', phase_folders=phase_folders,
                          optimizer_class=optimizer_class)
         self.profile = profile
         self.constant_profile = constant_profile
@@ -74,7 +74,7 @@ class TestCase(object):
 
     def test_phase(self):
         
-        phase = Phase(phase_name="test_phase", tag_phases=True, phase_folders=['integration'],
+        phase = Phase(phase_name="test_phase", phase_folders=['integration'],
                       profile=test.mock.EllipticalProfile, constant_profile=test.mock.EllipticalProfile())
         result = phase.run_analysis(Analysis())
 
@@ -85,7 +85,7 @@ class TestCase(object):
 
     def test_classic_grid_search_phase(self):
         # noinspection PyTypeChecker
-        phase = Phase(phase_name="phase_classic_grid_search_phase", tag_phases=True, phase_folders=['integration'],
+        phase = Phase(phase_name="phase_classic_grid_search_phase", phase_folders=['integration'],
                       profile=test.mock.EllipticalProfile, constant_profile=test.mock.EllipticalProfile(),
                       optimizer_class=af.GridSearch)
         result = phase.run_analysis(Analysis())
@@ -104,7 +104,7 @@ class TestCase(object):
 
         constant_profile = test.mock.EllipticalProfile()
 
-        result = GridSearchPhase(phase_name="grid_search_phase", tag_phases=True, phase_folders=['integration'],
+        result = GridSearchPhase(phase_name="grid_search_phase", phase_folders=['integration'],
                                  number_of_steps=2, profile=test.mock.EllipticalProfile,
                                  constant_profile=constant_profile).run_analysis(Analysis())
 
@@ -124,7 +124,7 @@ class TestCase(object):
 
         constant_profile = test.mock.EllipticalProfile()
 
-        result = GridSearchPhase(phase_name="grid_search_phase_parallel", tag_phases=True, phase_folders=['integration'],
+        result = GridSearchPhase(phase_name="grid_search_phase_parallel", phase_folders=['integration'],
                                  number_of_steps=2, profile=test.mock.EllipticalProfile,
                                  constant_profile=constant_profile).run_analysis(Analysis())
 
