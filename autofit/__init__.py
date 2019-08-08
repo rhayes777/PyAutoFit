@@ -46,4 +46,4 @@ from .optimize.non_linear.multi_nest import MultiNest
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 
 
-__version__ = '0.31.1'
+__version__ = '0.31.2'
