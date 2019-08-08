@@ -410,6 +410,13 @@ class TestPriorModelArguments(object):
         assert instance.lens_galaxy.redshift == 0.5
         assert instance.source_galaxy is source_galaxy
 
+    def test_no_passing(self):
+        mapper = af.ModelMapper()
+        mapper.distance = mock.DistanceClass
+        instance = mapper.instance_from_prior_medians()
+        assert not hasattr(instance.distance.first, "value") or not isinstance(instance.distance.first.value,
+                                                                               af.Prior)
+
 
 class TestCase(object):
     def test_complex_class(self):
