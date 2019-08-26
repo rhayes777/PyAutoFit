@@ -17,3 +17,8 @@ class Promise:
             item,
             is_constant=self.is_constant
         )
+
+    def populate(self, results_collection):
+        results = results_collection.from_phase(self.phase.phase_name)
+        model = results.constant if self.is_constant else results.variable
+        return model.object_for_path(self.path)

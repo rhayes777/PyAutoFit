@@ -521,3 +521,9 @@ class Tracer:
         self.lens_galaxy = lens_galaxy
         self.source_galaxy = source_galaxy
         self.grid = grid
+
+
+class Result:
+    def __init__(self, constant=None, variable=None):
+        self.constant = constant
+        self.variable = variable
