@@ -26,3 +26,10 @@ class TestCase:
         assert promise.path == ("one", "redshift")
         assert promise.is_constant is True
         assert promise.phase is phase
+
+    def test_non_existent(self, phase):
+        with pytest.raises(AttributeError):
+            assert phase.result.variable.one.bad
+
+        with pytest.raises(AttributeError):
+            assert phase.result.constant.one.bad

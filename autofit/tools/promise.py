@@ -8,6 +8,7 @@ class Promise:
         self.phase = phase
         self.path = path
         self.is_constant = is_constant
+        phase.variable.object_for_path(path)
 
     def __getattr__(self, item):
         return Promise(
