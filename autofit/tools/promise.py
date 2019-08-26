@@ -2,14 +2,17 @@ class Promise:
     def __init__(
             self,
             phase,
-            *path
+            *path,
+            is_constant=False
     ):
         self.phase = phase
         self.path = path
+        self.is_constant = is_constant
 
     def __getattr__(self, item):
         return Promise(
-            self.path,
+            self.phase,
             *self.path,
-            item
+            item,
+            is_constant=self.is_constant
         )
