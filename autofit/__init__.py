@@ -25,9 +25,12 @@ from .mapper.prior_model.util import is_tuple_like_attribute_name
 from .mapper.prior_model.util import tuple_name
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
+from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.grid_search import GridSearch
 from .optimize.non_linear.multi_nest import MultiNest
+from .optimize.non_linear.multi_nest import MultiNest
 from .optimize.non_linear.non_linear import Analysis
+from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import Result
 from .tools import *
@@ -41,9 +44,7 @@ from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
-from .optimize.non_linear.non_linear import NonLinearOptimizer
-from .optimize.non_linear.multi_nest import MultiNest
-from .optimize.non_linear.downhill_simplex import DownhillSimplex
-
 
 __version__ = '0.31.4'
+
+

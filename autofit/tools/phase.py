@@ -4,6 +4,7 @@ import pickle
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf
+from autofit.tools.promise import Promise
 from autofit import exc
 from autofit.optimize import grid_search
 
@@ -33,7 +34,6 @@ class AbstractPhase(object):
         phase_name: str
             The name of this phase
         """
-
         if phase_tag is not None:
             self.phase_tag = phase_tag
         else:
@@ -45,6 +45,18 @@ class AbstractPhase(object):
             phase_folders=phase_folders
         )
         self.auto_link_priors = auto_link_priors
+
+    @property
+    def result(self):
+        class Result:
+            def __init__(self, phase):
+                self.phase = phase
+
+            @property
+            def variable(self):
+                return Promise(self.phase, "variable")
+
+        return Result(self)
 
     @property
     def phase_path(self):
