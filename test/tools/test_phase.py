@@ -58,3 +58,21 @@ class TestCase:
         )
 
         assert result is variable.one.redshift
+
+    def test_recover_constant(self, constant_promise):
+        collection = af.ResultsCollection()
+        constant = af.ModelMapper()
+        constant.one = mock.Galaxy()
+
+        collection.add(
+            "phase name",
+            mock.Result(
+                constant=constant
+            )
+        )
+
+        result = constant_promise.populate(
+            collection
+        )
+
+        assert result is constant.one.redshift
