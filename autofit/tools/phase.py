@@ -56,6 +56,10 @@ class AbstractPhase(object):
             def variable(self):
                 return Promise(self.phase)
 
+            @property
+            def constant(self):
+                return Promise(self.phase, is_constant=True)
+
         return Result(self)
 
     @property

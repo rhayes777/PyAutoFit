@@ -44,6 +44,7 @@ from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
+from .tools.promise import Promise
 
 __version__ = '0.31.4'
 
