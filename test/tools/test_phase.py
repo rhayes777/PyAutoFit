@@ -21,6 +21,25 @@ def make_constant_promise(phase):
     return phase.result.constant.one.redshift
 
 
+@pytest.fixture(name="collection")
+def make_collection():
+    collection = af.ResultsCollection()
+    variable = af.ModelMapper()
+    variable.one = af.PriorModel(mock.Galaxy)
+    constant = af.ModelMapper()
+    constant.one = mock.Galaxy()
+
+    collection.add(
+        "phase name",
+        mock.Result(
+            variable=variable,
+            constant=constant
+        )
+    )
+
+    return collection
+
+
 class TestCase:
     def test_variable_promise(self, variable_promise, phase):
         assert isinstance(variable_promise, af.Promise)
@@ -41,38 +60,26 @@ class TestCase:
         with pytest.raises(AttributeError):
             assert phase.result.constant.one.bad
 
-    def test_recover_variable(self, variable_promise):
-        collection = af.ResultsCollection()
-        variable = af.ModelMapper()
-        variable.one = af.PriorModel(mock.Galaxy)
-
-        collection.add(
-            "phase name",
-            mock.Result(
-                variable=variable
-            )
-        )
-
+    def test_recover_variable(self, collection, variable_promise):
         result = variable_promise.populate(
             collection
         )
 
-        assert result is variable.one.redshift
+        assert result is collection[0].variable.one.redshift
 
-    def test_recover_constant(self, constant_promise):
-        collection = af.ResultsCollection()
-        constant = af.ModelMapper()
-        constant.one = mock.Galaxy()
-
-        collection.add(
-            "phase name",
-            mock.Result(
-                constant=constant
-            )
-        )
-
+    def test_recover_constant(self, collection, constant_promise):
         result = constant_promise.populate(
             collection
         )
 
-        assert result is constant.one.redshift
+        assert result is collection[0].constant.one.redshift
+
+    def test_populate_prior_model(self, collection, variable_promise):
+        new_galaxy = af.PriorModel(
+            mock.Galaxy,
+            redshift=variable_promise
+        )
+
+        result = new_galaxy.populate(collection)
+
+        assert result.redshift is collection[0].variable.one.redshift
