@@ -7,7 +7,10 @@ from test import mock
 @pytest.fixture(name="phase")
 def make_phase():
     phase = af.AbstractPhase("phase name")
-    phase.variable.one = af.PriorModel(mock.Galaxy)
+    phase.variable.one = af.PriorModel(
+        mock.Galaxy,
+        light=mock.EllipticalLP
+    )
     return phase
 
 
@@ -21,13 +24,23 @@ def make_constant_promise(phase):
     return phase.result.constant.one.redshift
 
 
+@pytest.fixture(name="profile_promise")
+def make_profile_promise(phase):
+    return phase.result.variable.one.light
+
+
 @pytest.fixture(name="collection")
 def make_collection():
     collection = af.ResultsCollection()
     variable = af.ModelMapper()
-    variable.one = af.PriorModel(mock.Galaxy)
+    variable.one = af.PriorModel(
+        mock.Galaxy,
+        light=mock.EllipticalLP
+    )
     constant = af.ModelMapper()
-    constant.one = mock.Galaxy()
+    constant.one = mock.Galaxy(
+        light=mock.EllipticalLP()
+    )
 
     collection.add(
         "phase name",
@@ -94,12 +107,15 @@ class TestCase:
 
         assert result.redshift is collection[0].constant.one.redshift
 
-    # def test_kwarg_promise(self):
-    #     galaxy = af.PriorModel(
-    #         mock.Galaxy,
-    #         light=mock.EllipticalLP
-    #     )
-    #
-    #     instance = galaxy.instance_from_unit_vector(
-    #
-    #     )
+    def test_kwarg_promise(self, profile_promise, collection):
+        galaxy = af.PriorModel(
+            mock.Galaxy,
+            light=profile_promise
+        )
+        populated = galaxy.populate(collection)
+
+        assert isinstance(populated.light, af.PriorModel)
+
+        instance = populated.instance_from_prior_medians()
+
+        assert isinstance(instance.kwargs["light"], mock.EllipticalLP)
