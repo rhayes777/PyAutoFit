@@ -4,9 +4,9 @@ import pickle
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf
-from autofit.tools.promise import Promise
 from autofit import exc
 from autofit.optimize import grid_search
+from autofit.tools.promise import Promise
 
 
 class HyperPhase(object):
@@ -90,6 +90,10 @@ class AbstractPhase(object):
         """
         return self.optimizer.variable
 
+    @variable.setter
+    def variable(self, variable):
+        self.optimizer.variable = variable
+
     def run_analysis(self, analysis):
         return self.optimizer.fit(analysis)
 
@@ -149,7 +153,7 @@ class AbstractPhase(object):
         be saved
         """
         return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path,
-                                    self.phase_name, self.phase_tag)
+                                     self.phase_name, self.phase_tag)
 
     def save_optimizer_for_phase(self):
         """
