@@ -93,3 +93,13 @@ class TestCase:
         result = new_galaxy.populate(collection)
 
         assert result.redshift is collection[0].constant.one.redshift
+
+    # def test_kwarg_promise(self):
+    #     galaxy = af.PriorModel(
+    #         mock.Galaxy,
+    #         light=mock.EllipticalLP
+    #     )
+    #
+    #     instance = galaxy.instance_from_unit_vector(
+    #
+    #     )

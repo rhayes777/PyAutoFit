@@ -146,6 +146,7 @@ class Galaxy(object):
         self.redshift = redshift
         self.light_profiles = light_profiles
         self.mass_profiles = mass_profiles
+        self.kwargs = kwargs
 
 
 class RelativeWidth(object):
