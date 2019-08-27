@@ -74,7 +74,7 @@ class TestCase:
 
         assert result is collection[0].constant.one.redshift
 
-    def test_populate_prior_model(self, collection, variable_promise):
+    def test_populate_prior_model_variable(self, collection, variable_promise):
         new_galaxy = af.PriorModel(
             mock.Galaxy,
             redshift=variable_promise
@@ -83,3 +83,13 @@ class TestCase:
         result = new_galaxy.populate(collection)
 
         assert result.redshift is collection[0].variable.one.redshift
+
+    def test_populate_prior_model_constant(self, collection, constant_promise):
+        new_galaxy = af.PriorModel(
+            mock.Galaxy,
+            redshift=constant_promise
+        )
+
+        result = new_galaxy.populate(collection)
+
+        assert result.redshift is collection[0].constant.one.redshift
