@@ -298,20 +298,6 @@ class ModelMapper(CollectionPriorModel):
         return self.physical_vector_from_hypercube_vector(
             [0.5] * len(self.prior_tuples))
 
-    def instance_from_prior_medians(self):
-        """
-        Creates a list of physical values from the median values of the priors.
-
-        Returns
-        -------
-        physical_values : [float]
-            A list of physical values
-
-        """
-        return self.instance_from_unit_vector(
-            unit_vector=[0.5] * len(self.prior_tuples)
-        )
-
     def instance_from_physical_vector(self, physical_vector):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
