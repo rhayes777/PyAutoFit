@@ -6,6 +6,7 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
 from autofit.optimize import grid_search
+from autofit.tools.promise import Promise
 
 
 class HyperPhase(object):
@@ -33,7 +34,6 @@ class AbstractPhase(object):
         phase_name: str
             The name of this phase
         """
-
         if phase_tag is not None:
             self.phase_tag = phase_tag
         else:
@@ -45,6 +45,22 @@ class AbstractPhase(object):
             phase_folders=phase_folders
         )
         self.auto_link_priors = auto_link_priors
+
+    @property
+    def result(self):
+        class Result:
+            def __init__(self, phase):
+                self.phase = phase
+
+            @property
+            def variable(self):
+                return Promise(self.phase)
+
+            @property
+            def constant(self):
+                return Promise(self.phase, is_constant=True)
+
+        return Result(self)
 
     @property
     def phase_path(self):
@@ -73,6 +89,10 @@ class AbstractPhase(object):
             A model mapper comprising all the variable (prior) objects in this lensing
         """
         return self.optimizer.variable
+
+    @variable.setter
+    def variable(self, variable):
+        self.optimizer.variable = variable
 
     def run_analysis(self, analysis):
         return self.optimizer.fit(analysis)
@@ -133,7 +153,7 @@ class AbstractPhase(object):
         be saved
         """
         return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path,
-                                    self.phase_name, self.phase_tag)
+                                     self.phase_name, self.phase_tag)
 
     def save_optimizer_for_phase(self):
         """

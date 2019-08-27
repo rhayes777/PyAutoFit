@@ -1,6 +1,7 @@
 import copy
 
 from autofit.mapper.model_object import ModelObject
+from autofit.tools.promise import Promise
 
 
 class AbstractModel(ModelObject):
@@ -20,6 +21,12 @@ class AbstractModel(ModelObject):
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def populate(
+            self,
+            collection
+    ):
+        return populate(self, collection)
 
     def object_for_path(self, path: (str,)) -> object:
         """
@@ -95,6 +102,32 @@ class AbstractModel(ModelObject):
     def tuples_with_type(self, class_type):
         return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type),
                            self.__dict__.items()))
+
+
+def populate(obj, collection):
+    if isinstance(obj, list):
+        return [
+            populate(item, collection)
+            for item in obj
+        ]
+    if isinstance(obj, dict):
+        return {
+            key: populate(value, collection)
+            for key, value in obj.items()
+        }
+    if isinstance(obj, Promise):
+        return obj.populate(collection)
+    try:
+        new = copy.deepcopy(obj)
+        for key, value in obj.__dict__.items():
+            setattr(
+                new,
+                key,
+                populate(value, collection)
+            )
+        return new
+    except (AttributeError, TypeError):
+        return obj
 
 
 def path_instances_of_class(obj, cls, ignore_class=None):

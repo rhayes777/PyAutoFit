@@ -298,20 +298,6 @@ class ModelMapper(CollectionPriorModel):
         return self.physical_vector_from_hypercube_vector(
             [0.5] * len(self.prior_tuples))
 
-    def instance_from_prior_medians(self):
-        """
-        Creates a list of physical values from the median values of the priors.
-
-        Returns
-        -------
-        physical_values : [float]
-            A list of physical values
-
-        """
-        return self.instance_from_unit_vector(
-            unit_vector=[0.5] * len(self.prior_tuples)
-        )
-
     def instance_from_physical_vector(self, physical_vector):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
@@ -348,35 +334,6 @@ class ModelMapper(CollectionPriorModel):
             and not isinstance(value, AbstractPriorModel)
             and not key == "id"
         ]
-
-    def instance_for_arguments(self, arguments):
-        """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every PriorModel attributed to this instance.
-
-        Parameters
-        ----------
-        arguments : dict
-            The dictionary representation of prior and parameter values. This is created
-            in the model_instance_from_* routines.
-
-        Returns
-        -------
-        model_instance : autofit.mapper.model.ModelInstance
-            An object containing reconstructed model_mapper instances
-
-        """
-
-        model_instance = ModelInstance()
-
-        for prior_model_tuple in self.prior_model_tuples:
-            setattr(model_instance, prior_model_tuple.name,
-                    prior_model_tuple.prior_model.instance_for_arguments(arguments))
-
-        for name, value in self.instance_tuples:
-            setattr(model_instance, name, value)
-
-        return model_instance
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
@@ -484,25 +441,6 @@ class ModelMapper(CollectionPriorModel):
 
         return self.mapper_from_prior_arguments(arguments)
 
-    def mapper_from_gaussian_means(self, means):
-        """
-        Creates a new model mapper from a list of floats describing the mean values \
-        of gaussian priors. The widths of the new priors are taken from the \
-        width_config. The new gaussian priors must be provided in the same order as \
-        the priors associated with model.
-
-        Parameters
-        ----------
-        means: [float]
-            A list containing the means of the gaussian priors.
-
-        Returns
-        -------
-        mapper: ModelMapper
-            A new model mapper with all priors replaced by gaussian priors.
-        """
-        return self.mapper_from_gaussian_tuples([(mean, 0) for mean in means])
-
     @property
     def path_priors_tuples(self):
         path_priors_tuples = self.path_instance_tuples_for_class(
@@ -517,10 +455,6 @@ class ModelMapper(CollectionPriorModel):
             ],
             key=lambda item: item[1].id
         )
-
-    @property
-    def paths(self):
-        return [item[0] for item in self.path_priors_tuples]
 
     @property
     def unique_prior_paths(self):

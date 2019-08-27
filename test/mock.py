@@ -146,6 +146,7 @@ class Galaxy(object):
         self.redshift = redshift
         self.light_profiles = light_profiles
         self.mass_profiles = mass_profiles
+        self.kwargs = kwargs
 
 
 class RelativeWidth(object):
@@ -521,3 +522,9 @@ class Tracer:
         self.lens_galaxy = lens_galaxy
         self.source_galaxy = source_galaxy
         self.grid = grid
+
+
+class Result:
+    def __init__(self, constant=None, variable=None):
+        self.constant = constant
+        self.variable = variable
