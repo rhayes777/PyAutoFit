@@ -46,6 +46,6 @@ from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
 from .tools.promise import Promise
 
-__version__ = '0.31.4'
 
 
+__version__ = '0.32.0'
