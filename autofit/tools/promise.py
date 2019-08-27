@@ -11,6 +11,8 @@ class Promise:
         phase.variable.object_for_path(path)
 
     def __getattr__(self, item):
+        if item in ("phase", "path", "is_constant"):
+            return super().__getattribute__(item)
         return Promise(
             self.phase,
             *self.path,
