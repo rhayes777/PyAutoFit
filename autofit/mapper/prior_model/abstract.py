@@ -1,14 +1,14 @@
 import copy
 import inspect
 
+import autofit.mapper.model
+import autofit.mapper.model_mapper
+import autofit.mapper.prior_model.collection
 from autofit.mapper.model import AbstractModel
+from autofit.mapper.prior_model.dimension_type import DimensionType
 from autofit.mapper.prior_model.prior import Prior
 from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
-from autofit.mapper.prior_model.dimension_type import DimensionType
-import autofit.mapper.prior_model.collection
-import autofit.mapper.model
-import autofit.mapper.model_mapper
 
 
 class AbstractPriorModel(AbstractModel):
@@ -81,6 +81,20 @@ class AbstractPriorModel(AbstractModel):
         """
         return sorted(list(self.prior_tuples),
                       key=lambda prior_tuple: prior_tuple.prior.id)
+
+    def instance_from_prior_medians(self):
+        """
+        Creates a list of physical values from the median values of the priors.
+
+        Returns
+        -------
+        physical_values : [float]
+            A list of physical values
+
+        """
+        return self.instance_from_unit_vector(
+            unit_vector=[0.5] * len(self.prior_tuples)
+        )
 
     @staticmethod
     def from_instance(

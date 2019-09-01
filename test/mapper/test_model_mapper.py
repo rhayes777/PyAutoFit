@@ -124,20 +124,6 @@ class TestPriorLimits(object):
         with pytest.raises(af.exc.PriorLimitException):
             mm.instance_from_physical_vector(([0, -1]))
 
-    def test_preserve_limits(self):
-        mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassGaussian
-
-        new_mapper = mm.mapper_from_gaussian_means([0.5, 1])
-
-        prior_tuples = new_mapper.prior_tuples_ordered_by_id
-
-        assert prior_tuples[0].prior.lower_limit == 0
-        assert prior_tuples[0].prior.upper_limit == 1
-
-        assert prior_tuples[1].prior.lower_limit == 0
-        assert prior_tuples[1].prior.upper_limit == 2
-
     def test_preserve_limits_tuples(self):
         mm = af.ModelMapper()
         mm.mock_class_gaussian = MockClassGaussian
@@ -151,45 +137,6 @@ class TestPriorLimits(object):
 
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == 2
-
-    def test_preserve_modified_limits(self):
-        mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassGaussian
-
-        prior_tuples = mm.prior_tuples_ordered_by_id
-
-        prior_tuples[0].prior.lower_limit = 3
-        prior_tuples[0].prior.upper_limit = 4
-
-        new_mapper = mm.mapper_from_gaussian_means([0.5, 1])
-
-        prior_tuples = new_mapper.prior_tuples_ordered_by_id
-
-        assert prior_tuples[0].prior.lower_limit == 3
-        assert prior_tuples[0].prior.upper_limit == 4
-
-        assert prior_tuples[1].prior.lower_limit == 0
-        assert prior_tuples[1].prior.upper_limit == 2
-
-    def test_uniform_prior_limits_do_not_carry(self):
-        mm = af.ModelMapper()
-        mm.mock_class = MockClassMM
-
-        prior_tuples = mm.prior_tuples_ordered_by_id
-
-        prior_tuples[0].prior.lower_limit = 3
-        prior_tuples[0].prior.upper_limit = 4
-
-        new_mapper = mm.mapper_from_gaussian_means([0.5, 0.5])
-
-        prior_tuples = new_mapper.prior_tuples_ordered_by_id
-
-        assert prior_tuples[0].prior.lower_limit == -10
-        assert prior_tuples[0].prior.upper_limit == 10
-
-        assert prior_tuples[1].prior.lower_limit == -10
-        assert prior_tuples[1].prior.upper_limit == 10
-
 
 class TestPriorLinking(object):
     def test_same_class(self, initial_model):
@@ -1044,14 +991,6 @@ class TestConstant(object):
         assert instance.mock_class.one == 3
         assert instance.mock_class.two == 0.5
 
-    def test_constant_exchange(self, mock_with_constant, ):
-        mapper = af.ModelMapper()
-        mapper.mock_class = mock_with_constant
-
-        new_mapper = mapper.mapper_from_gaussian_means([1])
-
-        assert len(new_mapper.mock_class.constant_tuples) == 1
-
     def test_set_float(self):
         prior_model = af.PriorModel(MockClassMM, )
         prior_model.one = 3
@@ -1139,42 +1078,6 @@ class TestGaussianWidthConfig(object):
             mapper_with_list.list[0].two: MockClassMM,
             mapper_with_list.list[1].one: MockClassMM,
             mapper_with_list.list[1].two: MockClassMM}
-
-    def test_basic_gaussian_for_mean(self, mapper_with_one):
-        gaussian_mapper = mapper_with_one.mapper_from_gaussian_means([3, 4])
-
-        assert gaussian_mapper.one.one.sigma == 1
-        assert gaussian_mapper.one.two.sigma == 2
-        assert gaussian_mapper.one.one.mean == 3
-        assert gaussian_mapper.one.two.mean == 4
-
-    def test_gaussian_mean_for_list(self, mapper_with_list):
-        gaussian_mapper = mapper_with_list.mapper_from_gaussian_means([3, 4, 5, 6])
-
-        assert gaussian_mapper.list[0].one.sigma == 1
-        assert gaussian_mapper.list[0].two.sigma == 2
-        assert gaussian_mapper.list[1].one.sigma == 1
-        assert gaussian_mapper.list[1].two.sigma == 2
-        assert gaussian_mapper.list[0].one.mean == 3
-        assert gaussian_mapper.list[0].two.mean == 4
-        assert gaussian_mapper.list[1].one.mean == 5
-        assert gaussian_mapper.list[1].two.mean == 6
-
-    def test_gaussian_for_mean(self):
-        mapper = af.ModelMapper()
-        mapper.one = af.PriorModel(MockClassMM)
-        mapper.two = af.PriorModel(MockClassMM)
-
-        gaussian_mapper = mapper.mapper_from_gaussian_means([3, 4, 5, 6])
-
-        assert gaussian_mapper.one.one.sigma == 1
-        assert gaussian_mapper.one.two.sigma == 2
-        assert gaussian_mapper.two.one.sigma == 1
-        assert gaussian_mapper.two.two.sigma == 2
-        assert gaussian_mapper.one.one.mean == 3
-        assert gaussian_mapper.one.two.mean == 4
-        assert gaussian_mapper.two.one.mean == 5
-        assert gaussian_mapper.two.two.mean == 6
 
     def test_no_override(self):
         mapper = af.ModelMapper()

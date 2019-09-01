@@ -410,6 +410,26 @@ class TestPriorModelArguments(object):
         assert instance.lens_galaxy.redshift == 0.5
         assert instance.source_galaxy is source_galaxy
 
+    def test_no_passing(self):
+        mapper = af.ModelMapper()
+        mapper.distance = mock.DistanceClass
+        instance = mapper.instance_from_prior_medians()
+        assert not hasattr(instance.distance.first, "value") or not isinstance(instance.distance.first.value,
+                                                                               af.Prior)
+
+    def test_arbitrary_keyword_arguments(self):
+        prior_model = af.PriorModel(
+            mock.Galaxy,
+            light=mock.EllipticalCoredIsothermal,
+            mass=mock.EllipticalMassProfile
+        )
+        assert prior_model.prior_count == 11
+        instance = prior_model.instance_from_unit_vector(
+            [0.5] * prior_model.prior_count
+        )
+        assert isinstance(instance.light, mock.EllipticalCoredIsothermal)
+        assert isinstance(instance.mass, mock.EllipticalMassProfile)
+
 
 class TestCase(object):
     def test_complex_class(self):
