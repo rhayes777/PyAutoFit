@@ -47,39 +47,6 @@ class AbstractModel(ModelObject):
             instance = getattr(instance, name)
         return instance
 
-    def instances_of(self, cls: type) -> [object]:
-        """
-        Traverse the model tree returning all instances of the class
-
-        Parameters
-        ----------
-        cls
-            The type of objects to return
-
-        Returns
-        -------
-        instances
-            A list of instances of the type
-        """
-        return [
-            instance for source in
-            [
-                list(self.__dict__.values())
-            ] +
-            [
-                ls for ls in self.__dict__.values() if
-                isinstance(
-                    ls,
-                    list
-                )
-            ] for
-            instance in
-            source if isinstance(
-                instance,
-                cls
-            )
-        ]
-
     def path_instance_tuples_for_class(self, cls: type, ignore_class=None):
         """
         Tuples containing the path tuple and instance for every instance of the class

@@ -415,3 +415,10 @@ class PriorModel(AbstractPriorModel):
                     prior_model.gaussian_prior_model_for_arguments(arguments))
 
         return new_model
+
+
+def attribute_tuples_from_path_tuples(path_tuples):
+    return [
+        (t[0][-1], t[1])
+        for t in path_tuples
+    ]
