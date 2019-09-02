@@ -286,6 +286,44 @@ class AbstractPriorModel(AbstractModel):
         transfer_classes(instance, mapper, excluded_classes)
         return mapper
 
+    @property
+    def path_priors_tuples(self):
+        path_priors_tuples = self.path_instance_tuples_for_class(
+            Prior
+        )
+        return sorted(
+            [
+                (t[0][:-1], t[1])
+                if t[0][-1] == "value"
+                else t
+                for t in path_priors_tuples
+            ],
+            key=lambda item: item[1].id
+        )
+
+    @property
+    def path_float_tuples(self):
+        return self.path_instance_tuples_for_class(
+            float,
+            ignore_class=Prior
+        )
+
+    @property
+    def unique_prior_paths(self):
+        unique = {
+            item[1]: item
+            for item
+            in self.path_priors_tuples
+        }.values()
+        return [
+            item[0]
+            for item
+            in sorted(
+                unique,
+                key=lambda item: item[1].id
+            )
+        ]
+
 
 def transfer_classes(instance, mapper, variable_classes=None):
     """

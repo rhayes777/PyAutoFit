@@ -5,7 +5,7 @@ from autofit import conf
 from autofit import exc
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, \
-    ConstantNameValue, Prior
+    ConstantNameValue
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -201,18 +201,6 @@ class ModelMapper(CollectionPriorModel):
         return [tup for tup in self.prior_model_tuples if
                 isinstance(tup.value, CollectionPriorModel)]
 
-    @property
-    def prior_model_name_prior_tuples_dict(self):
-        """
-        Returns
-        -------
-        class_priors_dict: {String: [Prior]}
-            A dictionary mapping_matrix the names of priors to lists of associated
-            priors
-        """
-        return {name: list(prior_model.prior_tuples) for name, prior_model in
-                self.prior_model_tuples}
-
     def physical_vector_from_hypercube_vector(self, hypercube_vector):
         """
         Parameters
@@ -270,15 +258,6 @@ class ModelMapper(CollectionPriorModel):
 
         return self.instance_for_arguments(arguments)
 
-    @property
-    def instance_tuples(self):
-        return [
-            (key, value) for key, value in self.__dict__.items() if
-            isinstance(value, object)
-            and not isinstance(value, AbstractPriorModel)
-            and not key == "id"
-        ]
-
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Creates a new model mapper from a dictionary mapping_matrix existing priors to
@@ -315,9 +294,13 @@ class ModelMapper(CollectionPriorModel):
         mapper = copy.deepcopy(self)
 
         for prior_model_tuple in self.prior_model_tuples:
-            setattr(mapper, prior_model_tuple.name,
-                    prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
-                        arguments))
+            setattr(
+                mapper,
+                prior_model_tuple.name,
+                prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
+                    arguments
+                )
+            )
 
         return mapper
 
@@ -384,44 +367,6 @@ class ModelMapper(CollectionPriorModel):
             arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
 
         return self.mapper_from_prior_arguments(arguments)
-
-    @property
-    def path_priors_tuples(self):
-        path_priors_tuples = self.path_instance_tuples_for_class(
-            Prior
-        )
-        return sorted(
-            [
-                (t[0][:-1], t[1])
-                if t[0][-1] == "value"
-                else t
-                for t in path_priors_tuples
-            ],
-            key=lambda item: item[1].id
-        )
-
-    @property
-    def unique_prior_paths(self):
-        unique = {
-            item[1]: item
-            for item
-            in self.path_priors_tuples
-        }.values()
-        return [
-            item[0]
-            for item
-            in sorted(
-                unique,
-                key=lambda item: item[1].id
-            )
-        ]
-
-    @property
-    def path_float_tuples(self):
-        return self.path_instance_tuples_for_class(
-            float,
-            ignore_class=Prior
-        )
 
     @property
     def info(self):
