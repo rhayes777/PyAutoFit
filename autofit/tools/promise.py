@@ -47,6 +47,9 @@ class Promise:
         if assert_exists:
             phase.variable.object_for_path(path)
 
+    def __call__(self, *args, **kwargs):
+        pass
+
     def __getattr__(self, item):
         if item in ("phase", "path", "is_constant"):
             return super().__getattribute__(item)

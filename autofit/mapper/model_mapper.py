@@ -108,8 +108,10 @@ class ModelMapper(CollectionPriorModel):
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
 
-        return [self.name_for_prior(prior) for prior in
-                sorted(self.priors, key=lambda prior: prior.id)]
+        return [
+            self.name_for_prior(prior) for prior in
+            sorted(self.priors, key=lambda prior: prior.id)
+        ]
 
     def __eq__(self, other):
         return isinstance(other, ModelMapper) \
