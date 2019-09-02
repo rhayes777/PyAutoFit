@@ -81,10 +81,6 @@ class ModelMapper(CollectionPriorModel):
         super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
 
     @property
-    def constant_count(self):
-        return len(self.constant_tuples)
-
-    @property
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
         """

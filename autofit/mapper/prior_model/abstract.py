@@ -228,9 +228,7 @@ class AbstractPriorModel(AbstractModel):
         -------
         constants: [(String, Constant)]
         """
-        return [constant_tuple for tuple_prior in self.tuple_prior_tuples for
-                constant_tuple in
-                tuple_prior[1].constant_tuples] + self.direct_constant_tuples
+        return self.attribute_tuples_with_type(float, ignore_class=Prior)
 
     @property
     def prior_class_dict(self):

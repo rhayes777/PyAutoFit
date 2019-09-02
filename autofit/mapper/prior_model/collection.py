@@ -163,17 +163,6 @@ class CollectionPriorModel(AbstractPriorModel):
                     prior_model.unique_prior_tuples])
 
     @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Union(Prior, TuplePrior))]
-        """
-        return set([constant for prior_model in self.prior_models for constant in
-                    prior_model.constant_tuples])
-
-    @property
     def prior_class_dict(self):
         return {prior: cls for prior_model in self.prior_models for prior, cls in
                 prior_model.prior_class_dict.items()}
