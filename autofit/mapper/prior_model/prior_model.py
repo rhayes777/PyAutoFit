@@ -5,11 +5,8 @@ from typing_inspect import is_tuple_type
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.deferred import DeferredInstance
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, TuplePrior, Prior, \
-    AttributeNameValue, \
-    DeferredNameValue
+from autofit.mapper.prior_model.prior import TuplePrior, Prior
 from autofit.tools.promise import Promise
 
 
@@ -187,31 +184,6 @@ class PriorModel(AbstractPriorModel):
         except IndexError:
             pass
         self.__getattribute__(item)
-
-    @property
-    @cast_collection(PriorNameValue)
-    def tuple_prior_tuples(self):
-        """
-        Returns
-        -------
-        tuple_prior_tuples: [(String, TuplePrior)]
-        """
-        return self.direct_tuples_with_type(TuplePrior)
-
-    @property
-    @cast_collection(PriorNameValue)
-    def direct_prior_tuples(self):
-        """
-        Returns
-        -------
-        direct_priors: [(String, Prior)]
-        """
-        return self.direct_tuples_with_type(Prior)
-
-    @property
-    @cast_collection(DeferredNameValue)
-    def direct_deferred_tuples(self):
-        return self.direct_tuples_with_type(DeferredArgument)
 
     @property
     def prior_class_dict(self):

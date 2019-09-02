@@ -7,10 +7,12 @@ import autofit.mapper.prior_model.collection
 from autofit import conf
 from autofit import exc
 from autofit.mapper.model import AbstractModel
+from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.dimension_type import DimensionType
+from autofit.mapper.prior_model.prior import ConstantNameValue
 from autofit.mapper.prior_model.prior import GaussianPrior
-from autofit.mapper.prior_model.prior import Prior
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, TuplePrior, Prior, \
+    DeferredNameValue
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 
@@ -372,6 +374,31 @@ class AbstractPriorModel(AbstractModel):
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
+
+    @property
+    @cast_collection(PriorNameValue)
+    def tuple_prior_tuples(self):
+        """
+        Returns
+        -------
+        tuple_prior_tuples: [(String, TuplePrior)]
+        """
+        return self.direct_tuples_with_type(TuplePrior)
+
+    @property
+    @cast_collection(PriorNameValue)
+    def direct_prior_tuples(self):
+        """
+        Returns
+        -------
+        direct_priors: [(String, Prior)]
+        """
+        return self.direct_tuples_with_type(Prior)
+
+    @property
+    @cast_collection(DeferredNameValue)
+    def direct_deferred_tuples(self):
+        return self.direct_tuples_with_type(DeferredArgument)
 
     @property
     @cast_collection(PriorNameValue)
