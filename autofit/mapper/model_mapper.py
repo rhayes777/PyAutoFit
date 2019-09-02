@@ -4,8 +4,7 @@ import os
 from autofit import conf
 from autofit import exc
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, \
-    ConstantNameValue
+from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -93,8 +92,7 @@ class ModelMapper(CollectionPriorModel):
         -------
         prior_model_tuples: [(String, PriorModel)]
         """
-        return list(filter(lambda t: isinstance(t[1], AbstractPriorModel),
-                           self.__dict__.items()))
+        return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -150,21 +148,6 @@ class ModelMapper(CollectionPriorModel):
             prior_tuple.prior: prior_tuple.name
             for prior_tuple in self.prior_tuples
         }
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
-        """
-        Returns
-        -------
-        constant_tuples: [(str, float)]
-            The set of all constants associated with this mapper
-        """
-        return {
-            constant_tuple.constant: constant_tuple
-            for name, prior_model in self.prior_model_tuples
-            for constant_tuple in prior_model.constant_tuples
-        }.values()
 
     @property
     def prior_class_dict(self):

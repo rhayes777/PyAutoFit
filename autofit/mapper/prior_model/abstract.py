@@ -219,8 +219,16 @@ class AbstractPriorModel(AbstractModel):
                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
 
     @property
+    @cast_collection(ConstantNameValue)
     def constant_tuples(self):
-        raise NotImplementedError()
+        """
+        Returns
+        -------
+        constants: [(String, Constant)]
+        """
+        return [constant_tuple for tuple_prior in self.tuple_prior_tuples for
+                constant_tuple in
+                tuple_prior[1].constant_tuples] + self.direct_constant_tuples
 
     @property
     def prior_class_dict(self):

@@ -7,8 +7,8 @@ from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.deferred import DeferredInstance
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
-    TuplePrior, Prior, AttributeNameValue, \
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, TuplePrior, Prior, \
+    AttributeNameValue, \
     DeferredNameValue
 from autofit.tools.promise import Promise
 
@@ -236,18 +236,6 @@ class PriorModel(AbstractPriorModel):
     @cast_collection(DeferredNameValue)
     def direct_deferred_tuples(self):
         return self.direct_tuples_with_type(DeferredArgument)
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
-        """
-        Returns
-        -------
-        constants: [(String, Constant)]
-        """
-        return [constant_tuple for tuple_prior in self.tuple_prior_tuples for
-                constant_tuple in
-                tuple_prior[1].constant_tuples] + self.direct_constant_tuples
 
     @property
     @cast_collection(AttributeNameValue)
