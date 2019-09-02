@@ -47,39 +47,6 @@ class AbstractModel(ModelObject):
             instance = getattr(instance, name)
         return instance
 
-    def instances_of(self, cls: type) -> [object]:
-        """
-        Traverse the model tree returning all instances of the class
-
-        Parameters
-        ----------
-        cls
-            The type of objects to return
-
-        Returns
-        -------
-        instances
-            A list of instances of the type
-        """
-        return [
-            instance for source in
-            [
-                list(self.__dict__.values())
-            ] +
-            [
-                ls for ls in self.__dict__.values() if
-                isinstance(
-                    ls,
-                    list
-                )
-            ] for
-            instance in
-            source if isinstance(
-                instance,
-                cls
-            )
-        ]
-
     def path_instance_tuples_for_class(self, cls: type, ignore_class=None):
         """
         Tuples containing the path tuple and instance for every instance of the class
@@ -99,9 +66,19 @@ class AbstractModel(ModelObject):
         """
         return path_instances_of_class(self, cls, ignore_class=ignore_class)
 
-    def tuples_with_type(self, class_type):
-        return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type),
-                           self.__dict__.items()))
+    def direct_tuples_with_type(self, class_type):
+        return list(filter(
+            lambda t: t[0] != "id" and isinstance(t[1], class_type),
+            self.__dict__.items()
+        ))
+
+    def attribute_tuples_with_type(self, class_type):
+        return [
+            (t[0][-1], t[1])
+            for t in self.path_instance_tuples_for_class(
+                class_type
+            )
+        ]
 
 
 def populate(obj, collection):
@@ -131,6 +108,7 @@ def populate(obj, collection):
 
 
 def path_instances_of_class(obj, cls, ignore_class=None):
+    from autofit.mapper.prior_model.annotation import AnnotationPriorModel
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
     if isinstance(obj, cls):
@@ -139,7 +117,11 @@ def path_instances_of_class(obj, cls, ignore_class=None):
     try:
         for key, value in obj.__dict__.items():
             for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
-                results.append(((key, *item[0]), item[1]))
+                if isinstance(value, AnnotationPriorModel):
+                    path = (key,)
+                else:
+                    path = (key, *item[0])
+                results.append((path, item[1]))
         return results
     except AttributeError:
         return []

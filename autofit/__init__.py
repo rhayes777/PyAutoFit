@@ -21,8 +21,6 @@ from .mapper.prior_model.deferred import DeferredInstance
 from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.util import PriorModelNameValue
-from .mapper.prior_model.util import is_tuple_like_attribute_name
-from .mapper.prior_model.util import tuple_name
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
@@ -45,7 +43,6 @@ from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
 from .tools.promise import Promise
+from .tools.promise import PromiseResult
 
-
-
-__version__ = '0.32.0'
+__version__ = '0.33.0'

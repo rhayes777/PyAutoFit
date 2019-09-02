@@ -177,12 +177,12 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
-        return self.tuples_with_type(Prior)
+        return self.direct_tuples_with_type(Prior)
 
     @property
     @cast_collection(ConstantNameValue)
     def direct_constant_tuples(self):
-        return self.tuples_with_type(float)
+        return self.direct_tuples_with_type(float)
 
     @property
     def flat_prior_model_tuples(self):
@@ -198,29 +198,39 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
-        return self.tuples_with_type(AbstractPriorModel)
+        return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
-    def prior_models(self):
-        return [item[1] for item in self.prior_model_tuples]
-
-    @property
+    @cast_collection(PriorNameValue)
     def prior_tuples(self):
-        raise NotImplementedError()
+        """
+        Returns
+        -------
+        priors: [(String, Prior))]
+        """
+        # noinspection PyUnresolvedReferences
+        return self.attribute_tuples_with_type(Prior)
 
     @property
     @cast_collection(PriorModelNameValue)
     def direct_prior_model_tuples(self):
-        return [(name, value) for name, value in self.__dict__.items() if
-                isinstance(value, AbstractPriorModel)]
+        return self.direct_tuples_with_type(AbstractPriorModel)
 
     def __eq__(self, other):
         return isinstance(other, AbstractPriorModel) \
                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
 
     @property
+    @cast_collection(ConstantNameValue)
     def constant_tuples(self):
-        raise NotImplementedError()
+        """
+        Returns
+        -------
+        constants: [(String, Constant)]
+        """
+        return [constant_tuple for tuple_prior in self.tuple_prior_tuples for
+                constant_tuple in
+                tuple_prior[1].constant_tuples] + self.direct_constant_tuples
 
     @property
     def prior_class_dict(self):
@@ -285,6 +295,39 @@ class AbstractPriorModel(AbstractModel):
         mapper = copy.deepcopy(self)
         transfer_classes(instance, mapper, excluded_classes)
         return mapper
+
+    @property
+    def path_priors_tuples(self):
+        path_priors_tuples = self.path_instance_tuples_for_class(
+            Prior
+        )
+        return sorted(
+            path_priors_tuples,
+            key=lambda item: item[1].id
+        )
+
+    @property
+    def path_float_tuples(self):
+        return self.path_instance_tuples_for_class(
+            float,
+            ignore_class=Prior
+        )
+
+    @property
+    def unique_prior_paths(self):
+        unique = {
+            item[1]: item
+            for item
+            in self.path_priors_tuples
+        }.values()
+        return [
+            item[0]
+            for item
+            in sorted(
+                unique,
+                key=lambda item: item[1].id
+            )
+        ]
 
 
 def transfer_classes(instance, mapper, variable_classes=None):

@@ -3,10 +3,8 @@ import os
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, \
-    ConstantNameValue, Prior
+from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -83,10 +81,6 @@ class ModelMapper(CollectionPriorModel):
         super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
 
     @property
-    def prior_count(self):
-        return len(self.prior_tuples_ordered_by_id)
-
-    @property
     def constant_count(self):
         return len(self.constant_tuples)
 
@@ -98,8 +92,7 @@ class ModelMapper(CollectionPriorModel):
         -------
         prior_model_tuples: [(String, PriorModel)]
         """
-        return list(filter(lambda t: isinstance(t[1], AbstractPriorModel),
-                           self.__dict__.items()))
+        return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -111,24 +104,6 @@ class ModelMapper(CollectionPriorModel):
         """
         return list(filter(lambda t: isinstance(t[1], CollectionPriorModel),
                            self.__dict__.items()))
-
-    @property
-    @cast_collection(PriorModelNameValue)
-    def flat_prior_model_tuples(self):
-        """
-        Returns
-        -------
-        prior_model_tuples: [(String, PriorModel)]
-            A list of tuples with the names of prior models and associated prior models.
-            Names are fully qualified by all objects in which they are embedded.
-        """
-        return [
-            ("{}".format(prior_model_name), flat_prior_model) for
-            prior_model_name, prior_model in
-            self.prior_model_tuples for
-            flat_prior_model_name, flat_prior_model in
-            prior_model.flat_prior_model_tuples
-        ]
 
     @property
     @cast_collection(PriorNameValue)
@@ -155,21 +130,6 @@ class ModelMapper(CollectionPriorModel):
             prior_tuple.prior: prior_tuple.name
             for prior_tuple in self.prior_tuples
         }
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
-        """
-        Returns
-        -------
-        constant_tuples: [(str, float)]
-            The set of all constants associated with this mapper
-        """
-        return {
-            constant_tuple.constant: constant_tuple
-            for name, prior_model in self.prior_model_tuples
-            for constant_tuple in prior_model.constant_tuples
-        }.values()
 
     @property
     def prior_class_dict(self):
@@ -201,73 +161,10 @@ class ModelMapper(CollectionPriorModel):
                 prior_model[1].prior_tuples}
 
     @property
-    def prior_prior_model_name_dict(self):
-        """
-        Returns
-        -------
-        prior_prior_model_name_dict: {Prior: str}
-            A dictionary mapping priors to the names of associated prior models. Each
-            prior will only have one prior model name; if a prior is shared by two prior
-            models then one of those prior model's names will be in this dictionary.
-        """
-        prior_prior_model_name_dict = {prior_tuple.prior: prior_model_tuple.name
-                                       for prior_model_tuple in
-                                       self.flat_prior_model_tuples
-                                       for prior_tuple in
-                                       prior_model_tuple.prior_model.prior_tuples}
-        prior_list_prior_model_name_dict = {
-            prior_tuple.value: "{}_{}".format(list_prior_model_tuple.name,
-                                              label_prior_model_tuple.name) for
-            list_prior_model_tuple in self.list_prior_model_tuples for
-            label_prior_model_tuple in
-            list_prior_model_tuple.value.label_prior_model_tuples for prior_tuple in
-            label_prior_model_tuple.value.prior_tuples}
-        prior_prior_model_name_dict.update(prior_list_prior_model_name_dict)
-        return prior_prior_model_name_dict
-
-    @property
     @cast_collection(PriorModelNameValue)
     def list_prior_model_tuples(self):
         return [tup for tup in self.prior_model_tuples if
                 isinstance(tup.value, CollectionPriorModel)]
-
-    @property
-    def constant_prior_model_name_dict(self):
-        """
-        Returns
-        -------
-        prior_prior_model_name_dict: {Prior: str}
-            A dictionary mapping priors to the names of associated prior models. Each
-            prior will only have one prior model name; if a prior is shared by two prior
-            models then one of those prior model's names will be in this dictionary.
-        """
-        return {constant_tuple.constant: prior_model_tuple.name
-                for prior_model_tuple in self.prior_model_tuples
-                for constant_tuple in prior_model_tuple.prior_model.constant_tuples}
-
-    @property
-    def prior_model_name_prior_tuples_dict(self):
-        """
-        Returns
-        -------
-        class_priors_dict: {String: [Prior]}
-            A dictionary mapping_matrix the names of priors to lists of associated
-            priors
-        """
-        return {name: list(prior_model.prior_tuples) for name, prior_model in
-                self.prior_model_tuples}
-
-    @property
-    def prior_model_name_constant_tuples_dict(self):
-        """
-        Returns
-        -------
-        class_constants_dict: {String: [Constant]}
-            A dictionary mapping_matrix the names of priors to lists of associated
-            constants
-        """
-        return {name: list(prior_model.constant_tuples) for name, prior_model in
-                self.prior_model_tuples}
 
     def physical_vector_from_hypercube_vector(self, hypercube_vector):
         """
@@ -326,15 +223,6 @@ class ModelMapper(CollectionPriorModel):
 
         return self.instance_for_arguments(arguments)
 
-    @property
-    def instance_tuples(self):
-        return [
-            (key, value) for key, value in self.__dict__.items() if
-            isinstance(value, object)
-            and not isinstance(value, AbstractPriorModel)
-            and not key == "id"
-        ]
-
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Creates a new model mapper from a dictionary mapping_matrix existing priors to
@@ -371,9 +259,13 @@ class ModelMapper(CollectionPriorModel):
         mapper = copy.deepcopy(self)
 
         for prior_model_tuple in self.prior_model_tuples:
-            setattr(mapper, prior_model_tuple.name,
-                    prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
-                        arguments))
+            setattr(
+                mapper,
+                prior_model_tuple.name,
+                prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
+                    arguments
+                )
+            )
 
         return mapper
 
@@ -440,44 +332,6 @@ class ModelMapper(CollectionPriorModel):
             arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
 
         return self.mapper_from_prior_arguments(arguments)
-
-    @property
-    def path_priors_tuples(self):
-        path_priors_tuples = self.path_instance_tuples_for_class(
-            Prior
-        )
-        return sorted(
-            [
-                (t[0][:-1], t[1])
-                if t[0][-1] == "value"
-                else t
-                for t in path_priors_tuples
-            ],
-            key=lambda item: item[1].id
-        )
-
-    @property
-    def unique_prior_paths(self):
-        unique = {
-            item[1]: item
-            for item
-            in self.path_priors_tuples
-        }.values()
-        return [
-            item[0]
-            for item
-            in sorted(
-                unique,
-                key=lambda item: item[1].id
-            )
-        ]
-
-    @property
-    def path_float_tuples(self):
-        return self.path_instance_tuples_for_class(
-            float,
-            ignore_class=Prior
-        )
 
     @property
     def info(self):
