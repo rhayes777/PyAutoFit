@@ -85,6 +85,9 @@ class CollectionPriorModel(AbstractPriorModel):
             pass
         setattr(self, str(key), obj)
 
+    def __setattr__(self, key, value):
+        super().__setattr__(key, AbstractPriorModel.from_object(value))
+
     def remove(self, item):
         for key, value in self.__dict__.copy().items():
             if value == item:
