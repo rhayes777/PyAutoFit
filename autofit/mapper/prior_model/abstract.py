@@ -201,10 +201,6 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
-    def prior_models(self):
-        return [item[1] for item in self.prior_model_tuples]
-
-    @property
     @cast_collection(PriorNameValue)
     def prior_tuples(self):
         """
@@ -213,15 +209,12 @@ class AbstractPriorModel(AbstractModel):
         priors: [(String, Prior))]
         """
         # noinspection PyUnresolvedReferences
-        return attribute_tuples_from_path_tuples(
-            self.path_priors_tuples
-        )
+        return self.attribute_tuples_with_type(Prior)
 
     @property
     @cast_collection(PriorModelNameValue)
     def direct_prior_model_tuples(self):
-        return [(name, value) for name, value in self.__dict__.items() if
-                isinstance(value, AbstractPriorModel)]
+        return self.direct_tuples_with_type(AbstractPriorModel)
 
     def __eq__(self, other):
         return isinstance(other, AbstractPriorModel) \
@@ -335,13 +328,6 @@ class AbstractPriorModel(AbstractModel):
                 key=lambda item: item[1].id
             )
         ]
-
-
-def attribute_tuples_from_path_tuples(path_tuples):
-    return [
-        (t[0][-1], t[1])
-        for t in path_tuples
-    ]
 
 
 def transfer_classes(instance, mapper, variable_classes=None):

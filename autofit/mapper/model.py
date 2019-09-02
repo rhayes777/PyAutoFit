@@ -72,6 +72,14 @@ class AbstractModel(ModelObject):
             self.__dict__.items()
         ))
 
+    def attribute_tuples_with_type(self, class_type):
+        return [
+            (t[0][-1], t[1])
+            for t in self.path_instance_tuples_for_class(
+                class_type
+            )
+        ]
+
 
 def populate(obj, collection):
     if isinstance(obj, list):
