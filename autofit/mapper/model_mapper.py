@@ -81,27 +81,6 @@ class ModelMapper(CollectionPriorModel):
         super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
 
     @property
-    @cast_collection(PriorModelNameValue)
-    def prior_model_tuples(self):
-        """
-        Returns
-        -------
-        prior_model_tuples: [(String, PriorModel)]
-        """
-        return self.direct_tuples_with_type(AbstractPriorModel)
-
-    @property
-    @cast_collection(PriorModelNameValue)
-    def list_prior_model_tuples(self):
-        """
-        Returns
-        -------
-        list_prior_model_tuples: [(String, ListPriorModel)]
-        """
-        return list(filter(lambda t: isinstance(t[1], CollectionPriorModel),
-                           self.__dict__.items()))
-
-    @property
     @cast_collection(PriorNameValue)
     def unique_prior_tuples(self):
         """
@@ -114,10 +93,6 @@ class ModelMapper(CollectionPriorModel):
             prior_tuple[1]: prior_tuple
             for prior_tuple in self.attribute_tuples_with_type(Prior)
         }.values()
-
-    @property
-    def priors(self):
-        return [prior_tuple.prior for prior_tuple in self.unique_prior_tuples]
 
     @property
     def prior_class_dict(self):
@@ -147,12 +122,6 @@ class ModelMapper(CollectionPriorModel):
         return {prior: prior_model[1] for prior_model in self.prior_model_tuples for
                 _, prior in
                 prior_model[1].unique_prior_tuples}
-
-    @property
-    @cast_collection(PriorModelNameValue)
-    def list_prior_model_tuples(self):
-        return [tup for tup in self.prior_model_tuples if
-                isinstance(tup.value, CollectionPriorModel)]
 
     def physical_vector_from_hypercube_vector(self, hypercube_vector):
         """
