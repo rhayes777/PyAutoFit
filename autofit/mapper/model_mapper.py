@@ -1,10 +1,7 @@
-import copy
 import os
 
-from autofit import conf
-from autofit import exc
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, Prior
+from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, Prior
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.tools.text_formatter import TextFormatter
 
@@ -80,20 +77,6 @@ class ModelMapper(CollectionPriorModel):
         super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
 
     @property
-    @cast_collection(PriorNameValue)
-    def unique_prior_tuples(self):
-        """
-        Returns
-        -------
-        prior_tuple_dict: [(Prior, PriorTuple)]
-            The set of all priors associated with this mapper
-        """
-        return {
-            prior_tuple[1]: prior_tuple
-            for prior_tuple in self.attribute_tuples_with_type(Prior)
-        }.values()
-
-    @property
     def prior_class_dict(self):
         """
         Returns
@@ -120,174 +103,7 @@ class ModelMapper(CollectionPriorModel):
         """
         return {prior: prior_model[1] for prior_model in self.prior_model_tuples for
                 _, prior in
-                prior_model[1].unique_prior_tuples}
-
-    def physical_vector_from_hypercube_vector(self, hypercube_vector):
-        """
-        Parameters
-        ----------
-        hypercube_vector: [float]
-            A unit hypercube vector
-
-        Returns
-        -------
-        values: [float]
-            A vector with values output by priors
-        """
-        return list(
-            map(lambda prior_tuple, unit: prior_tuple.prior.value_for(unit),
-                self.prior_tuples_ordered_by_id,
-                hypercube_vector))
-
-    @property
-    def physical_values_from_prior_medians(self):
-        """
-        Returns
-        -------
-        physical_values: [float]
-            A list of physical values constructed by taking the mean possible value from
-            each prior.
-        """
-        return self.physical_vector_from_hypercube_vector(
-            [0.5] * len(self.unique_prior_tuples))
-
-    def instance_from_physical_vector(self, physical_vector):
-        """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every PriorModel attributed to this instance.
-
-        This method takes as input a physical vector of parameter values, thus omitting
-        the use of priors.
-
-        Parameters
-        ----------
-        physical_vector: [float]
-            A unit hypercube vector
-
-        Returns
-        -------
-        model_instance : autofit.mapper.model.ModelInstance
-            An object containing reconstructed model_mapper instances
-
-        """
-        arguments = dict(
-            map(
-                lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
-                self.prior_tuples_ordered_by_id,
-                physical_vector)
-        )
-
-        return self.instance_for_arguments(arguments)
-
-    def mapper_from_partial_prior_arguments(self, arguments):
-        """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
-        new priors, keeping existing priors where no mapping is provided.
-
-        Parameters
-        ----------
-        arguments: {Prior: Prior}
-            A dictionary mapping_matrix priors to priors
-
-        Returns
-        -------
-        model_mapper: ModelMapper
-            A new model mapper with updated priors.
-        """
-        original_prior_dict = {prior: prior for prior in self.priors}
-        return self.mapper_from_prior_arguments({**original_prior_dict, **arguments})
-
-    def mapper_from_prior_arguments(self, arguments):
-        """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
-        new priors.
-
-        Parameters
-        ----------
-        arguments: {Prior: Prior}
-            A dictionary mapping_matrix priors to priors
-
-        Returns
-        -------
-        model_mapper: ModelMapper
-            A new model mapper with updated priors.
-        """
-        mapper = copy.deepcopy(self)
-
-        for prior_model_tuple in self.prior_model_tuples:
-            setattr(
-                mapper,
-                prior_model_tuple.name,
-                prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
-                    arguments
-                )
-            )
-
-        return mapper
-
-    def mapper_from_gaussian_tuples(self, tuples, a=None, r=None):
-        """
-        Creates a new model mapper from a list of floats describing the mean values
-        of gaussian priors. The widths of the new priors are taken from the
-        width_config. The new gaussian priors must be provided in the same order as
-        the priors associated with model.
-
-        If a is not None then all priors are created with an absolute width of a.
-
-        If r is not None then all priors are created with a relative width of r.
-
-        Parameters
-        ----------
-        r
-            The relative width to be assigned to gaussian priors
-        a
-            The absolute width to be assigned to gaussian priors
-        tuples
-            A list of tuples each containing the mean and width of a prior
-
-        Returns
-        -------
-        mapper: ModelMapper
-            A new model mapper with all priors replaced by gaussian priors.
-        """
-
-        prior_tuples = self.prior_tuples_ordered_by_id
-        prior_class_dict = self.prior_class_dict
-        arguments = {}
-
-        for i, prior_tuple in enumerate(prior_tuples):
-            prior = prior_tuple.prior
-            cls = prior_class_dict[prior]
-            mean = tuples[i][0]
-            if a is not None and r is not None:
-                raise exc.PriorException(
-                    "Width of new priors cannot be both relative and absolute.")
-            if a is not None:
-                width_type = "a"
-                value = a
-            elif r is not None:
-                width_type = "r"
-                value = r
-            else:
-                width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(
-                    cls, prior_tuple.name)
-            if width_type == "r":
-                width = value * mean
-            elif width_type == "a":
-                width = value
-            else:
-                raise exc.PriorException(
-                    "Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0")
-            if isinstance(prior, GaussianPrior):
-                limits = (prior.lower_limit, prior.upper_limit)
-            else:
-                limits = conf.instance.prior_limit.get_for_nearest_ancestor(
-                    cls,
-                    prior_tuple.name
-                )
-            arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
-
-        return self.mapper_from_prior_arguments(arguments)
+                prior_model[1].prior_tuples}
 
     @property
     def info(self):
