@@ -106,7 +106,7 @@ class AbstractPhase(object):
         if self.__doc__ is not None:
             return self.__doc__.replace("  ", "").replace("\n", " ")
 
-    def pass_priors(self, results):
+    def customize_priors(self, results):
         """
         Perform any prior or constant passing. This could involve setting model
         attributes equal to priors or constants from a previous phase.
