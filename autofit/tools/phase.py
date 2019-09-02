@@ -6,7 +6,7 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
 from autofit.optimize import grid_search
-from autofit.tools.promise import Promise
+from autofit.tools.promise import PromiseResult
 
 
 class HyperPhase(object):
@@ -48,19 +48,7 @@ class AbstractPhase(object):
 
     @property
     def result(self):
-        class Result:
-            def __init__(self, phase):
-                self.phase = phase
-
-            @property
-            def variable(self):
-                return Promise(self.phase)
-
-            @property
-            def constant(self):
-                return Promise(self.phase, is_constant=True)
-
-        return Result(self)
+        return PromiseResult(self)
 
     @property
     def phase_path(self):

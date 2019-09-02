@@ -528,3 +528,7 @@ class Result:
     def __init__(self, constant=None, variable=None):
         self.constant = constant
         self.variable = variable
+
+
+class HyperGalaxy(object):
+    pass
