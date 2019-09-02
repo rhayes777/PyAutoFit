@@ -21,8 +21,6 @@ from .mapper.prior_model.deferred import DeferredInstance
 from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.util import PriorModelNameValue
-from .mapper.prior_model.util import is_tuple_like_attribute_name
-from .mapper.prior_model.util import tuple_name
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.downhill_simplex import DownhillSimplex

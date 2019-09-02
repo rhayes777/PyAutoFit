@@ -66,9 +66,11 @@ class AbstractModel(ModelObject):
         """
         return path_instances_of_class(self, cls, ignore_class=ignore_class)
 
-    def tuples_with_type(self, class_type):
-        return list(filter(lambda t: t[0] != "id" and isinstance(t[1], class_type),
-                           self.__dict__.items()))
+    def direct_tuples_with_type(self, class_type):
+        return list(filter(
+            lambda t: t[0] != "id" and isinstance(t[1], class_type),
+            self.__dict__.items()
+        ))
 
 
 def populate(obj, collection):

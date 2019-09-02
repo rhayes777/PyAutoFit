@@ -177,12 +177,12 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
-        return self.tuples_with_type(Prior)
+        return self.direct_tuples_with_type(Prior)
 
     @property
     @cast_collection(ConstantNameValue)
     def direct_constant_tuples(self):
-        return self.tuples_with_type(float)
+        return self.direct_tuples_with_type(float)
 
     @property
     def flat_prior_model_tuples(self):
@@ -198,7 +198,7 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
-        return self.tuples_with_type(AbstractPriorModel)
+        return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
     def prior_models(self):

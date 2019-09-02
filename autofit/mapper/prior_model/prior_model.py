@@ -10,7 +10,6 @@ from autofit.mapper.prior_model.deferred import DeferredInstance
 from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
     TuplePrior, Prior, AttributeNameValue, \
     DeferredNameValue
-from autofit.mapper.prior_model.util import tuple_name, is_tuple_like_attribute_name
 from autofit.tools.promise import Promise
 
 
@@ -168,57 +167,6 @@ class PriorModel(AbstractPriorModel):
             attribute_name
         )
 
-    def linked_model_for_class(self, cls, make_constants_variable=False, **kwargs):
-        """
-        Create a PriorModel wrapping the specified class with attributes from this
-        instance. Priors can be overridden using keyword arguments. Any constructor
-        arguments of the new class for which there is no attribute associated with
-        this class and no keyword argument are created from config.
-
-        If make_constants_variable is True then constants associated with this
-        instance will be used to set the mean of priors in the new instance rather
-        than overriding them.
-
-        Parameters
-        ----------
-        cls: class
-            The class that the new PriorModel will wrap
-        make_constants_variable: bool
-            If True constants from this instance will be used to determine the mean
-            values for priors in the new instance rather than overriding them
-        kwargs
-            Keyword arguments passed in here are used to override attributes from this
-            instance or add new attributes
-
-        Returns
-        -------
-        new_model: PriorModel
-            A new prior model with priors derived from this instance
-        """
-        constructor_args = inspect.getfullargspec(cls).args
-        attribute_tuples = self.attribute_tuples
-        new_model = PriorModel(cls)
-        for attribute_tuple in attribute_tuples:
-            name = attribute_tuple.name
-            if name in constructor_args or (
-                    is_tuple_like_attribute_name(
-                        name
-                    ) and tuple_name(name) in constructor_args):
-                attribute = kwargs[name] if name in kwargs else attribute_tuple.value
-                if make_constants_variable and (isinstance(
-                        attribute,
-                        float
-                ) or isinstance(
-                    attribute,
-                    int
-                )):
-                    new_attribute = getattr(new_model, name)
-                    if isinstance(new_attribute, Prior):
-                        new_attribute.mean = attribute
-                        continue
-                setattr(new_model, name, attribute)
-        return new_model
-
     def __setattr__(self, key, value):
         if key not in (
                 "component_number", "phase_property_position", "mapping_name", "id"):
@@ -252,7 +200,7 @@ class PriorModel(AbstractPriorModel):
         -------
         tuple_prior_tuples: [(String, TuplePrior)]
         """
-        return self.tuples_with_type(TuplePrior)
+        return self.direct_tuples_with_type(TuplePrior)
 
     @property
     @cast_collection(PriorNameValue)
@@ -262,7 +210,7 @@ class PriorModel(AbstractPriorModel):
         -------
         direct_priors: [(String, Prior)]
         """
-        return self.tuples_with_type(Prior)
+        return self.direct_tuples_with_type(Prior)
 
     @property
     @cast_collection(PriorNameValue)
@@ -287,7 +235,7 @@ class PriorModel(AbstractPriorModel):
     @property
     @cast_collection(DeferredNameValue)
     def direct_deferred_tuples(self):
-        return self.tuples_with_type(DeferredArgument)
+        return self.direct_tuples_with_type(DeferredArgument)
 
     @property
     @cast_collection(ConstantNameValue)

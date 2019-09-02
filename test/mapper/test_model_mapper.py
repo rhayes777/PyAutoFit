@@ -138,39 +138,8 @@ class TestPriorLimits(object):
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == 2
 
+
 class TestPriorLinking(object):
-    def test_same_class(self, initial_model):
-        new_model = initial_model.linked_model_for_class(MockClassMM)
-
-        assert new_model is not initial_model
-        assert new_model.one is initial_model.one
-        assert new_model.two is initial_model.two
-
-    def test_extended_class(self, initial_model):
-        new_model = initial_model.linked_model_for_class(ExtendedMockClass)
-
-        assert hasattr(new_model, "three")
-
-    def test_override(self, initial_model):
-        new_prior = af.GaussianPrior(1., 1.)
-        new_model = initial_model.linked_model_for_class(MockClassMM, one=1.,
-                                                         two=new_prior)
-
-        assert new_model != initial_model
-        assert new_model.one is not initial_model.one
-        assert new_model.one == 1.
-        assert new_model.two is not initial_model.two
-        assert new_model.two is new_prior
-
-    def test_constants(self, initial_model):
-        initial_model.one = 1.0
-
-        new_model = initial_model.linked_model_for_class(MockClassMM)
-
-        assert new_model.one == 1.0
-        assert new_model.one is initial_model.one
-        assert new_model.two is initial_model.two
-
     def test_uniform_prior_mean(self):
         uniform_prior = af.UniformPrior(0., 1.)
         assert uniform_prior.mean == 0.5
@@ -178,40 +147,6 @@ class TestPriorLinking(object):
         uniform_prior.mean = 1.
         assert uniform_prior.lower_limit == 0.5
         assert uniform_prior.upper_limit == 1.5
-
-    def test_make_constants_variable(self, initial_model):
-        initial_model.one = 1
-
-        new_model = initial_model.linked_model_for_class(MockClassMM,
-                                                         make_constants_variable=True)
-
-        assert new_model.one.mean == 0.5
-        assert new_model.two is initial_model.two
-
-    def test_tuple_passing(self):
-        initial_model = af.PriorModel(MockProfile, )
-        initial_model.centre_0 = 1.
-
-        new_model = initial_model.linked_model_for_class(MockProfile)
-
-        assert new_model.centre_0 is initial_model.centre_0
-        assert new_model.centre_1 is initial_model.centre_1
-
-    def test_is_tuple_like_attribute_name(self):
-        assert af.is_tuple_like_attribute_name("centre_0")
-        assert af.is_tuple_like_attribute_name("centre_1")
-        assert not af.is_tuple_like_attribute_name(
-            "centre")
-        assert af.is_tuple_like_attribute_name(
-            "centre_why_not_0")
-        assert not af.is_tuple_like_attribute_name(
-            "centre_why_not")
-
-    def test_tuple_name(self):
-        assert af.tuple_name("centre_0") == "centre"
-        assert af.tuple_name("centre_1") == "centre"
-        assert af.tuple_name(
-            "centre_why_not_0") == "centre_why_not"
 
 
 class TestAddition(object):
