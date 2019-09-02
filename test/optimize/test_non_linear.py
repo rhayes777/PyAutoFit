@@ -115,12 +115,6 @@ class TestParamNames(object):
 
         assert [tup.name for tup in mapper.mock_list.label_prior_model_tuples] == ['one', 'two']
 
-    def test_prior_prior_model_name_dict(self, mapper, mock_list):
-        mapper.mock_list = mock_list
-        prior_prior_model_name_dict = mapper.prior_prior_model_name_dict
-
-        assert len({value for key, value in prior_prior_model_name_dict.items()}) == 2
-
 
 @pytest.fixture(name='nlo_setup_path')
 def test_nlo_setup():

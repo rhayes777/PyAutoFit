@@ -3,7 +3,6 @@ import os
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, \
     ConstantNameValue, Prior
@@ -81,10 +80,6 @@ class ModelMapper(CollectionPriorModel):
 
     def __setattr__(self, key, value):
         super(ModelMapper, self).__setattr__(key, AbstractPriorModel.from_object(value))
-
-    @property
-    def prior_count(self):
-        return len(self.prior_tuples_ordered_by_id)
 
     @property
     def constant_count(self):
@@ -201,49 +196,10 @@ class ModelMapper(CollectionPriorModel):
                 prior_model[1].prior_tuples}
 
     @property
-    def prior_prior_model_name_dict(self):
-        """
-        Returns
-        -------
-        prior_prior_model_name_dict: {Prior: str}
-            A dictionary mapping priors to the names of associated prior models. Each
-            prior will only have one prior model name; if a prior is shared by two prior
-            models then one of those prior model's names will be in this dictionary.
-        """
-        prior_prior_model_name_dict = {prior_tuple.prior: prior_model_tuple.name
-                                       for prior_model_tuple in
-                                       self.flat_prior_model_tuples
-                                       for prior_tuple in
-                                       prior_model_tuple.prior_model.prior_tuples}
-        prior_list_prior_model_name_dict = {
-            prior_tuple.value: "{}_{}".format(list_prior_model_tuple.name,
-                                              label_prior_model_tuple.name) for
-            list_prior_model_tuple in self.list_prior_model_tuples for
-            label_prior_model_tuple in
-            list_prior_model_tuple.value.label_prior_model_tuples for prior_tuple in
-            label_prior_model_tuple.value.prior_tuples}
-        prior_prior_model_name_dict.update(prior_list_prior_model_name_dict)
-        return prior_prior_model_name_dict
-
-    @property
     @cast_collection(PriorModelNameValue)
     def list_prior_model_tuples(self):
         return [tup for tup in self.prior_model_tuples if
                 isinstance(tup.value, CollectionPriorModel)]
-
-    @property
-    def constant_prior_model_name_dict(self):
-        """
-        Returns
-        -------
-        prior_prior_model_name_dict: {Prior: str}
-            A dictionary mapping priors to the names of associated prior models. Each
-            prior will only have one prior model name; if a prior is shared by two prior
-            models then one of those prior model's names will be in this dictionary.
-        """
-        return {constant_tuple.constant: prior_model_tuple.name
-                for prior_model_tuple in self.prior_model_tuples
-                for constant_tuple in prior_model_tuple.prior_model.constant_tuples}
 
     @property
     def prior_model_name_prior_tuples_dict(self):
@@ -255,18 +211,6 @@ class ModelMapper(CollectionPriorModel):
             priors
         """
         return {name: list(prior_model.prior_tuples) for name, prior_model in
-                self.prior_model_tuples}
-
-    @property
-    def prior_model_name_constant_tuples_dict(self):
-        """
-        Returns
-        -------
-        class_constants_dict: {String: [Constant]}
-            A dictionary mapping_matrix the names of priors to lists of associated
-            constants
-        """
-        return {name: list(prior_model.constant_tuples) for name, prior_model in
                 self.prior_model_tuples}
 
     def physical_vector_from_hypercube_vector(self, hypercube_vector):
