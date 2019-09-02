@@ -309,12 +309,7 @@ class AbstractPriorModel(AbstractModel):
             Prior
         )
         return sorted(
-            [
-                (t[0][:-1], t[1])
-                if t[0][-1] == "value"
-                else t
-                for t in path_priors_tuples
-            ],
+            path_priors_tuples,
             key=lambda item: item[1].id
         )
 

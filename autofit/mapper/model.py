@@ -100,6 +100,7 @@ def populate(obj, collection):
 
 
 def path_instances_of_class(obj, cls, ignore_class=None):
+    from autofit.mapper.prior_model.annotation import AnnotationPriorModel
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
     if isinstance(obj, cls):
@@ -108,7 +109,11 @@ def path_instances_of_class(obj, cls, ignore_class=None):
     try:
         for key, value in obj.__dict__.items():
             for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
-                results.append(((key, *item[0]), item[1]))
+                if isinstance(value, AnnotationPriorModel):
+                    path = (key,)
+                else:
+                    path = (key, *item[0])
+                results.append((path, item[1]))
         return results
     except AttributeError:
         return []
