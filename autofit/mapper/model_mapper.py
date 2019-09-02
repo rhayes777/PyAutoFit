@@ -6,7 +6,6 @@ from autofit import exc
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, Prior
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
-from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
 
 path = os.path.dirname(os.path.realpath(__file__))
