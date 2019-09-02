@@ -119,3 +119,8 @@ class TestCase:
         instance = populated.instance_from_prior_medians()
 
         assert isinstance(instance.kwargs["light"], mock.EllipticalLP)
+
+    def test_embedded_results(self, phase):
+        hyper_result = phase.result.hyper_result
+
+        assert isinstance(hyper_result, af.PromiseResult)

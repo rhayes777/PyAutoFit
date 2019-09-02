@@ -1,3 +1,19 @@
+class PromiseResult:
+    def __init__(self, phase):
+        self.phase = phase
+
+    @property
+    def variable(self):
+        return Promise(self.phase)
+
+    @property
+    def constant(self):
+        return Promise(self.phase, is_constant=True)
+
+    def __getattr__(self, item):
+        return PromiseResult(phase=self.phase)
+
+
 class Promise:
     def __init__(
             self,
