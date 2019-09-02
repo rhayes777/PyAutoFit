@@ -45,4 +45,4 @@ from .tools.pipeline import ResultsCollection
 from .tools.promise import Promise
 from .tools.promise import PromiseResult
 
-__version__ = '0.33.0'
+__version__ = '0.33.1'

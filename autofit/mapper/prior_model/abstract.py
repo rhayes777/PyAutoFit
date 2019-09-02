@@ -79,7 +79,7 @@ class AbstractPriorModel(AbstractModel):
         priors: [Prior]
             An ordered list of unique priors associated with this mapper
         """
-        return sorted(list(self.prior_tuples),
+        return sorted(list(self.unique_prior_tuples),
                       key=lambda prior_tuple: prior_tuple.prior.id)
 
     def instance_from_prior_medians(self):
@@ -93,7 +93,7 @@ class AbstractPriorModel(AbstractModel):
 
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * len(self.prior_tuples)
+            unit_vector=[0.5] * len(self.unique_prior_tuples)
         )
 
     @staticmethod
@@ -185,24 +185,13 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(float)
 
     @property
-    def flat_prior_model_tuples(self):
-        """
-        Returns
-        -------
-        prior_models: [(str, AbstractPriorModel)]
-            A list of prior models associated with this instance
-        """
-        raise NotImplementedError(
-            "PriorModels must implement the flat_prior_models property")
-
-    @property
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
     @cast_collection(PriorNameValue)
-    def prior_tuples(self):
+    def unique_prior_tuples(self):
         """
         Returns
         -------
@@ -228,9 +217,7 @@ class AbstractPriorModel(AbstractModel):
         -------
         constants: [(String, Constant)]
         """
-        return [constant_tuple for tuple_prior in self.tuple_prior_tuples for
-                constant_tuple in
-                tuple_prior[1].constant_tuples] + self.direct_constant_tuples
+        return self.attribute_tuples_with_type(float, ignore_class=Prior)
 
     @property
     def prior_class_dict(self):
@@ -241,18 +228,18 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def prior_count(self):
-        return len(self.prior_tuples)
+        return len(self.unique_prior_tuples)
 
     @property
     def priors(self):
-        return [prior_tuple.prior for prior_tuple in self.prior_tuples]
+        return [prior_tuple.prior for prior_tuple in self.unique_prior_tuples]
 
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.direct_prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
             if prior_name is not None:
                 return "{}_{}".format(prior_model_name, prior_name)
-        prior_tuples = self.prior_tuples
+        prior_tuples = self.unique_prior_tuples
         for name, p in prior_tuples:
             if p == prior:
                 return name

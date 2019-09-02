@@ -88,6 +88,10 @@ class TuplePrior(object):
         return list(filter(lambda t: isinstance(t[1], Prior), self.__dict__.items()))
 
     @property
+    def unique_prior_tuples(self):
+        return self.prior_tuples
+
+    @property
     @cast_collection(ConstantNameValue)
     def constant_tuples(self):
         """

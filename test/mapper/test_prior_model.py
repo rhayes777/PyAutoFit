@@ -328,8 +328,8 @@ class TestFloatAnnotation(object):
     def test_prior_tuples(self):
         prior_model = af.PriorModel(mock.DistanceClass)
 
-        assert prior_model.prior_tuples[0].name == "first"
-        assert prior_model.prior_tuples[1].name == "second"
+        assert prior_model.unique_prior_tuples[0].name == "first"
+        assert prior_model.unique_prior_tuples[1].name == "second"
 
 
 class TestHashing(object):
@@ -488,7 +488,7 @@ class TestCollectionPriorModel(object):
             two=mock.SimpleClass(1, 2)
         )
 
-        assert len(prior_model.prior_models) == 1
+        assert len(prior_model.direct_prior_model_tuples) == 1
         assert len(prior_model) == 2
 
         instance = prior_model.instance_for_arguments(
@@ -507,7 +507,7 @@ class TestCollectionPriorModel(object):
     def test_mix_instances_in_list_prior_model(self):
         prior_model = af.CollectionPriorModel([mock.SimpleClass, mock.SimpleClass(1, 2)])
 
-        assert len(prior_model.prior_models) == 1
+        assert len(prior_model.direct_prior_model_tuples) == 1
         assert prior_model.prior_count == 2
 
         mapper = af.ModelMapper()
@@ -527,20 +527,13 @@ class TestCollectionPriorModel(object):
     def test_list_in_list_prior_model(self):
         prior_model = af.CollectionPriorModel([[mock.SimpleClass]])
 
-        assert len(prior_model.prior_models) == 1
+        assert len(prior_model.direct_prior_model_tuples) == 1
         assert prior_model.prior_count == 2
 
     def test_list_prior_model_with_dictionary(self):
         prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})
 
         assert isinstance(prior_model.simple, af.PriorModel)
-
-    # def test_labels(self):
-    #     mapper = af.ModelMapper()
-    #
-    #     mapper.my_list = af.CollectionPriorModel({"simple": mock.SimpleClass})
-    #
-    #     assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
 
     def test_override_with_constant(self):
         prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})

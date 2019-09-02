@@ -1,7 +1,5 @@
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.util import PriorModelNameValue
 
 
 class CollectionPriorModel(AbstractPriorModel):
@@ -36,12 +34,6 @@ class CollectionPriorModel(AbstractPriorModel):
                 in self.dict.items()
             }
         )
-
-    @property
-    def flat_prior_model_tuples(self):
-        return [flat_prior_model for prior_model in self.prior_models for
-                flat_prior_model in
-                prior_model.flat_prior_model_tuples]
 
     def __init__(self, *arguments, **kwargs):
         """
@@ -98,18 +90,6 @@ class CollectionPriorModel(AbstractPriorModel):
             if value == item:
                 del self.__dict__[key]
 
-    @property
-    @cast_collection(PriorModelNameValue)
-    def label_prior_model_tuples(self):
-        return [(prior_model.mapping_name if hasattr(prior_model,
-                                                     "mapping_name") else str(i),
-                 prior_model) for
-                i, prior_model in enumerate(self)]
-
-    @property
-    def prior_models(self):
-        return [obj for obj in self if isinstance(obj, AbstractPriorModel)]
-
     def instance_for_arguments(self, arguments):
         """
         Parameters
@@ -152,28 +132,6 @@ class CollectionPriorModel(AbstractPriorModel):
         )
 
     @property
-    @cast_collection(PriorNameValue)
-    def prior_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Union(Prior, TuplePrior))]
-        """
-        return set([prior for prior_model in self.prior_models for prior in
-                    prior_model.prior_tuples])
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Union(Prior, TuplePrior))]
-        """
-        return set([constant for prior_model in self.prior_models for constant in
-                    prior_model.constant_tuples])
-
-    @property
     def prior_class_dict(self):
-        return {prior: cls for prior_model in self.prior_models for prior, cls in
-                prior_model.prior_class_dict.items()}
+        return {prior: cls for prior_model in self.direct_prior_model_tuples for prior, cls in
+                prior_model[1].prior_class_dict.items()}
