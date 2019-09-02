@@ -37,12 +37,6 @@ class CollectionPriorModel(AbstractPriorModel):
             }
         )
 
-    @property
-    def flat_prior_model_tuples(self):
-        return [flat_prior_model for prior_model in self.prior_models for
-                flat_prior_model in
-                prior_model.flat_prior_model_tuples]
-
     def __init__(self, *arguments, **kwargs):
         """
         A prior model used to represent a list of prior models for convenience.

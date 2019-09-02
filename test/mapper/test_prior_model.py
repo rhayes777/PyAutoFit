@@ -535,13 +535,6 @@ class TestCollectionPriorModel(object):
 
         assert isinstance(prior_model.simple, af.PriorModel)
 
-    # def test_labels(self):
-    #     mapper = af.ModelMapper()
-    #
-    #     mapper.my_list = af.CollectionPriorModel({"simple": mock.SimpleClass})
-    #
-    #     assert mapper.info.split("\n")[4].startswith("my_list_simple_one")
-
     def test_override_with_constant(self):
         prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})
 
