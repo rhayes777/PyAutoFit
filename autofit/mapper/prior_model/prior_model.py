@@ -213,26 +213,6 @@ class PriorModel(AbstractPriorModel):
         return self.direct_tuples_with_type(Prior)
 
     @property
-    @cast_collection(PriorNameValue)
-    def prior_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Prior))]
-        """
-        # noinspection PyUnresolvedReferences
-        deeper = [
-            (prior_model[0] if prior.name == "value" else prior.name, prior.value)
-            for prior_model in
-            self.prior_model_tuples
-            for prior in
-            prior_model[1].prior_tuples]
-        tuple_priors = [prior for tuple_prior in self.tuple_prior_tuples for prior in
-                        tuple_prior[1].prior_tuples]
-        direct_priors = self.direct_prior_tuples
-        return tuple_priors + direct_priors + deeper
-
-    @property
     @cast_collection(DeferredNameValue)
     def direct_deferred_tuples(self):
         return self.direct_tuples_with_type(DeferredArgument)
@@ -351,10 +331,3 @@ class PriorModel(AbstractPriorModel):
                     prior_model.gaussian_prior_model_for_arguments(arguments))
 
         return new_model
-
-
-def attribute_tuples_from_path_tuples(path_tuples):
-    return [
-        (t[0][-1], t[1])
-        for t in path_tuples
-    ]

@@ -1006,11 +1006,3 @@ class TestGaussianWidthConfig(object):
         af.ModelMapper()
 
         assert mapper.one is not None
-
-
-class TestFlatPriorModel(object):
-    def test_flatten_list(self):
-        mapper = af.ModelMapper()
-        mapper.list = [af.PriorModel(MockClassMM)]
-
-        assert len(mapper.flat_prior_model_tuples) == 1

@@ -106,24 +106,6 @@ class ModelMapper(CollectionPriorModel):
                            self.__dict__.items()))
 
     @property
-    @cast_collection(PriorModelNameValue)
-    def flat_prior_model_tuples(self):
-        """
-        Returns
-        -------
-        prior_model_tuples: [(String, PriorModel)]
-            A list of tuples with the names of prior models and associated prior models.
-            Names are fully qualified by all objects in which they are embedded.
-        """
-        return [
-            ("{}".format(prior_model_name), flat_prior_model) for
-            prior_model_name, prior_model in
-            self.prior_model_tuples for
-            flat_prior_model_name, flat_prior_model in
-            prior_model.flat_prior_model_tuples
-        ]
-
-    @property
     @cast_collection(PriorNameValue)
     def prior_tuples(self):
         """
