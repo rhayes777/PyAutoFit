@@ -1,7 +1,6 @@
 import os
 
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, Prior
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.tools.text_formatter import TextFormatter
 
