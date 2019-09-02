@@ -98,18 +98,6 @@ class CollectionPriorModel(AbstractPriorModel):
             if value == item:
                 del self.__dict__[key]
 
-    @property
-    @cast_collection(PriorModelNameValue)
-    def label_prior_model_tuples(self):
-        return [(prior_model.mapping_name if hasattr(prior_model,
-                                                     "mapping_name") else str(i),
-                 prior_model) for
-                i, prior_model in enumerate(self)]
-
-    @property
-    def prior_models(self):
-        return [obj for obj in self if isinstance(obj, AbstractPriorModel)]
-
     def instance_for_arguments(self, arguments):
         """
         Parameters
@@ -152,17 +140,6 @@ class CollectionPriorModel(AbstractPriorModel):
         )
 
     @property
-    @cast_collection(PriorNameValue)
-    def unique_prior_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Union(Prior, TuplePrior))]
-        """
-        return set([prior for prior_model in self.prior_models for prior in
-                    prior_model.unique_prior_tuples])
-
-    @property
     def prior_class_dict(self):
-        return {prior: cls for prior_model in self.prior_models for prior, cls in
-                prior_model.prior_class_dict.items()}
+        return {prior: cls for prior_model in self.direct_prior_model_tuples for prior, cls in
+                prior_model[1].prior_class_dict.items()}

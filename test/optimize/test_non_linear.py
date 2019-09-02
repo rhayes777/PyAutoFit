@@ -96,26 +96,6 @@ class TestCopyWithNameExtension(object):
         assert copy.grid is optimizer.grid
 
 
-# noinspection PyUnresolvedReferences
-class TestParamNames(object):
-
-    def test_label_prior_model_tuples(self, mapper, mock_list):
-        mapper.mock_list = mock_list
-
-        assert [tup.name for tup in mapper.mock_list.label_prior_model_tuples] == ['0', '1']
-
-    def test_label_prior_model_tuples_with_mapping_name(self, mapper):
-        one = af.PriorModel(MockClassNLOx4)
-        two = af.PriorModel(MockClassNLOx4)
-
-        one.mapping_name = "one"
-        two.mapping_name = "two"
-
-        mapper.mock_list = [one, two]
-
-        assert [tup.name for tup in mapper.mock_list.label_prior_model_tuples] == ['one', 'two']
-
-
 @pytest.fixture(name='nlo_setup_path')
 def test_nlo_setup():
     nlo_setup_path = "{}/../test_files/non_linear/nlo/setup/".format(

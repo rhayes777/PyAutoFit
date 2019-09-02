@@ -488,7 +488,7 @@ class TestCollectionPriorModel(object):
             two=mock.SimpleClass(1, 2)
         )
 
-        assert len(prior_model.prior_models) == 1
+        assert len(prior_model.direct_prior_model_tuples) == 1
         assert len(prior_model) == 2
 
         instance = prior_model.instance_for_arguments(
@@ -507,7 +507,7 @@ class TestCollectionPriorModel(object):
     def test_mix_instances_in_list_prior_model(self):
         prior_model = af.CollectionPriorModel([mock.SimpleClass, mock.SimpleClass(1, 2)])
 
-        assert len(prior_model.prior_models) == 1
+        assert len(prior_model.direct_prior_model_tuples) == 1
         assert prior_model.prior_count == 2
 
         mapper = af.ModelMapper()
@@ -527,7 +527,7 @@ class TestCollectionPriorModel(object):
     def test_list_in_list_prior_model(self):
         prior_model = af.CollectionPriorModel([[mock.SimpleClass]])
 
-        assert len(prior_model.prior_models) == 1
+        assert len(prior_model.direct_prior_model_tuples) == 1
         assert prior_model.prior_count == 2
 
     def test_list_prior_model_with_dictionary(self):
