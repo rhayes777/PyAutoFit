@@ -758,8 +758,8 @@ class TestPriorReplacement(object):
         mapper = af.ModelMapper(mock_class=MockProfile)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3), (5, 3)])
 
-        assert isinstance(result.mock_class.centre.prior_tuples[0][1], af.GaussianPrior)
-        assert isinstance(result.mock_class.centre.prior_tuples[1][1], af.GaussianPrior)
+        assert isinstance(result.mock_class.centre.unique_prior_tuples[0][1], af.GaussianPrior)
+        assert isinstance(result.mock_class.centre.unique_prior_tuples[1][1], af.GaussianPrior)
         assert isinstance(result.mock_class.intensity, af.GaussianPrior)
 
     def test_replace_priors_for_two_classes(self):
@@ -884,7 +884,7 @@ class TestConstant(object):
         mapper = af.ModelMapper()
         mapper.mock_class = mock_with_constant
 
-        assert len(mapper.prior_tuples) == 1
+        assert len(mapper.unique_prior_tuples) == 1
 
     def test_retrieve_constants(self, mock_with_constant):
         assert len(mock_with_constant.constant_tuples) == 1

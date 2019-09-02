@@ -132,7 +132,7 @@ class PriorModel(AbstractPriorModel):
             other,
             PriorModel) \
                and self.cls == other.cls \
-               and self.prior_tuples == other.prior_tuples
+               and self.unique_prior_tuples == other.unique_prior_tuples
 
     def make_prior(self, attribute_name):
         """
@@ -220,12 +220,12 @@ class PriorModel(AbstractPriorModel):
     @property
     @cast_collection(AttributeNameValue)
     def attribute_tuples(self):
-        return self.prior_tuples + self.constant_tuples
+        return self.unique_prior_tuples + self.constant_tuples
 
     @property
     def prior_class_dict(self):
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
-        d = {prior[1]: self.cls for prior in self.prior_tuples}
+        d = {prior[1]: self.cls for prior in self.unique_prior_tuples}
         for prior_model in self.prior_model_tuples:
             if not isinstance(prior_model[1], AnnotationPriorModel):
                 d.update(

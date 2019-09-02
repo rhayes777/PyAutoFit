@@ -328,8 +328,8 @@ class TestFloatAnnotation(object):
     def test_prior_tuples(self):
         prior_model = af.PriorModel(mock.DistanceClass)
 
-        assert prior_model.prior_tuples[0].name == "first"
-        assert prior_model.prior_tuples[1].name == "second"
+        assert prior_model.unique_prior_tuples[0].name == "first"
+        assert prior_model.unique_prior_tuples[1].name == "second"
 
 
 class TestHashing(object):

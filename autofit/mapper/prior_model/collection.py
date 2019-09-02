@@ -153,14 +153,14 @@ class CollectionPriorModel(AbstractPriorModel):
 
     @property
     @cast_collection(PriorNameValue)
-    def prior_tuples(self):
+    def unique_prior_tuples(self):
         """
         Returns
         -------
         priors: [(String, Union(Prior, TuplePrior))]
         """
         return set([prior for prior_model in self.prior_models for prior in
-                    prior_model.prior_tuples])
+                    prior_model.unique_prior_tuples])
 
     @property
     @cast_collection(ConstantNameValue)

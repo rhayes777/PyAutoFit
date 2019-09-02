@@ -4,7 +4,7 @@ import os
 from autofit import conf
 from autofit import exc
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue
+from autofit.mapper.prior_model.prior import GaussianPrior, cast_collection, PriorNameValue, Prior
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -107,7 +107,7 @@ class ModelMapper(CollectionPriorModel):
 
     @property
     @cast_collection(PriorNameValue)
-    def prior_tuples(self):
+    def unique_prior_tuples(self):
         """
         Returns
         -------
@@ -115,20 +115,19 @@ class ModelMapper(CollectionPriorModel):
             The set of all priors associated with this mapper
         """
         return {
-            prior_tuple.prior: prior_tuple
-            for name, prior_model in self.prior_model_tuples
-            for prior_tuple in prior_model.prior_tuples
+            prior_tuple[1]: prior_tuple
+            for prior_tuple in self.attribute_tuples_with_type(Prior)
         }.values()
 
     @property
     def priors(self):
-        return [prior_tuple.prior for prior_tuple in self.prior_tuples]
+        return [prior_tuple.prior for prior_tuple in self.unique_prior_tuples]
 
     @property
     def prior_prior_name_dict(self):
         return {
             prior_tuple.prior: prior_tuple.name
-            for prior_tuple in self.prior_tuples
+            for prior_tuple in self.unique_prior_tuples
         }
 
     @property
@@ -158,7 +157,7 @@ class ModelMapper(CollectionPriorModel):
         """
         return {prior: prior_model[1] for prior_model in self.prior_model_tuples for
                 _, prior in
-                prior_model[1].prior_tuples}
+                prior_model[1].unique_prior_tuples}
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -193,7 +192,7 @@ class ModelMapper(CollectionPriorModel):
             each prior.
         """
         return self.physical_vector_from_hypercube_vector(
-            [0.5] * len(self.prior_tuples))
+            [0.5] * len(self.unique_prior_tuples))
 
     def instance_from_physical_vector(self, physical_vector):
         """
