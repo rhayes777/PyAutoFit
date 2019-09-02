@@ -185,17 +185,6 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(float)
 
     @property
-    def flat_prior_model_tuples(self):
-        """
-        Returns
-        -------
-        prior_models: [(str, AbstractPriorModel)]
-            A list of prior models associated with this instance
-        """
-        raise NotImplementedError(
-            "PriorModels must implement the flat_prior_models property")
-
-    @property
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)

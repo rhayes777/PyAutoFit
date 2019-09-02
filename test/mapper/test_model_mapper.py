@@ -727,12 +727,6 @@ class TestUtility(object):
         assert mapper.prior_prior_model_dict[
                    mapper.prior_tuples_ordered_by_id[1][1]].cls == MockClassMM
 
-    def test_prior_prior_name_dict(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
-
-        assert mapper.prior_prior_name_dict == {mapper.priors[0]: "one",
-                                                mapper.priors[1]: "two"}
-
     def test_name_for_prior(self):
         mapper = af.ModelMapper(mock_class=MockClassMM)
 

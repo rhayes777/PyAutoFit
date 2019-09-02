@@ -120,13 +120,6 @@ class ModelMapper(CollectionPriorModel):
         return [prior_tuple.prior for prior_tuple in self.unique_prior_tuples]
 
     @property
-    def prior_prior_name_dict(self):
-        return {
-            prior_tuple.prior: prior_tuple.name
-            for prior_tuple in self.unique_prior_tuples
-        }
-
-    @property
     def prior_class_dict(self):
         """
         Returns

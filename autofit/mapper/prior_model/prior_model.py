@@ -27,10 +27,6 @@ class PriorModel(AbstractPriorModel):
             self.cls
         )
 
-    @property
-    def flat_prior_model_tuples(self):
-        return [("", self)]
-
     def __hash__(self):
         return self.id
 
@@ -216,11 +212,6 @@ class PriorModel(AbstractPriorModel):
     @cast_collection(DeferredNameValue)
     def direct_deferred_tuples(self):
         return self.direct_tuples_with_type(DeferredArgument)
-
-    @property
-    @cast_collection(AttributeNameValue)
-    def attribute_tuples(self):
-        return self.unique_prior_tuples + self.constant_tuples
 
     @property
     def prior_class_dict(self):
