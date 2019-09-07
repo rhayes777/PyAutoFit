@@ -5,9 +5,8 @@ from os import path
 
 
 import test.mock
-from test import mock
 import autofit as af
-import autofit as af
+from autofit.optimize.grid_search import GridSearch
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +30,8 @@ class Analysis(af.Analysis):
 
 
 if __name__ == "__main__":
-    grid_search = gs.GridSearch(phase_name="phase_grid_search", phase_tag='_tag', phase_folders=['integration'],
-                                optimizer_class=af.MultiNest, parallel=True)
+    grid_search = GridSearch(phase_name="phase_grid_search", phase_tag='_tag', phase_folders=['integration'],
+                                optimizer_class=af.MultiNest, parallel=False)
     grid_search.variable.profile = test.mock.EllipticalProfile
 
     # noinspection PyUnresolvedReferences

@@ -39,7 +39,7 @@ class Phase(af.AbstractPhase):
 
     def __init__(self, phase_name, phase_folders, profile, constant_profile,
                  optimizer_class=af.MultiNest):
-        super().__init__(phase_name=phase_name, phase_tag='_tag', phase_folders=phase_folders,
+        super().__init__(phase_name=phase_name, phase_tag='phase_tag', phase_folders=phase_folders,
                          optimizer_class=optimizer_class)
         self.profile = profile
         self.constant_profile = constant_profile
@@ -115,7 +115,7 @@ class TestCase(object):
         assert result.figure_of_merit_array[1, 0] > result.figure_of_merit_array[1, 1]
         assert result.figure_of_merit_array[0, 1] > result.figure_of_merit_array[1, 1]
 
-    def test_grid_search_phase_parallel(self):
+    def test__grid_search_phase_parallel(self):
 
         class GridSearchPhase(af.as_grid_search(Phase, parallel=True)):
             @property
