@@ -37,17 +37,32 @@ def make_collection():
         mock.Galaxy,
         light=mock.EllipticalLP
     )
-    constant = af.ModelMapper()
+    constant = af.ModelInstance()
     constant.one = mock.Galaxy(
         light=mock.EllipticalLP()
     )
 
+    result = mock.Result(
+        variable=variable,
+        constant=constant
+    )
+
+    variable = af.ModelMapper()
+    constant = af.ModelInstance()
+
+    variable.hyper_galaxy = mock.HyperGalaxy
+    constant.hyper_galaxy = mock.HyperGalaxy()
+
+    hyper_result = mock.Result(
+        variable=variable,
+        constant=constant
+    )
+
+    result.hyper_result = hyper_result
+
     collection.add(
         "phase name",
-        mock.Result(
-            variable=variable,
-            constant=constant
-        )
+        result
     )
 
     return collection
@@ -119,3 +134,23 @@ class TestCase:
         instance = populated.instance_from_prior_medians()
 
         assert isinstance(instance.kwargs["light"], mock.EllipticalLP)
+
+    def test_embedded_results(self, phase, collection):
+        hyper_result = phase.result.hyper_result
+
+        assert isinstance(hyper_result, af.PromiseResult)
+
+        variable_promise = hyper_result.variable
+        constant_promise = hyper_result.constant
+
+        print(variable_promise.path)
+
+        assert isinstance(variable_promise.hyper_galaxy, af.Promise)
+        assert isinstance(constant_promise.hyper_galaxy, af.Promise)
+
+        variable = variable_promise.populate(collection)
+        constant = constant_promise.populate(collection)
+
+        assert isinstance(variable.hyper_galaxy, af.PriorModel)
+        assert variable.hyper_galaxy.cls is mock.HyperGalaxy
+        assert isinstance(constant.hyper_galaxy, mock.HyperGalaxy)

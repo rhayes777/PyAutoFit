@@ -5,12 +5,8 @@ from typing_inspect import is_tuple_type
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.deferred import DeferredInstance
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, ConstantNameValue, \
-    TuplePrior, Prior, AttributeNameValue, \
-    DeferredNameValue
-from autofit.mapper.prior_model.util import tuple_name, is_tuple_like_attribute_name
+from autofit.mapper.prior_model.prior import TuplePrior, Prior
 from autofit.tools.promise import Promise
 
 
@@ -27,10 +23,6 @@ class PriorModel(AbstractPriorModel):
         return PriorModel(
             self.cls
         )
-
-    @property
-    def flat_prior_model_tuples(self):
-        return [("", self)]
 
     def __hash__(self):
         return self.id
@@ -168,57 +160,6 @@ class PriorModel(AbstractPriorModel):
             attribute_name
         )
 
-    def linked_model_for_class(self, cls, make_constants_variable=False, **kwargs):
-        """
-        Create a PriorModel wrapping the specified class with attributes from this
-        instance. Priors can be overridden using keyword arguments. Any constructor
-        arguments of the new class for which there is no attribute associated with
-        this class and no keyword argument are created from config.
-
-        If make_constants_variable is True then constants associated with this
-        instance will be used to set the mean of priors in the new instance rather
-        than overriding them.
-
-        Parameters
-        ----------
-        cls: class
-            The class that the new PriorModel will wrap
-        make_constants_variable: bool
-            If True constants from this instance will be used to determine the mean
-            values for priors in the new instance rather than overriding them
-        kwargs
-            Keyword arguments passed in here are used to override attributes from this
-            instance or add new attributes
-
-        Returns
-        -------
-        new_model: PriorModel
-            A new prior model with priors derived from this instance
-        """
-        constructor_args = inspect.getfullargspec(cls).args
-        attribute_tuples = self.attribute_tuples
-        new_model = PriorModel(cls)
-        for attribute_tuple in attribute_tuples:
-            name = attribute_tuple.name
-            if name in constructor_args or (
-                    is_tuple_like_attribute_name(
-                        name
-                    ) and tuple_name(name) in constructor_args):
-                attribute = kwargs[name] if name in kwargs else attribute_tuple.value
-                if make_constants_variable and (isinstance(
-                        attribute,
-                        float
-                ) or isinstance(
-                    attribute,
-                    int
-                )):
-                    new_attribute = getattr(new_model, name)
-                    if isinstance(new_attribute, Prior):
-                        new_attribute.mean = attribute
-                        continue
-                setattr(new_model, name, attribute)
-        return new_model
-
     def __setattr__(self, key, value):
         if key not in (
                 "component_number", "phase_property_position", "mapping_name", "id"):
@@ -243,68 +184,6 @@ class PriorModel(AbstractPriorModel):
         except IndexError:
             pass
         self.__getattribute__(item)
-
-    @property
-    @cast_collection(PriorNameValue)
-    def tuple_prior_tuples(self):
-        """
-        Returns
-        -------
-        tuple_prior_tuples: [(String, TuplePrior)]
-        """
-        return self.tuples_with_type(TuplePrior)
-
-    @property
-    @cast_collection(PriorNameValue)
-    def direct_prior_tuples(self):
-        """
-        Returns
-        -------
-        direct_priors: [(String, Prior)]
-        """
-        return self.tuples_with_type(Prior)
-
-    @property
-    @cast_collection(PriorNameValue)
-    def prior_tuples(self):
-        """
-        Returns
-        -------
-        priors: [(String, Prior))]
-        """
-        # noinspection PyUnresolvedReferences
-        deeper = [
-            (prior_model[0] if prior.name == "value" else prior.name, prior.value)
-            for prior_model in
-            self.prior_model_tuples
-            for prior in
-            prior_model[1].prior_tuples]
-        tuple_priors = [prior for tuple_prior in self.tuple_prior_tuples for prior in
-                        tuple_prior[1].prior_tuples]
-        direct_priors = self.direct_prior_tuples
-        return tuple_priors + direct_priors + deeper
-
-    @property
-    @cast_collection(DeferredNameValue)
-    def direct_deferred_tuples(self):
-        return self.tuples_with_type(DeferredArgument)
-
-    @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
-        """
-        Returns
-        -------
-        constants: [(String, Constant)]
-        """
-        return [constant_tuple for tuple_prior in self.tuple_prior_tuples for
-                constant_tuple in
-                tuple_prior[1].constant_tuples] + self.direct_constant_tuples
-
-    @property
-    @cast_collection(AttributeNameValue)
-    def attribute_tuples(self):
-        return self.prior_tuples + self.constant_tuples
 
     @property
     def prior_class_dict(self):

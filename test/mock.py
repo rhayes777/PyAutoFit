@@ -183,7 +183,7 @@ class GalaxyModel(af.AbstractPriorModel):
 
     @property
     @af.cast_collection(af.PriorNameValue)
-    def prior_tuples(self):
+    def unique_prior_tuples(self):
         return [item for item in self.__dict__.items() if
                 isinstance(item[1], af.Prior)] + [
                    ("redshift",
@@ -528,3 +528,7 @@ class Result:
     def __init__(self, constant=None, variable=None):
         self.constant = constant
         self.variable = variable
+
+
+class HyperGalaxy(object):
+    pass

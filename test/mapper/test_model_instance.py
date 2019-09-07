@@ -40,13 +40,6 @@ class TestModelInstance(object):
         assert isinstance(variable.galaxy_2, af.PriorModel)
         assert variable.galaxy_2.cls == mock.Galaxy
 
-    def test_instances_of(self):
-        instance = af.ModelInstance()
-        instance.galaxy_1 = mock.Galaxy()
-        instance.galaxy_2 = mock.Galaxy()
-        assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1,
-                                                      instance.galaxy_2]
-
     def test_object_for_path(self, instance, galaxy_1, galaxy_2):
         assert instance.object_for_path(("galaxy_2",)) is galaxy_2
         assert instance.object_for_path(("sub", "galaxy_1")) is galaxy_1
@@ -63,32 +56,6 @@ class TestModelInstance(object):
         assert result[0] == (("galaxy_2",), galaxy_2)
         assert result[1] == (("sub", "galaxy_1"), galaxy_1)
         assert result[2] == (("sub", "sub", "galaxy_1"), galaxy_1)
-
-    def test_instances_of_filtering(self):
-        instance = af.ModelInstance()
-        instance.galaxy_1 = mock.Galaxy()
-        instance.galaxy_2 = mock.Galaxy()
-        instance.other = mock.GalaxyModel()
-        assert instance.instances_of(mock.Galaxy) == [instance.galaxy_1,
-                                                      instance.galaxy_2]
-
-    def test_instances_from_list(self):
-        instance = af.ModelInstance()
-        galaxy_1 = mock.Galaxy()
-        galaxy_2 = mock.Galaxy()
-        instance.galaxies = [galaxy_1, galaxy_2]
-        assert instance.instances_of(mock.Galaxy) == [galaxy_1, galaxy_2]
-
-    def test_non_trivial_instances_of(self):
-        instance = af.ModelInstance()
-        galaxy_1 = mock.Galaxy(redshift=1)
-        galaxy_2 = mock.Galaxy(redshift=2)
-        instance.galaxies = [galaxy_1, galaxy_2, mock.GalaxyModel]
-        instance.galaxy_3 = mock.Galaxy(redshift=3)
-        instance.galaxy_prior = mock.GalaxyModel()
-
-        assert instance.instances_of(mock.Galaxy) == [instance.galaxy_3, galaxy_1,
-                                                      galaxy_2]
 
     def test_simple_model(self):
         mapper = af.ModelMapper()

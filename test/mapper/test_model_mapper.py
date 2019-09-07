@@ -138,39 +138,8 @@ class TestPriorLimits(object):
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == 2
 
+
 class TestPriorLinking(object):
-    def test_same_class(self, initial_model):
-        new_model = initial_model.linked_model_for_class(MockClassMM)
-
-        assert new_model is not initial_model
-        assert new_model.one is initial_model.one
-        assert new_model.two is initial_model.two
-
-    def test_extended_class(self, initial_model):
-        new_model = initial_model.linked_model_for_class(ExtendedMockClass)
-
-        assert hasattr(new_model, "three")
-
-    def test_override(self, initial_model):
-        new_prior = af.GaussianPrior(1., 1.)
-        new_model = initial_model.linked_model_for_class(MockClassMM, one=1.,
-                                                         two=new_prior)
-
-        assert new_model != initial_model
-        assert new_model.one is not initial_model.one
-        assert new_model.one == 1.
-        assert new_model.two is not initial_model.two
-        assert new_model.two is new_prior
-
-    def test_constants(self, initial_model):
-        initial_model.one = 1.0
-
-        new_model = initial_model.linked_model_for_class(MockClassMM)
-
-        assert new_model.one == 1.0
-        assert new_model.one is initial_model.one
-        assert new_model.two is initial_model.two
-
     def test_uniform_prior_mean(self):
         uniform_prior = af.UniformPrior(0., 1.)
         assert uniform_prior.mean == 0.5
@@ -178,40 +147,6 @@ class TestPriorLinking(object):
         uniform_prior.mean = 1.
         assert uniform_prior.lower_limit == 0.5
         assert uniform_prior.upper_limit == 1.5
-
-    def test_make_constants_variable(self, initial_model):
-        initial_model.one = 1
-
-        new_model = initial_model.linked_model_for_class(MockClassMM,
-                                                         make_constants_variable=True)
-
-        assert new_model.one.mean == 0.5
-        assert new_model.two is initial_model.two
-
-    def test_tuple_passing(self):
-        initial_model = af.PriorModel(MockProfile, )
-        initial_model.centre_0 = 1.
-
-        new_model = initial_model.linked_model_for_class(MockProfile)
-
-        assert new_model.centre_0 is initial_model.centre_0
-        assert new_model.centre_1 is initial_model.centre_1
-
-    def test_is_tuple_like_attribute_name(self):
-        assert af.is_tuple_like_attribute_name("centre_0")
-        assert af.is_tuple_like_attribute_name("centre_1")
-        assert not af.is_tuple_like_attribute_name(
-            "centre")
-        assert af.is_tuple_like_attribute_name(
-            "centre_why_not_0")
-        assert not af.is_tuple_like_attribute_name(
-            "centre_why_not")
-
-    def test_tuple_name(self):
-        assert af.tuple_name("centre_0") == "centre"
-        assert af.tuple_name("centre_1") == "centre"
-        assert af.tuple_name(
-            "centre_why_not_0") == "centre_why_not"
 
 
 class TestAddition(object):
@@ -783,22 +718,6 @@ class TestModelInstancesRealClasses(object):
 
 class TestUtility(object):
 
-    def test_class_priors_dict(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
-
-        assert list(mapper.prior_model_name_prior_tuples_dict.keys()) == ["mock_class"]
-        assert len(mapper.prior_model_name_prior_tuples_dict["mock_class"]) == 2
-
-        mapper = af.ModelMapper(mock_class_1=MockClassMM,
-                                mock_class_2=MockClassMM)
-
-        mapper.mock_class_1.one = mapper.mock_class_2.one
-        mapper.mock_class_1.two = mapper.mock_class_2.two
-
-        assert mapper.prior_model_name_prior_tuples_dict["mock_class_1"] == \
-               mapper.prior_model_name_prior_tuples_dict[
-                   "mock_class_2"]
-
     def test_prior_prior_model_dict(self):
         mapper = af.ModelMapper(mock_class=MockClassMM)
 
@@ -807,12 +726,6 @@ class TestUtility(object):
                    mapper.prior_tuples_ordered_by_id[0][1]].cls == MockClassMM
         assert mapper.prior_prior_model_dict[
                    mapper.prior_tuples_ordered_by_id[1][1]].cls == MockClassMM
-
-    def test_prior_prior_name_dict(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
-
-        assert mapper.prior_prior_name_dict == {mapper.priors[0]: "one",
-                                                mapper.priors[1]: "two"}
 
     def test_name_for_prior(self):
         mapper = af.ModelMapper(mock_class=MockClassMM)
@@ -839,8 +752,8 @@ class TestPriorReplacement(object):
         mapper = af.ModelMapper(mock_class=MockProfile)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3), (5, 3)])
 
-        assert isinstance(result.mock_class.centre.prior_tuples[0][1], af.GaussianPrior)
-        assert isinstance(result.mock_class.centre.prior_tuples[1][1], af.GaussianPrior)
+        assert isinstance(result.mock_class.centre.unique_prior_tuples[0][1], af.GaussianPrior)
+        assert isinstance(result.mock_class.centre.unique_prior_tuples[1][1], af.GaussianPrior)
         assert isinstance(result.mock_class.intensity, af.GaussianPrior)
 
     def test_replace_priors_for_two_classes(self):
@@ -965,7 +878,7 @@ class TestConstant(object):
         mapper = af.ModelMapper()
         mapper.mock_class = mock_with_constant
 
-        assert len(mapper.prior_tuples) == 1
+        assert len(mapper.unique_prior_tuples) == 1
 
     def test_retrieve_constants(self, mock_with_constant):
         assert len(mock_with_constant.constant_tuples) == 1
@@ -1087,11 +1000,3 @@ class TestGaussianWidthConfig(object):
         af.ModelMapper()
 
         assert mapper.one is not None
-
-
-class TestFlatPriorModel(object):
-    def test_flatten_list(self):
-        mapper = af.ModelMapper()
-        mapper.list = [af.PriorModel(MockClassMM)]
-
-        assert len(mapper.flat_prior_model_tuples) == 1
