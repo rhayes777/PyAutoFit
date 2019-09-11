@@ -36,7 +36,6 @@ from .tools import fit_util
 from .tools import path_util
 from .tools import text_util
 from .tools.fit import DataFit
-from .tools.fit import DataFit1D
 from .tools.phase import AbstractPhase
 from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
