@@ -74,7 +74,7 @@ class NonLinearOptimizer(object):
 
     @property
     def phase_folders(self):
-        return tuple(self.phase_path.split("/"))
+        return self.phase_path.split("/")
 
     @property
     def backup_path(self) -> str:
@@ -415,7 +415,7 @@ class Analysis(object):
     def fit(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, instance, image_path, during_analysis):
+    def visualize(self, instance, during_analysis):
         raise NotImplementedError()
 
     def describe(self, instance):

@@ -18,9 +18,15 @@ logger = logging.getLogger(__name__)
 
 class MultiNest(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
-                 model_mapper=None, sigma_limit=3,
-                 run=pymultinest.run):
+    def __init__(
+            self,
+            phase_name,
+            phase_tag=None,
+            phase_folders=tuple(),
+            model_mapper=None,
+            sigma_limit=3,
+            run=pymultinest.run
+    ):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
@@ -28,9 +34,12 @@ class MultiNest(NonLinearOptimizer):
         individual model instances that are passed to each iteration of MultiNest.
         """
 
-        super(MultiNest, self).__init__(phase_name=phase_name, phase_tag=phase_tag,
-                                        phase_folders=phase_folders,
-                                        model_mapper=model_mapper)
+        super(MultiNest, self).__init__(
+            phase_name=phase_name,
+            phase_tag=phase_tag,
+            phase_folders=phase_folders,
+            model_mapper=model_mapper
+        )
 
         self._weighted_sample_model = None
         self.sigma_limit = sigma_limit
@@ -190,8 +199,10 @@ class MultiNest(NonLinearOptimizer):
 
         self.backup()
         constant = self.most_likely_model_instance
-        analysis.visualize(instance=constant, image_path=self.image_path,
-                           during_analysis=False)
+        analysis.visualize(
+            instance=constant,
+            during_analysis=False
+        )
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
         return Result(constant=constant, figure_of_merit=self.maximum_likelihood,

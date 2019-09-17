@@ -134,6 +134,8 @@ class GridSearch(object):
                                                       self.phase_path, phase_name,
                                                       self.phase_tag_input)
 
+        self.image_path = "{}image/".format(self.phase_output_path)
+
         sym_path = "{}/optimizer".format(self.phase_output_path)
         self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
 

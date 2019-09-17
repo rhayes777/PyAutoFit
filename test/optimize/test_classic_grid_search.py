@@ -30,7 +30,7 @@ class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):
         except AttributeError:
             return 0
 
-    def visualize(self, instance, image_path, during_analysis):
+    def visualize(self, instance, during_analysis):
         pass
 
     def describe(self, instance):
