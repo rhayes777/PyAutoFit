@@ -199,8 +199,10 @@ class MultiNest(NonLinearOptimizer):
 
         self.backup()
         constant = self.most_likely_model_instance
-        analysis.visualize(instance=constant, image_path=self.image_path,
-                           during_analysis=False)
+        analysis.visualize(
+            instance=constant,
+            during_analysis=False
+        )
         self.output_results(during_analysis=False)
         self.output_pdf_plots()
         return Result(constant=constant, figure_of_merit=self.maximum_likelihood,

@@ -415,7 +415,7 @@ class Analysis(object):
     def fit(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, instance, image_path, during_analysis):
+    def visualize(self, instance, during_analysis):
         raise NotImplementedError()
 
     def describe(self, instance):

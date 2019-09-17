@@ -70,5 +70,8 @@ class DownhillSimplex(NonLinearOptimizer):
         res.gaussian_tuples = [(mean, 0) for mean in output]
         res.previous_variable = self.variable
 
-        analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
+        analysis.visualize(
+            instance=res.constant,
+            during_analysis=False
+        )
         return res
