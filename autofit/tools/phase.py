@@ -89,11 +89,6 @@ class AbstractPhase(object):
     def path(self):
         return self.optimizer.path
 
-    @property
-    def doc(self):
-        if self.__doc__ is not None:
-            return self.__doc__.replace("  ", "").replace("\n", " ")
-
     def customize_priors(self, results):
         """
         Perform any prior or constant passing. This could involve setting model

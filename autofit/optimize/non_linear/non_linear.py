@@ -74,7 +74,7 @@ class NonLinearOptimizer(object):
 
     @property
     def phase_folders(self):
-        return tuple(self.phase_path.split("/"))
+        return self.phase_path.split("/")
 
     @property
     def backup_path(self) -> str:
