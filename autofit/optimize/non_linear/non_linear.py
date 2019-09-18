@@ -272,7 +272,7 @@ class NonLinearOptimizer(object):
                 self.result = Result(instance, likelihood)
 
                 if self.should_visualize():
-                    self.analysis.visualize(instance, image_path=self.image_path, during_analysis=True)
+                    self.analysis.visualize(instance, during_analysis=True)
 
                 if self.should_backup():
                     self.nlo.backup()
