@@ -195,9 +195,16 @@ class GridSearch(NonLinearOptimizer):
                      fitness_function.all_fits.items()]
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res = GridSearch.Result(res, instances, self.variable,
-                                [(mean, 0) for mean in fitness_function.best_cube])
+        res = GridSearch.Result(
+            res,
+            instances,
+            self.variable,
+            [(mean, 0) for mean in fitness_function.best_cube]
+        )
 
-        analysis.visualize(instance=res.constant, image_path=self.image_path, during_analysis=False)
+        analysis.visualize(
+            instance=res.constant,
+            during_analysis=False
+        )
 
         return res
