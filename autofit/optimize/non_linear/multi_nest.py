@@ -143,14 +143,14 @@ class MultiNest(NonLinearOptimizer):
                     likelihood = -np.inf
                 else:
 
-                    self.stagger_accepted_samples += 1
-
                     if self.stagger_accepted_samples < 10:
 
+                        self.stagger_accepted_samples += 1
                         self.resampling_likelihood += self.stagger_resampling_value
                         likelihood = self.resampling_likelihood
 
                     else:
+
                         likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
 
             if likelihood > self.max_likelihood:
