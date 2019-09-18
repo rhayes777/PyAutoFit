@@ -138,10 +138,7 @@ class MultiNest(NonLinearOptimizer):
             except exc.FitException:
 
                 if not self.stagger_resampling_likelihood:
-                    if likelihood > 0.0:
-                        likelihood = self.resampling_likelihood / 10.0
-                    else:
-                        likelihood = self.resampling_likelihood * 10.0
+                    likelihood = -1.0 * np.abs(self.resampling_likelihood) * 1000.0
                 else:
                     self.resampling_likelihood += self.stagger_resampling_value
                     likelihood = self.resampling_likelihood
