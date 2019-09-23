@@ -9,11 +9,7 @@ from autofit.optimize import grid_search
 from autofit.tools.promise import PromiseResult
 
 
-class HyperPhase(object):
-    pass
-
-
-class AbstractPhase(object):
+class AbstractPhase:
 
     def __init__(
             self,
