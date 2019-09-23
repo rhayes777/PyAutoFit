@@ -66,9 +66,9 @@ class GridSearch(NonLinearOptimizer):
                 "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_unit_vector, image_path, save_results,
+        def __init__(self, nlo, analysis, instance_from_unit_vector, save_results,
                      checkpoint_count=0, best_fit=-np.inf, best_cube=None):
-            super().__init__(nlo, analysis, image_path)
+            super().__init__(nlo, analysis)
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
@@ -174,14 +174,15 @@ class GridSearch(NonLinearOptimizer):
                     map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
                                       results_list)))
 
-        fitness_function = GridSearch.Fitness(self,
-                                              analysis,
-                                              self.variable.instance_from_unit_vector,
-                                              self.image_path,
-                                              save_results,
-                                              checkpoint_count=checkpoint_count,
-                                              best_fit=best_fit,
-                                              best_cube=best_cube)
+        fitness_function = GridSearch.Fitness(
+            self,
+            analysis,
+            self.variable.instance_from_unit_vector,
+            save_results,
+            checkpoint_count=checkpoint_count,
+            best_fit=best_fit,
+            best_cube=best_cube
+        )
 
         logger.info("Running grid search...")
         self.grid(fitness_function, self.variable.prior_count, self.step_size)

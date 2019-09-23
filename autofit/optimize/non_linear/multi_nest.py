@@ -112,9 +112,8 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
 
-        def __init__(self, nlo, analysis, instance_from_physical_vector, output_results,
-                     image_path):
-            super().__init__(nlo, analysis, image_path)
+        def __init__(self, nlo, analysis, instance_from_physical_vector, output_results):
+            super().__init__(nlo, analysis)
             self.instance_from_physical_vector = instance_from_physical_vector
             self.output_results = output_results
             self.accepted_samples = 0
@@ -168,33 +167,38 @@ class MultiNest(NonLinearOptimizer):
 
             return cube
 
-        fitness_function = MultiNest.Fitness(self, analysis,
-                                             self.variable.instance_from_physical_vector,
-                                             self.output_results, self.image_path)
+        fitness_function = MultiNest.Fitness(
+            self,
+            analysis,
+            self.variable.instance_from_physical_vector,
+            self.output_results
+        )
 
         logger.info("Running MultiNest...")
-        self.run(fitness_function.__call__,
-                 prior,
-                 self.variable.prior_count,
-                 outputfiles_basename="{}/multinest".format(self.path),
-                 n_live_points=self.n_live_points,
-                 const_efficiency_mode=self.const_efficiency_mode,
-                 importance_nested_sampling=self.importance_nested_sampling,
-                 evidence_tolerance=self.evidence_tolerance,
-                 sampling_efficiency=self.sampling_efficiency,
-                 null_log_evidence=self.null_log_evidence,
-                 n_iter_before_update=self.n_iter_before_update,
-                 multimodal=self.multimodal,
-                 max_modes=self.max_modes,
-                 mode_tolerance=self.mode_tolerance,
-                 seed=self.seed,
-                 verbose=self.verbose,
-                 resume=self.resume,
-                 context=self.context,
-                 write_output=self.write_output,
-                 log_zero=self.log_zero,
-                 max_iter=self.max_iter,
-                 init_MPI=self.init_MPI)
+        self.run(
+            fitness_function.__call__,
+            prior,
+            self.variable.prior_count,
+            outputfiles_basename="{}/multinest".format(self.path),
+            n_live_points=self.n_live_points,
+            const_efficiency_mode=self.const_efficiency_mode,
+            importance_nested_sampling=self.importance_nested_sampling,
+            evidence_tolerance=self.evidence_tolerance,
+            sampling_efficiency=self.sampling_efficiency,
+            null_log_evidence=self.null_log_evidence,
+            n_iter_before_update=self.n_iter_before_update,
+            multimodal=self.multimodal,
+            max_modes=self.max_modes,
+            mode_tolerance=self.mode_tolerance,
+            seed=self.seed,
+            verbose=self.verbose,
+            resume=self.resume,
+            context=self.context,
+            write_output=self.write_output,
+            log_zero=self.log_zero,
+            max_iter=self.max_iter,
+            init_MPI=self.init_MPI
+        )
         logger.info("MultiNest complete")
 
         self.backup()

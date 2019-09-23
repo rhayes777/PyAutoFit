@@ -245,14 +245,13 @@ class NonLinearOptimizer(object):
 
         text_util.output_list_of_strings_to_file(file=self.file_param_names, list_of_strings=paramnames)
 
-    class Fitness(object):
+    class Fitness:
 
-        def __init__(self, nlo, analysis, image_path):
+        def __init__(self, nlo, analysis):
 
             self.nlo = nlo
             self.result = None
             self.max_likelihood = -np.inf
-            self.image_path = image_path
             self.analysis = analysis
 
             log_interval = conf.instance.general.get('output', 'log_interval', int)

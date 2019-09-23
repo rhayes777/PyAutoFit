@@ -8,9 +8,11 @@ from autofit.optimize.non_linear.non_linear import logger
 
 class DownhillSimplex(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None, fmin=scipy.optimize.fmin):
+    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None,
+                 fmin=scipy.optimize.fmin):
 
-        super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
+        super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_tag=phase_tag,
+                                              phase_folders=phase_folders,
                                               model_mapper=model_mapper)
 
         self.xtol = self.config("xtol", float)
@@ -39,8 +41,8 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_physical_vector, image_path):
-            super().__init__(nlo, analysis, image_path)
+        def __init__(self, nlo, analysis, instance_from_physical_vector):
+            super().__init__(nlo, analysis)
             self.instance_from_physical_vector = instance_from_physical_vector
 
         def __call__(self, vector):
@@ -56,8 +58,11 @@ class DownhillSimplex(NonLinearOptimizer):
         self.save_model_info()
         initial_vector = self.variable.physical_values_from_prior_medians
 
-        fitness_function = DownhillSimplex.Fitness(self, analysis, self.variable.instance_from_physical_vector,
-                                                   self.image_path)
+        fitness_function = DownhillSimplex.Fitness(
+            self,
+            analysis,
+            self.variable.instance_from_physical_vector,
+        )
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
