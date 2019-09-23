@@ -61,11 +61,6 @@ class NonLinearOptimizer(object):
                 conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
 
         try:
-            os.makedirs(self.image_path)
-        except FileExistsError:
-            pass
-
-        try:
             os.makedirs(self.pdf_path)
         except FileExistsError:
             pass
