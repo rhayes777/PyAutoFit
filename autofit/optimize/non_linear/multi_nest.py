@@ -117,6 +117,7 @@ class MultiNest(NonLinearOptimizer):
             self.instance_from_physical_vector = instance_from_physical_vector
             self.output_results = output_results
             self.accepted_samples = 0
+
             self.number_of_accepted_samples_between_output = conf.instance.general.get(
                 "output",
                 "number_of_accepted_samples_between_output",
@@ -129,6 +130,7 @@ class MultiNest(NonLinearOptimizer):
             self.resampling_likelihood = conf.instance.non_linear.get('MultiNest',
                                                                       'null_log_evidence',
                                                                       float)
+            self.stagger_accepted_samples = 0
 
         def __call__(self, cube, ndim, nparams, lnew):
             try:
@@ -139,8 +141,16 @@ class MultiNest(NonLinearOptimizer):
                 if not self.stagger_resampling_likelihood:
                     likelihood = -np.inf
                 else:
-                    self.resampling_likelihood += self.stagger_resampling_value
-                    likelihood = self.resampling_likelihood
+
+                    if self.stagger_accepted_samples < 10:
+
+                        self.stagger_accepted_samples += 1
+                        self.resampling_likelihood += self.stagger_resampling_value
+                        likelihood = self.resampling_likelihood
+
+                    else:
+
+                        likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
 
             if likelihood > self.max_likelihood:
 
