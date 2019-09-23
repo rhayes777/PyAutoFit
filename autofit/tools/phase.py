@@ -30,10 +30,7 @@ class AbstractPhase:
         phase_name: str
             The name of this phase
         """
-        if phase_tag is not None:
-            self.phase_tag = phase_tag
-        else:
-            self.phase_tag = ''
+        self.phase_tag = phase_tag or ''
 
         self.optimizer = optimizer_class(
             phase_name=phase_name,
