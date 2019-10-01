@@ -4,8 +4,10 @@ import os
 import pytest
 
 import autofit as af
-import test
+import test.mock
+from autofit import exc
 from autofit.tools.text_formatter import TextFormatter
+from test import mock
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -1000,3 +1002,27 @@ class TestGaussianWidthConfig(object):
         af.ModelMapper()
 
         assert mapper.one is not None
+
+
+@pytest.fixture(name="promise_mapper")
+def make_promise_mapper():
+    mapper = af.ModelMapper()
+    mapper.galaxy = af.PriorModel(
+        mock.Galaxy,
+        redshift=af.Promise(
+            None,
+            None,
+            result_path=None,
+            assert_exists=False
+        )
+    )
+    return mapper
+
+
+class TestPromises:
+    def test_promise_count(self, promise_mapper):
+        assert promise_mapper.promise_count == 1
+
+    def test_raises(self, promise_mapper):
+        with pytest.raises(exc.PriorException):
+            promise_mapper.instance_from_prior_medians()

@@ -90,6 +90,14 @@ class AbstractPriorModel(AbstractModel):
         }.values()
 
     @property
+    def unique_promise_tuples(self):
+        from autofit import Promise
+        return {
+            prior_tuple[1]: prior_tuple
+            for prior_tuple in self.attribute_tuples_with_type(Promise)
+        }.values()
+
+    @property
     @cast_collection(PriorNameValue)
     def prior_tuples_ordered_by_id(self):
         """
@@ -440,6 +448,10 @@ class AbstractPriorModel(AbstractModel):
     @property
     def prior_count(self):
         return len(self.unique_prior_tuples)
+
+    @property
+    def promise_count(self):
+        return len(self.unique_promise_tuples)
 
     @property
     def priors(self):
