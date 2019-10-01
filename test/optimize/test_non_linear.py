@@ -5,8 +5,8 @@ import shutil
 import pytest
 
 import autofit as af
-import test.mock
-from test.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
+import test
+from test import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
     MockNonLinearOptimizer
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')

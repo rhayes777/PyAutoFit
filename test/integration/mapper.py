@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-import autofit as af
 from test import mock
 
 

@@ -3,7 +3,7 @@ import os
 import pytest
 
 import autofit as af
-import test.mock
+import test
 
 
 @pytest.fixture(name="results")

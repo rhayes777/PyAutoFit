@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from test import mock
-from test.mock import DeferredClass
+from test import DeferredClass
 
 
 @pytest.fixture(name="deferred_instance")

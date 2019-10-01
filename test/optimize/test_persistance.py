@@ -1,8 +1,6 @@
 import pickle
 
-
-import test.mock
-from test import mock
+import test
 import autofit as af
 
 

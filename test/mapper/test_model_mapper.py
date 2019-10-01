@@ -4,7 +4,7 @@ import os
 import pytest
 
 import autofit as af
-import test.mock
+import test
 from autofit.tools.text_formatter import TextFormatter
 
 data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))

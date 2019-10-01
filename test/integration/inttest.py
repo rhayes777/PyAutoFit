@@ -7,8 +7,7 @@ import pytest
 
 from autofit.optimize import grid_search as gs
 
-import test.mock
-
+import test
 
 import autofit as af
 
@@ -52,7 +51,7 @@ class TestCase(object):
     
     def test_integration(self):
 
-        multinest = af.MultiNest(phase_folders=['integration'], phase_name='test')
+        multinest = af.MultiNest(phase_folders=['integration'], phase_name='test_autoarray')
 
         multinest.variable.profile = test.mock.EllipticalProfile
 

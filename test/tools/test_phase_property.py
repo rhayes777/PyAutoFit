@@ -6,7 +6,7 @@ import autofit as af
 import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.prior_model
 import autofit.optimize.non_linear.non_linear
-import test.mock
+import test
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -179,7 +179,7 @@ class TestPhasePropertyCollectionAttributes(object):
         assert list_phase.variable.prop.one == galaxy
 
     # def test_singular_model_info(self, list_phase):
-    #     galaxy_model = test.mock.GalaxyModel(variable_redshift=True)
+    #     galaxy_model = test_autoarray.mock.GalaxyModel(variable_redshift=True)
     #     list_phase.prop = dict(one=galaxy_model)
     #
     #     assert list_phase.variable.prop.one == galaxy_model

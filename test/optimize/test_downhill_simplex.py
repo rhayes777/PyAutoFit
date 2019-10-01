@@ -2,11 +2,8 @@ import os
 
 import pytest
 
-
 import autofit as af
-import autofit as af
-import autofit as af
-from test.mock import MockClassNLOx4, MockAnalysis
+from test import MockClassNLOx4, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 

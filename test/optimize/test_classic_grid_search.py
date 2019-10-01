@@ -5,11 +5,9 @@ import pytest
 
 import autofit.optimize.non_linear.grid_search
 import autofit.optimize.non_linear.non_linear
-import test.mock
+import test
 from autofit import conf
 from autofit import exc
-from test import mock
-from autofit.optimize import non_linear
 from autofit.optimize.optimizer import grid
 
 

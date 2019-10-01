@@ -3,7 +3,7 @@ import pytest
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-import test.mock
+import test
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p

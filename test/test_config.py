@@ -2,7 +2,7 @@ from os import path
 
 import pytest
 
-import test.mock
+import test
 import autofit as af
 
 directory = path.dirname(path.realpath(__file__))

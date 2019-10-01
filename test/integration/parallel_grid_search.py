@@ -2,9 +2,7 @@ import logging
 import shutil
 from os import path
 
-
-
-import test.mock
+import test
 import autofit as af
 from autofit.optimize.grid_search import GridSearch
 

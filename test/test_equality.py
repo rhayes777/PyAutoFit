@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-import test.mock
+import test
 
 
 @pytest.fixture(name="prior_model")
