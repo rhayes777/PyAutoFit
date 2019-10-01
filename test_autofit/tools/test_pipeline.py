@@ -3,7 +3,7 @@ import os
 import pytest
 
 import autofit as af
-import test
+from test_autofit.mock import GeometryProfile, Galaxy
 
 
 @pytest.fixture(name="results")
@@ -55,7 +55,7 @@ class TestPipeline(object):
 
     def test_optimizer_assertion(self):
         optimizer = af.NonLinearOptimizer("Phase Name")
-        optimizer.variable.profile = test.mock.GeometryProfile
+        optimizer.variable.profile = GeometryProfile
         phase = MockPhase("phase_name", optimizer)
 
         try:
@@ -83,7 +83,7 @@ class TestPipeline(object):
         phase.assert_and_save_pickle()
         phase.assert_and_save_pickle()
 
-        phase.variable.galaxy = test.mock.Galaxy
+        phase.variable.galaxy = Galaxy
 
         with pytest.raises(af.exc.PipelineException):
             phase.assert_and_save_pickle()

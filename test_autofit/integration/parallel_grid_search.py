@@ -30,7 +30,7 @@ class Analysis(af.Analysis):
 if __name__ == "__main__":
     grid_search = GridSearch(phase_name="phase_grid_search", phase_tag='_tag', phase_folders=['integration'],
                                 optimizer_class=af.MultiNest, parallel=False)
-    grid_search.variable.profile = test.mock.EllipticalProfile
+    grid_search.variable.profile = test_autofit.mock.EllipticalProfile
 
     # noinspection PyUnresolvedReferences
     result = grid_search.fit(Analysis(),

@@ -6,7 +6,7 @@ import autofit as af
 import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.prior_model
 import autofit.optimize.non_linear.non_linear
-import test
+from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -67,7 +67,7 @@ class TestPhasePropertyList(object):
     #     assert list_phase.prop == objects
 
     def test_classes(self, list_phase):
-        objects = [test.mock.GalaxyModel(), test.mock.GalaxyModel()]
+        objects = [GalaxyModel(), GalaxyModel()]
 
         list_phase.prop = objects
 
@@ -83,7 +83,7 @@ class TestPhasePropertyList(object):
         assert list_phase.prop == objects
 
     def test_mix(self, list_phase):
-        objects = [test.mock.GalaxyModel(), test.mock.Galaxy()]
+        objects = [GalaxyModel(), Galaxy()]
 
         list_phase.prop = objects
 
@@ -91,17 +91,17 @@ class TestPhasePropertyList(object):
         assert list_phase.prop == objects
 
     def test_set_item(self, list_phase):
-        galaxy_prior_0 = test.mock.GalaxyModel()
-        objects = [galaxy_prior_0, test.mock.Galaxy()]
+        galaxy_prior_0 = GalaxyModel()
+        objects = [galaxy_prior_0, Galaxy()]
 
         list_phase.prop = objects
 
-        galaxy_prior_1 = test.mock.GalaxyModel()
+        galaxy_prior_1 = GalaxyModel()
         list_phase.prop[1] = galaxy_prior_1
 
         assert list_phase.variable.prop == [galaxy_prior_0, galaxy_prior_1]
 
-        galaxy = test.mock.Galaxy()
+        galaxy = Galaxy()
 
         list_phase.prop[0] = galaxy
         assert list_phase.prop == [galaxy, galaxy_prior_1]
@@ -109,7 +109,7 @@ class TestPhasePropertyList(object):
 
 class TestPhasePropertyCollectionAttributes(object):
     def test_set_list_as_dict(self, list_phase):
-        galaxy_model = test.mock.GalaxyModel()
+        galaxy_model = GalaxyModel()
         list_phase.prop = dict(one=galaxy_model)
 
         assert len(list_phase.prop) == 1
@@ -117,9 +117,9 @@ class TestPhasePropertyCollectionAttributes(object):
         assert list_phase.prop.one == galaxy_model
 
     def test_override_property(self, list_phase):
-        galaxy_model = test.mock.GalaxyModel()
+        galaxy_model = GalaxyModel()
 
-        list_phase.prop = dict(one=test.mock.GalaxyModel())
+        list_phase.prop = dict(one=GalaxyModel())
 
         list_phase.prop.one = galaxy_model
 
@@ -127,23 +127,23 @@ class TestPhasePropertyCollectionAttributes(object):
         assert list_phase.prop.one == galaxy_model
 
     def test_named_list_items(self, list_phase):
-        galaxy_model = test.mock.GalaxyModel()
+        galaxy_model = GalaxyModel()
         list_phase.prop = [galaxy_model]
 
         # noinspection PyUnresolvedReferences
         assert getattr(list_phase.prop, "0") == galaxy_model
 
     def test_mix(self, list_phase):
-        objects = dict(one=test.mock.GalaxyModel(), two=test.mock.Galaxy())
+        objects = dict(one=GalaxyModel(), two=Galaxy())
 
         list_phase.prop = objects
 
-        list_phase.prop.one = test.mock.Galaxy()
+        list_phase.prop.one = Galaxy()
 
         assert len(list_phase.variable.prop) == 2
 
     def test_named_attributes_in_variable(self, list_phase):
-        galaxy_model = test.mock.GalaxyModel(variable_redshift=True)
+        galaxy_model = GalaxyModel(variable_redshift=True)
         list_phase.prop = dict(one=galaxy_model)
 
         assert list_phase.variable.prior_count == 1
@@ -155,11 +155,11 @@ class TestPhasePropertyCollectionAttributes(object):
         assert len(instance.prop) == 1
 
     def test_named_attributes_in_variable_override(self, list_phase):
-        list_phase.prop = dict(one=test.mock.GalaxyModel())
+        list_phase.prop = dict(one=GalaxyModel())
 
         assert list_phase.variable.prior_count == 0
 
-        galaxy_model = test.mock.GalaxyModel(variable_redshift=True)
+        galaxy_model = GalaxyModel(variable_redshift=True)
 
         list_phase.prop.one = galaxy_model
 
@@ -172,7 +172,7 @@ class TestPhasePropertyCollectionAttributes(object):
         assert len(instance.prop) == 1
 
     def test_named_attributes_in_constant(self, list_phase):
-        galaxy = test.mock.Galaxy()
+        galaxy = Galaxy()
         list_phase.prop = dict(one=galaxy)
 
         assert list_phase.variable.prior_count == 0
@@ -193,8 +193,8 @@ class TestPhasePropertyCollectionAttributes(object):
     #     assert len(list_phase.variable.info.split('\n')) == 7
 
     def test_shared_priors(self, list_phase):
-        list_phase.prop = dict(one=test.mock.GalaxyModel(variable_redshift=True),
-                               two=test.mock.GalaxyModel(variable_redshift=True))
+        list_phase.prop = dict(one=GalaxyModel(variable_redshift=True),
+                               two=GalaxyModel(variable_redshift=True))
 
         assert list_phase.variable.prior_count == 2
 
@@ -207,18 +207,18 @@ class TestPhasePropertyCollectionAttributes(object):
         list_phase.prop = dict()
 
         assert not hasattr(list_phase.prop, "one")
-        list_phase.prop = dict(one=test.mock.GalaxyModel(variable_redshift=True))
+        list_phase.prop = dict(one=GalaxyModel(variable_redshift=True))
 
         assert hasattr(list_phase.prop, "one")
 
     def test_position_not_a_prior(self, list_phase):
         list_phase.prop = [
-            af.PriorModel(test.mock.Galaxy)]
+            af.PriorModel(Galaxy)]
 
         assert list_phase.variable.prior_count == 1
         assert "redshift" == list_phase.variable.prior_tuples_ordered_by_id[0][0]
 
-        prior_model = af.PriorModel(test.mock.Galaxy)
+        prior_model = af.PriorModel(Galaxy)
         prior_model.phase_property_position = 0
 
         print(prior_model.constant_tuples)

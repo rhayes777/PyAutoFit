@@ -5,8 +5,8 @@ import shutil
 import pytest
 
 import autofit as af
-import test
-from test import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
+
+from test_autofit.mock import GeometryProfile, MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
     MockNonLinearOptimizer
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
@@ -32,7 +32,7 @@ def make_mock_list():
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
-    mapper.profile = test.mock.GeometryProfile
+    mapper.profile = GeometryProfile
     # noinspection PyTypeChecker
     return af.Result(None, None, mapper, [(0, 0), (1, 0)])
 

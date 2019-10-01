@@ -5,7 +5,7 @@ from functools import wraps
 import pytest
 
 import autofit as af
-from test import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis
+from test_autofit.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 

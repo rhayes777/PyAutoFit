@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from test import mock
+from test_autofit import mock
 
 
 @pytest.fixture(name="source_light_profiles")
