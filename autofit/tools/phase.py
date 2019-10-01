@@ -100,26 +100,6 @@ class AbstractPhase:
         """
         pass
 
-    # noinspection PyAbstractClass
-    class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
-
-        def __init__(self, results=None):
-            """
-            An lensing object
-
-            Parameters
-            ----------
-            results: ResultsCollection
-                The results of all previous phases
-            """
-
-            self.results = results
-
-        @property
-        def last_results(self):
-            if self.results is not None:
-                return self.results.last
-
     def make_result(self, result, analysis):
         raise NotImplementedError()
 
@@ -230,3 +210,24 @@ def as_grid_search(phase_class, parallel=False):
                 "priors to be grid searched")
 
     return GridSearchExtension
+
+
+# noinspection PyAbstractClass
+class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
+
+    def __init__(self, results=None):
+        """
+        An lensing object
+
+        Parameters
+        ----------
+        results: ResultsCollection
+            The results of all previous phases
+        """
+
+        self.results = results
+
+    @property
+    def last_results(self):
+        if self.results is not None:
+            return self.results.last
