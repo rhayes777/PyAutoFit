@@ -3,6 +3,7 @@ import inspect
 
 from typing_inspect import is_tuple_type
 
+from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredInstance
@@ -214,6 +215,10 @@ class PriorModel(AbstractPriorModel):
         -------
             An instance of the class
         """
+        if self.promise_count > 0:
+            raise exc.PriorException(
+                "All promises must be populated prior to instantiation"
+            )
         for prior, value in arguments.items():
             if isinstance(value, float) or isinstance(value, int):
                 prior.assert_within_limits(value)
