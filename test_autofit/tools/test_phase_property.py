@@ -10,8 +10,8 @@ from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
-af.conf.instance = af.conf.Config("{}/../../workspace/config".format(directory),
-                                  "{}/../../workspace/output/".format(directory))
+af.conf.instance = af.conf.Config("{}/../../autolens_workspace/config".format(directory),
+                                  "{}/../../autolens_workspace/output/".format(directory))
 
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):

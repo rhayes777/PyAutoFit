@@ -125,7 +125,7 @@ class NonLinearOptimizer(object):
 
     def backup(self):
         """
-        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        Copy files from the sym-linked optimizer folder to the backup folder in the autolens_workspace.
         """
 
         try:

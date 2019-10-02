@@ -280,16 +280,16 @@ def is_config_in(folder):
 Search for default configuration and put output in the same folder as config.
 
 The search is performed in this order:
-1) workspace. This is assumed to be in the same directory as autolens in the Docker 
+1) autolens_workspace. This is assumed to be in the same directory as autolens in the Docker 
    container
 2) current working directory. This is to allow for installation and use with pip where 
    users would expect the configuration in their current directory to be used.
 3) relative. This is a backup for when no configuration is found. In this case it is 
-   still assumed a workspace directory exists in the same directory as autofit.
+   still assumed a autolens_workspace directory exists in the same directory as autofit.
 """
 
 autofit_directory = os.path.dirname(os.path.realpath(__file__))
-docker_workspace_directory = "/home/user/workspace"
+docker_workspace_directory = "/home/user/autolens_workspace"
 current_directory = os.getcwd()
 
 try:
@@ -306,13 +306,13 @@ except KeyError:
     elif is_config_in("{}/../..".format(current_directory)):
         CONFIG_PATH = "{}/../../config".format(current_directory)
         default = Config(CONFIG_PATH, "{}/output/".format(current_directory))
-    elif is_config_in("{}/../workspace".format(current_directory)):
-        CONFIG_PATH = "{}/../workspace/config".format(current_directory)
+    elif is_config_in("{}/../autolens_workspace".format(current_directory)):
+        CONFIG_PATH = "{}/../autolens_workspace/config".format(current_directory)
         default = Config(CONFIG_PATH,
-                         "{}/../workspace/output/".format(current_directory))
+                         "{}/../autolens_workspace/output/".format(current_directory))
     else:
-        CONFIG_PATH = "{}/../workspace/config".format(autofit_directory)
+        CONFIG_PATH = "{}/../autolens_workspace/config".format(autofit_directory)
         default = Config(CONFIG_PATH,
-                         "{}/../workspace/output/".format(autofit_directory))
+                         "{}/../autolens_workspace/output/".format(autofit_directory))
 
 instance = default

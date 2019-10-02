@@ -14,7 +14,7 @@ import autofit as af
 logger = logging.getLogger(__name__)
 
 try:
-    output_dir = "{}/../../workspace/output".format(path.dirname(path.realpath(__file__)))
+    output_dir = "{}/../../autolens_workspace/output".format(path.dirname(path.realpath(__file__)))
     logger.info("Removing {}".format(output_dir))
     shutil.rmtree(output_dir)
 except FileNotFoundError:
