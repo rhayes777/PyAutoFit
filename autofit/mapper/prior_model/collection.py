@@ -18,8 +18,11 @@ class CollectionPriorModel(AbstractPriorModel):
 
     @property
     def dict(self):
-        return {key: value for key, value in self.__dict__.items() if
-                key not in ('component_number', 'item_number', 'id')}
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key not in ("component_number", "item_number", "id")
+        }
 
     @property
     def items(self):
@@ -31,8 +34,7 @@ class CollectionPriorModel(AbstractPriorModel):
                 key: value.as_variable()
                 if isinstance(value, AbstractPriorModel)
                 else value
-                for key, value
-                in self.dict.items()
+                for key, value in self.dict.items()
             }
         )
 
@@ -134,12 +136,15 @@ class CollectionPriorModel(AbstractPriorModel):
                 key: value.gaussian_prior_model_for_arguments(arguments)
                 if isinstance(value, AbstractPriorModel)
                 else value
-                for key, value in self.__dict__.items() if
-                key not in ('component_number', 'item_number', 'id')
+                for key, value in self.__dict__.items()
+                if key not in ("component_number", "item_number", "id")
             }
         )
 
     @property
     def prior_class_dict(self):
-        return {prior: cls for prior_model in self.direct_prior_model_tuples for prior, cls in
-                prior_model[1].prior_class_dict.items()}
+        return {
+            prior: cls
+            for prior_model in self.direct_prior_model_tuples
+            for prior, cls in prior_model[1].prior_class_dict.items()
+        }

@@ -10,14 +10,13 @@ from autofit.tools.promise import PromiseResult
 
 
 class AbstractPhase:
-
     def __init__(
-            self,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            auto_link_priors=False
+        self,
+        phase_name,
+        phase_tag=None,
+        phase_folders=tuple(),
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        auto_link_priors=False,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -30,12 +29,10 @@ class AbstractPhase:
         phase_name: str
             The name of this phase
         """
-        self.phase_tag = phase_tag or ''
+        self.phase_tag = phase_tag or ""
 
         self.optimizer = optimizer_class(
-            phase_name=phase_name,
-            phase_tag=phase_tag,
-            phase_folders=phase_folders
+            phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
         )
         self.auto_link_priors = auto_link_priors
 
@@ -114,8 +111,9 @@ class AbstractPhase:
         Create the path to the folder at which the metadata and optimizer pickle should
         be saved
         """
-        return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path,
-                                     self.phase_name, self.phase_tag)
+        return "{}/{}/{}/{}/".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     def save_optimizer_for_phase(self):
         """
@@ -131,8 +129,10 @@ class AbstractPhase:
         """
         with open("{}/metadata".format(self.make_path()), "w+") as f:
             f.write(
-                "pipeline={}\nphase={}\ndata={}".format(pipeline_name, self.phase_name,
-                                                        data_name))
+                "pipeline={}\nphase={}\ndata={}".format(
+                    pipeline_name, self.phase_name, data_name
+                )
+            )
 
     def assert_optimizer_pickle_matches_for_phase(self):
         """
@@ -150,7 +150,8 @@ class AbstractPhase:
                 if self.optimizer != loaded_optimizer:
                     raise exc.PipelineException(
                         f"Can't restart phase at path {path} because settings don't "
-                        f"match. Did you change the optimizer settings or model?")
+                        f"match. Did you change the optimizer settings or model?"
+                    )
 
     def assert_and_save_pickle(self):
         if conf.instance.general.get("output", "assert_pickle_matches", bool):
@@ -181,20 +182,31 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, phase_name, phase_folders=tuple(),
-                     number_of_steps=10,
-                     optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                     **kwargs):
-            super().__init__(*args, phase_name=phase_name,
-                             phase_folders=phase_folders,
-                             optimizer_class=optimizer_class, **kwargs)
-            self.optimizer = grid_search.GridSearch(phase_name=phase_name,
-                                                    phase_tag=self.phase_tag,
-                                                    phase_folders=phase_folders,
-                                                    number_of_steps=number_of_steps,
-                                                    optimizer_class=optimizer_class,
-                                                    model_mapper=self.variable,
-                                                    parallel=parallel)
+        def __init__(
+            self,
+            *args,
+            phase_name,
+            phase_folders=tuple(),
+            number_of_steps=10,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            **kwargs,
+        ):
+            super().__init__(
+                *args,
+                phase_name=phase_name,
+                phase_folders=phase_folders,
+                optimizer_class=optimizer_class,
+                **kwargs,
+            )
+            self.optimizer = grid_search.GridSearch(
+                phase_name=phase_name,
+                phase_tag=self.phase_tag,
+                phase_folders=phase_folders,
+                number_of_steps=number_of_steps,
+                optimizer_class=optimizer_class,
+                model_mapper=self.variable,
+                parallel=parallel,
+            )
 
         def run_analysis(self, analysis):
             return self.optimizer.fit(analysis, self.grid_priors)
@@ -207,14 +219,14 @@ def as_grid_search(phase_class, parallel=False):
         def grid_priors(self):
             raise NotImplementedError(
                 "The grid priors property must be implemented to provide a list of "
-                "priors to be grid searched")
+                "priors to be grid searched"
+            )
 
     return GridSearchExtension
 
 
 # noinspection PyAbstractClass
 class Analysis(autofit.optimize.non_linear.non_linear.Analysis):
-
     def __init__(self, results=None):
         """
         An lensing object

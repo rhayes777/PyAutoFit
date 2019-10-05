@@ -1,6 +1,11 @@
 from autofit.mapper.prior_model.prior import ConstantNameValue
-from autofit.mapper.prior_model.prior import Prior, UniformPrior, GaussianPrior, LogUniformPrior, \
-    AttributeNameValue
+from autofit.mapper.prior_model.prior import (
+    Prior,
+    UniformPrior,
+    GaussianPrior,
+    LogUniformPrior,
+    AttributeNameValue,
+)
 from autofit.mapper.prior_model.prior import PriorNameValue
 from autofit.mapper.prior_model.prior import cast_collection
 from . import conf
@@ -42,4 +47,4 @@ from .tools.pipeline import ResultsCollection
 from .tools.promise import Promise
 from .tools.promise import PromiseResult
 
-__version__ = '0.33.9'
+__version__ = "0.33.9"

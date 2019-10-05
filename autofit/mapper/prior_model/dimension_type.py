@@ -28,13 +28,20 @@ def _map_types(func, self, *args, **kwargs):
         if position is not None:
             arg_type = list(annotations.values())[position]
         if typing_inspect.is_tuple_type(arg_type):
-            return tuple(element_value if isinstance(element_value, DimensionType) else element_type(element_value) for
-                         element_type, element_value in zip(arg_type.__args__, value))
+            return tuple(
+                element_value
+                if isinstance(element_value, DimensionType)
+                else element_type(element_value)
+                for element_type, element_value in zip(arg_type.__args__, value)
+            )
 
         return arg_type(value)
 
-    return func(self, *[map_to_type(value, position=index) for index, value in enumerate(args)],
-                **{name: map_to_type(value, name=name) for name, value in kwargs.items()})
+    return func(
+        self,
+        *[map_to_type(value, position=index) for index, value in enumerate(args)],
+        **{name: map_to_type(value, name=name) for name, value in kwargs.items()}
+    )
 
 
 map_types = decorator(_map_types)

@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class NonLinearOptimizer(object):
-
-    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None):
+    def __init__(
+        self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None
+    ):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
@@ -35,7 +36,7 @@ class NonLinearOptimizer(object):
         if phase_tag is not None:
             self.phase_tag = phase_tag
         else:
-            self.phase_tag = ''
+            self.phase_tag = ""
 
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
@@ -50,7 +51,9 @@ class NonLinearOptimizer(object):
 
         self.label_config = conf.instance.label
 
-        self.log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
+        self.log_file = conf.instance.general.get("output", "log_file", str).replace(
+            " ", ""
+        )
 
         if not len(self.log_file) == 0:
             log_path = "{}{}".format(self.phase_output_path, self.log_file)
@@ -58,7 +61,10 @@ class NonLinearOptimizer(object):
             logger.propagate = False
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
-                conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
+                conf.instance.general.get("output", "log_level", str)
+                .replace(" ", "")
+                .upper()
+            ]
 
         try:
             os.makedirs(self.pdf_path)
@@ -76,35 +82,38 @@ class NonLinearOptimizer(object):
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path,
-                                                     self.phase_name,
-                                                     self.phase_tag)
+        return "{}/{}/{}/{}/optimizer_backup".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     @property
     def phase_output_path(self) -> str:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                     self.phase_tag)
+        return "{}/{}/{}/{}/".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     @property
     def opt_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                              self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                              self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.opt_path, 'multinest.paramnames')
+        return "{}/{}".format(self.opt_path, "multinest.paramnames")
 
     @property
     def file_model_info(self) -> str:
-        return "{}/{}".format(self.phase_output_path, 'model.info')
+        return "{}/{}".format(self.phase_output_path, "model.info")
 
     @property
     def image_path(self) -> str:
@@ -167,7 +176,9 @@ class NonLinearOptimizer(object):
         attribute
             An attribute for the key with the specified type.
         """
-        return self.named_config.get(self.__class__.__name__, attribute_name, attribute_type)
+        return self.named_config.get(
+            self.__class__.__name__, attribute_name, attribute_type
+        )
 
     def save_model_info(self):
 
@@ -178,10 +189,14 @@ class NonLinearOptimizer(object):
 
         self.create_paramnames_file()
 
-        text_util.output_list_of_strings_to_file(file=self.file_model_info, list_of_strings=self.variable.info)
+        text_util.output_list_of_strings_to_file(
+            file=self.file_model_info, list_of_strings=self.variable.info
+        )
 
     def fit(self, analysis):
-        raise NotImplementedError("Fitness function must be overridden by non linear optimizers")
+        raise NotImplementedError(
+            "Fitness function must be overridden by non linear optimizers"
+        )
 
     @property
     def param_labels(self):
@@ -198,13 +213,15 @@ class NonLinearOptimizer(object):
             param_string = self.label_config.label(prior_name)
             prior_model = prior_prior_model_dict[prior]
             cls = prior_class_dict[prior]
-            cls_string = "{}{}".format(self.label_config.subscript(cls), prior_model.component_number + 1)
+            cls_string = "{}{}".format(
+                self.label_config.subscript(cls), prior_model.component_number + 1
+            )
             param_label = "{}_{{\\mathrm{{{}}}}}".format(param_string, cls_string)
             paramnames_labels.append(param_label)
 
         return paramnames_labels
 
-    def latex_results_at_sigma_limit(self, sigma_limit, format_str='{:.2f}'):
+    def latex_results_at_sigma_limit(self, sigma_limit, format_str="{:.2f}"):
 
         labels = self.param_labels
         most_probables = self.most_probable_model_parameters
@@ -218,7 +235,16 @@ class NonLinearOptimizer(object):
             upper = format_str.format(uppers[i])
             lower = format_str.format(lowers[i])
 
-            line += [labels[i] + ' = ' + most_probable + '^{+' + upper + '}_{-' + lower + '} & ']
+            line += [
+                labels[i]
+                + " = "
+                + most_probable
+                + "^{+"
+                + upper
+                + "}_{-"
+                + lower
+                + "} & "
+            ]
 
         return line
 
@@ -234,14 +260,16 @@ class NonLinearOptimizer(object):
         paramnames = []
 
         for i in range(self.variable.prior_count):
-            line = text_util.label_and_label_string(label0=paramnames_names[i],
-                                                    label1=paramnames_labels[i], whitespace=70)
-            paramnames += [line + '\n']
+            line = text_util.label_and_label_string(
+                label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
+            )
+            paramnames += [line + "\n"]
 
-        text_util.output_list_of_strings_to_file(file=self.file_param_names, list_of_strings=paramnames)
+        text_util.output_list_of_strings_to_file(
+            file=self.file_param_names, list_of_strings=paramnames
+        )
 
     class Fitness:
-
         def __init__(self, nlo, analysis):
 
             self.nlo = nlo
@@ -249,9 +277,13 @@ class NonLinearOptimizer(object):
             self.max_likelihood = -np.inf
             self.analysis = analysis
 
-            log_interval = conf.instance.general.get('output', 'log_interval', int)
-            backup_interval = conf.instance.general.get('output', 'backup_interval', int)
-            visualize_interval = conf.instance.visualize.get('figures', 'visualize_interval', int)
+            log_interval = conf.instance.general.get("output", "log_interval", int)
+            backup_interval = conf.instance.general.get(
+                "output", "backup_interval", int
+            )
+            visualize_interval = conf.instance.visualize.get(
+                "figures", "visualize_interval", int
+            )
 
             self.should_log = IntervalCounter(log_interval)
             self.should_backup = IntervalCounter(backup_interval)
@@ -279,7 +311,7 @@ class NonLinearOptimizer(object):
         new_instance = self.__class__(
             phase_name=name,
             phase_folders=self.phase_folders,
-            model_mapper=self.variable
+            model_mapper=self.variable,
         )
         new_instance.phase_tag = self.phase_tag
 
@@ -324,7 +356,14 @@ class NonLinearOptimizer(object):
         lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
 
         # noinspection PyArgumentList
-        sigmas = list(map(lambda mean, upper, lower: max([upper - mean, mean - lower]), means, uppers, lowers))
+        sigmas = list(
+            map(
+                lambda mean, upper, lower: max([upper - mean, mean - lower]),
+                means,
+                uppers,
+                lowers,
+            )
+        )
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
@@ -346,11 +385,15 @@ class NonLinearOptimizer(object):
 
     @property
     def most_probable_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_probable_model_parameters)
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.most_probable_model_parameters
+        )
 
     @property
     def most_likely_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_likely_model_parameters)
+        return self.variable.instance_from_physical_vector(
+            physical_vector=self.most_likely_model_parameters
+        )
 
     def model_errors_at_sigma_limit(self, sigma_limit):
         uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
@@ -360,26 +403,41 @@ class NonLinearOptimizer(object):
     def model_errors_at_upper_sigma_limit(self, sigma_limit):
         uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
         return list(
-            map(lambda upper, most_probable: upper - most_probable, uppers,
-                self.most_probable_model_parameters))
+            map(
+                lambda upper, most_probable: upper - most_probable,
+                uppers,
+                self.most_probable_model_parameters,
+            )
+        )
 
     def model_errors_at_lower_sigma_limit(self, sigma_limit):
         lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
         return list(
-            map(lambda lower, most_probable: most_probable - lower, lowers,
-                self.most_probable_model_parameters))
+            map(
+                lambda lower, most_probable: most_probable - lower,
+                lowers,
+                self.most_probable_model_parameters,
+            )
+        )
 
     def model_errors_instance_at_sigma_limit(self, sigma_limit):
         return self.variable.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit))
+            physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit)
+        )
 
     def model_errors_instance_at_upper_sigma_limit(self, sigma_limit):
         return self.variable.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_upper_sigma_limit(sigma_limit=sigma_limit))
+            physical_vector=self.model_errors_at_upper_sigma_limit(
+                sigma_limit=sigma_limit
+            )
+        )
 
     def model_errors_instance_at_lower_sigma_limit(self, sigma_limit):
         return self.variable.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_lower_sigma_limit(sigma_limit=sigma_limit))
+            physical_vector=self.model_errors_at_lower_sigma_limit(
+                sigma_limit=sigma_limit
+            )
+        )
 
     def sample_model_instance_from_sample_index(self, sample_index):
         """Setup a model instance of a weighted sample.
@@ -389,9 +447,13 @@ class NonLinearOptimizer(object):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        model_parameters = self.sample_model_parameters_from_sample_index(sample_index=sample_index)
+        model_parameters = self.sample_model_parameters_from_sample_index(
+            sample_index=sample_index
+        )
 
-        return self.variable.instance_from_physical_vector(physical_vector=model_parameters)
+        return self.variable.instance_from_physical_vector(
+            physical_vector=model_parameters
+        )
 
     def sample_weight_from_sample_index(self, sample_index):
         raise NotImplementedError()
@@ -401,11 +463,15 @@ class NonLinearOptimizer(object):
 
     def offset_values_from_input_model_parameters(self, input_model_parameters):
         return list(
-            map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
+            map(
+                lambda input, mp: mp - input,
+                input_model_parameters,
+                self.most_probable_model_parameters,
+            )
+        )
 
 
 class Analysis(object):
-
     def fit(self, instance):
         raise NotImplementedError()
 
@@ -421,7 +487,9 @@ class Result(object):
     @DynamicAttrs
     """
 
-    def __init__(self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None):
+    def __init__(
+        self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None
+    ):
         """
         The result of an optimization.
 
@@ -454,7 +522,10 @@ class Result(object):
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
-            "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
+            "\n".join(
+                ["{}: {}".format(key, value) for key, value in self.__dict__.items()]
+            )
+        )
 
     def variable_absolute(self, a: float) -> mm.ModelMapper:
         """
@@ -467,7 +538,9 @@ class Result(object):
         -------
         A model mapper created by taking results from this phase and creating priors with the defined absolute width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
+        return self.previous_variable.mapper_from_gaussian_tuples(
+            self.gaussian_tuples, a=a
+        )
 
     def variable_relative(self, r: float) -> mm.ModelMapper:
         """
@@ -480,7 +553,9 @@ class Result(object):
         -------
         A model mapper created by taking results from this phase and creating priors with the defined relative width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
+        return self.previous_variable.mapper_from_gaussian_tuples(
+            self.gaussian_tuples, r=r
+        )
 
 
 class IntervalCounter(object):
@@ -526,11 +601,12 @@ def persistent_timer(func):
 
         execution_time = str(dt.timedelta(seconds=time.time() - start))
 
-        logger.info("{} took {} to run".format(
-            optimizer_instance.phase_name,
-            execution_time
-        ))
-        with open("{}/execution_time".format(optimizer_instance.phase_output_path), "w+") as f:
+        logger.info(
+            "{} took {} to run".format(optimizer_instance.phase_name, execution_time)
+        )
+        with open(
+            "{}/execution_time".format(optimizer_instance.phase_output_path), "w+"
+        ) as f:
             f.write(execution_time)
         return result
 

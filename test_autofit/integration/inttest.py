@@ -14,7 +14,9 @@ import autofit as af
 logger = logging.getLogger(__name__)
 
 try:
-    output_dir = "{}/../../autolens_workspace/output".format(path.dirname(path.realpath(__file__)))
+    output_dir = "{}/../../autolens_workspace/output".format(
+        path.dirname(path.realpath(__file__))
+    )
     logger.info("Removing {}".format(output_dir))
     shutil.rmtree(output_dir)
 except FileNotFoundError:
@@ -36,10 +38,20 @@ class Phase(af.AbstractPhase):
     profile = af.PhaseProperty("profile")
     constant_profile = af.PhaseProperty("constant_profile")
 
-    def __init__(self, phase_name, phase_folders, profile, constant_profile,
-                 optimizer_class=af.MultiNest):
-        super().__init__(phase_name=phase_name, phase_tag='phase_tag', phase_folders=phase_folders,
-                         optimizer_class=optimizer_class)
+    def __init__(
+        self,
+        phase_name,
+        phase_folders,
+        profile,
+        constant_profile,
+        optimizer_class=af.MultiNest,
+    ):
+        super().__init__(
+            phase_name=phase_name,
+            phase_tag="phase_tag",
+            phase_folders=phase_folders,
+            optimizer_class=optimizer_class,
+        )
         self.profile = profile
         self.constant_profile = constant_profile
 
@@ -48,10 +60,11 @@ class Phase(af.AbstractPhase):
 
 
 class TestCase(object):
-    
     def test_integration(self):
 
-        multinest = af.MultiNest(phase_folders=['integration'], phase_name='test_autoarray')
+        multinest = af.MultiNest(
+            phase_folders=["integration"], phase_name="test_autoarray"
+        )
 
         multinest.variable.profile = test_autofit.mock.EllipticalProfile
 
@@ -64,17 +77,30 @@ class TestCase(object):
 
     def test_grid(self):
 
-        grid_search = gs.GridSearch(phase_name="phase_grid_search", phase_tag='_tag', phase_folders=['integration'])
+        grid_search = gs.GridSearch(
+            phase_name="phase_grid_search",
+            phase_tag="_tag",
+            phase_folders=["integration"],
+        )
         grid_search.variable.profile = test_autofit.mock.EllipticalProfile
 
         # noinspection PyUnresolvedReferences
-        result = grid_search.fit(Analysis(),
-                                 [grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1])
+        result = grid_search.fit(
+            Analysis(),
+            [
+                grid_search.variable.profile.centre_0,
+                grid_search.variable.profile.centre_1,
+            ],
+        )
 
     def test_phase(self):
-        
-        phase = Phase(phase_name="test_phase", phase_folders=['integration'],
-                      profile=test_autofit.mock.EllipticalProfile, constant_profile=test_autofit.mock.EllipticalProfile())
+
+        phase = Phase(
+            phase_name="test_phase",
+            phase_folders=["integration"],
+            profile=test_autofit.mock.EllipticalProfile,
+            constant_profile=test_autofit.mock.EllipticalProfile(),
+        )
         result = phase.run_analysis(Analysis())
 
         centre = result.constant.profile.centre
@@ -84,9 +110,13 @@ class TestCase(object):
 
     def test_classic_grid_search_phase(self):
         # noinspection PyTypeChecker
-        phase = Phase(phase_name="phase_classic_grid_search_phase", phase_folders=['integration'],
-                      profile=test_autofit.mock.EllipticalProfile, constant_profile=test_autofit.mock.EllipticalProfile(),
-                      optimizer_class=af.GridSearch)
+        phase = Phase(
+            phase_name="phase_classic_grid_search_phase",
+            phase_folders=["integration"],
+            profile=test_autofit.mock.EllipticalProfile,
+            constant_profile=test_autofit.mock.EllipticalProfile(),
+            optimizer_class=af.GridSearch,
+        )
         result = phase.run_analysis(Analysis())
 
         centre = result.constant.profile.centre
@@ -95,7 +125,6 @@ class TestCase(object):
         assert 0 == pytest.approx(centre[1], abs=0.1)
 
     def test_grid_search_phase(self):
-
         class GridSearchPhase(af.as_grid_search(Phase)):
             @property
             def grid_priors(self):
@@ -103,9 +132,13 @@ class TestCase(object):
 
         constant_profile = test_autofit.mock.EllipticalProfile()
 
-        result = GridSearchPhase(phase_name="grid_search_phase", phase_folders=['integration'],
-                                 number_of_steps=2, profile=test_autofit.mock.EllipticalProfile,
-                                 constant_profile=constant_profile).run_analysis(Analysis())
+        result = GridSearchPhase(
+            phase_name="grid_search_phase",
+            phase_folders=["integration"],
+            number_of_steps=2,
+            profile=test_autofit.mock.EllipticalProfile,
+            constant_profile=constant_profile,
+        ).run_analysis(Analysis())
 
         assert result.results[0].constant.constant_profile == constant_profile
 
@@ -115,7 +148,6 @@ class TestCase(object):
         assert result.figure_of_merit_array[0, 1] > result.figure_of_merit_array[1, 1]
 
     def test__grid_search_phase_parallel(self):
-
         class GridSearchPhase(af.as_grid_search(Phase, parallel=True)):
             @property
             def grid_priors(self):
@@ -123,9 +155,13 @@ class TestCase(object):
 
         constant_profile = test_autofit.mock.EllipticalProfile()
 
-        result = GridSearchPhase(phase_name="grid_search_phase_parallel", phase_folders=['integration'],
-                                 number_of_steps=2, profile=test_autofit.mock.EllipticalProfile,
-                                 constant_profile=constant_profile).run_analysis(Analysis())
+        result = GridSearchPhase(
+            phase_name="grid_search_phase_parallel",
+            phase_folders=["integration"],
+            number_of_steps=2,
+            profile=test_autofit.mock.EllipticalProfile,
+            constant_profile=constant_profile,
+        ).run_analysis(Analysis())
 
         assert result.results[0].constant.constant_profile == constant_profile
 
@@ -135,7 +171,6 @@ class TestCase(object):
         assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[1, 0]
         assert result.figure_of_merit_array[1, 0] > result.figure_of_merit_array[1, 1]
         assert result.figure_of_merit_array[0, 1] > result.figure_of_merit_array[1, 1]
-
 
 
 if __name__ == "__main__":

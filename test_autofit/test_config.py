@@ -9,6 +9,7 @@ directory = path.dirname(path.realpath(__file__))
 
 from test_autofit.mock import EllipticalLP, EllipticalGaussian
 
+
 class MockClass(object):
     pass
 

@@ -24,9 +24,7 @@ class PromiseResult:
         A promise for an object in the variable result. This might be a prior or prior model.
         """
         return Promise(
-            self.phase,
-            result_path=self.result_path,
-            assert_exists=self.assert_exists
+            self.phase, result_path=self.result_path, assert_exists=self.assert_exists
         )
 
     @property
@@ -38,26 +36,16 @@ class PromiseResult:
             self.phase,
             result_path=self.result_path,
             is_constant=True,
-            assert_exists=self.assert_exists
+            assert_exists=self.assert_exists,
         )
 
     def __getattr__(self, item):
-        return PromiseResult(
-            self.phase,
-            *self.result_path,
-            item,
-            assert_exists=False
-        )
+        return PromiseResult(self.phase, *self.result_path, item, assert_exists=False)
 
 
 class Promise:
     def __init__(
-            self,
-            phase,
-            *path,
-            result_path,
-            is_constant=False,
-            assert_exists=True
+        self, phase, *path, result_path, is_constant=False, assert_exists=True
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior

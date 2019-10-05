@@ -6,7 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 class ResultsCollection(object):
-
     def __init__(self):
         """
         A collection of results from previous phases. Results can be obtained using an index or the name of the phase
@@ -96,10 +95,7 @@ class ResultsCollection(object):
         except KeyError:
             raise exc.PipelineException(
                 "No previous phase named {} found in results ({})".format(
-                    phase_name,
-                    ", ".join(
-                        self.__result_dict.keys()
-                    )
+                    phase_name, ", ".join(self.__result_dict.keys())
                 )
             )
 
@@ -108,7 +104,6 @@ class ResultsCollection(object):
 
 
 class Pipeline(object):
-
     def __init__(self, pipeline_name, *phases):
         """
         A pipeline of phases to be run sequentially. Results are passed between phases. Phases must have unique names.
@@ -127,7 +122,9 @@ class Pipeline(object):
         if len(set(phase_names)) < len(phase_names):
             raise exc.PipelineException(
                 "Cannot create pipelines with duplicate phase names. ({})".format(
-                    ", ".join(phase_names)))
+                    ", ".join(phase_names)
+                )
+            )
 
     def __getitem__(self, item):
         return self.phases[item]
@@ -146,8 +143,10 @@ class Pipeline(object):
         composed_pipeline: Pipeline
             A pipeline that runs all the  phases from this pipeline and then all the phases from the other pipeline
         """
-        return self.__class__("{} + {}".format(self.pipeline_name, other.pipeline_name),
-                              *(self.phases + other.phases))
+        return self.__class__(
+            "{} + {}".format(self.pipeline_name, other.pipeline_name),
+            *(self.phases + other.phases)
+        )
 
     def run_function(self, func, data_name=None):
         """
@@ -167,7 +166,8 @@ class Pipeline(object):
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info(
-                "Running Phase {} (Number {})".format(phase.optimizer.phase_name, i))
+                "Running Phase {} (Number {})".format(phase.optimizer.phase_name, i)
+            )
             phase.save_metadata(data_name, self.pipeline_name)
             name = phase.phase_name
             results.add(name, func(phase, results))

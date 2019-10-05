@@ -7,13 +7,21 @@ from autofit.optimize.non_linear.non_linear import logger
 
 
 class DownhillSimplex(NonLinearOptimizer):
+    def __init__(
+        self,
+        phase_name,
+        phase_tag=None,
+        phase_folders=tuple(),
+        model_mapper=None,
+        fmin=scipy.optimize.fmin,
+    ):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None,
-                 fmin=scipy.optimize.fmin):
-
-        super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_tag=phase_tag,
-                                              phase_folders=phase_folders,
-                                              model_mapper=model_mapper)
+        super(DownhillSimplex, self).__init__(
+            phase_name=phase_name,
+            phase_tag=phase_tag,
+            phase_folders=phase_folders,
+            model_mapper=model_mapper,
+        )
 
         self.xtol = self.config("xtol", float)
         self.ftol = self.config("ftol", float)
@@ -59,9 +67,7 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = self.variable.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            self,
-            analysis,
-            self.variable.instance_from_physical_vector,
+            self, analysis, self.variable.instance_from_physical_vector
         )
 
         logger.info("Running DownhillSimplex...")
@@ -75,8 +81,5 @@ class DownhillSimplex(NonLinearOptimizer):
         res.gaussian_tuples = [(mean, 0) for mean in output]
         res.previous_variable = self.variable
 
-        analysis.visualize(
-            instance=res.constant,
-            during_analysis=False
-        )
+        analysis.visualize(instance=res.constant, during_analysis=False)
         return res
