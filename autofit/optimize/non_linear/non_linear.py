@@ -412,9 +412,6 @@ class Analysis(object):
     def visualize(self, instance, during_analysis):
         raise NotImplementedError()
 
-    def describe(self, instance):
-        raise NotImplementedError()
-
 
 class Result(object):
     """
