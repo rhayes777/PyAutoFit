@@ -125,7 +125,7 @@ class GridSearch(NonLinearOptimizer):
 
     @property
     def checkpoint_path(self):
-        return "{}/.checkpoint".format(self.path)
+        return "{}/.checkpoint".format(self.paths.path)
 
     def save_checkpoint(
             self,
@@ -211,8 +211,8 @@ class GridSearch(NonLinearOptimizer):
             self,
             analysis,
             model.instance_from_unit_vector,
-            model.prior_count,
             save_results,
+            model.prior_count,
             checkpoint_count=checkpoint_count,
             best_fit=best_fit,
             best_cube=best_cube

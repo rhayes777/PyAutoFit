@@ -114,11 +114,11 @@ def make_grid_search():
 
 
 class TestGridSearch(object):
-    def test_1d(self, grid_search):
-        grid_search.variable.one = Galaxy
+    def test_1d(self, grid_search, variable):
+        variable.one = Galaxy
 
         analysis = MockAnalysis()
-        grid_search.fit(analysis)
+        grid_search.fit(analysis, variable)
 
         assert len(analysis.instances) == 10
 
@@ -127,24 +127,25 @@ class TestGridSearch(object):
         assert isinstance(instance.one, Galaxy)
         assert instance.one.redshift == 0.55
 
-    def test_2d(self, grid_search):
-        grid_search.variable.one = Galaxy
-        grid_search.variable.two = Galaxy
+    def test_2d(self, grid_search, variable):
+        variable.one = Galaxy
+        variable.two = Galaxy
 
         analysis = MockAnalysis()
 
-        result = grid_search.fit(analysis)
+        result = grid_search.fit(analysis, variable)
 
         assert pytest.approx(result.constant.one.redshift) == 0.05
         assert pytest.approx(result.constant.two.redshift) == 0.65
 
-    def test_checkpoint_properties(self, grid_search):
+    def test_checkpoint_properties(self, grid_search, variable):
         analysis = MockAnalysis()
 
-        grid_search.variable.one = Galaxy
-        grid_search.fit(analysis)
+        variable.one = Galaxy
+        grid_search.fit(analysis, variable)
 
-        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search",
+                                                                         step_size=0.1)
 
         assert grid_search.is_checkpoint
         assert grid_search.checkpoint_count == 10
@@ -153,67 +154,76 @@ class TestGridSearch(object):
         assert grid_search.checkpoint_step_size == 0.1
         assert grid_search.checkpoint_prior_count == 1
 
-    def test_recover_bad_checkpoint(self, grid_search):
+    def test_recover_bad_checkpoint(self, grid_search, variable):
         analysis = MockAnalysis()
 
-        grid_search.variable.one = Galaxy
-        grid_search.fit(analysis)
+        variable.one = Galaxy
+        grid_search.fit(analysis, variable)
 
-        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(
+            phase_name="grid_search",
+            step_size=0.1
+        )
+
+        variable.two = Galaxy
 
         with pytest.raises(exc.CheckpointException):
-            grid_search.fit(analysis)
+            grid_search.fit(analysis, variable)
 
-        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.2)
-        grid_search.variable.one = Galaxy
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(
+            phase_name="grid_search",
+            step_size=0.2
+        )
+        variable.one = Galaxy
 
         with pytest.raises(exc.CheckpointException):
-            grid_search.fit(analysis)
+            grid_search.fit(analysis, variable)
 
-    def test_recover_checkpoint(self, grid_search):
+    def test_recover_checkpoint(self, grid_search, variable):
         analysis = MockAnalysis()
 
-        grid_search.variable.one = Galaxy
-        grid_search.variable.two = Galaxy
+        variable.one = Galaxy
+        variable.two = Galaxy
 
-        grid_search.fit(analysis)
+        grid_search.fit(analysis, variable)
 
-        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
-
-        grid_search.variable.one = Galaxy
-        grid_search.variable.two = Galaxy
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(
+            phase_name="grid_search",
+            step_size=0.1
+        )
 
         analysis = MockAnalysis()
 
-        result = grid_search.fit(analysis)
+        result = grid_search.fit(analysis, variable)
 
         assert len(analysis.instances) == 1
         assert pytest.approx(result.constant.one.redshift) == 0.05
         assert pytest.approx(result.constant.two.redshift) == 0.65
 
-    def test_recover_midway(self, grid_search):
+    def test_recover_midway(self, grid_search, variable):
         string = "11\n0\n(0.0, 0.0)\n0.1\n2"
         with open(grid_search.checkpoint_path, "w+") as f:
             f.write(string)
 
-        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search", step_size=0.1)
+        grid_search = autofit.optimize.non_linear.grid_search.GridSearch(phase_name="grid_search",
+                                                                         step_size=0.1)
 
-        grid_search.variable.one = Galaxy
-        grid_search.variable.two = Galaxy
+        variable.one = Galaxy
+        variable.two = Galaxy
 
         analysis = MockAnalysis()
 
-        result = grid_search.fit(analysis)
+        result = grid_search.fit(analysis, variable)
 
         assert len(analysis.instances) == 90
         assert pytest.approx(result.constant.one.redshift) == 0.15
         assert pytest.approx(result.constant.two.redshift) == 0.65
 
-    def test_instances(self, grid_search):
-        grid_search.variable.one = Galaxy
+    def test_instances(self, grid_search, variable):
+        variable.one = Galaxy
 
         analysis = MockAnalysis()
-        result = grid_search.fit(analysis)
+        result = grid_search.fit(analysis, variable)
 
         assert len(result.instances) == 10
 

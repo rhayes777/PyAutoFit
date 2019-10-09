@@ -38,6 +38,13 @@ class Paths:
 
         self.path = link.make_linked_folder(self.sym_path)
 
+    def __eq__(self, other):
+        return isinstance(other, Paths) and all([
+            self.phase_path == other.phase_path,
+            self.phase_name == other.phase_name,
+            self.phase_tag == other.phase_tag
+        ])
+
     @property
     def phase_folders(self):
         return self.phase_path.split("/")
@@ -167,7 +174,7 @@ class NonLinearOptimizer(object):
         if os.path.exists(self.paths.backup_path):
             self.paths.path = link.make_linked_folder(self.paths.sym_path)
             for file in glob.glob(self.paths.backup_path + "/*"):
-                shutil.copy(file, self.path)
+                shutil.copy(file, self.paths.path)
 
     def fit(
             self,
@@ -327,7 +334,7 @@ def persistent_timer(func):
 
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
-        start_time_path = "{}/.start_time".format(optimizer_instance.phase_output_path)
+        start_time_path = "{}/.start_time".format(optimizer_instance.paths.phase_output_path)
         try:
             with open(start_time_path) as f:
                 start = float(f.read())
@@ -341,10 +348,10 @@ def persistent_timer(func):
         execution_time = str(dt.timedelta(seconds=time.time() - start))
 
         logger.info("{} took {} to run".format(
-            optimizer_instance.phase_name,
+            optimizer_instance.paths.phase_name,
             execution_time
         ))
-        with open("{}/execution_time".format(optimizer_instance.phase_output_path), "w+") as f:
+        with open("{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+") as f:
             f.write(execution_time)
         return result
 

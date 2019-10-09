@@ -2,6 +2,7 @@ from os import path
 
 import pytest
 
+import autofit as af
 from autofit import conf
 
 directory = path.dirname(path.realpath(__file__))
@@ -13,3 +14,8 @@ def set_config_path():
         path.join(directory, "test_files/config"),
         path.join(directory, "output")
     )
+
+
+@pytest.fixture
+def variable():
+    return af.ModelMapper()
