@@ -5,14 +5,22 @@ import numpy as np
 
 from autofit import conf, exc
 from autofit.optimize import optimizer as opt
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, Result, IntervalCounter, persistent_timer
+from autofit.optimize.non_linear.multi_nest_output import Output
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, Result, IntervalCounter, \
+    persistent_timer, Paths
 from autofit.optimize.non_linear.non_linear import logger
 
 
 class GridSearch(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), step_size=None, model_mapper=None,
-                 grid=opt.grid):
+    def __init__(
+            self,
+            phase_name,
+            phase_tag=None,
+            phase_folders=tuple(),
+            step_size=None,
+            grid=opt.grid
+    ):
         """
         Optimise by performing a grid search.
 
@@ -21,25 +29,24 @@ class GridSearch(NonLinearOptimizer):
         step_size: float | None
             The step size of the grid search in hypercube space.
             E.g. a step size of 0.5 will give steps 0.0, 0.5 and 1.0
-        model_mapper: cls
-            The model mapper class (used for testing)
         phase_name: str
             The name of run (defaults to 'phase')
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
-        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
-                         model_mapper=model_mapper)
+        super().__init__(
+            Paths(
+                phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
+            ))
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 
     def copy_with_name_extension(self, extension):
-        name = "{}/{}".format(self.phase_name, extension)
+        name = "{}/{}".format(self.paths.phase_name, extension)
 
         new_instance = self.__class__(
             phase_name=name,
-            phase_folders=self.phase_folders,
-            model_mapper=self.variable,
+            phase_folders=self.paths.phase_folders,
             step_size=self.step_size
         )
         new_instance.grid = self.grid
@@ -66,8 +73,17 @@ class GridSearch(NonLinearOptimizer):
                 "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_unit_vector, save_results,
-                     checkpoint_count=0, best_fit=-np.inf, best_cube=None):
+        def __init__(
+                self,
+                nlo,
+                analysis,
+                instance_from_unit_vector,
+                save_results,
+                prior_count,
+                checkpoint_count=0,
+                best_fit=-np.inf,
+                best_cube=None,
+        ):
             super().__init__(nlo, analysis)
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
@@ -75,6 +91,7 @@ class GridSearch(NonLinearOptimizer):
             self.save_results = save_results
             self.best_fit = best_fit
             self.best_cube = best_cube
+            self.prior_count = prior_count
             self.all_fits = {}
             grid_results_interval = conf.instance.general.get('output', 'grid_results_interval', int)
 
@@ -94,7 +111,12 @@ class GridSearch(NonLinearOptimizer):
                 if fit > self.best_fit:
                     self.best_fit = fit
                     self.best_cube = cube
-                self.nlo.save_checkpoint(self.total_calls, self.best_fit, self.best_cube)
+                self.nlo.save_checkpoint(
+                    self.total_calls,
+                    self.best_fit,
+                    self.best_cube,
+                    self.prior_count
+                )
                 if self.should_save_grid_results():
                     self.save_results(self.all_fits.items())
                 return fit
@@ -105,7 +127,13 @@ class GridSearch(NonLinearOptimizer):
     def checkpoint_path(self):
         return "{}/.checkpoint".format(self.path)
 
-    def save_checkpoint(self, total_calls, best_fit, best_cube):
+    def save_checkpoint(
+            self,
+            total_calls,
+            best_fit,
+            best_cube,
+            prior_count
+    ):
         with open(self.checkpoint_path, "w+") as f:
             def write(item):
                 f.writelines("{}\n".format(item))
@@ -114,7 +142,7 @@ class GridSearch(NonLinearOptimizer):
             write(best_fit)
             write(best_cube)
             write(self.step_size)
-            write(self.variable.prior_count)
+            write(prior_count)
 
     @property
     def is_checkpoint(self):
@@ -146,15 +174,20 @@ class GridSearch(NonLinearOptimizer):
         return int(self.checkpoint_array[4])
 
     @persistent_timer
-    def fit(self, analysis):
-        self.save_model_info()
+    def fit(self, analysis, model):
+        gs_output = Output(
+            model,
+            self.paths
+        )
+
+        gs_output.save_model_info()
 
         checkpoint_count = 0
         best_fit = -np.inf
         best_cube = None
 
         if self.is_checkpoint:
-            if not self.checkpoint_prior_count == self.variable.prior_count:
+            if not self.checkpoint_prior_count == model.prior_count:
                 raise exc.CheckpointException(
                     "The number of dimensions does not match that found in the checkpoint")
             if not self.checkpoint_step_size == self.step_size:
@@ -165,11 +198,11 @@ class GridSearch(NonLinearOptimizer):
             best_cube = self.checkpoint_cube
 
         def save_results(all_fit_items):
-            results_list = [self.variable.param_names + ["fit"]]
+            results_list = [model.param_names + ["fit"]]
             for item in all_fit_items:
-                results_list.append([*self.variable.physical_vector_from_hypercube_vector(item[0]), item[1]])
+                results_list.append([*model.physical_vector_from_hypercube_vector(item[0]), item[1]])
 
-            with open("{}/results".format(self.phase_output_path), "w+") as f:
+            with open("{}/results".format(self.paths.phase_output_path), "w+") as f:
                 f.write("\n".join(map(lambda ls: ", ".join(
                     map(lambda value: "{:.2f}".format(value) if isinstance(value, float) else str(value), ls)),
                                       results_list)))
@@ -177,7 +210,8 @@ class GridSearch(NonLinearOptimizer):
         fitness_function = GridSearch.Fitness(
             self,
             analysis,
-            self.variable.instance_from_unit_vector,
+            model.instance_from_unit_vector,
+            model.prior_count,
             save_results,
             checkpoint_count=checkpoint_count,
             best_fit=best_fit,
@@ -185,21 +219,21 @@ class GridSearch(NonLinearOptimizer):
         )
 
         logger.info("Running grid search...")
-        self.grid(fitness_function, self.variable.prior_count, self.step_size)
+        self.grid(fitness_function, model.prior_count, self.step_size)
 
         logger.info("grid search complete")
         self.backup()
 
         res = fitness_function.result
 
-        instances = [(self.variable.instance_from_unit_vector(cube), fit) for cube, fit in
+        instances = [(model.instance_from_unit_vector(cube), fit) for cube, fit in
                      fitness_function.all_fits.items()]
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res = GridSearch.Result(
             res,
             instances,
-            self.variable,
+            model,
             [(mean, 0) for mean in fitness_function.best_cube]
         )
 
