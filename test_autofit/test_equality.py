@@ -3,12 +3,14 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-import test.mock
+import test
 
+from test_autofit.mock import GalaxyModel
+from test_autofit.mapper.test_model_mapper import GeometryProfile
 
 @pytest.fixture(name="prior_model")
 def make_prior_model():
-    return af.PriorModel(test.mock.GeometryProfile)
+    return af.PriorModel(GeometryProfile)
 
 
 class TestCase(object):
@@ -42,9 +44,9 @@ class TestCase(object):
 
     def test_non_trivial_equality(self):
         model_mapper = af.ModelMapper()
-        model_mapper.galaxy = test.mock.GalaxyModel(
-            light_profile=test.mock.GeometryProfile,
-            mass_profile=test.mock.GeometryProfile)
+        model_mapper.galaxy = GalaxyModel(
+            light_profile=GeometryProfile,
+            mass_profile=GeometryProfile)
         model_mapper_copy = deepcopy(model_mapper)
 
         assert model_mapper == model_mapper_copy
@@ -55,7 +57,7 @@ class TestCase(object):
 
     def test_model_instance_equality(self):
         model_instance = af.ModelInstance()
-        model_instance.profile = test.mock.GeometryProfile()
+        model_instance.profile = GeometryProfile()
         model_instance_copy = deepcopy(model_instance)
 
         assert model_instance == model_instance_copy
@@ -66,7 +68,7 @@ class TestCase(object):
 
     def test_non_linear_equality(self):
         nlo = af.NonLinearOptimizer("phase name")
-        nlo.variable.profile = test.mock.GeometryProfile
+        nlo.variable.profile = GeometryProfile
         nlo_copy = deepcopy(nlo)
 
         assert nlo_copy == nlo
