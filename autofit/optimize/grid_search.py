@@ -85,7 +85,7 @@ class GridSearchResult(object):
 
 
 class GridSearch(object):
-
+    # TODO: this should be using paths
     def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
                  number_of_steps=10,
                  optimizer_class=DownhillSimplex,

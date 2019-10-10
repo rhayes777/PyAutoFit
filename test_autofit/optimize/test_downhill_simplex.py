@@ -3,6 +3,7 @@ import os
 import pytest
 
 import autofit as af
+from autofit.optimize.non_linear.multi_nest import Paths
 from test_autofit.mock import MockClassNLOx4, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
@@ -23,9 +24,11 @@ def make_downhill_simplex():
 
     return af.DownhillSimplex(
         fmin=fmin,
-        phase_name='name',
-        phase_folders='folders',
-        phase_tag='tag'
+        paths=Paths(
+            phase_name='name',
+            phase_folders=('folders',),
+            phase_tag='tag'
+        )
     )
 
 
@@ -81,7 +84,7 @@ class TestCopyWithNameExtension(object):
         assert copy.paths.phase_name == "phase_name/one"
 
     def test_downhill_simplex(self):
-        optimizer = af.DownhillSimplex("phase_name", fmin=lambda x: x)
+        optimizer = af.DownhillSimplex(Paths("phase_name"), fmin=lambda x: x)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy, optimizer)

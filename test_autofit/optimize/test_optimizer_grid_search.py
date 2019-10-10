@@ -3,7 +3,7 @@ import pytest
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-import test_autofit
+from autofit.optimize.non_linear.multi_nest import Paths
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
@@ -127,15 +127,15 @@ fit_instances = []
 class MockOptimizer(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=tuple(),
                  model_mapper=None):
-        super().__init__(phase_folders=phase_folders, phase_tag=phase_tag,
-                         phase_name=phase_name,
-                         model_mapper=model_mapper)
+        super().__init__(Paths(
+            phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
+        ))
         init_args.append((model_mapper, phase_name))
 
-    def fit(self, analysis):
+    def fit(self, analysis, model):
         fit_args.append(analysis)
         # noinspection PyTypeChecker
-        return autofit.optimize.non_linear.non_linear.Result(None, analysis.fit(None),
+        return autofit.optimize.non_linear.non_linear.Result(None, analysis.fit(None, model),
                                                              None)
 
 

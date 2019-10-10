@@ -11,18 +11,12 @@ class DownhillSimplex(NonLinearOptimizer):
 
     def __init__(
             self,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
+            paths,
             fmin=scipy.optimize.fmin
     ):
 
         super().__init__(
-            Paths(
-                phase_name=phase_name,
-                phase_tag=phase_tag,
-                phase_folders=phase_folders
-            )
+            paths
         )
 
         self.xtol = self.config("xtol", float)

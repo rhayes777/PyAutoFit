@@ -7,7 +7,7 @@ from autofit import conf, exc
 from autofit.optimize import optimizer as opt
 from autofit.optimize.non_linear.multi_nest_output import Output
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, Result, IntervalCounter, \
-    persistent_timer, Paths
+    persistent_timer
 from autofit.optimize.non_linear.non_linear import logger
 
 
@@ -15,9 +15,7 @@ class GridSearch(NonLinearOptimizer):
 
     def __init__(
             self,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
+            paths,
             step_size=None,
             grid=opt.grid
     ):
@@ -29,15 +27,12 @@ class GridSearch(NonLinearOptimizer):
         step_size: float | None
             The step size of the grid search in hypercube space.
             E.g. a step size of 0.5 will give steps 0.0, 0.5 and 1.0
-        phase_name: str
-            The name of run (defaults to 'phase')
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
         super().__init__(
-            Paths(
-                phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
-            ))
+            paths
+        )
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 
