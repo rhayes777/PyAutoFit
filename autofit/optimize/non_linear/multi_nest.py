@@ -190,7 +190,7 @@ class MultiNest(NonLinearOptimizer):
             fitness_function.__call__,
             prior,
             model.prior_count,
-            outputfiles_basename="{}/multinest".format(self.path),
+            outputfiles_basename="{}/multinest".format(self.paths.path),
             n_live_points=self.n_live_points,
             const_efficiency_mode=self.const_efficiency_mode,
             importance_nested_sampling=self.importance_nested_sampling,

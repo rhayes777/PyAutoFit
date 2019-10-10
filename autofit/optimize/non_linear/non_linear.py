@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 class Paths:
     def __init__(
             self,
-            phase_name,
-            phase_tag,
-            phase_folders
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple()
     ):
         self.phase_path = "/".join(phase_folders)
         self.phase_name = phase_name
