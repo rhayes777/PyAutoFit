@@ -54,9 +54,18 @@ class Paths:
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path,
-                                                     self.phase_name,
-                                                     self.phase_tag)
+        return "/".join(
+            filter(
+                lambda item: len(item) > 0,
+                [
+                    conf.instance.output_path,
+                    self.phase_path,
+                    self.phase_name,
+                    self.phase_tag,
+                    'optimizer_backup'
+                ]
+            )
+        )
 
     @property
     def phase_output_path(self) -> str:
@@ -238,10 +247,12 @@ class NonLinearOptimizer(object):
         name = "{}/{}".format(self.paths.phase_name, extension)
 
         new_instance = self.__class__(
-            phase_name=name,
-            phase_folders=self.paths.phase_folders
+            Paths(
+                phase_name=name,
+                phase_folders=self.paths.phase_folders,
+                phase_tag=self.paths.phase_tag
+            )
         )
-        new_instance.phase_tag = self.paths.phase_tag
 
         return new_instance
 
