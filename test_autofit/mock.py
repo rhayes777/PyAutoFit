@@ -4,14 +4,16 @@ import typing
 import autofit as af
 # noinspection PyAbstractClass
 from autofit.optimize.non_linear.multi_nest import Paths
+from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 
 
-class MockNonLinearOptimizer(af.NonLinearOptimizer):
+class MockNonLinearOptimizer(MultiNestOutput):
 
     def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(),
-                 most_probable=None, most_likely=None, model_upper_params=None,
+                 most_probable=None, model_mapper=None, most_likely=None, model_upper_params=None,
                  model_lower_params=None):
         super(MockNonLinearOptimizer, self).__init__(
+            model_mapper or af.ModelMapper(),
             Paths(
                 phase_name=phase_name,
                 phase_tag=phase_tag,

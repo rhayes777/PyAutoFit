@@ -6,7 +6,6 @@ import autofit as af
 import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.prior_model
 import autofit.optimize.non_linear.non_linear
-from autofit.optimize.non_linear.multi_nest import Paths
 from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -16,20 +15,6 @@ af.conf.instance = af.conf.Config("{}/../../workspace/config".format(directory),
 
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
-    def __init__(
-            self,
-            phase_name="",
-            phase_tag=None,
-            phase_folders=tuple()
-    ):
-        super().__init__(
-            Paths(
-                phase_name=phase_name,
-                phase_tag=phase_tag,
-                phase_folders=phase_folders,
-            )
-        )
-
     def fit(self, analysis, model):
         class Fitness(object):
             def __init__(self, instance_from_physical_vector, constant):

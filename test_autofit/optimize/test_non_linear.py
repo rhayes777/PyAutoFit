@@ -5,7 +5,9 @@ import shutil
 import pytest
 
 import autofit as af
+from autofit import ModelMapper
 from autofit.optimize.non_linear.multi_nest import Paths
+from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 from test_autofit.mock import GeometryProfile, MockClassNLOx4, MockClassNLOx5, MockNonLinearOptimizer, \
     MockClassNLOx6
 
@@ -257,7 +259,10 @@ class TestOffsetFromInput:
 
 @pytest.fixture(name='optimizer')
 def make_optimizer():
-    return af.NonLinearOptimizer(Paths(phase_name=''), )
+    return MultiNestOutput(
+        ModelMapper(),
+        Paths(phase_name='')
+    )
 
 
 class TestLabels(object):

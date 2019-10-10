@@ -6,6 +6,7 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper
 from autofit import exc
 from autofit.optimize import grid_search
+from autofit.optimize.non_linear.multi_nest import Paths
 from autofit.tools.promise import PromiseResult
 
 
@@ -30,12 +31,14 @@ class AbstractPhase:
         phase_name: str
             The name of this phase
         """
-        self.phase_tag = phase_tag or ''
-
-        self.optimizer = optimizer_class(
+        self.paths = Paths(
             phase_name=phase_name,
             phase_tag=phase_tag,
             phase_folders=phase_folders
+        )
+
+        self.optimizer = optimizer_class(
+            self.paths
         )
         self.auto_link_priors = auto_link_priors
         self.variable = ModelMapper()
@@ -51,7 +54,10 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis):
-        return self.optimizer.fit(analysis)
+        return self.optimizer.fit(
+            analysis,
+            self.variable
+        )
 
     def customize_priors(self, results):
         """
@@ -69,10 +75,6 @@ class AbstractPhase:
         raise NotImplementedError()
 
     @property
-    def paths(self):
-        return self.optimizer.paths
-
-    @property
     def phase_name(self):
         return self.paths.phase_name
 
@@ -80,7 +82,7 @@ class AbstractPhase:
         """
         Save the optimizer associated with the phase as a pickle
         """
-        with open(self.make_optimizer_pickle_path(), "w+b") as f:
+        with open(self.paths.make_optimizer_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.optimizer))
 
     def save_metadata(self, data_name, pipeline_name):
@@ -88,7 +90,7 @@ class AbstractPhase:
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the data being fit
         """
-        with open("{}/metadata".format(self.make_path()), "w+") as f:
+        with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
                 "pipeline={}\nphase={}\ndata={}".format(
                     pipeline_name,
@@ -106,7 +108,7 @@ class AbstractPhase:
         -------
         exc.PipelineException
         """
-        path = self.make_optimizer_pickle_path()
+        path = self.paths.make_optimizer_pickle_path()
         if os.path.exists(path):
             with open(path, "r+b") as f:
                 loaded_optimizer = pickle.loads(f.read())
