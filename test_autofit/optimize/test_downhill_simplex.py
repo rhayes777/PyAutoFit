@@ -25,29 +25,31 @@ def make_downhill_simplex():
         fmin=fmin,
         phase_name='name',
         phase_folders='folders',
-        phase_tag='tag',
-        model_mapper=af.ModelMapper()
+        phase_tag='tag'
     )
 
 
 class TestDownhillSimplex(object):
 
-    def test_constant(self, downhill_simplex):
-        downhill_simplex.variable.mock_class = MockClassNLOx4()
+    def test_constant(self, downhill_simplex, variable):
+        variable.mock_class = MockClassNLOx4()
 
-        assert hasattr(downhill_simplex.variable.instance_from_unit_vector([]),
-                       "mock_class")
+        assert hasattr(
+            variable.instance_from_unit_vector([]),
+            "mock_class"
+        )
 
-        result = downhill_simplex.fit(MockAnalysis())
+        result = downhill_simplex.fit(MockAnalysis(), variable)
 
         assert result.constant.mock_class.one == 1
         assert result.constant.mock_class.two == 2
         assert result.figure_of_merit == 1
 
-    def test_variable(self, downhill_simplex):
-        downhill_simplex.variable.mock_class = af.PriorModel(
-            MockClassNLOx4)
-        result = downhill_simplex.fit(MockAnalysis())
+    def test_variable(self, downhill_simplex, variable):
+        variable.mock_class = af.PriorModel(
+            MockClassNLOx4
+        )
+        result = downhill_simplex.fit(MockAnalysis(), variable)
 
         assert result.constant.mock_class.one == 0.0
         assert result.constant.mock_class.two == 0.0
@@ -56,12 +58,12 @@ class TestDownhillSimplex(object):
         assert result.variable.mock_class.one.mean == 0.0
         assert result.variable.mock_class.two.mean == 0.0
 
-    def test_constant_and_variable(self, downhill_simplex):
-        downhill_simplex.variable.constant = MockClassNLOx4()
-        downhill_simplex.variable.variable = af.PriorModel(
+    def test_constant_and_variable(self, downhill_simplex, variable):
+        variable.constant = MockClassNLOx4()
+        variable.variable = af.PriorModel(
             MockClassNLOx4)
 
-        result = downhill_simplex.fit(MockAnalysis())
+        result = downhill_simplex.fit(MockAnalysis(), variable)
 
         assert result.constant.constant.one == 1
         assert result.constant.constant.two == 2
@@ -76,8 +78,7 @@ class TestCopyWithNameExtension(object):
 
     @staticmethod
     def assert_non_linear_attributes_equal(copy, optimizer):
-        assert copy.phase_name == "phase_name/one"
-        assert copy.variable == optimizer.variable
+        assert copy.paths.phase_name == "phase_name/one"
 
     def test_downhill_simplex(self):
         optimizer = af.DownhillSimplex("phase_name", fmin=lambda x: x)
