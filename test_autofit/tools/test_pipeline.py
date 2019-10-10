@@ -42,9 +42,7 @@ class MockPhase(af.AbstractPhase):
         super().__init__(
             phase_name
         )
-        self.optimizer = optimizer or af.NonLinearOptimizer(phase_name)
-        self.phase_path = phase_name
-        self.phase_tag = phase_name
+        self.optimizer = optimizer or af.NonLinearOptimizer(paths=Paths(phase_name))
 
     def save_metadata(self, data_name, pipeline_name):
         pass
@@ -56,20 +54,20 @@ class TestPipeline(object):
         with pytest.raises(af.exc.PipelineException):
             af.Pipeline("name", MockPhase("one"), MockPhase("one"))
 
-    def test_optimizer_assertion(self):
+    def test_optimizer_assertion(self, variable):
         optimizer = af.NonLinearOptimizer("Phase Name")
-        optimizer.variable.profile = GeometryProfile
         phase = MockPhase("phase_name", optimizer)
+        phase.variable.profile = GeometryProfile
 
         try:
-            os.makedirs(phase.make_path())
+            os.makedirs(phase.paths.make_path())
         except FileExistsError:
             pass
 
         phase.save_optimizer_for_phase()
         phase.assert_optimizer_pickle_matches_for_phase()
 
-        optimizer.variable.profile.centre_0 = af.UniformPrior()
+        phase.variable.profile.centre_0 = af.UniformPrior()
 
         with pytest.raises(af.exc.PipelineException):
             phase.assert_optimizer_pickle_matches_for_phase()
