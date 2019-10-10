@@ -3,14 +3,13 @@ import pytest
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-from autofit.optimize.non_linear.multi_nest import Paths
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import grid_search as gs
 from autofit.tools import phase
-
 from test_autofit.mapper.test_model_mapper import GeometryProfile
+
 
 @pytest.fixture(name="mapper")
 def make_mapper():
@@ -124,18 +123,17 @@ fit_args = []
 fit_instances = []
 
 
-class MockOptimizer(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
-    def __init__(self, phase_name="mock_optimizer", phase_tag="tag", phase_folders=tuple(),
-                 model_mapper=None):
-        super().__init__(Paths(
-            phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
-        ))
-        init_args.append((model_mapper, phase_name))
+class MockOptimizer(
+    autofit.optimize.non_linear.non_linear.NonLinearOptimizer
+):
+    def __init__(self, paths):
+        super().__init__(paths)
+        init_args.append(paths.phase_name)
 
     def fit(self, analysis, model):
         fit_args.append(analysis)
         # noinspection PyTypeChecker
-        return autofit.optimize.non_linear.non_linear.Result(None, analysis.fit(None, model),
+        return autofit.optimize.non_linear.non_linear.Result(None, analysis.fit(None),
                                                              None)
 
 
@@ -292,7 +290,7 @@ class TestGridNLOBehaviour(object):
 
         model_mapper = mm.ModelMapper()
 
-        optimizer = grid_search.optimizer_instance(model_mapper, "name_path")
+        optimizer = grid_search.optimizer_instance("name_path")
 
         assert optimizer.n_live_points is grid_search.n_live_points
         assert optimizer.sampling_efficiency is grid_search.sampling_efficiency

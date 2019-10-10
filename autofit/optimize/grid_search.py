@@ -12,6 +12,7 @@ from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import optimizer
 from autofit.optimize.non_linear.downhill_simplex import DownhillSimplex
+from autofit.optimize.non_linear.non_linear import Paths
 
 logger = logging.getLogger(__name__)
 
@@ -296,8 +297,11 @@ class GridSearch(object):
             list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
         for values in lists:
-            job = self.job_for_analysis_grid_priors_and_values(analysis, grid_priors,
-                                                               values)
+            job = self.job_for_analysis_grid_priors_and_values(
+                analysis,
+                grid_priors,
+                values
+            )
 
             result = job.perform()
 
@@ -323,20 +327,35 @@ class GridSearch(object):
         labels = []
         for prior in sorted(arguments.values()):
             labels.append(
-                "{}_{:.2f}_{:.2f}".format(model_mapper.name_for_prior(prior),
-                                          prior.lower_limit, prior.upper_limit))
+                "{}_{:.2f}_{:.2f}".format(
+                    model_mapper.name_for_prior(prior),
+                    prior.lower_limit,
+                    prior.upper_limit
+                )
+            )
 
-        name_path = "{}/{}/{}".format(self.phase_name, self.phase_tag_input,
-                                      "_".join(labels))
-        optimizer_instance = self.optimizer_instance(model_mapper, name_path)
+        name_path = "{}/{}/{}".format(
+            self.phase_name,
+            self.phase_tag_input,
+            "_".join(labels)
+        )
+        optimizer_instance = self.optimizer_instance(name_path)
 
-        return Job(optimizer_instance, analysis, arguments)
+        return Job(
+            optimizer_instance,
+            analysis,
+            model_mapper,
+            arguments)
 
-    def optimizer_instance(self, model_mapper, name_path):
+    def optimizer_instance(self, name_path):
 
-        optimizer_instance = self.optimizer_class(model_mapper=model_mapper,
-                                                  phase_name=name_path, phase_tag=None,
-                                                  phase_folders=self.phase_folders)
+        optimizer_instance = self.optimizer_class(
+            Paths(
+                phase_name=name_path,
+                phase_tag=None,
+                phase_folders=self.phase_folders
+            )
+        )
         for key, value in self.__dict__.items():
             if key not in (
                     "variable", "constant", "phase_name", "phase_tag", "phase_folders",
@@ -365,7 +384,13 @@ class JobResult:
 
 
 class Job:
-    def __init__(self, optimizer_instance, analysis, arguments):
+    def __init__(
+            self,
+            optimizer_instance,
+            analysis,
+            model,
+            arguments
+    ):
         """
         A job to be performed in parallel.
 
@@ -380,10 +405,14 @@ class Job:
         """
         self.optimizer_instance = optimizer_instance
         self.analysis = analysis
+        self.model = model
         self.arguments = arguments
 
     def perform(self):
-        result = self.optimizer_instance.fit(self.analysis)
+        result = self.optimizer_instance.fit(
+            self.analysis,
+            self.model
+        )
         result_list_row = [*[prior.lower_limit for prior in self.arguments.values()],
                            result.figure_of_merit]
 

@@ -590,7 +590,7 @@ def make_multi_nest():
         fitness_function([1 for _ in range(total_parameters)], total_parameters,
                          total_parameters, None)
 
-    multi_nest = af.MultiNest(run=run, phase_name='')
+    multi_nest = af.MultiNest(run=run, paths=Paths(phase_name=''))
 
     create_weighted_samples_4_parameters(multi_nest.paths.opt_path)
     create_summary_4_parameters(multi_nest.paths.opt_path)
@@ -620,7 +620,7 @@ class TestCopyWithNameExtension(object):
         assert copy.paths.phase_name == "phase_name/one"
 
     def test_multinest(self):
-        optimizer = af.MultiNest("phase_name", sigma_limit=2.0, run=lambda x: x)
+        optimizer = af.MultiNest(Paths("phase_name"), sigma_limit=2.0, run=lambda x: x)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

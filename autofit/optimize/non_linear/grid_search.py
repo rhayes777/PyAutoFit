@@ -5,6 +5,7 @@ import numpy as np
 
 from autofit import conf, exc
 from autofit.optimize import optimizer as opt
+from autofit.optimize.non_linear.multi_nest import Paths
 from autofit.optimize.non_linear.multi_nest_output import Output
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, Result, IntervalCounter, \
     persistent_timer
@@ -40,8 +41,11 @@ class GridSearch(NonLinearOptimizer):
         name = "{}/{}".format(self.paths.phase_name, extension)
 
         new_instance = self.__class__(
-            phase_name=name,
-            phase_folders=self.paths.phase_folders,
+            Paths(
+                phase_name=name,
+                phase_folders=self.paths.phase_folders,
+                phase_tag=self.paths.phase_tag
+            ),
             step_size=self.step_size
         )
         new_instance.grid = self.grid

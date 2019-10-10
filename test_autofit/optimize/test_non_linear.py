@@ -6,7 +6,8 @@ import pytest
 
 import autofit as af
 from autofit.optimize.non_linear.multi_nest import Paths
-from test_autofit.mock import GeometryProfile, MockClassNLOx4
+from test_autofit.mock import GeometryProfile, MockClassNLOx4, MockClassNLOx5, MockNonLinearOptimizer, \
+    MockClassNLOx6
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 
@@ -140,23 +141,6 @@ class TestDirectorySetup:
         af.NonLinearOptimizer(Paths(phase_name=''))
 
         assert os.path.exists(nlo_setup_path + '1_class')
-
-
-class TestTotalParameters:
-
-    def test__1_class__four_parameters(self, nlo_setup_path):
-        af.conf.instance.output_path = nlo_setup_path + '1_class'
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        nlo = af.NonLinearOptimizer(phase_name='', model_mapper=mapper)
-
-        assert nlo.variable.prior_count == 4
-
-    def test__2_classes__six_parameters(self, nlo_setup_path):
-        af.conf.instance.output_path = nlo_setup_path + '2_classes'
-        mapper = af.ModelMapper(class_1=MockClassNLOx4, class_2=MockClassNLOx6)
-        nlo = af.NonLinearOptimizer(phase_name='', model_mapper=mapper)
-
-        assert nlo.variable.prior_count == 10
 
 
 class TestMostProbableAndLikely(object):
