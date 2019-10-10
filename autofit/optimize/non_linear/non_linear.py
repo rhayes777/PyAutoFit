@@ -98,14 +98,32 @@ class Paths:
         """
         return "{}pdf/".format(self.image_path)
 
+    def make_optimizer_pickle_path(self) -> str:
+        """
+        Create the path at which the optimizer pickle should be saved
+        """
+        return "{}/optimizer.pickle".format(self.make_path())
+
+    def make_path(self) -> str:
+        """
+        Create the path to the folder at which the metadata and optimizer pickle should
+        be saved
+        """
+        return "{}/{}/{}/{}/".format(
+            conf.instance.output_path,
+            self.phase_path,
+            self.phase_name,
+            self.phase_tag
+        )
+
 
 class NonLinearOptimizer(object):
 
     def __init__(self, paths):
         """Abstract base class for non-linear optimizers.
 
-        This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
-        non-linear optimizers.
+        This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
+        all non-linear optimizers.
 
         Parameters
         ------------
@@ -286,7 +304,8 @@ class Result(object):
 
         Returns
         -------
-        A model mapper created by taking results from this phase and creating priors with the defined absolute width.
+        A model mapper created by taking results from this phase and creating priors with the defined absolute
+        width.
         """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
 
@@ -299,7 +318,8 @@ class Result(object):
 
         Returns
         -------
-        A model mapper created by taking results from this phase and creating priors with the defined relative width.
+        A model mapper created by taking results from this phase and creating priors with the defined relative
+        width.
         """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
 
@@ -318,8 +338,8 @@ class IntervalCounter(object):
 
 def persistent_timer(func):
     """
-    Times the execution of a function. If the process is stopped and restarted then timing is continued using saved
-    files.
+    Times the execution of a function. If the process is stopped and restarted then timing is continued using
+    saved files.
 
     Parameters
     ----------
