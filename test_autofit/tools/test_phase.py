@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from test import mock
+from test_autofit import mock
 
 
 @pytest.fixture(name="phase")

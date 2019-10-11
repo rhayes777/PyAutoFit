@@ -3,18 +3,19 @@ import pytest
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-import test.mock
+import test_autofit
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import grid_search as gs
 from autofit.tools import phase
 
+from test_autofit.mapper.test_model_mapper import GeometryProfile
 
 @pytest.fixture(name="mapper")
 def make_mapper():
     mapper = mm.ModelMapper()
-    mapper.profile = test.mock.GeometryProfile
+    mapper.profile = GeometryProfile
     return mapper
 
 
@@ -255,7 +256,7 @@ class TestGridNLOBehaviour(object):
         assert result.figure_of_merit_array.shape == (10, 10)
 
     def test_generated_models_with_constants(self, grid_search, container):
-        constant_profile = test.mock.GeometryProfile()
+        constant_profile = GeometryProfile()
         grid_search.variable.constant_profile = constant_profile
 
         analysis = container.MockAnalysis()
@@ -263,7 +264,7 @@ class TestGridNLOBehaviour(object):
         grid_search.fit(analysis, [grid_search.variable.profile.centre_0])
 
         for instance in container.fit_instances:
-            assert isinstance(instance.profile, test.mock.GeometryProfile)
+            assert isinstance(instance.profile, GeometryProfile)
             assert instance.constant_profile == constant_profile
 
     def test_generated_models_with_constant_attributes(self, grid_search, container):
@@ -277,7 +278,7 @@ class TestGridNLOBehaviour(object):
         assert len(container.fit_instances) > 0
 
         for instance in container.fit_instances:
-            assert isinstance(instance.profile, test.mock.GeometryProfile)
+            assert isinstance(instance.profile, GeometryProfile)
             # noinspection PyUnresolvedReferences
             assert instance.profile.centre[1] == 2
 
@@ -339,7 +340,7 @@ class TestMixin(object):
 
         optimizer = MyPhase(phase_name='', phase_folders=tuple(), number_of_steps=2,
                             optimizer_class=container.MockOptimizer)
-        optimizer.variable.profile = test.mock.GeometryProfile
+        optimizer.variable.profile = GeometryProfile
 
         result = optimizer.run()
 

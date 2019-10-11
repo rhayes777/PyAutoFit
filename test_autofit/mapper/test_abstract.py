@@ -1,5 +1,5 @@
 import autofit as af
-from test import mock
+from test_autofit import mock
 
 
 class TestCase:
