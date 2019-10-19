@@ -6,7 +6,7 @@ import pytest
 import autofit as af
 import test_autofit.mock
 from autofit import exc
-from autofit.tools.text_formatter import TextFormatter
+from automodel.util.text_formatter import TextFormatter
 from test_autofit import mock
 from test_autofit.mock import GeometryProfile
 

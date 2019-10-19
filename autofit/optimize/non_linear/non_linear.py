@@ -10,7 +10,7 @@ import numpy as np
 
 from autofit import conf
 from autofit.mapper import link, model_mapper as mm
-from autofit.tools import text_util
+from automodel.util import text_util
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
