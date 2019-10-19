@@ -138,17 +138,17 @@ class TestFromInstance:
         assert isinstance(prior_model.simple, af.PriorModel)
         assert prior_model.simple.one == 1.0
 
-    # def test_dimension_types(self):
-    #     instance = mock.DistanceClass(mock.Distance(1.0), mock.Distance(2.0))
-    #     result = af.AbstractPriorModel.from_instance(
-    #         instance, variable_classes=(mock.DistanceClass,)
-    #     )
-    #     assert isinstance(result.first, af.PriorModel)
-    #
-    #     new_instance = result.instance_from_unit_vector([0.1, 0.2])
-    #     assert isinstance(new_instance, mock.DistanceClass)
-    #     assert isinstance(new_instance.first, mock.Distance)
-    #     assert new_instance.first == 0.1
+    def test_dimension_types(self):
+        instance = mock.DistanceClass(mock.Distance(1.0), mock.Distance(2.0))
+        result = af.AbstractPriorModel.from_instance(
+            instance, variable_classes=(mock.DistanceClass,)
+        )
+        assert isinstance(result.first, af.PriorModel)
+
+        new_instance = result.instance_from_unit_vector([0.1, 0.2])
+        assert isinstance(new_instance, mock.DistanceClass)
+        assert isinstance(new_instance.first, mock.Distance)
+        assert new_instance.first == 0.1
 
 
 class TestSum(object):
