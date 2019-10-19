@@ -1,6 +1,7 @@
 import copy
 import inspect
 
+from automodel import dimensions as dim
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
@@ -8,7 +9,6 @@ from autofit import conf
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.prior_model.dimension_type import DimensionType
 from autofit.mapper.prior_model.prior import ConstantNameValue
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
@@ -351,7 +351,7 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, DimensionType):
+        elif isinstance(instance, dim.DimensionType):
             return instance
         else:
             from .prior_model import PriorModel

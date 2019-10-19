@@ -23,7 +23,6 @@ from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel
 from .mapper.prior_model.deferred import DeferredArgument
 from .mapper.prior_model.deferred import DeferredInstance
-from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.util import PriorModelNameValue
 from .optimize import *
