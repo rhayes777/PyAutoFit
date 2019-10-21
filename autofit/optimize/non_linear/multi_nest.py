@@ -6,12 +6,12 @@ import numpy as np
 import pymultinest
 from matplotlib import pyplot as plt
 
-import automodel.util.text_formatter
+import autofit.tools.text_formatter
 from autofit import conf, exc
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import persistent_timer
-from automodel.util import text_util
+from autofit.tools import text_util
 
 logger = logging.getLogger(__name__)
 
@@ -426,7 +426,7 @@ class MultiNest(NonLinearOptimizer):
                     "https://github.com/Jammy2211/PyAutoLens/issues/49"
                 )
 
-            formatter = automodel.util.text_formatter.TextFormatter()
+            formatter = autofit.tools.text_formatter.TextFormatter()
 
             for i, prior_path in enumerate(self.variable.unique_prior_paths):
                 formatter.add((prior_path, self.format_str.format(most_likely[i])))
@@ -438,7 +438,7 @@ class MultiNest(NonLinearOptimizer):
 
             results += ["\n\nConstants\n"]
 
-            formatter = automodel.util.text_formatter.TextFormatter()
+            formatter = autofit.tools.text_formatter.TextFormatter()
 
             for t in self.variable.path_float_tuples:
                 formatter.add(t)
@@ -454,7 +454,7 @@ class MultiNest(NonLinearOptimizer):
         lower_limits = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
         upper_limits = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
 
-        sigma_formatter = automodel.util.text_formatter.TextFormatter()
+        sigma_formatter = autofit.tools.text_formatter.TextFormatter()
 
         for i, prior_path in enumerate(self.variable.unique_prior_paths):
             value = self.format_str.format(self.most_probable_model_parameters[i])

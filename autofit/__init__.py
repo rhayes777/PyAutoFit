@@ -23,6 +23,7 @@ from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel
 from .mapper.prior_model.deferred import DeferredArgument
 from .mapper.prior_model.deferred import DeferredInstance
+from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.util import PriorModelNameValue
 from .optimize import *
@@ -36,7 +37,7 @@ from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import Result
 from .tools import *
-from .tools import path_util
+from .tools import path_util, text_util
 from .tools.phase import AbstractPhase
 from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty

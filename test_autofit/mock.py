@@ -1,7 +1,6 @@
 import inspect
 import typing
 
-from automodel import dimensions as dim
 import autofit as af
 
 
@@ -118,19 +117,19 @@ class ListClass(object):
         self.ls = ls
 
 
-class Distance(dim.DimensionType):
+class Distance(af.DimensionType):
     pass
 
 
 class DistanceClass:
-    @dim.map_types
+    @af.map_types
     def __init__(self, first: Distance, second: Distance):
         self.first = first
         self.second = second
 
 
 class PositionClass:
-    @dim.map_types
+    @af.map_types
     def __init__(self, position: typing.Tuple[Distance, Distance]):
         self.position = position
 

@@ -1,7 +1,7 @@
 import os
 
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from automodel.util.text_formatter import TextFormatter
+from autofit.tools.text_formatter import TextFormatter
 
 path = os.path.dirname(os.path.realpath(__file__))
 

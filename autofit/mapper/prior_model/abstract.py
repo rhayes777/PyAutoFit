@@ -1,7 +1,7 @@
 import copy
 import inspect
 
-from automodel import dimensions as dim
+from autofit.mapper.prior_model import dimension_type as dim
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
