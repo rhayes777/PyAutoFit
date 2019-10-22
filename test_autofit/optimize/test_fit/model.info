@@ -1,0 +1,5 @@
+mock_class
+    one                                                                                   UniformPrior, lower_limit = -120.0, upper_limit = 120.0
+    two                                                                                   UniformPrior, lower_limit = -120.0, upper_limit = 120.0
+    three                                                                                 UniformPrior, lower_limit = -120.0, upper_limit = 120.0
+    four                                                                                  UniformPrior, lower_limit = -120.0, upper_limit = 120.0
