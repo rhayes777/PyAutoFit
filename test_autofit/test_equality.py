@@ -3,10 +3,10 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-import test
-
-from test_autofit.mock import GalaxyModel
+from autofit.optimize.non_linear.multi_nest import Paths
 from test_autofit.mapper.test_model_mapper import GeometryProfile
+from test_autofit.mock import GalaxyModel
+
 
 
 @pytest.fixture(name="prior_model")
@@ -67,19 +67,12 @@ class TestCase(object):
 
         assert model_instance != model_instance_copy
 
-    def test_non_linear_equality(self):
-        nlo = af.NonLinearOptimizer("phase name")
-        nlo.variable.profile = GeometryProfile
-        nlo_copy = deepcopy(nlo)
-
-        assert nlo_copy == nlo
-
-        nlo.variable.profile.centre_0 = af.UniformPrior()
-
-        assert nlo_copy != nlo
-
     def test_multinest_equality(self):
-        nlo = af.MultiNest("phase name")
+        nlo = af.MultiNest(
+            Paths(
+                "phase name"
+            )
+        )
         nlo_copy = deepcopy(nlo)
 
         assert nlo == nlo_copy

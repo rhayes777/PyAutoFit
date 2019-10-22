@@ -1,6 +1,6 @@
 import configparser
 
-from autoarray import conf
+from autofit import conf
 
 
 def format_string_for_label(label: str) -> str:

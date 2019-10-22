@@ -166,7 +166,7 @@ class Pipeline(object):
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info(
-                "Running Phase {} (Number {})".format(phase.optimizer.phase_name, i)
+                "Running Phase {} (Number {})".format(phase.phase_name, i)
             )
             phase.save_metadata(data_name, self.pipeline_name)
             name = phase.phase_name
