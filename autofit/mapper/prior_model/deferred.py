@@ -2,11 +2,7 @@ from autofit import exc
 
 
 class DeferredInstance:
-    def __init__(
-            self,
-            cls: type,
-            constructor_arguments: {str: object}
-    ):
+    def __init__(self, cls: type, constructor_arguments: {str: object}):
         """
         An instance that has been deferred for later construction
 
@@ -26,8 +22,8 @@ class DeferredInstance:
         The names of arguments still required to instantiate the class
         """
         return [
-            name for name, value
-            in self.constructor_arguments.items()
+            name
+            for name, value in self.constructor_arguments.items()
             if isinstance(value, DeferredArgument)
         ]
 
@@ -68,4 +64,5 @@ class DeferredArgument(object):
     A deferred argument which is passed into the construct the final instance after
     model mapper instance generation
     """
+
     pass

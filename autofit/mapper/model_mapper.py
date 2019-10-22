@@ -75,9 +75,11 @@ class ModelMapper(CollectionPriorModel):
             have one prior model; if a prior is shared by two prior models then one of
             those prior models will be in this dictionary.
         """
-        return {prior: prior_model[1] for prior_model in self.prior_model_tuples for
-                _, prior in
-                prior_model[1].prior_tuples}
+        return {
+            prior: prior_model[1]
+            for prior_model in self.prior_model_tuples
+            for _, prior in prior_model[1].prior_tuples
+        }
 
     @property
     def info(self):
@@ -109,11 +111,13 @@ class ModelMapper(CollectionPriorModel):
         model_mapper. Latex tags are properties of each model class."""
 
         return [
-            self.name_for_prior(prior) for prior in
-            sorted(self.priors, key=lambda prior: prior.id)
+            self.name_for_prior(prior)
+            for prior in sorted(self.priors, key=lambda prior: prior.id)
         ]
 
     def __eq__(self, other):
-        return isinstance(other, ModelMapper) \
-               and self.priors == other.priors \
-               and self.prior_model_tuples == other.prior_model_tuples
+        return (
+            isinstance(other, ModelMapper)
+            and self.priors == other.priors
+            and self.prior_model_tuples == other.prior_model_tuples
+        )

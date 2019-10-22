@@ -33,15 +33,19 @@ class TestCase(object):
         assert af.link.autolens_dir in directory
         assert directory == af.link.path_for("/a/random/directory")
         assert directory != af.link.path_for("/b/random/directory")
-        assert af.link.path_for("/tmp/linked_file") != af.link.path_for("/tmp/linked_folder")
+        assert af.link.path_for("/tmp/linked_file") != af.link.path_for(
+            "/tmp/linked_folder"
+        )
 
         link_1 = af.link.path_for(
             "/abcdefghijklmnopqrstuv/a/long/directory/that/has/a/difference/in/the/middle/of/the/path"
-            "/abcdefghijklmnopqrstuv")
+            "/abcdefghijklmnopqrstuv"
+        )
 
         link_2 = af.link.path_for(
             "/abcdefghijklmnopqrstuv/a/long/directory/that/is/different/in/the/middle/of/the/path"
-            "/abcdefghijklmnopqrstuv")
+            "/abcdefghijklmnopqrstuv"
+        )
 
         assert link_1 != link_2
 

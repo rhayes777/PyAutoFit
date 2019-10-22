@@ -6,37 +6,24 @@ from test_autofit import mock
 
 @pytest.fixture(name="source_light_profiles")
 def make_source_light_profiles():
-    source_light_profiles = mapper.CollectionPriorModel(
-        light=mock.EllipticalLP
-    )
+    source_light_profiles = mapper.CollectionPriorModel(light=mock.EllipticalLP)
     return source_light_profiles
 
 
 @pytest.fixture(name="source")
 def make_source(source_light_profiles):
-    return mapper.PriorModel(
-        mock.Galaxy,
-        light_profiles=source_light_profiles
-    )
+    return mapper.PriorModel(mock.Galaxy, light_profiles=source_light_profiles)
 
 
 @pytest.fixture(name="tracer_prior_model")
 def make_tracer_prior_model(source):
     lens = mapper.PriorModel(
         mock.Galaxy,
-        light_profiles=mapper.CollectionPriorModel(
-            light=mock.EllipticalLP
-        ),
-        mass_profiles=mapper.CollectionPriorModel(
-            mass=mock.EllipticalMassProfile
-        )
+        light_profiles=mapper.CollectionPriorModel(light=mock.EllipticalLP),
+        mass_profiles=mapper.CollectionPriorModel(mass=mock.EllipticalMassProfile),
     )
 
-    return mapper.PriorModel(
-        mock.Tracer,
-        lens_galaxy=lens,
-        source_galaxy=source
-    )
+    return mapper.PriorModel(mock.Tracer, lens_galaxy=lens, source_galaxy=source)
 
 
 class TestCase(object):
@@ -64,7 +51,7 @@ class TestCase(object):
                 source.light_profiles.light.centre_1: 0.5,
                 source.light_profiles.light.axis_ratio: 0.5,
                 source.light_profiles.light.phi: 0.5,
-                source.redshift: 0.5
+                source.redshift: 0.5,
             }
         )
 
