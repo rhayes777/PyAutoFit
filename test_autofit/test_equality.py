@@ -8,6 +8,7 @@ import test
 from test_autofit.mock import GalaxyModel
 from test_autofit.mapper.test_model_mapper import GeometryProfile
 
+
 @pytest.fixture(name="prior_model")
 def make_prior_model():
     return af.PriorModel(GeometryProfile)
@@ -45,8 +46,8 @@ class TestCase(object):
     def test_non_trivial_equality(self):
         model_mapper = af.ModelMapper()
         model_mapper.galaxy = GalaxyModel(
-            light_profile=GeometryProfile,
-            mass_profile=GeometryProfile)
+            light_profile=GeometryProfile, mass_profile=GeometryProfile
+        )
         model_mapper_copy = deepcopy(model_mapper)
 
         assert model_mapper == model_mapper_copy
@@ -62,7 +63,7 @@ class TestCase(object):
 
         assert model_instance == model_instance_copy
 
-        model_instance.profile.centre = (1., 2.)
+        model_instance.profile.centre = (1.0, 2.0)
 
         assert model_instance != model_instance_copy
 

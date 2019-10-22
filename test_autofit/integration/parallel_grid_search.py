@@ -9,7 +9,9 @@ from autofit.optimize.grid_search import GridSearch
 logger = logging.getLogger(__name__)
 
 try:
-    output_dir = "{}/../../workspace/output".format(path.dirname(path.realpath(__file__)))
+    output_dir = "{}/../../autolens_workspace/output".format(
+        path.dirname(path.realpath(__file__))
+    )
     logger.info("Removing {}".format(output_dir))
     shutil.rmtree(output_dir)
 except FileNotFoundError:
@@ -28,12 +30,19 @@ class Analysis(af.Analysis):
 
 
 if __name__ == "__main__":
-    grid_search = GridSearch(phase_name="phase_grid_search", phase_tag='_tag', phase_folders=['integration'],
-                                optimizer_class=af.MultiNest, parallel=False)
+    grid_search = GridSearch(
+        phase_name="phase_grid_search",
+        phase_tag="_tag",
+        phase_folders=["integration"],
+        optimizer_class=af.MultiNest,
+        parallel=False,
+    )
     grid_search.variable.profile = test_autofit.mock.EllipticalProfile
 
     # noinspection PyUnresolvedReferences
-    result = grid_search.fit(Analysis(),
-                             [grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1])
+    result = grid_search.fit(
+        Analysis(),
+        [grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1],
+    )
 
     print(result)

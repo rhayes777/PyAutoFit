@@ -7,10 +7,7 @@ from test_autofit import mock
 @pytest.fixture(name="phase")
 def make_phase():
     phase = af.AbstractPhase("phase name")
-    phase.variable.one = af.PriorModel(
-        mock.Galaxy,
-        light=mock.EllipticalLP
-    )
+    phase.variable.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
     return phase
 
 
@@ -33,19 +30,11 @@ def make_profile_promise(phase):
 def make_collection():
     collection = af.ResultsCollection()
     variable = af.ModelMapper()
-    variable.one = af.PriorModel(
-        mock.Galaxy,
-        light=mock.EllipticalLP
-    )
+    variable.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
     constant = af.ModelInstance()
-    constant.one = mock.Galaxy(
-        light=mock.EllipticalLP()
-    )
+    constant.one = mock.Galaxy(light=mock.EllipticalLP())
 
-    result = mock.Result(
-        variable=variable,
-        constant=constant
-    )
+    result = mock.Result(variable=variable, constant=constant)
 
     variable = af.ModelMapper()
     constant = af.ModelInstance()
@@ -53,17 +42,11 @@ def make_collection():
     variable.hyper_galaxy = mock.HyperGalaxy
     constant.hyper_galaxy = mock.HyperGalaxy()
 
-    hyper_result = mock.Result(
-        variable=variable,
-        constant=constant
-    )
+    hyper_result = mock.Result(variable=variable, constant=constant)
 
     result.hyper_result = hyper_result
 
-    collection.add(
-        "phase name",
-        result
-    )
+    collection.add("phase name", result)
 
     return collection
 
@@ -89,44 +72,31 @@ class TestCase:
             assert phase.result.constant.one.bad
 
     def test_recover_variable(self, collection, variable_promise):
-        result = variable_promise.populate(
-            collection
-        )
+        result = variable_promise.populate(collection)
 
         assert result is collection[0].variable.one.redshift
 
     def test_recover_constant(self, collection, constant_promise):
-        result = constant_promise.populate(
-            collection
-        )
+        result = constant_promise.populate(collection)
 
         assert result is collection[0].constant.one.redshift
 
     def test_populate_prior_model_variable(self, collection, variable_promise):
-        new_galaxy = af.PriorModel(
-            mock.Galaxy,
-            redshift=variable_promise
-        )
+        new_galaxy = af.PriorModel(mock.Galaxy, redshift=variable_promise)
 
         result = new_galaxy.populate(collection)
 
         assert result.redshift is collection[0].variable.one.redshift
 
     def test_populate_prior_model_constant(self, collection, constant_promise):
-        new_galaxy = af.PriorModel(
-            mock.Galaxy,
-            redshift=constant_promise
-        )
+        new_galaxy = af.PriorModel(mock.Galaxy, redshift=constant_promise)
 
         result = new_galaxy.populate(collection)
 
         assert result.redshift is collection[0].constant.one.redshift
 
     def test_kwarg_promise(self, profile_promise, collection):
-        galaxy = af.PriorModel(
-            mock.Galaxy,
-            light=profile_promise
-        )
+        galaxy = af.PriorModel(mock.Galaxy, light=profile_promise)
         populated = galaxy.populate(collection)
 
         assert isinstance(populated.light, af.PriorModel)
