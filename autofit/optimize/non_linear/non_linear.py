@@ -23,6 +23,8 @@ class Paths:
             phase_folders=tuple(),
             phase_path=None
     ):
+        if not isinstance(phase_name, str):
+            raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ''
