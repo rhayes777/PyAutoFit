@@ -196,8 +196,8 @@ class TestGridNLOBehaviour(object):
         grid_search_05.fit(container.MockAnalysis(), mapper, [mapper.profile.centre_0])
 
         assert len(container.init_args) == 2
-        assert container.init_args[0][1] == "sample_name//profile_centre_0_0.00_0.50"
-        assert container.init_args[1][1] == "sample_name//profile_centre_0_0.50_1.00"
+        assert container.init_args[0] == "sample_name//profile_centre_0_0.00_0.50"
+        assert container.init_args[1] == "sample_name//profile_centre_0_0.50_1.00"
 
     def test_round_names(self, container, mapper):
         grid_search = gs.GridSearch(
@@ -211,9 +211,9 @@ class TestGridNLOBehaviour(object):
         grid_search.fit(container.MockAnalysis(), mapper, [mapper.profile.centre_0])
 
         assert len(container.init_args) == 3
-        assert container.init_args[0][1] == "sample_name//profile_centre_0_0.00_0.33"
-        assert container.init_args[1][1] == "sample_name//profile_centre_0_0.33_0.67"
-        assert container.init_args[2][1] == "sample_name//profile_centre_0_0.67_1.00"
+        assert container.init_args[0] == "sample_name//profile_centre_0_0.00_0.33"
+        assert container.init_args[1] == "sample_name//profile_centre_0_0.33_0.67"
+        assert container.init_args[2] == "sample_name//profile_centre_0_0.67_1.00"
 
     def test_names_2d(self, grid_search_05, mapper, container):
         grid_search_05.fit(container.MockAnalysis(),
@@ -222,7 +222,7 @@ class TestGridNLOBehaviour(object):
 
         assert len(container.init_args) == 4
 
-        sorted_args = list(sorted(container.init_args[n][1] for n in range(4)))
+        sorted_args = list(sorted(container.init_args[n] for n in range(4)))
 
         assert sorted_args[
                    0] == "sample_name//profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
@@ -273,25 +273,25 @@ class TestGridNLOBehaviour(object):
         assert result.no_dimensions == 2
         assert result.figure_of_merit_array.shape == (10, 10)
 
-    def test_generated_models_with_constants(self, grid_search, container, variable):
+    def test_generated_models_with_constants(self, grid_search, container, mapper):
         constant_profile = GeometryProfile()
-        variable.constant_profile = constant_profile
+        mapper.constant_profile = constant_profile
 
         analysis = container.MockAnalysis()
 
-        grid_search.fit(analysis, variable, [grid_search.variable.profile.centre_0])
+        grid_search.fit(analysis, mapper, [mapper.profile.centre_0])
 
         for instance in container.fit_instances:
             assert isinstance(instance.profile, GeometryProfile)
             assert instance.constant_profile == constant_profile
 
-    def test_generated_models_with_constant_attributes(self, grid_search, variable, container):
+    def test_generated_models_with_constant_attributes(self, grid_search, mapper, container):
         constant = 2.0
-        variable.profile.centre_1 = constant
+        mapper.profile.centre_1 = constant
 
         analysis = container.MockAnalysis()
 
-        grid_search.fit(analysis, variable, [grid_search.variable.profile.centre_0])
+        grid_search.fit(analysis, mapper, [mapper.profile.centre_0])
 
         assert len(container.fit_instances) > 0
 
@@ -314,9 +314,9 @@ class TestGridNLOBehaviour(object):
 
         assert optimizer.n_live_points is grid_search.n_live_points
         assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
-        assert grid_search.paths.path != optimizer.path
-        assert grid_search.paths.backup_path != optimizer.backup_path
-        assert grid_search.paths.phase_output_path != optimizer.phase_output_path
+        assert grid_search.paths.path != optimizer.paths.path
+        assert grid_search.paths.backup_path != optimizer.paths.backup_path
+        assert grid_search.paths.phase_output_path != optimizer.paths.phase_output_path
 
 
 class MockResult(object):
