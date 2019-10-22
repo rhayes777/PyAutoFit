@@ -84,6 +84,8 @@ class AbstractPhase:
         """
         with open(self.paths.make_optimizer_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.optimizer))
+        with open(self.paths.make_model_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(self.variable))
 
     def save_metadata(self, data_name, pipeline_name):
         """
@@ -115,7 +117,16 @@ class AbstractPhase:
                 if self.optimizer != loaded_optimizer:
                     raise exc.PipelineException(
                         f"Can't restart phase at path {path} because settings don't "
-                        f"match. Did you change the optimizer settings or model?")
+                        f"match. Did you change the optimizer settings?")
+
+        path = self.paths.make_model_pickle_path()
+        if os.path.exists(path):
+            with open(path, "r+b") as f:
+                loaded_model = pickle.loads(f.read())
+                if self.variable != loaded_model:
+                    raise exc.PipelineException(
+                        f"Can't restart phase at path {path} because settings don't "
+                        f"match. Did you change the model?")
 
     def assert_and_save_pickle(self):
         if conf.instance.general.get("output", "assert_pickle_matches", bool):
@@ -150,23 +161,33 @@ def as_grid_search(phase_class, parallel=False):
                      number_of_steps=10,
                      optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
                      **kwargs):
-            super().__init__(*args, phase_name=phase_name,
-                             phase_folders=phase_folders,
-                             optimizer_class=optimizer_class, **kwargs)
-            self.optimizer = grid_search.GridSearch(phase_name=phase_name,
-                                                    phase_tag=self.phase_tag,
-                                                    phase_folders=phase_folders,
-                                                    number_of_steps=number_of_steps,
-                                                    optimizer_class=optimizer_class,
-                                                    model_mapper=self.variable,
-                                                    parallel=parallel)
-
-        def run_analysis(self, analysis):
-            return self.optimizer.fit(analysis, self.grid_priors)
+            super().__init__(
+                *args,
+                phase_name=phase_name,
+                phase_folders=phase_folders,
+                optimizer_class=optimizer_class,
+                **kwargs)
+            self.optimizer = grid_search.GridSearch(
+                Paths(
+                    phase_name=phase_name,
+                    phase_tag=self.paths.phase_tag,
+                    phase_folders=phase_folders
+                ),
+                number_of_steps=number_of_steps,
+                optimizer_class=optimizer_class,
+                parallel=parallel
+            )
 
         # noinspection PyMethodMayBeStatic,PyUnusedLocal
         def make_result(self, result, analysis):
             return result
+
+        def run_analysis(self, analysis):
+            return self.optimizer.fit(
+                analysis,
+                self.variable,
+                self.grid_priors
+            )
 
         @property
         def grid_priors(self):

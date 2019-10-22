@@ -113,6 +113,12 @@ class Paths:
         """
         return "{}/optimizer.pickle".format(self.make_path())
 
+    def make_model_pickle_path(self):
+        """
+        Create the path at which the model pickle should be saved
+        """
+        return "{}/model.pickle".format(self.make_path())
+
     def make_path(self) -> str:
         """
         Create the path to the folder at which the metadata and optimizer pickle should
@@ -124,6 +130,18 @@ class Paths:
             self.phase_name,
             self.phase_tag
         )
+
+    @property
+    def file_summary(self) -> str:
+        return "{}/{}".format(self.backup_path, 'multinestsummary.txt')
+
+    @property
+    def file_weighted_samples(self):
+        return "{}/{}".format(self.backup_path, 'multinest.txt')
+
+    @property
+    def file_results(self):
+        return "{}/{}".format(self.phase_output_path, 'model.results')
 
 
 class NonLinearOptimizer(object):

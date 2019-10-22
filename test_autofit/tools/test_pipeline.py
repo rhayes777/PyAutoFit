@@ -55,7 +55,7 @@ class TestPipeline(object):
             af.Pipeline("name", MockPhase("one"), MockPhase("one"))
 
     def test_optimizer_assertion(self, variable):
-        optimizer = af.NonLinearOptimizer("Phase Name")
+        optimizer = af.NonLinearOptimizer(Paths("Phase Name"))
         phase = MockPhase("phase_name", optimizer)
         phase.variable.profile = GeometryProfile
 

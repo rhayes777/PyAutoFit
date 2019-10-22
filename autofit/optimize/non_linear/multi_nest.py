@@ -14,17 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Paths(non_linear.Paths):
-    @property
-    def file_summary(self) -> str:
-        return "{}/{}".format(self.backup_path, 'multinestsummary.txt')
-
-    @property
-    def file_weighted_samples(self):
-        return "{}/{}".format(self.backup_path, 'multinest.txt')
-
-    @property
-    def file_results(self):
-        return "{}/{}".format(self.phase_output_path, 'model.results')
+    pass
 
 
 class MultiNest(NonLinearOptimizer):
