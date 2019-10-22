@@ -36,7 +36,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit test_autoarray / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -108,3 +108,7 @@ workspace/output/
 output
 test/optimize/test_fit
 test/test_files/text/
+test/
+test_autofit/optimize/test_fit/
+test_autofit/test_files/text/psycopg2-binary==2.8.1
+test_autofit/test_files/text/

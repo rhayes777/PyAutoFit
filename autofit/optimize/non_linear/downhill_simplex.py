@@ -2,16 +2,22 @@ import numpy as np
 import scipy.optimize
 
 from autofit import exc
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer
+from autofit.optimize.non_linear.multi_nest_output import Output
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer, Paths
 from autofit.optimize.non_linear.non_linear import logger
 
 
 class DownhillSimplex(NonLinearOptimizer):
 
-    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None, fmin=scipy.optimize.fmin):
+    def __init__(
+            self,
+            paths,
+            fmin=scipy.optimize.fmin
+    ):
 
-        super(DownhillSimplex, self).__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders,
-                                              model_mapper=model_mapper)
+        super().__init__(
+            paths
+        )
 
         self.xtol = self.config("xtol", float)
         self.ftol = self.config("ftol", float)
@@ -39,8 +45,8 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_physical_vector, image_path):
-            super().__init__(nlo, analysis, image_path)
+        def __init__(self, nlo, analysis, instance_from_physical_vector):
+            super().__init__(nlo, analysis)
             self.instance_from_physical_vector = instance_from_physical_vector
 
         def __call__(self, vector):
@@ -52,12 +58,19 @@ class DownhillSimplex(NonLinearOptimizer):
             return -2 * likelihood
 
     @persistent_timer
-    def fit(self, analysis):
-        self.save_model_info()
-        initial_vector = self.variable.physical_values_from_prior_medians
+    def fit(self, analysis, model):
+        dhs_output = Output(
+            model,
+            self.paths
+        )
+        dhs_output.save_model_info()
+        initial_vector = model.physical_values_from_prior_medians
 
-        fitness_function = DownhillSimplex.Fitness(self, analysis, self.variable.instance_from_physical_vector,
-                                                   self.image_path)
+        fitness_function = DownhillSimplex.Fitness(
+            self,
+            analysis,
+            model.instance_from_physical_vector,
+        )
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
@@ -68,7 +81,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.gaussian_tuples = [(mean, 0) for mean in output]
-        res.previous_variable = self.variable
+        res.previous_variable = model
 
         analysis.visualize(
             instance=res.constant,

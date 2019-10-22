@@ -29,7 +29,7 @@ def make_and_return_path_from_path_and_folder_names(path, folder_names):
     """
     for folder_name in folder_names:
 
-        path += folder_name + '/'
+        path += folder_name + "/"
 
         try:
             os.makedirs(path)

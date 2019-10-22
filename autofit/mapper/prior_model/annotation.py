@@ -9,6 +9,5 @@ class AnnotationPriorModel(PriorModel):
 
     def make_prior(self, attribute_name):
         return Prior.for_class_and_attribute_name(
-            self.parent_class,
-            self.true_argument_name
+            self.parent_class, self.true_argument_name
         )
