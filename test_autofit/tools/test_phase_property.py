@@ -6,6 +6,7 @@ import autofit as af
 import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.prior_model
 import autofit.optimize.non_linear.non_linear
+from autofit.optimize.non_linear.multi_nest import Paths
 from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -45,18 +46,26 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
 
 @pytest.fixture(name='phase')
 def make_phase():
-    class MyPhase(af.AbstractPhase):
-        prop = af.PhaseProperty("prop")
+    return MyPhase(
+        Paths(
+            phase_name=''
+        ),
+        optimizer_class=NLO
+    )
 
-    return MyPhase(phase_name='', optimizer_class=NLO)
+
+class MyPhase(af.AbstractPhase):
+    prop = af.PhaseProperty("prop")
 
 
 @pytest.fixture(name='list_phase')
 def make_list_phase():
-    class MyPhase(af.AbstractPhase):
-        prop = af.PhaseProperty("prop")
-
-    return MyPhase(phase_name='', optimizer_class=NLO)
+    return MyPhase(
+        Paths(
+            phase_name=''
+        ),
+        optimizer_class=NLO
+    )
 
 
 class TestPhasePropertyList(object):

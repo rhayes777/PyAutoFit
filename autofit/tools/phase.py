@@ -6,7 +6,6 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper
 from autofit import exc
 from autofit.optimize import grid_search
-from autofit.optimize.non_linear.multi_nest import Paths
 from autofit.tools.promise import PromiseResult
 
 
@@ -14,9 +13,7 @@ class AbstractPhase:
 
     def __init__(
             self,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
+            paths,
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             auto_link_priors=False
     ):
@@ -28,14 +25,8 @@ class AbstractPhase:
         ----------
         optimizer_class: class
             The class of a non_linear optimizer
-        phase_name: str
-            The name of this phase
         """
-        self.paths = Paths(
-            phase_name=phase_name,
-            phase_tag=phase_tag,
-            phase_folders=phase_folders
-        )
+        self.paths = paths
 
         self.optimizer = optimizer_class(
             self.paths
@@ -157,22 +148,19 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
-        def __init__(self, *args, phase_name, phase_folders=tuple(),
-                     number_of_steps=10,
-                     optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                     **kwargs):
+        def __init__(
+                self,
+                paths,
+                number_of_steps=10,
+                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                **kwargs
+        ):
             super().__init__(
-                *args,
-                phase_name=phase_name,
-                phase_folders=phase_folders,
+                paths=paths,
                 optimizer_class=optimizer_class,
                 **kwargs)
             self.optimizer = grid_search.GridSearch(
-                Paths(
-                    phase_name=phase_name,
-                    phase_tag=self.paths.phase_tag,
-                    phase_folders=phase_folders
-                ),
+                paths,
                 number_of_steps=number_of_steps,
                 optimizer_class=optimizer_class,
                 parallel=parallel

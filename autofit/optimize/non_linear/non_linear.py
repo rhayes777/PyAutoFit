@@ -20,9 +20,10 @@ class Paths:
             self,
             phase_name="",
             phase_tag=None,
-            phase_folders=tuple()
+            phase_folders=tuple(),
+            phase_path=None
     ):
-        self.phase_path = "/".join(phase_folders)
+        self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ''
 

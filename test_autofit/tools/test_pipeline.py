@@ -38,11 +38,11 @@ class MockPhase(af.AbstractPhase):
     def make_result(self, result, analysis):
         pass
 
-    def __init__(self, phase_name, optimizer=None):
+    def __init__(self, paths, optimizer=None):
         super().__init__(
-            phase_name
+            paths
         )
-        self.optimizer = optimizer or af.NonLinearOptimizer(paths=Paths(phase_name))
+        self.optimizer = optimizer or af.NonLinearOptimizer(paths)
 
     def save_metadata(self, data_name, pipeline_name):
         pass
@@ -50,13 +50,40 @@ class MockPhase(af.AbstractPhase):
 
 class TestPipeline(object):
     def test_unique_phases(self):
-        af.Pipeline("name", MockPhase("one"), MockPhase("two"))
+        af.Pipeline(
+            "name",
+            MockPhase(
+                Paths(
+                    "one"
+                )
+            ),
+            MockPhase(
+                Paths(
+                    "two"
+                )
+            )
+        )
         with pytest.raises(af.exc.PipelineException):
-            af.Pipeline("name", MockPhase("one"), MockPhase("one"))
+            af.Pipeline(
+                "name",
+                MockPhase(
+                    Paths(
+                        "one"
+                    )
+                ),
+                MockPhase(
+                    Paths(
+                        "one"
+                    )
+                )
+            )
 
     def test_optimizer_assertion(self, variable):
-        optimizer = af.NonLinearOptimizer(Paths("Phase Name"))
-        phase = MockPhase("phase_name", optimizer)
+        paths = Paths("Phase Name")
+        optimizer = af.NonLinearOptimizer(
+            paths
+        )
+        phase = MockPhase(paths, optimizer)
         phase.variable.profile = GeometryProfile
 
         try:
@@ -79,7 +106,11 @@ class TestPipeline(object):
         assert (first + second).pipeline_name == "first + second"
 
     def test_assert_and_save_pickle(self):
-        phase = af.AbstractPhase("name")
+        phase = af.AbstractPhase(
+            Paths(
+                "name"
+            )
+        )
 
         phase.assert_and_save_pickle()
         phase.assert_and_save_pickle()
@@ -93,16 +124,20 @@ class TestPipeline(object):
 # noinspection PyUnresolvedReferences
 class TestPhasePipelineName(object):
     def test_name_stamping(self):
-        one = MockPhase("one")
-        two = MockPhase("two")
+        one = MockPhase(
+            Paths("one")
+        )
+        two = MockPhase(
+            Paths("two")
+        )
         af.Pipeline("name", one, two)
 
         assert one.pipeline_name == "name"
         assert two.pipeline_name == "name"
 
     def test_no_restamping(self):
-        one = MockPhase("one")
-        two = MockPhase("two")
+        one = MockPhase(Paths("one"))
+        two = MockPhase(Paths("two"))
         pipeline_one = af.Pipeline("one", one)
         pipeline_two = af.Pipeline("two", two)
 
