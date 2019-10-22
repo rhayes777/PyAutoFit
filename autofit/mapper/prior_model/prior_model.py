@@ -100,7 +100,7 @@ class PriorModel(AbstractPriorModel):
             elif arg in arg_spec.annotations and arg_spec.annotations[arg] != float:
                 spec = arg_spec.annotations[arg]
                 # noinspection PyUnresolvedReferences
-                if issubclass(spec, float):
+                if inspect.isclass(spec) and issubclass(spec, float):
                     from autofit.mapper.prior_model.annotation import (
                         AnnotationPriorModel,
                     )
