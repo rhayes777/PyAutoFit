@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 class Paths:
     def __init__(
             self,
-            phase_name,
-            phase_tag,
-            phase_folders
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple()
     ):
         self.phase_path = "/".join(phase_folders)
         self.phase_name = phase_name
@@ -38,6 +38,13 @@ class Paths:
 
         self.path = link.make_linked_folder(self.sym_path)
 
+    def __eq__(self, other):
+        return isinstance(other, Paths) and all([
+            self.phase_path == other.phase_path,
+            self.phase_name == other.phase_name,
+            self.phase_tag == other.phase_tag
+        ])
+
     @property
     def phase_folders(self):
         return self.phase_path.split("/")
@@ -47,9 +54,18 @@ class Paths:
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path,
-                                                     self.phase_name,
-                                                     self.phase_tag)
+        return "/".join(
+            filter(
+                lambda item: len(item) > 0,
+                [
+                    conf.instance.output_path,
+                    self.phase_path,
+                    self.phase_name,
+                    self.phase_tag,
+                    'optimizer_backup'
+                ]
+            )
+        )
 
     @property
     def phase_output_path(self) -> str:
@@ -91,14 +107,50 @@ class Paths:
         """
         return "{}pdf/".format(self.image_path)
 
+    def make_optimizer_pickle_path(self) -> str:
+        """
+        Create the path at which the optimizer pickle should be saved
+        """
+        return "{}/optimizer.pickle".format(self.make_path())
+
+    def make_model_pickle_path(self):
+        """
+        Create the path at which the model pickle should be saved
+        """
+        return "{}/model.pickle".format(self.make_path())
+
+    def make_path(self) -> str:
+        """
+        Create the path to the folder at which the metadata and optimizer pickle should
+        be saved
+        """
+        return "{}/{}/{}/{}/".format(
+            conf.instance.output_path,
+            self.phase_path,
+            self.phase_name,
+            self.phase_tag
+        )
+
+    @property
+    def file_summary(self) -> str:
+        return "{}/{}".format(self.backup_path, 'multinestsummary.txt')
+
+    @property
+    def file_weighted_samples(self):
+        return "{}/{}".format(self.backup_path, 'multinest.txt')
+
+    @property
+    def file_results(self):
+        return "{}/{}".format(self.phase_output_path, 'model.results')
+
 
 class NonLinearOptimizer(object):
 
     def __init__(self, paths):
         """Abstract base class for non-linear optimizers.
 
-        This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
-        non-linear optimizers.
+        This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
+        all non-linear optimizers.
 
         Parameters
         ------------
@@ -167,7 +219,7 @@ class NonLinearOptimizer(object):
         if os.path.exists(self.paths.backup_path):
             self.paths.path = link.make_linked_folder(self.paths.sym_path)
             for file in glob.glob(self.paths.backup_path + "/*"):
-                shutil.copy(file, self.path)
+                shutil.copy(file, self.paths.path)
 
     def fit(
             self,
@@ -213,10 +265,12 @@ class NonLinearOptimizer(object):
         name = "{}/{}".format(self.paths.phase_name, extension)
 
         new_instance = self.__class__(
-            phase_name=name,
-            phase_folders=self.paths.phase_folders
+            Paths(
+                phase_name=name,
+                phase_folders=self.paths.phase_folders,
+                phase_tag=self.paths.phase_tag
+            )
         )
-        new_instance.phase_tag = self.paths.phase_tag
 
         return new_instance
 
@@ -279,7 +333,8 @@ class Result(object):
 
         Returns
         -------
-        A model mapper created by taking results from this phase and creating priors with the defined absolute width.
+        A model mapper created by taking results from this phase and creating priors with the defined absolute
+        width.
         """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
 
@@ -292,7 +347,8 @@ class Result(object):
 
         Returns
         -------
-        A model mapper created by taking results from this phase and creating priors with the defined relative width.
+        A model mapper created by taking results from this phase and creating priors with the defined relative
+        width.
         """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
 
@@ -311,8 +367,8 @@ class IntervalCounter(object):
 
 def persistent_timer(func):
     """
-    Times the execution of a function. If the process is stopped and restarted then timing is continued using saved
-    files.
+    Times the execution of a function. If the process is stopped and restarted then timing is continued using
+    saved files.
 
     Parameters
     ----------
@@ -327,7 +383,7 @@ def persistent_timer(func):
 
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
-        start_time_path = "{}/.start_time".format(optimizer_instance.phase_output_path)
+        start_time_path = "{}/.start_time".format(optimizer_instance.paths.phase_output_path)
         try:
             with open(start_time_path) as f:
                 start = float(f.read())
@@ -341,10 +397,10 @@ def persistent_timer(func):
         execution_time = str(dt.timedelta(seconds=time.time() - start))
 
         logger.info("{} took {} to run".format(
-            optimizer_instance.phase_name,
+            optimizer_instance.paths.phase_name,
             execution_time
         ))
-        with open("{}/execution_time".format(optimizer_instance.phase_output_path), "w+") as f:
+        with open("{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+") as f:
             f.write(execution_time)
         return result
 

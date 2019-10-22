@@ -14,26 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 class Paths(non_linear.Paths):
-    @property
-    def file_summary(self) -> str:
-        return "{}/{}".format(self.backup_path, 'multinestsummary.txt')
-
-    @property
-    def file_weighted_samples(self):
-        return "{}/{}".format(self.backup_path, 'multinest.txt')
-
-    @property
-    def file_results(self):
-        return "{}/{}".format(self.phase_output_path, 'model.results')
+    pass
 
 
 class MultiNest(NonLinearOptimizer):
 
     def __init__(
             self,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
+            paths,
             sigma_limit=3,
             run=pymultinest.run
     ):
@@ -45,11 +33,7 @@ class MultiNest(NonLinearOptimizer):
         """
 
         super().__init__(
-            Paths(
-                phase_name=phase_name,
-                phase_tag=phase_tag,
-                phase_folders=phase_folders
-            )
+            paths
         )
 
         self.sigma_limit = sigma_limit
@@ -190,7 +174,7 @@ class MultiNest(NonLinearOptimizer):
             fitness_function.__call__,
             prior,
             model.prior_count,
-            outputfiles_basename="{}/multinest".format(self.path),
+            outputfiles_basename="{}/multinest".format(self.paths.path),
             n_live_points=self.n_live_points,
             const_efficiency_mode=self.const_efficiency_mode,
             importance_nested_sampling=self.importance_nested_sampling,

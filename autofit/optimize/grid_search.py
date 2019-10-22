@@ -1,22 +1,22 @@
 import logging
 import multiprocessing
-import os
 from time import sleep
 
 import numpy as np
 
 from autofit import conf
 from autofit import exc
-from autofit.mapper import link
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import optimizer
 from autofit.optimize.non_linear.downhill_simplex import DownhillSimplex
+from autofit.optimize.non_linear.non_linear import Paths
 
 logger = logging.getLogger(__name__)
 
 
 class GridSearchResult(object):
+
     def __init__(self, results, lists):
         """
         The result of a grid search.
@@ -46,10 +46,7 @@ class GridSearchResult(object):
         """
         best_result = None
         for result in self.results:
-            if (
-                best_result is None
-                or result.figure_of_merit > best_result.figure_of_merit
-            ):
+            if best_result is None or result.figure_of_merit > best_result.figure_of_merit:
                 best_result = result
         return best_result
 
@@ -82,22 +79,18 @@ class GridSearchResult(object):
             An array of figures of merit. This array has the same dimensionality as the grid search, with the value in
             each entry being the figure of merit taken from the optimization performed at that point.
         """
-        return np.reshape(
-            np.array([result.figure_of_merit for result in self.results]),
-            tuple(self.side_length for _ in range(self.no_dimensions)),
-        )
+        return np.reshape(np.array([result.figure_of_merit for result in self.results]),
+                          tuple(self.side_length for _ in range(self.no_dimensions)))
 
 
 class GridSearch(object):
+    # TODO: this should be using paths
     def __init__(
-        self,
-        phase_name,
-        phase_tag=None,
-        phase_folders=tuple(),
-        number_of_steps=10,
-        optimizer_class=DownhillSimplex,
-        model_mapper=None,
-        parallel=False,
+            self,
+            paths,
+            number_of_steps=10,
+            optimizer_class=DownhillSimplex,
+            parallel=False
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -110,47 +103,19 @@ class GridSearch(object):
             The number of steps to go in each direction
         optimizer_class: class
             The class of the optimizer that is run at each step
-        model_mapper: mm.ModelMapper | None
-            The model mapper that maps between the optimizer and class model
-        phase_name: str
-            The name of this grid search
         """
-        self.variable = model_mapper or mm.ModelMapper()
+        self.paths = paths
 
         self.parallel = parallel
         self.number_of_cores = conf.instance.non_linear.get(
-            "GridSearch", "number_of_cores", int
+            "GridSearch",
+            "number_of_cores",
+            int
         )
-
-        self.phase_folders = phase_folders
-        self.phase_path = "/".join(phase_folders)
-        self.phase_name = phase_name
-
-        if phase_tag is not None:
-            self.phase_tag = phase_tag
-            self.phase_tag_input = phase_tag
-        else:
-            self.phase_tag = ""
-            self.phase_tag_input = ""
+        self.phase_tag_input = paths.phase_tag
 
         self.number_of_steps = number_of_steps
         self.optimizer_class = optimizer_class
-
-        self.phase_output_path = "{}/{}/{}/{}".format(
-            conf.instance.output_path, self.phase_path, phase_name, self.phase_tag_input
-        )
-
-        self.image_path = "{}image/".format(self.phase_output_path)
-
-        sym_path = "{}/optimizer".format(self.phase_output_path)
-        self.backup_path = "{}/optimizer_backup".format(self.phase_output_path)
-
-        try:
-            os.makedirs("/".join(sym_path.split("/")[:-1]))
-        except FileExistsError:
-            pass
-
-        self.path = link.make_linked_folder(sym_path)
 
     @property
     def hyper_step_size(self):
@@ -176,43 +141,38 @@ class GridSearch(object):
         -------
         lists: [[float]]
         """
-        return optimizer.make_lists(
-            len(grid_priors), step_size=self.hyper_step_size, centre_steps=False
-        )
+        return optimizer.make_lists(len(grid_priors), step_size=self.hyper_step_size,
+                                    centre_steps=False)
 
     def make_arguments(self, values, grid_priors):
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
-            if (
-                float("-inf") == grid_prior.lower_limit
-                or float("inf") == grid_prior.upper_limit
-            ):
+            if float("-inf") == grid_prior.lower_limit or float(
+                    'inf') == grid_prior.upper_limit:
                 raise exc.PriorException(
-                    "Priors passed to the grid search must have definite limits"
-                )
+                    "Priors passed to the grid search must have definite limits")
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
-            upper_limit = (
-                grid_prior.lower_limit
-                + (value + self.hyper_step_size) * grid_prior.width
-            )
+            upper_limit = grid_prior.lower_limit + (
+                    value + self.hyper_step_size) * grid_prior.width
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
         return arguments
 
-    def model_mappers(self, grid_priors):
+    def model_mappers(self, model, grid_priors):
         grid_priors = list(set(grid_priors))
         lists = self.make_lists(grid_priors)
         for values in lists:
             arguments = self.make_arguments(values, grid_priors)
-            yield self.variable.mapper_from_partial_prior_arguments(arguments)
+            yield model.mapper_from_partial_prior_arguments(arguments)
 
-    def fit(self, analysis, grid_priors):
+    def fit(self, analysis, model, grid_priors):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
         of this instance that are replaced by uniform priors for each step of the grid search.
 
         Parameters
         ----------
+        model
         analysis: autofit.optimize.non_linear.non_linear.Analysis
             An analysis used to determine the fitness of a given model instance
         grid_priors: [p.Prior]
@@ -224,11 +184,11 @@ class GridSearch(object):
             An object that comprises the results from each individual fit
         """
         if self.parallel:
-            return self.fit_parallel(analysis, grid_priors)
+            return self.fit_parallel(analysis, model, grid_priors)
         else:
-            return self.fit_sequential(analysis, grid_priors)
+            return self.fit_sequential(analysis, model, grid_priors)
 
-    def fit_parallel(self, analysis, grid_priors):
+    def fit_parallel(self, analysis, model, grid_priors):
         """
         Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
         different process.
@@ -251,19 +211,19 @@ class GridSearch(object):
         lists = self.make_lists(grid_priors)
 
         results_list = [
-            list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]
-        ]
+            list(map(model.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
         job_queue = multiprocessing.Queue()
 
-        processes = [
-            Process(str(number), job_queue)
-            for number in range(self.number_of_cores - 1)
-        ]
+        processes = [Process(str(number), job_queue) for number in
+                     range(self.number_of_cores - 1)]
 
         for values in lists:
             job = self.job_for_analysis_grid_priors_and_values(
-                analysis, grid_priors, values
+                analysis,
+                model,
+                grid_priors,
+                values
             )
             job_queue.put(job)
 
@@ -286,7 +246,7 @@ class GridSearch(object):
 
         return GridSearchResult(results, lists)
 
-    def fit_sequential(self, analysis, grid_priors):
+    def fit_sequential(self, analysis, model, grid_priors):
         """
         Perform the grid search sequentially, with all the optimisation for each grid square being performed on the
         same process.
@@ -309,12 +269,14 @@ class GridSearch(object):
         lists = self.make_lists(grid_priors)
 
         results_list = [
-            list(map(self.variable.name_for_prior, grid_priors)) + ["figure_of_merit"]
-        ]
+            list(map(model.name_for_prior, grid_priors)) + ["figure_of_merit"]]
 
         for values in lists:
             job = self.job_for_analysis_grid_priors_and_values(
-                analysis, grid_priors, values
+                analysis,
+                model,
+                grid_priors,
+                values
             )
 
             result = job.perform()
@@ -327,26 +289,16 @@ class GridSearch(object):
         return GridSearchResult(results, lists)
 
     def write_results(self, results_list):
-        with open("{}/results".format(self.phase_output_path), "w+") as f:
-            f.write(
-                "\n".join(
-                    map(
-                        lambda ls: ", ".join(
-                            map(
-                                lambda value: "{:.2f}".format(value)
-                                if isinstance(value, float)
-                                else str(value),
-                                ls,
-                            )
-                        ),
-                        results_list,
-                    )
-                )
-            )
+        with open("{}/results".format(self.paths.phase_output_path), "w+") as f:
+            f.write("\n".join(map(lambda ls: ", ".join(
+                map(lambda value: "{:.2f}".format(value) if isinstance(value,
+                                                                       float) else str(
+                    value), ls)),
+                                  results_list)))
 
-    def job_for_analysis_grid_priors_and_values(self, analysis, grid_priors, values):
+    def job_for_analysis_grid_priors_and_values(self, analysis, model, grid_priors, values):
         arguments = self.make_arguments(values, grid_priors)
-        model_mapper = self.variable.mapper_from_partial_prior_arguments(arguments)
+        model_mapper = model.mapper_from_partial_prior_arguments(arguments)
 
         labels = []
         for prior in sorted(arguments.values()):
@@ -354,35 +306,35 @@ class GridSearch(object):
                 "{}_{:.2f}_{:.2f}".format(
                     model_mapper.name_for_prior(prior),
                     prior.lower_limit,
-                    prior.upper_limit,
+                    prior.upper_limit
                 )
             )
 
         name_path = "{}/{}/{}".format(
-            self.phase_name, self.phase_tag_input, "_".join(labels)
+            self.paths.phase_name,
+            self.phase_tag_input,
+            "_".join(labels)
         )
-        optimizer_instance = self.optimizer_instance(model_mapper, name_path)
+        optimizer_instance = self.optimizer_instance(name_path)
 
-        return Job(optimizer_instance, analysis, arguments)
+        return Job(
+            optimizer_instance,
+            analysis,
+            model_mapper,
+            arguments)
 
-    def optimizer_instance(self, model_mapper, name_path):
+    def optimizer_instance(self, name_path):
 
         optimizer_instance = self.optimizer_class(
-            model_mapper=model_mapper,
-            phase_name=name_path,
-            phase_tag=None,
-            phase_folders=self.phase_folders,
+            Paths(
+                phase_name=name_path,
+                phase_tag=self.paths.phase_tag,
+                phase_folders=self.paths.phase_folders
+            )
         )
         for key, value in self.__dict__.items():
             if key not in (
-                "variable",
-                "constant",
-                "phase_name",
-                "phase_tag",
-                "phase_folders",
-                "phase_path",
-                "path",
-            ):
+                    "variable", "constant", "paths"):
                 try:
                     setattr(optimizer_instance, key, value)
                 except AttributeError:
@@ -407,7 +359,13 @@ class JobResult:
 
 
 class Job:
-    def __init__(self, optimizer_instance, analysis, arguments):
+    def __init__(
+            self,
+            optimizer_instance,
+            analysis,
+            model,
+            arguments
+    ):
         """
         A job to be performed in parallel.
 
@@ -422,14 +380,16 @@ class Job:
         """
         self.optimizer_instance = optimizer_instance
         self.analysis = analysis
+        self.model = model
         self.arguments = arguments
 
     def perform(self):
-        result = self.optimizer_instance.fit(self.analysis)
-        result_list_row = [
-            *[prior.lower_limit for prior in self.arguments.values()],
-            result.figure_of_merit,
-        ]
+        result = self.optimizer_instance.fit(
+            self.analysis,
+            self.model
+        )
+        result_list_row = [*[prior.lower_limit for prior in self.arguments.values()],
+                           result.figure_of_merit]
 
         return JobResult(result, result_list_row)
 

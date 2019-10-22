@@ -172,9 +172,9 @@ def test__within_radius_label_value_and_unit_string():
         whitespace=30,
     )
 
-    assert string0 == "mass_within_1.00_arcsec                 3.0000e+01 solMass"
-    assert string1 == "mass_within_1.00_arcsec            3.0000e+01 solMass"
-    assert string2 == "mass_within_1.00_arcsec       3.0000e+01 solMass"
+    assert string0 == "mass_within_1.00_arcsec                 mass_value 30.0"
+    assert string1 == "mass_within_1.00_arcsec            mass_value 30.0"
+    assert string2 == "mass_within_1.00_arcsec       mass_value 30.0"
 
     string = af.text_util.within_radius_label_value_and_unit_string(
         prefix="mass",
@@ -185,14 +185,14 @@ def test__within_radius_label_value_and_unit_string():
         whitespace=40,
     )
 
-    assert string == "mass_within_1.00_arcsec2                4.0000e+01 solMass2"
+    assert string == "mass_within_1.00_arcsec2                mass_value 40.0"
 
 
 def test_string():
-    assert af.text_util.format_string_for_label("radius_value") == "{:.2f}"
-    assert af.text_util.format_string_for_label("mass_value") == "{:.4e}"
+    assert af.text_util.format_string_for_label("radius_value") == "radius_value"
+    assert af.text_util.format_string_for_label("mass_value") == "mass_value"
 
 
 def test_substring():
-    assert af.text_util.format_string_for_label("einstein_radius_value") == "{:.2f}"
-    assert af.text_util.format_string_for_label("mass_value_something") == "{:.4e}"
+    assert af.text_util.format_string_for_label("einstein_radius_value") == "radius_value"
+    assert af.text_util.format_string_for_label("mass_value_something") == "mass_value"

@@ -5,9 +5,10 @@ import numpy as np
 
 from autofit import conf, exc
 from autofit.optimize import optimizer as opt
+from autofit.optimize.non_linear.multi_nest import Paths
 from autofit.optimize.non_linear.multi_nest_output import Output
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, Result, IntervalCounter, \
-    persistent_timer, Paths
+    persistent_timer
 from autofit.optimize.non_linear.non_linear import logger
 
 
@@ -15,9 +16,7 @@ class GridSearch(NonLinearOptimizer):
 
     def __init__(
             self,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
+            paths,
             step_size=None,
             grid=opt.grid
     ):
@@ -29,15 +28,12 @@ class GridSearch(NonLinearOptimizer):
         step_size: float | None
             The step size of the grid search in hypercube space.
             E.g. a step size of 0.5 will give steps 0.0, 0.5 and 1.0
-        phase_name: str
-            The name of run (defaults to 'phase')
         grid: function
             A function that takes a fitness function, dimensionality and step size and performs a grid search
         """
         super().__init__(
-            Paths(
-                phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
-            ))
+            paths
+        )
         self.step_size = step_size or self.config("step_size", float)
         self.grid = grid
 
@@ -45,8 +41,11 @@ class GridSearch(NonLinearOptimizer):
         name = "{}/{}".format(self.paths.phase_name, extension)
 
         new_instance = self.__class__(
-            phase_name=name,
-            phase_folders=self.paths.phase_folders,
+            Paths(
+                phase_name=name,
+                phase_folders=self.paths.phase_folders,
+                phase_tag=self.paths.phase_tag
+            ),
             step_size=self.step_size
         )
         new_instance.grid = self.grid
@@ -125,7 +124,7 @@ class GridSearch(NonLinearOptimizer):
 
     @property
     def checkpoint_path(self):
-        return "{}/.checkpoint".format(self.path)
+        return "{}/.checkpoint".format(self.paths.path)
 
     def save_checkpoint(
             self,
@@ -211,8 +210,8 @@ class GridSearch(NonLinearOptimizer):
             self,
             analysis,
             model.instance_from_unit_vector,
-            model.prior_count,
             save_results,
+            model.prior_count,
             checkpoint_count=checkpoint_count,
             best_fit=best_fit,
             best_cube=best_cube
