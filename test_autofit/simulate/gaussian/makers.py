@@ -1,5 +1,5 @@
 import autoarray as aa
-import automodel as am
+import autoastro as am
 import autofit as af
 
 import os
