@@ -19,7 +19,7 @@ def run(
     integration_util.reset_paths(test_name=test_name, output_path=output_path)
 
     data_path = af.path_util.make_and_return_path_from_path_and_folder_names(
-        path=test_path, folder_names=["data", module.data_type]
+        path=test_path, folder_names=["simulate", module.data_type]
     )
 
     imaging = aa.imaging.from_fits(

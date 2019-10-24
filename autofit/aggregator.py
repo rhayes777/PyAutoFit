@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 """
-Filter and collate phase data in all subdirectories.
+Filter and collate phase simulate in all subdirectories.
 
 Usage:
 
-./aggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]
+./aggregator.py (root_directory) [pipeline=pipeline phase=phase simulate=simulate]
 
 Example:
 
@@ -26,7 +26,7 @@ class PhaseOutput(object):
 
     def __init__(self, directory: str):
         """
-        Represents the output of a single phase. Comprises a metadata file and other data files.
+        Represents the output of a single phase. Comprises a metadata file and other simulate files.
 
         Parameters
         ----------
@@ -52,7 +52,7 @@ class PhaseOutput(object):
     @property
     def header(self) -> str:
         """
-        A header created by joining the pipeline, phase and data names
+        A header created by joining the pipeline, phase and simulate names
         """
         return "/".join((self.pipeline, self.phase, self.data))
 
@@ -95,7 +95,7 @@ class Aggregator(object):
     def phases_with(self, **kwargs) -> [PhaseOutput]:
         """
         Filters phases. If no arguments are passed all phases are returned. Arguments must be key value pairs, with
-        phase, data or pipeline as the key.
+        phase, simulate or pipeline as the key.
 
         Parameters
         ----------
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         root_directory = argv[1]
     except IndexError:
         print(
-            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]"
+            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase simulate=simulate]"
         )
         exit(1)
     filter_dict = {pair[0]: pair[1] for pair in [line.split("=") for line in argv[2:]]}

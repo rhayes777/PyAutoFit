@@ -29,11 +29,11 @@ def simulate_imaging_from_gaussian_and_output_to_fits(
     # degrade our modeling of the telescope optics (e.al. the PSF convolution).
     imaging = aa.imaging.simulate(image=image, exposure_time=exposure_time, psf=psf, background_sky_level=background_sky_level, add_noise=True)
 
-    # Now, lets output this simulated imaging-data to the test_autoarray/data folder.
+    # Now, lets output this simulated imaging-simulate to the test_autoarray/simulate folder.
     test_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
     data_path = af.path_util.make_and_return_path_from_path_and_folder_names(
-        path=test_path, folder_names=["data", data_type]
+        path=test_path, folder_names=["simulate", data_type]
     )
 
     imaging.output_to_fits(

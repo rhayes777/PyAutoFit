@@ -81,11 +81,11 @@ class AbstractPhase:
     def save_metadata(self, data_name, pipeline_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the data being fit
+        name of the phase and the name of the simulate being fit
         """
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
-                "pipeline={}\nphase={}\ndata={}".format(
+                "pipeline={}\nphase={}\nsimulate={}".format(
                     pipeline_name,
                     self.optimizer.paths.phase_name,
                     data_name
