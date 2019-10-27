@@ -87,7 +87,7 @@ class AbstractPhase:
             f.write(
                 "pipeline={}\nphase={}\nsimulate={}".format(
                     pipeline_name,
-                    self.optimizer.paths.phase_name,
+                    self.paths.phase_name,
                     data_name
                 )
             )

@@ -107,9 +107,9 @@ class TestPipeline(object):
 
     def test_assert_and_save_pickle(self):
         phase = af.AbstractPhase(
-            Paths(
-                "name"
-            )
+            paths=Paths(
+                phase_name="name"
+            ),
         )
 
         phase.assert_and_save_pickle()
