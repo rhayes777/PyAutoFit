@@ -23,6 +23,12 @@ class Paths:
             phase_folders=tuple(),
             phase_path=None
     ):
+
+        # TODO : When I make a HyperPhase in autolens, the input phase name is an instance of Paths. The if loop below
+        # TODO : Fixes the tests but is clearly dodgy.
+
+        if isinstance(phase_name, Paths):
+            phase_name = phase_name.phase_name
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
@@ -271,7 +277,7 @@ class NonLinearOptimizer(object):
             Paths(
                 phase_name=name,
                 phase_folders=self.paths.phase_folders,
-                phase_tag=self.paths.phase_tag
+                phase_tag=self.paths.phase_tag,
             )
         )
 
