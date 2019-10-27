@@ -46,8 +46,8 @@ class AbstractPhase:
 
     def run_analysis(self, analysis):
         return self.optimizer.fit(
-            analysis,
-            self.variable
+            analysis=analysis,
+            model=self.variable
         )
 
     def customize_priors(self, results):
