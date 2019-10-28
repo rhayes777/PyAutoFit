@@ -62,8 +62,8 @@ class MultiNest(NonLinearOptimizer):
 
         logger.debug("Creating MultiNest NLO")
 
-    def copy_with_name_extension(self, extension):
-        copy = super().copy_with_name_extension(extension=extension)
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        copy = super().copy_with_name_extension(extension=extension, remove_phase_tag=remove_phase_tag)
         copy.sigma_limit = self.sigma_limit
         copy.run = self.run
         copy.importance_nested_sampling = self.importance_nested_sampling

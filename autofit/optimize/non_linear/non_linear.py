@@ -270,14 +270,19 @@ class NonLinearOptimizer(object):
 
             return likelihood
 
-    def copy_with_name_extension(self, extension):
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
         name = "{}/{}".format(self.paths.phase_name, extension)
+
+        if remove_phase_tag:
+            phase_tag = ""
+        else:
+            phase_tag = self.paths.phase_tag
 
         new_instance = self.__class__(
             Paths(
                 phase_name=name,
                 phase_folders=self.paths.phase_folders,
-                phase_tag=self.paths.phase_tag,
+                phase_tag=phase_tag,
             )
         )
 
