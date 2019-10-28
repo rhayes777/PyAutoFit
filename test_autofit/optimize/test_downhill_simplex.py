@@ -6,14 +6,16 @@ import autofit as af
 from autofit.optimize.non_linear.multi_nest import Paths
 from test_autofit.mock import MockClassNLOx4, MockAnalysis
 
-pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
+pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def do_something():
     af.conf.instance = af.conf.Config(
         "{}/../test_files/configs/non_linear".format(
-            os.path.dirname(os.path.realpath(__file__))))
+            os.path.dirname(os.path.realpath(__file__))
+        )
+    )
 
 
 @pytest.fixture(name="downhill_simplex")
@@ -24,23 +26,15 @@ def make_downhill_simplex():
 
     return af.DownhillSimplex(
         fmin=fmin,
-        paths=Paths(
-            phase_name='name',
-            phase_folders=('folders',),
-            phase_tag='tag'
-        )
+        paths=Paths(phase_name="name", phase_folders=("folders",), phase_tag="tag"),
     )
 
 
 class TestDownhillSimplex(object):
-
     def test_constant(self, downhill_simplex, variable):
         variable.mock_class = MockClassNLOx4()
 
-        assert hasattr(
-            variable.instance_from_unit_vector([]),
-            "mock_class"
-        )
+        assert hasattr(variable.instance_from_unit_vector([]), "mock_class")
 
         result = downhill_simplex.fit(MockAnalysis(), variable)
 
@@ -49,9 +43,7 @@ class TestDownhillSimplex(object):
         assert result.figure_of_merit == 1
 
     def test_variable(self, downhill_simplex, variable):
-        variable.mock_class = af.PriorModel(
-            MockClassNLOx4
-        )
+        variable.mock_class = af.PriorModel(MockClassNLOx4)
         result = downhill_simplex.fit(MockAnalysis(), variable)
 
         assert result.constant.mock_class.one == 0.0
@@ -63,8 +55,7 @@ class TestDownhillSimplex(object):
 
     def test_constant_and_variable(self, downhill_simplex, variable):
         variable.constant = MockClassNLOx4()
-        variable.variable = af.PriorModel(
-            MockClassNLOx4)
+        variable.variable = af.PriorModel(MockClassNLOx4)
 
         result = downhill_simplex.fit(MockAnalysis(), variable)
 
@@ -78,7 +69,6 @@ class TestDownhillSimplex(object):
 
 
 class TestCopyWithNameExtension(object):
-
     @staticmethod
     def assert_non_linear_attributes_equal(copy, optimizer):
         assert copy.paths.phase_name == "phase_name/one"
@@ -88,8 +78,7 @@ class TestCopyWithNameExtension(object):
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy, optimizer)
-        assert isinstance(copy,
-                          af.DownhillSimplex)
+        assert isinstance(copy, af.DownhillSimplex)
         assert copy.fmin is optimizer.fmin
         assert copy.xtol is optimizer.xtol
         assert copy.ftol is optimizer.ftol

@@ -11,8 +11,10 @@ from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
-af.conf.instance = af.conf.Config("{}/../../workspace/config".format(directory),
-                                  "{}/../../workspace/output/".format(directory))
+af.conf.instance = af.conf.Config(
+    "{}/../../workspace/config".format(directory),
+    "{}/../../workspace/output/".format(directory),
+)
 
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
@@ -29,47 +31,36 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
                     setattr(instance, key, value)
 
                 likelihood = analysis.fit(instance)
-                self.result = autofit.optimize.non_linear.non_linear.Result(instance,
-                                                                            likelihood)
+                self.result = autofit.optimize.non_linear.non_linear.Result(
+                    instance, likelihood
+                )
 
                 # Return Chi squared
                 return -2 * likelihood
 
         fitness_function = Fitness(
-            model.instance_from_physical_vector,
-            model.instance_from_prior_medians
+            model.instance_from_physical_vector, model.instance_from_prior_medians
         )
         fitness_function(model.prior_count * [0.5])
 
         return fitness_function.result
 
 
-@pytest.fixture(name='phase')
+@pytest.fixture(name="phase")
 def make_phase():
-    return MyPhase(
-        Paths(
-            phase_name=''
-        ),
-        optimizer_class=NLO
-    )
+    return MyPhase(Paths(phase_name=""), optimizer_class=NLO)
 
 
 class MyPhase(af.AbstractPhase):
     prop = af.PhaseProperty("prop")
 
 
-@pytest.fixture(name='list_phase')
+@pytest.fixture(name="list_phase")
 def make_list_phase():
-    return MyPhase(
-        Paths(
-            phase_name=''
-        ),
-        optimizer_class=NLO
-    )
+    return MyPhase(Paths(phase_name=""), optimizer_class=NLO)
 
 
 class TestPhasePropertyList(object):
-
     def test_classes(self, list_phase):
         objects = [GalaxyModel(), GalaxyModel()]
 
@@ -197,8 +188,10 @@ class TestPhasePropertyCollectionAttributes(object):
     #     assert len(list_phase.variable.info.split('\n')) == 7
 
     def test_shared_priors(self, list_phase):
-        list_phase.prop = dict(one=GalaxyModel(variable_redshift=True),
-                               two=GalaxyModel(variable_redshift=True))
+        list_phase.prop = dict(
+            one=GalaxyModel(variable_redshift=True),
+            two=GalaxyModel(variable_redshift=True),
+        )
 
         assert list_phase.variable.prior_count == 2
 
@@ -216,8 +209,7 @@ class TestPhasePropertyCollectionAttributes(object):
         assert hasattr(list_phase.prop, "one")
 
     def test_position_not_a_prior(self, list_phase):
-        list_phase.prop = [
-            af.PriorModel(Galaxy)]
+        list_phase.prop = [af.PriorModel(Galaxy)]
 
         assert list_phase.variable.prior_count == 1
         assert "redshift" == list_phase.variable.prior_tuples_ordered_by_id[0][0]

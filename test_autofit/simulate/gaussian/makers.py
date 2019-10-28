@@ -27,7 +27,13 @@ def simulate_imaging_from_gaussian_and_output_to_fits(
 
     # Simulate the Imaging data_type, remembering that we use a special image which ensures edge-effects don't
     # degrade our modeling of the telescope optics (e.al. the PSF convolution).
-    imaging = aa.imaging.simulate(image=image, exposure_time=exposure_time, psf=psf, background_sky_level=background_sky_level, add_noise=True)
+    imaging = aa.imaging.simulate(
+        image=image,
+        exposure_time=exposure_time,
+        psf=psf,
+        background_sky_level=background_sky_level,
+        add_noise=True,
+    )
 
     # Now, lets output this simulated imaging-simulate to the test_autoarray/simulate folder.
     test_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
@@ -67,7 +73,7 @@ def make__gaussian(sub_size):
 
     # This lens-only system has a Dev Vaucouleurs spheroid / bulge.
 
-    gaussian = am.lp.SphericalGaussian(centre=(0.0, 0.0),intensity=0.1,sigma=2.0)
+    gaussian = am.lp.SphericalGaussian(centre=(0.0, 0.0), intensity=0.1, sigma=2.0)
 
     simulate_imaging_from_gaussian_and_output_to_fits(
         gaussian=gaussian,

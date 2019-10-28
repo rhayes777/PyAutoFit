@@ -18,13 +18,7 @@ class Paths(non_linear.Paths):
 
 
 class MultiNest(NonLinearOptimizer):
-
-    def __init__(
-            self,
-            paths,
-            sigma_limit=3,
-            run=pymultinest.run
-    ):
+    def __init__(self, paths, sigma_limit=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lensing and output the MultiNest nlo.
 
@@ -32,38 +26,39 @@ class MultiNest(NonLinearOptimizer):
         individual model instances that are passed to each iteration of MultiNest.
         """
 
-        super().__init__(
-            paths
-        )
+        super().__init__(paths)
 
         self.sigma_limit = sigma_limit
 
-        self.importance_nested_sampling = self.config('importance_nested_sampling',
-                                                      bool)
-        self.multimodal = self.config('multimodal', bool)
-        self.const_efficiency_mode = self.config('const_efficiency_mode', bool)
-        self.n_live_points = self.config('n_live_points', int)
-        self.evidence_tolerance = self.config('evidence_tolerance', float)
-        self.sampling_efficiency = self.config('sampling_efficiency', float)
-        self.n_iter_before_update = self.config('n_iter_before_update', int)
-        self.null_log_evidence = self.config('null_log_evidence', float)
-        self.max_modes = self.config('max_modes', int)
-        self.mode_tolerance = self.config('mode_tolerance', float)
-        self.outputfiles_basename = self.config('outputfiles_basename', str)
-        self.seed = self.config('seed', int)
-        self.verbose = self.config('verbose', bool)
-        self.resume = self.config('resume', bool)
-        self.context = self.config('context', int)
-        self.write_output = self.config('write_output', bool)
-        self.log_zero = self.config('log_zero', float)
-        self.max_iter = self.config('max_iter', int)
-        self.init_MPI = self.config('init_MPI', bool)
+        self.importance_nested_sampling = self.config(
+            "importance_nested_sampling", bool
+        )
+        self.multimodal = self.config("multimodal", bool)
+        self.const_efficiency_mode = self.config("const_efficiency_mode", bool)
+        self.n_live_points = self.config("n_live_points", int)
+        self.evidence_tolerance = self.config("evidence_tolerance", float)
+        self.sampling_efficiency = self.config("sampling_efficiency", float)
+        self.n_iter_before_update = self.config("n_iter_before_update", int)
+        self.null_log_evidence = self.config("null_log_evidence", float)
+        self.max_modes = self.config("max_modes", int)
+        self.mode_tolerance = self.config("mode_tolerance", float)
+        self.outputfiles_basename = self.config("outputfiles_basename", str)
+        self.seed = self.config("seed", int)
+        self.verbose = self.config("verbose", bool)
+        self.resume = self.config("resume", bool)
+        self.context = self.config("context", int)
+        self.write_output = self.config("write_output", bool)
+        self.log_zero = self.config("log_zero", float)
+        self.max_iter = self.config("max_iter", int)
+        self.init_MPI = self.config("init_MPI", bool)
         self.run = run
 
         logger.debug("Creating MultiNest NLO")
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        copy = super().copy_with_name_extension(extension=extension, remove_phase_tag=remove_phase_tag)
+        copy = super().copy_with_name_extension(
+            extension=extension, remove_phase_tag=remove_phase_tag
+        )
         copy.sigma_limit = self.sigma_limit
         copy.run = self.run
         copy.importance_nested_sampling = self.importance_nested_sampling
@@ -88,25 +83,26 @@ class MultiNest(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-
-        def __init__(self, nlo, analysis, instance_from_physical_vector, output_results):
+        def __init__(
+            self, nlo, analysis, instance_from_physical_vector, output_results
+        ):
             super().__init__(nlo, analysis)
             self.instance_from_physical_vector = instance_from_physical_vector
             self.output_results = output_results
             self.accepted_samples = 0
 
             self.number_of_accepted_samples_between_output = conf.instance.general.get(
-                "output",
-                "number_of_accepted_samples_between_output",
-                int)
+                "output", "number_of_accepted_samples_between_output", int
+            )
             self.stagger_resampling_likelihood = conf.instance.non_linear.get(
-                'MultiNest', 'stagger_resampling_likelihood', bool)
-            self.stagger_resampling_value = conf.instance.non_linear.get('MultiNest',
-                                                                         'stagger_resampling_value',
-                                                                         float)
-            self.resampling_likelihood = conf.instance.non_linear.get('MultiNest',
-                                                                      'null_log_evidence',
-                                                                      float)
+                "MultiNest", "stagger_resampling_likelihood", bool
+            )
+            self.stagger_resampling_value = conf.instance.non_linear.get(
+                "MultiNest", "stagger_resampling_value", float
+            )
+            self.resampling_likelihood = conf.instance.non_linear.get(
+                "MultiNest", "null_log_evidence", float
+            )
             self.stagger_accepted_samples = 0
 
         def __call__(self, cube, ndim, nparams, lnew):
@@ -133,29 +129,26 @@ class MultiNest(NonLinearOptimizer):
 
                 self.accepted_samples += 1
 
-                if self.accepted_samples == self.number_of_accepted_samples_between_output:
+                if (
+                    self.accepted_samples
+                    == self.number_of_accepted_samples_between_output
+                ):
                     self.accepted_samples = 0
                     self.output_results(during_analysis=True)
 
             return likelihood
 
     @persistent_timer
-    def fit(
-            self,
-            analysis,
-            model
-    ):
-        multinest_output = MultiNestOutput(
-            model,
-            self.paths
-        )
+    def fit(self, analysis, model):
+        multinest_output = MultiNestOutput(model, self.paths)
 
         multinest_output.save_model_info()
 
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
             phys_cube = model.physical_vector_from_hypercube_vector(
-                hypercube_vector=cube)
+                hypercube_vector=cube
+            )
 
             for i in range(model.prior_count):
                 cube[i] = phys_cube[i]
@@ -166,7 +159,7 @@ class MultiNest(NonLinearOptimizer):
             self,
             analysis,
             model.instance_from_physical_vector,
-            multinest_output.output_results
+            multinest_output.output_results,
         )
 
         logger.info("Running MultiNest...")
@@ -192,19 +185,20 @@ class MultiNest(NonLinearOptimizer):
             write_output=self.write_output,
             log_zero=self.log_zero,
             max_iter=self.max_iter,
-            init_MPI=self.init_MPI
+            init_MPI=self.init_MPI,
         )
         logger.info("MultiNest complete")
 
         self.backup()
         constant = multinest_output.most_likely_model_instance
-        analysis.visualize(
-            instance=constant,
-            during_analysis=False
-        )
+        analysis.visualize(instance=constant, during_analysis=False)
         multinest_output.output_results(during_analysis=False)
         multinest_output.output_pdf_plots()
-        return Result(constant=constant, figure_of_merit=multinest_output.maximum_likelihood,
-                      previous_variable=model,
-                      gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
-                          self.sigma_limit))
+        return Result(
+            constant=constant,
+            figure_of_merit=multinest_output.maximum_likelihood,
+            previous_variable=model,
+            gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
+                self.sigma_limit
+            ),
+        )

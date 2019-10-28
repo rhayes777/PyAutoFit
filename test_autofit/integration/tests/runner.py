@@ -5,12 +5,7 @@ from test_autofit.integration import integration_util
 from autofit.optimize.non_linear.mock_nlo import MockNLO
 
 
-def run(
-    module,
-    test_name=None,
-    optimizer_class=af.MultiNest,
-    config_folder="config",
-):
+def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="config"):
     test_name = test_name or module.test_name
     test_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
     output_path = test_path + "output/"

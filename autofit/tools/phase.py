@@ -10,12 +10,11 @@ from autofit.tools.promise import PromiseResult
 
 
 class AbstractPhase:
-
     def __init__(
-            self,
-            paths,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            auto_link_priors=False
+        self,
+        paths,
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        auto_link_priors=False,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -28,9 +27,7 @@ class AbstractPhase:
         """
         self.paths = paths
 
-        self.optimizer = optimizer_class(
-            self.paths
-        )
+        self.optimizer = optimizer_class(self.paths)
         self.auto_link_priors = auto_link_priors
         self.variable = ModelMapper()
 
@@ -45,10 +42,7 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis):
-        return self.optimizer.fit(
-            analysis=analysis,
-            model=self.variable
-        )
+        return self.optimizer.fit(analysis=analysis, model=self.variable)
 
     def customize_priors(self, results):
         """
@@ -86,9 +80,7 @@ class AbstractPhase:
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
                 "pipeline={}\nphase={}\nsimulate={}".format(
-                    pipeline_name,
-                    self.paths.phase_name,
-                    data_name
+                    pipeline_name, self.paths.phase_name, data_name
                 )
             )
 
@@ -108,7 +100,8 @@ class AbstractPhase:
                 if self.optimizer != loaded_optimizer:
                     raise exc.PipelineException(
                         f"Can't restart phase at path {path} because settings don't "
-                        f"match. Did you change the optimizer settings?")
+                        f"match. Did you change the optimizer settings?"
+                    )
 
         path = self.paths.make_model_pickle_path()
         if os.path.exists(path):
@@ -117,7 +110,8 @@ class AbstractPhase:
                 if self.variable != loaded_model:
                     raise exc.PipelineException(
                         f"Can't restart phase at path {path} because settings don't "
-                        f"match. Did you change the model?")
+                        f"match. Did you change the model?"
+                    )
 
     def assert_and_save_pickle(self):
         if conf.instance.general.get("output", "assert_pickle_matches", bool):
@@ -149,21 +143,18 @@ def as_grid_search(phase_class, parallel=False):
 
     class GridSearchExtension(phase_class):
         def __init__(
-                self,
-                paths,
-                number_of_steps=10,
-                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                **kwargs
+            self,
+            paths,
+            number_of_steps=10,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            **kwargs,
         ):
-            super().__init__(
-                paths=paths,
-                optimizer_class=optimizer_class,
-                **kwargs)
+            super().__init__(paths=paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
                 paths,
                 number_of_steps=number_of_steps,
                 optimizer_class=optimizer_class,
-                parallel=parallel
+                parallel=parallel,
             )
 
         # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -171,16 +162,13 @@ def as_grid_search(phase_class, parallel=False):
             return result
 
         def run_analysis(self, analysis):
-            return self.optimizer.fit(
-                analysis,
-                self.variable,
-                self.grid_priors
-            )
+            return self.optimizer.fit(analysis, self.variable, self.grid_priors)
 
         @property
         def grid_priors(self):
             raise NotImplementedError(
                 "The grid priors property must be implemented to provide a list of "
-                "priors to be grid searched")
+                "priors to be grid searched"
+            )
 
     return GridSearchExtension
