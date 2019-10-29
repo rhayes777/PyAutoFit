@@ -52,6 +52,13 @@ def make_collection():
     return collection
 
 
+class TestLastPromises:
+    def test_variable(self):
+        variable_promise = af.last.variable.one.redshift
+        assert variable_promise.path == ("one", "redshift")
+        assert variable_promise.is_constant is False
+
+
 class TestCase:
     def test_variable_promise(self, variable_promise, phase):
         assert isinstance(variable_promise, af.Promise)

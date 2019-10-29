@@ -1,5 +1,41 @@
-class PromiseResult:
-    def __init__(self, phase, *result_path, assert_exists=True):
+from abc import ABC, abstractmethod
+
+
+class AbstractPromiseResult(ABC):
+    def __init__(
+            self,
+            *result_path
+    ):
+        self.result_path = result_path
+
+    @property
+    @abstractmethod
+    def variable(self):
+        """
+        A promise for an object in the variable result. This might be a prior or prior model.
+        """
+
+    @property
+    @abstractmethod
+    def constant(self):
+        """
+        A promise for an object in the best fit result. This must be an instance or constant.
+        """
+
+    @abstractmethod
+    def __getattr__(self, item):
+        """
+        Used to manage results paths
+        """
+
+
+class PromiseResult(AbstractPromiseResult):
+    def __init__(
+            self,
+            phase,
+            *result_path,
+            assert_exists=True
+    ):
         """
         A wrapper for a phase that facilitates the generation of priors by consuming user defined paths.
 
@@ -14,9 +50,9 @@ class PromiseResult:
             If this is true then an AttributeError is thrown if there is no object with the given path in the
             model of the origin phase
         """
+        super().__init__(*result_path)
         self.phase = phase
         self.assert_exists = assert_exists
-        self.result_path = result_path
 
     @property
     def variable(self):
@@ -40,12 +76,79 @@ class PromiseResult:
         )
 
     def __getattr__(self, item):
-        return PromiseResult(self.phase, *self.result_path, item, assert_exists=False)
+        return PromiseResult(
+            self.phase,
+            *self.result_path,
+            item,
+            assert_exists=False
+        )
 
 
-class Promise:
+class AbstractPromise(ABC):
     def __init__(
-        self, phase, *path, result_path, is_constant=False, assert_exists=True
+            self,
+            *path,
+            result_path,
+            is_constant=False
+    ):
+        """
+        Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
+        model, constant or instance
+
+        Parameters
+        ----------
+        path
+            The path to the promised object. e.g. if a phase has a variable galaxies.lens.phi then the path
+            will be ("galaxies", "lens", "phi")
+        result_path
+            The path through the result collection to the result object required. This is used for hyper phases
+            where a result object can have child result objects for each phase extension.
+        is_constant
+            True if the promised object belongs to the constant result object
+        """
+        self.path = path
+        self.is_constant = is_constant
+        self.result_path = result_path
+
+    def __call__(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, item):
+        if item in ("phase", "path", "is_constant"):
+            return super().__getattribute__(item)
+        return Promise(
+            *self.path,
+            item,
+            result_path=self.result_path,
+            is_constant=self.is_constant,
+        )
+
+    @abstractmethod
+    def populate(self, results_collection):
+        """
+        Find the object that this promise corresponds to be getting results for a particular phase and then
+        traversing those results using the path.
+
+        Parameters
+        ----------
+        results_collection
+            A collection of results from previous phases
+
+        Returns
+        -------
+        obj
+            The promised prior, prior model, instance or constant
+        """
+
+
+class Promise(AbstractPromise):
+    def __init__(
+            self,
+            phase,
+            *path,
+            result_path,
+            is_constant=False,
+            assert_exists=True
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
@@ -67,16 +170,15 @@ class Promise:
             If this is true then an exception is raised if an object is not defined in the addressed phase's
             model. Hyper phases are a bit trickier so no assertion is made.
         """
+        super().__init__(
+            *path,
+            result_path=result_path,
+            is_constant=is_constant
+        )
         self.phase = phase
-        self.path = path
-        self.is_constant = is_constant
         self.assert_exists = assert_exists
-        self.result_path = result_path
         if assert_exists:
             phase.variable.object_for_path(path)
-
-    def __call__(self, *args, **kwargs):
-        pass
 
     def __getattr__(self, item):
         if item in ("phase", "path", "is_constant"):
