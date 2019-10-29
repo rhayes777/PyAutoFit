@@ -23,7 +23,7 @@ def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="con
         pixel_scales=0.1,
     )
 
-    return module.make_pipeline(
+    module.make_pipeline(
         name=test_name,
         phase_folders=[module.test_type, test_name],
         optimizer_class=optimizer_class,
@@ -32,7 +32,7 @@ def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="con
 
 def run_a_mock(module):
     # noinspection PyTypeChecker
-    return run(
+    run(
         module,
         test_name=f"{module.test_name}_mock",
         optimizer_class=MockNLO,
@@ -42,7 +42,7 @@ def run_a_mock(module):
 
 def run_with_multi_nest(module):
     # noinspection PyTypeChecker
-    return run(
+    run(
         module,
         test_name=f"{module.test_name}_nest",
         optimizer_class=af.MultiNest,

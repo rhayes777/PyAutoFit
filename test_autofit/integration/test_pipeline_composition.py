@@ -1,12 +1,7 @@
 from test_autofit import mock
-from test_autofit.integration.tests import runner
 import autofit as af
-import sys
 
-test_type = "lens__source"
-test_name = "lens_light_mass__source__hyper_bg"
-data_type = "lens_light__source_smooth"
-data_resolution = "LSST"
+from test_autolens.mock.mock_pipeline import MockNLO
 
 
 def make_pipeline_1(
@@ -52,8 +47,8 @@ def make_pipeline_2(
 
 def make_pipeline(
         name,
-        phase_folders,
-        optimizer_class,
+        phase_folders=tuple(),
+        optimizer_class=MockNLO,
 ):
     return make_pipeline_1(
         name,
@@ -67,7 +62,7 @@ def make_pipeline(
 
 
 def test_pipeline_composition():
-    results = runner.run_a_mock(
-        sys.modules[__name__]
+    results = make_pipeline(
+        "test"
     )
     assert results[0].variable.one.redshift is results[1].variable.one.redshift
