@@ -242,6 +242,15 @@ class Promise(AbstractPromise):
 
 
 class LastPromise(AbstractPromise):
+    def __getattr__(self, item):
+        if item in ("phase", "path", "is_constant"):
+            return super().__getattribute__(item)
+        return LastPromise(
+            *self.path,
+            item,
+            result_path=self.result_path,
+            is_constant=self.is_constant,
+        )
 
     def populate(self, results_collection):
         pass
