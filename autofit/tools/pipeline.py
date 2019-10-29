@@ -152,6 +152,13 @@ class Pipeline(object):
             *(self.phases + other.phases)
         )
 
+    def run(self, data):
+
+        def runner(phase, results):
+            return phase.run(data=data, results=results)
+
+        return self.run_function(runner)
+
     def run_function(self, func, data_name=None):
         """
         Run the function for each phase in the pipeline.

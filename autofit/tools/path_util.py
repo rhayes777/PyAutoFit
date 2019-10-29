@@ -36,4 +36,4 @@ def make_and_return_path_from_path_and_folder_names(path, folder_names):
         except FileExistsError:
             pass
 
-    return path
+    return f"{path}/"

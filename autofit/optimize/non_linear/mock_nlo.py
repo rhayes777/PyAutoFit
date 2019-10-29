@@ -35,3 +35,19 @@ class MockNLO(af.NonLinearOptimizer):
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
             ],
         )
+
+
+class MockAnalysis(af.Analysis):
+    def fit(self, instance):
+        return 1.0
+
+    def visualize(self, instance, during_analysis):
+        pass
+
+    def __init__(
+            self,
+            data,
+            results
+    ):
+        self.data = data
+        self.results = results

@@ -30,6 +30,9 @@ class AbstractPromiseResult(ABC):
         Used to manage results paths
         """
 
+    def __call__(self, *args, **kwargs):
+        pass
+
 
 class LastPromiseResult(AbstractPromiseResult):
     """
