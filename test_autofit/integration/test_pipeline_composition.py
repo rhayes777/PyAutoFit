@@ -14,13 +14,11 @@ def make_pipeline_1(
             phase_name="phase_1",
             phase_folders=phase_folders
         ),
-        model=af.ModelMapper(
-            one=af.PriorModel(
-                mock.Galaxy,
-                redshift=af.GaussianPrior(
-                    10.0,
-                    1.0
-                )
+        model=af.PriorModel(
+            mock.Galaxy,
+            redshift=af.GaussianPrior(
+                10.0,
+                1.0
             )
         ),
         optimizer_class=optimizer_class,
@@ -39,11 +37,9 @@ def make_pipeline_2(
             phase_name="phase_2",
             phase_folders=phase_folders
         ),
-        model=af.ModelMapper(
-            one=af.PriorModel(
-                mock.Galaxy,
-                redshift=af.last.variable.one.redshift
-            )
+        model=af.PriorModel(
+            mock.Galaxy,
+            redshift=af.last.variable.redshift
         ),
         optimizer_class=optimizer_class,
         analysis_class=MockAnalysis
@@ -73,4 +69,4 @@ def test_pipeline_composition():
     ).run(
         None
     )
-    assert results[0].variable.one.redshift.mean == results[1].variable.one.redshift.mean
+    assert results[0].variable.redshift.mean == results[1].variable.redshift.mean

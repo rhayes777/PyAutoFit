@@ -1,7 +1,6 @@
 import os
 
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.tools.text_formatter import TextFormatter
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -80,44 +79,3 @@ class ModelMapper(CollectionPriorModel):
             for prior_model in self.prior_model_tuples
             for _, prior in prior_model[1].prior_tuples
         }
-
-    @property
-    def info(self):
-        """
-        Use the priors that make up the model_mapper to generate information on each
-        parameter of the overall model.
-
-        This information is extracted from each priors *model_info* property.
-        """
-        formatter = TextFormatter()
-
-        for t in self.path_priors_tuples + self.path_float_tuples:
-            formatter.add(t)
-
-        return formatter.text
-
-    def name_for_prior(self, prior):
-        for prior_model_name, prior_model in self.prior_model_tuples:
-            prior_name = prior_model.name_for_prior(prior)
-            if prior_name is not None:
-                return "{}_{}".format(prior_model_name, prior_name)
-
-    @property
-    def param_names(self):
-        """The param_names vector is a list each parameter's analysis_path, and is used
-        for *GetDist* visualization.
-
-        The parameter names are determined from the class instance names of the
-        model_mapper. Latex tags are properties of each model class."""
-
-        return [
-            self.name_for_prior(prior)
-            for prior in sorted(self.priors, key=lambda prior: prior.id)
-        ]
-
-    def __eq__(self, other):
-        return (
-            isinstance(other, ModelMapper)
-            and self.priors == other.priors
-            and self.prior_model_tuples == other.prior_model_tuples
-        )
