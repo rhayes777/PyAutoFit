@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export PACKAGE_NAME=autofit
+
 rm -rf $p/dist
 rm -rf $p/build
 
