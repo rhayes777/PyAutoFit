@@ -38,7 +38,7 @@ def make_pipeline_2(
         model=af.ModelMapper(
             one=af.PriorModel(
                 mock.Galaxy,
-                redshift=af.last.one.redshift
+                redshift=af.last.variable.one.redshift
             )
         ),
         optimizer_class=optimizer_class,
