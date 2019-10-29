@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 import autofit as af
@@ -80,6 +82,19 @@ class TestLastPromises:
         result = last_constant.populate(collection)
 
         assert result is collection[0].constant.one.redshift
+
+    def test_recover_last_variable(self, collection, last_variable):
+        last_results = copy.deepcopy(collection.last)
+        collection.add(
+            "last_phase",
+            last_results
+        )
+
+        result = last_variable.populate(
+            collection
+        )
+        assert result is last_results.variable.one.redshift
+        assert result is not collection[0].variable.one.redshift
 
 
 class TestCase:
