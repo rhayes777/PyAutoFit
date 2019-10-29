@@ -1,7 +1,7 @@
 import copy
 
 from autofit.mapper.model_object import ModelObject
-from autofit.tools.promise import Promise
+from autofit.tools.promise import AbstractPromise
 
 
 class AbstractModel(ModelObject):
@@ -85,7 +85,7 @@ def populate(obj, collection):
         return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
         return {key: populate(value, collection) for key, value in obj.items()}
-    if isinstance(obj, Promise):
+    if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:
         new = copy.deepcopy(obj)

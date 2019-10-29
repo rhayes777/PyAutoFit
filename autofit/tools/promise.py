@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from autofit.tools.pipeline import ResultsCollection
+
 
 class AbstractPromiseResult(ABC):
     def __init__(
@@ -28,8 +30,16 @@ class AbstractPromiseResult(ABC):
         Used to manage results paths
         """
 
+    def __call__(self, *args, **kwargs):
+        pass
+
 
 class LastPromiseResult(AbstractPromiseResult):
+    """
+    A PromiseResult that does not require a phase. Refers to the latest Result in the collection with an object for
+    the path specified in a promise.
+    """
+
     @property
     def variable(self):
         """
@@ -167,6 +177,15 @@ class AbstractPromise(ABC):
             The promised prior, prior model, instance or constant
         """
 
+    def _populate_from_results(
+            self,
+            results
+    ):
+        for item in self.result_path:
+            results = getattr(results, item)
+        model = results.constant if self.is_constant else results.variable
+        return model.object_for_path(self.path)
+
 
 class Promise(AbstractPromise):
     def __init__(
@@ -208,7 +227,7 @@ class Promise(AbstractPromise):
             phase.variable.object_for_path(path)
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_constant"):
+        if item in ("phase", "path", "is_constant", "_populate_from_results"):
             return super().__getattribute__(item)
         return Promise(
             self.phase,
@@ -235,16 +254,60 @@ class Promise(AbstractPromise):
             The promised prior, prior model, instance or constant
         """
         results = results_collection.from_phase(self.phase.phase_name)
-        for item in self.result_path:
-            results = getattr(results, item)
-        model = results.constant if self.is_constant else results.variable
-        return model.object_for_path(self.path)
+        return self._populate_from_results(
+            results
+        )
 
 
 class LastPromise(AbstractPromise):
+    """
+    A promise that searches the results collection to find the latest result that contains an object with the
+    specified path
+    """
 
-    def populate(self, results_collection):
-        pass
+    def __getattr__(self, item):
+        if item in ("phase", "path", "is_constant", "_populate_from_results"):
+            return super().__getattribute__(item)
+        return LastPromise(
+            *self.path,
+            item,
+            result_path=self.result_path,
+            is_constant=self.is_constant,
+        )
+
+    def populate(
+            self,
+            results_collection:
+            ResultsCollection
+    ):
+        """
+        Recover the constant or variable associated with this promise from the latest result in the results collection
+        where a matching path is found.
+        
+        Parameters
+        ----------
+        results_collection
+            A collection of results to be searched in reverse
+
+        Returns
+        -------
+        A prior, model or constant.
+        
+        Raises
+        ------
+        AttributeError
+            If no matching prior is found
+        """
+        for results in results_collection.reversed:
+            try:
+                return self._populate_from_results(
+                    results
+                )
+            except AttributeError:
+                pass
+        raise AttributeError(
+            f"No attribute found with path {self.path} in previous phase"
+        )
 
 
 last = LastPromiseResult()

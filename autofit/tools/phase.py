@@ -6,15 +6,16 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper
 from autofit import exc
 from autofit.optimize import grid_search
+from autofit.optimize.non_linear.non_linear import Paths
 from autofit.tools.promise import PromiseResult
 
 
 class AbstractPhase:
     def __init__(
-        self,
-        paths,
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        auto_link_priors=False,
+            self,
+            paths=Paths(),
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -28,8 +29,7 @@ class AbstractPhase:
         self.paths = paths
 
         self.optimizer = optimizer_class(self.paths)
-        self.auto_link_priors = auto_link_priors
-        self.variable = ModelMapper()
+        self.variable = model or ModelMapper()
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -119,6 +119,62 @@ class AbstractPhase:
         self.save_optimizer_for_phase()
 
 
+class Phase(AbstractPhase):
+
+    def __init__(
+            self,
+            analysis_class,
+            paths=Paths(),
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
+    ):
+        super().__init__(
+            paths=paths,
+            optimizer_class=optimizer_class,
+            model=model
+        )
+        self.analysis_class = analysis_class
+
+    def make_result(self, result, analysis):
+        return result
+
+    def make_analysis(self, data, results):
+        return self.analysis_class(
+            data,
+            results
+        )
+
+    def run(self, data, results=None):
+        """
+        Run this phase.
+
+        Parameters
+        ----------
+        results: autofit.tools.pipeline.ResultsCollection
+            An object describing the results of the last phase or None if no phase has been executed
+        data: scaled_array.ScaledSquarePixelArray
+            An masked_imaging that has been masked
+
+        Returns
+        -------
+        result: AbstractPhase.Result
+            A result object comprising the best fit model and other hyper_galaxies.
+        """
+        self.variable = self.variable.populate(results)
+
+        analysis = self.make_analysis(
+            data=data,
+            results=results
+        )
+
+        self.customize_priors(results)
+        self.assert_and_save_pickle()
+
+        result = self.run_analysis(analysis)
+
+        return self.make_result(result=result, analysis=None)
+
+
 def as_grid_search(phase_class, parallel=False):
     """
     Create a grid search phase class from a regular phase class. Instead of the phase
@@ -143,11 +199,11 @@ def as_grid_search(phase_class, parallel=False):
 
     class GridSearchExtension(phase_class):
         def __init__(
-            self,
-            paths,
-            number_of_steps=10,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            **kwargs,
+                self,
+                paths,
+                number_of_steps=10,
+                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                **kwargs,
         ):
             super().__init__(paths=paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(

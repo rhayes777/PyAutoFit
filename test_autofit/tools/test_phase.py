@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 import autofit as af
@@ -52,11 +54,65 @@ def make_collection():
     return collection
 
 
+@pytest.fixture(name="last_variable")
+def make_last_variable():
+    return af.last.variable.one.redshift
+
+
+@pytest.fixture(name="last_constant")
+def make_last_constant():
+    return af.last.constant.one.redshift
+
+
 class TestLastPromises:
-    def test_variable(self):
-        variable_promise = af.last.variable.one.redshift
-        assert variable_promise.path == ("one", "redshift")
-        assert variable_promise.is_constant is False
+    def test_variable(self, last_variable):
+        assert last_variable.path == ("one", "redshift")
+        assert last_variable.is_constant is False
+
+    def test_constant(self, last_constant):
+        assert last_constant.path == ("one", "redshift")
+        assert last_constant.is_constant is True
+
+    def test_recover_variable(self, collection, last_variable):
+        result = last_variable.populate(collection)
+
+        assert result is collection[0].variable.one.redshift
+
+    def test_recover_constant(self, collection, last_constant):
+        result = last_constant.populate(collection)
+
+        assert result is collection[0].constant.one.redshift
+
+    def test_recover_last_variable(self, collection, last_variable):
+        last_results = copy.deepcopy(collection.last)
+        collection.add(
+            "last_phase",
+            last_results
+        )
+
+        result = last_variable.populate(
+            collection
+        )
+        assert result is last_results.variable.one.redshift
+        assert result is not collection[0].variable.one.redshift
+
+    def test_embedded_results(self, collection):
+        hyper_result = af.last.hyper_result
+
+        variable_promise = hyper_result.variable
+        constant_promise = hyper_result.constant
+
+        variable = variable_promise.populate(collection)
+        constant = constant_promise.populate(collection)
+
+        assert isinstance(variable.hyper_galaxy, af.PriorModel)
+        assert variable.hyper_galaxy.cls is mock.HyperGalaxy
+        assert isinstance(constant.hyper_galaxy, mock.HyperGalaxy)
+
+    def test_raises(self, collection):
+        bad_promise = af.last.variable.a.bad.path
+        with pytest.raises(AttributeError):
+            bad_promise.populate(collection)
 
 
 class TestCase:

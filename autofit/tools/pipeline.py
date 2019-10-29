@@ -21,6 +21,10 @@ class ResultsCollection(object):
         return collection
 
     @property
+    def reversed(self):
+        return reversed(self.__result_list)
+
+    @property
     def last(self):
         """
         The result of the last phase
@@ -147,6 +151,13 @@ class Pipeline(object):
             "{} + {}".format(self.pipeline_name, other.pipeline_name),
             *(self.phases + other.phases)
         )
+
+    def run(self, data):
+
+        def runner(phase, results):
+            return phase.run(data=data, results=results)
+
+        return self.run_function(runner)
 
     def run_function(self, func, data_name=None):
         """

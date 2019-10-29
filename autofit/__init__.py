@@ -40,6 +40,7 @@ from .optimize.non_linear.non_linear import Result
 from .tools import *
 from .tools import path_util, text_util
 from .tools.phase import AbstractPhase
+from .tools.phase import Phase
 from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
