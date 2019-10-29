@@ -36,4 +36,3 @@ class TestLabel(object):
     def test_exception(self, label_config):
         with pytest.raises(af.exc.PriorException):
             label_config.subscript(MockClass)
-

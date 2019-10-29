@@ -1,12 +1,13 @@
 import pytest
 
 import autofit as af
+from autofit.optimize.non_linear.non_linear import Paths
 from test_autofit import mock
 
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase("phase name")
+    phase = af.AbstractPhase(Paths("phase name"))
     phase.variable.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
     return phase
 
@@ -49,6 +50,13 @@ def make_collection():
     collection.add("phase name", result)
 
     return collection
+
+
+class TestLastPromises:
+    def test_variable(self):
+        variable_promise = af.last.variable.one.redshift
+        assert variable_promise.path == ("one", "redshift")
+        assert variable_promise.is_constant is False
 
 
 class TestCase:

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 """
-Filter and collate phase data in all subdirectories.
+Filter and collate phase simulate in all subdirectories.
 
 Usage:
 
-./aggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]
+./aggregator.py (root_directory) [pipeline=pipeline phase=phase simulate=simulate]
 
 Example:
 
@@ -16,7 +16,6 @@ import os
 import pickle
 
 import autofit.optimize.non_linear.non_linear
-from autofit.optimize import non_linear
 
 
 class PhaseOutput(object):
@@ -26,7 +25,7 @@ class PhaseOutput(object):
 
     def __init__(self, directory: str):
         """
-        Represents the output of a single phase. Comprises a metadata file and other data files.
+        Represents the output of a single phase. Comprises a metadata file and other simulate files.
 
         Parameters
         ----------
@@ -35,6 +34,7 @@ class PhaseOutput(object):
         """
         self.directory = directory
         self.__optimizer = None
+        self.__model = None
         self.file_path = os.path.join(directory, "metadata")
         with open(self.file_path) as f:
             self.text = f.read()
@@ -52,7 +52,7 @@ class PhaseOutput(object):
     @property
     def header(self) -> str:
         """
-        A header created by joining the pipeline, phase and data names
+        A header created by joining the pipeline, phase and simulate names
         """
         return "/".join((self.pipeline, self.phase, self.data))
 
@@ -65,6 +65,16 @@ class PhaseOutput(object):
             with open(os.path.join(self.directory, "optimizer.pickle"), "r+b") as f:
                 self.__optimizer = pickle.loads(f.read())
         return self.__optimizer
+
+    @property
+    def model(self) -> autofit.optimize.non_linear.non_linear.NonLinearOptimizer:
+        """
+        The optimizer object that was used in this phase
+        """
+        if self.__model is None:
+            with open(os.path.join(self.directory, "model.pickle"), "r+b") as f:
+                self.__model = pickle.loads(f.read())
+        return self.__model
 
     def __str__(self):
         return self.text
@@ -95,7 +105,7 @@ class Aggregator(object):
     def phases_with(self, **kwargs) -> [PhaseOutput]:
         """
         Filters phases. If no arguments are passed all phases are returned. Arguments must be key value pairs, with
-        phase, data or pipeline as the key.
+        phase, simulate or pipeline as the key.
 
         Parameters
         ----------
@@ -109,7 +119,7 @@ class Aggregator(object):
         ]
 
     def optimizers_with(
-        self, **kwargs
+            self, **kwargs
     ) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
         """
         Load a list of optimizers for phases in the directory with zero or more filters applied.
@@ -154,7 +164,7 @@ if __name__ == "__main__":
         root_directory = argv[1]
     except IndexError:
         print(
-            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]"
+            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase simulate=simulate]"
         )
         exit(1)
     filter_dict = {pair[0]: pair[1] for pair in [line.split("=") for line in argv[2:]]}

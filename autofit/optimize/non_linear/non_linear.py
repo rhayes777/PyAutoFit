@@ -17,14 +17,19 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 class Paths:
     def __init__(
-            self,
-            phase_name="",
-            phase_tag=None,
-            phase_folders=tuple()
+        self, phase_name="", phase_tag=None, phase_folders=tuple(), phase_path=None
     ):
-        self.phase_path = "/".join(phase_folders)
+
+        # TODO : When I make a HyperPhase in autolens, the input phase name is an instance of Paths. The if loop below
+        # TODO : Fixes the tests but is clearly dodgy.
+
+        if isinstance(phase_name, Paths):
+            phase_name = phase_name.phase_name
+        if not isinstance(phase_name, str):
+            raise ValueError("Phase name must be a string")
+        self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
-        self.phase_tag = phase_tag or ''
+        self.phase_tag = phase_tag or ""
 
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
@@ -39,11 +44,13 @@ class Paths:
         self.path = link.make_linked_folder(self.sym_path)
 
     def __eq__(self, other):
-        return isinstance(other, Paths) and all([
-            self.phase_path == other.phase_path,
-            self.phase_name == other.phase_name,
-            self.phase_tag == other.phase_tag
-        ])
+        return isinstance(other, Paths) and all(
+            [
+                self.phase_path == other.phase_path,
+                self.phase_name == other.phase_name,
+                self.phase_tag == other.phase_tag,
+            ]
+        )
 
     @property
     def phase_folders(self):
@@ -62,8 +69,8 @@ class Paths:
                     self.phase_path,
                     self.phase_name,
                     self.phase_tag,
-                    'optimizer_backup'
-                ]
+                    "optimizer_backup",
+                ],
             )
         )
 
@@ -72,26 +79,29 @@ class Paths:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}/{}/".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                     self.phase_tag)
+        return "{}/{}/{}/{}/".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     @property
     def opt_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                              self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(conf.instance.output_path, self.phase_path, self.phase_name,
-                                              self.phase_tag)
+        return "{}/{}/{}/{}/optimizer".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        )
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.opt_path, 'multinest.paramnames')
+        return "{}/{}".format(self.opt_path, "multinest.paramnames")
 
     @property
     def file_model_info(self) -> str:
-        return "{}/{}".format(self.phase_output_path, 'model.info')
+        return "{}/{}".format(self.phase_output_path, "model.info")
 
     @property
     def image_path(self) -> str:
@@ -125,27 +135,23 @@ class Paths:
         be saved
         """
         return "{}/{}/{}/{}/".format(
-            conf.instance.output_path,
-            self.phase_path,
-            self.phase_name,
-            self.phase_tag
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
         )
 
     @property
     def file_summary(self) -> str:
-        return "{}/{}".format(self.backup_path, 'multinestsummary.txt')
+        return "{}/{}".format(self.backup_path, "multinestsummary.txt")
 
     @property
     def file_weighted_samples(self):
-        return "{}/{}".format(self.backup_path, 'multinest.txt')
+        return "{}/{}".format(self.backup_path, "multinest.txt")
 
     @property
     def file_results(self):
-        return "{}/{}".format(self.phase_output_path, 'model.results')
+        return "{}/{}".format(self.phase_output_path, "model.results")
 
 
 class NonLinearOptimizer(object):
-
     def __init__(self, paths):
         """Abstract base class for non-linear optimizers.
 
@@ -156,19 +162,19 @@ class NonLinearOptimizer(object):
         ------------
 
         """
-        log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
+        log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
         self.paths = paths
 
         if not len(log_file) == 0:
-            log_path = "{}{}".format(
-                self.paths.phase_output_path,
-                log_file
-            )
+            log_path = "{}{}".format(self.paths.phase_output_path, log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
-                conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
+                conf.instance.general.get("output", "log_level", str)
+                .replace(" ", "")
+                .upper()
+            ]
 
         self.restore()
 
@@ -188,7 +194,9 @@ class NonLinearOptimizer(object):
         attribute
             An attribute for the key with the specified type.
         """
-        return conf.instance.non_linear.get(self.__class__.__name__, attribute_name, attribute_type)
+        return conf.instance.non_linear.get(
+            self.__class__.__name__, attribute_name, attribute_type
+        )
 
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
@@ -221,15 +229,12 @@ class NonLinearOptimizer(object):
             for file in glob.glob(self.paths.backup_path + "/*"):
                 shutil.copy(file, self.paths.path)
 
-    def fit(
-            self,
-            analysis,
-            model
-    ):
-        raise NotImplementedError("Fitness function must be overridden by non linear optimizers")
+    def fit(self, analysis, model):
+        raise NotImplementedError(
+            "Fitness function must be overridden by non linear optimizers"
+        )
 
     class Fitness:
-
         def __init__(self, nlo, analysis):
 
             self.nlo = nlo
@@ -237,9 +242,13 @@ class NonLinearOptimizer(object):
             self.max_likelihood = -np.inf
             self.analysis = analysis
 
-            log_interval = conf.instance.general.get('output', 'log_interval', int)
-            backup_interval = conf.instance.general.get('output', 'backup_interval', int)
-            visualize_interval = conf.instance.visualize.get('figures', 'visualize_interval', int)
+            log_interval = conf.instance.general.get("output", "log_interval", int)
+            backup_interval = conf.instance.general.get(
+                "output", "backup_interval", int
+            )
+            visualize_interval = conf.instance.visualize.get(
+                "figures", "visualize_interval", int
+            )
 
             self.should_log = IntervalCounter(log_interval)
             self.should_backup = IntervalCounter(backup_interval)
@@ -261,14 +270,19 @@ class NonLinearOptimizer(object):
 
             return likelihood
 
-    def copy_with_name_extension(self, extension):
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
         name = "{}/{}".format(self.paths.phase_name, extension)
+
+        if remove_phase_tag:
+            phase_tag = ""
+        else:
+            phase_tag = self.paths.phase_tag
 
         new_instance = self.__class__(
             Paths(
                 phase_name=name,
                 phase_folders=self.paths.phase_folders,
-                phase_tag=self.paths.phase_tag
+                phase_tag=phase_tag,
             )
         )
 
@@ -276,7 +290,6 @@ class NonLinearOptimizer(object):
 
 
 class Analysis(object):
-
     def fit(self, instance):
         raise NotImplementedError()
 
@@ -289,7 +302,9 @@ class Result(object):
     @DynamicAttrs
     """
 
-    def __init__(self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None):
+    def __init__(
+        self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None
+    ):
         """
         The result of an optimization.
 
@@ -322,7 +337,10 @@ class Result(object):
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
-            "\n".join(["{}: {}".format(key, value) for key, value in self.__dict__.items()]))
+            "\n".join(
+                ["{}: {}".format(key, value) for key, value in self.__dict__.items()]
+            )
+        )
 
     def variable_absolute(self, a: float) -> mm.ModelMapper:
         """
@@ -336,7 +354,9 @@ class Result(object):
         A model mapper created by taking results from this phase and creating priors with the defined absolute
         width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
+        return self.previous_variable.mapper_from_gaussian_tuples(
+            self.gaussian_tuples, a=a
+        )
 
     def variable_relative(self, r: float) -> mm.ModelMapper:
         """
@@ -350,7 +370,9 @@ class Result(object):
         A model mapper created by taking results from this phase and creating priors with the defined relative
         width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
+        return self.previous_variable.mapper_from_gaussian_tuples(
+            self.gaussian_tuples, r=r
+        )
 
 
 class IntervalCounter(object):
@@ -383,7 +405,9 @@ def persistent_timer(func):
 
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
-        start_time_path = "{}/.start_time".format(optimizer_instance.paths.phase_output_path)
+        start_time_path = "{}/.start_time".format(
+            optimizer_instance.paths.phase_output_path
+        )
         try:
             with open(start_time_path) as f:
                 start = float(f.read())
@@ -396,11 +420,14 @@ def persistent_timer(func):
 
         execution_time = str(dt.timedelta(seconds=time.time() - start))
 
-        logger.info("{} took {} to run".format(
-            optimizer_instance.paths.phase_name,
-            execution_time
-        ))
-        with open("{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+") as f:
+        logger.info(
+            "{} took {} to run".format(
+                optimizer_instance.paths.phase_name, execution_time
+            )
+        )
+        with open(
+            "{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+"
+        ) as f:
             f.write(execution_time)
         return result
 

@@ -27,6 +27,7 @@ from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.util import PriorModelNameValue
 from .optimize import *
+from .optimize.non_linear.non_linear import Paths
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.grid_search import GridSearch
@@ -45,5 +46,6 @@ from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
 from .tools.promise import Promise
 from .tools.promise import PromiseResult
+from .tools.promise import last
 
-__version__ = '0.44.1'
+__version__ = "0.44.1"

@@ -6,10 +6,7 @@ from autofit.optimize.non_linear.multi_nest_output import Output
 
 class MockNLO(af.NonLinearOptimizer):
     def fit(self, analysis, model):
-        mock_output = Output(
-            model,
-            self.paths
-        )
+        mock_output = Output(model, self.paths)
         mock_output.save_model_info()
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the variable!")

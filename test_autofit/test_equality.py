@@ -8,7 +8,6 @@ from test_autofit.mapper.test_model_mapper import GeometryProfile
 from test_autofit.mock import GalaxyModel
 
 
-
 @pytest.fixture(name="prior_model")
 def make_prior_model():
     return af.PriorModel(GeometryProfile)
@@ -68,11 +67,7 @@ class TestCase(object):
         assert model_instance != model_instance_copy
 
     def test_multinest_equality(self):
-        nlo = af.MultiNest(
-            Paths(
-                "phase name"
-            )
-        )
+        nlo = af.MultiNest(Paths("phase name"))
         nlo_copy = deepcopy(nlo)
 
         assert nlo == nlo_copy
