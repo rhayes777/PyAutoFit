@@ -29,6 +29,33 @@ class AbstractPromiseResult(ABC):
         """
 
 
+class LastPromiseResult(AbstractPromiseResult):
+    @property
+    def variable(self):
+        """
+        A promise for an object in the variable result. This might be a prior or prior model.
+        """
+        return LastPromise(
+            result_path=self.result_path
+        )
+
+    @property
+    def constant(self):
+        """
+        A promise for an object in the best fit result. This must be an instance or constant.
+        """
+        return LastPromise(
+            result_path=self.result_path,
+            is_constant=True
+        )
+
+    def __getattr__(self, item):
+        return LastPromiseResult(
+            *self.result_path,
+            item,
+        )
+
+
 class PromiseResult(AbstractPromiseResult):
     def __init__(
             self,
@@ -212,3 +239,12 @@ class Promise(AbstractPromise):
             results = getattr(results, item)
         model = results.constant if self.is_constant else results.variable
         return model.object_for_path(self.path)
+
+
+class LastPromise(AbstractPromise):
+
+    def populate(self, results_collection):
+        pass
+
+
+last = LastPromiseResult()
