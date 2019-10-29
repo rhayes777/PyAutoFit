@@ -1,6 +1,7 @@
 import copy
 import inspect
 
+from autofit.mapper.prior_model import dimension_type as dim
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
@@ -8,11 +9,15 @@ from autofit import conf
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.prior_model.dimension_type import DimensionType
 from autofit.mapper.prior_model.prior import ConstantNameValue
 from autofit.mapper.prior_model.prior import GaussianPrior
-from autofit.mapper.prior_model.prior import cast_collection, PriorNameValue, TuplePrior, Prior, \
-    DeferredNameValue
+from autofit.mapper.prior_model.prior import (
+    cast_collection,
+    PriorNameValue,
+    TuplePrior,
+    Prior,
+    DeferredNameValue,
+)
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 
@@ -34,10 +39,13 @@ class AbstractPriorModel(AbstractModel):
     def from_object(t, *args, **kwargs):
         if inspect.isclass(t):
             from .prior_model import PriorModel
+
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
-            obj = object.__new__(autofit.mapper.prior_model.collection.CollectionPriorModel)
+            obj = object.__new__(
+                autofit.mapper.prior_model.collection.CollectionPriorModel
+            )
             obj.__init__(t)
         else:
             obj = t
@@ -66,10 +74,10 @@ class AbstractPriorModel(AbstractModel):
             map(
                 lambda prior_tuple, unit: (
                     prior_tuple.prior,
-                    prior_tuple.prior.value_for(unit)
+                    prior_tuple.prior.value_for(unit),
                 ),
                 self.prior_tuples_ordered_by_id,
-                unit_vector
+                unit_vector,
             )
         )
 
@@ -92,6 +100,7 @@ class AbstractPriorModel(AbstractModel):
     @property
     def unique_promise_tuples(self):
         from autofit import Promise
+
         return {
             prior_tuple[1]: prior_tuple
             for prior_tuple in self.attribute_tuples_with_type(Promise)
@@ -106,8 +115,9 @@ class AbstractPriorModel(AbstractModel):
         priors: [Prior]
             An ordered list of unique priors associated with this mapper
         """
-        return sorted(list(self.unique_prior_tuples),
-                      key=lambda prior_tuple: prior_tuple.prior.id)
+        return sorted(
+            list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
+        )
 
     def physical_vector_from_hypercube_vector(self, hypercube_vector):
         """
@@ -122,9 +132,12 @@ class AbstractPriorModel(AbstractModel):
             A vector with values output by priors
         """
         return list(
-            map(lambda prior_tuple, unit: prior_tuple.prior.value_for(unit),
+            map(
+                lambda prior_tuple, unit: prior_tuple.prior.value_for(unit),
                 self.prior_tuples_ordered_by_id,
-                hypercube_vector))
+                hypercube_vector,
+            )
+        )
 
     @property
     def physical_values_from_prior_medians(self):
@@ -136,7 +149,8 @@ class AbstractPriorModel(AbstractModel):
             each prior.
         """
         return self.physical_vector_from_hypercube_vector(
-            [0.5] * len(self.unique_prior_tuples))
+            [0.5] * len(self.unique_prior_tuples)
+        )
 
     def instance_from_physical_vector(self, physical_vector):
         """
@@ -161,7 +175,8 @@ class AbstractPriorModel(AbstractModel):
             map(
                 lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
                 self.prior_tuples_ordered_by_id,
-                physical_vector)
+                physical_vector,
+            )
         )
 
         return self.instance_for_arguments(arguments)
@@ -207,7 +222,7 @@ class AbstractPriorModel(AbstractModel):
                 prior_model_tuple.name,
                 prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
                     arguments
-                )
+                ),
             )
 
         return mapper
@@ -248,7 +263,8 @@ class AbstractPriorModel(AbstractModel):
             mean = tuples[i][0]
             if a is not None and r is not None:
                 raise exc.PriorException(
-                    "Width of new priors cannot be both relative and absolute.")
+                    "Width of new priors cannot be both relative and absolute."
+                )
             if a is not None:
                 width_type = "a"
                 value = a
@@ -257,20 +273,21 @@ class AbstractPriorModel(AbstractModel):
                 value = r
             else:
                 width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(
-                    cls, prior_tuple.name)
+                    cls, prior_tuple.name
+                )
             if width_type == "r":
                 width = value * mean
             elif width_type == "a":
                 width = value
             else:
                 raise exc.PriorException(
-                    "Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0")
+                    "Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0"
+                )
             if isinstance(prior, GaussianPrior):
                 limits = (prior.lower_limit, prior.upper_limit)
             else:
                 limits = conf.instance.prior_limit.get_for_nearest_ancestor(
-                    cls,
-                    prior_tuple.name
+                    cls, prior_tuple.name
                 )
             arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
 
@@ -291,10 +308,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @staticmethod
-    def from_instance(
-            instance,
-            variable_classes=tuple()
-    ):
+    def from_instance(instance, variable_classes=tuple()):
         """
         Recursively create an prior object model from an object model.
 
@@ -313,8 +327,7 @@ class AbstractPriorModel(AbstractModel):
             result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(
-                        item,
-                        variable_classes=variable_classes
+                        item, variable_classes=variable_classes
                     )
                     for item in instance
                 ]
@@ -326,45 +339,38 @@ class AbstractPriorModel(AbstractModel):
                     result,
                     key,
                     AbstractPriorModel.from_instance(
-                        value,
-                        variable_classes=variable_classes
-                    )
+                        value, variable_classes=variable_classes
+                    ),
                 )
         elif isinstance(instance, dict):
             result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
-                        value,
-                        variable_classes=variable_classes
+                        value, variable_classes=variable_classes
                     )
-                    for key, value
-                    in instance.items()
+                    for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, DimensionType):
+        elif isinstance(instance, dim.DimensionType):
             return instance
         else:
             from .prior_model import PriorModel
+
             try:
                 result = PriorModel(
                     instance.__class__,
                     **{
                         key: AbstractPriorModel.from_instance(
-                            value,
-                            variable_classes=variable_classes
+                            value, variable_classes=variable_classes
                         )
-                        for key, value
-                        in instance.__dict__.items()
+                        for key, value in instance.__dict__.items()
                         if key != "cls"
                     }
                 )
 
             except AttributeError:
                 return instance
-        if any([
-            isinstance(instance, cls)
-            for cls in variable_classes
-        ]):
+        if any([isinstance(instance, cls) for cls in variable_classes]):
             return result.as_variable()
         return result
 
@@ -425,8 +431,10 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     def __eq__(self, other):
-        return isinstance(other, AbstractPriorModel) \
-               and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+        return (
+            isinstance(other, AbstractPriorModel)
+            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+        )
 
     @property
     @cast_collection(ConstantNameValue)
@@ -486,11 +494,7 @@ class AbstractPriorModel(AbstractModel):
 
         return result
 
-    def copy_with_fixed_priors(
-            self,
-            instance,
-            excluded_classes=tuple()
-    ):
+    def copy_with_fixed_priors(self, instance, excluded_classes=tuple()):
         """
         Recursively overwrite priors in the mapper with constant values from the
         instance except where the containing class is the descendant of a listed class.
@@ -508,36 +512,17 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def path_priors_tuples(self):
-        path_priors_tuples = self.path_instance_tuples_for_class(
-            Prior
-        )
-        return sorted(
-            path_priors_tuples,
-            key=lambda item: item[1].id
-        )
+        path_priors_tuples = self.path_instance_tuples_for_class(Prior)
+        return sorted(path_priors_tuples, key=lambda item: item[1].id)
 
     @property
     def path_float_tuples(self):
-        return self.path_instance_tuples_for_class(
-            float,
-            ignore_class=Prior
-        )
+        return self.path_instance_tuples_for_class(float, ignore_class=Prior)
 
     @property
     def unique_prior_paths(self):
-        unique = {
-            item[1]: item
-            for item
-            in self.path_priors_tuples
-        }.values()
-        return [
-            item[0]
-            for item
-            in sorted(
-                unique,
-                key=lambda item: item[1].id
-            )
-        ]
+        unique = {item[1]: item for item in self.path_priors_tuples}.values()
+        return [item[0] for item in sorted(unique, key=lambda item: item[1].id)]
 
 
 def transfer_classes(instance, mapper, variable_classes=None):
@@ -555,32 +540,19 @@ def transfer_classes(instance, mapper, variable_classes=None):
         The prior variable from the previous phase
     """
     from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+
     variable_classes = variable_classes or []
     for key, instance_value in instance.__dict__.items():
         try:
             mapper_value = getattr(mapper, key)
-            if isinstance(
-                    mapper_value,
-                    Prior
-            ) or isinstance(
-                mapper_value,
-                AnnotationPriorModel
+            if isinstance(mapper_value, Prior) or isinstance(
+                mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
-            if not any(
-                    isinstance(
-                        instance_value,
-                        cls
-                    )
-                    for cls in variable_classes
-            ):
+            if not any(isinstance(instance_value, cls) for cls in variable_classes):
                 try:
-                    transfer_classes(
-                        instance_value,
-                        mapper_value,
-                        variable_classes
-                    )
+                    transfer_classes(instance_value, mapper_value, variable_classes)
                 except AttributeError:
                     setattr(mapper, key, instance_value)
         except AttributeError:

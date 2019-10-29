@@ -74,7 +74,6 @@ class PhaseOutput(object):
 
 
 class Aggregator(object):
-
     def __init__(self, directory: str):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
@@ -103,10 +102,15 @@ class Aggregator(object):
         kwargs
             Filters, e.g. pipeline=pipeline1
         """
-        return [phase for phase in self.phases if
-                all([getattr(phase, key) == value for key, value in kwargs.items()])]
+        return [
+            phase
+            for phase in self.phases
+            if all([getattr(phase, key) == value for key, value in kwargs.items()])
+        ]
 
-    def optimizers_with(self, **kwargs) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
+    def optimizers_with(
+        self, **kwargs
+    ) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
         """
         Load a list of optimizers for phases in the directory with zero or more filters applied.
 
@@ -136,8 +140,10 @@ class Aggregator(object):
         model_results
             A string joining headers and results for all included phases.
         """
-        return "\n\n".join("{}\n\n{}".format(phase.header, phase.model_results) for phase in
-                           self.phases_with(**kwargs))
+        return "\n\n".join(
+            "{}\n\n{}".format(phase.header, phase.model_results)
+            for phase in self.phases_with(**kwargs)
+        )
 
 
 if __name__ == "__main__":
@@ -147,7 +153,9 @@ if __name__ == "__main__":
     try:
         root_directory = argv[1]
     except IndexError:
-        print("Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]")
+        print(
+            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase data=data]"
+        )
         exit(1)
     filter_dict = {pair[0]: pair[1] for pair in [line.split("=") for line in argv[2:]]}
 

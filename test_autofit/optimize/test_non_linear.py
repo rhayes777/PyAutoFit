@@ -5,9 +5,11 @@ import shutil
 import pytest
 
 import autofit as af
-
-from test_autofit.mock import GeometryProfile, MockClassNLOx4, MockClassNLOx5, MockClassNLOx6, \
-    MockNonLinearOptimizer
+from autofit import ModelMapper
+from autofit.optimize.non_linear.multi_nest import Paths
+from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
+from test_autofit.mock import GeometryProfile, MockClassNLOx4, MockClassNLOx5, MockNonLinearOptimizer, \
+    MockClassNLOx6
 
 pytestmark = pytest.mark.filterwarnings('ignore::FutureWarning')
 
@@ -72,25 +74,26 @@ class TestResult(object):
 class TestCopyWithNameExtension(object):
 
     @staticmethod
-    def assert_non_linear_attributes_equal(copy, optimizer):
-        assert copy.phase_name == "phase_name/one"
-        assert copy.variable == optimizer.variable
+    def assert_non_linear_attributes_equal(copy):
+        assert copy.paths.phase_name == "phase_name/one"
 
     def test_copy_with_name_extension(self):
         optimizer = af.NonLinearOptimizer(
-            "phase_name",
-            phase_tag="tag"
+            Paths(
+                "phase_name",
+                phase_tag="tag"
+            )
         )
         copy = optimizer.copy_with_name_extension("one")
 
-        self.assert_non_linear_attributes_equal(copy, optimizer)
-        assert optimizer.phase_tag == copy.phase_tag
+        self.assert_non_linear_attributes_equal(copy)
+        assert optimizer.paths.phase_tag == copy.paths.phase_tag
 
     def test_grid_search(self):
-        optimizer = af.GridSearch("phase_name", step_size=17, grid=lambda x: x)
+        optimizer = af.GridSearch(Paths("phase_name"), step_size=17, grid=lambda x: x)
 
         copy = optimizer.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy, optimizer)
+        self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.GridSearch)
         assert copy.step_size is optimizer.step_size
         assert copy.grid is optimizer.grid
@@ -137,27 +140,9 @@ class TestDirectorySetup:
 
     def test__1_class__correct_directory(self, nlo_setup_path):
         af.conf.instance.output_path = nlo_setup_path + '1_class'
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        af.NonLinearOptimizer(phase_name='', model_mapper=mapper)
+        af.NonLinearOptimizer(Paths(phase_name=''))
 
         assert os.path.exists(nlo_setup_path + '1_class')
-
-
-class TestTotalParameters:
-
-    def test__1_class__four_parameters(self, nlo_setup_path):
-        af.conf.instance.output_path = nlo_setup_path + '1_class'
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        nlo = af.NonLinearOptimizer(phase_name='', model_mapper=mapper)
-
-        assert nlo.variable.prior_count == 4
-
-    def test__2_classes__six_parameters(self, nlo_setup_path):
-        af.conf.instance.output_path = nlo_setup_path + '2_classes'
-        mapper = af.ModelMapper(class_1=MockClassNLOx4, class_2=MockClassNLOx6)
-        nlo = af.NonLinearOptimizer(phase_name='', model_mapper=mapper)
-
-        assert nlo.variable.prior_count == 10
 
 
 class TestMostProbableAndLikely(object):
@@ -274,7 +259,10 @@ class TestOffsetFromInput:
 
 @pytest.fixture(name='optimizer')
 def make_optimizer():
-    return af.NonLinearOptimizer(phase_name='', )
+    return MultiNestOutput(
+        ModelMapper(),
+        Paths(phase_name='')
+    )
 
 
 class TestLabels(object):
@@ -302,20 +290,3 @@ class TestLabels(object):
 
         assert optimizer.param_labels == [r'x4p0_{\mathrm{a1}}', r'x4p1_{\mathrm{a1}}',
                                           r'x4p2_{\mathrm{a1}}', r'x4p3_{\mathrm{a1}}']
-
-# class TestLatex(object):
-#
-#    def test__results_at_sigma_limit(self):
-#
-#        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-#        nlo = MockNonLinearOptimizer(phase_name='', model_mapper=mapper, most_probable=[1.0, 2.0, 3.0, 4.0],
-#                                     model_lower_params=[0.5, 1.5, 2.5, 3.5],
-#                                     model_upper_params=[1.5, 2.5, 3.5, 4.5])
-#
-#        latex = nlo.latex_results_at_sigma_limit(sigma_limit=3.0)
-#
-#        i = 0
-#        assert latex[i] == r'x4p0_{\mathrm{a2}} = 1.00^{+1.50}_{-0.50} & ' ; i+=1
-#        assert latex[i] == r'x4p1_{\mathrm{a2}} = 2.00^{+2.50}_{-1.50} & ' ; i+=1
-#        assert latex[i] == r'x4p2_{\mathrm{a2}} = 3.00^{+3.50}_{-2.50} & ' ; i+=1
-#        assert latex[i] == r'x4p3_{\mathrm{a2}} = 4.00^{+4.50}_{-3.50} & ' ; i+=1

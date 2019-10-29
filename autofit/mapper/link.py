@@ -38,7 +38,9 @@ def path_for(path):
     start = int(SUB_PATH_LENGTH / 2)
     end = SUB_PATH_LENGTH - start
     encoded_string = str(hashlib.sha224(path.encode("utf-8")).hexdigest())
-    return "{}/al_{}".format(autolens_dir, (encoded_string[:start] + encoded_string[-end:]).replace("-", ""))
+    return "{}/al_{}".format(
+        autolens_dir, (encoded_string[:start] + encoded_string[-end:]).replace("-", "")
+    )
 
 
 def make_linked_folder(sym_path):
@@ -61,7 +63,11 @@ def make_linked_folder(sym_path):
     """
     source_path = path_for(sym_path)
     if os.path.exists(source_path) and not os.path.exists(sym_path):
-        logger.debug("Source {} exists but target {} does not. Removing source.".format(source_path, sym_path))
+        logger.debug(
+            "Source {} exists but target {} does not. Removing source.".format(
+                source_path, sym_path
+            )
+        )
         shutil.rmtree(source_path)
     try:
         logger.debug("Making source {}".format(source_path))
@@ -71,7 +77,9 @@ def make_linked_folder(sym_path):
         logger.info("Source already existed")
         logger.debug(e)
     try:
-        logger.debug("Making linking from source {} to sym {}".format(source_path, sym_path))
+        logger.debug(
+            "Making linking from source {} to sym {}".format(source_path, sym_path)
+        )
         os.symlink(source_path, sym_path)
         logger.debug("Success")
     except FileExistsError as e:

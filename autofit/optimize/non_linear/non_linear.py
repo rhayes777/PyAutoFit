@@ -10,62 +10,40 @@ import numpy as np
 
 from autofit import conf
 from autofit.mapper import link, model_mapper as mm
-from autofit.tools import text_util
 
 logging.basicConfig()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 
-class NonLinearOptimizer(object):
-
-    def __init__(self, phase_name, phase_tag=None, phase_folders=tuple(), model_mapper=None):
-        """Abstract base class for non-linear optimizers.
-
-        This class sets up the file structure for the non-linear optimizer nlo, which are standardized across all \
-        non-linear optimizers.
-
-        Parameters
-        ------------
-
-        """
-        self.named_config = conf.instance.non_linear
+class Paths:
+    def __init__(
+            self,
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple()
+    ):
         self.phase_path = "/".join(phase_folders)
         self.phase_name = phase_name
-
-        if phase_tag is not None:
-            self.phase_tag = phase_tag
-        else:
-            self.phase_tag = ''
+        self.phase_tag = phase_tag or ''
 
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
         except FileExistsError:
             pass
 
-        self.path = link.make_linked_folder(self.sym_path)
-
-        if model_mapper is None:
-            model_mapper = mm.ModelMapper()
-        self.variable = model_mapper
-
-        self.label_config = conf.instance.label
-
-        self.log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
-
-        if not len(self.log_file) == 0:
-            log_path = "{}{}".format(self.phase_output_path, self.log_file)
-            logger.handlers = [logging.FileHandler(log_path)]
-            logger.propagate = False
-            # noinspection PyProtectedMember
-            logger.level = logging._nameToLevel[
-                conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
-
         try:
             os.makedirs(self.pdf_path)
         except FileExistsError:
             pass
 
-        self.restore()
+        self.path = link.make_linked_folder(self.sym_path)
+
+    def __eq__(self, other):
+        return isinstance(other, Paths) and all([
+            self.phase_path == other.phase_path,
+            self.phase_name == other.phase_name,
+            self.phase_tag == other.phase_tag
+        ])
 
     @property
     def phase_folders(self):
@@ -76,9 +54,18 @@ class NonLinearOptimizer(object):
         """
         The path to the backed up optimizer folder.
         """
-        return "{}/{}/{}/{}/optimizer_backup".format(conf.instance.output_path, self.phase_path,
-                                                     self.phase_name,
-                                                     self.phase_tag)
+        return "/".join(
+            filter(
+                lambda item: len(item) > 0,
+                [
+                    conf.instance.output_path,
+                    self.phase_path,
+                    self.phase_name,
+                    self.phase_tag,
+                    'optimizer_backup'
+                ]
+            )
+        )
 
     @property
     def phase_output_path(self) -> str:
@@ -120,36 +107,70 @@ class NonLinearOptimizer(object):
         """
         return "{}pdf/".format(self.image_path)
 
-    def __eq__(self, other):
-        return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
-
-    def backup(self):
+    def make_optimizer_pickle_path(self) -> str:
         """
-        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        Create the path at which the optimizer pickle should be saved
         """
+        return "{}/optimizer.pickle".format(self.make_path())
 
-        try:
-            shutil.rmtree(self.backup_path)
-        except FileNotFoundError:
-            pass
+    def make_model_pickle_path(self):
+        """
+        Create the path at which the model pickle should be saved
+        """
+        return "{}/model.pickle".format(self.make_path())
 
-        try:
-            shutil.copytree(self.opt_path, self.backup_path)
-        except shutil.Error as e:
-            logger.exception(e)
+    def make_path(self) -> str:
+        """
+        Create the path to the folder at which the metadata and optimizer pickle should
+        be saved
+        """
+        return "{}/{}/{}/{}/".format(
+            conf.instance.output_path,
+            self.phase_path,
+            self.phase_name,
+            self.phase_tag
+        )
 
-    def __setstate__(self, state):
-        self.__dict__.update(state)
+    @property
+    def file_summary(self) -> str:
+        return "{}/{}".format(self.backup_path, 'multinestsummary.txt')
+
+    @property
+    def file_weighted_samples(self):
+        return "{}/{}".format(self.backup_path, 'multinest.txt')
+
+    @property
+    def file_results(self):
+        return "{}/{}".format(self.phase_output_path, 'model.results')
+
+
+class NonLinearOptimizer(object):
+
+    def __init__(self, paths):
+        """Abstract base class for non-linear optimizers.
+
+        This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
+        all non-linear optimizers.
+
+        Parameters
+        ------------
+
+        """
+        log_file = conf.instance.general.get('output', 'log_file', str).replace(" ", "")
+        self.paths = paths
+
+        if not len(log_file) == 0:
+            log_path = "{}{}".format(
+                self.paths.phase_output_path,
+                log_file
+            )
+            logger.handlers = [logging.FileHandler(log_path)]
+            logger.propagate = False
+            # noinspection PyProtectedMember
+            logger.level = logging._nameToLevel[
+                conf.instance.general.get('output', 'log_level', str).replace(" ", "").upper()]
+
         self.restore()
-
-    def restore(self):
-        """
-        Copy files from the backup folder to the sym-linked optimizer folder.
-        """
-        if os.path.exists(self.backup_path):
-            self.path = link.make_linked_folder(self.sym_path)
-            for file in glob.glob(self.backup_path + "/*"):
-                shutil.copy(file, self.path)
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -167,78 +188,45 @@ class NonLinearOptimizer(object):
         attribute
             An attribute for the key with the specified type.
         """
-        return self.named_config.get(self.__class__.__name__, attribute_name, attribute_type)
+        return conf.instance.non_linear.get(self.__class__.__name__, attribute_name, attribute_type)
 
-    def save_model_info(self):
+    def __eq__(self, other):
+        return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
+
+    def backup(self):
+        """
+        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        """
 
         try:
-            os.makedirs(self.backup_path)
-        except FileExistsError:
+            shutil.rmtree(self.paths.backup_path)
+        except FileNotFoundError:
             pass
 
-        self.create_paramnames_file()
+        try:
+            shutil.copytree(self.paths.opt_path, self.paths.backup_path)
+        except shutil.Error as e:
+            logger.exception(e)
 
-        text_util.output_list_of_strings_to_file(file=self.file_model_info, list_of_strings=self.variable.info)
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.restore()
 
-    def fit(self, analysis):
+    def restore(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+        if os.path.exists(self.paths.backup_path):
+            self.paths.path = link.make_linked_folder(self.paths.sym_path)
+            for file in glob.glob(self.paths.backup_path + "/*"):
+                shutil.copy(file, self.paths.path)
+
+    def fit(
+            self,
+            analysis,
+            model
+    ):
         raise NotImplementedError("Fitness function must be overridden by non linear optimizers")
-
-    @property
-    def param_labels(self):
-        """The param_names vector is a list each parameter's analysis_path, and is used for *GetDist* visualization.
-
-        The parameter names are determined from the class instance names of the model_mapper. Latex tags are
-        properties of each model class."""
-
-        paramnames_labels = []
-        prior_class_dict = self.variable.prior_class_dict
-        prior_prior_model_dict = self.variable.prior_prior_model_dict
-
-        for prior_name, prior in self.variable.prior_tuples_ordered_by_id:
-            param_string = self.label_config.label(prior_name)
-            prior_model = prior_prior_model_dict[prior]
-            cls = prior_class_dict[prior]
-            cls_string = "{}{}".format(self.label_config.subscript(cls), prior_model.component_number + 1)
-            param_label = "{}_{{\\mathrm{{{}}}}}".format(param_string, cls_string)
-            paramnames_labels.append(param_label)
-
-        return paramnames_labels
-
-    def latex_results_at_sigma_limit(self, sigma_limit, format_str='{:.2f}'):
-
-        labels = self.param_labels
-        most_probables = self.most_probable_model_parameters
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-
-        line = []
-
-        for i in range(len(labels)):
-            most_probable = format_str.format(most_probables[i])
-            upper = format_str.format(uppers[i])
-            lower = format_str.format(lowers[i])
-
-            line += [labels[i] + ' = ' + most_probable + '^{+' + upper + '}_{-' + lower + '} & ']
-
-        return line
-
-    def create_paramnames_file(self):
-        """The param_names file lists every parameter's analysis_path and Latex tag, and is used for *GetDist*
-        visualization.
-
-        The parameter names are determined from the class instance names of the model_mapper. Latex tags are
-        properties of each model class."""
-        paramnames_names = self.variable.param_names
-        paramnames_labels = self.param_labels
-
-        paramnames = []
-
-        for i in range(self.variable.prior_count):
-            line = text_util.label_and_label_string(label0=paramnames_names[i],
-                                                    label1=paramnames_labels[i], whitespace=70)
-            paramnames += [line + '\n']
-
-        text_util.output_list_of_strings_to_file(file=self.file_param_names, list_of_strings=paramnames)
 
     class Fitness:
 
@@ -274,134 +262,17 @@ class NonLinearOptimizer(object):
             return likelihood
 
     def copy_with_name_extension(self, extension):
-        name = "{}/{}".format(self.phase_name, extension)
+        name = "{}/{}".format(self.paths.phase_name, extension)
 
         new_instance = self.__class__(
-            phase_name=name,
-            phase_folders=self.phase_folders,
-            model_mapper=self.variable
+            Paths(
+                phase_name=name,
+                phase_folders=self.paths.phase_folders,
+                phase_tag=self.paths.phase_tag
+            )
         )
-        new_instance.phase_tag = self.phase_tag
 
         return new_instance
-
-    @property
-    def most_probable_model_parameters(self):
-        raise NotImplementedError()
-
-    @property
-    def most_likely_model_parameters(self):
-        """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
-
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
-        """
-        raise NotImplementedError()
-
-    @property
-    def maximum_likelihood(self):
-        raise NotImplementedError()
-
-    @property
-    def maximum_log_likelihood(self):
-        raise NotImplementedError()
-
-    def gaussian_priors_at_sigma_limit(self, sigma_limit):
-        """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
-        most probable values (e.g the means of their PDF) and computing the error at an input sigma_limit.
-
-        Parameters
-        -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
-            PDF).
-        """
-
-        means = self.most_probable_model_parameters
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-
-        # noinspection PyArgumentList
-        sigmas = list(map(lambda mean, upper, lower: max([upper - mean, mean - lower]), means, uppers, lowers))
-
-        return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
-
-    def model_parameters_at_sigma_limit(self, sigma_limit):
-        raise NotImplementedError()
-
-    def model_parameters_at_upper_sigma_limit(self, sigma_limit):
-        raise NotImplementedError()
-
-    def model_parameters_at_lower_sigma_limit(self, sigma_limit):
-        raise NotImplementedError
-
-    @property
-    def total_samples(self):
-        raise NotImplementedError()
-
-    def sample_model_parameters_from_sample_index(self, sample_index):
-        raise NotImplementedError()
-
-    @property
-    def most_probable_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_probable_model_parameters)
-
-    @property
-    def most_likely_model_instance(self):
-        return self.variable.instance_from_physical_vector(physical_vector=self.most_likely_model_parameters)
-
-    def model_errors_at_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
-
-    def model_errors_at_upper_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        return list(
-            map(lambda upper, most_probable: upper - most_probable, uppers,
-                self.most_probable_model_parameters))
-
-    def model_errors_at_lower_sigma_limit(self, sigma_limit):
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
-        return list(
-            map(lambda lower, most_probable: most_probable - lower, lowers,
-                self.most_probable_model_parameters))
-
-    def model_errors_instance_at_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit))
-
-    def model_errors_instance_at_upper_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_upper_sigma_limit(sigma_limit=sigma_limit))
-
-    def model_errors_instance_at_lower_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_lower_sigma_limit(sigma_limit=sigma_limit))
-
-    def sample_model_instance_from_sample_index(self, sample_index):
-        """Setup a model instance of a weighted sample.
-
-        Parameters
-        -----------
-        sample_index : int
-            The sample index of the weighted sample to return.
-        """
-        model_parameters = self.sample_model_parameters_from_sample_index(sample_index=sample_index)
-
-        return self.variable.instance_from_physical_vector(physical_vector=model_parameters)
-
-    def sample_weight_from_sample_index(self, sample_index):
-        raise NotImplementedError()
-
-    def sample_likelihood_from_sample_index(self, sample_index):
-        raise NotImplementedError()
-
-    def offset_values_from_input_model_parameters(self, input_model_parameters):
-        return list(
-            map(lambda input, mp: mp - input, input_model_parameters, self.most_probable_model_parameters))
 
 
 class Analysis(object):
@@ -410,9 +281,6 @@ class Analysis(object):
         raise NotImplementedError()
 
     def visualize(self, instance, during_analysis):
-        raise NotImplementedError()
-
-    def describe(self, instance):
         raise NotImplementedError()
 
 
@@ -465,7 +333,8 @@ class Result(object):
 
         Returns
         -------
-        A model mapper created by taking results from this phase and creating priors with the defined absolute width.
+        A model mapper created by taking results from this phase and creating priors with the defined absolute
+        width.
         """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, a=a)
 
@@ -478,7 +347,8 @@ class Result(object):
 
         Returns
         -------
-        A model mapper created by taking results from this phase and creating priors with the defined relative width.
+        A model mapper created by taking results from this phase and creating priors with the defined relative
+        width.
         """
         return self.previous_variable.mapper_from_gaussian_tuples(self.gaussian_tuples, r=r)
 
@@ -497,8 +367,8 @@ class IntervalCounter(object):
 
 def persistent_timer(func):
     """
-    Times the execution of a function. If the process is stopped and restarted then timing is continued using saved
-    files.
+    Times the execution of a function. If the process is stopped and restarted then timing is continued using
+    saved files.
 
     Parameters
     ----------
@@ -513,7 +383,7 @@ def persistent_timer(func):
 
     @functools.wraps(func)
     def timed_function(optimizer_instance, *args, **kwargs):
-        start_time_path = "{}/.start_time".format(optimizer_instance.phase_output_path)
+        start_time_path = "{}/.start_time".format(optimizer_instance.paths.phase_output_path)
         try:
             with open(start_time_path) as f:
                 start = float(f.read())
@@ -527,10 +397,10 @@ def persistent_timer(func):
         execution_time = str(dt.timedelta(seconds=time.time() - start))
 
         logger.info("{} took {} to run".format(
-            optimizer_instance.phase_name,
+            optimizer_instance.paths.phase_name,
             execution_time
         ))
-        with open("{}/execution_time".format(optimizer_instance.phase_output_path), "w+") as f:
+        with open("{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+") as f:
             f.write(execution_time)
         return result
 

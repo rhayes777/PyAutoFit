@@ -2,12 +2,12 @@ from os import path
 
 import pytest
 
-import test
 import autofit as af
 
 directory = path.dirname(path.realpath(__file__))
 
 from test_autofit.mock import EllipticalLP, EllipticalGaussian
+
 
 class MockClass(object):
     pass
@@ -37,12 +37,3 @@ class TestLabel(object):
         with pytest.raises(af.exc.PriorException):
             label_config.subscript(MockClass)
 
-
-class TestTextUtil(object):
-    def test_string(self):
-        assert af.text_util.format_string_for_label("radius") == "radius_value"
-        assert af.text_util.format_string_for_label("mass") == "mass_value"
-
-    def test_substring(self):
-        assert af.text_util.format_string_for_label("einstein_radius") == "radius_value"
-        assert af.text_util.format_string_for_label("mass_something") == "mass_value"

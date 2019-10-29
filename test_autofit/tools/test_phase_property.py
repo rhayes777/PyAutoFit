@@ -15,7 +15,7 @@ af.conf.instance = af.conf.Config("{}/../../workspace/config".format(directory),
 
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
-    def fit(self, analysis):
+    def fit(self, analysis, model):
         class Fitness(object):
             def __init__(self, instance_from_physical_vector, constant):
                 self.result = None
@@ -34,9 +34,11 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
                 # Return Chi squared
                 return -2 * likelihood
 
-        fitness_function = Fitness(self.variable.instance_from_physical_vector,
-                                   self.constant)
-        fitness_function(self.variable.prior_count * [0.5])
+        fitness_function = Fitness(
+            model.instance_from_physical_vector,
+            model.instance_from_prior_medians
+        )
+        fitness_function(model.prior_count * [0.5])
 
         return fitness_function.result
 
@@ -58,13 +60,6 @@ def make_list_phase():
 
 
 class TestPhasePropertyList(object):
-    # def test_constants(self, list_phase):
-    #     objects = [mock.Galaxy(), mock.Galaxy()]
-    #
-    #     list_phase.prop = objects
-    #
-    #     assert list_phase.constant.prop == objects
-    #     assert list_phase.prop == objects
 
     def test_classes(self, list_phase):
         objects = [GalaxyModel(), GalaxyModel()]

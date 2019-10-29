@@ -22,10 +22,7 @@ class AbstractModel(ModelObject):
     def copy(self):
         return copy.deepcopy(self)
 
-    def populate(
-            self,
-            collection
-    ):
+    def populate(self, collection):
         return populate(self, collection)
 
     def object_for_path(self, path: (str,)) -> object:
@@ -67,42 +64,33 @@ class AbstractModel(ModelObject):
         return path_instances_of_class(self, cls, ignore_class=ignore_class)
 
     def direct_tuples_with_type(self, class_type):
-        return list(filter(
-            lambda t: t[0] != "id" and isinstance(t[1], class_type),
-            self.__dict__.items()
-        ))
+        return list(
+            filter(
+                lambda t: t[0] != "id" and isinstance(t[1], class_type),
+                self.__dict__.items(),
+            )
+        )
 
     def attribute_tuples_with_type(self, class_type, ignore_class=None):
         return [
             (t[0][-1], t[1])
             for t in self.path_instance_tuples_for_class(
-                class_type,
-                ignore_class=ignore_class
+                class_type, ignore_class=ignore_class
             )
         ]
 
 
 def populate(obj, collection):
     if isinstance(obj, list):
-        return [
-            populate(item, collection)
-            for item in obj
-        ]
+        return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
-        return {
-            key: populate(value, collection)
-            for key, value in obj.items()
-        }
+        return {key: populate(value, collection) for key, value in obj.items()}
     if isinstance(obj, Promise):
         return obj.populate(collection)
     try:
         new = copy.deepcopy(obj)
         for key, value in obj.__dict__.items():
-            setattr(
-                new,
-                key,
-                populate(value, collection)
-            )
+            setattr(new, key, populate(value, collection))
         return new
     except (AttributeError, TypeError):
         return obj
@@ -110,6 +98,7 @@ def populate(obj, collection):
 
 def path_instances_of_class(obj, cls, ignore_class=None):
     from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
     if isinstance(obj, cls):
@@ -147,18 +136,16 @@ class ModelInstance(AbstractModel):
 
     @property
     def dict(self):
-        return {key: value for key, value in self.__dict__.items() if
-                key not in ("id", "component_number", "item_number")}
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key not in ("id", "component_number", "item_number")
+        }
 
     def __len__(self):
         return len(self.items)
 
-    def as_variable(
-            self,
-            variable_classes=tuple()
-    ):
+    def as_variable(self, variable_classes=tuple()):
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
-        return AbstractPriorModel.from_instance(
-            self,
-            variable_classes
-        )
+
+        return AbstractPriorModel.from_instance(self, variable_classes)
