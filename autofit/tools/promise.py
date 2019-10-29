@@ -167,6 +167,15 @@ class AbstractPromise(ABC):
             The promised prior, prior model, instance or constant
         """
 
+    def _populate_from_results(
+            self,
+            results
+    ):
+        for item in self.result_path:
+            results = getattr(results, item)
+        model = results.constant if self.is_constant else results.variable
+        return model.object_for_path(self.path)
+
 
 class Promise(AbstractPromise):
     def __init__(
@@ -208,7 +217,7 @@ class Promise(AbstractPromise):
             phase.variable.object_for_path(path)
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_constant"):
+        if item in ("phase", "path", "is_constant", "_populate_from_results"):
             return super().__getattribute__(item)
         return Promise(
             self.phase,
@@ -235,15 +244,14 @@ class Promise(AbstractPromise):
             The promised prior, prior model, instance or constant
         """
         results = results_collection.from_phase(self.phase.phase_name)
-        for item in self.result_path:
-            results = getattr(results, item)
-        model = results.constant if self.is_constant else results.variable
-        return model.object_for_path(self.path)
+        return self._populate_from_results(
+            results
+        )
 
 
 class LastPromise(AbstractPromise):
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_constant"):
+        if item in ("phase", "path", "is_constant", "_populate_from_results"):
             return super().__getattribute__(item)
         return LastPromise(
             *self.path,
@@ -253,7 +261,16 @@ class LastPromise(AbstractPromise):
         )
 
     def populate(self, results_collection):
-        pass
+        for results in results_collection.reversed:
+            try:
+                return self._populate_from_results(
+                    results
+                )
+            except AttributeError:
+                pass
+        raise AttributeError(
+            f"No attribute found with path {self.path} in previous phase"
+        )
 
 
 last = LastPromiseResult()

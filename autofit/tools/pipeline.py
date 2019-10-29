@@ -21,6 +21,10 @@ class ResultsCollection(object):
         return collection
 
     @property
+    def reversed(self):
+        return reversed(self.__result_list)
+
+    @property
     def last(self):
         """
         The result of the last phase

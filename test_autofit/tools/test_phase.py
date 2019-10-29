@@ -66,10 +66,20 @@ class TestLastPromises:
     def test_variable(self, last_variable):
         assert last_variable.path == ("one", "redshift")
         assert last_variable.is_constant is False
-        
+
     def test_constant(self, last_constant):
         assert last_constant.path == ("one", "redshift")
         assert last_constant.is_constant is True
+
+    def test_recover_variable(self, collection, last_variable):
+        result = last_variable.populate(collection)
+
+        assert result is collection[0].variable.one.redshift
+
+    def test_recover_constant(self, collection, last_constant):
+        result = last_constant.populate(collection)
+
+        assert result is collection[0].constant.one.redshift
 
 
 class TestCase:
