@@ -78,7 +78,7 @@ class GridSearchResult(object):
         Returns
         -------
         figure_of_merit_array: np.ndarray
-            An array of figures of merit. This array has the same dimensionality as the grid search, with the value in
+            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
             each entry being the figure of merit taken from the optimization performed at that point.
         """
         return np.reshape(

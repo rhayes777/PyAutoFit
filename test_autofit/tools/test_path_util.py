@@ -4,7 +4,7 @@ import autofit as af
 
 path = "{}/".format(os.path.dirname(os.path.realpath(__file__)))
 
-test_data_path = "{}/../test_files/array/".format(
+test_data_path = "{}/../test_files/arrays/".format(
     os.path.dirname(os.path.realpath(__file__))
 )
 

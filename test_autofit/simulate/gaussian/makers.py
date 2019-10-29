@@ -16,7 +16,7 @@ def simulate_imaging_from_gaussian_and_output_to_fits(
     background_sky_level=1.0,
 ):
 
-    # Setup the image-plane al.ogrid of the Imaging array which will be used for generating the image of the
+    # Setup the image-plane al.ogrid of the Imaging arrays which will be used for generating the image of the
     # simulated strong lens. A high-res sub-grid is necessary to ensure we fully resolve the central regions of the
     # lens and source galaxy light.
     grid = aa.grid.uniform(
