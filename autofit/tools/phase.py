@@ -6,15 +6,17 @@ import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper
 from autofit import exc
 from autofit.optimize import grid_search
+from autofit.optimize.non_linear.non_linear import Paths
 from autofit.tools.promise import PromiseResult
 
 
 class AbstractPhase:
     def __init__(
-        self,
-        paths,
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        auto_link_priors=False,
+            self,
+            paths=Paths(),
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
+            auto_link_priors=False,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -29,7 +31,7 @@ class AbstractPhase:
 
         self.optimizer = optimizer_class(self.paths)
         self.auto_link_priors = auto_link_priors
-        self.variable = ModelMapper()
+        self.variable = model or ModelMapper()
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -143,11 +145,11 @@ def as_grid_search(phase_class, parallel=False):
 
     class GridSearchExtension(phase_class):
         def __init__(
-            self,
-            paths,
-            number_of_steps=10,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            **kwargs,
+                self,
+                paths,
+                number_of_steps=10,
+                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                **kwargs,
         ):
             super().__init__(paths=paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
