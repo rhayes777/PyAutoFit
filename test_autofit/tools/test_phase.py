@@ -52,11 +52,24 @@ def make_collection():
     return collection
 
 
+@pytest.fixture(name="last_variable")
+def make_last_variable():
+    return af.last.variable.one.redshift
+
+
+@pytest.fixture(name="last_constant")
+def make_last_constant():
+    return af.last.constant.one.redshift
+
+
 class TestLastPromises:
-    def test_variable(self):
-        variable_promise = af.last.variable.one.redshift
-        assert variable_promise.path == ("one", "redshift")
-        assert variable_promise.is_constant is False
+    def test_variable(self, last_variable):
+        assert last_variable.path == ("one", "redshift")
+        assert last_variable.is_constant is False
+        
+    def test_constant(self, last_constant):
+        assert last_constant.path == ("one", "redshift")
+        assert last_constant.is_constant is True
 
 
 class TestCase:
