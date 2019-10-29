@@ -96,6 +96,19 @@ class TestLastPromises:
         assert result is last_results.variable.one.redshift
         assert result is not collection[0].variable.one.redshift
 
+    def test_embedded_results(self, collection):
+        hyper_result = af.last.hyper_result
+
+        variable_promise = hyper_result.variable
+        constant_promise = hyper_result.constant
+
+        variable = variable_promise.populate(collection)
+        constant = constant_promise.populate(collection)
+
+        assert isinstance(variable.hyper_galaxy, af.PriorModel)
+        assert variable.hyper_galaxy.cls is mock.HyperGalaxy
+        assert isinstance(constant.hyper_galaxy, mock.HyperGalaxy)
+
 
 class TestCase:
     def test_variable_promise(self, variable_promise, phase):
