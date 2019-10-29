@@ -109,6 +109,11 @@ class TestLastPromises:
         assert variable.hyper_galaxy.cls is mock.HyperGalaxy
         assert isinstance(constant.hyper_galaxy, mock.HyperGalaxy)
 
+    def test_raises(self, collection):
+        bad_promise = af.last.variable.a.bad.path
+        with pytest.raises(AttributeError):
+            bad_promise.populate(collection)
+
 
 class TestCase:
     def test_variable_promise(self, variable_promise, phase):

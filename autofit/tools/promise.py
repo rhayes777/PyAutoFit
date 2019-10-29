@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from autofit.tools.pipeline import ResultsCollection
+
 
 class AbstractPromiseResult(ABC):
     def __init__(
@@ -30,6 +32,11 @@ class AbstractPromiseResult(ABC):
 
 
 class LastPromiseResult(AbstractPromiseResult):
+    """
+    A PromiseResult that does not require a phase. Refers to the latest Result in the collection with an object for
+    the path specified in a promise.
+    """
+
     @property
     def variable(self):
         """
@@ -250,6 +257,11 @@ class Promise(AbstractPromise):
 
 
 class LastPromise(AbstractPromise):
+    """
+    A promise that searches the results collection to find the latest result that contains an object with the
+    specified path
+    """
+
     def __getattr__(self, item):
         if item in ("phase", "path", "is_constant", "_populate_from_results"):
             return super().__getattribute__(item)
@@ -260,7 +272,29 @@ class LastPromise(AbstractPromise):
             is_constant=self.is_constant,
         )
 
-    def populate(self, results_collection):
+    def populate(
+            self,
+            results_collection:
+            ResultsCollection
+    ):
+        """
+        Recover the constant or variable associated with this promise from the latest result in the results collection
+        where a matching path is found.
+        
+        Parameters
+        ----------
+        results_collection
+            A collection of results to be searched in reverse
+
+        Returns
+        -------
+        A prior, model or constant.
+        
+        Raises
+        ------
+        AttributeError
+            If no matching prior is found
+        """
         for results in results_collection.reversed:
             try:
                 return self._populate_from_results(
