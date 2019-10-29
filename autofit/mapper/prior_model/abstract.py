@@ -19,6 +19,7 @@ from autofit.mapper.prior_model.prior import (
     DeferredNameValue,
 )
 from autofit.mapper.prior_model.util import PriorModelNameValue
+from autofit.tools.text_formatter import TextFormatter
 
 
 class AbstractPriorModel(AbstractModel):
@@ -432,8 +433,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -524,6 +525,50 @@ class AbstractPriorModel(AbstractModel):
         unique = {item[1]: item for item in self.path_priors_tuples}.values()
         return [item[0] for item in sorted(unique, key=lambda item: item[1].id)]
 
+    @property
+    def prior_prior_model_dict(self):
+        """
+        Returns
+        -------
+        prior_prior_model_dict: {Prior: PriorModel}
+            A dictionary mapping priors to associated prior models. Each prior will only
+            have one prior model; if a prior is shared by two prior models then one of
+            those prior models will be in this dictionary.
+        """
+        return {
+            prior: prior_model[1]
+            for prior_model in self.prior_model_tuples + [("model", self)]
+            for _, prior in prior_model[1].prior_tuples
+        }
+
+    @property
+    def info(self):
+        """
+        Use the priors that make up the model_mapper to generate information on each
+        parameter of the overall model.
+
+        This information is extracted from each priors *model_info* property.
+        """
+        formatter = TextFormatter()
+
+        for t in self.path_priors_tuples + self.path_float_tuples:
+            formatter.add(t)
+
+        return formatter.text
+
+    @property
+    def param_names(self):
+        """The param_names vector is a list each parameter's analysis_path, and is used
+        for *GetDist* visualization.
+
+        The parameter names are determined from the class instance names of the
+        model_mapper. Latex tags are properties of each model class."""
+
+        return [
+            self.name_for_prior(prior)
+            for prior in sorted(self.priors, key=lambda prior: prior.id)
+        ]
+
 
 def transfer_classes(instance, mapper, variable_classes=None):
     """
@@ -546,7 +591,7 @@ def transfer_classes(instance, mapper, variable_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
