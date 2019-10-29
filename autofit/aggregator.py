@@ -16,7 +16,6 @@ import os
 import pickle
 
 import autofit.optimize.non_linear.non_linear
-from autofit.optimize import non_linear
 
 
 class PhaseOutput(object):
@@ -35,6 +34,7 @@ class PhaseOutput(object):
         """
         self.directory = directory
         self.__optimizer = None
+        self.__model = None
         self.file_path = os.path.join(directory, "metadata")
         with open(self.file_path) as f:
             self.text = f.read()
@@ -65,6 +65,16 @@ class PhaseOutput(object):
             with open(os.path.join(self.directory, "optimizer.pickle"), "r+b") as f:
                 self.__optimizer = pickle.loads(f.read())
         return self.__optimizer
+
+    @property
+    def model(self) -> autofit.optimize.non_linear.non_linear.NonLinearOptimizer:
+        """
+        The optimizer object that was used in this phase
+        """
+        if self.__model is None:
+            with open(os.path.join(self.directory, "model.pickle"), "r+b") as f:
+                self.__model = pickle.loads(f.read())
+        return self.__model
 
     def __str__(self):
         return self.text
@@ -109,7 +119,7 @@ class Aggregator(object):
         ]
 
     def optimizers_with(
-        self, **kwargs
+            self, **kwargs
     ) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
         """
         Load a list of optimizers for phases in the directory with zero or more filters applied.
