@@ -16,7 +16,11 @@ def make_pipeline_1(
         ),
         model=af.ModelMapper(
             one=af.PriorModel(
-                mock.Galaxy
+                mock.Galaxy,
+                redshift=af.GaussianPrior(
+                    10.0,
+                    1.0
+                )
             )
         ),
         optimizer_class=optimizer_class,
@@ -69,4 +73,4 @@ def test_pipeline_composition():
     ).run(
         None
     )
-    assert results[0].variable.one.redshift is results[1].variable.one.redshift
+    assert results[0].variable.one.redshift.mean == results[1].variable.one.redshift.mean
