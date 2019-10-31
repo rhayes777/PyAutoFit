@@ -39,7 +39,7 @@ def simulate_imaging_from_gaussian_and_output_to_fits(
     test_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
     data_path = af.path_util.make_and_return_path_from_path_and_folder_names(
-        path=test_path, folder_names=["simulator", data_type]
+        path=test_path, folder_names=["data", data_type]
     )
 
     imaging.output_to_fits(
