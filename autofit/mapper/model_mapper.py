@@ -22,8 +22,8 @@ class ModelMapper(CollectionPriorModel):
 
         mapper = ModelMapper()
 
-        mapper.sersic = light_profiles.AbstractEllipticalSersic
-        mapper.gaussian = light_profiles.EllipticalGaussian
+        mapper.sersic = al.lp.AbstractEllipticalSersic
+        mapper.gaussian = al.lp.EllipticalGaussian
         mapper.any_class = SomeClass
 
         # A PriorModel instance is created each time we add a class to the mapper. We
