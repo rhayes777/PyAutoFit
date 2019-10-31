@@ -5,5 +5,5 @@ from test_autofit.simulate.gaussian import makers
 
 sub_size = 1
 
-# To simulate each lens, we pass it a name and call its maker. In the makers.py file, you'll see the
+# To simulator each lens, we pass it a name and call its maker. In the makers.py file, you'll see the
 makers.make__gaussian(sub_size=sub_size)
