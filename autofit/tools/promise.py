@@ -4,10 +4,7 @@ from autofit.tools.pipeline import ResultsCollection
 
 
 class AbstractPromiseResult(ABC):
-    def __init__(
-            self,
-            *result_path
-    ):
+    def __init__(self, *result_path):
         self.result_path = result_path
 
     @property
@@ -45,34 +42,21 @@ class LastPromiseResult(AbstractPromiseResult):
         """
         A promise for an object in the variable result. This might be a prior or prior model.
         """
-        return LastPromise(
-            result_path=self.result_path
-        )
+        return LastPromise(result_path=self.result_path)
 
     @property
     def constant(self):
         """
         A promise for an object in the best fit result. This must be an instance or constant.
         """
-        return LastPromise(
-            result_path=self.result_path,
-            is_constant=True
-        )
+        return LastPromise(result_path=self.result_path, is_constant=True)
 
     def __getattr__(self, item):
-        return LastPromiseResult(
-            *self.result_path,
-            item,
-        )
+        return LastPromiseResult(*self.result_path, item)
 
 
 class PromiseResult(AbstractPromiseResult):
-    def __init__(
-            self,
-            phase,
-            *result_path,
-            assert_exists=True
-    ):
+    def __init__(self, phase, *result_path, assert_exists=True):
         """
         A wrapper for a phase that facilitates the generation of priors by consuming user defined paths.
 
@@ -113,21 +97,11 @@ class PromiseResult(AbstractPromiseResult):
         )
 
     def __getattr__(self, item):
-        return PromiseResult(
-            self.phase,
-            *self.result_path,
-            item,
-            assert_exists=False
-        )
+        return PromiseResult(self.phase, *self.result_path, item, assert_exists=False)
 
 
 class AbstractPromise(ABC):
-    def __init__(
-            self,
-            *path,
-            result_path,
-            is_constant=False
-    ):
+    def __init__(self, *path, result_path, is_constant=False):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
         model, constant or instance
@@ -154,10 +128,7 @@ class AbstractPromise(ABC):
         if item in ("phase", "path", "is_constant"):
             return super().__getattribute__(item)
         return Promise(
-            *self.path,
-            item,
-            result_path=self.result_path,
-            is_constant=self.is_constant,
+            *self.path, item, result_path=self.result_path, is_constant=self.is_constant
         )
 
     @abstractmethod
@@ -177,10 +148,7 @@ class AbstractPromise(ABC):
             The promised prior, prior model, instance or constant
         """
 
-    def _populate_from_results(
-            self,
-            results
-    ):
+    def _populate_from_results(self, results):
         for item in self.result_path:
             results = getattr(results, item)
         model = results.constant if self.is_constant else results.variable
@@ -189,12 +157,7 @@ class AbstractPromise(ABC):
 
 class Promise(AbstractPromise):
     def __init__(
-            self,
-            phase,
-            *path,
-            result_path,
-            is_constant=False,
-            assert_exists=True
+        self, phase, *path, result_path, is_constant=False, assert_exists=True
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
@@ -216,11 +179,7 @@ class Promise(AbstractPromise):
             If this is true then an exception is raised if an object is not defined in the addressed phase's
             model. Hyper phases are a bit trickier so no assertion is made.
         """
-        super().__init__(
-            *path,
-            result_path=result_path,
-            is_constant=is_constant
-        )
+        super().__init__(*path, result_path=result_path, is_constant=is_constant)
         self.phase = phase
         self.assert_exists = assert_exists
         if assert_exists:
@@ -235,7 +194,7 @@ class Promise(AbstractPromise):
             item,
             result_path=self.result_path,
             is_constant=self.is_constant,
-            assert_exists=self.assert_exists
+            assert_exists=self.assert_exists,
         )
 
     def populate(self, results_collection):
@@ -254,9 +213,7 @@ class Promise(AbstractPromise):
             The promised prior, prior model, instance or constant
         """
         results = results_collection.from_phase(self.phase.phase_name)
-        return self._populate_from_results(
-            results
-        )
+        return self._populate_from_results(results)
 
 
 class LastPromise(AbstractPromise):
@@ -269,17 +226,10 @@ class LastPromise(AbstractPromise):
         if item in ("phase", "path", "is_constant", "_populate_from_results"):
             return super().__getattribute__(item)
         return LastPromise(
-            *self.path,
-            item,
-            result_path=self.result_path,
-            is_constant=self.is_constant,
+            *self.path, item, result_path=self.result_path, is_constant=self.is_constant
         )
 
-    def populate(
-            self,
-            results_collection:
-            ResultsCollection
-    ):
+    def populate(self, results_collection: ResultsCollection):
         """
         Recover the constant or variable associated with this promise from the latest result in the results collection
         where a matching path is found.
@@ -300,9 +250,7 @@ class LastPromise(AbstractPromise):
         """
         for results in results_collection.reversed:
             try:
-                return self._populate_from_results(
-                    results
-                )
+                return self._populate_from_results(results)
             except AttributeError:
                 pass
         raise AttributeError(

@@ -433,8 +433,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, AbstractPriorModel)
-                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+            isinstance(other, AbstractPriorModel)
+            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -591,7 +591,7 @@ def transfer_classes(instance, mapper, variable_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                    mapper_value, AnnotationPriorModel
+                mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue

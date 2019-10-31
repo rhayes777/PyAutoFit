@@ -12,10 +12,10 @@ from autofit.tools.promise import PromiseResult
 
 class AbstractPhase:
     def __init__(
-            self,
-            paths=Paths(),
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            model=None,
+        self,
+        paths=Paths(),
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        model=None,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -120,29 +120,21 @@ class AbstractPhase:
 
 
 class Phase(AbstractPhase):
-
     def __init__(
-            self,
-            analysis_class,
-            paths=Paths(),
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            model=None,
+        self,
+        analysis_class,
+        paths=Paths(),
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        model=None,
     ):
-        super().__init__(
-            paths=paths,
-            optimizer_class=optimizer_class,
-            model=model
-        )
+        super().__init__(paths=paths, optimizer_class=optimizer_class, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
         return result
 
     def make_analysis(self, data, results):
-        return self.analysis_class(
-            data,
-            results
-        )
+        return self.analysis_class(data, results)
 
     def run(self, data, results=None):
         """
@@ -162,10 +154,7 @@ class Phase(AbstractPhase):
         """
         self.variable = self.variable.populate(results)
 
-        analysis = self.make_analysis(
-            data=data,
-            results=results
-        )
+        analysis = self.make_analysis(data=data, results=results)
 
         self.customize_priors(results)
         self.assert_and_save_pickle()
@@ -199,11 +188,11 @@ def as_grid_search(phase_class, parallel=False):
 
     class GridSearchExtension(phase_class):
         def __init__(
-                self,
-                paths,
-                number_of_steps=10,
-                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                **kwargs,
+            self,
+            paths,
+            number_of_steps=10,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            **kwargs,
         ):
             super().__init__(paths=paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(

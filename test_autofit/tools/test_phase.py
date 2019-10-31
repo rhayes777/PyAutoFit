@@ -85,14 +85,9 @@ class TestLastPromises:
 
     def test_recover_last_variable(self, collection, last_variable):
         last_results = copy.deepcopy(collection.last)
-        collection.add(
-            "last_phase",
-            last_results
-        )
+        collection.add("last_phase", last_results)
 
-        result = last_variable.populate(
-            collection
-        )
+        result = last_variable.populate(collection)
         assert result is last_results.variable.one.redshift
         assert result is not collection[0].variable.one.redshift
 

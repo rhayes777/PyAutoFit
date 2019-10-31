@@ -153,7 +153,6 @@ class Pipeline(object):
         )
 
     def run(self, data):
-
         def runner(phase, results):
             return phase.run(data=data, results=results)
 

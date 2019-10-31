@@ -119,7 +119,7 @@ class Aggregator(object):
         ]
 
     def optimizers_with(
-            self, **kwargs
+        self, **kwargs
     ) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
         """
         Load a list of optimizers for phases in the directory with zero or more filters applied.
