@@ -58,10 +58,10 @@ def simulate_imaging_from_gaussian_and_output_to_fits(
 
     aa.plot.imaging.individual(
         imaging=imaging,
-        should_plot_image=True,
-        should_plot_noise_map=True,
-        should_plot_psf=True,
-        should_plot_signal_to_noise_map=True,
+        plot_image=True,
+        plot_noise_map=True,
+        plot_psf=True,
+        plot_signal_to_noise_map=True,
         output_path=data_path,
         output_format="png",
     )
