@@ -13,13 +13,13 @@ def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="con
     af.conf.instance = af.conf.Config(config_path=config_path, output_path=output_path)
     integration_util.reset_paths(test_name=test_name, output_path=output_path)
 
-    data_path = af.path_util.make_and_return_path_from_path_and_folder_names(
+    dataset_path = af.path_util.make_and_return_path_from_path_and_folder_names(
         path=test_path, folder_names=["dataset", module.data_type]
     )
 
     imaging = aa.imaging.from_fits(
-        image_path=data_path + "/image.fits",
-        noise_map_path=data_path + "/noise_map.fits",
+        image_path=dataset_path + "/image.fits",
+        noise_map_path=dataset_path + "/noise_map.fits",
         pixel_scales=0.1,
     )
 

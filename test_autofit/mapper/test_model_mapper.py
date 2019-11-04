@@ -10,7 +10,7 @@ from autofit.tools.text_formatter import TextFormatter
 from test_autofit import mock
 from test_autofit.mock import GeometryProfile
 
-data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
+dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 @pytest.fixture(scope="session", autouse=True)
