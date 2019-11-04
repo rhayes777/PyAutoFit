@@ -75,7 +75,7 @@ class AbstractPhase:
     def save_metadata(self, data_name, pipeline_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the data being fit
+        name of the phase and the name of the dataset being fit
         """
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
