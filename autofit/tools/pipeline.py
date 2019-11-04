@@ -152,9 +152,9 @@ class Pipeline(object):
             *(self.phases + other.phases)
         )
 
-    def run(self, data):
+    def run(self, dataset):
         def runner(phase, results):
-            return phase.run(data=data, results=results)
+            return phase.run(dataset=dataset, results=results)
 
         return self.run_function(runner)
 

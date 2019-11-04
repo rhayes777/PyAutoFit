@@ -152,8 +152,8 @@ class Galaxy(object):
         **kwargs
     ):
         self.redshift = redshift
-        self.light_profiles = al.lp
-        self.mass_profiles = al.mp
+        self.light_profiles = light_profiles
+        self.mass_profiles = mass_profiles
         self.kwargs = kwargs
 
 

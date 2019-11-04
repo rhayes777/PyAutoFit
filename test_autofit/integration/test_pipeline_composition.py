@@ -6,7 +6,7 @@ import autofit as af
 
 def make_pipeline_1(name, phase_folders, optimizer_class):
     phase = af.Phase(
-        paths=af.Paths(phase_name="phase_1", phase_folders=phase_folders),
+        phase_name="phase_1", phase_folders=phase_folders,
         model=af.PriorModel(mock.Galaxy, redshift=af.GaussianPrior(10.0, 1.0)),
         optimizer_class=optimizer_class,
         analysis_class=MockAnalysis,
@@ -16,7 +16,7 @@ def make_pipeline_1(name, phase_folders, optimizer_class):
 
 def make_pipeline_2(name, phase_folders, optimizer_class):
     phase = af.Phase(
-        paths=af.Paths(phase_name="phase_2", phase_folders=phase_folders),
+        phase_name="phase_2", phase_folders=phase_folders,
         model=af.PriorModel(mock.Galaxy, redshift=af.last.variable.redshift),
         optimizer_class=optimizer_class,
         analysis_class=MockAnalysis,

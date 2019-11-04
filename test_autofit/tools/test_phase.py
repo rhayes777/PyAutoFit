@@ -9,7 +9,7 @@ from test_autofit import mock
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase(Paths("phase name"))
+    phase = af.AbstractPhase(phase_name="phase name")
     phase.variable.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
     return phase
 

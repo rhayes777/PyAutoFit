@@ -27,7 +27,7 @@ def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="con
         name=test_name,
         phase_folders=[module.test_type, test_name],
         optimizer_class=optimizer_class,
-    ).run(data=imaging)
+    ).run(dataset=imaging)
 
 
 def run_a_mock(module):

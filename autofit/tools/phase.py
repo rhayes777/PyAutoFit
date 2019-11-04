@@ -13,7 +13,9 @@ from autofit.tools.promise import PromiseResult
 class AbstractPhase:
     def __init__(
         self,
-        paths=Paths(),
+        phase_name,
+        phase_tag=None,
+        phase_folders=tuple(),
         optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
         model=None,
     ):
@@ -26,7 +28,9 @@ class AbstractPhase:
         optimizer_class: class
             The class of a non_linear optimizer
         """
-        self.paths = paths
+        self.paths = Paths(
+                phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
+            )
 
         self.optimizer = optimizer_class(self.paths)
         self.variable = model or ModelMapper()
@@ -123,20 +127,22 @@ class Phase(AbstractPhase):
     def __init__(
         self,
         analysis_class,
-        paths=Paths(),
+            phase_name,
+            phase_tag=None,
+            phase_folders=tuple(),
         optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
         model=None,
     ):
-        super().__init__(paths=paths, optimizer_class=optimizer_class, model=model)
+        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders, optimizer_class=optimizer_class, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
         return result
 
-    def make_analysis(self, data, results):
-        return self.analysis_class(data, results)
+    def make_analysis(self, dataset, results):
+        return self.analysis_class(dataset, results)
 
-    def run(self, data, results=None):
+    def run(self, dataset, results=None):
         """
         Run this phase.
 
@@ -144,7 +150,7 @@ class Phase(AbstractPhase):
         ----------
         results: autofit.tools.pipeline.ResultsCollection
             An object describing the results of the last phase or None if no phase has been executed
-        data: scaled_array.ScaledSquarePixelArray
+        dataset: scaled_array.ScaledSquarePixelArray
             An masked_imaging that has been masked
 
         Returns
@@ -154,7 +160,7 @@ class Phase(AbstractPhase):
         """
         self.variable = self.variable.populate(results)
 
-        analysis = self.make_analysis(data=data, results=results)
+        analysis = self.make_analysis(dataset=dataset, results=results)
 
         self.customize_priors(results)
         self.assert_and_save_pickle()
@@ -189,14 +195,15 @@ def as_grid_search(phase_class, parallel=False):
     class GridSearchExtension(phase_class):
         def __init__(
             self,
-            paths,
+                phase_name,
+                phase_folders=tuple(),
             number_of_steps=10,
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             **kwargs,
         ):
-            super().__init__(paths=paths, optimizer_class=optimizer_class, **kwargs)
+            super().__init__(phase_name=phase_name, phase_folders=phase_folders, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
-                paths,
+                paths=self.paths,
                 number_of_steps=number_of_steps,
                 optimizer_class=optimizer_class,
                 parallel=parallel,

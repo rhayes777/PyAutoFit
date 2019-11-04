@@ -38,9 +38,9 @@ class MockPhase(af.AbstractPhase):
     def make_result(self, result, analysis):
         pass
 
-    def __init__(self, paths, optimizer=None):
-        super().__init__(paths)
-        self.optimizer = optimizer or af.NonLinearOptimizer(paths)
+    def __init__(self, phase_name, optimizer=None):
+        super().__init__(phase_name=phase_name)
+        self.optimizer = optimizer or af.NonLinearOptimizer(paths=af.Paths(phase_name=phase_name))
 
     def save_metadata(self, data_name, pipeline_name):
         pass
@@ -55,7 +55,7 @@ class TestPipeline(object):
     def test_optimizer_assertion(self, variable):
         paths = Paths("Phase Name")
         optimizer = af.NonLinearOptimizer(paths)
-        phase = MockPhase(paths, optimizer)
+        phase = MockPhase(phase_name="Phase_Name", optimizer=optimizer)
         phase.variable.profile = GeometryProfile
 
         try:
@@ -78,7 +78,7 @@ class TestPipeline(object):
         assert (first + second).pipeline_name == "first + second"
 
     def test_assert_and_save_pickle(self):
-        phase = af.AbstractPhase(paths=Paths(phase_name="name"))
+        phase = af.AbstractPhase(phase_name="name")
 
         phase.assert_and_save_pickle()
         phase.assert_and_save_pickle()
