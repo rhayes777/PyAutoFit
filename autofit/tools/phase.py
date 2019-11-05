@@ -29,8 +29,8 @@ class AbstractPhase:
             The class of a non_linear optimizer
         """
         self.paths = Paths(
-                phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
-            )
+            phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
+        )
 
         self.optimizer = optimizer_class(self.paths)
         self.variable = model or ModelMapper()
@@ -127,13 +127,19 @@ class Phase(AbstractPhase):
     def __init__(
         self,
         analysis_class,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
+        phase_name,
+        phase_tag=None,
+        phase_folders=tuple(),
         optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
         model=None,
     ):
-        super().__init__(phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders, optimizer_class=optimizer_class, model=model)
+        super().__init__(
+            phase_name=phase_name,
+            phase_tag=phase_tag,
+            phase_folders=phase_folders,
+            optimizer_class=optimizer_class,
+            model=model,
+        )
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
@@ -195,13 +201,18 @@ def as_grid_search(phase_class, parallel=False):
     class GridSearchExtension(phase_class):
         def __init__(
             self,
-                phase_name,
-                phase_folders=tuple(),
+            phase_name,
+            phase_folders=tuple(),
             number_of_steps=10,
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             **kwargs,
         ):
-            super().__init__(phase_name=phase_name, phase_folders=phase_folders, optimizer_class=optimizer_class, **kwargs)
+            super().__init__(
+                phase_name=phase_name,
+                phase_folders=phase_folders,
+                optimizer_class=optimizer_class,
+                **kwargs,
+            )
             self.optimizer = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,
