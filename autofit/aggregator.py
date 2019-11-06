@@ -52,7 +52,7 @@ class PhaseOutput(object):
     @property
     def header(self) -> str:
         """
-        A header created by joining the pipeline, phase and simulator names
+        A header created by joining the pipeline, phase and dataset names
         """
         return "/".join((self.pipeline, self.phase, self.data))
 
