@@ -3,7 +3,7 @@ import os
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear.multi_nest import Paths
+from autofit.optimize.non_linear.non_linear import Paths
 from test_autofit.mock import MockClassNLOx4, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")

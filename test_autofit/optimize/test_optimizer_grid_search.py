@@ -7,7 +7,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import grid_search as gs
-from autofit.optimize.non_linear.multi_nest import Paths
+from autofit.optimize.non_linear.non_linear import Paths
 from autofit.tools import phase
 from test_autofit.mapper.test_model_mapper import GeometryProfile
 
