@@ -1,7 +1,10 @@
 import copy
+from typing import Optional, Union, Tuple
 
 from autofit.mapper.model_object import ModelObject
 from autofit.tools.promise import AbstractPromise
+
+RECURSION_LIMIT = 100
 
 
 class AbstractModel(ModelObject):
@@ -96,22 +99,58 @@ def populate(obj, collection):
         return obj
 
 
-def path_instances_of_class(obj, cls, ignore_class=None):
-    from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+def path_instances_of_class(
+        obj,
+        cls: type,
+        ignore_class: Optional[
+            Union[type, Tuple[type]]
+        ] = None,
+        recursion_depth: int = 0
+):
+    """
+    Recursively search the object for instances of a given class
 
+    Parameters
+    ----------
+    obj
+        The object to recursively search
+    cls
+        The type to search for
+    ignore_class
+        A type or
+    recursion_depth
+        Keeps track of the number of recursions made to ensure that cycles are broken
+
+    Returns
+    -------
+    instance of type
+    """
+    if recursion_depth > RECURSION_LIMIT:
+        raise RecursionError(
+            f"Recursion searching for instances of {cls} in {obj} exceeded {RECURSION_LIMIT}"
+        )
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
     if isinstance(obj, cls):
         return [(tuple(), obj)]
     results = []
     try:
+        from autofit.mapper.prior_model.annotation import AnnotationPriorModel
         for key, value in obj.__dict__.items():
-            for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
-                if isinstance(value, AnnotationPriorModel):
-                    path = (key,)
-                else:
-                    path = (key, *item[0])
-                results.append((path, item[1]))
+            try:
+                for item in path_instances_of_class(
+                        value,
+                        cls,
+                        ignore_class=ignore_class,
+                        recursion_depth=recursion_depth + 1
+                ):
+                    if isinstance(value, AnnotationPriorModel):
+                        path = (key,)
+                    else:
+                        path = (key, *item[0])
+                    results.append((path, item[1]))
+            except RecursionError:
+                pass
         return results
     except AttributeError:
         return []
