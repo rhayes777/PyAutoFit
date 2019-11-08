@@ -73,17 +73,13 @@ class PriorModel(AbstractPriorModel):
 
             if arg in kwargs:
                 keyword_arg = kwargs[arg]
-                if isinstance(keyword_arg, list):
+                if isinstance(keyword_arg, (list, dict)):
                     from autofit.mapper.prior_model.collection import (
                         CollectionPriorModel,
                     )
 
-                    ls = CollectionPriorModel([])
-                    for obj in keyword_arg:
-                        if inspect.isclass(obj):
-                            ls.append(AbstractPriorModel.from_object(obj))
-                        else:
-                            ls.append(obj)
+                    ls = CollectionPriorModel(keyword_arg)
+
                     setattr(self, arg, ls)
                 else:
                     if inspect.isclass(keyword_arg):
