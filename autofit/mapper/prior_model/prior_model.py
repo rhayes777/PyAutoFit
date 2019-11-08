@@ -181,6 +181,9 @@ class PriorModel(AbstractPriorModel):
             super().__setattr__(key, value)
         except AttributeError as e:
             logger.exception(e)
+            logger.exception(
+                key
+            )
 
     def __getattr__(self, item):
         try:
