@@ -1,6 +1,7 @@
 import copy
 from typing import Optional, Union, Tuple
 
+from autofit.tools.pipeline import ResultsCollection
 from autofit.mapper.model_object import ModelObject
 from autofit.tools.promise import AbstractPromise
 
@@ -83,19 +84,62 @@ class AbstractModel(ModelObject):
         ]
 
 
-def populate(obj, collection):
+def populate(
+        obj,
+        collection: ResultsCollection,
+        recursion_depth=0
+):
+    """
+    Replace promises with instances and constants. Promises are placeholders expressing that a given attribute should
+    be replaced with an actual value once the phase that generates that value is complete.
+
+    Parameters
+    ----------
+    obj
+        The object to be populated
+    collection
+        A collection of Results from previous phases
+    recursion_depth
+        Current depth of recursion used to prevent infinite recursion
+
+    Returns
+    -------
+    obj
+        The same object with all promises populated, or if the object was a promise the replacement for that promise
+    """
+    if recursion_depth > RECURSION_LIMIT:
+        raise RecursionError(
+            f"Recursion limit {RECURSION_LIMIT} exceeded populating {obj}"
+        )
     if isinstance(obj, list):
-        return [populate(item, collection) for item in obj]
+        return [
+            populate(
+                item,
+                collection,
+                recursion_depth=recursion_depth + 1
+            ) for item in obj
+        ]
     if isinstance(obj, dict):
-        return {key: populate(value, collection) for key, value in obj.items()}
+        return {
+            key: populate(
+                value,
+                collection,
+                recursion_depth=recursion_depth + 1
+            ) for key, value
+            in obj.items()
+        }
     if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:
         new = copy.deepcopy(obj)
         for key, value in obj.__dict__.items():
-            setattr(new, key, populate(value, collection))
+            setattr(new, key, populate(
+                value,
+                collection,
+                recursion_depth=recursion_depth + 1
+            ))
         return new
-    except (AttributeError, TypeError):
+    except (AttributeError, TypeError, RecursionError):
         return obj
 
 
