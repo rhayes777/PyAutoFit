@@ -1,5 +1,6 @@
 import copy
 import inspect
+import logging
 
 from typing_inspect import is_tuple_type
 
@@ -9,6 +10,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredInstance
 from autofit.mapper.prior_model.prior import TuplePrior, Prior
 from autofit.tools.promise import Promise
+
+logger = logging.getLogger(__name__)
 
 
 class PriorModel(AbstractPriorModel):
@@ -55,7 +58,7 @@ class PriorModel(AbstractPriorModel):
 
         try:
             defaults = dict(
-                zip(arg_spec.args[-len(arg_spec.defaults) :], arg_spec.defaults)
+                zip(arg_spec.args[-len(arg_spec.defaults):], arg_spec.defaults)
             )
         except TypeError:
             defaults = {}
@@ -73,17 +76,13 @@ class PriorModel(AbstractPriorModel):
 
             if arg in kwargs:
                 keyword_arg = kwargs[arg]
-                if isinstance(keyword_arg, list):
+                if isinstance(keyword_arg, (list, dict)):
                     from autofit.mapper.prior_model.collection import (
                         CollectionPriorModel,
                     )
 
-                    ls = CollectionPriorModel([])
-                    for obj in keyword_arg:
-                        if inspect.isclass(obj):
-                            ls.append(AbstractPriorModel.from_object(obj))
-                        else:
-                            ls.append(obj)
+                    ls = CollectionPriorModel(keyword_arg)
+
                     setattr(self, arg, ls)
                 else:
                     if inspect.isclass(keyword_arg):
@@ -126,9 +125,9 @@ class PriorModel(AbstractPriorModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, PriorModel)
-            and self.cls == other.cls
-            and self.prior_tuples == other.prior_tuples
+                isinstance(other, PriorModel)
+                and self.cls == other.cls
+                and self.prior_tuples == other.prior_tuples
         )
 
     def make_prior(self, attribute_name):
@@ -163,10 +162,10 @@ class PriorModel(AbstractPriorModel):
 
     def __setattr__(self, key, value):
         if key not in (
-            "component_number",
-            "phase_property_position",
-            "mapping_name",
-            "id",
+                "component_number",
+                "phase_property_position",
+                "mapping_name",
+                "id",
         ):
             try:
                 if "_" in key:
@@ -178,7 +177,13 @@ class PriorModel(AbstractPriorModel):
                     return
             except IndexError:
                 pass
-        super(PriorModel, self).__setattr__(key, value)
+        try:
+            super().__setattr__(key, value)
+        except AttributeError as e:
+            logger.exception(e)
+            logger.exception(
+                key
+            )
 
     def __getattr__(self, item):
         try:
@@ -260,9 +265,9 @@ class PriorModel(AbstractPriorModel):
 
         for key, value in self.__dict__.items():
             if (
-                not hasattr(result, key)
-                and not isinstance(value, Prior)
-                and not isinstance(value, Promise)
+                    not hasattr(result, key)
+                    and not isinstance(value, Prior)
+                    and not isinstance(value, Promise)
             ):
                 if isinstance(value, PriorModel):
                     value = value.instance_for_arguments(arguments)

@@ -184,6 +184,8 @@ class Prior(ModelObject):
         )
         if config_arr[0] == "u":
             return UniformPrior(config_arr[1], config_arr[2])
+        elif config_arr[0] == "n":
+            return None
         elif config_arr[0] == "l":
             return LogUniformPrior(config_arr[1], config_arr[2])
         elif config_arr[0] == "g":
