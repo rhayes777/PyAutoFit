@@ -1,6 +1,6 @@
 from test_autofit.simulate.gaussian import makers
 
-# Welcome to the PyAutoFit test_autoarray suite data_type maker. Here, we'll make the suite of data_type that we use to test_autoarray and profile
+# Welcome to the PyAutoFit test_autoarray suite data_type maker. Here, we'll make the suite of data_type that we use to test and profile
 # PyAutoLens. This consists of the following sets of images:
 
 sub_size = 1
