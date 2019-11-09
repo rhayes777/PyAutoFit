@@ -28,6 +28,7 @@ class AbstractPhase:
         optimizer_class: class
             The class of a non_linear optimizer
         """
+
         self.paths = Paths(
             phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
         )
