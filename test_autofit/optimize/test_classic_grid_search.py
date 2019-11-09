@@ -7,7 +7,7 @@ import autofit.optimize.non_linear.grid_search
 import autofit.optimize.non_linear.non_linear
 from autofit import conf
 from autofit import exc
-from autofit.optimize.non_linear.multi_nest import Paths
+from autofit.optimize.non_linear.non_linear import Paths
 from autofit.optimize.optimizer import grid
 from test_autofit.mock import Galaxy
 

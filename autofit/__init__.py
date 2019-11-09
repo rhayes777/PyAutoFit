@@ -1,3 +1,4 @@
+from autofit.mapper.model import path_instances_of_class
 from autofit.mapper.prior_model.prior import ConstantNameValue
 from autofit.mapper.prior_model.prior import (
     Prior,
@@ -27,7 +28,6 @@ from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.util import PriorModelNameValue
 from .optimize import *
-from .optimize.non_linear.non_linear import Paths
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.grid_search import GridSearch
@@ -36,6 +36,7 @@ from .optimize.non_linear.multi_nest import MultiNest
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import NonLinearOptimizer
+from .optimize.non_linear.non_linear import Paths
 from .optimize.non_linear.non_linear import Result
 from .tools import *
 from .tools import path_util, text_util

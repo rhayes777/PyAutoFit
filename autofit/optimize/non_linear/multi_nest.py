@@ -4,17 +4,12 @@ import numpy as np
 import pymultinest
 
 from autofit import conf, exc
-from autofit.optimize.non_linear import non_linear
 from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import persistent_timer
 
 logger = logging.getLogger(__name__)
-
-
-class Paths(non_linear.Paths):
-    pass
 
 
 class MultiNest(NonLinearOptimizer):
@@ -84,7 +79,7 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-            self, nlo, analysis, instance_from_physical_vector, output_results
+                self, nlo, analysis, instance_from_physical_vector, output_results
         ):
             super().__init__(nlo, analysis)
             self.instance_from_physical_vector = instance_from_physical_vector
@@ -130,8 +125,8 @@ class MultiNest(NonLinearOptimizer):
                 self.accepted_samples += 1
 
                 if (
-                    self.accepted_samples
-                    == self.number_of_accepted_samples_between_output
+                        self.accepted_samples
+                        == self.number_of_accepted_samples_between_output
                 ):
                     self.accepted_samples = 0
                     self.output_results(during_analysis=True)

@@ -1,8 +1,8 @@
 import copy
 from typing import Optional, Union, Tuple
 
-from autofit.tools.pipeline import ResultsCollection
 from autofit.mapper.model_object import ModelObject
+from autofit.tools.pipeline import ResultsCollection
 from autofit.tools.promise import AbstractPromise
 
 RECURSION_LIMIT = 100
