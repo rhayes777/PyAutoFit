@@ -84,11 +84,7 @@ class AbstractModel(ModelObject):
         ]
 
 
-def populate(
-        obj,
-        collection: ResultsCollection,
-        recursion_depth=0
-):
+def populate(obj, collection: ResultsCollection, recursion_depth=0):
     """
     Replace promises with instances and constants. Promises are placeholders expressing that a given attribute should
     be replaced with an actual value once the phase that generates that value is complete.
@@ -113,43 +109,34 @@ def populate(
         )
     if isinstance(obj, list):
         return [
-            populate(
-                item,
-                collection,
-                recursion_depth=recursion_depth + 1
-            ) for item in obj
+            populate(item, collection, recursion_depth=recursion_depth + 1)
+            for item in obj
         ]
     if isinstance(obj, dict):
         return {
-            key: populate(
-                value,
-                collection,
-                recursion_depth=recursion_depth + 1
-            ) for key, value
-            in obj.items()
+            key: populate(value, collection, recursion_depth=recursion_depth + 1)
+            for key, value in obj.items()
         }
     if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:
         new = copy.deepcopy(obj)
         for key, value in obj.__dict__.items():
-            setattr(new, key, populate(
-                value,
-                collection,
-                recursion_depth=recursion_depth + 1
-            ))
+            setattr(
+                new,
+                key,
+                populate(value, collection, recursion_depth=recursion_depth + 1),
+            )
         return new
     except (AttributeError, TypeError, RecursionError):
         return obj
 
 
 def path_instances_of_class(
-        obj,
-        cls: type,
-        ignore_class: Optional[
-            Union[type, Tuple[type]]
-        ] = None,
-        recursion_depth: int = 0
+    obj,
+    cls: type,
+    ignore_class: Optional[Union[type, Tuple[type]]] = None,
+    recursion_depth: int = 0,
 ):
     """
     Recursively search the object for instances of a given class
@@ -180,13 +167,14 @@ def path_instances_of_class(
     results = []
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+
         for key, value in obj.__dict__.items():
             try:
                 for item in path_instances_of_class(
-                        value,
-                        cls,
-                        ignore_class=ignore_class,
-                        recursion_depth=recursion_depth + 1
+                    value,
+                    cls,
+                    ignore_class=ignore_class,
+                    recursion_depth=recursion_depth + 1,
                 ):
                     if isinstance(value, AnnotationPriorModel):
                         path = (key,)

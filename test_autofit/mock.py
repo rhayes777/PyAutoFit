@@ -322,7 +322,6 @@ class MassProfile(object):
         raise NotImplementedError("deflections_from_grid should be overridden")
 
 
-
 # noinspection PyAbstractClass
 class EllipticalMassProfile(EllipticalProfile, MassProfile):
     def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):

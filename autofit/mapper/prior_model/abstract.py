@@ -310,11 +310,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @staticmethod
-    def from_instance(
-            instance,
-            variable_classes=tuple(),
-            recursion_depth=0
-    ):
+    def from_instance(instance, variable_classes=tuple(), recursion_depth=0):
         """
         Recursively create an prior object model from an object model.
 
@@ -342,7 +338,7 @@ class AbstractPriorModel(AbstractModel):
                         AbstractPriorModel.from_instance(
                             item,
                             variable_classes=variable_classes,
-                            recursion_depth=recursion_depth + 1
+                            recursion_depth=recursion_depth + 1,
                         )
                         for item in instance
                     ]
@@ -356,7 +352,7 @@ class AbstractPriorModel(AbstractModel):
                         AbstractPriorModel.from_instance(
                             value,
                             variable_classes=variable_classes,
-                            recursion_depth=recursion_depth + 1
+                            recursion_depth=recursion_depth + 1,
                         ),
                     )
             elif isinstance(instance, dict):
@@ -365,7 +361,7 @@ class AbstractPriorModel(AbstractModel):
                         key: AbstractPriorModel.from_instance(
                             value,
                             variable_classes=variable_classes,
-                            recursion_depth=recursion_depth + 1
+                            recursion_depth=recursion_depth + 1,
                         )
                         for key, value in instance.items()
                     }
@@ -382,11 +378,11 @@ class AbstractPriorModel(AbstractModel):
                             key: AbstractPriorModel.from_instance(
                                 value,
                                 variable_classes=variable_classes,
-                                recursion_depth=recursion_depth + 1
+                                recursion_depth=recursion_depth + 1,
                             )
                             for key, value in instance.__dict__.items()
                             if key != "cls"
-                        }
+                        },
                     )
 
                 except AttributeError:
@@ -455,8 +451,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, AbstractPriorModel)
-                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+            isinstance(other, AbstractPriorModel)
+            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -613,7 +609,7 @@ def transfer_classes(instance, mapper, variable_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                    mapper_value, AnnotationPriorModel
+                mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
