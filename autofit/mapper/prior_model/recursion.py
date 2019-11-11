@@ -96,15 +96,17 @@ class DynamicRecursionCache:
                 f"Recursion wrapper received args {args} and kwargs {kwargs}"
             )
             item_id = np.prod(
-                id(item)
-                for item in (
+                [
+                    id(item)
+                    for item in (
                         list(args) +
                         list(kwargs.items())
                 )
+                ]
             )
             cache_keys = '\n'.join(self.cache.keys())
             print(
-                f"This gives item_id f{item_id}. Cache keys = {cache_keys}"
+                f"This gives item_id {item_id}. Cache keys = {cache_keys}"
             )
             if item_id in self.cache:
                 print("Item in cache")
