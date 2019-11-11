@@ -5,6 +5,22 @@ from autofit import conf
 from autofit.mapper import link
 
 
+def make_path(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        full_path = func(*args, **kwargs)
+        if not os.path.exists(full_path):
+            try:
+                os.makedirs(
+                    full_path
+                )
+            except FileExistsError:
+                pass
+        return full_path
+
+    return wrapper
+
+
 def convert_paths(func):
     @wraps(func)
     def wrapper(
@@ -68,29 +84,15 @@ class Paths:
             phase_folders=tuple(),
             phase_path=None
     ):
-
-        # TODO : When I make a HyperPhase in autolens, the input phase name is an instance of Paths. The if loop below
-        # TODO : Fixes the tests but is clearly dodgy.
-
-        if isinstance(phase_name, Paths):
-            phase_name = phase_name.phase_name
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ""
 
-        try:
-            os.makedirs("/".join(self.sym_path.split("/")[:-1]))
-        except FileExistsError:
-            pass
-
-        try:
-            os.makedirs(self.pdf_path)
-        except FileExistsError:
-            pass
-
-        self.path = link.make_linked_folder(self.sym_path)
+    @property
+    def path(self):
+        return link.make_linked_folder(self.sym_path)
 
     def __eq__(self, other):
         return isinstance(other, Paths) and all(
@@ -124,17 +126,12 @@ class Paths:
         )
 
     @property
+    @make_path
     def phase_output_path(self) -> str:
         """
         The path to the output information for a phase.
         """
         return "{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
-        )
-
-    @property
-    def opt_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
         )
 
@@ -146,13 +143,14 @@ class Paths:
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.opt_path, "multinest.paramnames")
+        return "{}/{}".format(self.path, "multinest.paramnames")
 
     @property
     def file_model_info(self) -> str:
         return "{}/{}".format(self.phase_output_path, "model.info")
 
     @property
+    @make_path
     def image_path(self) -> str:
         """
         The path to the directory in which images are stored.
@@ -160,6 +158,7 @@ class Paths:
         return "{}image/".format(self.phase_output_path)
 
     @property
+    @make_path
     def pdf_path(self) -> str:
         """
         The path to the directory in which images are stored.
@@ -178,6 +177,7 @@ class Paths:
         """
         return "{}/model.pickle".format(self.make_path())
 
+    @make_path
     def make_path(self) -> str:
         """
         Create the path to the folder at which the metadata and optimizer pickle should

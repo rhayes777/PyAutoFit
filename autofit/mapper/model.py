@@ -133,7 +133,7 @@ def populate(
         return obj
 
 
-@DynamicRecursionCache()
+# @DynamicRecursionCache()
 def path_instances_of_class(
         obj,
         cls: type,

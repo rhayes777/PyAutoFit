@@ -1,15 +1,34 @@
 from functools import wraps
 
+import numpy as np
+
 
 class RecursionPromise:
     pass
 
 
 def replace_promise(
-        promise,
+        promise: RecursionPromise,
         obj,
         true_value
 ):
+    """
+    Traverse the object replacing any identity of the promise with the true value
+
+    Parameters
+    ----------
+    promise
+        A placeholder for an object that had not been computed at the time some part of the object was computed
+    obj
+        An object computed that may contain Promises
+    true_value
+        The true value associated with the promise
+
+    Returns
+    -------
+    obj
+        The object with any identities of the Promise replaced
+    """
     if isinstance(
             obj,
             list
@@ -51,26 +70,48 @@ def replace_promise(
 
 class DynamicRecursionCache:
     def __init__(self):
+        """
+        A decorating class that prevents infinite loops when recursing graphs by attaching placeholders
+        """
         self.cache = dict()
 
     def __call__(
             self,
             func
     ):
+        """
+        Decorate the function to prevent recursion.
+
+        When the function is called with a set of arguments, A, a Promise is stored for that set of arguments in the
+        cache. If the function is called again with that set of arguments then the Promise is returned. When the
+        function itself returns a value any identity of the Promise is replaced by the actual value returned.
+        """
+
         @wraps(func)
         def wrapper(
                 *args,
                 **kwargs
         ):
-            item_id = sum(
-                id(item)
-                for item in (
+            print(
+                f"Recursion wrapper received args {args} and kwargs {kwargs}"
+            )
+            item_id = np.prod(
+                [
+                    id(item)
+                    for item in (
                         list(args) +
                         list(kwargs.items())
                 )
+                ]
+            )
+            cache_keys = '\n'.join(self.cache.keys())
+            print(
+                f"This gives item_id {item_id}. Cache keys = {cache_keys}"
             )
             if item_id in self.cache:
+                print("Item in cache")
                 return self.cache[item_id]
+            print("item not in cache")
             recursion_promise = RecursionPromise()
             self.cache[
                 item_id
