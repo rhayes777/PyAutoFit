@@ -1,4 +1,5 @@
 from functools import wraps
+
 import numpy as np
 
 
@@ -85,11 +86,15 @@ class DynamicRecursionCache:
         cache. If the function is called again with that set of arguments then the Promise is returned. When the
         function itself returns a value any identity of the Promise is replaced by the actual value returned.
         """
+
         @wraps(func)
         def wrapper(
                 *args,
                 **kwargs
         ):
+            print(
+                f"Recursion wrapper received args {args} and kwargs {kwargs}"
+            )
             item_id = np.prod(
                 id(item)
                 for item in (
@@ -97,8 +102,14 @@ class DynamicRecursionCache:
                         list(kwargs.items())
                 )
             )
+            cache_keys = '\n'.join(self.cache.keys())
+            print(
+                f"This gives item_id f{item_id}. Cache keys = {cache_keys}"
+            )
             if item_id in self.cache:
+                print("Item in cache")
                 return self.cache[item_id]
+            print("item not in cache")
             recursion_promise = RecursionPromise()
             self.cache[
                 item_id
