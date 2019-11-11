@@ -1,12 +1,58 @@
 import os
+from functools import wraps
 
 from autofit import conf
 from autofit.mapper import link
 
 
+def convert_paths(func):
+    @wraps(func)
+    def wrapper(
+            self,
+            *args,
+            **kwargs
+    ):
+        if len(args) > 1:
+            raise AssertionError(
+                "Only phase name is allowed to be a positional argument in a phase constructor"
+            )
+        elif len(args) == 1:
+            phase_name = args[0]
+        else:
+            phase_name = kwargs.pop(
+                "phase_name"
+            )
+
+        func(
+            self,
+            paths=Paths(
+                phase_name=phase_name,
+                phase_tag=kwargs.pop(
+                    "phase_tag",
+                    None
+                ),
+                phase_folders=kwargs.pop(
+                    "phase_folders",
+                    tuple()
+                ),
+                phase_path=kwargs.pop(
+                    "phase_path",
+                    None
+                )
+            ),
+            **kwargs
+        )
+
+    return wrapper
+
+
 class Paths:
     def __init__(
-        self, phase_name="", phase_tag=None, phase_folders=tuple(), phase_path=None
+            self,
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple(),
+            phase_path=None
     ):
 
         # TODO : When I make a HyperPhase in autolens, the input phase name is an instance of Paths. The if loop below
@@ -18,7 +64,7 @@ class Paths:
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
-        self.phase_tag = phaifse_tag or ""
+        self.phase_tag = phase_tag or ""
 
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))

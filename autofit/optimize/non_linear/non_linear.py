@@ -10,13 +10,14 @@ import numpy as np
 
 from autofit import conf
 from autofit.mapper import link, model_mapper as mm
-from autofit.optimize.non_linear.paths import Paths
+from autofit.optimize.non_linear.paths import Paths, convert_paths
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 
 class NonLinearOptimizer(object):
+    @convert_paths
     def __init__(self, paths):
         """Abstract base class for non-linear optimizers.
 
