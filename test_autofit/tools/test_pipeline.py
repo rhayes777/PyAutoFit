@@ -39,10 +39,11 @@ class MockPhase(af.AbstractPhase):
     def make_result(self, result, analysis):
         pass
 
-    def __init__(self, phase_name, optimizer=None):
-        super().__init__(phase_name=phase_name)
+    @af.convert_paths
+    def __init__(self, paths, optimizer=None):
+        super().__init__(paths)
         self.optimizer = optimizer or af.NonLinearOptimizer(
-            paths=autofit.optimize.non_linear.paths.Paths(phase_name=phase_name)
+            paths=paths
         )
 
     def save_metadata(self, data_name, pipeline_name):

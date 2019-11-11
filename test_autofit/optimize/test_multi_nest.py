@@ -639,8 +639,8 @@ def make_multi_nest():
 
     multi_nest = af.MultiNest(run=run, paths=Paths(phase_name=""))
 
-    create_weighted_samples_4_parameters(multi_nest.paths.opt_path)
-    create_summary_4_parameters(multi_nest.paths.opt_path)
+    create_weighted_samples_4_parameters(multi_nest.paths.sym_path)
+    create_summary_4_parameters(multi_nest.paths.sym_path)
 
     return multi_nest
 
