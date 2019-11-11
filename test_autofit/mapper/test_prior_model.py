@@ -22,29 +22,29 @@ def make_complex_prior_model():
     return af.AbstractPriorModel.from_instance(instance)
 
 
-class TestAsVariable:
+class TestAsmodel:
     def test_instance(self, instance_prior_model):
-        variable = instance_prior_model.as_variable()
-        assert variable.prior_count == 2
+        model = instance_prior_model.as_model()
+        assert model.prior_count == 2
 
     def test_list(self, list_prior_model):
-        variable = list_prior_model.as_variable()
-        assert isinstance(variable, af.CollectionPriorModel)
-        assert variable.prior_count == 2
+        model = list_prior_model.as_model()
+        assert isinstance(model, af.CollectionPriorModel)
+        assert model.prior_count == 2
 
     def test_complex(self, complex_prior_model):
         assert complex_prior_model.prior_count == 0
-        variable = complex_prior_model.as_variable()
-        assert variable.prior_count == 2
-        assert variable.simple.prior_count == 2
+        model = complex_prior_model.as_model()
+        assert model.prior_count == 2
+        assert model.simple.prior_count == 2
 
     def test_galaxy_list(self):
         galaxies = af.ModelInstance()
         galaxies.one = mock.Galaxy()
         instance = af.ModelInstance()
         instance.galaxies = galaxies
-        variable = instance.as_variable(variable_classes=(mock.Galaxy,))
-        assert variable.prior_count == 1
+        model = instance.as_model(model_classes=(mock.Galaxy,))
+        assert model.prior_count == 1
 
 
 class TestFromInstance:
@@ -56,33 +56,33 @@ class TestFromInstance:
 
         assert isinstance(result, af.ModelMapper)
 
-    def test_with_variable_classes(self):
+    def test_with_model_classes(self):
         instance = mock.ComplexClass(mock.SimpleClass(1.0, 2.0))
         model = af.AbstractPriorModel.from_instance(
-            instance, variable_classes=(mock.SimpleClass,)
+            instance, model_classes=(mock.SimpleClass,)
         )
         assert model.prior_count == 2
 
-    def test_list_with_variable_classes(self):
+    def test_list_with_model_classes(self):
         instance = [
             mock.SimpleClass(1.0, 2.0),
             mock.ComplexClass(mock.SimpleClass(1.0, 2.0)),
         ]
         model = af.AbstractPriorModel.from_instance(
-            instance, variable_classes=(mock.ComplexClass,)
+            instance, model_classes=(mock.ComplexClass,)
         )
 
         assert model.prior_count == 2
         assert model[0].prior_count == 0
         assert model[1].prior_count == 2
 
-    def test_dict_with_variable_classes(self):
+    def test_dict_with_model_classes(self):
         instance = {
             "one": mock.SimpleClass(1.0, 2.0),
             "two": mock.ComplexClass(mock.SimpleClass(1.0, 2.0)),
         }
         model = af.AbstractPriorModel.from_instance(
-            instance, variable_classes=(mock.ComplexClass,)
+            instance, model_classes=(mock.ComplexClass,)
         )
 
         assert model.prior_count == 2
@@ -141,7 +141,7 @@ class TestFromInstance:
     def test_dimension_types(self):
         instance = mock.DistanceClass(mock.Distance(1.0), mock.Distance(2.0))
         result = af.AbstractPriorModel.from_instance(
-            instance, variable_classes=(mock.DistanceClass,)
+            instance, model_classes=(mock.DistanceClass,)
         )
         assert isinstance(result.first, af.PriorModel)
 

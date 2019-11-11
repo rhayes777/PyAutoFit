@@ -169,7 +169,7 @@ class Result(object):
     """
 
     def __init__(
-            self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None
+            self, constant, figure_of_merit, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
@@ -180,26 +180,26 @@ class Result(object):
             An instance object comprising the class instances that gave the optimal fit
         figure_of_merit: float
             A value indicating the figure of merit given by the optimal fit
-        previous_variable: mm.ModelMapper
+        previous_model: mm.ModelMapper
             The model mapper from the stage that produced this result
         """
         self.constant = constant
         self.figure_of_merit = figure_of_merit
-        self.previous_variable = previous_variable
+        self.previous_model = previous_model
         self.gaussian_tuples = gaussian_tuples
-        self.__variable = None
+        self.__model = None
 
     @property
-    def variable(self):
-        if self.__variable is None:
-            self.__variable = self.previous_variable.mapper_from_gaussian_tuples(
+    def model(self):
+        if self.__model is None:
+            self.__model = self.previous_model.mapper_from_gaussian_tuples(
                 self.gaussian_tuples
             )
-        return self.__variable
+        return self.__model
 
-    @variable.setter
-    def variable(self, variable):
-        self.__variable = variable
+    @model.setter
+    def model(self, model):
+        self.__model = model
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
@@ -208,7 +208,7 @@ class Result(object):
             )
         )
 
-    def variable_absolute(self, a: float) -> mm.ModelMapper:
+    def model_absolute(self, a: float) -> mm.ModelMapper:
         """
         Parameters
         ----------
@@ -220,11 +220,11 @@ class Result(object):
         A model mapper created by taking results from this phase and creating priors with the defined absolute
         width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(
+        return self.previous_model.mapper_from_gaussian_tuples(
             self.gaussian_tuples, a=a
         )
 
-    def variable_relative(self, r: float) -> mm.ModelMapper:
+    def model_relative(self, r: float) -> mm.ModelMapper:
         """
         Parameters
         ----------
@@ -236,7 +236,7 @@ class Result(object):
         A model mapper created by taking results from this phase and creating priors with the defined relative
         width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(
+        return self.previous_model.mapper_from_gaussian_tuples(
             self.gaussian_tuples, r=r
         )
 

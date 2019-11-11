@@ -66,7 +66,7 @@ class TestCase(object):
             phase_folders=["integration"], phase_name="test_autoarray"
         )
 
-        multinest.variable.profile = test_autofit.mock.EllipticalProfile
+        multinest.model.profile = test_autofit.mock.EllipticalProfile
 
         result = multinest.fit(Analysis())
 
@@ -82,14 +82,14 @@ class TestCase(object):
             phase_tag="_tag",
             phase_folders=["integration"],
         )
-        grid_search.variable.profile = test_autofit.mock.EllipticalProfile
+        grid_search.model.profile = test_autofit.mock.EllipticalProfile
 
         # noinspection PyUnresolvedReferences
         result = grid_search.fit(
             Analysis(),
             [
-                grid_search.variable.profile.centre_0,
-                grid_search.variable.profile.centre_1,
+                grid_search.model.profile.centre_0,
+                grid_search.model.profile.centre_1,
             ],
         )
 
@@ -128,7 +128,7 @@ class TestCase(object):
         class GridSearchPhase(af.as_grid_search(Phase)):
             @property
             def grid_priors(self):
-                return [self.variable.profile.centre_0, self.variable.profile.centre_1]
+                return [self.model.profile.centre_0, self.model.profile.centre_1]
 
         constant_profile = test_autofit.mock.EllipticalProfile()
 
@@ -151,7 +151,7 @@ class TestCase(object):
         class GridSearchPhase(af.as_grid_search(Phase, parallel=True)):
             @property
             def grid_priors(self):
-                return [self.variable.profile.centre_0, self.variable.profile.centre_1]
+                return [self.model.profile.centre_0, self.model.profile.centre_1]
 
         constant_profile = test_autofit.mock.EllipticalProfile()
 

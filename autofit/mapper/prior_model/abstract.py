@@ -313,14 +313,14 @@ class AbstractPriorModel(AbstractModel):
     @DynamicRecursionCache()
     def from_instance(
             instance,
-            variable_classes=tuple()
+            model_classes=tuple()
     ):
         """
         Recursively create an prior object model from an object model.
 
         Parameters
         ----------
-        variable_classes
+        model_classes
         instance
             A dictionary, list, class instance or model instance
 
@@ -329,7 +329,7 @@ class AbstractPriorModel(AbstractModel):
         abstract_prior_model
             A concrete child of an abstract prior model
         """
-        print(f"from_instance for instance {instance} variable_class {variable_classes}")
+        print(f"from_instance for instance {instance} model_class {model_classes}")
 
         if isinstance(instance, list):
             print("instance is a list")
@@ -337,7 +337,7 @@ class AbstractPriorModel(AbstractModel):
                 [
                     AbstractPriorModel.from_instance(
                         item,
-                        variable_classes=variable_classes,
+                        model_classes=model_classes,
                     )
                     for item in instance
                 ]
@@ -351,7 +351,7 @@ class AbstractPriorModel(AbstractModel):
                     key,
                     AbstractPriorModel.from_instance(
                         value,
-                        variable_classes=variable_classes,
+                        model_classes=model_classes,
                     ),
                 )
         elif isinstance(instance, dict):
@@ -360,7 +360,7 @@ class AbstractPriorModel(AbstractModel):
                 {
                     key: AbstractPriorModel.from_instance(
                         value,
-                        variable_classes=variable_classes,
+                        model_classes=model_classes,
                     )
                     for key, value in instance.items()
                 }
@@ -373,23 +373,26 @@ class AbstractPriorModel(AbstractModel):
             print("instance is a something else")
             try:
                 print(f"instance dictionary items = {instance.__dict__.items()}")
-                result = PriorModel(
-                    instance.__class__,
-                    **{
-                        key: AbstractPriorModel.from_instance(
-                            value,
-                            variable_classes=variable_classes,
-                        )
-                        for key, value in instance.__dict__.items()
-                        if key != "cls"
-                    }
-                )
+                try:
+                    result = PriorModel(
+                        instance.__class__,
+                        **{
+                            key: AbstractPriorModel.from_instance(
+                                value,
+                                model_classes=model_classes,
+                            )
+                            for key, value in instance.__dict__.items()
+                            if key != "cls"
+                        }
+                    )
+                except RecursionError:
+                    return instance
             except AttributeError:
                 print("attribute error raised")
                 return instance
-        if any([isinstance(instance, cls) for cls in variable_classes]):
-            print("result.as_variable")
-            return result.as_variable()
+        if any([isinstance(instance, cls) for cls in model_classes]):
+            print("result.as_model")
+            return result.as_model()
         return result
 
     @property
@@ -520,7 +523,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         excluded_classes
-            Classes that should be left variable
+            Classes that should be left model
         instance
             The best fit from the previous phase
         """
@@ -587,23 +590,23 @@ class AbstractPriorModel(AbstractModel):
         ]
 
 
-def transfer_classes(instance, mapper, variable_classes=None):
+def transfer_classes(instance, mapper, model_classes=None):
     """
     Recursively overwrite priors in the mapper with constant values from the
     instance except where the containing class is the descendant of a listed class.
 
     Parameters
     ----------
-    variable_classes
+    model_classes
         Classes whose descendants should not be overwritten
     instance
         The best fit from the previous phase
     mapper
-        The prior variable from the previous phase
+        The prior model from the previous phase
     """
     from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 
-    variable_classes = variable_classes or []
+    model_classes = model_classes or []
     for key, instance_value in instance.__dict__.items():
         try:
             mapper_value = getattr(mapper, key)
@@ -612,9 +615,9 @@ def transfer_classes(instance, mapper, variable_classes=None):
             ):
                 setattr(mapper, key, instance_value)
                 continue
-            if not any(isinstance(instance_value, cls) for cls in variable_classes):
+            if not any(isinstance(instance_value, cls) for cls in model_classes):
                 try:
-                    transfer_classes(instance_value, mapper_value, variable_classes)
+                    transfer_classes(instance_value, mapper_value, model_classes)
                 except AttributeError:
                     setattr(mapper, key, instance_value)
         except AttributeError:

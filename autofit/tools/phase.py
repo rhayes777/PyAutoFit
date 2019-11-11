@@ -31,7 +31,7 @@ class AbstractPhase:
         self.paths = paths
 
         self.optimizer = optimizer_class(self.paths)
-        self.variable = model or ModelMapper()
+        self.model = model or ModelMapper()
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -44,7 +44,7 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis):
-        return self.optimizer.fit(analysis=analysis, model=self.variable)
+        return self.optimizer.fit(analysis=analysis, model=self.model)
 
     def customize_priors(self, results):
         """
@@ -72,7 +72,7 @@ class AbstractPhase:
         with open(self.paths.make_optimizer_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.optimizer))
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(self.variable))
+            f.write(pickle.dumps(self.model))
 
     def save_metadata(self, data_name, pipeline_name):
         """
@@ -109,7 +109,7 @@ class AbstractPhase:
         if os.path.exists(path):
             with open(path, "r+b") as f:
                 loaded_model = pickle.loads(f.read())
-                if self.variable != loaded_model:
+                if self.model != loaded_model:
                     raise exc.PipelineException(
                         f"Can't restart phase at path {path} because settings don't "
                         f"match. Did you change the model?"
@@ -160,7 +160,7 @@ class Phase(AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising the best fit model and other hyper_galaxies.
         """
-        self.variable = self.variable.populate(results)
+        self.model = self.model.populate(results)
 
         analysis = self.make_analysis(dataset=dataset, results=results)
 
@@ -221,7 +221,7 @@ def as_grid_search(phase_class, parallel=False):
             return result
 
         def run_analysis(self, analysis):
-            return self.optimizer.fit(analysis, self.variable, self.grid_priors)
+            return self.optimizer.fit(analysis, self.model, self.grid_priors)
 
         @property
         def grid_priors(self):

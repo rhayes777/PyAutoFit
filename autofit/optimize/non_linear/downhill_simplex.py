@@ -74,7 +74,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.gaussian_tuples = [(mean, 0) for mean in output]
-        res.previous_variable = model
+        res.previous_model = model
 
         analysis.visualize(instance=res.constant, during_analysis=False)
         return res

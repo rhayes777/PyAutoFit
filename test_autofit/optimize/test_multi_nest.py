@@ -646,16 +646,16 @@ def make_multi_nest():
 
 
 class TestFitting(object):
-    def test_variable(self, multi_nest, variable):
-        variable.mock_class = af.PriorModel(MockClassNLOx4)
-        result = multi_nest.fit(MockAnalysis(), variable)
+    def test_model(self, multi_nest, model):
+        model.mock_class = af.PriorModel(MockClassNLOx4)
+        result = multi_nest.fit(MockAnalysis(), model)
 
         assert result.constant.mock_class.one == 9.0
         assert result.constant.mock_class.two == -10.0
         assert result.figure_of_merit == 0.02
 
-        assert result.variable.mock_class.one.mean == 1
-        assert result.variable.mock_class.two.mean == -2
+        assert result.model.mock_class.one.mean == 1
+        assert result.model.mock_class.two.mean == -2
 
 
 class TestCopyWithNameExtension(object):

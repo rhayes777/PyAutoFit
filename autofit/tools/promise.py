@@ -9,9 +9,9 @@ class AbstractPromiseResult(ABC):
 
     @property
     @abstractmethod
-    def variable(self):
+    def model(self):
         """
-        A promise for an object in the variable result. This might be a prior or prior model.
+        A promise for an object in the model result. This might be a prior or prior model.
         """
 
     @property
@@ -38,9 +38,9 @@ class LastPromiseResult(AbstractPromiseResult):
     """
 
     @property
-    def variable(self):
+    def model(self):
         """
-        A promise for an object in the variable result. This might be a prior or prior model.
+        A promise for an object in the model result. This might be a prior or prior model.
         """
         return LastPromise(result_path=self.result_path)
 
@@ -76,9 +76,9 @@ class PromiseResult(AbstractPromiseResult):
         self.assert_exists = assert_exists
 
     @property
-    def variable(self):
+    def model(self):
         """
-        A promise for an object in the variable result. This might be a prior or prior model.
+        A promise for an object in the model result. This might be a prior or prior model.
         """
         return Promise(
             self.phase, result_path=self.result_path, assert_exists=self.assert_exists
@@ -109,7 +109,7 @@ class AbstractPromise(ABC):
         Parameters
         ----------
         path
-            The path to the promised object. e.g. if a phase has a variable galaxies.lens.phi then the path
+            The path to the promised object. e.g. if a phase has a model galaxies.lens.phi then the path
             will be ("galaxies", "lens", "phi")
         result_path
             The path through the result collection to the result object required. This is used for hyper phases
@@ -151,7 +151,7 @@ class AbstractPromise(ABC):
     def _populate_from_results(self, results):
         for item in self.result_path:
             results = getattr(results, item)
-        model = results.constant if self.is_constant else results.variable
+        model = results.constant if self.is_constant else results.model
         return model.object_for_path(self.path)
 
 
@@ -168,7 +168,7 @@ class Promise(AbstractPromise):
         phase
             The phase that holds or creates the promised object
         path
-            The path to the promised object. e.g. if a phase has a variable galaxies.lens.phi then the path
+            The path to the promised object. e.g. if a phase has a model galaxies.lens.phi then the path
             will be ("galaxies", "lens", "phi")
         result_path
             The path through the result collection to the result object required. This is used for hyper phases
@@ -183,7 +183,7 @@ class Promise(AbstractPromise):
         self.phase = phase
         self.assert_exists = assert_exists
         if assert_exists:
-            phase.variable.object_for_path(path)
+            phase.model.object_for_path(path)
 
     def __getattr__(self, item):
         if item in ("phase", "path", "is_constant", "_populate_from_results"):
@@ -231,7 +231,7 @@ class LastPromise(AbstractPromise):
 
     def populate(self, results_collection: ResultsCollection):
         """
-        Recover the constant or variable associated with this promise from the latest result in the results collection
+        Recover the constant or model associated with this promise from the latest result in the results collection
         where a matching path is found.
         
         Parameters

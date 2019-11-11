@@ -21,7 +21,7 @@ class TestCase(object):
     def test_create_dir(self):
         assert os.path.exists(af.link.autolens_dir)
 
-    def test_environment_variable(self):
+    def test_environment_model(self):
         symdir = "~/.symdir"
         os.environ["SYMDIR"] = symdir
         reload(af.link)

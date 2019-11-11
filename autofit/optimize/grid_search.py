@@ -59,7 +59,7 @@ class GridSearchResult(object):
         best_model: mm.ModelMapper
             The model mapper instance associated with the highest figure of merit from the grid search
         """
-        return self.best_result.variable
+        return self.best_result.model
 
     @property
     def all_models(self):
@@ -69,7 +69,7 @@ class GridSearchResult(object):
         all_models: [mm.ModelMapper]
             All model mapper instances used in the grid search
         """
-        return [result.variable for result in self.results]
+        return [result.model for result in self.results]
 
     @property
     def figure_of_merit_array(self):
@@ -340,7 +340,7 @@ class GridSearch(object):
             )
         )
         for key, value in self.__dict__.items():
-            if key not in ("variable", "constant", "paths"):
+            if key not in ("model", "constant", "paths"):
                 try:
                     setattr(optimizer_instance, key, value)
                 except AttributeError:

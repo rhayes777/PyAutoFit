@@ -192,7 +192,7 @@ class MultiNest(NonLinearOptimizer):
         return Result(
             constant=constant,
             figure_of_merit=multinest_output.maximum_likelihood,
-            previous_variable=model,
+            previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
                 self.sigma_limit
             ),

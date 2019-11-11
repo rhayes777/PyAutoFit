@@ -341,7 +341,7 @@ class TestGridNLOBehaviour(object):
 class MockResult(object):
     def __init__(self, figure_of_merit):
         self.figure_of_merit = figure_of_merit
-        self.variable = figure_of_merit
+        self.model = figure_of_merit
 
 
 @pytest.fixture(name="grid_search_result")
@@ -368,7 +368,7 @@ class TestMixin(object):
         class MyPhase(phase.as_grid_search(phase.AbstractPhase)):
             @property
             def grid_priors(self):
-                return [self.variable.profile.centre_0]
+                return [self.model.profile.centre_0]
 
             def run(self):
                 analysis = container.MockAnalysis()
@@ -379,7 +379,7 @@ class TestMixin(object):
             number_of_steps=2,
             optimizer_class=container.MockOptimizer,
         )
-        my_phase.variable.profile = GeometryProfile
+        my_phase.model.profile = GeometryProfile
 
         result = my_phase.run()
 

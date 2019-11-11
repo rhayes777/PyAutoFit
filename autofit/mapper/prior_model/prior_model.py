@@ -23,7 +23,7 @@ class PriorModel(AbstractPriorModel):
     def name(self):
         return self.cls.__name__
 
-    def as_variable(self):
+    def as_model(self):
         return PriorModel(self.cls)
 
     def __hash__(self):

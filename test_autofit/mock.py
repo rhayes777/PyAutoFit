@@ -177,9 +177,9 @@ class GalaxyModel(af.AbstractPriorModel):
         except AttributeError:
             return Galaxy()
 
-    def __init__(self, variable_redshift=False, **kwargs):
+    def __init__(self, model_redshift=False, **kwargs):
         super().__init__()
-        self.redshift = af.PriorModel(Redshift) if variable_redshift else None
+        self.redshift = af.PriorModel(Redshift) if model_redshift else None
         print(self.redshift)
         self.__dict__.update(
             {
@@ -568,9 +568,9 @@ class Tracer:
 
 
 class Result:
-    def __init__(self, constant=None, variable=None):
+    def __init__(self, constant=None, model=None):
         self.constant = constant
-        self.variable = variable
+        self.model = model
 
 
 class HyperGalaxy(object):

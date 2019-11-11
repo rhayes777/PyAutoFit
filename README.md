@@ -70,14 +70,14 @@ def make_pipeline():
     # In phase 3, we fit the light of both galaxies simultaneously using priors
     # derived from the results of phases 1 & 2 to begin sampling in the maximum
     # likelihood regions of parameter space. This information is passed using
-    # the 'variable' term below.
+    # the 'model' term below.
 
     phase3 = af.Phase(phase_name="phase_3__all_galaxies",
             main_galaxy=af.PriorModel(
-                bulge=phase1.result.variable.main_galaxy.bulge,
-                disk=phase1.result.variable.main_galaxy.disk),
+                bulge=phase1.result.model.main_galaxy.bulge,
+                disk=phase1.result.model.main_galaxy.disk),
             left_satellite=af.PriorModel(
-                light=phase2.result.variable.left_satellite.light),
+                light=phase2.result.model.left_satellite.light),
         optimizer_class=af.MultiNest)
 
     return af.Pipeline(pipeline_name, phase1, phase2, phase3)
@@ -107,7 +107,7 @@ The following features are planned for the next year:
 
 - **Hierarchical modeling** - Fit for global trends of a model within individual fits to a data-set, permitting more general inferences to be made.
 - **Time series modelling** - Fit temporally varying models using bespoke model-fits which marginalize over the fit as a function of time.
-- **Transdimensional Sampling** - Sample non-linear parameter spaces with variable numbers of model components and parameters.
+- **Transdimensional Sampling** - Sample non-linear parameter spaces with model numbers of model components and parameters.
 
 ## Depedencies
 

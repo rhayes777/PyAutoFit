@@ -55,11 +55,11 @@ class TestPipeline(object):
         with pytest.raises(af.exc.PipelineException):
             af.Pipeline("name", MockPhase(Paths("one")), MockPhase(Paths("one")))
 
-    def test_optimizer_assertion(self, variable):
+    def test_optimizer_assertion(self, model):
         paths = Paths("Phase Name")
         optimizer = af.NonLinearOptimizer(paths)
         phase = MockPhase(phase_name="Phase_Name", optimizer=optimizer)
-        phase.variable.profile = GeometryProfile
+        phase.model.profile = GeometryProfile
 
         try:
             os.makedirs(phase.paths.make_path())
@@ -69,7 +69,7 @@ class TestPipeline(object):
         phase.save_optimizer_for_phase()
         phase.assert_optimizer_pickle_matches_for_phase()
 
-        phase.variable.profile.centre_0 = af.UniformPrior()
+        phase.model.profile.centre_0 = af.UniformPrior()
 
         with pytest.raises(af.exc.PipelineException):
             phase.assert_optimizer_pickle_matches_for_phase()
@@ -86,7 +86,7 @@ class TestPipeline(object):
         phase.assert_and_save_pickle()
         phase.assert_and_save_pickle()
 
-        phase.variable.galaxy = Galaxy
+        phase.model.galaxy = Galaxy
 
         with pytest.raises(af.exc.PipelineException):
             phase.assert_and_save_pickle()
