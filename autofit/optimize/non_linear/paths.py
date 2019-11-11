@@ -17,6 +17,7 @@ def make_path(func):
             except FileExistsError:
                 pass
         return full_path
+
     return wrapper
 
 
@@ -89,7 +90,9 @@ class Paths:
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ""
 
-        self.path = link.make_linked_folder(self.sym_path)
+    @property
+    def path(self):
+        return link.make_linked_folder(self.sym_path)
 
     def __eq__(self, other):
         return isinstance(other, Paths) and all(

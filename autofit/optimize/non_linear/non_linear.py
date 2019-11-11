@@ -9,7 +9,7 @@ import time
 import numpy as np
 
 from autofit import conf
-from autofit.mapper import link, model_mapper as mm
+from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
 
 logging.basicConfig()
@@ -91,7 +91,6 @@ class NonLinearOptimizer(object):
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
         if os.path.exists(self.paths.backup_path):
-            self.paths.path = link.make_linked_folder(self.paths.sym_path)
             for file in glob.glob(self.paths.backup_path + "/*"):
                 shutil.copy(file, self.paths.path)
 
