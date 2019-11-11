@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear.non_linear import Paths
+from autofit import Paths
 from test_autofit import mock
 
 

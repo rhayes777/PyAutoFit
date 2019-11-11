@@ -6,7 +6,7 @@ import autofit as af
 import autofit.mapper.prior_model.abstract
 import autofit.mapper.prior_model.prior_model
 import autofit.optimize.non_linear.non_linear
-from autofit.optimize.non_linear.non_linear import Paths
+from autofit import Paths
 from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))

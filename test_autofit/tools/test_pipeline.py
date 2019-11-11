@@ -3,7 +3,8 @@ import os
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear.non_linear import Paths
+import autofit.optimize.non_linear.paths
+from autofit import Paths
 from test_autofit.mock import GeometryProfile, Galaxy
 
 
@@ -41,7 +42,7 @@ class MockPhase(af.AbstractPhase):
     def __init__(self, phase_name, optimizer=None):
         super().__init__(phase_name=phase_name)
         self.optimizer = optimizer or af.NonLinearOptimizer(
-            paths=af.Paths(phase_name=phase_name)
+            paths=autofit.optimize.non_linear.paths.Paths(phase_name=phase_name)
         )
 
     def save_metadata(self, data_name, pipeline_name):

@@ -4,7 +4,7 @@ import typing
 import autofit as af
 
 # noinspection PyAbstractClass
-from autofit.optimize.non_linear.non_linear import Paths
+from autofit import Paths
 from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 
 

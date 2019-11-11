@@ -5,8 +5,7 @@ import shutil
 import pytest
 
 import autofit as af
-from autofit import ModelMapper
-from autofit.optimize.non_linear.non_linear import Paths
+from autofit import ModelMapper, Paths
 from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 from test_autofit.mock import (
     GeometryProfile,

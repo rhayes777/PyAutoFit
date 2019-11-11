@@ -12,8 +12,8 @@ from autofit.optimize.non_linear.non_linear import (
     IntervalCounter,
     persistent_timer,
 )
-from autofit.optimize.non_linear.non_linear import Paths
 from autofit.optimize.non_linear.non_linear import logger
+from autofit.optimize.non_linear.paths import Paths
 
 
 class GridSearch(NonLinearOptimizer):

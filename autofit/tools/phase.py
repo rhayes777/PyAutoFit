@@ -3,10 +3,9 @@ import pickle
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-from autofit import conf, ModelMapper
+from autofit import conf, ModelMapper, Paths
 from autofit import exc
 from autofit.optimize import grid_search
-from autofit.optimize.non_linear.non_linear import Paths
 from autofit.tools.promise import PromiseResult
 
 
