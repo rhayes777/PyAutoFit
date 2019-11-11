@@ -136,13 +136,6 @@ class Paths:
         )
 
     @property
-    @make_path
-    def opt_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
-        )
-
-    @property
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/optimizer".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
@@ -150,7 +143,7 @@ class Paths:
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.opt_path, "multinest.paramnames")
+        return "{}/{}".format(self.path, "multinest.paramnames")
 
     @property
     def file_model_info(self) -> str:
