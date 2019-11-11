@@ -9,7 +9,7 @@ class MockNLO(af.NonLinearOptimizer):
         mock_output = Output(model, self.paths)
         mock_output.save_model_info()
         if model.prior_count == 0:
-            raise AssertionError("There are no priors associated with the variable!")
+            raise AssertionError("There are no priors associated with the model!")
         if model.prior_count != len(model.unique_prior_paths):
             raise AssertionError(
                 "Prior count doesn't match number of unique prior paths"

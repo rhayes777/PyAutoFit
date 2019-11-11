@@ -5,8 +5,7 @@ import shutil
 import pytest
 
 import autofit as af
-from autofit import ModelMapper
-from autofit.optimize.non_linear.non_linear import Paths
+from autofit import ModelMapper, Paths
 from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 from test_autofit.mock import (
     GeometryProfile,
@@ -47,22 +46,22 @@ def make_result():
 
 
 class TestResult(object):
-    def test_variable(self, result):
-        profile = result.variable.profile
+    def test_model(self, result):
+        profile = result.model.profile
         assert profile.centre_0.mean == 0
         assert profile.centre_1.mean == 1
         assert profile.centre_0.sigma == 0.05
         assert profile.centre_1.sigma == 0.05
 
-    def test_variable_absolute(self, result):
-        profile = result.variable_absolute(a=2.0).profile
+    def test_model_absolute(self, result):
+        profile = result.model_absolute(a=2.0).profile
         assert profile.centre_0.mean == 0
         assert profile.centre_1.mean == 1
         assert profile.centre_0.sigma == 2.0
         assert profile.centre_1.sigma == 2.0
 
-    def test_variable_relative(self, result):
-        profile = result.variable_relative(r=1.0).profile
+    def test_model_relative(self, result):
+        profile = result.model_relative(r=1.0).profile
         assert profile.centre_0.mean == 0
         assert profile.centre_1.mean == 1
         assert profile.centre_0.sigma == 0.0
@@ -70,7 +69,7 @@ class TestResult(object):
 
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
-            result.variable.mapper_from_gaussian_tuples(
+            result.model.mapper_from_gaussian_tuples(
                 result.gaussian_tuples, a=2.0, r=1.0
             )
 
@@ -168,7 +167,7 @@ class TestMostProbableAndLikely(object):
         assert most_probable.mock_class_2.three == 9.0
         assert most_probable.mock_class_2.four == 10.0
 
-    def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_constant(
+    def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_instance(
         self
     ):
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)
@@ -210,7 +209,7 @@ class TestMostProbableAndLikely(object):
         assert most_likely.mock_class_2.three == 29.0
         assert most_likely.mock_class_2.four == 30.0
 
-    def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_constant(
+    def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_instance(
         self
     ):
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)
@@ -314,19 +313,19 @@ def make_optimizer():
 
 class TestLabels(object):
     def test_param_names(self, optimizer):
-        optimizer.variable.prior_model = MockClassNLOx4
+        optimizer.model.prior_model = MockClassNLOx4
         assert [
             "prior_model_one",
             "prior_model_two",
             "prior_model_three",
             "prior_model_four",
-        ] == optimizer.variable.param_names
+        ] == optimizer.model.param_names
 
     def test_properties(self, optimizer):
-        optimizer.variable.prior_model = MockClassNLOx4
+        optimizer.model.prior_model = MockClassNLOx4
 
         assert len(optimizer.param_labels) == 4
-        assert len(optimizer.variable.param_names) == 4
+        assert len(optimizer.model.param_names) == 4
 
     def test_label_config(self):
         assert af.conf.instance.label.label("one") == "x4p0"
@@ -336,7 +335,7 @@ class TestLabels(object):
 
     def test_labels(self, optimizer):
         af.AbstractPriorModel._ids = itertools.count()
-        optimizer.variable.prior_model = MockClassNLOx4
+        optimizer.model.prior_model = MockClassNLOx4
 
         assert optimizer.param_labels == [
             r"x4p0_{\mathrm{a1}}",

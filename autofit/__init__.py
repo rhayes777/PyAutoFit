@@ -1,5 +1,5 @@
 from autofit.mapper.model import path_instances_of_class
-from autofit.mapper.prior_model.prior import ConstantNameValue
+from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import (
     Prior,
     UniformPrior,
@@ -36,7 +36,8 @@ from .optimize.non_linear.multi_nest import MultiNest
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import NonLinearOptimizer
-from .optimize.non_linear.non_linear import Paths
+from autofit.optimize.non_linear.paths import Paths
+from autofit.optimize.non_linear.paths import convert_paths
 from .optimize.non_linear.non_linear import Result
 from .tools import *
 from .tools import path_util, text_util

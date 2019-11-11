@@ -3,11 +3,10 @@ import pytest
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-from autofit import exc
+from autofit import exc, Paths
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import grid_search as gs
-from autofit.optimize.non_linear.non_linear import Paths
 from autofit.tools import phase
 from test_autofit.mapper.test_model_mapper import GeometryProfile
 
@@ -291,9 +290,9 @@ class TestGridNLOBehaviour(object):
         assert result.no_dimensions == 2
         assert result.figure_of_merit_array.shape == (10, 10)
 
-    def test_generated_models_with_constants(self, grid_search, container, mapper):
-        constant_profile = GeometryProfile()
-        mapper.constant_profile = constant_profile
+    def test_generated_models_with_instances(self, grid_search, container, mapper):
+        instance_profile = GeometryProfile()
+        mapper.instance_profile = instance_profile
 
         analysis = container.MockAnalysis()
 
@@ -301,13 +300,13 @@ class TestGridNLOBehaviour(object):
 
         for instance in container.fit_instances:
             assert isinstance(instance.profile, GeometryProfile)
-            assert instance.constant_profile == constant_profile
+            assert instance.instance_profile == instance_profile
 
-    def test_generated_models_with_constant_attributes(
+    def test_generated_models_with_instance_attributes(
         self, grid_search, mapper, container
     ):
-        constant = 2.0
-        mapper.profile.centre_1 = constant
+        instance = 2.0
+        mapper.profile.centre_1 = instance
 
         analysis = container.MockAnalysis()
 
@@ -342,7 +341,7 @@ class TestGridNLOBehaviour(object):
 class MockResult(object):
     def __init__(self, figure_of_merit):
         self.figure_of_merit = figure_of_merit
-        self.variable = figure_of_merit
+        self.model = figure_of_merit
 
 
 @pytest.fixture(name="grid_search_result")
@@ -369,7 +368,7 @@ class TestMixin(object):
         class MyPhase(phase.as_grid_search(phase.AbstractPhase)):
             @property
             def grid_priors(self):
-                return [self.variable.profile.centre_0]
+                return [self.model.profile.centre_0]
 
             def run(self):
                 analysis = container.MockAnalysis()
@@ -380,7 +379,7 @@ class TestMixin(object):
             number_of_steps=2,
             optimizer_class=container.MockOptimizer,
         )
-        my_phase.variable.profile = GeometryProfile
+        my_phase.model.profile = GeometryProfile
 
         result = my_phase.run()
 

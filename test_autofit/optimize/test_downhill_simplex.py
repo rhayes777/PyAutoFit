@@ -3,7 +3,7 @@ import os
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear.non_linear import Paths
+from autofit import Paths
 from test_autofit.mock import MockClassNLOx4, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -31,40 +31,40 @@ def make_downhill_simplex():
 
 
 class TestDownhillSimplex(object):
-    def test_constant(self, downhill_simplex, variable):
-        variable.mock_class = MockClassNLOx4()
+    def test_instance(self, downhill_simplex, model):
+        model.mock_class = MockClassNLOx4()
 
-        assert hasattr(variable.instance_from_unit_vector([]), "mock_class")
+        assert hasattr(model.instance_from_unit_vector([]), "mock_class")
 
-        result = downhill_simplex.fit(MockAnalysis(), variable)
+        result = downhill_simplex.fit(MockAnalysis(), model)
 
-        assert result.constant.mock_class.one == 1
-        assert result.constant.mock_class.two == 2
+        assert result.instance.mock_class.one == 1
+        assert result.instance.mock_class.two == 2
         assert result.figure_of_merit == 1
 
-    def test_variable(self, downhill_simplex, variable):
-        variable.mock_class = af.PriorModel(MockClassNLOx4)
-        result = downhill_simplex.fit(MockAnalysis(), variable)
+    def test_model(self, downhill_simplex, model):
+        model.mock_class = af.PriorModel(MockClassNLOx4)
+        result = downhill_simplex.fit(MockAnalysis(), model)
 
-        assert result.constant.mock_class.one == 0.0
-        assert result.constant.mock_class.two == 0.0
+        assert result.instance.mock_class.one == 0.0
+        assert result.instance.mock_class.two == 0.0
         assert result.figure_of_merit == 1
 
-        assert result.variable.mock_class.one.mean == 0.0
-        assert result.variable.mock_class.two.mean == 0.0
+        assert result.model.mock_class.one.mean == 0.0
+        assert result.model.mock_class.two.mean == 0.0
 
-    def test_constant_and_variable(self, downhill_simplex, variable):
-        variable.constant = MockClassNLOx4()
-        variable.variable = af.PriorModel(MockClassNLOx4)
+    def test_instance_and_model(self, downhill_simplex, model):
+        model.instance = MockClassNLOx4()
+        model.model = af.PriorModel(MockClassNLOx4)
 
-        result = downhill_simplex.fit(MockAnalysis(), variable)
+        result = downhill_simplex.fit(MockAnalysis(), model)
 
-        assert result.constant.constant.one == 1
-        assert result.constant.constant.two == 2
-        assert result.constant.variable.one == 0.0
-        assert result.constant.variable.two == 0.0
-        assert result.variable.variable.one.mean == 0.0
-        assert result.variable.variable.two.mean == 0.0
+        assert result.instance.instance.one == 1
+        assert result.instance.instance.two == 2
+        assert result.instance.model.one == 0.0
+        assert result.instance.model.two == 0.0
+        assert result.model.model.one.mean == 0.0
+        assert result.model.model.two.mean == 0.0
         assert result.figure_of_merit == 1
 
 

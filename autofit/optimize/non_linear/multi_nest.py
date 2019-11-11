@@ -185,14 +185,14 @@ class MultiNest(NonLinearOptimizer):
         logger.info("MultiNest complete")
 
         self.backup()
-        constant = multinest_output.most_likely_model_instance
-        analysis.visualize(instance=constant, during_analysis=False)
+        instance = multinest_output.most_likely_model_instance
+        analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)
         multinest_output.output_pdf_plots()
         return Result(
-            constant=constant,
+            instance=instance,
             figure_of_merit=multinest_output.maximum_likelihood,
-            previous_variable=model,
+            previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
                 self.sigma_limit
             ),

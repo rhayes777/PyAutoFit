@@ -12,8 +12,8 @@ from autofit.optimize.non_linear.non_linear import (
     IntervalCounter,
     persistent_timer,
 )
-from autofit.optimize.non_linear.non_linear import Paths
 from autofit.optimize.non_linear.non_linear import logger
+from autofit.optimize.non_linear.paths import Paths
 
 
 class GridSearch(NonLinearOptimizer):
@@ -49,7 +49,7 @@ class GridSearch(NonLinearOptimizer):
         return new_instance
 
     class Result(Result):
-        def __init__(self, result, instances, previous_variable, gaussian_tuples):
+        def __init__(self, result, instances, previous_model, gaussian_tuples):
             """
             The result of an grid search optimization.
 
@@ -61,9 +61,9 @@ class GridSearch(NonLinearOptimizer):
                 A model instance for each point in the grid search
             """
             super().__init__(
-                result.constant,
+                result.instance,
                 result.figure_of_merit,
-                previous_variable,
+                previous_model,
                 gaussian_tuples,
             )
             self.instances = instances
@@ -250,6 +250,6 @@ class GridSearch(NonLinearOptimizer):
             res, instances, model, [(mean, 0) for mean in fitness_function.best_cube]
         )
 
-        analysis.visualize(instance=res.constant, during_analysis=False)
+        analysis.visualize(instance=res.instance, during_analysis=False)
 
         return res

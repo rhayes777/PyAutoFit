@@ -4,7 +4,7 @@ import typing
 import autofit as af
 
 # noinspection PyAbstractClass
-from autofit.optimize.non_linear.non_linear import Paths
+from autofit import Paths
 from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 
 
@@ -177,9 +177,9 @@ class GalaxyModel(af.AbstractPriorModel):
         except AttributeError:
             return Galaxy()
 
-    def __init__(self, variable_redshift=False, **kwargs):
+    def __init__(self, model_redshift=False, **kwargs):
         super().__init__()
-        self.redshift = af.PriorModel(Redshift) if variable_redshift else None
+        self.redshift = af.PriorModel(Redshift) if model_redshift else None
         print(self.redshift)
         self.__dict__.update(
             {
@@ -189,7 +189,7 @@ class GalaxyModel(af.AbstractPriorModel):
         )
 
     @property
-    def constant_tuples(self):
+    def instance_tuples(self):
         return []
 
     @property
@@ -283,7 +283,7 @@ class AbstractEllipticalSersic(EllipticalProfile):
         sersic_index=4.0,
     ):
         """ Abstract base class for an elliptical Sersic profile, used for computing
-        its effective radius and Sersic constant.
+        its effective radius and Sersic instance.
 
         Parameters
         ----------
@@ -565,9 +565,9 @@ class Tracer:
 
 
 class Result:
-    def __init__(self, constant=None, variable=None):
-        self.constant = constant
-        self.variable = variable
+    def __init__(self, instance=None, model=None):
+        self.instance = instance
+        self.model = model
 
 
 class HyperGalaxy(object):

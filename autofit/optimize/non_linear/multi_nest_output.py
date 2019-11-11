@@ -8,8 +8,8 @@ from autofit.tools import text_formatter, text_util
 
 
 class Output:
-    def __init__(self, variable, paths):
-        self.variable = variable
+    def __init__(self, model, paths):
+        self.model = model
         self.paths = paths
 
     @property
@@ -80,13 +80,13 @@ class Output:
 
     @property
     def most_probable_model_instance(self):
-        return self.variable.instance_from_physical_vector(
+        return self.model.instance_from_physical_vector(
             physical_vector=self.most_probable_model_parameters
         )
 
     @property
     def most_likely_model_instance(self):
-        return self.variable.instance_from_physical_vector(
+        return self.model.instance_from_physical_vector(
             physical_vector=self.most_likely_model_parameters
         )
 
@@ -116,19 +116,19 @@ class Output:
         )
 
     def model_errors_instance_at_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(
+        return self.model.instance_from_physical_vector(
             physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit)
         )
 
     def model_errors_instance_at_upper_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(
+        return self.model.instance_from_physical_vector(
             physical_vector=self.model_errors_at_upper_sigma_limit(
                 sigma_limit=sigma_limit
             )
         )
 
     def model_errors_instance_at_lower_sigma_limit(self, sigma_limit):
-        return self.variable.instance_from_physical_vector(
+        return self.model.instance_from_physical_vector(
             physical_vector=self.model_errors_at_lower_sigma_limit(
                 sigma_limit=sigma_limit
             )
@@ -146,7 +146,7 @@ class Output:
             sample_index=sample_index
         )
 
-        return self.variable.instance_from_physical_vector(
+        return self.model.instance_from_physical_vector(
             physical_vector=model_parameters
         )
 
@@ -175,7 +175,7 @@ class Output:
         self.create_paramnames_file()
 
         text_util.output_list_of_strings_to_file(
-            file=self.paths.file_model_info, list_of_strings=self.variable.info
+            file=self.paths.file_model_info, list_of_strings=self.model.info
         )
 
     @property
@@ -186,10 +186,10 @@ class Output:
         properties of each model class."""
 
         paramnames_labels = []
-        prior_class_dict = self.variable.prior_class_dict
-        prior_prior_model_dict = self.variable.prior_prior_model_dict
+        prior_class_dict = self.model.prior_class_dict
+        prior_prior_model_dict = self.model.prior_prior_model_dict
 
-        for prior_name, prior in self.variable.prior_tuples_ordered_by_id:
+        for prior_name, prior in self.model.prior_tuples_ordered_by_id:
             param_string = conf.instance.label.label(prior_name)
             prior_model = prior_prior_model_dict[prior]
             cls = prior_class_dict[prior]
@@ -234,12 +234,12 @@ class Output:
 
         The parameter names are determined from the class instance names of the model_mapper. Latex tags are
         properties of each model class."""
-        paramnames_names = self.variable.param_names
+        paramnames_names = self.model.param_names
         paramnames_labels = self.param_labels
 
         paramnames = []
 
-        for i in range(self.variable.prior_count):
+        for i in range(self.model.prior_count):
             line = text_util.label_and_label_string(
                 label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
             )
@@ -254,7 +254,7 @@ class MultiNestOutput(Output):
     def read_list_of_results_from_summary_file(self, number_entries, offset):
 
         summary = open(self.paths.file_summary)
-        summary.read(2 + offset * self.variable.prior_count)
+        summary.read(2 + offset * self.model.prior_count)
         vector = []
         for param in range(number_entries):
             vector.append(float(summary.read(28)))
@@ -280,7 +280,7 @@ class MultiNestOutput(Output):
 
         """
         return self.read_list_of_results_from_summary_file(
-            number_entries=self.variable.prior_count, offset=0
+            number_entries=self.model.prior_count, offset=0
         )
 
     @property
@@ -293,7 +293,7 @@ class MultiNestOutput(Output):
         model in the second half of entries. The offset parameter is used to start at the desired model.
         """
         return self.read_list_of_results_from_summary_file(
-            number_entries=self.variable.prior_count, offset=56
+            number_entries=self.model.prior_count, offset=56
         )
 
     @property
@@ -402,7 +402,7 @@ class MultiNestOutput(Output):
 
         if plot_pdf_1d_params:
 
-            for param_name in self.variable.param_names:
+            for param_name in self.model.param_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
                 pdf_plot.export(
                     fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
@@ -447,7 +447,7 @@ class MultiNestOutput(Output):
 
             most_likely = self.most_likely_model_parameters
 
-            if len(most_likely) != self.variable.prior_count:
+            if len(most_likely) != self.model.prior_count:
                 raise exc.MultiNestException(
                     "MultiNest and GetDist have counted a different number of "
                     "parameters.See github issue "
@@ -456,7 +456,7 @@ class MultiNestOutput(Output):
 
             formatter = text_formatter.TextFormatter()
 
-            for i, prior_path in enumerate(self.variable.unique_prior_paths):
+            for i, prior_path in enumerate(self.model.unique_prior_paths):
                 formatter.add((prior_path, self.format_str.format(most_likely[i])))
             results += [formatter.text + "\n"]
 
@@ -464,11 +464,11 @@ class MultiNestOutput(Output):
                 results += self.results_from_sigma_limit(limit=3.0)
                 results += self.results_from_sigma_limit(limit=1.0)
 
-            results += ["\n\nConstants\n"]
+            results += ["\n\ninstances\n"]
 
             formatter = text_formatter.TextFormatter()
 
-            for t in self.variable.path_float_tuples:
+            for t in self.model.path_float_tuples:
                 formatter.add(t)
 
             results += ["\n" + formatter.text]
@@ -484,7 +484,7 @@ class MultiNestOutput(Output):
 
         sigma_formatter = text_formatter.TextFormatter()
 
-        for i, prior_path in enumerate(self.variable.unique_prior_paths):
+        for i, prior_path in enumerate(self.model.unique_prior_paths):
             value = self.format_str.format(self.most_probable_model_parameters[i])
             upper_limit = self.format_str.format(upper_limits[i])
             lower_limit = self.format_str.format(lower_limits[i])

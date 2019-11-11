@@ -7,10 +7,9 @@ import autofit.mapper.prior_model.collection
 from autofit import conf
 from autofit import exc
 from autofit.mapper.model import AbstractModel
-from autofit.mapper.model import RECURSION_LIMIT
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.prior_model.prior import ConstantNameValue
+from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
     cast_collection,
@@ -19,6 +18,7 @@ from autofit.mapper.prior_model.prior import (
     Prior,
     DeferredNameValue,
 )
+from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
 
@@ -310,14 +310,17 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @staticmethod
-    def from_instance(instance, variable_classes=tuple(), recursion_depth=0):
+    @DynamicRecursionCache()
+    def from_instance(
+            instance,
+            model_classes=tuple()
+    ):
         """
         Recursively create an prior object model from an object model.
 
         Parameters
         ----------
-        recursion_depth
-        variable_classes
+        model_classes
         instance
             A dictionary, list, class instance or model instance
 
@@ -326,72 +329,71 @@ class AbstractPriorModel(AbstractModel):
         abstract_prior_model
             A concrete child of an abstract prior model
         """
-        if recursion_depth > RECURSION_LIMIT:
-            raise RecursionError(
-                f"Exceeded recursion limit {RECURSION_LIMIT} creating model from instance {instance}"
-            )
+        print(f"from_instance for instance {instance} model_class {model_classes}")
 
-        try:
-            if isinstance(instance, list):
-                result = autofit.mapper.prior_model.collection.CollectionPriorModel(
-                    [
-                        AbstractPriorModel.from_instance(
-                            item,
-                            variable_classes=variable_classes,
-                            recursion_depth=recursion_depth + 1,
-                        )
-                        for item in instance
-                    ]
-                )
-            elif isinstance(instance, autofit.mapper.model.ModelInstance):
-                result = autofit.mapper.model_mapper.ModelMapper()
-                for key, value in instance.dict.items():
-                    setattr(
-                        result,
-                        key,
-                        AbstractPriorModel.from_instance(
-                            value,
-                            variable_classes=variable_classes,
-                            recursion_depth=recursion_depth + 1,
-                        ),
+        if isinstance(instance, list):
+            print("instance is a list")
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+                [
+                    AbstractPriorModel.from_instance(
+                        item,
+                        model_classes=model_classes,
                     )
-            elif isinstance(instance, dict):
-                result = autofit.mapper.prior_model.collection.CollectionPriorModel(
-                    {
-                        key: AbstractPriorModel.from_instance(
-                            value,
-                            variable_classes=variable_classes,
-                            recursion_depth=recursion_depth + 1,
-                        )
-                        for key, value in instance.items()
-                    }
+                    for item in instance
+                ]
+            )
+        elif isinstance(instance, autofit.mapper.model.ModelInstance):
+            print("instance is an instance")
+            result = autofit.mapper.model_mapper.ModelMapper()
+            for key, value in instance.dict.items():
+                setattr(
+                    result,
+                    key,
+                    AbstractPriorModel.from_instance(
+                        value,
+                        model_classes=model_classes,
+                    ),
                 )
-            elif isinstance(instance, dim.DimensionType):
-                return instance
-            else:
-                from .prior_model import PriorModel
-
+        elif isinstance(instance, dict):
+            print("instance is a dict")
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+                {
+                    key: AbstractPriorModel.from_instance(
+                        value,
+                        model_classes=model_classes,
+                    )
+                    for key, value in instance.items()
+                }
+            )
+        elif isinstance(instance, dim.DimensionType):
+            print("instance is a DimensionType")
+            return instance
+        else:
+            from .prior_model import PriorModel
+            print("instance is a something else")
+            try:
+                print(f"instance dictionary items = {instance.__dict__.items()}")
                 try:
                     result = PriorModel(
                         instance.__class__,
                         **{
                             key: AbstractPriorModel.from_instance(
                                 value,
-                                variable_classes=variable_classes,
-                                recursion_depth=recursion_depth + 1,
+                                model_classes=model_classes,
                             )
                             for key, value in instance.__dict__.items()
                             if key != "cls"
-                        },
+                        }
                     )
-
-                except AttributeError:
+                except RecursionError:
                     return instance
-            if any([isinstance(instance, cls) for cls in variable_classes]):
-                return result.as_variable()
-            return result
-        except RecursionError:
-            return instance
+            except AttributeError:
+                print("attribute error raised")
+                return instance
+        if any([isinstance(instance, cls) for cls in model_classes]):
+            print("result.as_model")
+            return result.as_model()
+        return result
 
     @property
     @cast_collection(PriorNameValue)
@@ -399,8 +401,8 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(Prior)
 
     @property
-    @cast_collection(ConstantNameValue)
-    def direct_constant_tuples(self):
+    @cast_collection(instanceNameValue)
+    def direct_instance_tuples(self):
         return self.direct_tuples_with_type(float)
 
     @property
@@ -451,17 +453,17 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
+    @cast_collection(instanceNameValue)
+    def instance_tuples(self):
         """
         Returns
         -------
-        constants: [(String, Constant)]
+        instances: [(String, instance)]
         """
         return self.attribute_tuples_with_type(float, ignore_class=Prior)
 
@@ -515,13 +517,13 @@ class AbstractPriorModel(AbstractModel):
 
     def copy_with_fixed_priors(self, instance, excluded_classes=tuple()):
         """
-        Recursively overwrite priors in the mapper with constant values from the
+        Recursively overwrite priors in the mapper with instance values from the
         instance except where the containing class is the descendant of a listed class.
 
         Parameters
         ----------
         excluded_classes
-            Classes that should be left variable
+            Classes that should be left model
         instance
             The best fit from the previous phase
         """
@@ -588,34 +590,34 @@ class AbstractPriorModel(AbstractModel):
         ]
 
 
-def transfer_classes(instance, mapper, variable_classes=None):
+def transfer_classes(instance, mapper, model_classes=None):
     """
-    Recursively overwrite priors in the mapper with constant values from the
+    Recursively overwrite priors in the mapper with instance values from the
     instance except where the containing class is the descendant of a listed class.
 
     Parameters
     ----------
-    variable_classes
+    model_classes
         Classes whose descendants should not be overwritten
     instance
         The best fit from the previous phase
     mapper
-        The prior variable from the previous phase
+        The prior model from the previous phase
     """
     from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 
-    variable_classes = variable_classes or []
+    model_classes = model_classes or []
     for key, instance_value in instance.__dict__.items():
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
-            if not any(isinstance(instance_value, cls) for cls in variable_classes):
+            if not any(isinstance(instance_value, cls) for cls in model_classes):
                 try:
-                    transfer_classes(instance_value, mapper_value, variable_classes)
+                    transfer_classes(instance_value, mapper_value, model_classes)
                 except AttributeError:
                     setattr(mapper, key, instance_value)
         except AttributeError:

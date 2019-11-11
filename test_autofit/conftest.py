@@ -25,5 +25,5 @@ def remove_output():
 
 
 @pytest.fixture
-def variable():
+def model():
     return af.ModelMapper()
