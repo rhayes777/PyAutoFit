@@ -78,7 +78,7 @@ class NonLinearOptimizer(object):
             pass
 
         try:
-            shutil.copytree(self.paths.opt_path, self.paths.backup_path)
+            shutil.copytree(self.paths.sym_path, self.paths.backup_path)
         except shutil.Error as e:
             logger.exception(e)
 
