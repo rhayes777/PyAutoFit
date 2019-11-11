@@ -5,6 +5,21 @@ from autofit import conf
 from autofit.mapper import link
 
 
+def make_path(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        full_path = func(*args, **kwargs)
+        if not os.path.exists(full_path):
+            try:
+                os.makedirs(
+                    full_path
+                )
+            except FileExistsError:
+                pass
+        return full_path
+    return wrapper
+
+
 def convert_paths(func):
     @wraps(func)
     def wrapper(
@@ -72,26 +87,9 @@ class Paths:
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
-        self.__phase_tag = None
         self.phase_tag = phase_tag or ""
 
         self.path = link.make_linked_folder(self.sym_path)
-
-    @property
-    def phase_tag(self):
-        return self.__phase_tag
-
-    @phase_tag.setter
-    def phase_tag(self, phase_tag):
-        self.__phase_tag = phase_tag
-        try:
-            os.makedirs("/".join(self.sym_path.split("/")[:-1]))
-        except FileExistsError:
-            pass
-        try:
-            os.makedirs(self.pdf_path)
-        except FileExistsError:
-            pass
 
     def __eq__(self, other):
         return isinstance(other, Paths) and all(
@@ -107,6 +105,7 @@ class Paths:
         return self.phase_path.split("/")
 
     @property
+    @make_path
     def backup_path(self) -> str:
         """
         The path to the backed up optimizer folder.
@@ -125,6 +124,7 @@ class Paths:
         )
 
     @property
+    @make_path
     def phase_output_path(self) -> str:
         """
         The path to the output information for a phase.
@@ -134,12 +134,14 @@ class Paths:
         )
 
     @property
+    @make_path
     def opt_path(self) -> str:
         return "{}/{}/{}/{}/optimizer".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
         )
 
     @property
+    @make_path
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/optimizer".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
@@ -154,6 +156,7 @@ class Paths:
         return "{}/{}".format(self.phase_output_path, "model.info")
 
     @property
+    @make_path
     def image_path(self) -> str:
         """
         The path to the directory in which images are stored.
@@ -161,6 +164,7 @@ class Paths:
         return "{}image/".format(self.phase_output_path)
 
     @property
+    @make_path
     def pdf_path(self) -> str:
         """
         The path to the directory in which images are stored.
@@ -179,6 +183,7 @@ class Paths:
         """
         return "{}/model.pickle".format(self.make_path())
 
+    @make_path
     def make_path(self) -> str:
         """
         Create the path to the folder at which the metadata and optimizer pickle should
