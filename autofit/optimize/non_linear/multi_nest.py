@@ -141,14 +141,9 @@ class MultiNest(NonLinearOptimizer):
 
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-            phys_cube = model.physical_vector_from_hypercube_vector(
+            return model.physical_vector_from_hypercube_vector(
                 hypercube_vector=cube
             )
-
-            for i in range(model.prior_count):
-                cube[i] = phys_cube[i]
-
-            return cube
 
         fitness_function = MultiNest.Fitness(
             self,
