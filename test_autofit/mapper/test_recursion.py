@@ -1,3 +1,29 @@
+from functools import wraps
+
+
+class RecursionPromise:
+    pass
+
+
+cache = {}
+
+
+def dynamic_recursion_cache(
+        func
+):
+    @wraps(func)
+    def wrapper(item):
+        item_id = id(item)
+        if item_id in cache:
+            return cache[item_id]
+        cache[
+            item_id
+        ] = RecursionPromise()
+        return func(item)
+
+    return wrapper
+
+
 class Wrapper:
     def __init__(
             self,
@@ -22,6 +48,7 @@ class B:
         self.a = a
 
 
+@dynamic_recursion_cache
 def dict_recurse(
         item
 ):
@@ -38,7 +65,9 @@ def dict_recurse(
 
 
 def test_basic():
+    a = A(B())
+    a.b.a = a
     result = dict_recurse(
-        A(B())
+        a
     )
-    print(result)
+    assert isinstance(result.item.b.item.a, Wrapper)
