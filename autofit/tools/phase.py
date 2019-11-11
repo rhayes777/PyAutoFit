@@ -3,20 +3,20 @@ import pickle
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-from autofit import conf, ModelMapper, Paths
+from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.optimize import grid_search
 from autofit.tools.promise import PromiseResult
 
 
 class AbstractPhase:
+    @convert_paths
     def __init__(
-        self,
-        phase_name,
-        phase_tag=None,
-        phase_folders=tuple(),
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        model=None,
+            self,
+            paths,
+            *,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -28,9 +28,7 @@ class AbstractPhase:
             The class of a non_linear optimizer
         """
 
-        self.paths = Paths(
-            phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
-        )
+        self.paths = paths
 
         self.optimizer = optimizer_class(self.paths)
         self.variable = model or ModelMapper()
@@ -124,19 +122,17 @@ class AbstractPhase:
 
 
 class Phase(AbstractPhase):
+    @convert_paths
     def __init__(
-        self,
-        analysis_class,
-        phase_name,
-        phase_tag=None,
-        phase_folders=tuple(),
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        model=None,
+            self,
+            paths,
+            *,
+            analysis_class=None,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
     ):
         super().__init__(
-            phase_name=phase_name,
-            phase_tag=phase_tag,
-            phase_folders=phase_folders,
+            paths,
             optimizer_class=optimizer_class,
             model=model,
         )
@@ -200,12 +196,12 @@ def as_grid_search(phase_class, parallel=False):
 
     class GridSearchExtension(phase_class):
         def __init__(
-            self,
-            phase_name,
-            phase_folders=tuple(),
-            number_of_steps=10,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            **kwargs,
+                self,
+                phase_name,
+                phase_folders=tuple(),
+                number_of_steps=10,
+                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                **kwargs,
         ):
             super().__init__(
                 phase_name=phase_name,
