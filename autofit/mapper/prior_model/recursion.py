@@ -44,7 +44,7 @@ def replace_promise(
                 value,
                 true_value
             ))
-    except AttributeError:
+    except (AttributeError, TypeError):
         pass
     return obj
 
@@ -59,16 +59,26 @@ class DynamicRecursionCache:
     ):
         @wraps(func)
         def wrapper(
-                item
+                *args,
+                **kwargs
         ):
-            item_id = id(item)
+            item_id = sum(
+                id(item)
+                for item in (
+                        list(args) +
+                        list(kwargs.items())
+                )
+            )
             if item_id in self.cache:
                 return self.cache[item_id]
             recursion_promise = RecursionPromise()
             self.cache[
                 item_id
             ] = recursion_promise
-            result = func(item)
+            result = func(
+                *args,
+                **kwargs
+            )
             result = replace_promise(
                 recursion_promise,
                 result,

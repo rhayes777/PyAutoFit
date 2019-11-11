@@ -2,10 +2,9 @@ import copy
 from typing import Optional, Union, Tuple
 
 from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.tools.pipeline import ResultsCollection
 from autofit.tools.promise import AbstractPromise
-
-RECURSION_LIMIT = 100
 
 
 class AbstractModel(ModelObject):
@@ -84,10 +83,10 @@ class AbstractModel(ModelObject):
         ]
 
 
+@DynamicRecursionCache()
 def populate(
         obj,
-        collection: ResultsCollection,
-        recursion_depth=0
+        collection: ResultsCollection
 ):
     """
     Replace promises with instances and constants. Promises are placeholders expressing that a given attribute should
@@ -99,24 +98,17 @@ def populate(
         The object to be populated
     collection
         A collection of Results from previous phases
-    recursion_depth
-        Current depth of recursion used to prevent infinite recursion
 
     Returns
     -------
     obj
         The same object with all promises populated, or if the object was a promise the replacement for that promise
     """
-    if recursion_depth > RECURSION_LIMIT:
-        raise RecursionError(
-            f"Recursion limit {RECURSION_LIMIT} exceeded populating {obj}"
-        )
     if isinstance(obj, list):
         return [
             populate(
                 item,
                 collection,
-                recursion_depth=recursion_depth + 1
             ) for item in obj
         ]
     if isinstance(obj, dict):
@@ -124,7 +116,6 @@ def populate(
             key: populate(
                 value,
                 collection,
-                recursion_depth=recursion_depth + 1
             ) for key, value
             in obj.items()
         }
@@ -136,20 +127,19 @@ def populate(
             setattr(new, key, populate(
                 value,
                 collection,
-                recursion_depth=recursion_depth + 1
             ))
         return new
-    except (AttributeError, TypeError, RecursionError):
+    except (AttributeError, TypeError):
         return obj
 
 
+@DynamicRecursionCache()
 def path_instances_of_class(
         obj,
         cls: type,
         ignore_class: Optional[
             Union[type, Tuple[type]]
-        ] = None,
-        recursion_depth: int = 0
+        ] = None
 ):
     """
     Recursively search the object for instances of a given class
@@ -162,17 +152,11 @@ def path_instances_of_class(
         The type to search for
     ignore_class
         A type or
-    recursion_depth
-        Keeps track of the number of recursions made to ensure that cycles are broken
 
     Returns
     -------
     instance of type
     """
-    if recursion_depth > RECURSION_LIMIT:
-        raise RecursionError(
-            f"Recursion searching for instances of {cls} in {obj} exceeded {RECURSION_LIMIT}"
-        )
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
     if isinstance(obj, cls):
@@ -181,22 +165,18 @@ def path_instances_of_class(
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
         for key, value in obj.__dict__.items():
-            try:
-                for item in path_instances_of_class(
-                        value,
-                        cls,
-                        ignore_class=ignore_class,
-                        recursion_depth=recursion_depth + 1
-                ):
-                    if isinstance(value, AnnotationPriorModel):
-                        path = (key,)
-                    else:
-                        path = (key, *item[0])
-                    results.append((path, item[1]))
-            except RecursionError:
-                pass
+            for item in path_instances_of_class(
+                    value,
+                    cls,
+                    ignore_class=ignore_class
+            ):
+                if isinstance(value, AnnotationPriorModel):
+                    path = (key,)
+                else:
+                    path = (key, *item[0])
+                results.append((path, item[1]))
         return results
-    except AttributeError:
+    except (AttributeError, TypeError):
         return []
 
 
