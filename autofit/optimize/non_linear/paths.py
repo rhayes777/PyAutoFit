@@ -68,29 +68,30 @@ class Paths:
             phase_folders=tuple(),
             phase_path=None
     ):
-
-        # TODO : When I make a HyperPhase in autolens, the input phase name is an instance of Paths. The if loop below
-        # TODO : Fixes the tests but is clearly dodgy.
-
-        if isinstance(phase_name, Paths):
-            phase_name = phase_name.phase_name
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
+        self.__phase_tag = None
         self.phase_tag = phase_tag or ""
 
+        self.path = link.make_linked_folder(self.sym_path)
+
+    @property
+    def phase_tag(self):
+        return self.__phase_tag
+
+    @phase_tag.setter
+    def phase_tag(self, phase_tag):
+        self.__phase_tag = phase_tag
         try:
             os.makedirs("/".join(self.sym_path.split("/")[:-1]))
         except FileExistsError:
             pass
-
         try:
             os.makedirs(self.pdf_path)
         except FileExistsError:
             pass
-
-        self.path = link.make_linked_folder(self.sym_path)
 
     def __eq__(self, other):
         return isinstance(other, Paths) and all(
