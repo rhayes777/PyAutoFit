@@ -127,7 +127,7 @@ class Phase(AbstractPhase):
             self,
             paths,
             *,
-            analysis_class=None,
+            analysis_class,
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             model=None,
     ):
@@ -195,17 +195,17 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
+        @convert_paths
         def __init__(
                 self,
-                phase_name,
-                phase_folders=tuple(),
+                paths,
+                *,
                 number_of_steps=10,
                 optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
                 **kwargs,
         ):
             super().__init__(
-                phase_name=phase_name,
-                phase_folders=phase_folders,
+                paths,
                 optimizer_class=optimizer_class,
                 **kwargs,
             )
