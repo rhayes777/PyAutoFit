@@ -330,6 +330,7 @@ class AbstractPriorModel(AbstractModel):
         abstract_prior_model
             A concrete child of an abstract prior model
         """
+        print(f"from_instance for instance {instance} variable_class {variable_classes} and depth {recursion_depth}")
         if recursion_depth > RECURSION_LIMIT:
             raise RecursionError(
                 f"Exceeded recursion limit {RECURSION_LIMIT} creating model from instance {instance}"
@@ -337,6 +338,7 @@ class AbstractPriorModel(AbstractModel):
 
         try:
             if isinstance(instance, list):
+                print("instance is a list")
                 result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                     [
                         AbstractPriorModel.from_instance(
@@ -348,6 +350,7 @@ class AbstractPriorModel(AbstractModel):
                     ]
                 )
             elif isinstance(instance, autofit.mapper.model.ModelInstance):
+                print("instance is an instance")
                 result = autofit.mapper.model_mapper.ModelMapper()
                 for key, value in instance.dict.items():
                     setattr(
@@ -360,6 +363,7 @@ class AbstractPriorModel(AbstractModel):
                         ),
                     )
             elif isinstance(instance, dict):
+                print("instance is a dict")
                 result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                     {
                         key: AbstractPriorModel.from_instance(
@@ -371,11 +375,13 @@ class AbstractPriorModel(AbstractModel):
                     }
                 )
             elif isinstance(instance, dim.DimensionType):
+                print("instance is a DimensionType")
                 return instance
             else:
                 from .prior_model import PriorModel
-
+                print("instance is a something else")
                 try:
+                    print(f"instance dictionary items = {instance.__dict__.items()}")
                     result = PriorModel(
                         instance.__class__,
                         **{
@@ -390,8 +396,10 @@ class AbstractPriorModel(AbstractModel):
                     )
 
                 except AttributeError:
+                    print("attribute error raised")
                     return instance
             if any([isinstance(instance, cls) for cls in variable_classes]):
+                print("result.as_variable")
                 return result.as_variable()
             return result
         except RecursionError:
