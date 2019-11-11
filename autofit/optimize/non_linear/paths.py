@@ -143,7 +143,6 @@ class Paths:
         )
 
     @property
-    @make_path
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/optimizer".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
