@@ -1,4 +1,5 @@
 from functools import wraps
+import numpy as np
 
 
 class RecursionPromise:
@@ -6,10 +7,27 @@ class RecursionPromise:
 
 
 def replace_promise(
-        promise,
+        promise: RecursionPromise,
         obj,
         true_value
 ):
+    """
+    Traverse the object replacing any identity of the promise with the true value
+
+    Parameters
+    ----------
+    promise
+        A placeholder for an object that had not been computed at the time some part of the object was computed
+    obj
+        An object computed that may contain Promises
+    true_value
+        The true value associated with the promise
+
+    Returns
+    -------
+    obj
+        The object with any identities of the Promise replaced
+    """
     if isinstance(
             obj,
             list
@@ -51,18 +69,28 @@ def replace_promise(
 
 class DynamicRecursionCache:
     def __init__(self):
+        """
+        A decorating class that prevents infinite loops when recursing graphs by attaching placeholders
+        """
         self.cache = dict()
 
     def __call__(
             self,
             func
     ):
+        """
+        Decorate the function to prevent recursion.
+
+        When the function is called with a set of arguments, A, a Promise is stored for that set of arguments in the
+        cache. If the function is called again with that set of arguments then the Promise is returned. When the
+        function itself returns a value any identity of the Promise is replaced by the actual value returned.
+        """
         @wraps(func)
         def wrapper(
                 *args,
                 **kwargs
         ):
-            item_id = sum(
+            item_id = np.prod(
                 id(item)
                 for item in (
                         list(args) +
