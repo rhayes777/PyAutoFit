@@ -16,17 +16,31 @@ def convert_paths(func):
             raise AssertionError(
                 "Only phase name is allowed to be a positional argument in a phase constructor"
             )
-        elif len(args) == 1:
-            phase_name = args[0]
-        else:
-            phase_name = kwargs.pop(
-                "phase_name"
+
+        first_arg = kwargs.pop(
+            "paths",
+            None
+        )
+        if first_arg is None and len(args) == 1:
+            first_arg = args[0]
+
+        if isinstance(first_arg, Paths):
+            return func(
+                self,
+                paths=first_arg,
+                **kwargs
+            )
+
+        if first_arg is None:
+            first_arg = kwargs.pop(
+                "phase_name",
+                None
             )
 
         func(
             self,
             paths=Paths(
-                phase_name=phase_name,
+                phase_name=first_arg,
                 phase_tag=kwargs.pop(
                     "phase_tag",
                     None
