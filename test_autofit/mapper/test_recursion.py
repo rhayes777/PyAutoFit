@@ -1,4 +1,4 @@
-from autofit.mapper.prior_model.recursion import dynamic_recursion_cache
+from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 
 
 class Wrapper:
@@ -25,7 +25,7 @@ class B:
         self.a = a
 
 
-@dynamic_recursion_cache
+@DynamicRecursionCache()
 def dict_recurse(
         item
 ):

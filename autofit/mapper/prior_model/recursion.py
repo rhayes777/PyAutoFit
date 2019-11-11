@@ -5,9 +5,6 @@ class RecursionPromise:
     pass
 
 
-cache = {}
-
-
 def replace_promise(
         promise,
         obj,
@@ -52,25 +49,32 @@ def replace_promise(
     return obj
 
 
-def dynamic_recursion_cache(
-        func
-):
-    @wraps(func)
-    def wrapper(item):
-        item_id = id(item)
-        if item_id in cache:
-            return cache[item_id]
-        recursion_promise = RecursionPromise()
-        cache[
-            item_id
-        ] = recursion_promise
-        result = func(item)
-        result = replace_promise(
-            recursion_promise,
-            result,
-            result
-        )
-        del cache[item_id]
-        return result
+class DynamicRecursionCache:
+    def __init__(self):
+        self.cache = dict()
 
-    return wrapper
+    def __call__(
+            self,
+            func
+    ):
+        @wraps(func)
+        def wrapper(
+                item
+        ):
+            item_id = id(item)
+            if item_id in self.cache:
+                return self.cache[item_id]
+            recursion_promise = RecursionPromise()
+            self.cache[
+                item_id
+            ] = recursion_promise
+            result = func(item)
+            result = replace_promise(
+                recursion_promise,
+                result,
+                result
+            )
+            del self.cache[item_id]
+            return result
+
+        return wrapper
