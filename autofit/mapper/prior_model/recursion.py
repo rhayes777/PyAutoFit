@@ -104,7 +104,7 @@ class DynamicRecursionCache:
                 )
                 ]
             )
-            cache_keys = '\n'.join(self.cache.keys())
+            cache_keys = '\n'.join(map(str, self.cache.keys()))
             print(
                 f"This gives item_id {item_id}. Cache keys = {cache_keys}"
             )
