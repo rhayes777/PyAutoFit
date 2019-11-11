@@ -105,7 +105,6 @@ class Paths:
         return self.phase_path.split("/")
 
     @property
-    @make_path
     def backup_path(self) -> str:
         """
         The path to the backed up optimizer folder.
