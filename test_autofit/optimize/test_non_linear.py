@@ -167,7 +167,7 @@ class TestMostProbableAndLikely(object):
         assert most_probable.mock_class_2.three == 9.0
         assert most_probable.mock_class_2.four == 10.0
 
-    def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_constant(
+    def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_instance(
         self
     ):
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)
@@ -209,7 +209,7 @@ class TestMostProbableAndLikely(object):
         assert most_likely.mock_class_2.three == 29.0
         assert most_likely.mock_class_2.four == 30.0
 
-    def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_constant(
+    def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_instance(
         self
     ):
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)

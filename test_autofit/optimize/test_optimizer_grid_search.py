@@ -290,9 +290,9 @@ class TestGridNLOBehaviour(object):
         assert result.no_dimensions == 2
         assert result.figure_of_merit_array.shape == (10, 10)
 
-    def test_generated_models_with_constants(self, grid_search, container, mapper):
-        constant_profile = GeometryProfile()
-        mapper.constant_profile = constant_profile
+    def test_generated_models_with_instances(self, grid_search, container, mapper):
+        instance_profile = GeometryProfile()
+        mapper.instance_profile = instance_profile
 
         analysis = container.MockAnalysis()
 
@@ -300,13 +300,13 @@ class TestGridNLOBehaviour(object):
 
         for instance in container.fit_instances:
             assert isinstance(instance.profile, GeometryProfile)
-            assert instance.constant_profile == constant_profile
+            assert instance.instance_profile == instance_profile
 
-    def test_generated_models_with_constant_attributes(
+    def test_generated_models_with_instance_attributes(
         self, grid_search, mapper, container
     ):
-        constant = 2.0
-        mapper.profile.centre_1 = constant
+        instance = 2.0
+        mapper.profile.centre_1 = instance
 
         analysis = container.MockAnalysis()
 

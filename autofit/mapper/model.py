@@ -89,7 +89,7 @@ def populate(
         collection: ResultsCollection
 ):
     """
-    Replace promises with instances and constants. Promises are placeholders expressing that a given attribute should
+    Replace promises with instances and instances. Promises are placeholders expressing that a given attribute should
     be replaced with an actual value once the phase that generates that value is complete.
 
     Parameters

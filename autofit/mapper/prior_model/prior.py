@@ -59,9 +59,9 @@ class PriorNameValue(AttributeNameValue):
         return self.value
 
 
-class ConstantNameValue(AttributeNameValue):
+class instanceNameValue(AttributeNameValue):
     @property
-    def constant(self):
+    def instance(self):
         return self.value
 
 
@@ -92,13 +92,13 @@ class TuplePrior(object):
         return self.prior_tuples
 
     @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
+    @cast_collection(instanceNameValue)
+    def instance_tuples(self):
         """
         Returns
         -------
-        constants: [(String, Constant)]
-            A list of constants
+        instances: [(String, instance)]
+            A list of instances
         """
         return list(
             sorted(
@@ -123,13 +123,13 @@ class TuplePrior(object):
         def convert(tup):
             if hasattr(tup, "prior"):
                 return arguments[tup.prior]
-            return tup.constant
+            return tup.instance
 
         return tuple(
             map(
                 convert,
                 sorted(
-                    self.prior_tuples + self.constant_tuples, key=lambda tup: tup.name
+                    self.prior_tuples + self.instance_tuples, key=lambda tup: tup.name
                 ),
             )
         )
@@ -199,7 +199,7 @@ class Prior(ModelObject):
             return DeferredArgument()
         raise exc.PriorException(
             "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, "
-            "c - Constant, d - Deferred)".format(attribute_name)
+            "c - instance, d - Deferred)".format(attribute_name)
         )
 
     @property

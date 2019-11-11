@@ -9,7 +9,7 @@ from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.prior_model.prior import ConstantNameValue
+from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
     cast_collection,
@@ -401,8 +401,8 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(Prior)
 
     @property
-    @cast_collection(ConstantNameValue)
-    def direct_constant_tuples(self):
+    @cast_collection(instanceNameValue)
+    def direct_instance_tuples(self):
         return self.direct_tuples_with_type(float)
 
     @property
@@ -458,12 +458,12 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
-    @cast_collection(ConstantNameValue)
-    def constant_tuples(self):
+    @cast_collection(instanceNameValue)
+    def instance_tuples(self):
         """
         Returns
         -------
-        constants: [(String, Constant)]
+        instances: [(String, instance)]
         """
         return self.attribute_tuples_with_type(float, ignore_class=Prior)
 
@@ -517,7 +517,7 @@ class AbstractPriorModel(AbstractModel):
 
     def copy_with_fixed_priors(self, instance, excluded_classes=tuple()):
         """
-        Recursively overwrite priors in the mapper with constant values from the
+        Recursively overwrite priors in the mapper with instance values from the
         instance except where the containing class is the descendant of a listed class.
 
         Parameters
@@ -592,7 +592,7 @@ class AbstractPriorModel(AbstractModel):
 
 def transfer_classes(instance, mapper, model_classes=None):
     """
-    Recursively overwrite priors in the mapper with constant values from the
+    Recursively overwrite priors in the mapper with instance values from the
     instance except where the containing class is the descendant of a listed class.
 
     Parameters

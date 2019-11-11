@@ -76,5 +76,5 @@ class DownhillSimplex(NonLinearOptimizer):
         res.gaussian_tuples = [(mean, 0) for mean in output]
         res.previous_model = model
 
-        analysis.visualize(instance=res.constant, during_analysis=False)
+        analysis.visualize(instance=res.instance, during_analysis=False)
         return res

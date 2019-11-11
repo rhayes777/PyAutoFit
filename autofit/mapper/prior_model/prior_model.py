@@ -136,7 +136,7 @@ class PriorModel(AbstractPriorModel):
         created by searching the default prior config for the attribute.
 
         Entries in configuration with a u become uniform priors; with a g become
-        gaussian priors; with a c become constants.
+        gaussian priors; with a c become instances.
 
         If prior configuration for a given attribute is not specified in the
         configuration for a class then the configuration corresponding to the parents
@@ -307,8 +307,8 @@ class PriorModel(AbstractPriorModel):
             )
         for prior_tuple in self.direct_prior_tuples:
             setattr(new_model, prior_tuple.name, model_arguments[prior_tuple.name])
-        for constant_tuple in self.constant_tuples:
-            setattr(new_model, constant_tuple.name, constant_tuple.constant)
+        for instance_tuple in self.instance_tuples:
+            setattr(new_model, instance_tuple.name, instance_tuple.instance)
 
         for name, prior_model in self.direct_prior_model_tuples:
             setattr(

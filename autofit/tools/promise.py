@@ -16,9 +16,9 @@ class AbstractPromiseResult(ABC):
 
     @property
     @abstractmethod
-    def constant(self):
+    def instance(self):
         """
-        A promise for an object in the best fit result. This must be an instance or constant.
+        A promise for an object in the best fit result. This must be an instance or instance.
         """
 
     @abstractmethod
@@ -45,11 +45,11 @@ class LastPromiseResult(AbstractPromiseResult):
         return LastPromise(result_path=self.result_path)
 
     @property
-    def constant(self):
+    def instance(self):
         """
-        A promise for an object in the best fit result. This must be an instance or constant.
+        A promise for an object in the best fit result. This must be an instance or instance.
         """
-        return LastPromise(result_path=self.result_path, is_constant=True)
+        return LastPromise(result_path=self.result_path, is_instance=True)
 
     def __getattr__(self, item):
         return LastPromiseResult(*self.result_path, item)
@@ -85,14 +85,14 @@ class PromiseResult(AbstractPromiseResult):
         )
 
     @property
-    def constant(self):
+    def instance(self):
         """
-        A promise for an object in the best fit result. This must be an instance or constant.
+        A promise for an object in the best fit result. This must be an instance or instance.
         """
         return Promise(
             self.phase,
             result_path=self.result_path,
-            is_constant=True,
+            is_instance=True,
             assert_exists=self.assert_exists,
         )
 
@@ -101,10 +101,10 @@ class PromiseResult(AbstractPromiseResult):
 
 
 class AbstractPromise(ABC):
-    def __init__(self, *path, result_path, is_constant=False):
+    def __init__(self, *path, result_path, is_instance=False):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
-        model, constant or instance
+        model, instance or instance
 
         Parameters
         ----------
@@ -114,21 +114,21 @@ class AbstractPromise(ABC):
         result_path
             The path through the result collection to the result object required. This is used for hyper phases
             where a result object can have child result objects for each phase extension.
-        is_constant
-            True if the promised object belongs to the constant result object
+        is_instance
+            True if the promised object belongs to the instance result object
         """
         self.path = path
-        self.is_constant = is_constant
+        self.is_instance = is_instance
         self.result_path = result_path
 
     def __call__(self, *args, **kwargs):
         pass
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_constant"):
+        if item in ("phase", "path", "is_instance"):
             return super().__getattribute__(item)
         return Promise(
-            *self.path, item, result_path=self.result_path, is_constant=self.is_constant
+            *self.path, item, result_path=self.result_path, is_instance=self.is_instance
         )
 
     @abstractmethod
@@ -145,23 +145,23 @@ class AbstractPromise(ABC):
         Returns
         -------
         obj
-            The promised prior, prior model, instance or constant
+            The promised prior, prior model, instance or instance
         """
 
     def _populate_from_results(self, results):
         for item in self.result_path:
             results = getattr(results, item)
-        model = results.constant if self.is_constant else results.model
+        model = results.instance if self.is_instance else results.model
         return model.object_for_path(self.path)
 
 
 class Promise(AbstractPromise):
     def __init__(
-        self, phase, *path, result_path, is_constant=False, assert_exists=True
+        self, phase, *path, result_path, is_instance=False, assert_exists=True
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
-        model, constant or instance
+        model, instance or instance
 
         Parameters
         ----------
@@ -173,27 +173,27 @@ class Promise(AbstractPromise):
         result_path
             The path through the result collection to the result object required. This is used for hyper phases
             where a result object can have child result objects for each phase extension.
-        is_constant
-            True if the promised object belongs to the constant result object
+        is_instance
+            True if the promised object belongs to the instance result object
         assert_exists
             If this is true then an exception is raised if an object is not defined in the addressed phase's
             model. Hyper phases are a bit trickier so no assertion is made.
         """
-        super().__init__(*path, result_path=result_path, is_constant=is_constant)
+        super().__init__(*path, result_path=result_path, is_instance=is_instance)
         self.phase = phase
         self.assert_exists = assert_exists
         if assert_exists:
             phase.model.object_for_path(path)
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_constant", "_populate_from_results"):
+        if item in ("phase", "path", "is_instance", "_populate_from_results"):
             return super().__getattribute__(item)
         return Promise(
             self.phase,
             *self.path,
             item,
             result_path=self.result_path,
-            is_constant=self.is_constant,
+            is_instance=self.is_instance,
             assert_exists=self.assert_exists,
         )
 
@@ -210,7 +210,7 @@ class Promise(AbstractPromise):
         Returns
         -------
         obj
-            The promised prior, prior model, instance or constant
+            The promised prior, prior model, instance or instance
         """
         results = results_collection.from_phase(self.phase.phase_name)
         return self._populate_from_results(results)
@@ -223,15 +223,15 @@ class LastPromise(AbstractPromise):
     """
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_constant", "_populate_from_results"):
+        if item in ("phase", "path", "is_instance", "_populate_from_results"):
             return super().__getattribute__(item)
         return LastPromise(
-            *self.path, item, result_path=self.result_path, is_constant=self.is_constant
+            *self.path, item, result_path=self.result_path, is_instance=self.is_instance
         )
 
     def populate(self, results_collection: ResultsCollection):
         """
-        Recover the constant or model associated with this promise from the latest result in the results collection
+        Recover the instance or model associated with this promise from the latest result in the results collection
         where a matching path is found.
         
         Parameters
@@ -241,7 +241,7 @@ class LastPromise(AbstractPromise):
 
         Returns
         -------
-        A prior, model or constant.
+        A prior, model or instance.
         
         Raises
         ------

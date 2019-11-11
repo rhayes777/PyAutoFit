@@ -1,5 +1,5 @@
 from autofit.mapper.model import path_instances_of_class
-from autofit.mapper.prior_model.prior import ConstantNameValue
+from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import (
     Prior,
     UniformPrior,

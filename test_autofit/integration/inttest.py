@@ -36,14 +36,14 @@ class Analysis(af.Analysis):
 
 class Phase(af.AbstractPhase):
     profile = af.PhaseProperty("profile")
-    constant_profile = af.PhaseProperty("constant_profile")
+    instance_profile = af.PhaseProperty("instance_profile")
 
     def __init__(
         self,
         phase_name,
         phase_folders,
         profile,
-        constant_profile,
+        instance_profile,
         optimizer_class=af.MultiNest,
     ):
         super().__init__(
@@ -53,7 +53,7 @@ class Phase(af.AbstractPhase):
             optimizer_class=optimizer_class,
         )
         self.profile = profile
-        self.constant_profile = constant_profile
+        self.instance_profile = instance_profile
 
     def make_result(self, result, analysis):
         return result
@@ -70,7 +70,7 @@ class TestCase(object):
 
         result = multinest.fit(Analysis())
 
-        centre = result.constant.profile.centre
+        centre = result.instance.profile.centre
 
         assert 0 == pytest.approx(centre[0], abs=0.1)
         assert 0 == pytest.approx(centre[1], abs=0.1)
@@ -99,11 +99,11 @@ class TestCase(object):
             phase_name="test_phase",
             phase_folders=["integration"],
             profile=test_autofit.mock.EllipticalProfile,
-            constant_profile=test_autofit.mock.EllipticalProfile(),
+            instance_profile=test_autofit.mock.EllipticalProfile(),
         )
         result = phase.run_analysis(Analysis())
 
-        centre = result.constant.profile.centre
+        centre = result.instance.profile.centre
 
         assert 0 == pytest.approx(centre[0], abs=0.1)
         assert 0 == pytest.approx(centre[1], abs=0.1)
@@ -114,12 +114,12 @@ class TestCase(object):
             phase_name="phase_classic_grid_search_phase",
             phase_folders=["integration"],
             profile=test_autofit.mock.EllipticalProfile,
-            constant_profile=test_autofit.mock.EllipticalProfile(),
+            instance_profile=test_autofit.mock.EllipticalProfile(),
             optimizer_class=af.GridSearch,
         )
         result = phase.run_analysis(Analysis())
 
-        centre = result.constant.profile.centre
+        centre = result.instance.profile.centre
 
         assert 0 == pytest.approx(centre[0], abs=0.1)
         assert 0 == pytest.approx(centre[1], abs=0.1)
@@ -130,17 +130,17 @@ class TestCase(object):
             def grid_priors(self):
                 return [self.model.profile.centre_0, self.model.profile.centre_1]
 
-        constant_profile = test_autofit.mock.EllipticalProfile()
+        instance_profile = test_autofit.mock.EllipticalProfile()
 
         result = GridSearchPhase(
             phase_name="grid_search_phase",
             phase_folders=["integration"],
             number_of_steps=2,
             profile=test_autofit.mock.EllipticalProfile,
-            constant_profile=constant_profile,
+            instance_profile=instance_profile,
         ).run_analysis(Analysis())
 
-        assert result.results[0].constant.constant_profile == constant_profile
+        assert result.results[0].instance.instance_profile == instance_profile
 
         assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[0, 1]
         assert result.figure_of_merit_array[0, 0] > result.figure_of_merit_array[1, 0]
@@ -153,17 +153,17 @@ class TestCase(object):
             def grid_priors(self):
                 return [self.model.profile.centre_0, self.model.profile.centre_1]
 
-        constant_profile = test_autofit.mock.EllipticalProfile()
+        instance_profile = test_autofit.mock.EllipticalProfile()
 
         result = GridSearchPhase(
             phase_name="grid_search_phase_parallel",
             phase_folders=["integration"],
             number_of_steps=2,
             profile=test_autofit.mock.EllipticalProfile,
-            constant_profile=constant_profile,
+            instance_profile=instance_profile,
         ).run_analysis(Analysis())
 
-        assert result.results[0].constant.constant_profile == constant_profile
+        assert result.results[0].instance.instance_profile == instance_profile
 
         print(result.figure_of_merit_array)
 

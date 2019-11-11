@@ -189,7 +189,7 @@ class GalaxyModel(af.AbstractPriorModel):
         )
 
     @property
-    def constant_tuples(self):
+    def instance_tuples(self):
         return []
 
     @property
@@ -283,7 +283,7 @@ class AbstractEllipticalSersic(EllipticalProfile):
         sersic_index=4.0,
     ):
         """ Abstract base class for an elliptical Sersic profile, used for computing
-        its effective radius and Sersic constant.
+        its effective radius and Sersic instance.
 
         Parameters
         ----------
@@ -568,8 +568,8 @@ class Tracer:
 
 
 class Result:
-    def __init__(self, constant=None, model=None):
-        self.constant = constant
+    def __init__(self, instance=None, model=None):
+        self.instance = instance
         self.model = model
 
 

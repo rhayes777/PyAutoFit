@@ -169,21 +169,21 @@ class Result(object):
     """
 
     def __init__(
-            self, constant, figure_of_merit, previous_model=None, gaussian_tuples=None
+            self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
 
         Parameters
         ----------
-        constant: autofit.mapper.model.ModelInstance
+        instance: autofit.mapper.model.ModelInstance
             An instance object comprising the class instances that gave the optimal fit
         figure_of_merit: float
             A value indicating the figure of merit given by the optimal fit
         previous_model: mm.ModelMapper
             The model mapper from the stage that produced this result
         """
-        self.constant = constant
+        self.instance = instance
         self.figure_of_merit = figure_of_merit
         self.previous_model = previous_model
         self.gaussian_tuples = gaussian_tuples

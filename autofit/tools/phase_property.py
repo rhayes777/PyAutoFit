@@ -2,7 +2,7 @@ class PhaseProperty(object):
     def __init__(self, name):
         """
         A phase property is a named property of a phase in a pipeline. It implemented setters and getters that
-        allow it to associated values with the constant or model object depending on the type of those
+        allow it to associated values with the instance or model object depending on the type of those
         values. Note that this functionality may be better handled by the model mapper.
 
         Parameters

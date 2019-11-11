@@ -493,7 +493,7 @@ class TestCollectionPriorModel(object):
 
         assert isinstance(prior_model.simple, af.PriorModel)
 
-    def test_override_with_constant(self):
+    def test_override_with_instance(self):
         prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})
 
         simple_instance = mock.SimpleClass(1, 2)

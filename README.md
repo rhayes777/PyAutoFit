@@ -57,12 +57,12 @@ def make_pipeline():
 
     # In phase 2, we fit the satellite galaxy's light. The best-fit model of the
     # main galaxy in phase 1 is used to subtract its light and cleanly reveal the
-    # satellite for the fit. This information is passed using 'constant' term below.
+    # satellite for the fit. This information is passed using 'instance' term below.
 
     phase2 = af.Phase(phase_name="phase_2__satellite",
             main_galaxy=af.PriorModel(
-                bulge=phase1.result.constant.main_galaxy.bulge,
-                disk=phase1.result.constant.main_galaxy.disk),
+                bulge=phase1.result.instance.main_galaxy.bulge,
+                disk=phase1.result.instance.main_galaxy.disk),
             satellite_galaxy=af.PriorModel(
                 light=af.toy.EllipticalSersic),
         optimizer_class=af.MultiNest)

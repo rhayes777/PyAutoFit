@@ -48,8 +48,8 @@ class AbstractPhase:
 
     def customize_priors(self, results):
         """
-        Perform any prior or constant passing. This could involve setting model
-        attributes equal to priors or constants from a previous phase.
+        Perform any prior or instance passing. This could involve setting model
+        attributes equal to priors or instances from a previous phase.
 
         Parameters
         ----------

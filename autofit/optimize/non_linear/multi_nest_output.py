@@ -464,7 +464,7 @@ class MultiNestOutput(Output):
                 results += self.results_from_sigma_limit(limit=3.0)
                 results += self.results_from_sigma_limit(limit=1.0)
 
-            results += ["\n\nConstants\n"]
+            results += ["\n\ninstances\n"]
 
             formatter = text_formatter.TextFormatter()
 

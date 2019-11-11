@@ -20,14 +20,14 @@ af.conf.instance = af.conf.Config(
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def fit(self, analysis, model):
         class Fitness(object):
-            def __init__(self, instance_from_physical_vector, constant):
+            def __init__(self, instance_from_physical_vector, instance):
                 self.result = None
                 self.instance_from_physical_vector = instance_from_physical_vector
-                self.constant = constant
+                self.instance = instance
 
             def __call__(self, vector):
                 instance = self.instance_from_physical_vector(vector)
-                for key, value in self.constant.__dict__.items():
+                for key, value in self.instance.__dict__.items():
                     setattr(instance, key, value)
 
                 likelihood = analysis.fit(instance)
@@ -166,7 +166,7 @@ class TestPhasePropertyCollectionAttributes(object):
         # assert instance.one is not None
         assert len(instance.prop) == 1
 
-    def test_named_attributes_in_constant(self, list_phase):
+    def test_named_attributes_in_instance(self, list_phase):
         galaxy = Galaxy()
         list_phase.prop = dict(one=galaxy)
 
@@ -217,5 +217,5 @@ class TestPhasePropertyCollectionAttributes(object):
         prior_model = af.PriorModel(Galaxy)
         prior_model.phase_property_position = 0
 
-        print(prior_model.constant_tuples)
-        assert len(prior_model.constant_tuples) == 0
+        print(prior_model.instance_tuples)
+        assert len(prior_model.instance_tuples) == 0
