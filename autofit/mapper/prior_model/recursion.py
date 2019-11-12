@@ -1,7 +1,5 @@
 from functools import wraps
 
-import numpy as np
-
 
 class RecursionPromise:
     pass
@@ -89,21 +87,15 @@ class DynamicRecursionCache:
 
         @wraps(func)
         def wrapper(
+                item,
                 *args,
                 **kwargs
         ):
             print(
-                f"Recursion wrapper received args {args} and kwargs {kwargs}"
+                f"Recursion wrapper received item {item}"
             )
-            item_id = np.prod(
-                [
-                    id(item)
-                    for item in (
-                        list(args) +
-                        list(kwargs.items())
-                )
-                ]
-            )
+            item_id = id(item)
+
             cache_keys = '\n'.join(map(str, self.cache.keys()))
             print(
                 f"This gives item_id {item_id}. Cache keys = {cache_keys}"
@@ -117,6 +109,7 @@ class DynamicRecursionCache:
                 item_id
             ] = recursion_promise
             result = func(
+                item,
                 *args,
                 **kwargs
             )
