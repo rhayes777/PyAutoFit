@@ -11,9 +11,7 @@ def make_path(func):
         full_path = func(*args, **kwargs)
         if not os.path.exists(full_path):
             try:
-                os.makedirs(
-                    full_path
-                )
+                os.makedirs(full_path)
             except FileExistsError:
                 pass
         return full_path
@@ -23,52 +21,29 @@ def make_path(func):
 
 def convert_paths(func):
     @wraps(func)
-    def wrapper(
-            self,
-            *args,
-            **kwargs
-    ):
+    def wrapper(self, *args, **kwargs):
         if len(args) > 1:
             raise AssertionError(
                 "Only phase name is allowed to be a positional argument in a phase constructor"
             )
 
-        first_arg = kwargs.pop(
-            "paths",
-            None
-        )
+        first_arg = kwargs.pop("paths", None)
         if first_arg is None and len(args) == 1:
             first_arg = args[0]
 
         if isinstance(first_arg, Paths):
-            return func(
-                self,
-                paths=first_arg,
-                **kwargs
-            )
+            return func(self, paths=first_arg, **kwargs)
 
         if first_arg is None:
-            first_arg = kwargs.pop(
-                "phase_name",
-                None
-            )
+            first_arg = kwargs.pop("phase_name", None)
 
         func(
             self,
             paths=Paths(
                 phase_name=first_arg,
-                phase_tag=kwargs.pop(
-                    "phase_tag",
-                    None
-                ),
-                phase_folders=kwargs.pop(
-                    "phase_folders",
-                    tuple()
-                ),
-                phase_path=kwargs.pop(
-                    "phase_path",
-                    None
-                )
+                phase_tag=kwargs.pop("phase_tag", None),
+                phase_folders=kwargs.pop("phase_folders", tuple()),
+                phase_path=kwargs.pop("phase_path", None),
             ),
             **kwargs
         )
@@ -78,11 +53,7 @@ def convert_paths(func):
 
 class Paths:
     def __init__(
-            self,
-            phase_name="",
-            phase_tag=None,
-            phase_folders=tuple(),
-            phase_path=None
+        self, phase_name="", phase_tag=None, phase_folders=tuple(), phase_path=None
     ):
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")

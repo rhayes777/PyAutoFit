@@ -84,10 +84,7 @@ class AbstractModel(ModelObject):
 
 
 @DynamicRecursionCache()
-def populate(
-        obj,
-        collection: ResultsCollection
-):
+def populate(obj, collection: ResultsCollection):
     """
     Replace promises with instances and instances. Promises are placeholders expressing that a given attribute should
     be replaced with an actual value once the phase that generates that value is complete.
@@ -105,29 +102,15 @@ def populate(
         The same object with all promises populated, or if the object was a promise the replacement for that promise
     """
     if isinstance(obj, list):
-        return [
-            populate(
-                item,
-                collection,
-            ) for item in obj
-        ]
+        return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
-        return {
-            key: populate(
-                value,
-                collection,
-            ) for key, value
-            in obj.items()
-        }
+        return {key: populate(value, collection) for key, value in obj.items()}
     if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:
         new = copy.deepcopy(obj)
         for key, value in obj.__dict__.items():
-            setattr(new, key, populate(
-                value,
-                collection,
-            ))
+            setattr(new, key, populate(value, collection))
         return new
     except (AttributeError, TypeError):
         return obj
@@ -135,11 +118,7 @@ def populate(
 
 # @DynamicRecursionCache()
 def path_instances_of_class(
-        obj,
-        cls: type,
-        ignore_class: Optional[
-            Union[type, Tuple[type]]
-        ] = None
+    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):
     """
     Recursively search the object for instances of a given class
@@ -164,12 +143,9 @@ def path_instances_of_class(
     results = []
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+
         for key, value in obj.__dict__.items():
-            for item in path_instances_of_class(
-                    value,
-                    cls,
-                    ignore_class=ignore_class
-            ):
+            for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
                 else:

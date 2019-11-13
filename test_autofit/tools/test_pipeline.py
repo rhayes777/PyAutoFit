@@ -42,9 +42,7 @@ class MockPhase(af.AbstractPhase):
     @af.convert_paths
     def __init__(self, paths, optimizer=None):
         super().__init__(paths)
-        self.optimizer = optimizer or af.NonLinearOptimizer(
-            paths=paths
-        )
+        self.optimizer = optimizer or af.NonLinearOptimizer(paths=paths)
 
     def save_metadata(self, data_name, pipeline_name):
         pass

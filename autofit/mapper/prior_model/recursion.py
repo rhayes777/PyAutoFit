@@ -5,11 +5,7 @@ class RecursionPromise:
     pass
 
 
-def replace_promise(
-        promise: RecursionPromise,
-        obj,
-        true_value
-):
+def replace_promise(promise: RecursionPromise, obj, true_value):
     """
     Traverse the object replacing any identity of the promise with the true value
 
@@ -27,40 +23,18 @@ def replace_promise(
     obj
         The object with any identities of the Promise replaced
     """
-    if isinstance(
-            obj,
-            list
-    ):
-        return [
-            replace_promise(
-                promise,
-                item,
-                true_value
-            )
-            for item in obj
-        ]
-    if isinstance(
-            obj,
-            dict
-    ):
+    if isinstance(obj, list):
+        return [replace_promise(promise, item, true_value) for item in obj]
+    if isinstance(obj, dict):
         return {
-            key: replace_promise(
-                promise,
-                value,
-                true_value
-            )
-            for key, value
-            in obj.items()
+            key: replace_promise(promise, value, true_value)
+            for key, value in obj.items()
         }
     if obj is promise:
         return true_value
     try:
         for key, value in obj.__dict__.items():
-            setattr(obj, key, replace_promise(
-                promise,
-                value,
-                true_value
-            ))
+            setattr(obj, key, replace_promise(promise, value, true_value))
     except (AttributeError, TypeError):
         pass
     return obj
@@ -73,10 +47,7 @@ class DynamicRecursionCache:
         """
         self.cache = dict()
 
-    def __call__(
-            self,
-            func
-    ):
+    def __call__(self, func):
         """
         Decorate the function to prevent recursion.
 
@@ -86,38 +57,20 @@ class DynamicRecursionCache:
         """
 
         @wraps(func)
-        def wrapper(
-                item,
-                *args,
-                **kwargs
-        ):
-            print(
-                f"Recursion wrapper received item {item}"
-            )
+        def wrapper(item, *args, **kwargs):
+            print(f"Recursion wrapper received item {item}")
             item_id = id(item)
 
-            cache_keys = ','.join(map(str, self.cache.keys()))
-            print(
-                f"This gives item_id {item_id}. Cache keys = {cache_keys}"
-            )
+            cache_keys = ",".join(map(str, self.cache.keys()))
+            print(f"This gives item_id {item_id}. Cache keys = {cache_keys}")
             if item_id in self.cache:
                 print("Item in cache")
                 return self.cache[item_id]
             print("item not in cache")
             recursion_promise = RecursionPromise()
-            self.cache[
-                item_id
-            ] = recursion_promise
-            result = func(
-                item,
-                *args,
-                **kwargs
-            )
-            result = replace_promise(
-                recursion_promise,
-                result,
-                result
-            )
+            self.cache[item_id] = recursion_promise
+            result = func(item, *args, **kwargs)
+            result = replace_promise(recursion_promise, result, result)
             del self.cache[item_id]
             return result
 

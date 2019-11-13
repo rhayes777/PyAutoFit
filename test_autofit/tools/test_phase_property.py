@@ -189,8 +189,7 @@ class TestPhasePropertyCollectionAttributes(object):
 
     def test_shared_priors(self, list_phase):
         list_phase.prop = dict(
-            one=GalaxyModel(model_redshift=True),
-            two=GalaxyModel(model_redshift=True),
+            one=GalaxyModel(model_redshift=True), two=GalaxyModel(model_redshift=True)
         )
 
         assert list_phase.model.prior_count == 2

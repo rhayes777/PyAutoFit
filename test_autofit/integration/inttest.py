@@ -87,10 +87,7 @@ class TestCase(object):
         # noinspection PyUnresolvedReferences
         result = grid_search.fit(
             Analysis(),
-            [
-                grid_search.model.profile.centre_0,
-                grid_search.model.profile.centre_1,
-            ],
+            [grid_search.model.profile.centre_0, grid_search.model.profile.centre_1],
         )
 
     def test_phase(self):

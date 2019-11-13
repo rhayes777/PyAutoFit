@@ -3,10 +3,7 @@ import scipy.optimize
 
 from autofit import exc
 from autofit.optimize.non_linear.multi_nest_output import Output
-from autofit.optimize.non_linear.non_linear import (
-    NonLinearOptimizer,
-    persistent_timer,
-)
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer
 from autofit.optimize.non_linear.non_linear import logger
 
 

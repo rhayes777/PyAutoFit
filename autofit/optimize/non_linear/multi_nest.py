@@ -101,6 +101,7 @@ class MultiNest(NonLinearOptimizer):
             self.stagger_accepted_samples = 0
 
         def __call__(self, cube, ndim, nparams, lnew):
+
             try:
                 instance = self.instance_from_physical_vector(cube)
                 likelihood = self.fit_instance(instance)
@@ -141,9 +142,7 @@ class MultiNest(NonLinearOptimizer):
 
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-            return model.physical_vector_from_hypercube_vector(
-                hypercube_vector=cube
-            )
+            return model.physical_vector_from_hypercube_vector(hypercube_vector=cube)
 
         fitness_function = MultiNest.Fitness(
             self,

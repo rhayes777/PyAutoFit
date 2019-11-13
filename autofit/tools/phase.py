@@ -12,11 +12,11 @@ from autofit.tools.promise import PromiseResult
 class AbstractPhase:
     @convert_paths
     def __init__(
-            self,
-            paths,
-            *,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            model=None,
+        self,
+        paths,
+        *,
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        model=None,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -124,18 +124,14 @@ class AbstractPhase:
 class Phase(AbstractPhase):
     @convert_paths
     def __init__(
-            self,
-            paths,
-            *,
-            analysis_class,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            model=None,
+        self,
+        paths,
+        *,
+        analysis_class,
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        model=None,
     ):
-        super().__init__(
-            paths,
-            optimizer_class=optimizer_class,
-            model=model,
-        )
+        super().__init__(paths, optimizer_class=optimizer_class, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
@@ -197,18 +193,14 @@ def as_grid_search(phase_class, parallel=False):
     class GridSearchExtension(phase_class):
         @convert_paths
         def __init__(
-                self,
-                paths,
-                *,
-                number_of_steps=10,
-                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                **kwargs,
+            self,
+            paths,
+            *,
+            number_of_steps=10,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            **kwargs,
         ):
-            super().__init__(
-                paths,
-                optimizer_class=optimizer_class,
-                **kwargs,
-            )
+            super().__init__(paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,

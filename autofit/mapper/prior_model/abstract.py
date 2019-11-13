@@ -311,10 +311,7 @@ class AbstractPriorModel(AbstractModel):
 
     @staticmethod
     @DynamicRecursionCache()
-    def from_instance(
-            instance,
-            model_classes=tuple()
-    ):
+    def from_instance(instance, model_classes=tuple()):
         """
         Recursively create an prior object model from an object model.
 
@@ -335,10 +332,7 @@ class AbstractPriorModel(AbstractModel):
             print("instance is a list")
             result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 [
-                    AbstractPriorModel.from_instance(
-                        item,
-                        model_classes=model_classes,
-                    )
+                    AbstractPriorModel.from_instance(item, model_classes=model_classes)
                     for item in instance
                 ]
             )
@@ -350,8 +344,7 @@ class AbstractPriorModel(AbstractModel):
                     result,
                     key,
                     AbstractPriorModel.from_instance(
-                        value,
-                        model_classes=model_classes,
+                        value, model_classes=model_classes
                     ),
                 )
         elif isinstance(instance, dict):
@@ -359,8 +352,7 @@ class AbstractPriorModel(AbstractModel):
             result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
-                        value,
-                        model_classes=model_classes,
+                        value, model_classes=model_classes
                     )
                     for key, value in instance.items()
                 }
@@ -370,6 +362,7 @@ class AbstractPriorModel(AbstractModel):
             return instance
         else:
             from .prior_model import PriorModel
+
             print("instance is a something else")
             try:
                 print(f"instance dictionary items = {instance.__dict__.items()}")
@@ -378,12 +371,11 @@ class AbstractPriorModel(AbstractModel):
                         instance.__class__,
                         **{
                             key: AbstractPriorModel.from_instance(
-                                value,
-                                model_classes=model_classes,
+                                value, model_classes=model_classes
                             )
                             for key, value in instance.__dict__.items()
                             if key != "cls"
-                        }
+                        },
                     )
                 except RecursionError:
                     return instance
@@ -453,8 +445,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, AbstractPriorModel)
-                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+            isinstance(other, AbstractPriorModel)
+            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -611,7 +603,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                    mapper_value, AnnotationPriorModel
+                mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
