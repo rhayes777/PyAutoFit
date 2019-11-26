@@ -1,5 +1,6 @@
 import copy
 import inspect
+import logging
 
 from typing_inspect import is_tuple_type
 
@@ -9,6 +10,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredInstance
 from autofit.mapper.prior_model.prior import TuplePrior, Prior
 from autofit.tools.promise import Promise
+
+logger = logging.getLogger(__name__)
 
 
 class PriorModel(AbstractPriorModel):
@@ -20,7 +23,7 @@ class PriorModel(AbstractPriorModel):
     def name(self):
         return self.cls.__name__
 
-    def as_variable(self):
+    def as_model(self):
         return PriorModel(self.cls)
 
     def __hash__(self):
@@ -73,17 +76,13 @@ class PriorModel(AbstractPriorModel):
 
             if arg in kwargs:
                 keyword_arg = kwargs[arg]
-                if isinstance(keyword_arg, list):
+                if isinstance(keyword_arg, (list, dict)):
                     from autofit.mapper.prior_model.collection import (
                         CollectionPriorModel,
                     )
 
-                    ls = CollectionPriorModel([])
-                    for obj in keyword_arg:
-                        if inspect.isclass(obj):
-                            ls.append(AbstractPriorModel.from_object(obj))
-                        else:
-                            ls.append(obj)
+                    ls = CollectionPriorModel(keyword_arg)
+
                     setattr(self, arg, ls)
                 else:
                     if inspect.isclass(keyword_arg):
@@ -137,7 +136,7 @@ class PriorModel(AbstractPriorModel):
         created by searching the default prior config for the attribute.
 
         Entries in configuration with a u become uniform priors; with a g become
-        gaussian priors; with a c become constants.
+        gaussian priors; with a c become instances.
 
         If prior configuration for a given attribute is not specified in the
         configuration for a class then the configuration corresponding to the parents
@@ -178,7 +177,11 @@ class PriorModel(AbstractPriorModel):
                     return
             except IndexError:
                 pass
-        super(PriorModel, self).__setattr__(key, value)
+        try:
+            super().__setattr__(key, value)
+        except AttributeError as e:
+            logger.exception(e)
+            logger.exception(key)
 
     def __getattr__(self, item):
         try:
@@ -302,8 +305,8 @@ class PriorModel(AbstractPriorModel):
             )
         for prior_tuple in self.direct_prior_tuples:
             setattr(new_model, prior_tuple.name, model_arguments[prior_tuple.name])
-        for constant_tuple in self.constant_tuples:
-            setattr(new_model, constant_tuple.name, constant_tuple.constant)
+        for instance_tuple in self.instance_tuples:
+            setattr(new_model, instance_tuple.name, instance_tuple.instance)
 
         for name, prior_model in self.direct_prior_model_tuples:
             setattr(

@@ -28,10 +28,10 @@ class CollectionPriorModel(AbstractPriorModel):
     def items(self):
         return list(self.dict.values())
 
-    def as_variable(self):
+    def as_model(self):
         return CollectionPriorModel(
             {
-                key: value.as_variable()
+                key: value.as_model()
                 if isinstance(value, AbstractPriorModel)
                 else value
                 for key, value in self.dict.items()

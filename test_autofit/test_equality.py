@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear.multi_nest import Paths
+from autofit import Paths
 from test_autofit.mapper.test_model_mapper import GeometryProfile
 from test_autofit.mock import GalaxyModel
 

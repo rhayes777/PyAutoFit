@@ -4,13 +4,12 @@ from time import sleep
 
 import numpy as np
 
-from autofit import conf
+from autofit import conf, Paths
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import optimizer
 from autofit.optimize.non_linear.downhill_simplex import DownhillSimplex
-from autofit.optimize.non_linear.non_linear import Paths
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ class GridSearchResult(object):
         best_model: mm.ModelMapper
             The model mapper instance associated with the highest figure of merit from the grid search
         """
-        return self.best_result.variable
+        return self.best_result.model
 
     @property
     def all_models(self):
@@ -70,7 +69,7 @@ class GridSearchResult(object):
         all_models: [mm.ModelMapper]
             All model mapper instances used in the grid search
         """
-        return [result.variable for result in self.results]
+        return [result.model for result in self.results]
 
     @property
     def figure_of_merit_array(self):
@@ -78,7 +77,7 @@ class GridSearchResult(object):
         Returns
         -------
         figure_of_merit_array: np.ndarray
-            An array of figures of merit. This array has the same dimensionality as the grid search, with the value in
+            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
             each entry being the figure of merit taken from the optimization performed at that point.
         """
         return np.reshape(
@@ -341,7 +340,7 @@ class GridSearch(object):
             )
         )
         for key, value in self.__dict__.items():
-            if key not in ("variable", "constant", "paths"):
+            if key not in ("model", "instance", "paths"):
                 try:
                     setattr(optimizer_instance, key, value)
                 except AttributeError:

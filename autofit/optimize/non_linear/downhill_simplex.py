@@ -3,11 +3,7 @@ import scipy.optimize
 
 from autofit import exc
 from autofit.optimize.non_linear.multi_nest_output import Output
-from autofit.optimize.non_linear.non_linear import (
-    NonLinearOptimizer,
-    persistent_timer,
-    Paths,
-)
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer
 from autofit.optimize.non_linear.non_linear import logger
 
 
@@ -75,7 +71,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.gaussian_tuples = [(mean, 0) for mean in output]
-        res.previous_variable = model
+        res.previous_model = model
 
-        analysis.visualize(instance=res.constant, during_analysis=False)
+        analysis.visualize(instance=res.instance, during_analysis=False)
         return res

@@ -3,18 +3,20 @@ import pickle
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
-from autofit import conf, ModelMapper
+from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.optimize import grid_search
 from autofit.tools.promise import PromiseResult
 
 
 class AbstractPhase:
+    @convert_paths
     def __init__(
         self,
         paths,
+        *,
         optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        auto_link_priors=False,
+        model=None,
     ):
         """
         A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
@@ -25,11 +27,11 @@ class AbstractPhase:
         optimizer_class: class
             The class of a non_linear optimizer
         """
+
         self.paths = paths
 
         self.optimizer = optimizer_class(self.paths)
-        self.auto_link_priors = auto_link_priors
-        self.variable = ModelMapper()
+        self.model = model or ModelMapper()
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -42,12 +44,12 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis):
-        return self.optimizer.fit(analysis=analysis, model=self.variable)
+        return self.optimizer.fit(analysis=analysis, model=self.model)
 
     def customize_priors(self, results):
         """
-        Perform any prior or constant passing. This could involve setting model
-        attributes equal to priors or constants from a previous phase.
+        Perform any prior or instance passing. This could involve setting model
+        attributes equal to priors or instances from a previous phase.
 
         Parameters
         ----------
@@ -70,16 +72,16 @@ class AbstractPhase:
         with open(self.paths.make_optimizer_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.optimizer))
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(self.variable))
+            f.write(pickle.dumps(self.model))
 
     def save_metadata(self, data_name, pipeline_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the simulate being fit
+        name of the phase and the name of the dataset being fit
         """
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
-                "pipeline={}\nphase={}\nsimulate={}".format(
+                "pipeline={}\nphase={}\nsimulator={}".format(
                     pipeline_name, self.paths.phase_name, data_name
                 )
             )
@@ -107,7 +109,7 @@ class AbstractPhase:
         if os.path.exists(path):
             with open(path, "r+b") as f:
                 loaded_model = pickle.loads(f.read())
-                if self.variable != loaded_model:
+                if self.model != loaded_model:
                     raise exc.PipelineException(
                         f"Can't restart phase at path {path} because settings don't "
                         f"match. Did you change the model?"
@@ -117,6 +119,53 @@ class AbstractPhase:
         if conf.instance.general.get("output", "assert_pickle_matches", bool):
             self.assert_optimizer_pickle_matches_for_phase()
         self.save_optimizer_for_phase()
+
+
+class Phase(AbstractPhase):
+    @convert_paths
+    def __init__(
+        self,
+        paths,
+        *,
+        analysis_class,
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        model=None,
+    ):
+        super().__init__(paths, optimizer_class=optimizer_class, model=model)
+        self.analysis_class = analysis_class
+
+    def make_result(self, result, analysis):
+        return result
+
+    def make_analysis(self, dataset, results):
+        return self.analysis_class(dataset, results)
+
+    def run(self, dataset, results=None):
+        """
+        Run this phase.
+
+        Parameters
+        ----------
+        results: autofit.tools.pipeline.ResultsCollection
+            An object describing the results of the last phase or None if no phase has been executed
+        dataset: scaled_array.ScaledSquarePixelArray
+            An masked_imaging that has been masked
+
+        Returns
+        -------
+        result: AbstractPhase.Result
+            A result object comprising the best fit model and other hyper_galaxies.
+        """
+        self.model = self.model.populate(results)
+
+        analysis = self.make_analysis(dataset=dataset, results=results)
+
+        self.customize_priors(results)
+        self.assert_and_save_pickle()
+
+        result = self.run_analysis(analysis)
+
+        return self.make_result(result=result, analysis=None)
 
 
 def as_grid_search(phase_class, parallel=False):
@@ -142,16 +191,18 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
+        @convert_paths
         def __init__(
             self,
             paths,
+            *,
             number_of_steps=10,
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             **kwargs,
         ):
-            super().__init__(paths=paths, optimizer_class=optimizer_class, **kwargs)
+            super().__init__(paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
-                paths,
+                paths=self.paths,
                 number_of_steps=number_of_steps,
                 optimizer_class=optimizer_class,
                 parallel=parallel,
@@ -162,7 +213,7 @@ def as_grid_search(phase_class, parallel=False):
             return result
 
         def run_analysis(self, analysis):
-            return self.optimizer.fit(analysis, self.variable, self.grid_priors)
+            return self.optimizer.fit(analysis, self.model, self.grid_priors)
 
         @property
         def grid_priors(self):

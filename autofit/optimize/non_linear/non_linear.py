@@ -9,149 +9,15 @@ import time
 import numpy as np
 
 from autofit import conf
-from autofit.mapper import link, model_mapper as mm
+from autofit.mapper import model_mapper as mm
+from autofit.optimize.non_linear.paths import Paths, convert_paths
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 
-class Paths:
-    def __init__(
-        self, phase_name="", phase_tag=None, phase_folders=tuple(), phase_path=None
-    ):
-
-        # TODO : When I make a HyperPhase in autolens, the input phase name is an instance of Paths. The if loop below
-        # TODO : Fixes the tests but is clearly dodgy.
-
-        if isinstance(phase_name, Paths):
-            phase_name = phase_name.phase_name
-        if not isinstance(phase_name, str):
-            raise ValueError("Phase name must be a string")
-        self.phase_path = phase_path or "/".join(phase_folders)
-        self.phase_name = phase_name
-        self.phase_tag = phase_tag or ""
-
-        try:
-            os.makedirs("/".join(self.sym_path.split("/")[:-1]))
-        except FileExistsError:
-            pass
-
-        try:
-            os.makedirs(self.pdf_path)
-        except FileExistsError:
-            pass
-
-        self.path = link.make_linked_folder(self.sym_path)
-
-    def __eq__(self, other):
-        return isinstance(other, Paths) and all(
-            [
-                self.phase_path == other.phase_path,
-                self.phase_name == other.phase_name,
-                self.phase_tag == other.phase_tag,
-            ]
-        )
-
-    @property
-    def phase_folders(self):
-        return self.phase_path.split("/")
-
-    @property
-    def backup_path(self) -> str:
-        """
-        The path to the backed up optimizer folder.
-        """
-        return "/".join(
-            filter(
-                lambda item: len(item) > 0,
-                [
-                    conf.instance.output_path,
-                    self.phase_path,
-                    self.phase_name,
-                    self.phase_tag,
-                    "optimizer_backup",
-                ],
-            )
-        )
-
-    @property
-    def phase_output_path(self) -> str:
-        """
-        The path to the output information for a phase.
-        """
-        return "{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
-        )
-
-    @property
-    def opt_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
-        )
-
-    @property
-    def sym_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
-        )
-
-    @property
-    def file_param_names(self) -> str:
-        return "{}/{}".format(self.opt_path, "multinest.paramnames")
-
-    @property
-    def file_model_info(self) -> str:
-        return "{}/{}".format(self.phase_output_path, "model.info")
-
-    @property
-    def image_path(self) -> str:
-        """
-        The path to the directory in which images are stored.
-        """
-        return "{}image/".format(self.phase_output_path)
-
-    @property
-    def pdf_path(self) -> str:
-        """
-        The path to the directory in which images are stored.
-        """
-        return "{}pdf/".format(self.image_path)
-
-    def make_optimizer_pickle_path(self) -> str:
-        """
-        Create the path at which the optimizer pickle should be saved
-        """
-        return "{}/optimizer.pickle".format(self.make_path())
-
-    def make_model_pickle_path(self):
-        """
-        Create the path at which the model pickle should be saved
-        """
-        return "{}/model.pickle".format(self.make_path())
-
-    def make_path(self) -> str:
-        """
-        Create the path to the folder at which the metadata and optimizer pickle should
-        be saved
-        """
-        return "{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
-        )
-
-    @property
-    def file_summary(self) -> str:
-        return "{}/{}".format(self.backup_path, "multinestsummary.txt")
-
-    @property
-    def file_weighted_samples(self):
-        return "{}/{}".format(self.backup_path, "multinest.txt")
-
-    @property
-    def file_results(self):
-        return "{}/{}".format(self.phase_output_path, "model.results")
-
-
 class NonLinearOptimizer(object):
+    @convert_paths
     def __init__(self, paths):
         """Abstract base class for non-linear optimizers.
 
@@ -212,7 +78,7 @@ class NonLinearOptimizer(object):
             pass
 
         try:
-            shutil.copytree(self.paths.opt_path, self.paths.backup_path)
+            shutil.copytree(self.paths.sym_path, self.paths.backup_path)
         except shutil.Error as e:
             logger.exception(e)
 
@@ -225,7 +91,6 @@ class NonLinearOptimizer(object):
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
         if os.path.exists(self.paths.backup_path):
-            self.paths.path = link.make_linked_folder(self.paths.sym_path)
             for file in glob.glob(self.paths.backup_path + "/*"):
                 shutil.copy(file, self.paths.path)
 
@@ -303,37 +168,37 @@ class Result(object):
     """
 
     def __init__(
-        self, constant, figure_of_merit, previous_variable=None, gaussian_tuples=None
+        self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
 
         Parameters
         ----------
-        constant: autofit.mapper.model.ModelInstance
+        instance: autofit.mapper.model.ModelInstance
             An instance object comprising the class instances that gave the optimal fit
         figure_of_merit: float
             A value indicating the figure of merit given by the optimal fit
-        previous_variable: mm.ModelMapper
+        previous_model: mm.ModelMapper
             The model mapper from the stage that produced this result
         """
-        self.constant = constant
+        self.instance = instance
         self.figure_of_merit = figure_of_merit
-        self.previous_variable = previous_variable
+        self.previous_model = previous_model
         self.gaussian_tuples = gaussian_tuples
-        self.__variable = None
+        self.__model = None
 
     @property
-    def variable(self):
-        if self.__variable is None:
-            self.__variable = self.previous_variable.mapper_from_gaussian_tuples(
+    def model(self):
+        if self.__model is None:
+            self.__model = self.previous_model.mapper_from_gaussian_tuples(
                 self.gaussian_tuples
             )
-        return self.__variable
+        return self.__model
 
-    @variable.setter
-    def variable(self, variable):
-        self.__variable = variable
+    @model.setter
+    def model(self, model):
+        self.__model = model
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
@@ -342,7 +207,7 @@ class Result(object):
             )
         )
 
-    def variable_absolute(self, a: float) -> mm.ModelMapper:
+    def model_absolute(self, a: float) -> mm.ModelMapper:
         """
         Parameters
         ----------
@@ -354,11 +219,11 @@ class Result(object):
         A model mapper created by taking results from this phase and creating priors with the defined absolute
         width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(
+        return self.previous_model.mapper_from_gaussian_tuples(
             self.gaussian_tuples, a=a
         )
 
-    def variable_relative(self, r: float) -> mm.ModelMapper:
+    def model_relative(self, r: float) -> mm.ModelMapper:
         """
         Parameters
         ----------
@@ -370,7 +235,7 @@ class Result(object):
         A model mapper created by taking results from this phase and creating priors with the defined relative
         width.
         """
-        return self.previous_variable.mapper_from_gaussian_tuples(
+        return self.previous_model.mapper_from_gaussian_tuples(
             self.gaussian_tuples, r=r
         )
 

@@ -1,7 +1,10 @@
 import copy
+from typing import Optional, Union, Tuple
 
 from autofit.mapper.model_object import ModelObject
-from autofit.tools.promise import Promise
+from autofit.mapper.prior_model.recursion import DynamicRecursionCache
+from autofit.tools.pipeline import ResultsCollection
+from autofit.tools.promise import AbstractPromise
 
 
 class AbstractModel(ModelObject):
@@ -80,12 +83,29 @@ class AbstractModel(ModelObject):
         ]
 
 
-def populate(obj, collection):
+@DynamicRecursionCache()
+def populate(obj, collection: ResultsCollection):
+    """
+    Replace promises with instances and instances. Promises are placeholders expressing that a given attribute should
+    be replaced with an actual value once the phase that generates that value is complete.
+
+    Parameters
+    ----------
+    obj
+        The object to be populated
+    collection
+        A collection of Results from previous phases
+
+    Returns
+    -------
+    obj
+        The same object with all promises populated, or if the object was a promise the replacement for that promise
+    """
     if isinstance(obj, list):
         return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
         return {key: populate(value, collection) for key, value in obj.items()}
-    if isinstance(obj, Promise):
+    if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:
         new = copy.deepcopy(obj)
@@ -96,15 +116,34 @@ def populate(obj, collection):
         return obj
 
 
-def path_instances_of_class(obj, cls, ignore_class=None):
-    from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+# @DynamicRecursionCache()
+def path_instances_of_class(
+    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+):
+    """
+    Recursively search the object for instances of a given class
 
+    Parameters
+    ----------
+    obj
+        The object to recursively search
+    cls
+        The type to search for
+    ignore_class
+        A type or
+
+    Returns
+    -------
+    instance of type
+    """
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
     if isinstance(obj, cls):
         return [(tuple(), obj)]
     results = []
     try:
+        from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+
         for key, value in obj.__dict__.items():
             for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
                 if isinstance(value, AnnotationPriorModel):
@@ -113,7 +152,7 @@ def path_instances_of_class(obj, cls, ignore_class=None):
                     path = (key, *item[0])
                 results.append((path, item[1]))
         return results
-    except AttributeError:
+    except (AttributeError, TypeError):
         return []
 
 
@@ -145,7 +184,7 @@ class ModelInstance(AbstractModel):
     def __len__(self):
         return len(self.items)
 
-    def as_variable(self, variable_classes=tuple()):
+    def as_model(self, model_classes=tuple()):
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-        return AbstractPriorModel.from_instance(self, variable_classes)
+        return AbstractPriorModel.from_instance(self, model_classes)

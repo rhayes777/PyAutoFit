@@ -3,7 +3,8 @@ import os
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear.multi_nest import Paths
+import autofit.optimize.non_linear.paths
+from autofit import Paths
 from test_autofit.mock import GeometryProfile, Galaxy
 
 
@@ -38,9 +39,10 @@ class MockPhase(af.AbstractPhase):
     def make_result(self, result, analysis):
         pass
 
+    @af.convert_paths
     def __init__(self, paths, optimizer=None):
         super().__init__(paths)
-        self.optimizer = optimizer or af.NonLinearOptimizer(paths)
+        self.optimizer = optimizer or af.NonLinearOptimizer(paths=paths)
 
     def save_metadata(self, data_name, pipeline_name):
         pass
@@ -52,11 +54,11 @@ class TestPipeline(object):
         with pytest.raises(af.exc.PipelineException):
             af.Pipeline("name", MockPhase(Paths("one")), MockPhase(Paths("one")))
 
-    def test_optimizer_assertion(self, variable):
+    def test_optimizer_assertion(self, model):
         paths = Paths("Phase Name")
         optimizer = af.NonLinearOptimizer(paths)
-        phase = MockPhase(paths, optimizer)
-        phase.variable.profile = GeometryProfile
+        phase = MockPhase(phase_name="Phase_Name", optimizer=optimizer)
+        phase.model.profile = GeometryProfile
 
         try:
             os.makedirs(phase.paths.make_path())
@@ -66,7 +68,7 @@ class TestPipeline(object):
         phase.save_optimizer_for_phase()
         phase.assert_optimizer_pickle_matches_for_phase()
 
-        phase.variable.profile.centre_0 = af.UniformPrior()
+        phase.model.profile.centre_0 = af.UniformPrior()
 
         with pytest.raises(af.exc.PipelineException):
             phase.assert_optimizer_pickle_matches_for_phase()
@@ -78,12 +80,12 @@ class TestPipeline(object):
         assert (first + second).pipeline_name == "first + second"
 
     def test_assert_and_save_pickle(self):
-        phase = af.AbstractPhase(paths=Paths(phase_name="name"))
+        phase = af.AbstractPhase(phase_name="name")
 
         phase.assert_and_save_pickle()
         phase.assert_and_save_pickle()
 
-        phase.variable.galaxy = Galaxy
+        phase.model.galaxy = Galaxy
 
         with pytest.raises(af.exc.PipelineException):
             phase.assert_and_save_pickle()

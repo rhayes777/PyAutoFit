@@ -37,12 +37,12 @@ if __name__ == "__main__":
         optimizer_class=af.MultiNest,
         parallel=False,
     )
-    grid_search.variable.profile = test_autofit.mock.EllipticalProfile
+    grid_search.model.profile = test_autofit.mock.EllipticalProfile
 
     # noinspection PyUnresolvedReferences
     result = grid_search.fit(
         Analysis(),
-        [grid_search.variable.profile.centre_0, grid_search.variable.profile.centre_1],
+        [grid_search.model.profile.centre_0, grid_search.model.profile.centre_1],
     )
 
     print(result)

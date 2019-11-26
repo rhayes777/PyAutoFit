@@ -10,7 +10,7 @@ from autofit.tools.text_formatter import TextFormatter
 from test_autofit import mock
 from test_autofit.mock import GeometryProfile
 
-data_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
+dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -255,7 +255,7 @@ class MockClassMM(object):
         self.two = two
 
 
-class MockClassMMConstant(MockClassMM):
+class MockClassMMinstance(MockClassMM):
     pass
 
 
@@ -314,7 +314,7 @@ class TestGenerateModelInfo(object):
     two                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
         )
 
-    def test_with_constant(self):
+    def test_with_instance(self):
         mm = af.ModelMapper()
         mm.mock_class = MockClassMM
 
@@ -343,18 +343,18 @@ class WithTuple(object):
 
 # noinspection PyUnresolvedReferences
 class TestRegression(object):
-    def test_tuple_constant_model_info(self, mapper):
+    def test_tuple_instance_model_info(self, mapper):
         mapper.profile = test_autofit.mock.EllipticalCoreSersic
         info = mapper.info
 
         mapper.profile.centre_0 = 1.0
 
-        assert len(mapper.profile.centre.constant_tuples) == 1
-        assert len(mapper.profile.constant_tuples) == 1
+        assert len(mapper.profile.centre.instance_tuples) == 1
+        assert len(mapper.profile.instance_tuples) == 1
 
         assert len(info.split("\n")) == len(mapper.info.split("\n"))
 
-    def test_set_tuple_constant(self):
+    def test_set_tuple_instance(self):
         mm = af.ModelMapper()
         mm.sersic = test_autofit.mock.EllipticalSersic
 
@@ -365,7 +365,7 @@ class TestRegression(object):
 
         assert mm.prior_count == 5
 
-    def test_get_tuple_constants(self):
+    def test_get_tuple_instances(self):
         mm = af.ModelMapper()
         mm.sersic = test_autofit.mock.EllipticalSersic
 
@@ -893,40 +893,40 @@ class TestListPriorModel(object):
         assert isinstance(mapper.list, af.CollectionPriorModel)
 
 
-@pytest.fixture(name="mock_with_constant")
-def make_mock_with_constant():
-    mock_with_constant = af.PriorModel(MockClassMM)
-    mock_with_constant.one = 3.0
-    return mock_with_constant
+@pytest.fixture(name="mock_with_instance")
+def make_mock_with_instance():
+    mock_with_instance = af.PriorModel(MockClassMM)
+    mock_with_instance.one = 3.0
+    return mock_with_instance
 
 
-class TestConstant(object):
-    def test_constant_prior_count(self, mock_with_constant):
+class Testinstance(object):
+    def test_instance_prior_count(self, mock_with_instance):
         mapper = af.ModelMapper()
-        mapper.mock_class = mock_with_constant
+        mapper.mock_class = mock_with_instance
 
         assert len(mapper.unique_prior_tuples) == 1
 
-    def test_retrieve_constants(self, mock_with_constant):
-        assert len(mock_with_constant.constant_tuples) == 1
+    def test_retrieve_instances(self, mock_with_instance):
+        assert len(mock_with_instance.instance_tuples) == 1
 
-    def test_constant_prior_reconstruction(self, mock_with_constant):
+    def test_instance_prior_reconstruction(self, mock_with_instance):
         mapper = af.ModelMapper()
-        mapper.mock_class = mock_with_constant
+        mapper.mock_class = mock_with_instance
 
-        instance = mapper.instance_for_arguments({mock_with_constant.two: 0.5})
+        instance = mapper.instance_for_arguments({mock_with_instance.two: 0.5})
 
         assert instance.mock_class.one == 3
         assert instance.mock_class.two == 0.5
 
-    def test_constant_in_config(self):
+    def test_instance_in_config(self):
         mapper = af.ModelMapper()
 
-        mock_with_constant = af.PriorModel(MockClassMMConstant)
+        mock_with_instance = af.PriorModel(MockClassMMinstance)
 
-        mapper.mock_class = mock_with_constant
+        mapper.mock_class = mock_with_instance
 
-        instance = mapper.instance_for_arguments({mock_with_constant.two: 0.5})
+        instance = mapper.instance_for_arguments({mock_with_instance.two: 0.5})
 
         assert instance.mock_class.one == 3
         assert instance.mock_class.two == 0.5
@@ -938,14 +938,14 @@ class TestConstant(object):
         assert prior_model.one == 3
         assert prior_model.two == 4.0
 
-    def test_list_prior_model_constants(self, mapper):
+    def test_list_prior_model_instances(self, mapper):
         prior_model = af.PriorModel(MockClassMM)
         prior_model.one = 3.0
         prior_model.two = 4.0
 
         mapper.mock_list = [prior_model]
         assert isinstance(mapper.mock_list, af.CollectionPriorModel)
-        assert len(mapper.constant_tuples) == 2
+        assert len(mapper.instance_tuples) == 2
 
     def test_set_for_tuple_prior(self):
         prior_model = af.PriorModel(test_autofit.mock.EllipticalSersic)

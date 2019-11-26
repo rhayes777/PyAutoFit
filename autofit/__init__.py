@@ -1,4 +1,5 @@
-from autofit.mapper.prior_model.prior import ConstantNameValue
+from autofit.mapper.model import path_instances_of_class
+from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import (
     Prior,
     UniformPrior,
@@ -27,7 +28,6 @@ from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.util import PriorModelNameValue
 from .optimize import *
-from .optimize.non_linear.non_linear import Paths
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.grid_search import GridSearch
@@ -36,10 +36,13 @@ from .optimize.non_linear.multi_nest import MultiNest
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear.paths import Paths
+from autofit.optimize.non_linear.paths import convert_paths
 from .optimize.non_linear.non_linear import Result
 from .tools import *
 from .tools import path_util, text_util
 from .tools.phase import AbstractPhase
+from .tools.phase import Phase
 from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
@@ -48,4 +51,4 @@ from .tools.promise import Promise
 from .tools.promise import PromiseResult
 from .tools.promise import last
 
-__version__ = "0.44.1"
+__version__ = '0.44.2'

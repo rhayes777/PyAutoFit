@@ -4,17 +4,12 @@ import numpy as np
 import pymultinest
 
 from autofit import conf, exc
-from autofit.optimize.non_linear import non_linear
 from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import persistent_timer
 
 logger = logging.getLogger(__name__)
-
-
-class Paths(non_linear.Paths):
-    pass
 
 
 class MultiNest(NonLinearOptimizer):
@@ -106,6 +101,7 @@ class MultiNest(NonLinearOptimizer):
             self.stagger_accepted_samples = 0
 
         def __call__(self, cube, ndim, nparams, lnew):
+
             try:
                 instance = self.instance_from_physical_vector(cube)
                 likelihood = self.fit_instance(instance)
@@ -146,14 +142,7 @@ class MultiNest(NonLinearOptimizer):
 
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-            phys_cube = model.physical_vector_from_hypercube_vector(
-                hypercube_vector=cube
-            )
-
-            for i in range(model.prior_count):
-                cube[i] = phys_cube[i]
-
-            return cube
+            return model.physical_vector_from_hypercube_vector(hypercube_vector=cube)
 
         fitness_function = MultiNest.Fitness(
             self,
@@ -190,14 +179,14 @@ class MultiNest(NonLinearOptimizer):
         logger.info("MultiNest complete")
 
         self.backup()
-        constant = multinest_output.most_likely_model_instance
-        analysis.visualize(instance=constant, during_analysis=False)
+        instance = multinest_output.most_likely_model_instance
+        analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)
         multinest_output.output_pdf_plots()
         return Result(
-            constant=constant,
+            instance=instance,
             figure_of_merit=multinest_output.maximum_likelihood,
-            previous_variable=model,
+            previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
                 self.sigma_limit
             ),

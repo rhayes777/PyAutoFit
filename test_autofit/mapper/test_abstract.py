@@ -4,18 +4,18 @@ from test_autofit import mock
 
 class TestCase:
     def test_transfer_tuples(self):
-        variable = af.ModelMapper()
+        model = af.ModelMapper()
         instance = af.ModelInstance()
 
-        variable.profile = af.PriorModel(mock.GeometryProfile)
-        assert variable.prior_count == 2
+        model.profile = af.PriorModel(mock.GeometryProfile)
+        assert model.prior_count == 2
 
-        result = variable.copy_with_fixed_priors(instance)
+        result = model.copy_with_fixed_priors(instance)
         assert result.prior_count == 2
 
         instance.profile = mock.GeometryProfile()
 
-        result = variable.copy_with_fixed_priors(instance)
+        result = model.copy_with_fixed_priors(instance)
         assert result.prior_count == 0
         assert result.profile.centre == (0.0, 0.0)
         assert isinstance(result.profile, af.PriorModel)

@@ -12,6 +12,13 @@ def family(current_class):
             yield val
 
 
+def get_matplotlib_backend():
+    try:
+        return instance.visualize.get("figures", "backend", str)
+    except Exception:
+        return "TKAgg"
+
+
 class NamedConfig(object):
     """Parses generic config"""
 
@@ -51,7 +58,7 @@ class NamedConfig(object):
         Returns
         -------
         prior_array: []
-            An array describing a prior
+            An arrays describing a prior
         """
         try:
             string_value = self.parser.get(section_name, attribute_name)
@@ -145,7 +152,7 @@ class AncestorConfig(object):
         Returns
         -------
         prior_array: []
-            An array describing this prior
+            An arrays describing this prior
         """
         for family_cls in family(cls):
             if self.has(family_cls.__module__, family_cls.__name__, attribute_name):
@@ -174,7 +181,7 @@ class AncestorConfig(object):
         Returns
         -------
         prior_array: []
-            An array describing a prior
+            An arrays describing a prior
         """
         self.read(module_name)
         return self.parser.get(class_name, attribute_name)
@@ -217,7 +224,7 @@ class DefaultPriorConfig(AncestorConfig):
         Returns
         -------
         prior_array: []
-            An array describing a prior
+            An arrays describing a prior
         """
         arr = (
             super(DefaultPriorConfig, self)
