@@ -12,6 +12,13 @@ def family(current_class):
             yield val
 
 
+def get_matplotlib_backend():
+    try:
+        return instance.visualize.get("figures", "backend", str)
+    except Exception:
+        return "TKAgg"
+
+
 class NamedConfig(object):
     """Parses generic config"""
 

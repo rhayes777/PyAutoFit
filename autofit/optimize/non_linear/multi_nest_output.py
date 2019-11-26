@@ -1,8 +1,6 @@
 import math
 import os
 
-from matplotlib import pyplot as plt
-
 from autofit import conf, exc
 from autofit.tools import text_formatter, text_util
 
@@ -393,6 +391,11 @@ class MultiNestOutput(Output):
     def output_pdf_plots(self):
 
         import getdist.plots
+        import matplotlib
+
+        backend = conf.instance.visualize.get("figures", "backend", str)
+        matplotlib.use(backend)
+        import matplotlib.pyplot as plt
 
         pdf_plot = getdist.plots.GetDistPlotter()
 
