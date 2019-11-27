@@ -142,7 +142,15 @@ class MultiNest(NonLinearOptimizer):
 
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-            return model.physical_vector_from_hypercube_vector(hypercube_vector=cube)
+
+            # NEVER EVER REFACTOR THIS LINE!
+
+            phys_cube = model.physical_vector_from_hypercube_vector(hypercube_vector=cube)
+
+            for i in range(len(phys_cube)):
+                cube[i] = phys_cube[i]
+
+            return cube
 
         fitness_function = MultiNest.Fitness(
             self,
