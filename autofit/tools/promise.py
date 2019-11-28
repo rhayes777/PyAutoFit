@@ -21,12 +21,32 @@ class AbstractPromiseResult(ABC):
         A promise for an object in the best fit result. This must be an instance or instance.
         """
 
-    def model_absolute(self, a):
+    def model_absolute(self, a) -> "AbstractPromise":
+        """
+        Parameters
+        ----------
+        a
+            The absolute width of gaussian priors
+
+        Returns
+        -------
+        A promise for a prior or model with absolute gaussian widths
+        """
         model = self.model
         model.absolute = a
         return model
 
-    def model_relative(self, r):
+    def model_relative(self, r) -> "AbstractPromise":
+        """
+        Parameters
+        ----------
+        r
+            The relative width of gaussian priors
+
+        Returns
+        -------
+        A promise for a prior or model with relative gaussian widths
+        """
         model = self.model
         model.relative = r
         return model
@@ -55,7 +75,14 @@ class LastPromiseResult(AbstractPromiseResult):
         super().__init__(*result_path)
         self._index = index
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> "LastPromiseResult":
+        """
+        LastPromiseResults can be indexed.
+
+        An index of 0 gives a LPR corresponding to the latest Results.
+        An index of -1 gives a LPR corresponding the the Results before last.
+        etc.
+        """
         if item > 0:
             raise IndexError(
                 "last only accepts negative indices"
