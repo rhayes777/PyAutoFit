@@ -1,3 +1,4 @@
+import copy
 from abc import ABC, abstractmethod
 
 from autofit.tools.pipeline import ResultsCollection
@@ -165,7 +166,7 @@ class PromiseResult(AbstractPromiseResult):
 
 
 class AbstractPromise(ABC):
-    def __init__(self, *path, result_path, is_instance=False, absolute=None, relative=None):
+    def __init__(self, *path, result_path, is_instance=False, absolute=None, relative=None, is_optional=False):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
         model, instance or instance
@@ -186,6 +187,16 @@ class AbstractPromise(ABC):
         self.result_path = result_path
         self.absolute = absolute
         self.relative = relative
+        self.is_optional = is_optional
+
+    @property
+    def settings(self):
+        return dict(
+            is_instance=self.is_instance,
+            absolute=self.absolute,
+            relative=self.relative,
+            is_optional=self.is_optional
+        )
 
     def __call__(self, *args, **kwargs):
         pass
@@ -219,7 +230,12 @@ class AbstractPromise(ABC):
         else:
             model = results.model
 
-        return model.object_for_path(self.path)
+        try:
+            return model.object_for_path(self.path)
+        except AttributeError as e:
+            if self.is_optional:
+                return None
+            raise e
 
 
 class Promise(AbstractPromise):
@@ -231,7 +247,8 @@ class Promise(AbstractPromise):
             is_instance=False,
             assert_exists=True,
             relative=None,
-            absolute=None
+            absolute=None,
+            is_optional=False
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
@@ -258,7 +275,8 @@ class Promise(AbstractPromise):
             result_path=result_path,
             is_instance=is_instance,
             absolute=absolute,
-            relative=relative
+            relative=relative,
+            is_optional=is_optional
         )
         self.phase = phase
         self.assert_exists = assert_exists
@@ -266,17 +284,26 @@ class Promise(AbstractPromise):
             phase.model.object_for_path(path)
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_instance", "_populate_from_results"):
+        if item in ("phase", "path", "is_instance", "_populate_from_results", "optional", "is_optional"):
             return super().__getattribute__(item)
         return Promise(
             self.phase,
             *self.path,
             item,
             result_path=self.result_path,
-            is_instance=self.is_instance,
             assert_exists=self.assert_exists,
-            absolute=self.absolute,
-            relative=self.relative
+            **self.settings
+        )
+
+    @property
+    def optional(self):
+        return Promise(
+            self.phase,
+            *self.path,
+            result_path=self.result_path,
+            assert_exists=self.assert_exists,
+            **self.settings,
+            is_optional=True
         )
 
     def populate(self, results_collection):
@@ -311,7 +338,8 @@ class LastPromise(AbstractPromise):
             is_instance=False,
             index=0,
             absolute=None,
-            relative=None
+            relative=None,
+            is_optional=False
     ):
         self._index = index
         super().__init__(
@@ -319,20 +347,29 @@ class LastPromise(AbstractPromise):
             result_path=result_path,
             is_instance=is_instance,
             relative=relative,
-            absolute=absolute
+            absolute=absolute,
+            is_optional=is_optional
         )
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_instance", "_populate_from_results"):
+        if item in ("phase", "path", "is_instance", "_populate_from_results", "optional", "is_optional"):
             return super().__getattribute__(item)
         return LastPromise(
             *self.path,
             item,
             result_path=self.result_path,
-            is_instance=self.is_instance,
             index=self._index,
-            relative=self.relative,
-            absolute=self.absolute
+            **self.settings
+        )
+
+    @property
+    def optional(self):
+        return LastPromise(
+            *self.path,
+            result_path=self.result_path,
+            index=self._index,
+            **{key: value for key, value in self.settings.items() if key != "is_optional"},
+            is_optional=True
         )
 
     def populate(self, results_collection: ResultsCollection):
