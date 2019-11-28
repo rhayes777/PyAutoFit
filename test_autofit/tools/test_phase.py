@@ -3,7 +3,6 @@ import copy
 import pytest
 
 import autofit as af
-from autofit import Paths
 from test_autofit import mock
 
 
@@ -108,6 +107,54 @@ class TestLastPromises:
         bad_promise = af.last.model.a.bad.path
         with pytest.raises(AttributeError):
             bad_promise.populate(collection)
+
+
+class TestIndexLast:
+    def test_index(self):
+        assert af.last._index == 0
+        assert af.last[-1]._index == -1
+        with pytest.raises(
+                IndexError
+        ):
+            _ = af.last[1]
+
+    def test_populate(self):
+        collection = af.ResultsCollection()
+        galaxy_model_1 = af.PriorModel(
+            mock.Galaxy
+        )
+        model_1 = af.ModelMapper(
+            galaxy=galaxy_model_1
+        )
+
+        collection.add(
+            "phase one",
+            mock.Result(
+                model=model_1,
+                instance=None
+            )
+        )
+
+        galaxy_model_2 = af.PriorModel(
+            mock.Galaxy
+        )
+        model_2 = af.ModelMapper(
+            galaxy=galaxy_model_2
+        )
+
+        collection.add(
+            "phase two",
+            mock.Result(
+                model=model_2,
+                instance=None
+            )
+        )
+
+        result = af.last.model.galaxy.populate(collection)
+        assert result is galaxy_model_2
+
+        result = af.last[-1].model.galaxy.populate(collection)
+        assert result is galaxy_model_1
 
 
 class TestCase:
