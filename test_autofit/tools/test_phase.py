@@ -113,6 +113,10 @@ class TestIndexLast:
     def test_index(self):
         assert af.last._index == 0
         assert af.last[-1]._index == -1
+        with pytest.raises(
+            IndexError
+        ):
+            _ = af.last[1]
 
 
 class TestCase:

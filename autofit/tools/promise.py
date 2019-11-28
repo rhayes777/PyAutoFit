@@ -46,6 +46,10 @@ class LastPromiseResult(AbstractPromiseResult):
         self._index = index
 
     def __getitem__(self, item):
+        if item > 0:
+            raise IndexError(
+                "last only accepts negative indices"
+            )
         return LastPromiseResult(
             *self.result_path,
             index=item
