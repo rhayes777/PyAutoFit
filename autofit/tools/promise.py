@@ -60,14 +60,21 @@ class LastPromiseResult(AbstractPromiseResult):
         """
         A promise for an object in the model result. This might be a prior or prior model.
         """
-        return LastPromise(result_path=self.result_path)
+        return LastPromise(
+            result_path=self.result_path,
+            index=self._index
+        )
 
     @property
     def instance(self):
         """
         A promise for an object in the best fit result. This must be an instance or instance.
         """
-        return LastPromise(result_path=self.result_path, is_instance=True)
+        return LastPromise(
+            result_path=self.result_path,
+            is_instance=True,
+            index=self._index
+        )
 
     def __getattr__(self, item):
         if item == "_index":
@@ -242,11 +249,29 @@ class LastPromise(AbstractPromise):
     specified path
     """
 
+    def __init__(
+            self,
+            *path,
+            result_path,
+            is_instance=False,
+            index=0
+    ):
+        self._index = index
+        super().__init__(
+            *path,
+            result_path=result_path,
+            is_instance=is_instance
+        )
+
     def __getattr__(self, item):
         if item in ("phase", "path", "is_instance", "_populate_from_results"):
             return super().__getattribute__(item)
         return LastPromise(
-            *self.path, item, result_path=self.result_path, is_instance=self.is_instance
+            *self.path,
+            item,
+            result_path=self.result_path,
+            is_instance=self.is_instance,
+            index=self._index
         )
 
     def populate(self, results_collection: ResultsCollection):
@@ -268,7 +293,7 @@ class LastPromise(AbstractPromise):
         AttributeError
             If no matching prior is found
         """
-        for results in results_collection.reversed:
+        for results in list(results_collection.reversed)[-self._index:]:
             try:
                 return self._populate_from_results(results)
             except AttributeError:
