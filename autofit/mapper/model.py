@@ -116,7 +116,7 @@ def populate(obj, collection: ResultsCollection):
         return obj
 
 
-# @DynamicRecursionCache()
+@DynamicRecursionCache()
 def path_instances_of_class(
     obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):

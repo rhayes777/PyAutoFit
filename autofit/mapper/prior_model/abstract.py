@@ -1,6 +1,8 @@
 import copy
 import inspect
 
+import numpy as np
+
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
@@ -9,7 +11,6 @@ from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
     cast_collection,
@@ -18,6 +19,7 @@ from autofit.mapper.prior_model.prior import (
     Prior,
     DeferredNameValue,
 )
+from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -326,10 +328,8 @@ class AbstractPriorModel(AbstractModel):
         abstract_prior_model
             A concrete child of an abstract prior model
         """
-        print(f"from_instance for instance {instance} model_class {model_classes}")
 
         if isinstance(instance, list):
-            print("instance is a list")
             result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(item, model_classes=model_classes)
@@ -337,7 +337,6 @@ class AbstractPriorModel(AbstractModel):
                 ]
             )
         elif isinstance(instance, autofit.mapper.model.ModelInstance):
-            print("instance is an instance")
             result = autofit.mapper.model_mapper.ModelMapper()
             for key, value in instance.dict.items():
                 setattr(
@@ -348,7 +347,6 @@ class AbstractPriorModel(AbstractModel):
                     ),
                 )
         elif isinstance(instance, dict):
-            print("instance is a dict")
             result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
@@ -357,33 +355,28 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, dim.DimensionType):
-            print("instance is a DimensionType")
+        elif isinstance(
+                instance,
+                (dim.DimensionType, np.ndarray)
+        ):
             return instance
         else:
             from .prior_model import PriorModel
 
-            print("instance is a something else")
             try:
-                print(f"instance dictionary items = {instance.__dict__.items()}")
-                try:
-                    result = PriorModel(
-                        instance.__class__,
-                        **{
-                            key: AbstractPriorModel.from_instance(
-                                value, model_classes=model_classes
-                            )
-                            for key, value in instance.__dict__.items()
-                            if key != "cls"
-                        },
-                    )
-                except RecursionError:
-                    return instance
+                result = PriorModel(
+                    instance.__class__,
+                    **{
+                        key: AbstractPriorModel.from_instance(
+                            value, model_classes=model_classes
+                        )
+                        for key, value in instance.__dict__.items()
+                        if key != "cls"
+                    },
+                )
             except AttributeError:
-                print("attribute error raised")
                 return instance
         if any([isinstance(instance, cls) for cls in model_classes]):
-            print("result.as_model")
             return result.as_model()
         return result
 
@@ -445,8 +438,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -603,7 +596,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue

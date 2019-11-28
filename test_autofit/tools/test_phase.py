@@ -64,6 +64,20 @@ def make_last_instance():
 
 
 class TestLastPromises:
+    def test_model_absolute(self, collection):
+        result = af.last.model_absolute(
+            10
+        ).one.redshift.populate(collection)
+
+        assert isinstance(result, af.Prior)
+        
+    def test_model_relative(self, collection):
+        result = af.last.model_relative(
+            10
+        ).one.redshift.populate(collection)
+
+        assert isinstance(result, af.Prior)
+        
     def test_model(self, last_model):
         assert last_model.path == ("one", "redshift")
         assert last_model.is_instance is False
