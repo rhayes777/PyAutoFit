@@ -37,6 +37,20 @@ class LastPromiseResult(AbstractPromiseResult):
     the path specified in a promise.
     """
 
+    def __init__(
+            self,
+            *result_path,
+            index=0
+    ):
+        super().__init__(*result_path)
+        self._index = index
+
+    def __getitem__(self, item):
+        return LastPromiseResult(
+            *self.result_path,
+            index=item
+        )
+
     @property
     def model(self):
         """
@@ -52,6 +66,8 @@ class LastPromiseResult(AbstractPromiseResult):
         return LastPromise(result_path=self.result_path, is_instance=True)
 
     def __getattr__(self, item):
+        if item == "_index":
+            return super().__getattr__(item)
         return LastPromiseResult(*self.result_path, item)
 
 
@@ -157,7 +173,7 @@ class AbstractPromise(ABC):
 
 class Promise(AbstractPromise):
     def __init__(
-        self, phase, *path, result_path, is_instance=False, assert_exists=True
+            self, phase, *path, result_path, is_instance=False, assert_exists=True
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior

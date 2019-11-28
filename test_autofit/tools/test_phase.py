@@ -3,7 +3,6 @@ import copy
 import pytest
 
 import autofit as af
-from autofit import Paths
 from test_autofit import mock
 
 
@@ -108,6 +107,12 @@ class TestLastPromises:
         bad_promise = af.last.model.a.bad.path
         with pytest.raises(AttributeError):
             bad_promise.populate(collection)
+
+
+class TestIndexLast:
+    def test_index(self):
+        assert af.last._index == 0
+        assert af.last[-1]._index == -1
 
 
 class TestCase:
