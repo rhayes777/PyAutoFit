@@ -58,15 +58,10 @@ class DynamicRecursionCache:
 
         @wraps(func)
         def wrapper(item, *args, **kwargs):
-            print(f"Recursion wrapper received item {item}")
             item_id = id(item)
 
-            cache_keys = ",".join(map(str, self.cache.keys()))
-            print(f"This gives item_id {item_id}. Cache keys = {cache_keys}")
             if item_id in self.cache:
-                print("Item in cache")
                 return self.cache[item_id]
-            print("item not in cache")
             recursion_promise = RecursionPromise()
             self.cache[item_id] = recursion_promise
             result = func(item, *args, **kwargs)
