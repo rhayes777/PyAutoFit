@@ -3,7 +3,14 @@ from os.path import abspath, dirname, join
 
 from setuptools import find_packages, setup
 
-from autofit import __version__
+
+def version():
+    with open("autofit/__init__.py") as f:
+        lines = f.read().split('\n')
+    for line in lines:
+        if "__version__" in line:
+            return line.split("=")[1].strip(" '\"")
+
 
 this_dir = abspath(dirname(__file__))
 with open(join(this_dir, "README.md"), encoding="utf-8") as file:
@@ -11,7 +18,7 @@ with open(join(this_dir, "README.md"), encoding="utf-8") as file:
 
 setup(
     name="autofit",
-    version=__version__,
+    version=version(),
     description="Classy non-linear optimisation",
     long_description=long_description,
     long_description_content_type="text/markdown",

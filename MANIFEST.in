@@ -20,3 +20,5 @@ prune dist
 recursive-include autolens/config *
 recursive-exclude *.egg-info *
 recursive-include tests *
+include requirements.txt
+recursive-include data *
