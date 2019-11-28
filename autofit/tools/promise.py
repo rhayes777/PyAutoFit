@@ -21,6 +21,16 @@ class AbstractPromiseResult(ABC):
         A promise for an object in the best fit result. This must be an instance or instance.
         """
 
+    def model_absolute(self, a):
+        model = self.model
+        model.absolute = a
+        return model
+
+    def model_relative(self, r):
+        model = self.model
+        model.relative = r
+        return model
+
     @abstractmethod
     def __getattr__(self, item):
         """
@@ -128,7 +138,7 @@ class PromiseResult(AbstractPromiseResult):
 
 
 class AbstractPromise(ABC):
-    def __init__(self, *path, result_path, is_instance=False):
+    def __init__(self, *path, result_path, is_instance=False, absolute=None, relative=None):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
         model, instance or instance
@@ -147,16 +157,11 @@ class AbstractPromise(ABC):
         self.path = path
         self.is_instance = is_instance
         self.result_path = result_path
+        self.absolute = absolute
+        self.relative = relative
 
     def __call__(self, *args, **kwargs):
         pass
-
-    def __getattr__(self, item):
-        if item in ("phase", "path", "is_instance"):
-            return super().__getattribute__(item)
-        return Promise(
-            *self.path, item, result_path=self.result_path, is_instance=self.is_instance
-        )
 
     @abstractmethod
     def populate(self, results_collection):
@@ -178,13 +183,28 @@ class AbstractPromise(ABC):
     def _populate_from_results(self, results):
         for item in self.result_path:
             results = getattr(results, item)
-        model = results.instance if self.is_instance else results.model
+        if self.absolute is not None:
+            model = results.model_absolute(self.absolute)
+        elif self.relative is not None:
+            model = results.model_relative(self.relative)
+        elif self.is_instance:
+            model = results.instance
+        else:
+            model = results.model
+
         return model.object_for_path(self.path)
 
 
 class Promise(AbstractPromise):
     def __init__(
-            self, phase, *path, result_path, is_instance=False, assert_exists=True
+            self,
+            phase,
+            *path,
+            result_path,
+            is_instance=False,
+            assert_exists=True,
+            relative=None,
+            absolute=None
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
@@ -206,7 +226,13 @@ class Promise(AbstractPromise):
             If this is true then an exception is raised if an object is not defined in the addressed phase's
             model. Hyper phases are a bit trickier so no assertion is made.
         """
-        super().__init__(*path, result_path=result_path, is_instance=is_instance)
+        super().__init__(
+            *path,
+            result_path=result_path,
+            is_instance=is_instance,
+            absolute=absolute,
+            relative=relative
+        )
         self.phase = phase
         self.assert_exists = assert_exists
         if assert_exists:
@@ -222,6 +248,8 @@ class Promise(AbstractPromise):
             result_path=self.result_path,
             is_instance=self.is_instance,
             assert_exists=self.assert_exists,
+            absolute=self.absolute,
+            relative=self.relative
         )
 
     def populate(self, results_collection):
@@ -254,13 +282,17 @@ class LastPromise(AbstractPromise):
             *path,
             result_path,
             is_instance=False,
-            index=0
+            index=0,
+            absolute=None,
+            relative=None
     ):
         self._index = index
         super().__init__(
             *path,
             result_path=result_path,
-            is_instance=is_instance
+            is_instance=is_instance,
+            relative=relative,
+            absolute=absolute
         )
 
     def __getattr__(self, item):
@@ -271,7 +303,9 @@ class LastPromise(AbstractPromise):
             item,
             result_path=self.result_path,
             is_instance=self.is_instance,
-            index=self._index
+            index=self._index,
+            relative=self.relative,
+            absolute=self.absolute
         )
 
     def populate(self, results_collection: ResultsCollection):
