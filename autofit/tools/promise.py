@@ -301,8 +301,8 @@ class Promise(AbstractPromise):
             self.phase,
             *self.path,
             result_path=self.result_path,
-            assert_exists=self.assert_exists,
-            **self.settings,
+            assert_exists=False,
+            **{key: value for key, value in self.settings.items() if key != "is_optional"},
             is_optional=True
         )
 

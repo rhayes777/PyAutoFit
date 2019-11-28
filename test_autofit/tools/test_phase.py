@@ -187,6 +187,11 @@ class TestCase:
         assert model_promise.is_instance is False
         assert model_promise.phase is phase
 
+    def test_optional(self, collection, phase):
+        promise = phase.result.model.optional.heart
+        result = promise.populate(collection)
+        assert result is None
+
     def test_instance_promise(self, instance_promise, phase):
         assert isinstance(instance_promise, af.Promise)
         assert instance_promise.path == ("one", "redshift")
