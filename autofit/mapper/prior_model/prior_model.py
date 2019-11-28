@@ -259,7 +259,10 @@ class PriorModel(AbstractPriorModel):
         if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
 
-        result = self.cls(**constructor_arguments)
+        try:
+            result = self.cls(**constructor_arguments)
+        except TypeError as e:
+            raise e
 
         for key, value in self.__dict__.items():
             if (

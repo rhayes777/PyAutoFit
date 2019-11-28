@@ -1,6 +1,8 @@
 import copy
 import inspect
 
+import numpy as np
+
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
@@ -9,7 +11,6 @@ from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
     cast_collection,
@@ -18,6 +19,7 @@ from autofit.mapper.prior_model.prior import (
     Prior,
     DeferredNameValue,
 )
+from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -353,25 +355,25 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, dim.DimensionType):
+        elif isinstance(
+                instance,
+                (dim.DimensionType, np.ndarray)
+        ):
             return instance
         else:
             from .prior_model import PriorModel
 
             try:
-                try:
-                    result = PriorModel(
-                        instance.__class__,
-                        **{
-                            key: AbstractPriorModel.from_instance(
-                                value, model_classes=model_classes
-                            )
-                            for key, value in instance.__dict__.items()
-                            if key != "cls"
-                        },
-                    )
-                except RecursionError:
-                    return instance
+                result = PriorModel(
+                    instance.__class__,
+                    **{
+                        key: AbstractPriorModel.from_instance(
+                            value, model_classes=model_classes
+                        )
+                        for key, value in instance.__dict__.items()
+                        if key != "cls"
+                    },
+                )
             except AttributeError:
                 return instance
         if any([isinstance(instance, cls) for cls in model_classes]):
@@ -436,8 +438,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -594,7 +596,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
