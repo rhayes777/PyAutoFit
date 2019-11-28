@@ -19,7 +19,7 @@ class AbstractPhase:
         model=None,
     ):
         """
-        A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
+        A phase in an lens pipeline. Uses the set non_linear optimizer to try to
         fit_normal models and image passed to it.
 
         Parameters

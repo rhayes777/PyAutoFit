@@ -18,7 +18,7 @@ class Output:
     def most_likely_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        multinest lens.
 
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
@@ -271,7 +271,7 @@ class MultiNestOutput(Output):
     def most_probable_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        multinest lens.
 
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
@@ -285,7 +285,7 @@ class MultiNestOutput(Output):
     def most_likely_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        multinest lens.
 
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
