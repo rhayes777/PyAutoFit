@@ -70,14 +70,23 @@ class TestLastPromises:
         ).one.redshift.populate(collection)
 
         assert isinstance(result, af.Prior)
-        
+
     def test_model_relative(self, collection):
         result = af.last.model_relative(
             10
         ).one.redshift.populate(collection)
 
         assert isinstance(result, af.Prior)
-        
+
+    def test_optional(self, collection):
+        promise = af.last.model.heart
+        with pytest.raises(AttributeError):
+            promise.populate(collection)
+
+        promise = af.last.model.optional.heart
+        result = promise.populate(collection)
+        assert result is None
+
     def test_model(self, last_model):
         assert last_model.path == ("one", "redshift")
         assert last_model.is_instance is False
@@ -177,6 +186,11 @@ class TestCase:
         assert model_promise.path == ("one", "redshift")
         assert model_promise.is_instance is False
         assert model_promise.phase is phase
+
+    def test_optional(self, collection, phase):
+        promise = phase.result.model.optional.heart
+        result = promise.populate(collection)
+        assert result is None
 
     def test_instance_promise(self, instance_promise, phase):
         assert isinstance(instance_promise, af.Promise)
