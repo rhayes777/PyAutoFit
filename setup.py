@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 def version():
     with open("autofit/__init__.py") as f:
-        lines = f.read().split('\n')
+        lines = f.read().split("\n")
     for line in lines:
         if "__version__" in line:
             return line.split("=")[1].strip(" '\"")

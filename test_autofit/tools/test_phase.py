@@ -65,16 +65,12 @@ def make_last_instance():
 
 class TestLastPromises:
     def test_model_absolute(self, collection):
-        result = af.last.model_absolute(
-            10
-        ).one.redshift.populate(collection)
+        result = af.last.model_absolute(10).one.redshift.populate(collection)
 
         assert isinstance(result, af.Prior)
 
     def test_model_relative(self, collection):
-        result = af.last.model_relative(
-            10
-        ).one.redshift.populate(collection)
+        result = af.last.model_relative(10).one.redshift.populate(collection)
 
         assert isinstance(result, af.Prior)
 
@@ -136,42 +132,20 @@ class TestIndexLast:
     def test_index(self):
         assert af.last._index == 0
         assert af.last[-1]._index == -1
-        with pytest.raises(
-                IndexError
-        ):
+        with pytest.raises(IndexError):
             _ = af.last[1]
 
     def test_populate(self):
         collection = af.ResultsCollection()
-        galaxy_model_1 = af.PriorModel(
-            mock.Galaxy
-        )
-        model_1 = af.ModelMapper(
-            galaxy=galaxy_model_1
-        )
+        galaxy_model_1 = af.PriorModel(mock.Galaxy)
+        model_1 = af.ModelMapper(galaxy=galaxy_model_1)
 
-        collection.add(
-            "phase one",
-            mock.Result(
-                model=model_1,
-                instance=None
-            )
-        )
+        collection.add("phase one", mock.Result(model=model_1, instance=None))
 
-        galaxy_model_2 = af.PriorModel(
-            mock.Galaxy
-        )
-        model_2 = af.ModelMapper(
-            galaxy=galaxy_model_2
-        )
+        galaxy_model_2 = af.PriorModel(mock.Galaxy)
+        model_2 = af.ModelMapper(galaxy=galaxy_model_2)
 
-        collection.add(
-            "phase two",
-            mock.Result(
-                model=model_2,
-                instance=None
-            )
-        )
+        collection.add("phase two", mock.Result(model=model_2, instance=None))
 
         result = af.last.model.galaxy.populate(collection)
         assert result is galaxy_model_2

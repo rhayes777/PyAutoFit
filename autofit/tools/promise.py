@@ -68,11 +68,7 @@ class LastPromiseResult(AbstractPromiseResult):
     the path specified in a promise.
     """
 
-    def __init__(
-            self,
-            *result_path,
-            index=0
-    ):
+    def __init__(self, *result_path, index=0):
         super().__init__(*result_path)
         self._index = index
 
@@ -85,23 +81,15 @@ class LastPromiseResult(AbstractPromiseResult):
         etc.
         """
         if item > 0:
-            raise IndexError(
-                "last only accepts negative indices"
-            )
-        return LastPromiseResult(
-            *self.result_path,
-            index=item
-        )
+            raise IndexError("last only accepts negative indices")
+        return LastPromiseResult(*self.result_path, index=item)
 
     @property
     def model(self):
         """
         A promise for an object in the model result. This might be a prior or prior model.
         """
-        return LastPromise(
-            result_path=self.result_path,
-            index=self._index
-        )
+        return LastPromise(result_path=self.result_path, index=self._index)
 
     @property
     def instance(self):
@@ -109,9 +97,7 @@ class LastPromiseResult(AbstractPromiseResult):
         A promise for an object in the best fit result. This must be an instance or instance.
         """
         return LastPromise(
-            result_path=self.result_path,
-            is_instance=True,
-            index=self._index
+            result_path=self.result_path, is_instance=True, index=self._index
         )
 
     def __getattr__(self, item):
@@ -166,7 +152,15 @@ class PromiseResult(AbstractPromiseResult):
 
 
 class AbstractPromise(ABC):
-    def __init__(self, *path, result_path, is_instance=False, absolute=None, relative=None, is_optional=False):
+    def __init__(
+        self,
+        *path,
+        result_path,
+        is_instance=False,
+        absolute=None,
+        relative=None,
+        is_optional=False,
+    ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
         model, instance or instance
@@ -195,7 +189,7 @@ class AbstractPromise(ABC):
             is_instance=self.is_instance,
             absolute=self.absolute,
             relative=self.relative,
-            is_optional=self.is_optional
+            is_optional=self.is_optional,
         )
 
     def __call__(self, *args, **kwargs):
@@ -240,15 +234,15 @@ class AbstractPromise(ABC):
 
 class Promise(AbstractPromise):
     def __init__(
-            self,
-            phase,
-            *path,
-            result_path,
-            is_instance=False,
-            assert_exists=True,
-            relative=None,
-            absolute=None,
-            is_optional=False
+        self,
+        phase,
+        *path,
+        result_path,
+        is_instance=False,
+        assert_exists=True,
+        relative=None,
+        absolute=None,
+        is_optional=False,
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
@@ -276,7 +270,7 @@ class Promise(AbstractPromise):
             is_instance=is_instance,
             absolute=absolute,
             relative=relative,
-            is_optional=is_optional
+            is_optional=is_optional,
         )
         self.phase = phase
         self.assert_exists = assert_exists
@@ -284,7 +278,14 @@ class Promise(AbstractPromise):
             phase.model.object_for_path(path)
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_instance", "_populate_from_results", "optional", "is_optional"):
+        if item in (
+            "phase",
+            "path",
+            "is_instance",
+            "_populate_from_results",
+            "optional",
+            "is_optional",
+        ):
             return super().__getattribute__(item)
         return Promise(
             self.phase,
@@ -292,7 +293,7 @@ class Promise(AbstractPromise):
             item,
             result_path=self.result_path,
             assert_exists=self.assert_exists,
-            **self.settings
+            **self.settings,
         )
 
     @property
@@ -302,8 +303,12 @@ class Promise(AbstractPromise):
             *self.path,
             result_path=self.result_path,
             assert_exists=False,
-            **{key: value for key, value in self.settings.items() if key != "is_optional"},
-            is_optional=True
+            **{
+                key: value
+                for key, value in self.settings.items()
+                if key != "is_optional"
+            },
+            is_optional=True,
         )
 
     def populate(self, results_collection):
@@ -332,14 +337,14 @@ class LastPromise(AbstractPromise):
     """
 
     def __init__(
-            self,
-            *path,
-            result_path,
-            is_instance=False,
-            index=0,
-            absolute=None,
-            relative=None,
-            is_optional=False
+        self,
+        *path,
+        result_path,
+        is_instance=False,
+        index=0,
+        absolute=None,
+        relative=None,
+        is_optional=False,
     ):
         self._index = index
         super().__init__(
@@ -348,18 +353,25 @@ class LastPromise(AbstractPromise):
             is_instance=is_instance,
             relative=relative,
             absolute=absolute,
-            is_optional=is_optional
+            is_optional=is_optional,
         )
 
     def __getattr__(self, item):
-        if item in ("phase", "path", "is_instance", "_populate_from_results", "optional", "is_optional"):
+        if item in (
+            "phase",
+            "path",
+            "is_instance",
+            "_populate_from_results",
+            "optional",
+            "is_optional",
+        ):
             return super().__getattribute__(item)
         return LastPromise(
             *self.path,
             item,
             result_path=self.result_path,
             index=self._index,
-            **self.settings
+            **self.settings,
         )
 
     @property
@@ -368,8 +380,12 @@ class LastPromise(AbstractPromise):
             *self.path,
             result_path=self.result_path,
             index=self._index,
-            **{key: value for key, value in self.settings.items() if key != "is_optional"},
-            is_optional=True
+            **{
+                key: value
+                for key, value in self.settings.items()
+                if key != "is_optional"
+            },
+            is_optional=True,
         )
 
     def populate(self, results_collection: ResultsCollection):
@@ -391,7 +407,7 @@ class LastPromise(AbstractPromise):
         AttributeError
             If no matching prior is found
         """
-        for results in list(results_collection.reversed)[-self._index:]:
+        for results in list(results_collection.reversed)[-self._index :]:
             try:
                 return self._populate_from_results(results)
             except AttributeError:

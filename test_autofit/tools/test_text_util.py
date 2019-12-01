@@ -194,7 +194,5 @@ def test_string():
 
 
 def test_substring():
-    assert (
-        af.text_util.format_string_for_label("einstein_radius_value") == "radius_value"
-    )
+    assert af.text_util.format_string_for_label("einstein_radius") == "radius_value"
     assert af.text_util.format_string_for_label("mass_value_something") == "mass_value"

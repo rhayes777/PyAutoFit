@@ -86,8 +86,8 @@ class MultiNest(NonLinearOptimizer):
             self.output_results = output_results
             self.accepted_samples = 0
 
-            self.number_of_accepted_samples_between_output = conf.instance.general.get(
-                "output", "number_of_accepted_samples_between_output", int
+            self.model_results_output_interval = conf.instance.general.get(
+                "output", "model_results_output_interval", int
             )
             self.stagger_resampling_likelihood = conf.instance.non_linear.get(
                 "MultiNest", "stagger_resampling_likelihood", bool
@@ -125,10 +125,7 @@ class MultiNest(NonLinearOptimizer):
 
                 self.accepted_samples += 1
 
-                if (
-                    self.accepted_samples
-                    == self.number_of_accepted_samples_between_output
-                ):
+                if self.accepted_samples == self.model_results_output_interval:
                     self.accepted_samples = 0
                     self.output_results(during_analysis=True)
 
@@ -145,7 +142,9 @@ class MultiNest(NonLinearOptimizer):
 
             # NEVER EVER REFACTOR THIS LINE!
 
-            phys_cube = model.physical_vector_from_hypercube_vector(hypercube_vector=cube)
+            phys_cube = model.physical_vector_from_hypercube_vector(
+                hypercube_vector=cube
+            )
 
             for i in range(len(phys_cube)):
                 cube[i] = phys_cube[i]
@@ -189,11 +188,11 @@ class MultiNest(NonLinearOptimizer):
         self.backup()
         instance = multinest_output.most_likely_model_instance
         analysis.visualize(instance=instance, during_analysis=False)
-        multinest_output.output_results(during_analysis=False)
+        multinest_output.output_results()
         multinest_output.output_pdf_plots()
         return Result(
             instance=instance,
-            figure_of_merit=multinest_output.maximum_likelihood,
+            figure_of_merit=multinest_output.evidence,
             previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
                 self.sigma_limit
