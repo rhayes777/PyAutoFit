@@ -264,7 +264,6 @@ class MultiNestOutput(Output):
     @property
     def pdf(self):
         import getdist
-
         return getdist.mcsamples.loadMCSamples(self.paths.backup_path + "/multinest")
 
     @property
@@ -439,7 +438,7 @@ class MultiNestOutput(Output):
         )
         return "{:." + str(decimal_places) + "f}"
 
-    def output_results(self):
+    def output_results(self, during_analysis):
 
         if os.path.isfile(self.paths.file_summary):
 
@@ -469,7 +468,8 @@ class MultiNestOutput(Output):
                 formatter.add((prior_path, self.format_str.format(most_likely[i])))
             results += [formatter.text + "\n"]
 
-            try:
+            if not during_analysis:
+
                 results += self.results_from_sigma_limit(limit=3.0)
                 results += ["\n"]
                 results += self.results_from_sigma_limit(limit=1.0)
@@ -482,10 +482,6 @@ class MultiNestOutput(Output):
                     formatter.add(t)
 
                 results += ["\n" + formatter.text]
-
-            except ValueError or IndexError:
-
-                pass
 
             text_util.output_list_of_strings_to_file(
                 file=self.paths.file_results, list_of_strings=results

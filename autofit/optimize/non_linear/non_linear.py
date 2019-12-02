@@ -140,7 +140,7 @@ class NonLinearOptimizer(object):
                     self.nlo.backup()
 
                 if self.should_output_model_results():
-                    self.output_results()
+                    self.output_results(during_analysis=True)
 
             return likelihood
 
