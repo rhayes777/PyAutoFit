@@ -121,14 +121,6 @@ class MultiNest(NonLinearOptimizer):
 
                         likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
 
-            if likelihood > self.max_likelihood:
-
-                self.accepted_samples += 1
-
-                if self.accepted_samples == self.model_results_output_interval:
-                    self.accepted_samples = 0
-                    self.output_results(during_analysis=True)
-
             return likelihood
 
     @persistent_timer
