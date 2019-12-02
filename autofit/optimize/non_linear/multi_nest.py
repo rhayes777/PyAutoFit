@@ -180,7 +180,7 @@ class MultiNest(NonLinearOptimizer):
         self.backup()
         instance = multinest_output.most_likely_model_instance
         analysis.visualize(instance=instance, during_analysis=False)
-        multinest_output.output_results()
+        multinest_output.output_results(during_analysis=False)
         multinest_output.output_pdf_plots()
         return Result(
             instance=instance,
