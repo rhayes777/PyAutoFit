@@ -64,6 +64,15 @@ def make_last_instance():
 
 
 class TestLastPromises:
+    def test_indexed_hyper(self, collection):
+        result = af.last[0].hyper_result.model.populate(
+            collection
+        )
+        assert isinstance(result, af.ModelMapper)
+        assert af.last.hyper_result[0].model.populate(
+            collection
+        ) is result
+
     def test_model_absolute(self, collection):
         result = af.last.model_absolute(10).one.redshift.populate(collection)
 
