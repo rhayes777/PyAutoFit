@@ -5,7 +5,7 @@ class RecursionPromise:
     pass
 
 
-def replace_promise(promise: RecursionPromise, obj, true_value):
+def replace_promise(promise: RecursionPromise, obj, true_value, seen_objects=None, depth=0):
     """
     Traverse the object replacing any identity of the promise with the true value
 
@@ -23,18 +23,25 @@ def replace_promise(promise: RecursionPromise, obj, true_value):
     obj
         The object with any identities of the Promise replaced
     """
+    seen_objects = seen_objects or set()
+    if id(obj) in seen_objects:
+        return obj
+
+    seen_objects.add(id(obj))
+
     if isinstance(obj, list):
-        return [replace_promise(promise, item, true_value) for item in obj]
+        return [replace_promise(promise, item, true_value, seen_objects=seen_objects, depth=depth + 1) for item in obj]
     if isinstance(obj, dict):
         return {
-            key: replace_promise(promise, value, true_value)
+            key: replace_promise(promise, value, true_value, seen_objects=seen_objects, depth=depth + 1)
             for key, value in obj.items()
         }
+
     if obj is promise:
         return true_value
     try:
         for key, value in obj.__dict__.items():
-            setattr(obj, key, replace_promise(promise, value, true_value))
+            setattr(obj, key, replace_promise(promise, value, true_value, seen_objects=seen_objects, depth=depth + 1))
     except (AttributeError, TypeError):
         pass
     return obj
