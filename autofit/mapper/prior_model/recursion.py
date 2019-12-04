@@ -5,7 +5,12 @@ class RecursionPromise:
     pass
 
 
-def replace_promise(promise: RecursionPromise, obj, true_value, seen_objects=None, depth=0):
+def replace_promise(
+        promise: RecursionPromise,
+        obj,
+        true_value,
+        seen_objects=None
+):
     """
     Traverse the object replacing any identity of the promise with the true value
 
@@ -17,6 +22,8 @@ def replace_promise(promise: RecursionPromise, obj, true_value, seen_objects=Non
         An object computed that may contain Promises
     true_value
         The true value associated with the promise
+    seen_objects
+        A set of ids of objects that have already been checked in this promise replacement
 
     Returns
     -------
@@ -30,10 +37,20 @@ def replace_promise(promise: RecursionPromise, obj, true_value, seen_objects=Non
     seen_objects.add(id(obj))
 
     if isinstance(obj, list):
-        return [replace_promise(promise, item, true_value, seen_objects=seen_objects, depth=depth + 1) for item in obj]
+        return [replace_promise(
+            promise,
+            item,
+            true_value,
+            seen_objects=seen_objects
+        ) for item in obj]
     if isinstance(obj, dict):
         return {
-            key: replace_promise(promise, value, true_value, seen_objects=seen_objects, depth=depth + 1)
+            key: replace_promise(
+                promise,
+                value,
+                true_value,
+                seen_objects=seen_objects
+            )
             for key, value in obj.items()
         }
 
@@ -41,7 +58,12 @@ def replace_promise(promise: RecursionPromise, obj, true_value, seen_objects=Non
         return true_value
     try:
         for key, value in obj.__dict__.items():
-            setattr(obj, key, replace_promise(promise, value, true_value, seen_objects=seen_objects, depth=depth + 1))
+            setattr(obj, key, replace_promise(
+                promise,
+                value,
+                true_value,
+                seen_objects=seen_objects
+            ))
     except (AttributeError, TypeError):
         pass
     return obj
