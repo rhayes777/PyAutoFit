@@ -5,7 +5,7 @@ from autofit import exc
 logger = logging.getLogger(__name__)
 
 
-class ResultsCollection(object):
+class ResultsCollection:
     def __init__(self):
         """
         A collection of results from previous phases. Results can be obtained using an index or the name of the phase
@@ -53,7 +53,14 @@ class ResultsCollection(object):
         result
             The result of that phase
         """
-        self.__result_list.append(result)
+        try:
+            self.__result_list[
+                self.__result_list.index(
+                    result
+                )
+            ] = result
+        except ValueError:
+            self.__result_list.append(result)
         self.__result_dict[phase_name] = result
 
     def __getitem__(self, item):

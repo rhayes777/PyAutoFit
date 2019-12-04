@@ -108,7 +108,7 @@ def populate(obj, collection: ResultsCollection):
     if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:
-        new = copy.deepcopy(obj)
+        new = copy.copy(obj)
         for key, value in obj.__dict__.items():
             setattr(new, key, populate(value, collection))
         return new
