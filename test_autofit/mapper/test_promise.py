@@ -165,6 +165,17 @@ class TestIndexLast:
         result = af.last[-1].model.galaxy.populate(collection)
         assert result is galaxy_model_1
 
+    def test_results_collection_duplicates(self):
+        collection = af.ResultsCollection()
+        result = mock.Result(None, None)
+
+        collection.add("name", result)
+        collection.add("name", result)
+
+        assert len(list(
+            collection.reversed
+        )) == 1
+
 
 class TestCase:
     def test_model_promise(self, model_promise, phase):

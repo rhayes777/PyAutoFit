@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 import autofit as af
@@ -296,8 +298,8 @@ class TestHashing(object):
         assert hash(af.AbstractPriorModel()) is not None
         assert hash(af.PriorModel(mock.SimpleClass)) is not None
         assert (
-            hash(af.AnnotationPriorModel(mock.SimpleClass, mock.SimpleClass, "one"))
-            is not None
+                hash(af.AnnotationPriorModel(mock.SimpleClass, mock.SimpleClass, "one"))
+                is not None
         )
 
     def test_prior_prior_model_hash_consecutive(self):
@@ -488,17 +490,40 @@ class TestCollectionPriorModel(object):
         assert len(prior_model.direct_prior_model_tuples) == 1
         assert prior_model.prior_count == 2
 
-    def test_list_prior_model_with_dictionary(self):
-        prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})
+    def test_list_prior_model_with_dictionary(self, simple_model):
+        assert isinstance(simple_model.simple, af.PriorModel)
 
-        assert isinstance(prior_model.simple, af.PriorModel)
-
-    def test_override_with_instance(self):
-        prior_model = af.CollectionPriorModel({"simple": mock.SimpleClass})
-
+    def test_override_with_instance(self, simple_model):
         simple_instance = mock.SimpleClass(1, 2)
 
-        prior_model.simple = simple_instance
+        simple_model.simple = simple_instance
 
-        assert len(prior_model) == 1
-        assert prior_model.simple == simple_instance
+        assert len(simple_model) == 1
+        assert simple_model.simple == simple_instance
+
+
+@pytest.fixture(name="simple_model")
+def make_simple_model():
+    return af.CollectionPriorModel({"simple": mock.SimpleClass})
+
+
+class TestCopy:
+    def test_simple(self, simple_model):
+        assert simple_model.prior_count > 0
+        assert copy.deepcopy(simple_model).prior_count == simple_model.prior_count
+
+    def test_embedded(self, simple_model):
+        model = af.CollectionPriorModel(
+            simple=simple_model
+        )
+        assert copy.deepcopy(model).prior_count == model.prior_count
+
+    def test_circular(self):
+        one = af.PriorModel(mock.SimpleClass)
+
+        one.one = af.PriorModel(mock.SimpleClass)
+        one.one.one = one
+
+        # noinspection PyUnresolvedReferences
+        assert one.prior_count == one.one.prior_count
+        assert copy.deepcopy(one).prior_count == one.prior_count
