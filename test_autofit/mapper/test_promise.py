@@ -203,6 +203,11 @@ class TestCase:
         result = promise.populate(collection)
         assert result is None
 
+    def test_optional_in_sub(self, collection, phase):
+        promise = phase.result.hyper.model.optional.heart
+        result = promise.populate(collection)
+        assert result is None
+
     def test_instance_promise(self, instance_promise, phase):
         assert isinstance(instance_promise, af.Promise)
         assert instance_promise.path == ("one", "redshift")

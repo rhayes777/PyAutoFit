@@ -1,4 +1,3 @@
-import copy
 from abc import ABC, abstractmethod
 
 from autofit.tools.pipeline import ResultsCollection
@@ -153,13 +152,13 @@ class PromiseResult(AbstractPromiseResult):
 
 class AbstractPromise(ABC):
     def __init__(
-        self,
-        *path,
-        result_path,
-        is_instance=False,
-        absolute=None,
-        relative=None,
-        is_optional=False,
+            self,
+            *path,
+            result_path,
+            is_instance=False,
+            absolute=None,
+            relative=None,
+            is_optional=False,
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
@@ -214,7 +213,12 @@ class AbstractPromise(ABC):
 
     def _populate_from_results(self, results):
         for item in self.result_path:
-            results = getattr(results, item)
+            try:
+                results = getattr(results, item)
+            except AttributeError as e:
+                if self.is_optional:
+                    return None
+                raise e
         if self.absolute is not None:
             model = results.model_absolute(self.absolute)
         elif self.relative is not None:
@@ -234,15 +238,15 @@ class AbstractPromise(ABC):
 
 class Promise(AbstractPromise):
     def __init__(
-        self,
-        phase,
-        *path,
-        result_path,
-        is_instance=False,
-        assert_exists=True,
-        relative=None,
-        absolute=None,
-        is_optional=False,
+            self,
+            phase,
+            *path,
+            result_path,
+            is_instance=False,
+            assert_exists=True,
+            relative=None,
+            absolute=None,
+            is_optional=False,
     ):
         """
         Place holder for an object in the object hierarchy. This is replaced at runtime by a prior, prior
@@ -279,12 +283,12 @@ class Promise(AbstractPromise):
 
     def __getattr__(self, item):
         if item in (
-            "phase",
-            "path",
-            "is_instance",
-            "_populate_from_results",
-            "optional",
-            "is_optional",
+                "phase",
+                "path",
+                "is_instance",
+                "_populate_from_results",
+                "optional",
+                "is_optional",
         ):
             return super().__getattribute__(item)
         return Promise(
@@ -337,14 +341,14 @@ class LastPromise(AbstractPromise):
     """
 
     def __init__(
-        self,
-        *path,
-        result_path,
-        is_instance=False,
-        index=0,
-        absolute=None,
-        relative=None,
-        is_optional=False,
+            self,
+            *path,
+            result_path,
+            is_instance=False,
+            index=0,
+            absolute=None,
+            relative=None,
+            is_optional=False,
     ):
         self._index = index
         super().__init__(
@@ -358,12 +362,12 @@ class LastPromise(AbstractPromise):
 
     def __getattr__(self, item):
         if item in (
-            "phase",
-            "path",
-            "is_instance",
-            "_populate_from_results",
-            "optional",
-            "is_optional",
+                "phase",
+                "path",
+                "is_instance",
+                "_populate_from_results",
+                "optional",
+                "is_optional",
         ):
             return super().__getattribute__(item)
         return LastPromise(
@@ -407,7 +411,7 @@ class LastPromise(AbstractPromise):
         AttributeError
             If no matching prior is found
         """
-        for results in list(results_collection.reversed)[-self._index :]:
+        for results in list(results_collection.reversed)[-self._index:]:
             try:
                 return self._populate_from_results(results)
             except AttributeError:
