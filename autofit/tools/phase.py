@@ -19,7 +19,7 @@ class AbstractPhase:
         model=None,
     ):
         """
-        A phase in an lensing pipeline. Uses the set non_linear optimizer to try to
+        A phase in an lens pipeline. Uses the set non_linear optimizer to try to
         fit_normal models and image passed to it.
 
         Parameters
@@ -196,7 +196,7 @@ def as_grid_search(phase_class, parallel=False):
             self,
             paths,
             *,
-            number_of_steps=10,
+            number_of_steps=4,
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             **kwargs,
         ):

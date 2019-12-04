@@ -297,7 +297,7 @@ class UniformPrior(Prior):
 
     @property
     def mean(self):
-        return (self.upper_limit - self.lower_limit) / 2
+        return self.lower_limit + (self.upper_limit - self.lower_limit) / 2
 
     @mean.setter
     def mean(self, new_value):

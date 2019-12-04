@@ -108,7 +108,7 @@ def populate(obj, collection: ResultsCollection):
     if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:
-        new = copy.deepcopy(obj)
+        new = copy.copy(obj)
         for key, value in obj.__dict__.items():
             setattr(new, key, populate(value, collection))
         return new
@@ -116,7 +116,7 @@ def populate(obj, collection: ResultsCollection):
         return obj
 
 
-# @DynamicRecursionCache()
+@DynamicRecursionCache()
 def path_instances_of_class(
     obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):

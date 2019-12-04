@@ -36,7 +36,7 @@ class MockNonLinearOptimizer(MultiNestOutput):
     def most_probable_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
-        file which nlo from a multinest lensing.
+        file which nlo from a multinest lens.
 
         This file stores the parameters of the most probable model in the first half
         of entries and the most likely model in the second half of entries. The
@@ -49,7 +49,7 @@ class MockNonLinearOptimizer(MultiNestOutput):
     def most_likely_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
-        file which nlo from a \ multinest lensing.
+        file which nlo from a \ multinest lens.
 
         This file stores the parameters of the most probable model in the first half
         of entries and the most likely model in the second half of entries. The
@@ -568,6 +568,12 @@ class Result:
     def __init__(self, instance=None, model=None):
         self.instance = instance
         self.model = model
+
+    def model_absolute(self, absolute):
+        return self.model
+
+    def model_relative(self, relative):
+        return self.model
 
 
 class HyperGalaxy(object):

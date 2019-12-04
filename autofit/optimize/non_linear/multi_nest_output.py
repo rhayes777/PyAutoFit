@@ -18,7 +18,7 @@ class Output:
     def most_likely_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        multinest lens.
 
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
@@ -26,7 +26,7 @@ class Output:
         raise NotImplementedError()
 
     @property
-    def maximum_likelihood(self):
+    def evidence(self):
         raise NotImplementedError()
 
     @property
@@ -271,7 +271,7 @@ class MultiNestOutput(Output):
     def most_probable_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        multinest lens.
 
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
@@ -285,7 +285,7 @@ class MultiNestOutput(Output):
     def most_likely_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lensing.
+        multinest lens.
 
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
@@ -295,7 +295,7 @@ class MultiNestOutput(Output):
         )
 
     @property
-    def maximum_likelihood(self):
+    def evidence(self):
         return self.read_list_of_results_from_summary_file(
             number_entries=2, offset=112
         )[0]
@@ -439,23 +439,29 @@ class MultiNestOutput(Output):
         )
         return "{:." + str(decimal_places) + "f}"
 
-    def output_results(self, during_analysis=False):
+    def output_results(self, during_analysis):
 
         if os.path.isfile(self.paths.file_summary):
 
             results = []
 
-            likelihood = "{:.8f}".format(self.maximum_likelihood)
-            results += ["Most likely model, Likelihood = {}\n\n".format(likelihood)]
+            results += text_util.label_and_value_string(
+                label="Bayesian Evidence ",
+                value=self.evidence,
+                whitespace=90,
+                format_string="{:.8f}",
+            )
+            results += ["\n"]
+            results += text_util.label_and_value_string(
+                label="Maximum Likelihood ",
+                value=self.maximum_log_likelihood,
+                whitespace=90,
+                format_string="{:.8f}",
+            )
+            results += ["\n\n"]
 
+            results += ["Most Likely Model:\n\n"]
             most_likely = self.most_likely_model_parameters
-
-            if len(most_likely) != self.model.prior_count:
-                raise exc.MultiNestException(
-                    "MultiNest and GetDist have counted a different number of "
-                    "parameters.See github issue "
-                    "https://github.com/Jammy2211/PyAutoLens/issues/49"
-                )
 
             formatter = text_formatter.TextFormatter()
 
@@ -464,17 +470,19 @@ class MultiNestOutput(Output):
             results += [formatter.text + "\n"]
 
             if not during_analysis:
+
                 results += self.results_from_sigma_limit(limit=3.0)
+                results += ["\n"]
                 results += self.results_from_sigma_limit(limit=1.0)
 
-            results += ["\n\ninstances\n"]
+                results += ["\n\ninstances\n"]
 
-            formatter = text_formatter.TextFormatter()
+                formatter = text_formatter.TextFormatter()
 
-            for t in self.model.path_float_tuples:
-                formatter.add(t)
+                for t in self.model.path_float_tuples:
+                    formatter.add(t)
 
-            results += ["\n" + formatter.text]
+                results += ["\n" + formatter.text]
 
             text_util.output_list_of_strings_to_file(
                 file=self.paths.file_results, list_of_strings=results
@@ -494,6 +502,6 @@ class MultiNestOutput(Output):
             value = value + " (" + lower_limit + ", " + upper_limit + ")"
             sigma_formatter.add((prior_path, value))
 
-        return "\n\nMost probable model ({} sigma limits)\n\n{}".format(
+        return "\n\nMost probable model ({} sigma limits):\n\n{}".format(
             limit, sigma_formatter.text
         )

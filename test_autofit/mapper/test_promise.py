@@ -3,7 +3,6 @@ import copy
 import pytest
 
 import autofit as af
-from autofit import Paths
 from test_autofit import mock
 
 
@@ -65,6 +64,37 @@ def make_last_instance():
 
 
 class TestLastPromises:
+    def test_indexed_hyper(self, collection):
+        result = af.last[0].hyper_result.model.populate(collection)
+        assert isinstance(result, af.ModelMapper)
+        assert af.last.hyper_result[0].model.populate(collection) is result
+
+    def test_second_indexed_hyper(self, collection):
+        result = mock.Result(model=af.ModelMapper(), instance=af.ModelInstance())
+        collection.add("next", result)
+        result = af.last[-1].hyper_result.model.populate(collection)
+        assert isinstance(result, af.ModelMapper)
+        assert af.last.hyper_result[-1].model.populate(collection) is result
+
+    def test_model_absolute(self, collection):
+        result = af.last.model_absolute(10).one.redshift.populate(collection)
+
+        assert isinstance(result, af.Prior)
+
+    def test_model_relative(self, collection):
+        result = af.last.model_relative(10).one.redshift.populate(collection)
+
+        assert isinstance(result, af.Prior)
+
+    def test_optional(self, collection):
+        promise = af.last.model.heart
+        with pytest.raises(AttributeError):
+            promise.populate(collection)
+
+        promise = af.last.model.optional.heart
+        result = promise.populate(collection)
+        assert result is None
+
     def test_model(self, last_model):
         assert last_model.path == ("one", "redshift")
         assert last_model.is_instance is False
@@ -110,12 +140,59 @@ class TestLastPromises:
             bad_promise.populate(collection)
 
 
+class TestIndexLast:
+    def test_index(self):
+        assert af.last._index == 0
+        assert af.last[-1]._index == -1
+        with pytest.raises(IndexError):
+            _ = af.last[1]
+
+    def test_populate(self):
+        collection = af.ResultsCollection()
+        galaxy_model_1 = af.PriorModel(mock.Galaxy)
+        model_1 = af.ModelMapper(galaxy=galaxy_model_1)
+
+        collection.add("phase one", mock.Result(model=model_1, instance=None))
+
+        galaxy_model_2 = af.PriorModel(mock.Galaxy)
+        model_2 = af.ModelMapper(galaxy=galaxy_model_2)
+
+        collection.add("phase two", mock.Result(model=model_2, instance=None))
+
+        result = af.last.model.galaxy.populate(collection)
+        assert result is galaxy_model_2
+
+        result = af.last[-1].model.galaxy.populate(collection)
+        assert result is galaxy_model_1
+
+    def test_results_collection_duplicates(self):
+        collection = af.ResultsCollection()
+        result = mock.Result(None, None)
+
+        collection.add("name", result)
+        collection.add("name", result)
+
+        assert len(list(
+            collection.reversed
+        )) == 1
+
+
 class TestCase:
     def test_model_promise(self, model_promise, phase):
         assert isinstance(model_promise, af.Promise)
         assert model_promise.path == ("one", "redshift")
         assert model_promise.is_instance is False
         assert model_promise.phase is phase
+
+    def test_optional(self, collection, phase):
+        promise = phase.result.model.optional.heart
+        result = promise.populate(collection)
+        assert result is None
+
+    def test_optional_in_sub(self, collection, phase):
+        promise = phase.result.hyper.model.optional.heart
+        result = promise.populate(collection)
+        assert result is None
 
     def test_instance_promise(self, instance_promise, phase):
         assert isinstance(instance_promise, af.Promise)

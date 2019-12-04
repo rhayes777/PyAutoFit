@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class MultiNest(NonLinearOptimizer):
     def __init__(self, paths, sigma_limit=3, run=pymultinest.run):
         """
-        Class to setup and run a MultiNest lensing and output the MultiNest nlo.
+        Class to setup and run a MultiNest lens and output the MultiNest nlo.
 
         This interfaces with an input model_mapper, which is used for setting up the \
         individual model instances that are passed to each iteration of MultiNest.
@@ -86,8 +86,8 @@ class MultiNest(NonLinearOptimizer):
             self.output_results = output_results
             self.accepted_samples = 0
 
-            self.number_of_accepted_samples_between_output = conf.instance.general.get(
-                "output", "number_of_accepted_samples_between_output", int
+            self.model_results_output_interval = conf.instance.general.get(
+                "output", "model_results_output_interval", int
             )
             self.stagger_resampling_likelihood = conf.instance.non_linear.get(
                 "MultiNest", "stagger_resampling_likelihood", bool
@@ -121,17 +121,6 @@ class MultiNest(NonLinearOptimizer):
 
                         likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
 
-            if likelihood > self.max_likelihood:
-
-                self.accepted_samples += 1
-
-                if (
-                    self.accepted_samples
-                    == self.number_of_accepted_samples_between_output
-                ):
-                    self.accepted_samples = 0
-                    self.output_results(during_analysis=True)
-
             return likelihood
 
     @persistent_timer
@@ -145,7 +134,9 @@ class MultiNest(NonLinearOptimizer):
 
             # NEVER EVER REFACTOR THIS LINE!
 
-            phys_cube = model.physical_vector_from_hypercube_vector(hypercube_vector=cube)
+            phys_cube = model.physical_vector_from_hypercube_vector(
+                hypercube_vector=cube
+            )
 
             for i in range(len(phys_cube)):
                 cube[i] = phys_cube[i]
@@ -193,7 +184,7 @@ class MultiNest(NonLinearOptimizer):
         multinest_output.output_pdf_plots()
         return Result(
             instance=instance,
-            figure_of_merit=multinest_output.maximum_likelihood,
+            figure_of_merit=multinest_output.evidence,
             previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
                 self.sigma_limit

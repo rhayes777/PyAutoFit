@@ -5,7 +5,7 @@ class RecursionPromise:
     pass
 
 
-def replace_promise(promise: RecursionPromise, obj, true_value):
+def replace_promise(promise: RecursionPromise, obj, true_value, seen_objects=None):
     """
     Traverse the object replacing any identity of the promise with the true value
 
@@ -17,24 +17,40 @@ def replace_promise(promise: RecursionPromise, obj, true_value):
         An object computed that may contain Promises
     true_value
         The true value associated with the promise
+    seen_objects
+        A set of ids of objects that have already been checked in this promise replacement
 
     Returns
     -------
     obj
         The object with any identities of the Promise replaced
     """
+    seen_objects = seen_objects or set()
+    if id(obj) in seen_objects:
+        return obj
+
+    seen_objects.add(id(obj))
+
     if isinstance(obj, list):
-        return [replace_promise(promise, item, true_value) for item in obj]
+        return [
+            replace_promise(promise, item, true_value, seen_objects=seen_objects)
+            for item in obj
+        ]
     if isinstance(obj, dict):
         return {
-            key: replace_promise(promise, value, true_value)
+            key: replace_promise(promise, value, true_value, seen_objects=seen_objects)
             for key, value in obj.items()
         }
+
     if obj is promise:
         return true_value
     try:
         for key, value in obj.__dict__.items():
-            setattr(obj, key, replace_promise(promise, value, true_value))
+            setattr(
+                obj,
+                key,
+                replace_promise(promise, value, true_value, seen_objects=seen_objects),
+            )
     except (AttributeError, TypeError):
         pass
     return obj
@@ -58,15 +74,10 @@ class DynamicRecursionCache:
 
         @wraps(func)
         def wrapper(item, *args, **kwargs):
-            print(f"Recursion wrapper received item {item}")
             item_id = id(item)
 
-            cache_keys = ",".join(map(str, self.cache.keys()))
-            print(f"This gives item_id {item_id}. Cache keys = {cache_keys}")
             if item_id in self.cache:
-                print("Item in cache")
                 return self.cache[item_id]
-            print("item not in cache")
             recursion_promise = RecursionPromise()
             self.cache[item_id] = recursion_promise
             result = func(item, *args, **kwargs)

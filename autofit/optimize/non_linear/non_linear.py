@@ -114,10 +114,16 @@ class NonLinearOptimizer(object):
             visualize_interval = conf.instance.visualize.get(
                 "figures", "visualize_interval", int
             )
+            model_results_output_interval = conf.instance.general.get(
+                "output", "model_results_output_interval", int
+            )
 
             self.should_log = IntervalCounter(log_interval)
             self.should_backup = IntervalCounter(backup_interval)
             self.should_visualize = IntervalCounter(visualize_interval)
+            self.should_output_model_results = IntervalCounter(
+                model_results_output_interval
+            )
 
         def fit_instance(self, instance):
             likelihood = self.analysis.fit(instance)
@@ -132,6 +138,9 @@ class NonLinearOptimizer(object):
 
                 if self.should_backup():
                     self.nlo.backup()
+
+                if self.should_output_model_results():
+                    self.output_results(during_analysis=True)
 
             return likelihood
 

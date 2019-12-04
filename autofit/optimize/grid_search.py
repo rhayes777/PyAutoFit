@@ -89,7 +89,7 @@ class GridSearchResult(object):
 class GridSearch(object):
     # TODO: this should be using paths
     def __init__(
-        self, paths, number_of_steps=10, optimizer_class=DownhillSimplex, parallel=False
+        self, paths, number_of_steps=4, optimizer_class=DownhillSimplex, parallel=False
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
