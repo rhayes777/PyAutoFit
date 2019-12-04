@@ -264,6 +264,7 @@ class MultiNestOutput(Output):
     @property
     def pdf(self):
         import getdist
+
         return getdist.mcsamples.loadMCSamples(self.paths.backup_path + "/multinest")
 
     @property
