@@ -196,7 +196,7 @@ def as_grid_search(phase_class, parallel=False):
             self,
             paths,
             *,
-            number_of_steps=10,
+            number_of_steps=4,
             optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             **kwargs,
         ):
