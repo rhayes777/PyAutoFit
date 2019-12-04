@@ -144,14 +144,22 @@ class TestPriorLimits(object):
         assert prior_tuples[1].prior.upper_limit == 2
 
 
-class TestPriorLinking(object):
-    def test_uniform_prior_mean(self):
+class TestPriorMean(object):
+    def test_simple(self):
         uniform_prior = af.UniformPrior(0.0, 1.0)
         assert uniform_prior.mean == 0.5
 
         uniform_prior.mean = 1.0
         assert uniform_prior.lower_limit == 0.5
         assert uniform_prior.upper_limit == 1.5
+
+    def test_higher(self):
+        uniform_prior = af.UniformPrior(1.0, 2.0)
+        assert uniform_prior.mean == 1.5
+
+        uniform_prior.mean = 2.0
+        assert uniform_prior.lower_limit == 1.5
+        assert uniform_prior.upper_limit == 2.5
 
 
 class TestAddition(object):

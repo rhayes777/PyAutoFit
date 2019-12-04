@@ -254,7 +254,7 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
+                "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
         )
 
     def __repr__(self):
@@ -297,7 +297,7 @@ class UniformPrior(Prior):
 
     @property
     def mean(self):
-        return (self.upper_limit - self.lower_limit) / 2
+        return self.lower_limit + (self.upper_limit - self.lower_limit) / 2
 
     @mean.setter
     def mean(self, new_value):
@@ -308,10 +308,10 @@ class UniformPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "UniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "UniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
 
 
@@ -343,15 +343,15 @@ class LogUniformPrior(UniformPrior):
             A value for the attribute between the upper and lower limits
         """
         return 10.0 ** (
-            np.log10(self.lower_limit)
-            + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
+                np.log10(self.lower_limit)
+                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "LogUniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "LogUniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
