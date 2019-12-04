@@ -73,6 +73,23 @@ class TestLastPromises:
             collection
         ) is result
 
+    def test_second_indexed_hyper(self, collection):
+        result = mock.Result(
+            model=af.ModelMapper(),
+            instance=af.ModelInstance()
+        )
+        collection.add(
+            "next",
+            result
+        )
+        result = af.last[-1].hyper_result.model.populate(
+            collection
+        )
+        assert isinstance(result, af.ModelMapper)
+        assert af.last.hyper_result[-1].model.populate(
+            collection
+        ) is result
+
     def test_model_absolute(self, collection):
         result = af.last.model_absolute(10).one.redshift.populate(collection)
 
