@@ -54,11 +54,7 @@ class ResultsCollection:
             The result of that phase
         """
         try:
-            self.__result_list[
-                self.__result_list.index(
-                    result
-                )
-            ] = result
+            self.__result_list[self.__result_list.index(result)] = result
         except ValueError:
             self.__result_list.append(result)
         self.__result_dict[phase_name] = result

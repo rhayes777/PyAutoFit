@@ -298,8 +298,8 @@ class TestHashing(object):
         assert hash(af.AbstractPriorModel()) is not None
         assert hash(af.PriorModel(mock.SimpleClass)) is not None
         assert (
-                hash(af.AnnotationPriorModel(mock.SimpleClass, mock.SimpleClass, "one"))
-                is not None
+            hash(af.AnnotationPriorModel(mock.SimpleClass, mock.SimpleClass, "one"))
+            is not None
         )
 
     def test_prior_prior_model_hash_consecutive(self):
@@ -513,9 +513,7 @@ class TestCopy:
         assert copy.deepcopy(simple_model).prior_count == simple_model.prior_count
 
     def test_embedded(self, simple_model):
-        model = af.CollectionPriorModel(
-            simple=simple_model
-        )
+        model = af.CollectionPriorModel(simple=simple_model)
         assert copy.deepcopy(model).prior_count == model.prior_count
 
     def test_circular(self):

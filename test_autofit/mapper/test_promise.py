@@ -172,9 +172,7 @@ class TestIndexLast:
         collection.add("name", result)
         collection.add("name", result)
 
-        assert len(list(
-            collection.reversed
-        )) == 1
+        assert len(list(collection.reversed)) == 1
 
 
 class TestCase:
