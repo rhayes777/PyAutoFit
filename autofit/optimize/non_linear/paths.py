@@ -95,18 +95,7 @@ class Paths:
         """
         The path to the backed up optimizer folder.
         """
-        return "/".join(
-            filter(
-                lambda item: len(item) > 0,
-                [
-                    conf.instance.output_path,
-                    self.phase_path,
-                    self.phase_name,
-                    self.phase_tag,
-                    "optimizer_backup",
-                ],
-            )
-        )
+        return f"{self.phase_output_path}/optimizer_backup"
 
     @property
     def zip_path(self) -> str:
@@ -118,8 +107,16 @@ class Paths:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}/{}".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        return "/".join(
+            filter(
+                len,
+                [
+                    conf.instance.output_path,
+                    self.phase_path,
+                    self.phase_name,
+                    self.phase_tag
+                ]
+            )
         )
 
     @property
@@ -231,6 +228,12 @@ class Paths:
         """
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
+        if os.path.exists(self.zip_path):
+            with zipfile.ZipFile(self.zip_path, 'r') as f:
+                f.extractall(self.phase_output_path)
+
+            os.remove(self.zip_path)
+
         if os.path.exists(self.backup_path):
             for file in glob.glob(self.backup_path + "/*"):
                 shutil.copy(file, self.path)
