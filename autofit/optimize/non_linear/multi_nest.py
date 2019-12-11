@@ -176,7 +176,7 @@ class MultiNest(NonLinearOptimizer):
         )
         logger.info("MultiNest complete")
 
-        self.paths.backup_and_remove()
+        self.paths.backup_zip_remove()
         instance = multinest_output.most_likely_model_instance
         analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)

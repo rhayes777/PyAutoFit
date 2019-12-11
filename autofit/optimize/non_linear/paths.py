@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import shutil
+import zipfile
 from functools import wraps
 
 from autofit import conf
@@ -108,6 +109,10 @@ class Paths:
         )
 
     @property
+    def zip_path(self) -> str:
+        return f"{self.backup_path}.zip"
+
+    @property
     @make_path
     def phase_output_path(self) -> str:
         """
@@ -195,11 +200,13 @@ class Paths:
         except shutil.Error as e:
             logger.exception(e)
 
-    def backup_and_remove(self):
+    def backup_zip_remove(self):
         """
         Copy files from the sym linked optimizer folder then remove the sym linked folder.
         """
         self.backup()
+        self.zip_backup()
+
         if self.remove_sym:
             try:
                 shutil.rmtree(self.path)
@@ -213,3 +220,14 @@ class Paths:
         if os.path.exists(self.backup_path):
             for file in glob.glob(self.backup_path + "/*"):
                 shutil.copy(file, self.path)
+
+    def zip_backup(self):
+        try:
+            with zipfile.ZipFile(self.zip_path, 'w', zipfile.ZIP_DEFLATED) as f:
+                for root, dirs, files in os.walk(self.backup_path):
+                    for file in files:
+                        f.write(os.path.join(root, file))
+
+                shutil.rmtree(self.backup_path)
+        except FileNotFoundError:
+            pass

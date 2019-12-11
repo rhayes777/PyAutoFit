@@ -66,7 +66,7 @@ class DownhillSimplex(NonLinearOptimizer):
         output = self.fmin(fitness_function, x0=initial_vector)
         logger.info("DownhillSimplex complete")
 
-        self.paths.backup_and_remove()
+        self.paths.backup_zip_remove()
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
