@@ -240,9 +240,15 @@ class Paths:
             with zipfile.ZipFile(self.zip_path, 'w', zipfile.ZIP_DEFLATED) as f:
                 for root, dirs, files in os.walk(self.phase_output_path):
                     for file in files:
-                        f.write(os.path.join(root, file))
+                        f.write(
+                            os.path.join(root, file),
+                            os.path.join(
+                                root[len(self.phase_output_path):].lstrip("/"),
+                                file
+                            )
+                        )
 
-                if self.remove_files:
-                    shutil.rmtree(self.phase_output_path)
+            if self.remove_files:
+                shutil.rmtree(self.phase_output_path)
         except FileNotFoundError:
             pass
