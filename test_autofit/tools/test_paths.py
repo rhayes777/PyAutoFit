@@ -18,6 +18,10 @@ class PatchPaths(af.Paths):
     def sym_path(self) -> str:
         return "sym_path"
 
+    @property
+    def phase_output_path(self) -> str:
+        return "phase_output_path"
+
 
 @pytest.fixture(
     name="paths"
@@ -34,7 +38,8 @@ def test_backup_zip_remove(paths):
     paths.backup_zip_remove()
 
     assert not os.path.exists(paths.path)
-    assert not os.path.exists(paths.backup_path)
+    assert not os.path.exists(paths.phase_output_path)
+    assert os.path.exists(paths.backup_path)
     assert os.path.exists(paths.zip_path)
 
     os.remove(paths.zip_path)

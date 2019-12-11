@@ -64,14 +64,14 @@ class Paths:
             phase_tag=None,
             phase_folders=tuple(),
             phase_path=None,
-            remove_sym=True
+            remove_files=True
     ):
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ""
-        self.remove_sym = remove_sym
+        self.remove_files = remove_files
 
     @property
     def path(self):
@@ -110,7 +110,7 @@ class Paths:
 
     @property
     def zip_path(self) -> str:
-        return f"{self.backup_path}.zip"
+        return f"{self.phase_output_path}.zip"
 
     @property
     @make_path
@@ -118,7 +118,7 @@ class Paths:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}/{}/".format(
+        return "{}/{}/{}/{}".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
         )
 
@@ -142,7 +142,7 @@ class Paths:
         """
         The path to the directory in which images are stored.
         """
-        return "{}image/".format(self.phase_output_path)
+        return "{}/image/".format(self.phase_output_path)
 
     @property
     @make_path
@@ -205,9 +205,9 @@ class Paths:
         Copy files from the sym linked optimizer folder then remove the sym linked folder.
         """
         self.backup()
-        self.zip_backup()
+        self.zip()
 
-        if self.remove_sym:
+        if self.remove_files:
             try:
                 shutil.rmtree(self.path)
             except FileNotFoundError:
@@ -221,13 +221,14 @@ class Paths:
             for file in glob.glob(self.backup_path + "/*"):
                 shutil.copy(file, self.path)
 
-    def zip_backup(self):
+    def zip(self):
         try:
             with zipfile.ZipFile(self.zip_path, 'w', zipfile.ZIP_DEFLATED) as f:
-                for root, dirs, files in os.walk(self.backup_path):
+                for root, dirs, files in os.walk(self.phase_output_path):
                     for file in files:
                         f.write(os.path.join(root, file))
 
-                shutil.rmtree(self.backup_path)
+                if self.remove_files:
+                    shutil.rmtree(self.phase_output_path)
         except FileNotFoundError:
             pass

@@ -137,7 +137,7 @@ def make_grid_search():
     except FileNotFoundError:
         pass
     return autofit.optimize.non_linear.grid_search.GridSearch(
-        Paths(phase_name=name, remove_sym=False), step_size=0.1
+        Paths(phase_name=name, remove_files=False), step_size=0.1
     )
 
 

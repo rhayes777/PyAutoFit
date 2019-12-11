@@ -235,7 +235,6 @@ class GridSearch(NonLinearOptimizer):
         self.grid(fitness_function, model.prior_count, self.step_size)
 
         logger.info("grid search complete")
-        self.paths.backup_zip_remove()
 
         res = fitness_function.result
 
@@ -251,4 +250,5 @@ class GridSearch(NonLinearOptimizer):
 
         analysis.visualize(instance=res.instance, during_analysis=False)
 
+        self.paths.backup_zip_remove()
         return res

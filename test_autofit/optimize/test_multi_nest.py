@@ -637,7 +637,7 @@ def make_multi_nest():
             None,
         )
 
-    multi_nest = af.MultiNest(run=run, paths=Paths(phase_name=""))
+    multi_nest = af.MultiNest(run=run, paths=Paths(phase_name="", remove_files=False))
 
     create_weighted_samples_4_parameters(multi_nest.paths.sym_path)
     create_summary_4_parameters(multi_nest.paths.sym_path)

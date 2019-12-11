@@ -29,7 +29,7 @@ class NonLinearOptimizer:
         self.paths = paths
 
         if not len(log_file) == 0:
-            log_path = "{}{}".format(self.paths.phase_output_path, log_file)
+            log_path = "{}/{}".format(self.paths.phase_output_path, log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
             # noinspection PyProtectedMember
@@ -279,7 +279,7 @@ def persistent_timer(func):
             )
         )
         with open(
-                "{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+"
+                "{}/../execution_time".format(optimizer_instance.paths.phase_output_path), "w+"
         ) as f:
             f.write(execution_time)
         return result

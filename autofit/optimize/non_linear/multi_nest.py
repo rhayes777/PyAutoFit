@@ -176,12 +176,11 @@ class MultiNest(NonLinearOptimizer):
         )
         logger.info("MultiNest complete")
 
-        self.paths.backup_zip_remove()
         instance = multinest_output.most_likely_model_instance
         analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)
         multinest_output.output_pdf_plots()
-        return Result(
+        result = Result(
             instance=instance,
             figure_of_merit=multinest_output.evidence,
             previous_model=model,
@@ -189,3 +188,5 @@ class MultiNest(NonLinearOptimizer):
                 self.sigma_limit
             ),
         )
+        self.paths.backup_zip_remove()
+        return result
