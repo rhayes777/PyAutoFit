@@ -63,6 +63,16 @@ def make_last_instance():
     return af.last.instance.one.redshift
 
 
+class TestGridPromise:
+    def test_result(self):
+        class MyPhase(af.as_grid_search(af.AbstractPhase)):
+            pass
+
+        assert MyPhase(
+            "phase"
+        ).result.result_path == ("best_result",)
+
+
 class TestLastPromises:
     def test_indexed_hyper(self, collection):
         result = af.last[0].hyper_result.model.populate(collection)

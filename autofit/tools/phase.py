@@ -216,6 +216,13 @@ def as_grid_search(phase_class, parallel=False):
             return self.optimizer.fit(analysis, self.model, self.grid_priors)
 
         @property
+        def result(self):
+            return PromiseResult(
+                self,
+                "best_result"
+            )
+
+        @property
         def grid_priors(self):
             raise NotImplementedError(
                 "The grid priors property must be implemented to provide a list of "

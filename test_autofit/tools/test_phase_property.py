@@ -52,6 +52,9 @@ def make_phase():
 
 
 class MyPhase(af.AbstractPhase):
+    def make_result(self, result, analysis):
+        return result
+
     prop = af.PhaseProperty("prop")
 
 
