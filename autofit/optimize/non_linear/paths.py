@@ -43,6 +43,8 @@ def convert_paths(func):
         if first_arg is None:
             first_arg = kwargs.pop("phase_name", None)
 
+        remove_files = conf.instance.general.get("output", "remove_files", bool)
+
         func(
             self,
             paths=Paths(
@@ -50,6 +52,7 @@ def convert_paths(func):
                 phase_tag=kwargs.pop("phase_tag", None),
                 phase_folders=kwargs.pop("phase_folders", tuple()),
                 phase_path=kwargs.pop("phase_path", None),
+                remove_files=remove_files,
             ),
             **kwargs,
         )
@@ -250,5 +253,6 @@ class Paths:
 
             if self.remove_files:
                 shutil.rmtree(self.phase_output_path)
+
         except FileNotFoundError:
             pass

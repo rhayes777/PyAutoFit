@@ -343,6 +343,7 @@ class GridSearch(object):
                 phase_name=name_path,
                 phase_tag=self.paths.phase_tag,
                 phase_folders=self.paths.phase_folders,
+                remove_files=self.paths.remove_files,
             )
         )
         for key, value in self.__dict__.items():

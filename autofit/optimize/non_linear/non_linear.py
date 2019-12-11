@@ -133,6 +133,7 @@ class NonLinearOptimizer:
                 phase_name=name,
                 phase_folders=self.paths.phase_folders,
                 phase_tag=phase_tag,
+                remove_files=self.paths.remove_files
             )
         )
 

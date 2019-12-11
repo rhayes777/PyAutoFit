@@ -41,6 +41,7 @@ class GridSearch(NonLinearOptimizer):
                 phase_name=name,
                 phase_folders=self.paths.phase_folders,
                 phase_tag=self.paths.phase_tag,
+                remove_files=self.paths.remove_files,
             ),
             step_size=self.step_size,
         )
