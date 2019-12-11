@@ -37,6 +37,7 @@ from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.paths import Paths
+from autofit.optimize.non_linear.paths import make_path
 from autofit.optimize.non_linear.paths import convert_paths
 from .optimize.non_linear.non_linear import Result
 from .tools import *
