@@ -645,19 +645,6 @@ def make_multi_nest():
     return multi_nest
 
 
-class TestFitting(object):
-    def test_model(self, multi_nest, model):
-        model.mock_class = af.PriorModel(MockClassNLOx4)
-        result = multi_nest.fit(MockAnalysis(), model)
-
-        assert result.instance.mock_class.one == 9.0
-        assert result.instance.mock_class.two == -10.0
-        assert result.figure_of_merit == 0.02
-
-        assert result.model.mock_class.one.mean == 1
-        assert result.model.mock_class.two.mean == -2
-
-
 class TestCopyWithNameExtension(object):
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
