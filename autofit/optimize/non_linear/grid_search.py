@@ -87,7 +87,8 @@ class GridSearch(NonLinearOptimizer):
             best_fit=-np.inf,
             best_cube=None,
         ):
-            super().__init__(nlo, analysis)
+            super().__init__(nlo.paths, analysis)
+            self.nlo = nlo
             self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
@@ -234,7 +235,6 @@ class GridSearch(NonLinearOptimizer):
         self.grid(fitness_function, model.prior_count, self.step_size)
 
         logger.info("grid search complete")
-        self.backup()
 
         res = fitness_function.result
 
@@ -250,4 +250,5 @@ class GridSearch(NonLinearOptimizer):
 
         analysis.visualize(instance=res.instance, during_analysis=False)
 
+        self.paths.backup_zip_remove()
         return res

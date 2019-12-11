@@ -1,8 +1,14 @@
+import glob
+import logging
 import os
+import shutil
+import zipfile
 from functools import wraps
 
 from autofit import conf
 from autofit.mapper import link
+
+logger = logging.getLogger(__name__)
 
 
 def make_path(func):
@@ -53,13 +59,19 @@ def convert_paths(func):
 
 class Paths:
     def __init__(
-        self, phase_name="", phase_tag=None, phase_folders=tuple(), phase_path=None
+            self,
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple(),
+            phase_path=None,
+            remove_files=True
     ):
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ""
+        self.remove_files = remove_files
 
     @property
     def path(self):
@@ -83,18 +95,11 @@ class Paths:
         """
         The path to the backed up optimizer folder.
         """
-        return "/".join(
-            filter(
-                lambda item: len(item) > 0,
-                [
-                    conf.instance.output_path,
-                    self.phase_path,
-                    self.phase_name,
-                    self.phase_tag,
-                    "optimizer_backup",
-                ],
-            )
-        )
+        return f"{self.phase_output_path}/optimizer_backup"
+
+    @property
+    def zip_path(self) -> str:
+        return f"{self.phase_output_path}.zip"
 
     @property
     @make_path
@@ -102,9 +107,31 @@ class Paths:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        return "/".join(
+            filter(
+                len,
+                [
+                    conf.instance.output_path,
+                    self.phase_path,
+                    self.phase_name,
+                    self.phase_tag
+                ]
+            )
         )
+
+    @property
+    def execution_time_path(self) -> str:
+        """
+        The path to the output information for a phase.
+        """
+        return "{}/execution_time".format(
+            self.phase_name_folder
+        )
+
+    @property
+    @make_path
+    def phase_name_folder(self):
+        return "/".join((conf.instance.output_path, self.phase_path, self.phase_name))
 
     @property
     def sym_path(self) -> str:
@@ -126,7 +153,7 @@ class Paths:
         """
         The path to the directory in which images are stored.
         """
-        return "{}image/".format(self.phase_output_path)
+        return "{}/image/".format(self.phase_output_path)
 
     @property
     @make_path
@@ -169,3 +196,62 @@ class Paths:
     @property
     def file_results(self):
         return "{}/{}".format(self.phase_output_path, "model.results")
+
+    def backup(self):
+        """
+        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        """
+        try:
+            shutil.rmtree(self.backup_path)
+        except FileNotFoundError:
+            pass
+
+        try:
+            shutil.copytree(self.sym_path, self.backup_path)
+        except shutil.Error as e:
+            logger.exception(e)
+
+    def backup_zip_remove(self):
+        """
+        Copy files from the sym linked optimizer folder then remove the sym linked folder.
+        """
+        self.backup()
+        self.zip()
+
+        if self.remove_files:
+            try:
+                shutil.rmtree(self.path)
+            except FileNotFoundError:
+                pass
+
+    def restore(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+        if os.path.exists(self.zip_path):
+            with zipfile.ZipFile(self.zip_path, 'r') as f:
+                f.extractall(self.phase_output_path)
+
+            os.remove(self.zip_path)
+
+        if os.path.exists(self.backup_path):
+            for file in glob.glob(self.backup_path + "/*"):
+                shutil.copy(file, self.path)
+
+    def zip(self):
+        try:
+            with zipfile.ZipFile(self.zip_path, 'w', zipfile.ZIP_DEFLATED) as f:
+                for root, dirs, files in os.walk(self.phase_output_path):
+                    for file in files:
+                        f.write(
+                            os.path.join(root, file),
+                            os.path.join(
+                                root[len(self.phase_output_path):].lstrip("/"),
+                                file
+                            )
+                        )
+
+            if self.remove_files:
+                shutil.rmtree(self.phase_output_path)
+        except FileNotFoundError:
+            pass

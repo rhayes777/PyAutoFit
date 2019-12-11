@@ -40,8 +40,8 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, nlo, analysis, instance_from_physical_vector):
-            super().__init__(nlo, analysis)
+        def __init__(self, paths, analysis, instance_from_physical_vector):
+            super().__init__(paths, analysis)
             self.instance_from_physical_vector = instance_from_physical_vector
 
         def __call__(self, vector):
@@ -59,14 +59,13 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            self, analysis, model.instance_from_physical_vector
+            self.paths, analysis, model.instance_from_physical_vector
         )
 
         logger.info("Running DownhillSimplex...")
         output = self.fmin(fitness_function, x0=initial_vector)
         logger.info("DownhillSimplex complete")
 
-        self.backup()
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
@@ -74,4 +73,5 @@ class DownhillSimplex(NonLinearOptimizer):
         res.previous_model = model
 
         analysis.visualize(instance=res.instance, during_analysis=False)
+        self.paths.backup_zip_remove()
         return res
