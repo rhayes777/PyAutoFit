@@ -35,8 +35,8 @@ class NonLinearOptimizer:
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get("output", "log_level", str)
-                    .replace(" ", "")
-                    .upper()
+                .replace(" ", "")
+                .upper()
             ]
 
         self.paths.restore()
@@ -75,10 +75,7 @@ class NonLinearOptimizer:
 
     class Fitness:
         def __init__(
-                self,
-                paths,
-                analysis,
-                output_results=lambda during_analysis: None
+            self, paths, analysis, output_results=lambda during_analysis: None
         ):
             self.output_results = output_results
             self.paths = paths
@@ -156,7 +153,7 @@ class Result(object):
     """
 
     def __init__(
-            self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
+        self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
@@ -278,9 +275,7 @@ def persistent_timer(func):
                 optimizer_instance.paths.phase_name, execution_time
             )
         )
-        with open(
-                optimizer_instance.paths.execution_time_path, "w+"
-        ) as f:
+        with open(optimizer_instance.paths.execution_time_path, "w+") as f:
             f.write(execution_time)
         return result
 

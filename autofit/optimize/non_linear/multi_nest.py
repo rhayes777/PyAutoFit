@@ -176,6 +176,11 @@ class MultiNest(NonLinearOptimizer):
         )
         logger.info("MultiNest complete")
 
+        # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
+        # TODO: not located here. Do we need to rely just ono the optimizer foldeR? This is a good idea if we always
+        # TODO: have a valid sym-link( e.g. even for aggregator use).
+
+        self.paths.backup()
         instance = multinest_output.most_likely_model_instance
         analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)

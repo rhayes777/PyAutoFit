@@ -5,9 +5,7 @@ import pytest
 
 import autofit as af
 
-directory = path.dirname(
-    path.realpath(__file__)
-)
+directory = path.dirname(path.realpath(__file__))
 
 
 class PatchPaths(af.Paths):
@@ -29,9 +27,7 @@ class PatchPaths(af.Paths):
         return f"{directory}/phase_output_path"
 
 
-@pytest.fixture(
-    name="paths"
-)
+@pytest.fixture(name="paths")
 def make_paths():
     paths = PatchPaths()
     return paths

@@ -7,11 +7,7 @@ import pytest
 import autofit as af
 from autofit import Paths
 from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
-from test_autofit.mock import (
-    MockClassNLOx4,
-    MockClassNLOx5,
-    MockClassNLOx6,
-)
+from test_autofit.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -443,7 +439,7 @@ class TestNLOInheritance:
 
 class TestSamples(object):
     def test__1_class___model_parameters_instance_weight_and_likelihood(
-            self, mn_samples_path
+        self, mn_samples_path
     ):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
@@ -480,7 +476,7 @@ class TestSamples(object):
         assert likelihood == -0.5 * 9999999.9
 
     def test__2_classes__model_parameters_instance_weight_and_likelihood(
-            self, mn_samples_path
+        self, mn_samples_path
     ):
         af.conf.instance.output_path = mn_samples_path + "/2_classes"
 
@@ -529,7 +525,7 @@ class TestSamples(object):
 
 class TestLimits(object):
     def test__1_profile__limits_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
-            self, mn_samples_path
+        self, mn_samples_path
     ):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
@@ -555,7 +551,7 @@ class TestLimits(object):
         assert params_lower == pytest.approx([0.93, 1.93, 2.93, 3.93], 1e-2)
 
     def test__1_species__errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
-            self, mn_samples_path
+        self, mn_samples_path
     ):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
@@ -602,31 +598,31 @@ def make_multi_nest():
 
     # noinspection PyUnusedLocal,PyPep8Naming
     def run(
-            fitness_function,
-            prior,
-            total_parameters,
-            outputfiles_basename,
-            n_clustering_params=None,
-            wrapped_params=None,
-            importance_nested_sampling=True,
-            multimodal=True,
-            const_efficiency_mode=False,
-            n_live_points=400,
-            evidence_tolerance=0.5,
-            sampling_efficiency=0.8,
-            n_iter_before_update=100,
-            null_log_evidence=-1e90,
-            max_modes=100,
-            mode_tolerance=-1e90,
-            seed=-1,
-            verbose=False,
-            resume=True,
-            context=0,
-            write_output=True,
-            log_zero=-1e100,
-            max_iter=0,
-            init_MPI=False,
-            dump_callback=None,
+        fitness_function,
+        prior,
+        total_parameters,
+        outputfiles_basename,
+        n_clustering_params=None,
+        wrapped_params=None,
+        importance_nested_sampling=True,
+        multimodal=True,
+        const_efficiency_mode=False,
+        n_live_points=400,
+        evidence_tolerance=0.5,
+        sampling_efficiency=0.8,
+        n_iter_before_update=100,
+        null_log_evidence=-1e90,
+        max_modes=100,
+        mode_tolerance=-1e90,
+        seed=-1,
+        verbose=False,
+        resume=True,
+        context=0,
+        write_output=True,
+        log_zero=-1e100,
+        max_iter=0,
+        init_MPI=False,
+        dump_callback=None,
     ):
 
         fitness_function(

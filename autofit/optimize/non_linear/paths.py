@@ -51,7 +51,7 @@ def convert_paths(func):
                 phase_folders=kwargs.pop("phase_folders", tuple()),
                 phase_path=kwargs.pop("phase_path", None),
             ),
-            **kwargs
+            **kwargs,
         )
 
     return wrapper
@@ -59,12 +59,12 @@ def convert_paths(func):
 
 class Paths:
     def __init__(
-            self,
-            phase_name="",
-            phase_tag=None,
-            phase_folders=tuple(),
-            phase_path=None,
-            remove_files=True
+        self,
+        phase_name="",
+        phase_tag=None,
+        phase_folders=tuple(),
+        phase_path=None,
+        remove_files=True,
     ):
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
@@ -114,8 +114,8 @@ class Paths:
                     conf.instance.output_path,
                     self.phase_path,
                     self.phase_name,
-                    self.phase_tag
-                ]
+                    self.phase_tag,
+                ],
             )
         )
 
@@ -124,9 +124,7 @@ class Paths:
         """
         The path to the output information for a phase.
         """
-        return "{}/execution_time".format(
-            self.phase_name_folder
-        )
+        return "{}/execution_time".format(self.phase_name_folder)
 
     @property
     @make_path
@@ -229,7 +227,7 @@ class Paths:
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
         if os.path.exists(self.zip_path):
-            with zipfile.ZipFile(self.zip_path, 'r') as f:
+            with zipfile.ZipFile(self.zip_path, "r") as f:
                 f.extractall(self.phase_output_path)
 
             os.remove(self.zip_path)
@@ -240,15 +238,14 @@ class Paths:
 
     def zip(self):
         try:
-            with zipfile.ZipFile(self.zip_path, 'w', zipfile.ZIP_DEFLATED) as f:
+            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
                 for root, dirs, files in os.walk(self.phase_output_path):
                     for file in files:
                         f.write(
                             os.path.join(root, file),
                             os.path.join(
-                                root[len(self.phase_output_path):].lstrip("/"),
-                                file
-                            )
+                                root[len(self.phase_output_path) :].lstrip("/"), file
+                            ),
                         )
 
             if self.remove_files:
