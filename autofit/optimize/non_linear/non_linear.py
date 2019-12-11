@@ -1,9 +1,6 @@
 import datetime as dt
 import functools
-import glob
 import logging
-import os
-import shutil
 import time
 
 import numpy as np
@@ -16,7 +13,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 
-class NonLinearOptimizer(object):
+class NonLinearOptimizer:
     @convert_paths
     def __init__(self, paths):
         """Abstract base class for non-linear optimizers.
@@ -38,11 +35,11 @@ class NonLinearOptimizer(object):
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get("output", "log_level", str)
-                .replace(" ", "")
-                .upper()
+                    .replace(" ", "")
+                    .upper()
             ]
 
-        self.restore()
+        self.paths.restore()
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -67,32 +64,9 @@ class NonLinearOptimizer(object):
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
 
-    def backup(self):
-        """
-        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
-        """
-
-        try:
-            shutil.rmtree(self.paths.backup_path)
-        except FileNotFoundError:
-            pass
-
-        try:
-            shutil.copytree(self.paths.sym_path, self.paths.backup_path)
-        except shutil.Error as e:
-            logger.exception(e)
-
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self.restore()
-
-    def restore(self):
-        """
-        Copy files from the backup folder to the sym-linked optimizer folder.
-        """
-        if os.path.exists(self.paths.backup_path):
-            for file in glob.glob(self.paths.backup_path + "/*"):
-                shutil.copy(file, self.paths.path)
+        self.paths.restore()
 
     def fit(self, analysis, model):
         raise NotImplementedError(
@@ -100,9 +74,14 @@ class NonLinearOptimizer(object):
         )
 
     class Fitness:
-        def __init__(self, nlo, analysis):
-
-            self.nlo = nlo
+        def __init__(
+                self,
+                paths,
+                analysis,
+                output_results=lambda during_analysis: None
+        ):
+            self.output_results = output_results
+            self.paths = paths
             self.result = None
             self.max_likelihood = -np.inf
             self.analysis = analysis
@@ -137,7 +116,7 @@ class NonLinearOptimizer(object):
                     self.analysis.visualize(instance, during_analysis=True)
 
                 if self.should_backup():
-                    self.nlo.backup()
+                    self.paths.backup()
 
                 if self.should_output_model_results():
                     self.output_results(during_analysis=True)
@@ -177,7 +156,7 @@ class Result(object):
     """
 
     def __init__(
-        self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
+            self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
@@ -300,7 +279,7 @@ def persistent_timer(func):
             )
         )
         with open(
-            "{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+"
+                "{}/execution_time".format(optimizer_instance.paths.phase_output_path), "w+"
         ) as f:
             f.write(execution_time)
         return result

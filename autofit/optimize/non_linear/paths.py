@@ -1,8 +1,13 @@
+import glob
+import logging
 import os
+import shutil
 from functools import wraps
 
 from autofit import conf
 from autofit.mapper import link
+
+logger = logging.getLogger(__name__)
 
 
 def make_path(func):
@@ -53,13 +58,19 @@ def convert_paths(func):
 
 class Paths:
     def __init__(
-        self, phase_name="", phase_tag=None, phase_folders=tuple(), phase_path=None
+            self,
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple(),
+            phase_path=None,
+            remove_sym=True
     ):
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ""
+        self.remove_sym = remove_sym
 
     @property
     def path(self):
@@ -169,3 +180,36 @@ class Paths:
     @property
     def file_results(self):
         return "{}/{}".format(self.phase_output_path, "model.results")
+
+    def backup(self):
+        """
+        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        """
+        try:
+            shutil.rmtree(self.backup_path)
+        except FileNotFoundError:
+            pass
+
+        try:
+            shutil.copytree(self.sym_path, self.backup_path)
+        except shutil.Error as e:
+            logger.exception(e)
+
+    def backup_and_remove(self):
+        """
+        Copy files from the sym linked optimizer folder then remove the sym linked folder.
+        """
+        self.backup()
+        if self.remove_sym:
+            try:
+                shutil.rmtree(self.path)
+            except FileNotFoundError:
+                pass
+
+    def restore(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+        if os.path.exists(self.backup_path):
+            for file in glob.glob(self.backup_path + "/*"):
+                shutil.copy(file, self.path)

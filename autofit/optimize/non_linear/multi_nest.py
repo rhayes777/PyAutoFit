@@ -79,11 +79,10 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-            self, nlo, analysis, instance_from_physical_vector, output_results
+            self, paths, analysis, instance_from_physical_vector, output_results
         ):
-            super().__init__(nlo, analysis)
+            super().__init__(paths, analysis, output_results)
             self.instance_from_physical_vector = instance_from_physical_vector
-            self.output_results = output_results
             self.accepted_samples = 0
 
             self.model_results_output_interval = conf.instance.general.get(
@@ -144,7 +143,7 @@ class MultiNest(NonLinearOptimizer):
             return cube
 
         fitness_function = MultiNest.Fitness(
-            self,
+            self.paths,
             analysis,
             model.instance_from_physical_vector,
             multinest_output.output_results,
@@ -177,7 +176,7 @@ class MultiNest(NonLinearOptimizer):
         )
         logger.info("MultiNest complete")
 
-        self.backup()
+        self.paths.backup_and_remove()
         instance = multinest_output.most_likely_model_instance
         analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)

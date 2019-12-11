@@ -26,7 +26,7 @@ class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):
         self.instances.append(instance)
         try:
             return -(
-                (instance.one.redshift - 0.1) ** 2 + (instance.two.redshift - 0.7) ** 2
+                    (instance.one.redshift - 0.1) ** 2 + (instance.two.redshift - 0.7) ** 2
             )
         except AttributeError:
             return 0
@@ -48,10 +48,10 @@ def tuple_lists_equal(l1, l2):
 class TestGridSearchOptimizer(object):
     def test_config(self):
         assert (
-            autofit.optimize.non_linear.grid_search.GridSearch(
-                Paths(phase_name="")
-            ).step_size
-            == 0.1
+                autofit.optimize.non_linear.grid_search.GridSearch(
+                    Paths(phase_name="")
+                ).step_size
+                == 0.1
         )
 
     def test_1d(self):
@@ -137,7 +137,7 @@ def make_grid_search():
     except FileNotFoundError:
         pass
     return autofit.optimize.non_linear.grid_search.GridSearch(
-        Paths(phase_name=name), step_size=0.1
+        Paths(phase_name=name, remove_sym=False), step_size=0.1
     )
 
 
@@ -172,8 +172,12 @@ class TestGridSearch(object):
         model.one = Galaxy
         grid_search.fit(analysis, model)
 
+        paths = Paths(
+            phase_name="grid_search"
+        )
+
         grid_search = autofit.optimize.non_linear.grid_search.GridSearch(
-            Paths(phase_name="grid_search"), step_size=0.1
+            paths, step_size=0.1
         )
 
         assert grid_search.is_checkpoint
