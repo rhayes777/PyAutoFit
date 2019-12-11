@@ -14,7 +14,7 @@ from autofit.optimize.non_linear.downhill_simplex import DownhillSimplex
 logger = logging.getLogger(__name__)
 
 
-class GridSearchResult:
+class GridSearchResult(object):
     def __init__(self, results, lists):
         """
         The result of a grid search.
