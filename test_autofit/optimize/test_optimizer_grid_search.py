@@ -356,6 +356,9 @@ class TestGridSearchResult(object):
     def test_best_result(self, grid_search_result):
         assert grid_search_result.best_result.figure_of_merit == 2
 
+    def test_attributes(self, grid_search_result):
+        assert grid_search_result.model == 2
+
     def test_best_model(self, grid_search_result):
         assert grid_search_result.best_model == 2
 
