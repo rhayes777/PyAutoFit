@@ -123,6 +123,16 @@ class Paths:
         )
 
     @property
+    @make_path
+    def execution_time_path(self) -> str:
+        """
+        The path to the output information for a phase.
+        """
+        return "{}/{}/{}/execution_time".format(
+            conf.instance.output_path, self.phase_path, self.phase_name
+        )
+
+    @property
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/optimizer".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag

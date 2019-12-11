@@ -279,7 +279,7 @@ def persistent_timer(func):
             )
         )
         with open(
-                "{}/../execution_time".format(optimizer_instance.paths.phase_output_path), "w+"
+                optimizer_instance.paths.execution_time_path, "w+"
         ) as f:
             f.write(execution_time)
         return result
