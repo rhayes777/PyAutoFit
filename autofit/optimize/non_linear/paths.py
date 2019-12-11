@@ -123,14 +123,18 @@ class Paths:
         )
 
     @property
-    @make_path
     def execution_time_path(self) -> str:
         """
         The path to the output information for a phase.
         """
-        return "{}/{}/{}/execution_time".format(
-            conf.instance.output_path, self.phase_path, self.phase_name
+        return "{}/execution_time".format(
+            self.phase_name_folder
         )
+
+    @property
+    @make_path
+    def phase_name_folder(self):
+        return "/".join((conf.instance.output_path, self.phase_path, self.phase_name))
 
     @property
     def sym_path(self) -> str:
