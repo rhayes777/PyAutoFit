@@ -87,41 +87,35 @@ def make_pipeline():
 
 Of course, fitting two Gaussians is a fairly trivial model-fitting problem that does not require **PyAutoFit**. Nevertheless, the example above illustrates how one can break a model-fitting task down with **PyAutoFit**, an approach which is crucial for the following software packages: 
 
-**PyAutoLens**[https://github.com/Jammy2211/PyAutoLens] - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this exammple, a 5-phase **PyAutoFit** pipeline is used to fit a strong lens model composed of 10 different model parameterizations composed of 20-40 parameters.
+- **PyAutoLens(https://github.com/Jammy2211/PyAutoLens)** - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this example, a 5-phase **PyAutoFit** pipeline performs strong lens modeling using 10 different model components producing models with 20-40 parameters.
+
+## Features
+
+Advanced statistical modeling features in **PyAutoFit** include:
+
+- **Model Mapping** - Interface with Python classes to define and fit complex models parameterized with many different model components.
+- **Pipelines** - Write transdimensional analysis pipelines to fit complex models to large data-sets in a fully automated way.
+- **Non-linear Optimizers** - Combine a variety of non-linear search techniques (e.g. gradient descent, nested sampling, MCMC).
+- **Aggregation** - **PyAutoFit** output are stored in a database format that enables quick manipulate of large sets of results for result inspection and interpretation.
+
+## Future
+
+The following features are planned for 2020:
+
+- **Generalized Linear Models** - After fitting a large suite of data fit for global trends in the **PyAutoFit** model results.
+- **Hierarchical modeling** - Combine fits over a range of data-sets to perform hierarchical inference.
+- **Time series modelling** - Fit temporally varying models using bespoke model-fits which marginalize over the fit as a function of time.
+- **Transdimensional Sampling** - Sample non-linear parameter spaces with model numbers of model components and parameters.
 
 ## Yet Another Probablistic Programming Language?
 
 There already exist many options for incorporating Bayesian inference techniques into model fitting problems, such as PyMC3[https://github.com/pymc-devs/pymc3] and STAN[https://github.com/stan-dev/stan]. These packages allow simple models to be quickly defined, parametrized and fitted to data.
-
-## Features
-
-**PyAutoFit's** advanced modeling features include:
-
-- **Model Mapping** - Interface with Python classes to define a model and map non-linear optimizer samples to a model parameterization.
-- **Non-linear Optimizers** - Fit models to data by combining a variety of non-linear search techniques (e.g. nested sampling, MCMC).
-- **Pipelines** - Write transdimensional analysis pipelines to fit complex models to large data-sets in a fully automated way.
-
-**PyAutoFit** allows transdimensional model fitting pipelines to be built for general modeling problems.
-
-## Status
-
-**PyAutoFit** is ready for adoption by model-fitting packages, and is currently used by [**PyAutoLens**](https://github.com/Jammy2211/PyAutoLens) for modeling strong gravitational lens galaxies.PyAutoFit
-
-However, **PyAutoFit** is still currently in alpha and lacking many keey materials to help new user adoption (documentation, templates, etc.). Projects interested in using **PyAutoFit** should therefore contact us directly first about the best way to get started.
 
 ## Slack
 
 We're building a **PyAutoFit** community on Slack, so you should contact us on our [Slack channel](https://pyautofit.slack.com/) before getting started. Here, I will give you the latest updates on the software & discuss how best to use **PyAutoFit** for your science case.
 
 Unfortunately, Slack is invitation-only, so first send me an [email](https://github.com/Jammy2211) requesting an invite.
-
-## Future
-
-The following features are planned for the next year:
-
-- **Hierarchical modeling** - Fit for global trends of a model within individual fits to a data-set, permitting more general inferences to be made.
-- **Time series modelling** - Fit temporally varying models using bespoke model-fits which marginalize over the fit as a function of time.
-- **Transdimensional Sampling** - Sample non-linear parameter spaces with model numbers of model components and parameters.
 
 ## Depedencies
 
