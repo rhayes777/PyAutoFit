@@ -77,7 +77,7 @@ def make_pipeline():
 
 Of course, fitting two Gaussians is a fairly trivial model-fitting problem that does not require **PyAutoFit**. Nevertheless, the example above illustrates how one can break a model-fitting task down with **PyAutoFit**, an approach which is crucial for the following software packages: 
 
-- **PyAutoLens(https://github.com/Jammy2211/PyAutoLens)** - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this example, a 5-phase **PyAutoFit** pipeline performs strong lens modeling using 10 different model components producing models with 20-40 parameters.
+- PyAutoLens(https://github.com/Jammy2211/PyAutoLens) - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this example, a 5-phase **PyAutoFit** pipeline performs strong lens modeling using 10 different model components producing models with 20-40 parameters.
 
 ## Features
 
