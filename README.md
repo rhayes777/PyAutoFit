@@ -19,70 +19,61 @@ We are going to fit each Gaussian with a 2D Gaussian pofile. Traditional methods
 **PyAutoFit** determines the components of a model by interacting with Python classes. For this example we use the SphericalGaussian class:
 
 ```
-class EllipticalSersic(object):
+class SphericalGaussian(object):
 
     def __init__(
-            self,
-            centre: tuple = (0.0, 0.0),     # <- PyAutoFit recognises these
-            axis_ratio: float = 1.0,        #    constructor inputs as the
-            phi: float = 0.0,               #    model parameters of the
-            intensity: float = 0.1,         #    EllipticalSersic model.
-            effective_radius: float = 0.6,
-            sersic_index: float = 4.0,
+        self,
+        centre = (0.0, 0.0), # <- PyAutoFit recognises these constructor arguments are the model
+        intensity = 0.1,     # <- parameters of SphericalGaussian profile.
+        sigma = 0.01,
     ):
-
         self.centre = centre
-        self.axis_ratio = axis_ratio
-        self.phi = phi
         self.intensity = intensity
-        self.effective_radius = effective_radius
-        self.sersic_index = sersic_index
+        self.sigma = sigma
 ```
 
 This model, and its model parameters, are then used by PyAutoFit to build our 3 phase model-fitting pipeline:
 
 ```
 import autofit as af
+def make_pipeline(
+    phase_folders=None, sub_size=2, signal_to_noise_limit=None, bin_up_factor=None
+):
 
-def make_pipeline():
+    # In phase 1, we will fit the Gaussian on the left.
 
-    pipeline_name = "pipeline_example__fitting_multiple_galaxies"
+    phase1 = af.Phase(
+        phase_name="phase_1__left_gaussian",
+        gaussians=af.CollectionPriorModel(gaussian_0=af.profiles.SphericalGaussian),
+        optimizer_class=af.MultiNest,
+    )
 
-    # In phase 1, we fit the main galaxy with a bulge + disk model, assuming that
-    # not fitting the satellite won't significantly degrade the overall fit.
+    # In phase 2, we will fit the Gaussian on the right, where the best-fit Gaussian resulting from phase 1 
+    # above fits the left-hand Gaussian.
 
-    phase1 = af.Phase(phase_name="phase_1__main_galaxy_fit",
-            main_galaxy=af.PriorModel(
-                bulge=af.toy.light_profiles.EllipticalSersic,
-                disk=af.toy.light_profiles.EllipticalSersic),
-        optimizer_class=af.MultiNest)
+    phase2 = af.Phase(
+        phase_name="phase_2__right_gaussian",
+        phase_folders=phase_folders,
+        gaussians=af.CollectionPriorModel(
+            gaussian_0=phase1.result.instance.gaussians.gaussian_0, # <- Use the Gaussian fitted in phase 1
+            gaussian_1=gaussian_1,
+        ),
+        optimizer_class=af.MultiNest,
+    )
 
-    # In phase 2, we fit the satellite galaxy's light. The best-fit model of the
-    # main galaxy in phase 1 is used to subtract its light and cleanly reveal the
-    # satellite for the fit. This information is passed using 'instance' term below.
+    # In phase 3, we fit both Gaussians, using the results of phases 1 and 2 to initialize their model parameters.
 
-    phase2 = af.Phase(phase_name="phase_2__satellite",
-            main_galaxy=af.PriorModel(
-                bulge=phase1.result.instance.main_galaxy.bulge,
-                disk=phase1.result.instance.main_galaxy.disk),
-            satellite_galaxy=af.PriorModel(
-                light=af.toy.EllipticalSersic),
-        optimizer_class=af.MultiNest)
+    phase3 = af.Phase(
+        phase_name="phase_3__both_gaussian",
+        phase_folders=phase_folders,
+        gaussians=af.CollectionPriorModel(
+            gaussian_0=phase1.result.model.gaussians.gaussian_0, # <- use phase 1 Gaussian results.
+            gaussian_1=phase2.result.model.gaussians.gaussian_1, # <- use phase 2 Gaussian results.
+        ),
+        optimizer_class=af.MultiNest,
+    )
 
-    # In phase 3, we fit the light of both galaxies simultaneously using priors
-    # derived from the results of phases 1 & 2 to begin sampling in the maximum
-    # likelihood regions of parameter space. This information is passed using
-    # the 'model' term below.
-
-    phase3 = af.Phase(phase_name="phase_3__all_galaxies",
-            main_galaxy=af.PriorModel(
-                bulge=phase1.result.model.main_galaxy.bulge,
-                disk=phase1.result.model.main_galaxy.disk),
-            left_satellite=af.PriorModel(
-                light=phase2.result.model.left_satellite.light),
-        optimizer_class=af.MultiNest)
-
-    return af.Pipeline(pipeline_name, phase1, phase2, phase3)
+    return toy.Pipeline(pipeline_name, phase1, phase2, phase3)
 ```
 
 Of course, fitting two Gaussians is a fairly trivial model-fitting problem that does not require **PyAutoFit**. Nevertheless, the example above illustrates how one can break a model-fitting task down with **PyAutoFit**, an approach which is crucial for the following software packages: 
