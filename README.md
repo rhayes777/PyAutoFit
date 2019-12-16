@@ -1,6 +1,6 @@
 # PyAutoFit
 
-**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. **PyAutoFit** allows automated transdimensional model-fitting pipelines for large data-sets to be written, by acting as an interface between Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html), 
+**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. **PyAutoFit** allows automated transdimensional model-fitting pipelines for large data-sets to be written, by acting as an interface between Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html).
 
 **PyAutoFit** specializes in advanced model-fitting problems, where highly complex models with many plausible model paramertizations are fitted. **PyAutoFit** breaks the model-fitting procedure into a series of **linked non-linear searches**, or 'phases', where the results of earlier phases initialize the fitting of more complex models in later phases.
 
