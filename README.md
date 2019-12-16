@@ -10,6 +10,8 @@ This allows **transdimensional model-fitting pipelines** to be built that enable
 
 We will illustrate this with an example fitting two 2D Gaussians:
 
+![alt text](https://github.com/rhayes777/PyAutoFit/blob/master/gaussian_example.png)
+
 We are going to fit each Gaussian with a 2D Gaussian pofile. Traditional methods would both Gaussians simultaneously, making parameter space more complex, slower to sample and increasing the risk that we fail to locate the global maxima solution. With **PyAutoFit** we can instead build a transdimensional model fitting pipeline which breaks the the analysis down into 3 phases:
 
 1) Fit only the left Gaussian.
