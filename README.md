@@ -96,16 +96,17 @@ Advanced statistical modeling features in **PyAutoFit** include:
 - **Model Mapping** - Interface with Python classes to define and fit complex models parameterized with many different model components.
 - **Pipelines** - Write transdimensional analysis pipelines to fit complex models to large data-sets in a fully automated way.
 - **Non-linear Optimizers** - Combine a variety of non-linear search techniques (e.g. gradient descent, nested sampling, MCMC).
-- **Aggregation** - **PyAutoFit** output are stored in a database format that enables quick manipulate of large sets of results for result inspection and interpretation.
+- **Aggregation** - Model results are stored in a database format that enables quick manipulate of large sets of results for inspection and interpretation.
 
 ## Future
 
 The following features are planned for 2020:
 
 - **Generalized Linear Models** - After fitting a large suite of data fit for global trends in the **PyAutoFit** model results.
-- **Hierarchical modeling** - Combine fits over a range of data-sets to perform hierarchical inference.
-- **Time series modelling** - Fit temporally varying models using bespoke model-fits which marginalize over the fit as a function of time.
-- **Transdimensional Sampling** - Sample non-linear parameter spaces with model numbers of model components and parameters.
+- **Hierarchical modeling** - Combine fits over multiple data-sets to perform hierarchical inference.
+- **Time series modelling** - Fit temporally varying models using fits which marginalize over time.
+- **Approximate Bayesian Computational** - Likelihood-free modeling.
+- **Transdimensional Sampling** - Sample non-linear parameter spaces with variable numbers of model components and parameters.
 
 ## Yet Another Probablistic Programming Language?
 
