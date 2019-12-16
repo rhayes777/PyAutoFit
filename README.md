@@ -18,7 +18,7 @@ We are going to fit each Gaussian with a 2D Gaussian pofile. Traditional methods
 
 **PyAutoFit** determines the components of a model by interacting with Python classes. For this example we use the SphericalGaussian class:
 
-```
+```python
 class SphericalGaussian(object):
 
     def __init__(
@@ -34,7 +34,8 @@ class SphericalGaussian(object):
 
 This model, and its model parameters, are then used by PyAutoFit to build our 3 phase model-fitting pipeline:
 
-```
+```python
+
 import autofit as af
 def make_pipeline(
     phase_folders=None, sub_size=2, signal_to_noise_limit=None, bin_up_factor=None
