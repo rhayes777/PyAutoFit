@@ -77,7 +77,13 @@ def make_pipeline():
 
 Of course, fitting two Gaussians is a fairly trivial model-fitting problem that does not require **PyAutoFit**. Nevertheless, the example above illustrates how one can break a model-fitting task down with **PyAutoFit**, an approach which is crucial for the following software packages: 
 
-- PyAutoLens(https://github.com/Jammy2211/PyAutoLens) - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this example, a 5-phase **PyAutoFit** pipeline performs strong lens modeling using 10 different model components producing models with 20-40 parameters.
+- [PyAutoLens](https://github.com/Jammy2211/PyAutoLens) - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this example, a 5-phase **PyAutoFit** pipeline performs strong lens modeling using 10 different model components producing models with 20-40 parameters.
+
+## Yet Another Probablistic Programming Language?
+
+There already exist many options for incorporating Bayesian inference techniques into model fitting problems, such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan). These packages allow simple models to be quickly defined, parametrized and fitted to data.
+
+**PyAutoFit** focuses on complex model-fitting tasks, where many models parameterized in different ways are fitted. This problem necessiates model-fitting pipelines like that shown in the example above. If you're problem doesn't require such complex model fitting, you probably don't need to use **PyAutoFit**! 
 
 ## Features
 
@@ -97,10 +103,6 @@ The following features are planned for 2020:
 - **Time series modelling** - Fit temporally varying models using fits which marginalize over time.
 - **Approximate Bayesian Computational** - Likelihood-free modeling.
 - **Transdimensional Sampling** - Sample non-linear parameter spaces with variable numbers of model components and parameters.
-
-## Yet Another Probablistic Programming Language?
-
-There already exist many options for incorporating Bayesian inference techniques into model fitting problems, such as PyMC3[https://github.com/pymc-devs/pymc3] and STAN[https://github.com/stan-dev/stan]. These packages allow simple models to be quickly defined, parametrized and fitted to data.
 
 ## Slack
 
