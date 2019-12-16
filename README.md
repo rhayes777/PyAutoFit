@@ -1,8 +1,12 @@
 # PyAutoFit
 
-**PyAutoFit** is a Python software framework that enables contemporary Bayesian inference techniques to be applied to large data-sets in a fully automated way. Acting as an interface between Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html), **PyAutoFit** allows transdimensional model fitting pipelines to be built for general modeling problems.
+**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. **PyAutoFit** allows automated transdimensional model-fitting pipelines for  large data-sets to be written, by acting as an interface between Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html), 
 
-[The key thing about **PyAutoFit** is that it uses multiplle NLOs.]
+## Yet Another Probablistic Programming Language?
+
+There already exist many options for incorporating Bayesian inference techniques into model fitting problems, such as PyMC3[https://github.com/pymc-devs/pymc3] and STAN[https://github.com/stan-dev/stan]. These packages allow simple models to be quickly defined, parametrized and fitted to data.
+
+**PyAutoFit** specializes in advanced model-fitting problems, highly complex models with many plausible model paramertizations are fitted. Unlike other methods, **PyAutoFit** allows transdimensional model-fitting pipelines to be written which break the fit down into a series of **linked non-linear searches**, or 'phases'. The results of earlier phases initialize fits in later phases, enabling model-fitting of extremely complex and high dimensional parameter spaces to be reduced to a series of bite-sized model fits. This allows even the most complex model fitting problems to be automated!
 
 ## Python Example
 
@@ -83,6 +87,16 @@ def make_pipeline():
     return af.Pipeline(pipeline_name, phase1, phase2, phase3)
 ```
 
+## Features
+
+**PyAutoFit's** advanced modeling features include:
+
+- **Model Mapping** - Interface with Python classes to define a model and map non-linear optimizer samples to a model parameterization.
+- **Non-linear Optimizers** - Fit models to data by combining a variety of non-linear search techniques (e.g. nested sampling, MCMC).
+- **Pipelines** - Write transdimensional analysis pipelines to fit complex models to large data-sets in a fully automated way.
+
+**PyAutoFit** allows transdimensional model fitting pipelines to be built for general modeling problems.
+
 ## Status
 
 **PyAutoFit** is ready for adoption by model-fitting packages, and is currently used by [**PyAutoLens**](https://github.com/Jammy2211/PyAutoLens) for modeling strong gravitational lens galaxies.PyAutoFit
@@ -95,13 +109,7 @@ We're building a **PyAutoFit** community on Slack, so you should contact us on o
 
 Unfortunately, Slack is invitation-only, so first send me an [email](https://github.com/Jammy2211) requesting an invite.
 
-## Features
-
-**PyAutoFit's** advanced modeling features include:
-
-- **Non-linear Optimizers** - Fit models to data using a variety of non-linear search techniques and algorithms.
-- **Model Mapping** - Interface with Python classes to define a model and map non-linear optimizer samples to a model parameterization.
-- **Pipelines** - Write transdimensional analysis pipelines to fit complex models to large data-sets in a fully automated way.
+## Future
 
 The following features are planned for the next year:
 
