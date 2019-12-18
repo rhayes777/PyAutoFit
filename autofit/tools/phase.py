@@ -83,8 +83,11 @@ class AbstractPhase:
         """
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
-                "pipeline={}\nphase={}\ndataset={}".format(
-                    pipeline_name, self.paths.phase_name, data_name
+                "pipeline={}\nphase={}\ndataset={}\nphase_tag={}".format(
+                    pipeline_name,
+                    self.paths.phase_name,
+                    data_name,
+                    self.paths.phase_tag
                 )
             )
 
