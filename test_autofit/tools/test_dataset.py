@@ -1,10 +1,4 @@
-from autofit.tools.phase import Dataset
-
-
-class MockDataset(Dataset):
-    @property
-    def name(self) -> str:
-        return "name"
+from test_autofit.mock import MockDataset
 
 
 def test_save_and_load():

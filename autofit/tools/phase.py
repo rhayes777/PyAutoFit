@@ -200,6 +200,7 @@ class Phase(AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising the best fit model and other hyper_galaxies.
         """
+        dataset.save(self.paths.phase_output_path)
         self.model = self.model.populate(results)
 
         analysis = self.make_analysis(dataset=dataset, results=results)
