@@ -40,6 +40,24 @@ def make_aggregator():
     return aggregator
 
 
+def test_attribute(aggregator):
+    assert aggregator.pipeline == [
+        "pipeline1",
+        "pipeline1",
+        "pipeline2"
+    ]
+    assert aggregator.phase == [
+        "phase1",
+        "phase2",
+        "phase2"
+    ]
+    assert aggregator.dataset == [
+        "dataset1",
+        "dataset1",
+        "dataset2"
+    ]
+
+
 def test_filter(aggregator):
     result = aggregator.filter(
         pipeline="pipeline1"

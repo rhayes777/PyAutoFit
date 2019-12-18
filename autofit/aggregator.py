@@ -129,6 +129,12 @@ class AbstractAggregator:
             )
         )
 
+    def __getattr__(self, item):
+        return [
+            getattr(phase, item)
+            for phase in self.phases
+        ]
+
 
 class Aggregator(AbstractAggregator):
     def __init__(self, directory: str):
