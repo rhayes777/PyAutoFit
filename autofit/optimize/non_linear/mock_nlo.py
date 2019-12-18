@@ -1,7 +1,7 @@
 import math
 
 import autofit as af
-from autofit.optimize.non_linear.multi_nest_output import Output
+from autofit.optimize.non_linear.output import Output
 
 
 class MockNLO(af.NonLinearOptimizer):

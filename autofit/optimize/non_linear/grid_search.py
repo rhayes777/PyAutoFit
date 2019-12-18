@@ -5,7 +5,7 @@ import numpy as np
 
 from autofit import conf, exc
 from autofit.optimize import optimizer as opt
-from autofit.optimize.non_linear.multi_nest_output import Output
+from autofit.optimize.non_linear.output import Output
 from autofit.optimize.non_linear.non_linear import (
     NonLinearOptimizer,
     Result,
