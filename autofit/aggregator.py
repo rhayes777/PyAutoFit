@@ -99,9 +99,29 @@ class PhaseOutput:
 
 class AggregatorGroup:
     def __init__(self, groups: ["AbstractAggregator"]):
+        """
+        A group of aggregators produced by grouping phases on a field.
+
+        Parameters
+        ----------
+        groups
+            Groups, each with a common value in the metadata file
+        """
         self.groups = groups
 
-    def filter(self, **kwargs):
+    def filter(self, **kwargs) -> "AggregatorGroup":
+        """
+        Apply a filter to the underlying groups whilst maintaining the total number of groups.
+
+        Parameters
+        ----------
+        kwargs
+            Key word arguments for filtering
+
+        Returns
+        -------
+        A collection of groups of the same length with each group having the same or fewer members.
+        """
         return AggregatorGroup(
             [
                 group.filter(
@@ -127,6 +147,14 @@ class AggregatorGroup:
 
 class AbstractAggregator:
     def __init__(self, phases: List[PhaseOutput]):
+        """
+        An aggregator that comprises several phases which matching filters.
+
+        Parameters
+        ----------
+        phases
+            Phases that were found to have matching filters
+        """
         self.phases = phases
 
     def __getitem__(self, item):
@@ -151,7 +179,21 @@ class AbstractAggregator:
             if all([getattr(phase, key) == value for key, value in kwargs.items()])
         ]
 
-    def filter(self, **kwargs):
+    def filter(self, **kwargs) -> "AbstractAggregator":
+        """
+        Filter by key value pairs found in the metadata.
+
+        Another aggregator object is returned.
+
+        Parameters
+        ----------
+        kwargs
+            Key value arguments which are expected to match those found the in metadata file.
+
+        Returns
+        -------
+        An aggregator comprising all phases that match the filters.
+        """
         return AbstractAggregator(
             phases=self.phases_with(
                 **kwargs
@@ -159,12 +201,29 @@ class AbstractAggregator:
         )
 
     def __getattr__(self, item):
+        """
+        If an attribute is not found then attempt to grab a list of values from the underlying phases
+        """
         return [
             getattr(phase, item)
             for phase in self.phases
         ]
 
-    def group_by(self, field):
+    def group_by(self, field: str) -> AggregatorGroup:
+        """
+        Group the phases by a field, e.g. pipeline.
+
+        The object returned still permits filtering and attribute querying.
+
+        Parameters
+        ----------
+        field
+            The field by which to group
+
+        Returns
+        -------
+        An object comprising lists of grouped fields
+        """
         group_dict = defaultdict(list)
         for phase in self.phases:
             group_dict[getattr(phase, field)].append(phase)
