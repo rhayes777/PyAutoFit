@@ -109,6 +109,18 @@ class Aggregator:
             if "metadata" in filenames:
                 self.phases.append(PhaseOutput(root))
 
+        if len(self.phases) == 0:
+            print(
+                f"\nNo phases found in {directory}\n"
+            )
+        else:
+            paths_string = "\n".join(
+                phase.directory for phase in self.phases
+            )
+            print(
+                f"\nPhases were found in these directories:\n\n{paths_string}\n"
+            )
+
     def phases_with(self, **kwargs) -> [PhaseOutput]:
         """
         Filters phases. If no arguments are passed all phases are returned. Arguments must be key value pairs, with
@@ -126,7 +138,7 @@ class Aggregator:
         ]
 
     def optimizers_with(
-        self, **kwargs
+            self, **kwargs
     ) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
         """
         Load a list of optimizers for phases in the directory with zero or more filters applied.
