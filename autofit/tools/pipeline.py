@@ -122,6 +122,8 @@ class Pipeline:
         """
         self.pipeline_name = pipeline_name
         self.phases = phases
+        self.pipeline_tag = None
+
         for phase in phases:
             if not hasattr(phase, "pipeline_name"):
                 phase.pipeline_name = pipeline_name
@@ -179,7 +181,11 @@ class Pipeline:
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info("Running Phase {} (Number {})".format(phase.phase_name, i))
-            phase.save_metadata(data_name, phase.pipeline_name)
+            phase.save_metadata(
+                data_name,
+                phase.pipeline_name,
+                self.pipeline_tag
+            )
             name = phase.phase_name
             results.add(name, func(phase, results))
         return results

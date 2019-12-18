@@ -76,18 +76,19 @@ class AbstractPhase:
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.model))
 
-    def save_metadata(self, data_name, pipeline_name):
+    def save_metadata(self, data_name, pipeline_name, pipeline_tag):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
-                "pipeline={}\nphase={}\ndataset={}\nphase_tag={}".format(
+                "pipeline={}\nphase={}\ndataset={}\nphase_tag={}\npipeline_tag={}".format(
                     pipeline_name,
                     self.paths.phase_name,
                     data_name,
-                    self.paths.phase_tag
+                    self.paths.phase_tag,
+                    pipeline_tag
                 )
             )
 
