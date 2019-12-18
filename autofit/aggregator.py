@@ -15,6 +15,7 @@ Example:
 import os
 import pickle
 import zipfile
+from collections import defaultdict
 from typing import List
 
 import autofit.optimize.non_linear.non_linear
@@ -134,6 +135,15 @@ class AbstractAggregator:
             getattr(phase, item)
             for phase in self.phases
         ]
+
+    def group_by(self, field):
+        group_dict = defaultdict(list)
+        for phase in self.phases:
+            group_dict[getattr(phase, field)].append(phase)
+        return list(map(
+            AbstractAggregator,
+            group_dict.values())
+        )
 
 
 class Aggregator(AbstractAggregator):

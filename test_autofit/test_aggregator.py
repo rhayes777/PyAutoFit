@@ -81,3 +81,11 @@ def test_filter(aggregator):
 
     assert len(result) == 1
     assert result[0].pipeline == "pipeline1"
+
+
+def test_group_by(aggregator):
+    result = aggregator.group_by("pipeline")
+
+    assert len(result) == 2
+    assert len(result[0]) == 2
+    assert len(result[1]) == 1
