@@ -18,7 +18,7 @@ import pickle
 import autofit.optimize.non_linear.non_linear
 
 
-class PhaseOutput(object):
+class PhaseOutput:
     """
     @DynamicAttrs
     """
@@ -83,7 +83,7 @@ class PhaseOutput(object):
         return "<PhaseOutput {}>".format(self)
 
 
-class Aggregator(object):
+class Aggregator:
     def __init__(self, directory: str):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
