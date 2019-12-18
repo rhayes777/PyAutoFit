@@ -97,6 +97,28 @@ class PhaseOutput:
         return "<PhaseOutput {}>".format(self)
 
 
+class AggregatorGroup:
+    def __init__(self, groups: ["AbstractAggregator"]):
+        self.groups = groups
+
+    def filter(self, **kwargs):
+        return AggregatorGroup(
+            [
+                group.filter(
+                    **kwargs
+                )
+                for group
+                in self.groups
+            ]
+        )
+
+    def __getitem__(self, item):
+        return self.groups[item]
+
+    def __len__(self):
+        return len(self.groups)
+
+
 class AbstractAggregator:
     def __init__(self, phases: List[PhaseOutput]):
         self.phases = phases
@@ -140,9 +162,11 @@ class AbstractAggregator:
         group_dict = defaultdict(list)
         for phase in self.phases:
             group_dict[getattr(phase, field)].append(phase)
-        return list(map(
-            AbstractAggregator,
-            group_dict.values())
+        return AggregatorGroup(
+            list(map(
+                AbstractAggregator,
+                group_dict.values())
+            )
         )
 
 
