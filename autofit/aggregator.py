@@ -175,6 +175,19 @@ class AbstractAggregator:
             )
         )
 
+    @property
+    def model_results(self) -> str:
+        """
+        A string joining headers and results for all included phases.
+        """
+        return "\n\n".join(
+            "{}\n\n{}".format(
+                phase.header,
+                phase.model_results
+            )
+            for phase in self.phases
+        )
+
 
 class Aggregator(AbstractAggregator):
     def __init__(self, directory: str):
@@ -214,61 +227,6 @@ class Aggregator(AbstractAggregator):
             )
         super().__init__(phases)
 
-    def optimizers_with(
-            self, **kwargs
-    ) -> [autofit.optimize.non_linear.non_linear.NonLinearOptimizer]:
-        """
-        Load a list of optimizers for phases in the directory with zero or more filters applied.
-
-        Parameters
-        ----------
-        kwargs
-            Filters, e.g. pipeline=pipeline1
-
-        Returns
-        -------
-        optimizers
-            A list of optimizers, one for each phase in the directory that matches the filters.
-        """
-        return [phase.optimizer for phase in self.phases_with(**kwargs)]
-
-    def outputs_with(
-            self, **kwargs
-    ) -> [Output]:
-        """
-        Load a list of optimizer outputs for phases in the directory with zero or more filters applied.
-
-        Parameters
-        ----------
-        kwargs
-            Filters, e.g. pipeline=pipeline1
-
-        Returns
-        -------
-        outputs
-            A list of outputs, one for each phase
-        """
-        return [phase.output for phase in self.phases_with(**kwargs)]
-
-    def model_results(self, **kwargs) -> str:
-        """
-        Collates model results from all phases in the directory or some subset if filters are applied.
-
-        Parameters
-        ----------
-        kwargs
-            Filters, e.g. pipeline=pipeline1
-
-        Returns
-        -------
-        model_results
-            A string joining headers and results for all included phases.
-        """
-        return "\n\n".join(
-            "{}\n\n{}".format(phase.header, phase.model_results)
-            for phase in self.phases_with(**kwargs)
-        )
-
 
 if __name__ == "__main__":
     from sys import argv
@@ -284,4 +242,4 @@ if __name__ == "__main__":
     filter_dict = {pair[0]: pair[1] for pair in [line.split("=") for line in argv[2:]]}
 
     with open("model.results", "w+") as out:
-        out.write(Aggregator(root_directory).model_results(**filter_dict))
+        out.write(Aggregator(root_directory).filter(**filter_dict).model_results)
