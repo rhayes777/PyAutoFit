@@ -110,7 +110,7 @@ class ResultsCollection:
         return item in self.__result_dict
 
 
-class Pipeline(object):
+class Pipeline:
     def __init__(self, pipeline_name, *phases):
         """
         A pipeline of phases to be run sequentially. Results are passed between phases. Phases must have unique names.
@@ -179,7 +179,7 @@ class Pipeline(object):
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
             logger.info("Running Phase {} (Number {})".format(phase.phase_name, i))
-            phase.save_metadata(data_name, self.pipeline_name)
+            phase.save_metadata(data_name, phase.pipeline_name)
             name = phase.phase_name
             results.add(name, func(phase, results))
         return results
