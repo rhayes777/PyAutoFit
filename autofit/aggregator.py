@@ -64,6 +64,20 @@ class PhaseOutput:
             return f.read()
 
     @property
+    def dataset(self):
+        """
+        The dataset that this phase ran on
+        """
+        with open(
+                os.path.join(
+                    self.directory,
+                    f"{self.dataset_name}.pickle"
+                ),
+                "rb"
+        ) as f:
+            return pickle.load(f)
+
+    @property
     def header(self) -> str:
         """
         A header created by joining the pipeline, phase and dataset names
