@@ -55,7 +55,7 @@ class PhaseOutput:
         """
         A header created by joining the pipeline, phase and dataset names
         """
-        return "/".join((self.pipeline, self.phase, self.data))
+        return "/".join((self.pipeline, self.phase, self.dataset))
 
     @property
     def optimizer(self) -> autofit.optimize.non_linear.non_linear.NonLinearOptimizer:
