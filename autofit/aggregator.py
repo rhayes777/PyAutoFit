@@ -15,6 +15,7 @@ Example:
 import os
 import pickle
 import zipfile
+from typing import List
 
 import autofit.optimize.non_linear.non_linear
 from autofit.optimize.non_linear.output import Output
@@ -95,42 +96,15 @@ class PhaseOutput:
         return "<PhaseOutput {}>".format(self)
 
 
-class Aggregator:
-    def __init__(self, directory: str):
-        """
-        Class to aggregate phase results for all subdirectories in a given directory.
+class AbstractAggregator:
+    def __init__(self, phases: List[PhaseOutput]):
+        self.phases = phases
 
-        The whole directory structure is traversed and a Phase object created for each directory that contains a
-        metadata file.
+    def __getitem__(self, item):
+        return self.phases[item]
 
-        Parameters
-        ----------
-        directory
-        """
-        self.directory = directory
-        self.phases = []
-
-        for root, _, filenames in os.walk(directory):
-            for filename in filenames:
-                if filename.endswith(".zip"):
-                    with zipfile.ZipFile(f"{root}/{filename}", "r") as f:
-                        f.extractall(root)
-
-        for root, _, filenames in os.walk(directory):
-            if "metadata" in filenames:
-                self.phases.append(PhaseOutput(root))
-
-        if len(self.phases) == 0:
-            print(
-                f"\nNo phases found in {directory}\n"
-            )
-        else:
-            paths_string = "\n".join(
-                phase.directory for phase in self.phases
-            )
-            print(
-                f"\nPhases were found in these directories:\n\n{paths_string}\n"
-            )
+    def __len__(self):
+        return len(self.phases)
 
     def phases_with(self, **kwargs) -> [PhaseOutput]:
         """
@@ -147,6 +121,52 @@ class Aggregator:
             for phase in self.phases
             if all([getattr(phase, key) == value for key, value in kwargs.items()])
         ]
+
+    def filter(self, **kwargs):
+        return AbstractAggregator(
+            phases=self.phases_with(
+                **kwargs
+            )
+        )
+
+
+class Aggregator(AbstractAggregator):
+    def __init__(self, directory: str):
+        """
+        Class to aggregate phase results for all subdirectories in a given directory.
+
+        The whole directory structure is traversed and a Phase object created for each directory that contains a
+        metadata file.
+
+        Parameters
+        ----------
+        directory
+        """
+        self.directory = directory
+        phases = []
+
+        for root, _, filenames in os.walk(directory):
+            for filename in filenames:
+                if filename.endswith(".zip"):
+                    with zipfile.ZipFile(f"{root}/{filename}", "r") as f:
+                        f.extractall(root)
+
+        for root, _, filenames in os.walk(directory):
+            if "metadata" in filenames:
+                phases.append(PhaseOutput(root))
+
+        if len(phases) == 0:
+            print(
+                f"\nNo phases found in {directory}\n"
+            )
+        else:
+            paths_string = "\n".join(
+                phase.directory for phase in phases
+            )
+            print(
+                f"\nPhases were found in these directories:\n\n{paths_string}\n"
+            )
+        super().__init__(phases)
 
     def optimizers_with(
             self, **kwargs
