@@ -97,3 +97,7 @@ def test_group_by(aggregator):
     assert len(result) == 2
     assert len(result[0]) == 1
     assert len(result[1]) == 1
+
+    assert result.phase == [
+        ["phase2"], ["phase2"]
+    ]

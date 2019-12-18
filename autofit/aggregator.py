@@ -118,6 +118,12 @@ class AggregatorGroup:
     def __len__(self):
         return len(self.groups)
 
+    def __getattr__(self, item):
+        return [
+            getattr(group, item)
+            for group in self.groups
+        ]
+
 
 class AbstractAggregator:
     def __init__(self, phases: List[PhaseOutput]):
