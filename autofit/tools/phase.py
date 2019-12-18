@@ -124,6 +124,10 @@ class AbstractPhase:
 
 
 class Dataset(ABC):
+    """
+    Comprises the data that is fit by the pipeline. May also contain meta data, noise, PSF, etc.
+    """
+
     @property
     @abstractmethod
     def name(self) -> str:
@@ -131,12 +135,32 @@ class Dataset(ABC):
         The name of this data for use in querying
         """
 
-    def save(self, directory):
+    def save(self, directory: str):
+        """
+        Save this instance as a pickle with the dataset name in the given directory.
+
+        Parameters
+        ----------
+        directory
+            The directory to save into
+        """
         with open(f"{directory}/{self.name}.pickle", "wb") as f:
             pickle.dump(self, f)
 
     @classmethod
-    def load(cls, filename):
+    def load(cls, filename) -> "Dataset":
+        """
+        Load the dataset at the specified filename
+
+        Parameters
+        ----------
+        filename
+            The filename containing the dataset
+
+        Returns
+        -------
+        The dataset
+        """
         with open(filename, "rb") as f:
             return pickle.load(f)
 
