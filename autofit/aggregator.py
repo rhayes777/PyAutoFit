@@ -14,6 +14,7 @@ Example:
 
 import os
 import pickle
+import zipfile
 
 import autofit.optimize.non_linear.non_linear
 
@@ -97,6 +98,12 @@ class Aggregator:
         """
         self.directory = directory
         self.phases = []
+
+        for root, _, filenames in os.walk(directory):
+            for filename in filenames:
+                if filename.endswith(".zip"):
+                    with zipfile.ZipFile(f"{root}/{filename}", "r") as f:
+                        f.extractall(root)
 
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:
