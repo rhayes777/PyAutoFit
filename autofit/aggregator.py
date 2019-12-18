@@ -17,6 +17,7 @@ import pickle
 import zipfile
 
 import autofit.optimize.non_linear.non_linear
+from autofit.optimize.non_linear.output import Output
 
 
 class PhaseOutput:
@@ -41,6 +42,16 @@ class PhaseOutput:
             self.text = f.read()
             pairs = [line.split("=") for line in self.text.split("\n")]
             self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+
+    @property
+    def output(self) -> Output:
+        """
+        An object describing the output data from the nonlinear search performed in this phase
+        """
+        return Output(
+            model=self.model,
+            paths=self.optimizer.paths
+        )
 
     @property
     def model_results(self) -> str:
@@ -154,6 +165,24 @@ class Aggregator:
             A list of optimizers, one for each phase in the directory that matches the filters.
         """
         return [phase.optimizer for phase in self.phases_with(**kwargs)]
+
+    def outputs_with(
+            self, **kwargs
+    ) -> [Output]:
+        """
+        Load a list of optimizer outputs for phases in the directory with zero or more filters applied.
+
+        Parameters
+        ----------
+        kwargs
+            Filters, e.g. pipeline=pipeline1
+
+        Returns
+        -------
+        outputs
+            A list of outputs, one for each phase
+        """
+        return [phase.output for phase in self.phases_with(**kwargs)]
 
     def model_results(self, **kwargs) -> str:
         """
