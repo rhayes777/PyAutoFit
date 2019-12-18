@@ -1,3 +1,5 @@
+import pytest
+
 import autofit as af
 
 
@@ -13,7 +15,10 @@ class MockPhaseOutput:
         self.dataset = dataset
 
 
-def test_filter():
+@pytest.fixture(
+    name="aggregator"
+)
+def make_aggregator():
     aggregator = af.Aggregator("")
     aggregator.phases = [
         MockPhaseOutput(
@@ -32,7 +37,10 @@ def test_filter():
             "dataset2"
         )
     ]
+    return aggregator
 
+
+def test_filter(aggregator):
     result = aggregator.filter(
         pipeline="pipeline1"
     )
