@@ -1,22 +1,24 @@
 import os
 import pickle
+from abc import ABC, abstractmethod
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.optimize import grid_search
+from autofit.optimize.non_linear.paths import Paths
 from autofit.tools.promise import PromiseResult
 
 
 class AbstractPhase:
     @convert_paths
     def __init__(
-        self,
-        paths,
-        *,
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        model=None,
+            self,
+            paths: Paths,
+            *,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
     ):
         """
         A phase in an lens pipeline. Uses the set non_linear optimizer to try to
@@ -121,15 +123,33 @@ class AbstractPhase:
         self.save_optimizer_for_phase()
 
 
+class Dataset(ABC):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """
+        The name of this data for use in querying
+        """
+
+    def save(self, directory):
+        with open(f"{directory}/{self.name}.pickle", "wb") as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, filename):
+        with open(filename, "rb") as f:
+            return pickle.load(f)
+
+
 class Phase(AbstractPhase):
     @convert_paths
     def __init__(
-        self,
-        paths,
-        *,
-        analysis_class,
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        model=None,
+            self,
+            paths,
+            *,
+            analysis_class,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
     ):
         super().__init__(paths, optimizer_class=optimizer_class, model=model)
         self.analysis_class = analysis_class
@@ -140,7 +160,7 @@ class Phase(AbstractPhase):
     def make_analysis(self, dataset, results):
         return self.analysis_class(dataset, results)
 
-    def run(self, dataset, results=None):
+    def run(self, dataset: Dataset, results=None):
         """
         Run this phase.
 
@@ -193,12 +213,12 @@ def as_grid_search(phase_class, parallel=False):
     class GridSearchExtension(phase_class):
         @convert_paths
         def __init__(
-            self,
-            paths,
-            *,
-            number_of_steps=4,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            **kwargs,
+                self,
+                paths,
+                *,
+                number_of_steps=4,
+                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                **kwargs,
         ):
             super().__init__(paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
