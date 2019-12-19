@@ -50,10 +50,7 @@ class PhaseOutput:
         """
         An object describing the output data from the nonlinear search performed in this phase
         """
-        return Output(
-            model=self.model,
-            paths=self.optimizer.paths
-        )
+        return Output(model=self.model, paths=self.optimizer.paths)
 
     @property
     def model_results(self) -> str:
@@ -69,11 +66,7 @@ class PhaseOutput:
         The dataset that this phase ran on
         """
         with open(
-                os.path.join(
-                    self.directory,
-                    f"{self.dataset_name}.pickle"
-                ),
-                "rb"
+            os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -136,15 +129,7 @@ class AggregatorGroup:
         -------
         A collection of groups of the same length with each group having the same or fewer members.
         """
-        return AggregatorGroup(
-            [
-                group.filter(
-                    **kwargs
-                )
-                for group
-                in self.groups
-            ]
-        )
+        return AggregatorGroup([group.filter(**kwargs) for group in self.groups])
 
     def __getitem__(self, item):
         return self.groups[item]
@@ -153,10 +138,7 @@ class AggregatorGroup:
         return len(self.groups)
 
     def __getattr__(self, item):
-        return [
-            getattr(group, item)
-            for group in self.groups
-        ]
+        return [getattr(group, item) for group in self.groups]
 
 
 class AbstractAggregator:
@@ -208,20 +190,13 @@ class AbstractAggregator:
         -------
         An aggregator comprising all phases that match the filters.
         """
-        return AbstractAggregator(
-            phases=self.phases_with(
-                **kwargs
-            )
-        )
+        return AbstractAggregator(phases=self.phases_with(**kwargs))
 
     def __getattr__(self, item):
         """
         If an attribute is not found then attempt to grab a list of values from the underlying phases
         """
-        return [
-            getattr(phase, item)
-            for phase in self.phases
-        ]
+        return [getattr(phase, item) for phase in self.phases]
 
     def group_by(self, field: str) -> AggregatorGroup:
         """
@@ -241,12 +216,7 @@ class AbstractAggregator:
         group_dict = defaultdict(list)
         for phase in self.phases:
             group_dict[getattr(phase, field)].append(phase)
-        return AggregatorGroup(
-            list(map(
-                AbstractAggregator,
-                group_dict.values())
-            )
-        )
+        return AggregatorGroup(list(map(AbstractAggregator, group_dict.values())))
 
     @property
     def model_results(self) -> str:
@@ -254,10 +224,7 @@ class AbstractAggregator:
         A string joining headers and results for all included phases.
         """
         return "\n\n".join(
-            "{}\n\n{}".format(
-                phase.header,
-                phase.model_results
-            )
+            "{}\n\n{}".format(phase.header, phase.model_results)
             for phase in self.phases
         )
 
@@ -288,16 +255,10 @@ class Aggregator(AbstractAggregator):
                 phases.append(PhaseOutput(root))
 
         if len(phases) == 0:
-            print(
-                f"\nNo phases found in {directory}\n"
-            )
+            print(f"\nNo phases found in {directory}\n")
         else:
-            paths_string = "\n".join(
-                phase.directory for phase in phases
-            )
-            print(
-                f"\nPhases were found in these directories:\n\n{paths_string}\n"
-            )
+            paths_string = "\n".join(phase.directory for phase in phases)
+            print(f"\nPhases were found in these directories:\n\n{paths_string}\n")
         super().__init__(phases)
 
 

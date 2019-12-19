@@ -14,11 +14,11 @@ from autofit.tools.promise import PromiseResult
 class AbstractPhase:
     @convert_paths
     def __init__(
-            self,
-            paths: Paths,
-            *,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            model=None,
+        self,
+        paths: Paths,
+        *,
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        model=None,
     ):
         """
         A phase in an lens pipeline. Uses the set non_linear optimizer to try to
@@ -88,7 +88,7 @@ class AbstractPhase:
                     self.paths.phase_name,
                     data_name,
                     self.paths.phase_tag,
-                    pipeline_tag
+                    pipeline_tag,
                 )
             )
 
@@ -172,12 +172,12 @@ class Dataset(ABC):
 class Phase(AbstractPhase):
     @convert_paths
     def __init__(
-            self,
-            paths,
-            *,
-            analysis_class,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            model=None,
+        self,
+        paths,
+        *,
+        analysis_class,
+        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+        model=None,
     ):
         super().__init__(paths, optimizer_class=optimizer_class, model=model)
         self.analysis_class = analysis_class
@@ -242,12 +242,12 @@ def as_grid_search(phase_class, parallel=False):
     class GridSearchExtension(phase_class):
         @convert_paths
         def __init__(
-                self,
-                paths,
-                *,
-                number_of_steps=4,
-                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-                **kwargs,
+            self,
+            paths,
+            *,
+            number_of_steps=4,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            **kwargs,
         ):
             super().__init__(paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
