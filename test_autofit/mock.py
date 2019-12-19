@@ -5,10 +5,11 @@ import autofit as af
 
 # noinspection PyAbstractClass
 from autofit import Paths
-from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
+from autofit.optimize.non_linear.output import Output
+from autofit.tools.phase import Dataset
 
 
-class MockNonLinearOptimizer(MultiNestOutput):
+class MockNonLinearOptimizer(Output):
     def __init__(
         self,
         phase_name,
@@ -578,3 +579,9 @@ class Result:
 
 class HyperGalaxy(object):
     pass
+
+
+class MockDataset(Dataset):
+    @property
+    def name(self) -> str:
+        return "name"

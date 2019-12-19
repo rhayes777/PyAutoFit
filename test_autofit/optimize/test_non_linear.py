@@ -6,7 +6,7 @@ import pytest
 
 import autofit as af
 from autofit import ModelMapper, Paths
-from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
+from autofit.optimize.non_linear.output import Output
 from test_autofit.mock import (
     GeometryProfile,
     MockClassNLOx4,
@@ -308,7 +308,7 @@ class TestOffsetFromInput:
 
 @pytest.fixture(name="optimizer")
 def make_optimizer():
-    return MultiNestOutput(ModelMapper(), Paths(phase_name=""))
+    return Output(ModelMapper(), Paths(phase_name=""))
 
 
 class TestLabels(object):

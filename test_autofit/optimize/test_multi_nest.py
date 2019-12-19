@@ -6,7 +6,7 @@ import pytest
 
 import autofit as af
 from autofit import Paths
-from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
+from autofit.optimize.non_linear.output import Output
 from test_autofit.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -258,7 +258,7 @@ class TestNLOInheritance:
         mapper = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
 
         create_summary_10_parameters(path=mn.paths.backup_path)
 
@@ -292,7 +292,7 @@ class TestNLOInheritance:
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)
         mapper.mock_class.five = 10.0
 
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_summary_4_parameters(path=mn.paths.backup_path)
 
         most_probable = mn.most_probable_model_instance
@@ -309,7 +309,7 @@ class TestNLOInheritance:
         mapper = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
 
         create_summary_10_parameters(path=mn.paths.backup_path)
 
@@ -340,7 +340,7 @@ class TestNLOInheritance:
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)
         mapper.mock_class.five = 10.0
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_summary_4_parameters(path=mn.paths.backup_path)
 
         most_likely = mn.most_likely_model_instance
@@ -355,7 +355,7 @@ class TestNLOInheritance:
         af.conf.instance.output_path = mn_priors_path
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
 
         create_gaussian_prior_summary_4_parameters(path=mn.paths.backup_path)
         create_weighted_samples_4_parameters(path=mn.paths.backup_path)
@@ -387,7 +387,7 @@ class TestNLOInheritance:
         af.conf.instance.output_path = mn_summary_path + "/1_class"
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_summary_4_parameters(path=mn.paths.backup_path)
 
         # mn.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
@@ -403,7 +403,7 @@ class TestNLOInheritance:
         mapper = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_summary_10_parameters(path=mn.paths.backup_path)
 
         # mn.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
@@ -444,7 +444,7 @@ class TestSamples(object):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_weighted_samples_4_parameters(path=mn.paths.backup_path)
 
         model = mn.sample_model_parameters_from_sample_index(sample_index=0)
@@ -483,7 +483,7 @@ class TestSamples(object):
         mapper = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_weighted_samples_10_parameters(path=mn.paths.backup_path)
 
         model = mn.sample_model_parameters_from_sample_index(sample_index=0)
@@ -530,7 +530,7 @@ class TestLimits(object):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_weighted_samples_4_parameters(path=mn.paths.backup_path)
 
         params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=3.0)
@@ -542,7 +542,7 @@ class TestLimits(object):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_weighted_samples_4_parameters(path=mn.paths.backup_path)
 
         params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=1.0)
@@ -556,7 +556,7 @@ class TestLimits(object):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_weighted_samples_4_parameters(path=mn.paths.backup_path)
 
         model_errors = mn.model_errors_at_sigma_limit(sigma_limit=3.0)
@@ -576,7 +576,7 @@ class TestLimits(object):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = MultiNestOutput(mapper, Paths())
+        mn = Output(mapper, Paths())
         create_weighted_samples_4_parameters(path=mn.paths.backup_path)
 
         model_errors = mn.model_errors_at_sigma_limit(sigma_limit=1.0)

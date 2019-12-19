@@ -1,7 +1,7 @@
 import math
 import os
 
-from autofit import conf, exc
+from autofit import conf
 from autofit.tools import text_formatter, text_util
 
 
@@ -10,28 +10,28 @@ class Output:
         self.model = model
         self.paths = paths
 
-    @property
-    def most_probable_model_parameters(self):
-        raise NotImplementedError()
-
-    @property
-    def most_likely_model_parameters(self):
-        """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lens.
-
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
-        """
-        raise NotImplementedError()
-
-    @property
-    def evidence(self):
-        raise NotImplementedError()
-
-    @property
-    def maximum_log_likelihood(self):
-        raise NotImplementedError()
+    # @property
+    # def most_probable_model_parameters(self):
+    #     raise NotImplementedError()
+    #
+    # @property
+    # def most_likely_model_parameters(self):
+    #     """
+    #     Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
+    #     multinest lens.
+    #
+    #     This file stores the parameters of the most probable model in the first half of entries and the most likely
+    #     model in the second half of entries. The offset parameter is used to start at the desired model.
+    #     """
+    #     raise NotImplementedError()
+    #
+    # @property
+    # def evidence(self):
+    #     raise NotImplementedError()
+    #
+    # @property
+    # def maximum_log_likelihood(self):
+    #     raise NotImplementedError()
 
     def gaussian_priors_at_sigma_limit(self, sigma_limit):
         """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
@@ -60,21 +60,21 @@ class Output:
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def model_parameters_at_sigma_limit(self, sigma_limit):
-        raise NotImplementedError()
-
-    def model_parameters_at_upper_sigma_limit(self, sigma_limit):
-        raise NotImplementedError()
-
-    def model_parameters_at_lower_sigma_limit(self, sigma_limit):
-        raise NotImplementedError
-
-    @property
-    def total_samples(self):
-        raise NotImplementedError()
-
-    def sample_model_parameters_from_sample_index(self, sample_index):
-        raise NotImplementedError()
+    # def model_parameters_at_sigma_limit(self, sigma_limit):
+    #     raise NotImplementedError()
+    #
+    # def model_parameters_at_upper_sigma_limit(self, sigma_limit):
+    #     raise NotImplementedError()
+    #
+    # def model_parameters_at_lower_sigma_limit(self, sigma_limit):
+    #     raise NotImplementedError
+    #
+    # @property
+    # def total_samples(self):
+    #     raise NotImplementedError()
+    #
+    # def sample_model_parameters_from_sample_index(self, sample_index):
+    #     raise NotImplementedError()
 
     @property
     def most_probable_model_instance(self):
@@ -247,8 +247,7 @@ class Output:
             file=self.paths.file_param_names, list_of_strings=paramnames
         )
 
-
-class MultiNestOutput(Output):
+    # class Output(Output):
     def read_list_of_results_from_summary_file(self, number_entries, offset):
 
         summary = open(self.paths.file_summary)

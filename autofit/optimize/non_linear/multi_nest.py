@@ -4,7 +4,7 @@ import numpy as np
 import pymultinest
 
 from autofit import conf, exc
-from autofit.optimize.non_linear.multi_nest_output import MultiNestOutput
+from autofit.optimize.non_linear.output import Output
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import persistent_timer
@@ -124,7 +124,7 @@ class MultiNest(NonLinearOptimizer):
 
     @persistent_timer
     def fit(self, analysis, model):
-        multinest_output = MultiNestOutput(model, self.paths)
+        multinest_output = Output(model, self.paths)
 
         multinest_output.save_model_info()
 

@@ -1,7 +1,6 @@
-from autofit.optimize.non_linear.mock_nlo import MockNLO, MockAnalysis
-
-from test_autofit import mock
 import autofit as af
+from autofit.optimize.non_linear.mock_nlo import MockNLO, MockAnalysis
+from test_autofit import mock
 
 
 def make_pipeline_1(name, phase_folders, optimizer_class):
@@ -33,5 +32,5 @@ def make_pipeline(name, phase_folders=tuple(), optimizer_class=MockNLO):
 
 
 def test_pipeline_composition():
-    results = make_pipeline("test").run(None)
+    results = make_pipeline("test").run(mock.MockDataset())
     assert results[0].model.redshift.mean == results[1].model.redshift.mean

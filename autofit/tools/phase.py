@@ -1,11 +1,13 @@
 import os
 import pickle
+from abc import ABC, abstractmethod
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.optimize import grid_search
+from autofit.optimize.non_linear.paths import Paths
 from autofit.tools.promise import PromiseResult
 
 
@@ -13,7 +15,7 @@ class AbstractPhase:
     @convert_paths
     def __init__(
         self,
-        paths,
+        paths: Paths,
         *,
         optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
         model=None,
@@ -74,15 +76,19 @@ class AbstractPhase:
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.model))
 
-    def save_metadata(self, data_name, pipeline_name):
+    def save_metadata(self, data_name, pipeline_name, pipeline_tag):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
-                "pipeline={}\nphase={}\nsimulator={}".format(
-                    pipeline_name, self.paths.phase_name, data_name
+                "pipeline={}\nphase={}\ndataset_name={}\nphase_tag={}\npipeline_tag={}".format(
+                    pipeline_name,
+                    self.paths.phase_name,
+                    data_name,
+                    self.paths.phase_tag,
+                    pipeline_tag,
                 )
             )
 
@@ -121,6 +127,48 @@ class AbstractPhase:
         self.save_optimizer_for_phase()
 
 
+class Dataset(ABC):
+    """
+    Comprises the data that is fit by the pipeline. May also contain meta data, noise, PSF, etc.
+    """
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """
+        The name of this data for use in querying
+        """
+
+    def save(self, directory: str):
+        """
+        Save this instance as a pickle with the dataset name in the given directory.
+
+        Parameters
+        ----------
+        directory
+            The directory to save into
+        """
+        with open(f"{directory}/{self.name}.pickle", "wb") as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, filename) -> "Dataset":
+        """
+        Load the dataset at the specified filename
+
+        Parameters
+        ----------
+        filename
+            The filename containing the dataset
+
+        Returns
+        -------
+        The dataset
+        """
+        with open(filename, "rb") as f:
+            return pickle.load(f)
+
+
 class Phase(AbstractPhase):
     @convert_paths
     def __init__(
@@ -140,7 +188,7 @@ class Phase(AbstractPhase):
     def make_analysis(self, dataset, results):
         return self.analysis_class(dataset, results)
 
-    def run(self, dataset, results=None):
+    def run(self, dataset: Dataset, results=None):
         """
         Run this phase.
 
@@ -156,6 +204,7 @@ class Phase(AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising the best fit model and other hyper_galaxies.
         """
+        dataset.save(self.paths.phase_output_path)
         self.model = self.model.populate(results)
 
         analysis = self.make_analysis(dataset=dataset, results=results)
