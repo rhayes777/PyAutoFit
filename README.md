@@ -38,13 +38,42 @@ phase = al.PhaseImaging(
 phase.run(dataset=dataset)
 ```
 
-By interfacing with model components as Python classes, **PyAutoFit** takes care of the 'heavy lifting' that comes with   performing the fit, for example parametrizing the model, interfacing with the non-linear search and on-the-fly output and visusalization of the model-fit.
+By interfacing with Python classes **PyAutoFit** takes care of the 'heavy lifting' that comes with parametrizing and fitting model. This includes interfacing with a range of non-linear search methods, outputting results in an ordered directory structure and providing on-the-fly output and visusalization of the fit.
 
 ## Features
 
+# Model Customization
+
+**PyAutoFit** makes it straight forward to parameterize, customize and fit models made of multiple components. Below, we extend the example above to include a second Gaussian, with user-specified priors and a centre that is aligned with the first Gaussian:
+
+```python
+import autofit as af
+
+# The model can be setup with multiple classes and before passing it to a phase,
+# we can customize the model parameters.
+
+model = af.CollectionPriorModel(gaussian_0=af.Gaussian, gaussian_1=af.Gaussian)
+
+# This aligns the centres of the two Gaussian, reducing the number of free parameters fitted for by 2.
+model.gaussian_0.centre = model.gaussian_1.centre
+
+# We can customize the priors on any model parameter.
+model.gaussian_0.sigma = af.UniformPior(lower_limit=0.0, upper_limit=2.0)
+model.gaussian_1.intensity = af.LogUniformPrior(lower_limit=1e-6, upper_limit=1e6)
+model.gaussian_1.sigma = af.GaussianPrior(mean=0.1, sigma=0.05)
+
+phase = al.PhaseImaging(
+    phase_name="example/phase_example",
+    model=model,
+    optimizer_class=af.MultiNest,
+)
+```
+
 # Aggregation
 
-Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. All **PyAutoFit** outputs contain metadata that enables them to be immediately loaded via the **aggregator** in Python script or Jupyter notebook:
+For fits to large data-sets **PyAutoFit** provides tools inspect and interpret the vast library of results output. 
+
+Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. All **PyAutoFit** outputs contain metadata that enables them to be immediately loaded via the **aggregator** in a Python script or Jupyter notebook:
 
 
 ```python
@@ -64,34 +93,24 @@ non_linear_outputs = aggregator.filter(
 ).output
 ```
 
-For fits to large data-sets **PyAutoFit** thus provides the tools necessary to feasibly inspect and interpret the large quantity of results. If many different models are fitted to a data-set, the aggregator provides tools to filter the results loaded.
-
-# Model Mapping
-
-When a problem 
-
-The benefits of using **PyAutoFit** are:
-
-- **Model Mapping** - Interfacing with Python class
-
-**PyAutoFit** specializes in advanced model-fitting problems, where highly complex models with many plausible model paramertizations are fitted. **PyAutoFit** breaks the model-fitting procedure into a series of **linked non-linear searches**, or 'phases', where the results of earlier phases initialize the fitting of more complex models in later phases.
-
-This allows **transdimensional model-fitting pipelines** to be built that enable fitting of extremely complex and high dimensional models to be reduced to a series of bite-sized model fits, such that even the most complex model fitting task can be **fully automated**. 
+If many different phases are used to perform different model-fits to a data-set, the aggregator provides tools to filter the results loaded.
 
 ## Transdimensional Modeling
 
-and allows automated transdimensional model-fitting pipelines for large data-sets to be written, by acting as an interface between Python classes
+**PyAutoFit** specializes in transdimensional modeling, where many different highly complex models are paramertized and fitted to the same data-set.  
 
-## Python Example
+This is performed using **transdimensional model-fitting pipelines**, which break the model-fit into a series of **linked non-linear searches**, or phases. Initial phases fir simplified realizations of the model, whose results are used to initialize fits using more complex models in later phases. 
 
-We will illustrate this with an example fitting two 2D Gaussians:
+In this way, complex models with large dimensionality can be broken down into a series of **bite-sized model fits**, allowing even the most complex model fitting problem to be **fully automated**. 
+
+Lets illustrate this with an example fitting two 2D Gaussians:
 
 ![alt text](https://github.com/rhayes777/PyAutoFit/blob/master/gaussian_example.png)
 
-We are going to fit each Gaussian with a 2D Gaussian pofile. Traditional methods would both Gaussians simultaneously, making parameter space more complex, slower to sample and increasing the risk that we fail to locate the global maxima solution. With **PyAutoFit** we can instead build a transdimensional model fitting pipeline which breaks the the analysis down into 3 phases:
+We're going to fit each with the 2D Gaussian profile above. Traditional approaches would fit both Gaussians simultaneously, making parameter space more complex, slower to sample and increasing the risk that we fail to locate the global maxima solution. With **PyAutoFit** we can instead build a transdimensional model fitting pipeline which breaks the the analysis down into 3 phases:
 
 1) Fit only the left Gaussian.
-2) Fit only the right Gaussian, using the model of the left Gaussian from phase 1 to improve their deblending.
+2) Fit only the right Gaussian, using the model of the left Gaussian from phase 1 to reduce blending.
 3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the non-linear optimizer searches parameter space.
 
 
@@ -104,7 +123,7 @@ def make_pipeline():
 
     phase1 = af.Phase(
         phase_name="phase_1__left_gaussian",
-        gaussians=af.CollectionPriorModel(gaussian_0=af.profiles.SphericalGaussian),
+        gaussians=af.CollectionPriorModel(gaussian_0=af.profiles.Gaussian),
         optimizer_class=af.MultiNest,
     )
 
@@ -136,24 +155,16 @@ def make_pipeline():
     return toy.Pipeline(pipeline_name, phase1, phase2, phase3)
 ```
 
-Of course, fitting two Gaussians is a fairly trivial model-fitting problem that does not require **PyAutoFit**. Nevertheless, the example above illustrates how one can break a model-fitting task down with **PyAutoFit**, an approach which is crucial for the following software packages: 
+Althoguh somewhat trivial, this example illustrates how easily a model-fit can be broken down with **PyAutoFit**.
 
-- [PyAutoLens](https://github.com/Jammy2211/PyAutoLens) - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this example, a 5-phase **PyAutoFit** pipeline performs strong lens modeling using 10 different model components producing models with 20-40 parameters.
-
-## Features
-
-Advanced statistical modeling features in **PyAutoFit** include:
-
-- **Model Mapping** - Interface with Python classes to define and fit complex models parameterized with many different model components.
-- **Pipelines** - Write transdimensional analysis pipelines to fit complex models to large data-sets in a fully automated way.
-- **Non-linear Optimizers** - Combine a variety of non-linear search techniques (e.g. gradient descent, nested sampling, MCMC).
-- **Aggregation** - Model results are stored in a database format that enables quick manipulate of large sets of results for inspection and interpretation.
+[PyAutoLens](https://github.com/Jammy2211/PyAutoLens) shows a real-use case of transdimensional modeling, which fits galaxy-scale strong gravitational lenses. In this example pipeline, a 5-phase **PyAutoFit** pipeline is used to fit models composed of over 10 unique model components and composed of 10-30 free parameters.
 
 ## Future
 
 The following features are planned for 2020:
 
-- **Generalized Linear Models** - After fitting a large suite of data fit for global trends in the **PyAutoFit** model results.
+- **Bayesian Model Comparison** - Determine the most probable model via the Bayesian evidence.
+- **Generalized Linear Models** - Fit for global trends to model fits to large data-sets.
 - **Hierarchical modeling** - Combine fits over multiple data-sets to perform hierarchical inference.
 - **Time series modelling** - Fit temporally varying models using fits which marginalize over time.
 - **Approximate Bayesian Computational** - Likelihood-free modeling.
