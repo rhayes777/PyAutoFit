@@ -1,6 +1,8 @@
 # PyAutoFit
 
-**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan)lternatives, **PyAutoFit** specializes in  problems for fitting **very large-datasets** with **many different models**, with advanced functionality including **transdimensional model-fitting**.
+**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. 
+
+In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan), **PyAutoFit** specializes in  problems for fitting **very large-datasets** with **many different models**, with advanced functionality including **transdimensional model-fitting**.
 
 ## API Overview
 
