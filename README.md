@@ -1,10 +1,84 @@
 # PyAutoFit
 
-**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. **PyAutoFit** allows automated transdimensional model-fitting pipelines for large data-sets to be written, by acting as an interface between Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html).
+**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan)lternatives, **PyAutoFit** specializes in  problems for fitting **very large-datasets** with **many different models**, with advanced functionality including **transdimensional model-fitting**.
+
+## API Overview
+
+**PyAutoFit** interfaces with Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html). Lets take a two-dimensional Gaussian as our moodel:
+
+```python
+class Gaussian(object):
+
+    def __init__(
+        self,
+        centre = (0.0, 0.0), # <- PyAutoFit recognises these constructor arguments are the model
+        intensity = 0.1,     # <- parameters of Gaussian profile.
+        sigma = 0.01,
+    ):
+        self.centre = centre
+        self.intensity = intensity
+        self.sigma = sigma
+```
+**PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters could be fitted for by a non-linear search. To fit this Gaussian to some data we can create and run a **PyAutoFit** phase: 
+
+```python
+import autofit as af
+
+# To perform the analysis we set up a phase, which takes a Gaussian class as the model & fits its parameters
+# using a non-linear search (below, MultiNest).
+phase = al.PhaseImaging(
+    phase_name="example/phase_example",
+    model=af.CollectionPriorModel(gaussian_0=af.Gaussian),
+    optimizer_class=af.MultiNest,
+)
+
+# We pass a dataset to the phase, fitting it with the model above.
+phase.run(dataset=dataset)
+```
+
+By interfacing with model components as Python classes, **PyAutoFit** takes care of the 'heavy lifting' that comes with   performing the fit, for example parametrizing the model, interfacing with the non-linear search and on-the-fly output and visusalization of the model-fit.
+
+## Features
+
+# Aggregation
+
+Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. All **PyAutoFit** outputs contain metadata that enables them to be immediately loaded via the **aggregator** in Python script or Jupyter notebook:
+
+
+```python
+output_folder = "/path/to/gaussian_x100_fits/"
+phase_name = "phase_example"
+
+# First, we create an instance of the aggregator, which takes the output path as input, telling it where to load
+# results from.
+aggregator = af.Aggregator(
+    directory=str(output_folder)
+)
+
+# We can get the output of every non-linear search of every data-set fitted using the phase above.
+
+non_linear_outputs = aggregator.filter(
+    phase=phase_name
+).output
+```
+
+For fits to large data-sets **PyAutoFit** thus provides the tools necessary to feasibly inspect and interpret the large quantity of results. If many different models are fitted to a data-set, the aggregator provides tools to filter the results loaded.
+
+# Model Mapping
+
+When a problem 
+
+The benefits of using **PyAutoFit** are:
+
+- **Model Mapping** - Interfacing with Python class
 
 **PyAutoFit** specializes in advanced model-fitting problems, where highly complex models with many plausible model paramertizations are fitted. **PyAutoFit** breaks the model-fitting procedure into a series of **linked non-linear searches**, or 'phases', where the results of earlier phases initialize the fitting of more complex models in later phases.
 
 This allows **transdimensional model-fitting pipelines** to be built that enable fitting of extremely complex and high dimensional models to be reduced to a series of bite-sized model fits, such that even the most complex model fitting task can be **fully automated**. 
+
+## Transdimensional Modeling
+
+and allows automated transdimensional model-fitting pipelines for large data-sets to be written, by acting as an interface between Python classes
 
 ## Python Example
 
@@ -18,23 +92,6 @@ We are going to fit each Gaussian with a 2D Gaussian pofile. Traditional methods
 2) Fit only the right Gaussian, using the model of the left Gaussian from phase 1 to improve their deblending.
 3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the non-linear optimizer searches parameter space.
 
-**PyAutoFit** determines the components of a model by interacting with Python classes. For this example we use the SphericalGaussian class:
-
-```python
-class SphericalGaussian(object):
-
-    def __init__(
-        self,
-        centre = (0.0, 0.0), # <- PyAutoFit recognises these constructor arguments are the model
-        intensity = 0.1,     # <- parameters of SphericalGaussian profile.
-        sigma = 0.01,
-    ):
-        self.centre = centre
-        self.intensity = intensity
-        self.sigma = sigma
-```
-
-This model, and its model parameters, are then used by PyAutoFit to build our 3 phase model-fitting pipeline:
 
 ```python
 import autofit as af
@@ -80,12 +137,6 @@ def make_pipeline():
 Of course, fitting two Gaussians is a fairly trivial model-fitting problem that does not require **PyAutoFit**. Nevertheless, the example above illustrates how one can break a model-fitting task down with **PyAutoFit**, an approach which is crucial for the following software packages: 
 
 - [PyAutoLens](https://github.com/Jammy2211/PyAutoLens) - Software for fitting galaxy-galaxy strong gravitational lensing systems. In this example, a 5-phase **PyAutoFit** pipeline performs strong lens modeling using 10 different model components producing models with 20-40 parameters.
-
-## Yet Another Probablistic Programming Language?
-
-There already exist many options for incorporating Bayesian inference techniques into model fitting problems, such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan). These packages allow simple models to be quickly defined, parametrized and fitted to data.
-
-**PyAutoFit** focuses on complex model-fitting tasks, where many models parameterized in different ways are fitted. This problem necessiates model-fitting pipelines like that shown in the example above. If you're problem doesn't require such complex model fitting, you probably don't need to use **PyAutoFit**! 
 
 ## Features
 
