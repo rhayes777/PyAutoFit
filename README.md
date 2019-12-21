@@ -27,7 +27,7 @@ class Gaussian(object):
 import autofit as af
 
 # To perform the analysis we set up a phase, which takes a Gaussian class as the 
-model & fits its parameters using a non-linear search (below, MultiNest).
+# model & fits its parameters using a non-linear search (below, MultiNest).
 phase = al.PhaseImaging(
     phase_name="example/phase_example",
     model=af.CollectionPriorModel(gaussian_0=af.Gaussian),
