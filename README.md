@@ -1,8 +1,8 @@
 # PyAutoFit
 
-**PyAutoFit** is a Python-based probablistic programming language that enables contemporary Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. 
+**PyAutoFit** is a Python-based probablistic programming language that allows Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. 
 
-In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan), **PyAutoFit** specializes in  problems for fitting **very large-datasets** with **many different models**, with advanced functionality including **transdimensional model-fitting**.
+In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan), **PyAutoFit** specializes in fitting **very large-datasets** with **many different models**, with advanced functionality using **transdimensional model-fitting**.
 
 ## API Overview
 
@@ -71,7 +71,7 @@ phase = al.PhaseImaging(
 
 # Aggregation
 
-For fits to large data-sets **PyAutoFit** provides tools inspect and interpret the vast library of results output. 
+For fits to large data-sets **PyAutoFit** provides tools to inspect and interpret the vast library of results output. 
 
 Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. All **PyAutoFit** outputs contain metadata that enables them to be immediately loaded via the **aggregator** in a Python script or Jupyter notebook:
 
@@ -99,9 +99,9 @@ If many different phases are used to perform different model-fits to a data-set,
 
 **PyAutoFit** specializes in transdimensional modeling, where many different highly complex models are paramertized and fitted to the same data-set.  
 
-This is performed using **transdimensional model-fitting pipelines**, which break the model-fit into a series of **linked non-linear searches**, or phases. Initial phases fir simplified realizations of the model, whose results are used to initialize fits using more complex models in later phases. 
+This is performed using **transdimensional model-fitting pipelines**, which break the model-fit into a series of **linked non-linear searches**, or phases. Initial phases fit simplified realizations of the model, whose results are used to initialize fits using more complex models in later phases. 
 
-In this way, complex models with large dimensionality can be broken down into a series of **bite-sized model fits**, allowing even the most complex model fitting problem to be **fully automated**. 
+Fits of complex models with large dimensionality can therefore be broken down into a series of **bite-sized model fits**, allowing even the most complex model fitting problem to be **fully automated**. 
 
 Lets illustrate this with an example fitting two 2D Gaussians:
 
@@ -157,7 +157,7 @@ def make_pipeline():
 
 Althoguh somewhat trivial, this example illustrates how easily a model-fit can be broken down with **PyAutoFit**.
 
-[PyAutoLens](https://github.com/Jammy2211/PyAutoLens) shows a real-use case of transdimensional modeling, which fits galaxy-scale strong gravitational lenses. In this example pipeline, a 5-phase **PyAutoFit** pipeline is used to fit models composed of over 10 unique model components and composed of 10-30 free parameters.
+[PyAutoLens](https://github.com/Jammy2211/PyAutoLens) shows a real-use case of transdimensional modeling, fitting galaxy-scale strong gravitational lenses. In this example pipeline, a 5-phase **PyAutoFit** pipeline breaks-down the fit of 5 diferent models composed of over 10 unique model components and 10-30 free parameters.
 
 ## Future
 
