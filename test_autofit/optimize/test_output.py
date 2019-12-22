@@ -131,58 +131,17 @@ class TestOutput:
         assert gaussian_priors[2][1] == pytest.approx(0.12, 1e-2)
         assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
 
-    def test__offset_from_input(self, mn_summary_path):
-        af.conf.instance.output_path = mn_summary_path + "/1_class"
+    def test__values_offset_from_input_model_parameters(self):
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        output = AbstractOutput(model, Paths())
-        create_summary_4_parameters(path=output.paths.backup_path)
+        output = MockOutput(model=model, paths=Paths(),
+                            most_probable_model_parameters=[1.0, -2.0, 3.0, 4.0])
 
-        # output.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
-
-        offset_values = output.offset_values_from_input_model_parameters(
+        offset_values = output.values_offset_from_input_model_parameters(
             input_model_parameters=[1.0, 1.0, 2.0, 3.0]
         )
 
         assert offset_values == [0.0, -3.0, 1.0, 1.0]
-
-        af.conf.instance.output_path = mn_summary_path + "/2_classes"
-
-        model = af.ModelMapper(
-            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
-        )
-        output = AbstractOutput(model, Paths())
-        create_summary_10_parameters(path=output.paths.backup_path)
-
-        # output.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
-
-        offset_values = output.offset_values_from_input_model_parameters(
-            input_model_parameters=[
-                1.0,
-                1.0,
-                2.0,
-                3.0,
-                10.0,
-                10.0,
-                10.0,
-                10.0,
-                10.0,
-                20.0,
-            ]
-        )
-
-        assert offset_values == [
-            0.0,
-            1.0,
-            1.0,
-            1.0,
-            -15.0,
-            -16.0,
-            -17.0,
-            -18.0,
-            -1.0,
-            -10.0,
-        ]
 
 
 class TestSamples(object):

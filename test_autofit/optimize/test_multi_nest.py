@@ -319,60 +319,6 @@ class TestMultiNestOutput:
         assert params[2][0:2] == pytest.approx((2.93, 3.07), 1e-2)
         assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
 
-    def test__offset_from_input(self, mn_summary_path):
-        af.conf.instance.output_path = mn_summary_path + "/1_class"
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
-        create_summary_4_parameters(path=multinest_output.paths.backup_path)
-
-        # multinest_output.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
-
-        offset_values = multinest_output.offset_values_from_input_model_parameters(
-            input_model_parameters=[1.0, 1.0, 2.0, 3.0]
-        )
-
-        assert offset_values == [0.0, -3.0, 1.0, 1.0]
-
-        af.conf.instance.output_path = mn_summary_path + "/2_classes"
-
-        model = af.ModelMapper(
-            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
-        )
-        multinest_output = MultiNestOutput(model, Paths())
-        create_summary_10_parameters(path=multinest_output.paths.backup_path)
-
-        # multinest_output.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
-
-        offset_values = multinest_output.offset_values_from_input_model_parameters(
-            input_model_parameters=[
-                1.0,
-                1.0,
-                2.0,
-                3.0,
-                10.0,
-                10.0,
-                10.0,
-                10.0,
-                10.0,
-                20.0,
-            ]
-        )
-
-        assert offset_values == [
-            0.0,
-            1.0,
-            1.0,
-            1.0,
-            -15.0,
-            -16.0,
-            -17.0,
-            -18.0,
-            -1.0,
-            -10.0,
-        ]
-
-
 class TestSamples(object):
     def test__1_class___model_parameters_instance_weight_and_likelihood(
         self, mn_samples_path

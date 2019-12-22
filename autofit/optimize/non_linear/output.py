@@ -167,10 +167,10 @@ class AbstractOutput(object):
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def offset_values_from_input_model_parameters(self, input_model_parameters):
+    def values_offset_from_input_model_parameters(self, input_model_parameters):
         return list(
             map(
-                lambda input, mp: mp - input,
+                lambda input, most_probable: most_probable - input,
                 input_model_parameters,
                 self.most_probable_model_parameters,
             )

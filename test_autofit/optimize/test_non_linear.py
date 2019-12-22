@@ -262,7 +262,7 @@ class TestOffsetFromInput:
             phase_name="", model_mapper=mapper, most_probable=[1.0, -2.0, 3.0, 4.0]
         )
 
-        offset_values = nlo.offset_values_from_input_model_parameters(
+        offset_values = nlo.values_offset_from_input_model_parameters(
             input_model_parameters=[1.0, 1.0, 2.0, 3.0]
         )
 
@@ -277,7 +277,7 @@ class TestOffsetFromInput:
             most_probable=[1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0],
         )
 
-        offset_values = nlo.offset_values_from_input_model_parameters(
+        offset_values = nlo.values_offset_from_input_model_parameters(
             input_model_parameters=[
                 1.0,
                 1.0,
