@@ -4,7 +4,7 @@ import numpy as np
 from autofit.optimize.non_linear.nuts_src import emcee_nuts
 
 from autofit import conf, exc
-from autofit.optimize.non_linear.output import Output
+from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import persistent_timer
@@ -84,7 +84,7 @@ class NUTS(NonLinearOptimizer):
 
     @persistent_timer
     def fit(self, analysis, model):
-        output = Output(model=model, paths=self.paths)
+        output = AbstractOutput(model=model, paths=self.paths)
 
         output.save_model_info()
 

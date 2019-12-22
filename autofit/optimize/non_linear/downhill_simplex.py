@@ -2,7 +2,7 @@ import numpy as np
 import scipy.optimize
 
 from autofit import exc
-from autofit.optimize.non_linear.output import Output
+from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer, persistent_timer
 from autofit.optimize.non_linear.non_linear import logger
 
@@ -54,7 +54,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
     @persistent_timer
     def fit(self, analysis, model):
-        dhs_output = Output(model, self.paths)
+        dhs_output = AbstractOutput(model, self.paths)
         dhs_output.save_model_info()
         initial_vector = model.physical_values_from_prior_medians
 

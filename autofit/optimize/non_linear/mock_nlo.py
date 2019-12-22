@@ -1,12 +1,12 @@
 import math
 
 import autofit as af
-from autofit.optimize.non_linear.output import Output
+from autofit.optimize.non_linear.output import AbstractOutput
 
 
 class MockNLO(af.NonLinearOptimizer):
     def fit(self, analysis, model):
-        mock_output = Output(model, self.paths)
+        mock_output = AbstractOutput(model, self.paths)
         mock_output.save_model_info()
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")

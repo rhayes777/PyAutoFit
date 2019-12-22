@@ -19,7 +19,7 @@ from collections import defaultdict
 from typing import List
 
 import autofit.optimize.non_linear.non_linear
-from autofit.optimize.non_linear.output import Output
+from autofit.optimize.non_linear.output import AbstractOutput
 
 
 class PhaseOutput:
@@ -46,11 +46,11 @@ class PhaseOutput:
             self.__dict__.update({pair[0]: pair[1] for pair in pairs})
 
     @property
-    def output(self) -> Output:
+    def output(self) -> AbstractOutput:
         """
         An object describing the output data from the nonlinear search performed in this phase
         """
-        return Output(model=self.model, paths=self.optimizer.paths)
+        return AbstractOutput(model=self.model, paths=self.optimizer.paths)
 
     @property
     def model_results(self) -> str:

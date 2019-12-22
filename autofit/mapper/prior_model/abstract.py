@@ -152,9 +152,19 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values constructed by taking the mean possible value from
             each prior.
         """
-        return self.physical_vector_from_hypercube_vector(
-            list(np.random.random(self.prior_count))
-        )
+
+        while True:
+
+            physical_vector = self.physical_vector_from_hypercube_vector(
+                list(np.random.random(self.prior_count))
+            )
+
+            try:
+                self.instance_from_physical_vector(physical_vector=physical_vector)
+                return physical_vector
+            except exc.PriorLimitException:
+                pass
+
 
     @property
     def physical_values_from_prior_medians(self):

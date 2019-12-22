@@ -5,7 +5,7 @@ import numpy as np
 
 from autofit import conf, exc
 from autofit.optimize import optimizer as opt
-from autofit.optimize.non_linear.output import Output
+from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.optimize.non_linear.non_linear import (
     NonLinearOptimizer,
     Result,
@@ -174,7 +174,7 @@ class GridSearch(NonLinearOptimizer):
 
     @persistent_timer
     def fit(self, analysis, model):
-        gs_output = Output(model, self.paths)
+        gs_output = AbstractOutput(model, self.paths)
 
         gs_output.save_model_info()
 

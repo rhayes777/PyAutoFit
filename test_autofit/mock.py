@@ -5,11 +5,11 @@ import autofit as af
 
 # noinspection PyAbstractClass
 from autofit import Paths
-from autofit.optimize.non_linear.output import Output
+from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.tools.phase import Dataset
 
 
-class MockNonLinearOptimizer(Output):
+class MockNonLinearOptimizer(AbstractOutput):
     def __init__(
         self,
         phase_name,

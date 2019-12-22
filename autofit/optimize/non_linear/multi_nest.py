@@ -1,10 +1,11 @@
 import logging
 
 import numpy as np
+import math
 import pymultinest
 
 from autofit import conf, exc
-from autofit.optimize.non_linear.output import Output
+from autofit.optimize.non_linear.output import NestedSamplingOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.non_linear import persistent_timer
@@ -124,7 +125,7 @@ class MultiNest(NonLinearOptimizer):
 
     @persistent_timer
     def fit(self, analysis, model):
-        multinest_output = Output(model, self.paths)
+        multinest_output = MultiNestOutput(model, self.paths)
 
         multinest_output.save_model_info()
 
@@ -195,3 +196,200 @@ class MultiNest(NonLinearOptimizer):
         )
         self.paths.backup_zip_remove()
         return result
+
+
+class MultiNestOutput(NestedSamplingOutput):
+
+    @property
+    def pdf(self):
+        import getdist
+
+        return getdist.mcsamples.loadMCSamples(self.paths.backup_path + "/multinest")
+
+    @property
+    def most_probable_model_parameters(self):
+        """
+        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
+        multinest lens.
+
+        This file stores the parameters of the most probable model in the first half of entries and the most likely
+        model in the second half of entries. The offset parameter is used to start at the desired model.
+
+        """
+        return self.read_list_of_results_from_summary_file(
+            number_entries=self.model.prior_count, offset=0
+        )
+
+    @property
+    def most_likely_model_parameters(self):
+        """
+        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
+        multinest lens.
+
+        This file stores the parameters of the most probable model in the first half of entries and the most likely
+        model in the second half of entries. The offset parameter is used to start at the desired model.
+        """
+        return self.read_list_of_results_from_summary_file(
+            number_entries=self.model.prior_count, offset=56
+        )
+
+    @property
+    def maximum_log_likelihood(self):
+        return self.read_list_of_results_from_summary_file(
+            number_entries=2, offset=112
+        )[1]
+
+    @property
+    def evidence(self):
+        return self.read_list_of_results_from_summary_file(
+            number_entries=2, offset=112
+        )[0]
+
+    def read_list_of_results_from_summary_file(self, number_entries, offset):
+
+        summary = open(self.paths.file_summary)
+        summary.read(2 + offset * self.model.prior_count)
+        vector = []
+        for param in range(number_entries):
+            vector.append(float(summary.read(28)))
+
+        summary.close()
+
+        return vector
+
+    def model_parameters_at_sigma_limit(self, sigma_limit):
+        limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
+        densities_1d = list(
+            map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+        )
+        return list(map(lambda p: p.getLimits(limit), densities_1d))
+
+    @property
+    def total_samples(self):
+        return len(self.pdf.weights)
+
+    def sample_model_parameters_from_sample_index(self, sample_index):
+        """From a sample return the model parameters.
+
+        Parameters
+        -----------
+        sample_index : int
+            The sample index of the weighted sample to return.
+        """
+        return list(self.pdf.samples[sample_index])
+
+    def sample_weight_from_sample_index(self, sample_index):
+        """From a sample return the sample weight.
+
+        Parameters
+        -----------
+        sample_index : int
+            The sample index of the weighted sample to return.
+        """
+        return self.pdf.weights[sample_index]
+
+    def sample_likelihood_from_sample_index(self, sample_index):
+        """From a sample return the likelihood.
+
+        NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \
+        -2.0*likelihood. This routine converts these back to likelihood.
+
+        Parameters
+        -----------
+        sample_index : int
+            The sample index of the weighted sample to return.
+        """
+        return -0.5 * self.pdf.loglikes[sample_index]
+
+    def output_pdf_plots(self):
+
+        import getdist.plots
+        import matplotlib
+
+        backend = conf.instance.visualize.get("figures", "backend", str)
+        matplotlib.use(backend)
+        import matplotlib.pyplot as plt
+
+        pdf_plot = getdist.plots.GetDistPlotter()
+
+        plot_pdf_1d_params = conf.instance.visualize.get(
+            "plots", "plot_pdf_1d_params", bool
+        )
+
+        if plot_pdf_1d_params:
+
+            for param_name in self.model.param_names:
+                pdf_plot.plot_1d(roots=self.pdf, param=param_name)
+                pdf_plot.export(
+                    fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
+                )
+
+        plt.close()
+
+        plot_pdf_triangle = conf.instance.visualize.get(
+            "plots", "plot_pdf_triangle", bool
+        )
+
+        if plot_pdf_triangle:
+
+            try:
+                pdf_plot.triangle_plot(roots=self.pdf)
+                pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
+            except Exception as e:
+                print(type(e))
+                print(
+                    "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
+                    "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
+                    "parameter evidence_tolerance."
+                )
+
+        plt.close()
+
+    def output_results(self, during_analysis):
+
+        if os.path.isfile(self.paths.file_summary):
+
+            results = []
+
+            results += text_util.label_and_value_string(
+                label="Bayesian Evidence ",
+                value=self.evidence,
+                whitespace=90,
+                format_string="{:.8f}",
+            )
+            results += ["\n"]
+            results += text_util.label_and_value_string(
+                label="Maximum Likelihood ",
+                value=self.maximum_log_likelihood,
+                whitespace=90,
+                format_string="{:.8f}",
+            )
+            results += ["\n\n"]
+
+            results += ["Most Likely Model:\n\n"]
+            most_likely = self.most_likely_model_parameters
+
+            formatter = text_formatter.TextFormatter()
+
+            for i, prior_path in enumerate(self.model.unique_prior_paths):
+                formatter.add((prior_path, self.format_str.format(most_likely[i])))
+            results += [formatter.text + "\n"]
+
+            if not during_analysis:
+
+                results += self.results_from_sigma_limit(limit=3.0)
+                results += ["\n"]
+                results += self.results_from_sigma_limit(limit=1.0)
+
+                results += ["\n\ninstances\n"]
+
+                formatter = text_formatter.TextFormatter()
+
+                for t in self.model.path_float_tuples:
+                    formatter.add(t)
+
+                results += ["\n" + formatter.text]
+
+            text_util.output_list_of_strings_to_file(
+                file=self.paths.file_results, list_of_strings=results
+            )

@@ -6,8 +6,8 @@ import pytest
 
 import autofit as af
 from autofit import Paths
-from autofit.optimize.non_linear.output import Output
-from test_autofit.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6
+from autofit.optimize.non_linear.multi_nest import MultiNestOutput
+from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -251,18 +251,18 @@ def create_weighted_samples_10_parameters(path):
     weighted_samples.close()
 
 
-class TestNLOInheritance:
-    def test__most_probable_parameters_and_instance(self, mn_summary_path):
+class TestMultiNestOutput:
+    def test__most_probable_model_parameters(self, mn_summary_path):
         af.conf.instance.output_path = mn_summary_path + "/2_classes"
 
-        mapper = af.ModelMapper(
+        model = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = Output(mapper, Paths())
+        multinest_output = MultiNestOutput(model, Paths())
 
-        create_summary_10_parameters(path=mn.paths.backup_path)
+        create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
-        assert mn.most_probable_model_parameters == [
+        assert multinest_output.most_probable_model_parameters == [
             1.0,
             2.0,
             3.0,
@@ -275,45 +275,17 @@ class TestNLOInheritance:
             10.0,
         ]
 
-        most_probable = mn.most_probable_model_instance
-
-        assert most_probable.mock_class_1.one == 1.0
-        assert most_probable.mock_class_1.two == 2.0
-        assert most_probable.mock_class_1.three == 3.0
-        assert most_probable.mock_class_1.four == 4.0
-
-        assert most_probable.mock_class_2.one == (-5.0, -6.0)
-        assert most_probable.mock_class_2.two == (-7.0, -8.0)
-        assert most_probable.mock_class_2.three == 9.0
-        assert most_probable.mock_class_2.four == 10.0
-
-        af.conf.instance.output_path = mn_summary_path + "/1_class"
-
-        mapper = af.ModelMapper(mock_class=MockClassNLOx5)
-        mapper.mock_class.five = 10.0
-
-        mn = Output(mapper, Paths())
-        create_summary_4_parameters(path=mn.paths.backup_path)
-
-        most_probable = mn.most_probable_model_instance
-
-        assert most_probable.mock_class.one == 1.0
-        assert most_probable.mock_class.two == -2.0
-        assert most_probable.mock_class.three == 3.0
-        assert most_probable.mock_class.four == 4.0
-        assert most_probable.mock_class.five == 10.0
-
     def test__most_likely_parameters_and_instance(self, mn_summary_path):
         af.conf.instance.output_path = mn_summary_path + "/2_classes"
 
-        mapper = af.ModelMapper(
+        model = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = Output(mapper, Paths())
+        multinest_output = MultiNestOutput(model, Paths())
 
-        create_summary_10_parameters(path=mn.paths.backup_path)
+        create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
-        assert mn.most_likely_model_parameters == [
+        assert multinest_output.most_likely_model_parameters == [
             21.0,
             22.0,
             23.0,
@@ -326,73 +298,37 @@ class TestNLOInheritance:
             30.0,
         ]
 
-        most_likely = mn.most_likely_model_instance
+    def test__model_parameters_at_sigma_limit__uses_output_files(
+        self, mn_samples_path
+    ):
+        af.conf.instance.output_path = mn_samples_path + "/1_class"
 
-        assert most_likely.mock_class_1.one == 21.0
-        assert most_likely.mock_class_1.two == 22.0
-        assert most_likely.mock_class_1.three == 23.0
-        assert most_likely.mock_class_1.four == 24.0
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
-        assert most_likely.mock_class_2.one == (25.0, -26.0)
-        assert most_likely.mock_class_2.two == (-27.0, 28.0)
-        assert most_likely.mock_class_2.three == 29.0
-        assert most_likely.mock_class_2.four == 30.0
+        params = multinest_output.model_parameters_at_sigma_limit(sigma_limit=3.0)
+        assert params[0][0:2] == pytest.approx((0.88, 1.12), 1e-2)
+        assert params[1][0:2] == pytest.approx((1.88, 2.12), 1e-2)
+        assert params[2][0:2] == pytest.approx((2.88, 3.12), 1e-2)
+        assert params[3][0:2] == pytest.approx((3.88, 4.12), 1e-2)
 
-        mapper = af.ModelMapper(mock_class=MockClassNLOx5)
-        mapper.mock_class.five = 10.0
-        mn = Output(mapper, Paths())
-        create_summary_4_parameters(path=mn.paths.backup_path)
-
-        most_likely = mn.most_likely_model_instance
-
-        assert most_likely.mock_class.one == 9.0
-        assert most_likely.mock_class.two == -10.0
-        assert most_likely.mock_class.three == -11.0
-        assert most_likely.mock_class.four == 12.0
-        assert most_likely.mock_class.five == 10.0
-
-    def test__gaussian_priors(self, mn_priors_path):
-        af.conf.instance.output_path = mn_priors_path
-
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = Output(mapper, Paths())
-
-        create_gaussian_prior_summary_4_parameters(path=mn.paths.backup_path)
-        create_weighted_samples_4_parameters(path=mn.paths.backup_path)
-        gaussian_priors = mn.gaussian_priors_at_sigma_limit(sigma_limit=3.0)
-
-        assert gaussian_priors[0][0] == 1.0
-        assert gaussian_priors[1][0] == 2.0
-        assert gaussian_priors[2][0] == 3.0
-        assert gaussian_priors[3][0] == 4.1
-
-        assert gaussian_priors[0][1] == pytest.approx(0.12, 1e-2)
-        assert gaussian_priors[1][1] == pytest.approx(0.12, 1e-2)
-        assert gaussian_priors[2][1] == pytest.approx(0.12, 1e-2)
-        assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
-
-        gaussian_priors = mn.gaussian_priors_at_sigma_limit(sigma_limit=1.0)
-
-        assert gaussian_priors[0][0] == 1.0
-        assert gaussian_priors[1][0] == 2.0
-        assert gaussian_priors[2][0] == 3.0
-        assert gaussian_priors[3][0] == 4.1
-
-        assert gaussian_priors[0][1] == pytest.approx(1.0 - 0.927, 5e-2)
-        assert gaussian_priors[1][1] == pytest.approx(2.0 - 1.928, 5e-2)
-        assert gaussian_priors[2][1] == pytest.approx(3.0 - 2.928, 5e-2)
-        assert gaussian_priors[3][1] == pytest.approx(4.1 - 3.928, 5e-2)
+        params = multinest_output.model_parameters_at_sigma_limit(sigma_limit=1.0)
+        assert params[0][0:2] == pytest.approx((0.93, 1.07), 1e-2)
+        assert params[1][0:2] == pytest.approx((1.93, 2.07), 1e-2)
+        assert params[2][0:2] == pytest.approx((2.93, 3.07), 1e-2)
+        assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
 
     def test__offset_from_input(self, mn_summary_path):
         af.conf.instance.output_path = mn_summary_path + "/1_class"
 
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = Output(mapper, Paths())
-        create_summary_4_parameters(path=mn.paths.backup_path)
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_summary_4_parameters(path=multinest_output.paths.backup_path)
 
-        # mn.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
+        # multinest_output.most_probable_model_parameters == [1.0, -2.0, 3.0, 4.0]
 
-        offset_values = mn.offset_values_from_input_model_parameters(
+        offset_values = multinest_output.offset_values_from_input_model_parameters(
             input_model_parameters=[1.0, 1.0, 2.0, 3.0]
         )
 
@@ -400,15 +336,15 @@ class TestNLOInheritance:
 
         af.conf.instance.output_path = mn_summary_path + "/2_classes"
 
-        mapper = af.ModelMapper(
+        model = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = Output(mapper, Paths())
-        create_summary_10_parameters(path=mn.paths.backup_path)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
-        # mn.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
+        # multinest_output.most_probable_model_parameters == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
 
-        offset_values = mn.offset_values_from_input_model_parameters(
+        offset_values = multinest_output.offset_values_from_input_model_parameters(
             input_model_parameters=[
                 1.0,
                 1.0,
@@ -443,16 +379,16 @@ class TestSamples(object):
     ):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = Output(mapper, Paths())
-        create_weighted_samples_4_parameters(path=mn.paths.backup_path)
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
-        model = mn.sample_model_parameters_from_sample_index(sample_index=0)
-        instance = mn.sample_model_instance_from_sample_index(sample_index=0)
-        weight = mn.sample_weight_from_sample_index(sample_index=0)
-        likelihood = mn.sample_likelihood_from_sample_index(sample_index=0)
+        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=0)
+        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=0)
+        weight = multinest_output.sample_weight_from_sample_index(sample_index=0)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=0)
 
-        assert mn.total_samples == 10
+        assert multinest_output.total_samples == 10
         assert model == [1.1, 2.1, 3.1, 4.1]
         assert instance.mock_class.one == 1.1
         assert instance.mock_class.two == 2.1
@@ -461,12 +397,12 @@ class TestSamples(object):
         assert weight == 0.02
         assert likelihood == -0.5 * 9999999.9
 
-        model = mn.sample_model_parameters_from_sample_index(sample_index=5)
-        instance = mn.sample_model_instance_from_sample_index(sample_index=5)
-        weight = mn.sample_weight_from_sample_index(sample_index=5)
-        likelihood = mn.sample_likelihood_from_sample_index(sample_index=5)
+        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=5)
+        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=5)
+        weight = multinest_output.sample_weight_from_sample_index(sample_index=5)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=5)
 
-        assert mn.total_samples == 10
+        assert multinest_output.total_samples == 10
         assert model == [1.0, 2.0, 3.0, 4.0]
         assert instance.mock_class.one == 1.0
         assert instance.mock_class.two == 2.0
@@ -480,18 +416,18 @@ class TestSamples(object):
     ):
         af.conf.instance.output_path = mn_samples_path + "/2_classes"
 
-        mapper = af.ModelMapper(
+        model = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
         )
-        mn = Output(mapper, Paths())
-        create_weighted_samples_10_parameters(path=mn.paths.backup_path)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_weighted_samples_10_parameters(path=multinest_output.paths.backup_path)
 
-        model = mn.sample_model_parameters_from_sample_index(sample_index=0)
-        instance = mn.sample_model_instance_from_sample_index(sample_index=0)
-        weight = mn.sample_weight_from_sample_index(sample_index=0)
-        likelihood = mn.sample_likelihood_from_sample_index(sample_index=0)
+        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=0)
+        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=0)
+        weight = multinest_output.sample_weight_from_sample_index(sample_index=0)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=0)
 
-        assert mn.total_samples == 10
+        assert multinest_output.total_samples == 10
         assert model == [1.1, 2.1, 3.1, 4.1, -5.1, -6.1, -7.1, -8.1, 9.1, 10.1]
         assert instance.mock_class_1.one == 1.1
         assert instance.mock_class_1.two == 2.1
@@ -504,12 +440,12 @@ class TestSamples(object):
         assert weight == 0.02
         assert likelihood == -0.5 * 9999999.9
 
-        model = mn.sample_model_parameters_from_sample_index(sample_index=5)
-        instance = mn.sample_model_instance_from_sample_index(sample_index=5)
-        weight = mn.sample_weight_from_sample_index(sample_index=5)
-        likelihood = mn.sample_likelihood_from_sample_index(sample_index=5)
+        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=5)
+        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=5)
+        weight = multinest_output.sample_weight_from_sample_index(sample_index=5)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=5)
 
-        assert mn.total_samples == 10
+        assert multinest_output.total_samples == 10
         assert model == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
         assert instance.mock_class_1.one == 1.0
         assert instance.mock_class_1.two == 2.0
@@ -524,47 +460,22 @@ class TestSamples(object):
 
 
 class TestLimits(object):
-    def test__1_profile__limits_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
-        self, mn_samples_path
-    ):
-        af.conf.instance.output_path = mn_samples_path + "/1_class"
-
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = Output(mapper, Paths())
-        create_weighted_samples_4_parameters(path=mn.paths.backup_path)
-
-        params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=3.0)
-        assert params_upper == pytest.approx([1.12, 2.12, 3.12, 4.12], 1e-2)
-        params_lower = mn.model_parameters_at_lower_sigma_limit(sigma_limit=3.0)
-        assert params_lower == pytest.approx([0.88, 1.88, 2.88, 3.88], 1e-2)
-
-    def test__1_profile__change_limit_to_1_sigma(self, mn_samples_path):
-        af.conf.instance.output_path = mn_samples_path + "/1_class"
-
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = Output(mapper, Paths())
-        create_weighted_samples_4_parameters(path=mn.paths.backup_path)
-
-        params_upper = mn.model_parameters_at_upper_sigma_limit(sigma_limit=1.0)
-        assert params_upper == pytest.approx([1.07, 2.07, 3.07, 4.07], 1e-2)
-        params_lower = mn.model_parameters_at_lower_sigma_limit(sigma_limit=1.0)
-        assert params_lower == pytest.approx([0.93, 1.93, 2.93, 3.93], 1e-2)
 
     def test__1_species__errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
         self, mn_samples_path
     ):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = Output(mapper, Paths())
-        create_weighted_samples_4_parameters(path=mn.paths.backup_path)
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
-        model_errors = mn.model_errors_at_sigma_limit(sigma_limit=3.0)
+        model_errors = multinest_output.model_errors_at_sigma_limit(sigma_limit=3.0)
         assert model_errors == pytest.approx(
             [1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2
         )
 
-        model_errors_instance = mn.model_errors_instance_at_sigma_limit(sigma_limit=3.0)
+        model_errors_instance = multinest_output.model_errors_instance_at_sigma_limit(sigma_limit=3.0)
         assert model_errors_instance.mock_class.one == pytest.approx(1.12 - 0.88, 1e-2)
         assert model_errors_instance.mock_class.two == pytest.approx(2.12 - 1.88, 1e-2)
         assert model_errors_instance.mock_class.three == pytest.approx(
@@ -575,11 +486,11 @@ class TestLimits(object):
     def test__1_species__change_limit_to_1_sigma(self, mn_samples_path):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
 
-        mapper = af.ModelMapper(mock_class=MockClassNLOx4)
-        mn = Output(mapper, Paths())
-        create_weighted_samples_4_parameters(path=mn.paths.backup_path)
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
-        model_errors = mn.model_errors_at_sigma_limit(sigma_limit=1.0)
+        model_errors = multinest_output.model_errors_at_sigma_limit(sigma_limit=1.0)
         assert model_errors == pytest.approx(
             [1.07 - 0.93, 2.07 - 1.93, 3.07 - 2.93, 4.07 - 3.93], 1e-1
         )

@@ -747,6 +747,13 @@ class TestModelInstancesRealClasses(object):
         assert mapper.random_physical_vector_from_priors == pytest.approx([0.41702, 0.720324], 1.0e-4)
         assert mapper.random_physical_vector_from_priors == pytest.approx([0.00011437, 0.302332], 1.0e-4)
 
+        # By default, this seeded random will draw a value < -0.15, which is below the lower limit below. This
+        # test ensures that this value is resampled to the next draw, which is above 0.15
+
+        mapper.mock_class.one.lower_limit = 0.15
+
+        assert mapper.random_physical_vector_from_priors == pytest.approx([0.27474, 0.092333], 1.0e-4)
+
     def test_physical_vector_from_prior_medians(self):
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(MockClassMM)
