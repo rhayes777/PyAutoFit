@@ -21,58 +21,32 @@ def do_something():
     )
 
 
-@pytest.fixture(name="mn_summary_path")
-def test_mn_summary():
-    mn_summary_path = "{}/../test_files/non_linear/multinest/summary".format(
+@pytest.fixture(name="multi_nest_summary_path")
+def test_multi_nest_summary():
+    multi_nest_summary_path = "{}/../test_files/non_linear/multinest/summary".format(
         os.path.dirname(os.path.realpath(__file__))
     )
 
-    if os.path.exists(mn_summary_path):
-        shutil.rmtree(mn_summary_path)
+    if os.path.exists(multi_nest_summary_path):
+        shutil.rmtree(multi_nest_summary_path)
 
-    os.mkdir(mn_summary_path)
+    os.mkdir(multi_nest_summary_path)
 
-    return mn_summary_path
+    return multi_nest_summary_path
 
 
-@pytest.fixture(name="mn_priors_path")
-def test_mn_priors():
-    mn_priors_path = "{}/../test_files/non_linear/multinest/priors".format(
+@pytest.fixture(name="multi_nest_samples_path")
+def test_multi_nest_samples():
+    multi_nest_samples_path = "{}/../test_files/non_linear/multinest/samples".format(
         os.path.dirname(os.path.realpath(__file__))
     )
 
-    if os.path.exists(mn_priors_path):
-        shutil.rmtree(mn_priors_path)
+    if os.path.exists(multi_nest_samples_path):
+        shutil.rmtree(multi_nest_samples_path)
 
-    os.mkdir(mn_priors_path)
+    os.mkdir(multi_nest_samples_path)
 
-    return mn_priors_path
-
-
-@pytest.fixture(name="mn_samples_path")
-def test_mn_samples():
-    mn_samples_path = "{}/../test_files/non_linear/multinest/samples".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
-
-    if os.path.exists(mn_samples_path):
-        shutil.rmtree(mn_samples_path)
-
-    os.mkdir(mn_samples_path)
-
-    return mn_samples_path
-
-
-@pytest.fixture(name="mn_results_path")
-def test_mn_results():
-    mn_results_path = "{}/../test_files/non_linear/multinest/results".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
-
-    if os.path.exists(mn_results_path):
-        shutil.rmtree(mn_results_path)
-
-    return mn_results_path
+    return multi_nest_samples_path
 
 
 def create_path(func):
@@ -152,31 +126,6 @@ def create_summary_10_parameters(path):
 
 
 @create_path
-def create_gaussian_prior_summary_4_parameters(path):
-    summary = open(path + "/multinestsummary.txt", "w")
-    summary.write(
-        "    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01"
-        "    0.410000000000000000E+01    0.500000000000000000E+01    0.600000000000000000E+01"
-        "    0.700000000000000000E+01    0.800000000000000000E+01"
-        "    0.900000000000000000E+01    1.000000000000000000E+01    1.100000000000000000E+01"
-        "    1.200000000000000000E+01    1.300000000000000000E+01    1.400000000000000000E+01"
-        "    1.500000000000000000E+01    1.600000000000000000E+01"
-        "    0.020000000000000000E+00    0.999999990000000000E+07"
-        "    0.020000000000000000E+00    0.999999990000000000E+07\n"
-    )
-    summary.write(
-        "    0.100000000000000000E+01    0.200000000000000000E+01    0.300000000000000000E+01"
-        "    0.410000000000000000E+01    0.500000000000000000E+01    0.600000000000000000E+01"
-        "    0.700000000000000000E+01    0.800000000000000000E+01"
-        "    0.900000000000000000E+01    1.000000000000000000E+01    1.100000000000000000E+01"
-        "    1.200000000000000000E+01    1.300000000000000000E+01    1.400000000000000000E+01"
-        "    1.500000000000000000E+01    1.600000000000000000E+01"
-        "    0.020000000000000000E+00    0.999999990000000000E+07"
-    )
-    summary.close()
-
-
-@create_path
 def create_weighted_samples_4_parameters(path):
     with open(path + "/multinest.txt", "w+") as weighted_samples:
         weighted_samples.write(
@@ -203,57 +152,9 @@ def create_weighted_samples_4_parameters(path):
         )
 
 
-@create_path
-def create_weighted_samples_10_parameters(path):
-    weighted_samples = open(path + "/multinest.txt", "w")
-    weighted_samples.write(
-        "    0.020000000000000000E+00    0.999999990000000000E+07    0.110000000000000000E+01    "
-        "0.210000000000000000E+01    0.310000000000000000E+01    0.410000000000000000E+01   "
-        "-0.510000000000000000E+01   -0.610000000000000000E+01   -0.710000000000000000E+01   "
-        "-0.810000000000000000E+01    0.910000000000000000E+01    1.010000000000000000E+01\n"
-        "    0.020000000000000000E+00    0.999999990000000000E+07    0.090000000000000000E+01    "
-        "0.190000000000000000E+01    0.290000000000000000E+01    0.390000000000000000E+01   "
-        "-0.490000000000000000E+01   -0.590000000000000000E+01   -0.690000000000000000E+01   "
-        "-0.790000000000000000E+01    0.890000000000000000E+01    0.990000000000000000E+01\n"
-        "    0.010000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01\n"
-        "    0.050000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01\n"
-        "    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01\n"
-        "    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01\n"
-        "    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01\n"
-        "    0.100000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01\n"
-        "    0.200000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01\n"
-        "    0.300000000000000000E+00    0.999999990000000000E+07    0.100000000000000000E+01    "
-        "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01   "
-        "-0.500000000000000000E+01   -0.600000000000000000E+01   -0.700000000000000000E+01   "
-        "-0.800000000000000000E+01    0.900000000000000000E+01    1.000000000000000000E+01"
-    )
-    weighted_samples.close()
-
-
 class TestMultiNestOutput:
-    def test__most_probable_model_parameters(self, mn_summary_path):
-        af.conf.instance.output_path = mn_summary_path + "/2_classes"
+    def test__most_probable_model_parameters(self, multi_nest_summary_path):
+        af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
         model = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
@@ -275,8 +176,8 @@ class TestMultiNestOutput:
             10.0,
         ]
 
-    def test__most_likely_parameters_and_instance(self, mn_summary_path):
-        af.conf.instance.output_path = mn_summary_path + "/2_classes"
+    def test__most_likely_model_parameters(self, multi_nest_summary_path):
+        af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
         model = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
@@ -299,9 +200,9 @@ class TestMultiNestOutput:
         ]
 
     def test__model_parameters_at_sigma_limit__uses_output_files(
-        self, mn_samples_path
+        self, multi_nest_samples_path
     ):
-        af.conf.instance.output_path = mn_samples_path + "/1_class"
+        af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         multinest_output = MultiNestOutput(model, Paths())
@@ -320,9 +221,9 @@ class TestMultiNestOutput:
         assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
 
     def test__samples__total_samples__model_parameters_weight_and_likelihood_from_sample_index(
-        self, mn_samples_path
+        self, multi_nest_samples_path
     ):
-        af.conf.instance.output_path = mn_samples_path + "/1_class"
+        af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         multinest_output = MultiNestOutput(model, Paths())
@@ -347,53 +248,16 @@ class TestMultiNestOutput:
         assert likelihood == -0.5 * 9999999.9
 
 
-class TestLimits(object):
-
-    def test__1_species__errors_1d_vectors_via_weighted_samples__1d_vectors_are_correct(
-        self, mn_samples_path
-    ):
-        af.conf.instance.output_path = mn_samples_path + "/1_class"
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
-        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
-
-        model_errors = multinest_output.model_errors_at_sigma_limit(sigma_limit=3.0)
-        assert model_errors == pytest.approx(
-            [1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2
-        )
-
-        model_errors_instance = multinest_output.model_errors_instance_at_sigma_limit(sigma_limit=3.0)
-        assert model_errors_instance.mock_class.one == pytest.approx(1.12 - 0.88, 1e-2)
-        assert model_errors_instance.mock_class.two == pytest.approx(2.12 - 1.88, 1e-2)
-        assert model_errors_instance.mock_class.three == pytest.approx(
-            3.12 - 2.88, 1e-2
-        )
-        assert model_errors_instance.mock_class.four == pytest.approx(4.12 - 3.88, 1e-2)
-
-    def test__1_species__change_limit_to_1_sigma(self, mn_samples_path):
-        af.conf.instance.output_path = mn_samples_path + "/1_class"
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
-        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
-
-        model_errors = multinest_output.model_errors_at_sigma_limit(sigma_limit=1.0)
-        assert model_errors == pytest.approx(
-            [1.07 - 0.93, 2.07 - 1.93, 3.07 - 2.93, 4.07 - 3.93], 1e-1
-        )
-
-
 @pytest.fixture(name="multi_nest")
 def make_multi_nest():
-    mn_fit_path = "{}/test_fit".format(os.path.dirname(os.path.realpath(__file__)))
+    multi_nest_fit_path = "{}/test_fit".format(os.path.dirname(os.path.realpath(__file__)))
 
     try:
-        shutil.rmtree(mn_fit_path)
+        shutil.rmtree(multi_nest_fit_path)
     except FileNotFoundError as e:
         print(e)
 
-    af.conf.instance.output_path = mn_fit_path
+    af.conf.instance.output_path = multi_nest_fit_path
 
     # noinspection PyUnusedLocal,PyPep8Naming
     def run(
