@@ -153,6 +153,21 @@ def create_weighted_samples_4_parameters(path):
 
 
 class TestMultiNestOutput:
+
+    def test__maximum_log_likelihood_and_evidence(self, multi_nest_summary_path):
+
+        af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
+
+        model = af.ModelMapper(
+            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
+        )
+        multinest_output = MultiNestOutput(model, Paths())
+
+        create_summary_10_parameters(path=multinest_output.paths.backup_path)
+
+        assert multinest_output.maximum_log_likelihood == pytest.approx(9999999.9, 1.0e-4)
+        assert multinest_output.evidence == pytest.approx(0.02, 1.0e-4)
+
     def test__most_probable_model_parameters(self, multi_nest_summary_path):
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 

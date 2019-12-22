@@ -12,6 +12,10 @@ class AbstractOutput(object):
         self.paths = paths
 
     @property
+    def maximum_log_likelihood(self):
+        raise NotImplementedError()
+
+    @property
     def most_probable_model_parameters(self):
         raise NotImplementedError()
 
@@ -27,17 +31,6 @@ class AbstractOutput(object):
         raise NotImplementedError()
 
     @property
-    def maximum_log_likelihood(self):
-        raise NotImplementedError()
-
-    def model_parameters_at_sigma_limit(self, sigma_limit):
-        raise NotImplementedError()
-
-    @property
-    def total_samples(self):
-        raise NotImplementedError()
-
-    @property
     def most_probable_model_instance(self):
         return self.model.instance_from_physical_vector(
             physical_vector=self.most_probable_model_parameters
@@ -49,13 +42,7 @@ class AbstractOutput(object):
             physical_vector=self.most_likely_model_parameters
         )
 
-    def sample_model_parameters_from_sample_index(self, sample_index):
-        raise NotImplementedError()
-
-    def sample_likelihood_from_sample_index(self, sample_index):
-        raise NotImplementedError()
-
-    def output_pdf_plots(self):
+    def model_parameters_at_sigma_limit(self, sigma_limit):
         raise NotImplementedError()
 
     def model_parameters_at_upper_sigma_limit(self, sigma_limit):
@@ -167,14 +154,15 @@ class AbstractOutput(object):
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def values_offset_from_input_model_parameters(self, input_model_parameters):
-        return list(
-            map(
-                lambda input, most_probable: most_probable - input,
-                input_model_parameters,
-                self.most_probable_model_parameters,
-            )
-        )
+    @property
+    def total_samples(self):
+        raise NotImplementedError()
+
+    def sample_likelihood_from_sample_index(self, sample_index):
+        raise NotImplementedError()
+
+    def sample_model_parameters_from_sample_index(self, sample_index):
+        raise NotImplementedError()
 
     def sample_model_instance_from_sample_index(self, sample_index):
         """Setup a model instance of a weighted sample.
@@ -190,6 +178,15 @@ class AbstractOutput(object):
 
         return self.model.instance_from_physical_vector(
             physical_vector=model_parameters
+        )
+
+    def values_offset_from_input_model_parameters(self, input_model_parameters):
+        return list(
+            map(
+                lambda input, most_probable: most_probable - input,
+                input_model_parameters,
+                self.most_probable_model_parameters,
+            )
         )
 
     def results_from_sigma_limit(self, limit):
@@ -300,6 +297,10 @@ class AbstractOutput(object):
             "output", "model_results_decimal_places", int
         )
         return "{:." + str(decimal_places) + "f}"
+
+
+    def output_pdf_plots(self):
+        raise NotImplementedError()
 
 
 class MCMCOutput(AbstractOutput):

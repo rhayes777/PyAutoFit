@@ -193,3 +193,47 @@ class TestOutput:
         assert model_errors == pytest.approx(
             [2.0*(1.12 - 0.88), 2.0*(2.12 - 1.88), 2.0*(3.12 - 2.88), 2.0*(4.12 - 3.88)], 1e-2
         )
+
+    def test__model_errors_at_upper_and_lower_sigma_limit(
+        self,
+    ):
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        output = MockOutput(model=model, paths=Paths(),
+                            most_probable_model_parameters=[1.1, 2.0, 3.0, 4.0],
+                            model_parameters_at_sigma_limit=[(0.88, 1.12), (1.88, 2.12), (2.88, 3.12), (3.88, 4.12)])
+
+        model_upper_errors = output.model_errors_at_upper_sigma_limit(sigma_limit=1.0)
+        assert model_upper_errors == pytest.approx(
+            [0.02, 0.12, 0.12, 0.12], 1e-2
+        )
+
+        model_errors_instance = output.model_errors_instance_at_upper_sigma_limit(sigma_limit=1.0)
+        assert model_errors_instance.mock_class.one == pytest.approx(0.02, 1e-2)
+        assert model_errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
+        assert model_errors_instance.mock_class.three == pytest.approx(
+            0.12, 1e-2
+        )
+        assert model_errors_instance.mock_class.four == pytest.approx(0.12, 1e-2)
+
+        model_upper_errors = output.model_errors_at_upper_sigma_limit(sigma_limit=2.0)
+        assert model_upper_errors == pytest.approx(
+            [1.14, 2.24, 3.24, 4.24], 1e-2
+        )
+        
+        model_lower_errors = output.model_errors_at_lower_sigma_limit(sigma_limit=1.0)
+        assert model_lower_errors == pytest.approx(
+            [0.22, 0.12, 0.12, 0.12], 1e-2
+        )
+
+        model_errors_instance = output.model_errors_instance_at_lower_sigma_limit(sigma_limit=1.0)
+        assert model_errors_instance.mock_class.one == pytest.approx(0.22, 1e-2)
+        assert model_errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
+        assert model_errors_instance.mock_class.three == pytest.approx(
+            0.12, 1e-2
+        )
+        assert model_errors_instance.mock_class.four == pytest.approx(0.12, 1e-2)
+
+        model_lower_errors = output.model_errors_at_lower_sigma_limit(sigma_limit=0.5)
+        assert model_lower_errors == pytest.approx(
+            [0.66, 1.06, 1.56, 2.06], 1e-2
+        )
