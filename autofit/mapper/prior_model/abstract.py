@@ -144,6 +144,19 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
+    def random_physical_vector_from_priors(self):
+        """
+        Returns
+        -------
+        physical_values: [float]
+            A list of physical values constructed by taking the mean possible value from
+            each prior.
+        """
+        return self.physical_vector_from_hypercube_vector(
+            list(np.random.random(self.prior_count))
+        )
+
+    @property
     def physical_values_from_prior_medians(self):
         """
         Returns

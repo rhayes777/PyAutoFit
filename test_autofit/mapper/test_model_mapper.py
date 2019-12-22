@@ -2,6 +2,7 @@ import math
 import os
 
 import pytest
+import numpy as np
 
 import autofit as af
 import test_autofit.mock
@@ -736,6 +737,15 @@ class TestModelInstancesRealClasses(object):
         assert model_map.profile_1.centre == model_2.profile_1.centre == (0.5, 0.5)
         assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
         assert model_map.profile_1.phi == model_2.profile_1.phi == 1.0
+
+    def test_random_physical_vector_from_prior_medians(self):
+        mapper = af.ModelMapper()
+        mapper.mock_class = af.PriorModel(MockClassMM)
+
+        np.random.seed(1)
+
+        assert mapper.random_physical_vector_from_priors == pytest.approx([0.41702, 0.720324], 1.0e-4)
+        assert mapper.random_physical_vector_from_priors == pytest.approx([0.00011437, 0.302332], 1.0e-4)
 
     def test_physical_vector_from_prior_medians(self):
         mapper = af.ModelMapper()

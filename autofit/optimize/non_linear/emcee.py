@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from autofit.optimize.non_linear.nuts_src import emcee_nuts
+import emcee
 
 from autofit import conf, exc
 from autofit.optimize.non_linear.output import Output
@@ -12,7 +12,7 @@ from autofit.optimize.non_linear.non_linear import persistent_timer
 logger = logging.getLogger(__name__)
 
 
-class NUTS(NonLinearOptimizer):
+class Emcee(NonLinearOptimizer):
     def __init__(self, paths, sigma_limit=3):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
@@ -25,7 +25,7 @@ class NUTS(NonLinearOptimizer):
 
         self.sigma_limit = sigma_limit
 
-        logger.debug("Creating NUTS NLO")
+        logger.debug("Creating Emcee NLO")
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(
@@ -88,29 +88,37 @@ class NUTS(NonLinearOptimizer):
 
         output.save_model_info()
 
-        fitness_function = NUTS.Fitness(
+        fitness_function = Emcee.Fitness(
             paths=self.paths,
             analysis=analysis,
             instance_from_physical_vector=model.instance_from_physical_vector,
             output_results=None,
         )
 
-        nuts_sampler = emcee_nuts.NUTSSampler(
-            dim=model.prior_count,
+        nuts_sampler = emcee.EnsembleSampler(
+            nwalkers=10,
+            ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            gradient_fn=None,
         )
+
+        print(model.prior_count)
 
         initial_state = model.physical_values_from_prior_medians
 
-        logger.info("Running NUTS Sampling...")
+        emcee_state = np.zeros(shape=(nuts_sampler.nwalkers, nuts_sampler.ndim))
+
+        for walker_index in range(nuts_sampler.nwalkers):
+
+            emcee_state[walker_index, :] = np.random.random(4)
+
+        print(emcee_state)
+
+        logger.info("Running Emcee Sampling...")
         samples = nuts_sampler.run_mcmc(
-            initial_state=initial_state,
-            steps=5000,
-            steps_burn_in=5000,
-            delta=0.6
+            initial_state=emcee_state,
+            nsteps=100,
         )
-        logger.info("NUTS complete")
+        logger.info("Emcee complete")
 
         print(samples)
         stop

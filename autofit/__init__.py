@@ -34,6 +34,7 @@ from .optimize.non_linear.grid_search import GridSearch
 from .optimize.non_linear.multi_nest import MultiNest
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
+from .optimize.non_linear.emcee import Emcee
 from .optimize.non_linear.nuts import NUTS
 from autofit.optimize.non_linear.paths import Paths
 from autofit.optimize.non_linear.paths import make_path
