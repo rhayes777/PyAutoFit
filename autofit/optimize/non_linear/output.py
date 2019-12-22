@@ -309,6 +309,9 @@ class MCMCOutput(AbstractOutput):
 
 class NestedSamplingOutput(AbstractOutput):
 
+    def sample_weight_from_sample_index(self, sample_index):
+        raise NotImplementedError()
+
     @property
     def evidence(self):
         raise NotImplementedError()

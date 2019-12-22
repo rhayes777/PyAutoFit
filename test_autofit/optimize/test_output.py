@@ -18,13 +18,15 @@ class MockOutput(AbstractOutput):
                  paths,
                  most_probable_model_parameters=None,
                  most_likely_model_parameters=None,
-                 model_parameters_at_sigma_limit=None):
+                 model_parameters_at_sigma_limit=None,
+                 sample_model_parameters=None):
 
         super(MockOutput, self).__init__(model=model, paths=paths)
 
         self._most_probable_model_parameters = most_probable_model_parameters
         self._most_likely_model_parameters = most_likely_model_parameters
         self._model_parameters_at_sigma_limit = model_parameters_at_sigma_limit
+        self._sample_model_parameters = sample_model_parameters
 
     @property
     def most_probable_model_parameters(self):
@@ -37,6 +39,8 @@ class MockOutput(AbstractOutput):
     def model_parameters_at_sigma_limit(self, sigma_limit):
         return [(sigma_limit * value[0], sigma_limit * value[1]) for value in self._model_parameters_at_sigma_limit]
 
+    def sample_model_parameters_from_sample_index(self, sample_index):
+        return self._sample_model_parameters[sample_index]
 
 class TestOutput:
     def test__most_probable_model_instance(self):
@@ -143,91 +147,27 @@ class TestOutput:
 
         assert offset_values == [0.0, -3.0, 1.0, 1.0]
 
-
-class TestSamples(object):
-    def test__1_class___model_parameters_instance_weight_and_likelihood(
-        self, mn_samples_path
+    def test__sample_model_instance_from_sample_index(
+        self,
     ):
-        af.conf.instance.output_path = mn_samples_path + "/1_class"
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        output = AbstractOutput(model, Paths())
-        create_weighted_samples_4_parameters(path=output.paths.backup_path)
+        output = MockOutput(model=model, paths=Paths(),
+                            sample_model_parameters=[[1.0, -2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])
 
-        model = output.sample_model_parameters_from_sample_index(sample_index=0)
         instance = output.sample_model_instance_from_sample_index(sample_index=0)
-        weight = output.sample_weight_from_sample_index(sample_index=0)
-        likelihood = output.sample_likelihood_from_sample_index(sample_index=0)
 
-        assert output.total_samples == 10
-        assert model == [1.1, 2.1, 3.1, 4.1]
-        assert instance.mock_class.one == 1.1
-        assert instance.mock_class.two == 2.1
-        assert instance.mock_class.three == 3.1
-        assert instance.mock_class.four == 4.1
-        assert weight == 0.02
-        assert likelihood == -0.5 * 9999999.9
-
-        model = output.sample_model_parameters_from_sample_index(sample_index=5)
-        instance = output.sample_model_instance_from_sample_index(sample_index=5)
-        weight = output.sample_weight_from_sample_index(sample_index=5)
-        likelihood = output.sample_likelihood_from_sample_index(sample_index=5)
-
-        assert output.total_samples == 10
-        assert model == [1.0, 2.0, 3.0, 4.0]
         assert instance.mock_class.one == 1.0
-        assert instance.mock_class.two == 2.0
+        assert instance.mock_class.two == -2.0
         assert instance.mock_class.three == 3.0
         assert instance.mock_class.four == 4.0
-        assert weight == 0.1
-        assert likelihood == -0.5 * 9999999.9
 
-    def test__2_classes__model_parameters_instance_weight_and_likelihood(
-        self, mn_samples_path
-    ):
-        af.conf.instance.output_path = mn_samples_path + "/2_classes"
+        instance = output.sample_model_instance_from_sample_index(sample_index=1)
 
-        model = af.ModelMapper(
-            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
-        )
-        output = AbstractOutput(model, Paths())
-        create_weighted_samples_10_parameters(path=output.paths.backup_path)
-
-        model = output.sample_model_parameters_from_sample_index(sample_index=0)
-        instance = output.sample_model_instance_from_sample_index(sample_index=0)
-        weight = output.sample_weight_from_sample_index(sample_index=0)
-        likelihood = output.sample_likelihood_from_sample_index(sample_index=0)
-
-        assert output.total_samples == 10
-        assert model == [1.1, 2.1, 3.1, 4.1, -5.1, -6.1, -7.1, -8.1, 9.1, 10.1]
-        assert instance.mock_class_1.one == 1.1
-        assert instance.mock_class_1.two == 2.1
-        assert instance.mock_class_1.three == 3.1
-        assert instance.mock_class_1.four == 4.1
-        assert instance.mock_class_2.one == (-5.1, -6.1)
-        assert instance.mock_class_2.two == (-7.1, -8.1)
-        assert instance.mock_class_2.three == 9.1
-        assert instance.mock_class_2.four == 10.1
-        assert weight == 0.02
-        assert likelihood == -0.5 * 9999999.9
-
-        model = output.sample_model_parameters_from_sample_index(sample_index=5)
-        instance = output.sample_model_instance_from_sample_index(sample_index=5)
-        weight = output.sample_weight_from_sample_index(sample_index=5)
-        likelihood = output.sample_likelihood_from_sample_index(sample_index=5)
-
-        assert output.total_samples == 10
-        assert model == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
-        assert instance.mock_class_1.one == 1.0
-        assert instance.mock_class_1.two == 2.0
-        assert instance.mock_class_1.three == 3.0
-        assert instance.mock_class_1.four == 4.0
-        assert instance.mock_class_2.one == (-5.0, -6.0)
-        assert instance.mock_class_2.two == (-7.0, -8.0)
-        assert instance.mock_class_2.three == 9.0
-        assert instance.mock_class_2.four == 10.0
-        assert weight == 0.1
-        assert likelihood == -0.5 * 9999999.9
+        assert instance.mock_class.one == 5.0
+        assert instance.mock_class.two == 6.0
+        assert instance.mock_class.three == 7.0
+        assert instance.mock_class.four == 8.0
 
 
 class TestLimits(object):

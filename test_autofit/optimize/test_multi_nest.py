@@ -319,8 +319,7 @@ class TestMultiNestOutput:
         assert params[2][0:2] == pytest.approx((2.93, 3.07), 1e-2)
         assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
 
-class TestSamples(object):
-    def test__1_class___model_parameters_instance_weight_and_likelihood(
+    def test__samples__total_samples__model_parameters_weight_and_likelihood_from_sample_index(
         self, mn_samples_path
     ):
         af.conf.instance.output_path = mn_samples_path + "/1_class"
@@ -330,77 +329,20 @@ class TestSamples(object):
         create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
         model = multinest_output.sample_model_parameters_from_sample_index(sample_index=0)
-        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=0)
         weight = multinest_output.sample_weight_from_sample_index(sample_index=0)
         likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=0)
 
         assert multinest_output.total_samples == 10
         assert model == [1.1, 2.1, 3.1, 4.1]
-        assert instance.mock_class.one == 1.1
-        assert instance.mock_class.two == 2.1
-        assert instance.mock_class.three == 3.1
-        assert instance.mock_class.four == 4.1
         assert weight == 0.02
         assert likelihood == -0.5 * 9999999.9
 
         model = multinest_output.sample_model_parameters_from_sample_index(sample_index=5)
-        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=5)
         weight = multinest_output.sample_weight_from_sample_index(sample_index=5)
         likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=5)
 
         assert multinest_output.total_samples == 10
         assert model == [1.0, 2.0, 3.0, 4.0]
-        assert instance.mock_class.one == 1.0
-        assert instance.mock_class.two == 2.0
-        assert instance.mock_class.three == 3.0
-        assert instance.mock_class.four == 4.0
-        assert weight == 0.1
-        assert likelihood == -0.5 * 9999999.9
-
-    def test__2_classes__model_parameters_instance_weight_and_likelihood(
-        self, mn_samples_path
-    ):
-        af.conf.instance.output_path = mn_samples_path + "/2_classes"
-
-        model = af.ModelMapper(
-            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
-        )
-        multinest_output = MultiNestOutput(model, Paths())
-        create_weighted_samples_10_parameters(path=multinest_output.paths.backup_path)
-
-        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=0)
-        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=0)
-        weight = multinest_output.sample_weight_from_sample_index(sample_index=0)
-        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=0)
-
-        assert multinest_output.total_samples == 10
-        assert model == [1.1, 2.1, 3.1, 4.1, -5.1, -6.1, -7.1, -8.1, 9.1, 10.1]
-        assert instance.mock_class_1.one == 1.1
-        assert instance.mock_class_1.two == 2.1
-        assert instance.mock_class_1.three == 3.1
-        assert instance.mock_class_1.four == 4.1
-        assert instance.mock_class_2.one == (-5.1, -6.1)
-        assert instance.mock_class_2.two == (-7.1, -8.1)
-        assert instance.mock_class_2.three == 9.1
-        assert instance.mock_class_2.four == 10.1
-        assert weight == 0.02
-        assert likelihood == -0.5 * 9999999.9
-
-        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=5)
-        instance = multinest_output.sample_model_instance_from_sample_index(sample_index=5)
-        weight = multinest_output.sample_weight_from_sample_index(sample_index=5)
-        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=5)
-
-        assert multinest_output.total_samples == 10
-        assert model == [1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0]
-        assert instance.mock_class_1.one == 1.0
-        assert instance.mock_class_1.two == 2.0
-        assert instance.mock_class_1.three == 3.0
-        assert instance.mock_class_1.four == 4.0
-        assert instance.mock_class_2.one == (-5.0, -6.0)
-        assert instance.mock_class_2.two == (-7.0, -8.0)
-        assert instance.mock_class_2.three == 9.0
-        assert instance.mock_class_2.four == 10.0
         assert weight == 0.1
         assert likelihood == -0.5 * 9999999.9
 
