@@ -93,7 +93,7 @@ class Emcee(NonLinearOptimizer):
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee"),
+            backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
         )
 
         output = EmceeOutput(model=model, paths=self.paths)
@@ -181,6 +181,20 @@ class EmceeOutput(MCMCOutput):
             )
 
     @property
+    def pdf(self):
+        import getdist
+
+        try:
+            total_steps = self.backend.get_chain().shape[0]
+            return getdist.mcsamples.MCSamples(samples=self.backend.get_chain()[:int(0.5*total_steps):-1, :, :])
+        except IOError or OSError or ValueError or IndexError:
+            raise Exception
+
+    @property
+    def pdf_converged(self):
+        raise NotImplementedError()
+
+    @property
     def most_likely_index(self):
         return np.argmax(self.backend.get_log_prob(flat=True))
 
@@ -194,9 +208,7 @@ class EmceeOutput(MCMCOutput):
         model in the second half of entries. The offset parameter is used to start at the desired model.
 
         """
-        return self.read_list_of_results_from_summary_file(
-            number_entries=self.model.prior_count, offset=0
-        )
+        return self.pdf.getMeans()
 
     @property
     def most_likely_model_parameters(self):

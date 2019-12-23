@@ -23,7 +23,7 @@ def do_something():
 
 @pytest.fixture(name="emcee_output")
 def test_emcee_output():
-    emcee_output_path = "{}/../test_files/non_linear/emcee/".format(
+    emcee_output_path = "{}/../test_files/non_linear/emcee2/".format(
         os.path.dirname(os.path.realpath(__file__))
     )
 
@@ -41,14 +41,16 @@ class TestEmceeOutput:
             -60560.20617, 1.0e-4
         )
 
-    # def test__most_probable_parameters(sel, emcee_output):
-    #
-    #     assert emcee_output.most_likely_model_parameters == pytest.approx([
-    #         -0.06985,
-    #     0.04442,
-    #      6.68523,
-    #         1.11980,
-    #     ], 1.0e-3)
+    def test__most_probable_parameters(sel, emcee_output):
+
+        print(emcee_output.most_probable_model_parameters)
+
+        assert emcee_output.most_probable_model_parameters == pytest.approx([
+            0.0073896,
+        -0.0173088,
+         9.934668,
+            0.4958672,
+        ], 1.0e-3)
 
     def test__most_likely_parameters(self, emcee_output):
 
