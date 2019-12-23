@@ -29,18 +29,17 @@ def test_emcee_output():
 
     af.conf.instance.output_path = emcee_output_path
 
-    mapper = af.ModelMapper(
-        mock_class_1=MockClassNLOx4,
-    )
+    mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
     return EmceeOutput(mapper, Paths())
 
 
 class TestEmceeOutput:
-
     def test__maximum_log_likelihood(self, emcee_output):
 
-        assert emcee_output.maximum_log_likelihood == pytest.approx(-60560.20617, 1.0e-4)
+        assert emcee_output.maximum_log_likelihood == pytest.approx(
+            -60560.20617, 1.0e-4
+        )
 
     # def test__most_probable_parameters(sel, emcee_output):
     #
@@ -53,12 +52,9 @@ class TestEmceeOutput:
 
     def test__most_likely_parameters(self, emcee_output):
 
-        assert emcee_output.most_likely_model_parameters == pytest.approx([
-            -0.06985,
-        0.04442,
-         6.68523,
-            1.11980,
-        ], 1.0e-3)
+        assert emcee_output.most_likely_model_parameters == pytest.approx(
+            [-0.06985, 0.04442, 6.68523, 1.11980], 1.0e-3
+        )
 
     # def test__model_parameters_at_sigma_limit__uses_output_files(
     #     self, emcee_output

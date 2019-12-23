@@ -1,12 +1,11 @@
-import math
 import os
 
 from autofit import conf
 from autofit.tools import text_formatter, text_util
 import numpy as np
 
-class AbstractOutput(object):
 
+class AbstractOutput(object):
     def __init__(self, model, paths):
         self.model = model
         self.paths = paths
@@ -298,6 +297,9 @@ class AbstractOutput(object):
         )
         return "{:." + str(decimal_places) + "f}"
 
+    @property
+    def pdf(self):
+        raise NotImplementedError()
 
     def output_pdf_plots(self):
         raise NotImplementedError()
@@ -309,10 +311,100 @@ class MCMCOutput(AbstractOutput):
 
 
 class NestedSamplingOutput(AbstractOutput):
-
     def sample_weight_from_sample_index(self, sample_index):
         raise NotImplementedError()
 
     @property
     def evidence(self):
         raise NotImplementedError()
+
+    def output_pdf_plots(self):
+
+        import getdist.plots
+        import matplotlib
+
+        backend = conf.instance.visualize.get("figures", "backend", str)
+        matplotlib.use(backend)
+        import matplotlib.pyplot as plt
+
+        pdf_plot = getdist.plots.GetDistPlotter()
+
+        plot_pdf_1d_params = conf.instance.visualize.get(
+            "plots", "plot_pdf_1d_params", bool
+        )
+
+        if plot_pdf_1d_params:
+
+            for param_name in self.model.param_names:
+                pdf_plot.plot_1d(roots=self.pdf, param=param_name)
+                pdf_plot.export(
+                    fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
+                )
+
+        plt.close()
+
+        plot_pdf_triangle = conf.instance.visualize.get(
+            "plots", "plot_pdf_triangle", bool
+        )
+
+        if plot_pdf_triangle:
+
+            try:
+                pdf_plot.triangle_plot(roots=self.pdf)
+                pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
+            except Exception as e:
+                print(type(e))
+                print(
+                    "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
+                    "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
+                    "parameter evidence_tolerance."
+                )
+
+        plt.close()
+
+    def output_results(self, during_analysis):
+
+        results = []
+
+        results += text_util.label_and_value_string(
+            label="Bayesian Evidence ",
+            value=self.evidence,
+            whitespace=90,
+            format_string="{:.8f}",
+        )
+        results += ["\n"]
+        results += text_util.label_and_value_string(
+            label="Maximum Likelihood ",
+            value=self.maximum_log_likelihood,
+            whitespace=90,
+            format_string="{:.8f}",
+        )
+        results += ["\n\n"]
+
+        results += ["Most Likely Model:\n\n"]
+        most_likely = self.most_likely_model_parameters
+
+        formatter = text_formatter.TextFormatter()
+
+        for i, prior_path in enumerate(self.model.unique_prior_paths):
+            formatter.add((prior_path, self.format_str.format(most_likely[i])))
+        results += [formatter.text + "\n"]
+
+        if not during_analysis:
+
+            results += self.results_from_sigma_limit(limit=3.0)
+            results += ["\n"]
+            results += self.results_from_sigma_limit(limit=1.0)
+
+            results += ["\n\ninstances\n"]
+
+            formatter = text_formatter.TextFormatter()
+
+            for t in self.model.path_float_tuples:
+                formatter.add(t)
+
+            results += ["\n" + formatter.text]
+
+        text_util.output_list_of_strings_to_file(
+            file=self.paths.file_results, list_of_strings=results
+        )

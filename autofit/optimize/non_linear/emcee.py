@@ -26,13 +26,9 @@ class Emcee(NonLinearOptimizer):
 
         self.sigma_limit = sigma_limit
 
-        self.nwalkers = conf.instance.non_linear.get(
-            "Emcee", "nwalkers", int
-        )
+        self.nwalkers = conf.instance.non_linear.get("Emcee", "nwalkers", int)
 
-        self.nsteps = conf.instance.non_linear.get(
-            "Emcee", "nsteps", int
-        )
+        self.nsteps = conf.instance.non_linear.get("Emcee", "nsteps", int)
 
         logger.debug("Creating Emcee NLO")
 
@@ -97,7 +93,7 @@ class Emcee(NonLinearOptimizer):
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee")
+            backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee"),
         )
 
         output = EmceeOutput(model=model, paths=self.paths)
@@ -113,7 +109,9 @@ class Emcee(NonLinearOptimizer):
 
             for walker_index in range(emcee_sampler.nwalkers):
 
-                emcee_state[walker_index, :] = np.asarray(model.random_physical_vector_from_priors)
+                emcee_state[walker_index, :] = np.asarray(
+                    model.random_physical_vector_from_priors
+                )
 
         logger.info("Running Emcee Sampling...")
 
@@ -127,7 +125,7 @@ class Emcee(NonLinearOptimizer):
                 iterations=self.nsteps - emcee_sampler.iteration,
                 progress=True,
                 skip_initial_state_check=True,
-                store=True
+                store=True,
             ):
 
                 # Compute the autocorrelation time so far
@@ -139,8 +137,8 @@ class Emcee(NonLinearOptimizer):
 
                 converged = np.all(tau * 100 < emcee_sampler.iteration)
                 converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
-             #   if converged:
-             #       break
+                #   if converged:
+                #       break
                 old_tau = tau
 
         logger.info("Emcee complete")
@@ -155,29 +153,32 @@ class Emcee(NonLinearOptimizer):
 
         stop
 
-    #    analysis.visualize(instance=instance, during_analysis=False)
-    #    output.output_results(during_analysis=False)
-    #    output.output_pdf_plots()
-    #     result = Result(
-    #         instance=instance,
-    #         figure_of_merit=output.evidence,
-    #         previous_model=model,
-    #         gaussian_tuples=output.gaussian_priors_at_sigma_limit(
-    #             self.sigma_limit
-    #         ),
-    #     )
-    #     self.paths.backup_zip_remove()
+        #    analysis.visualize(instance=instance, during_analysis=False)
+        #    output.output_results(during_analysis=False)
+        #    output.output_pdf_plots()
+        #     result = Result(
+        #         instance=instance,
+        #         figure_of_merit=output.evidence,
+        #         previous_model=model,
+        #         gaussian_tuples=output.gaussian_priors_at_sigma_limit(
+        #             self.sigma_limit
+        #         ),
+        #     )
+        #     self.paths.backup_zip_remove()
         return None
 
 
 class EmceeOutput(MCMCOutput):
-
     @property
     def backend(self):
         if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
-            return emcee.backends.HDFBackend(filename=self.paths.sym_path + "/emcee.hdf")
+            return emcee.backends.HDFBackend(
+                filename=self.paths.sym_path + "/emcee.hdf"
+            )
         else:
-            raise FileNotFoundError("The file emcee.hdf does not exist at the path " + self.paths.path)
+            raise FileNotFoundError(
+                "The file emcee.hdf does not exist at the path " + self.paths.path
+            )
 
     @property
     def most_likely_index(self):
@@ -212,34 +213,12 @@ class EmceeOutput(MCMCOutput):
     def maximum_log_likelihood(self):
         return self.backend.get_log_prob(flat=True)[self.most_likely_index]
 
-    @property
-    def evidence(self):
-        return self.read_list_of_results_from_summary_file(
-            number_entries=2, offset=112
-        )[0]
-
-    def read_list_of_results_from_summary_file(self, number_entries, offset):
-
-        summary = open(self.paths.file_summary)
-        summary.read(2 + offset * self.model.prior_count)
-        vector = []
-        for param in range(number_entries):
-            vector.append(float(summary.read(28)))
-
-        summary.close()
-
-        return vector
-
     def model_parameters_at_sigma_limit(self, sigma_limit):
-        limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
-        densities_1d = list(
-            map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
-        )
-        return list(map(lambda p: p.getLimits(limit), densities_1d))
+        pass
 
     @property
     def total_samples(self):
-        return len(self.pdf.weights)
+        pass
 
     def sample_model_parameters_from_sample_index(self, sample_index):
         """From a sample return the model parameters.
@@ -249,7 +228,7 @@ class EmceeOutput(MCMCOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return list(self.pdf.samples[sample_index])
+        pass
 
     def sample_weight_from_sample_index(self, sample_index):
         """From a sample return the sample weight.
@@ -259,7 +238,7 @@ class EmceeOutput(MCMCOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return self.pdf.weights[sample_index]
+        pass
 
     def sample_likelihood_from_sample_index(self, sample_index):
         """From a sample return the likelihood.
@@ -272,97 +251,8 @@ class EmceeOutput(MCMCOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return -0.5 * self.pdf.loglikes[sample_index]
+        pass
 
     def output_pdf_plots(self):
 
-        import getdist.plots
-        import matplotlib
-
-        backend = conf.instance.visualize.get("figures", "backend", str)
-        matplotlib.use(backend)
-        import matplotlib.pyplot as plt
-
-        pdf_plot = getdist.plots.GetDistPlotter()
-
-        plot_pdf_1d_params = conf.instance.visualize.get(
-            "plots", "plot_pdf_1d_params", bool
-        )
-
-        if plot_pdf_1d_params:
-
-            for param_name in self.model.param_names:
-                pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(
-                    fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
-                )
-
-        plt.close()
-
-        plot_pdf_triangle = conf.instance.visualize.get(
-            "plots", "plot_pdf_triangle", bool
-        )
-
-        if plot_pdf_triangle:
-
-            try:
-                pdf_plot.triangle_plot(roots=self.pdf)
-                pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
-            except Exception as e:
-                print(type(e))
-                print(
-                    "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
-                    "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
-                    "parameter evidence_tolerance."
-                )
-
-        plt.close()
-
-    def output_results(self, during_analysis):
-
-        if os.path.isfile(self.paths.file_summary):
-
-            results = []
-
-            results += text_util.label_and_value_string(
-                label="Bayesian Evidence ",
-                value=self.evidence,
-                whitespace=90,
-                format_string="{:.8f}",
-            )
-            results += ["\n"]
-            results += text_util.label_and_value_string(
-                label="Maximum Likelihood ",
-                value=self.maximum_log_likelihood,
-                whitespace=90,
-                format_string="{:.8f}",
-            )
-            results += ["\n\n"]
-
-            results += ["Most Likely Model:\n\n"]
-            most_likely = self.most_likely_model_parameters
-
-            formatter = text_formatter.TextFormatter()
-
-            for i, prior_path in enumerate(self.model.unique_prior_paths):
-                formatter.add((prior_path, self.format_str.format(most_likely[i])))
-            results += [formatter.text + "\n"]
-
-            if not during_analysis:
-
-                results += self.results_from_sigma_limit(limit=3.0)
-                results += ["\n"]
-                results += self.results_from_sigma_limit(limit=1.0)
-
-                results += ["\n\ninstances\n"]
-
-                formatter = text_formatter.TextFormatter()
-
-                for t in self.model.path_float_tuples:
-                    formatter.add(t)
-
-                results += ["\n" + formatter.text]
-
-            text_util.output_list_of_strings_to_file(
-                file=self.paths.file_results, list_of_strings=results
-            )
+        pass

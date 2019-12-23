@@ -49,6 +49,20 @@ def test_multi_nest_samples():
     return multi_nest_samples_path
 
 
+@pytest.fixture(name="multi_nest_phys_live_path")
+def test_multi_nest_phys_live():
+    multi_nest_phys_live_path = "{}/../test_files/non_linear/multinest/phys_live".format(
+        os.path.dirname(os.path.realpath(__file__))
+    )
+
+    if os.path.exists(multi_nest_phys_live_path):
+        shutil.rmtree(multi_nest_phys_live_path)
+
+    os.mkdir(multi_nest_phys_live_path)
+
+    return multi_nest_phys_live_path
+
+
 def create_path(func):
     @wraps(func)
     def wrapper(path):
@@ -152,28 +166,52 @@ def create_weighted_samples_4_parameters(path):
         )
 
 
-class TestMultiNestOutput:
+@create_path
+def create_phys_live_4_parameters(path):
+    with open(path + "/multinestphys_live.points", "w+") as phys_live:
+        phys_live.write(
+            "    0.110000000000000000E+01    "
+            "0.210000000000000000E+01    0.310000000000000000E+01    0.410000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.090000000000000000E+01    "
+            "0.190000000000000000E+01    0.290000000000000000E+01    0.390000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.040000000000000000E+00   1\n"
+            "    0.100000000000000000E+01    "
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1"
+        )
 
-    def test__maximum_log_likelihood_and_evidence(self, multi_nest_summary_path):
+
+class TestMultiNestOutputConverged:
+    def test__maximum_log_likelihood_and_evidence__from_summary(self, multi_nest_summary_path):
 
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
-        model = af.ModelMapper(
-            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
-        )
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
         multinest_output = MultiNestOutput(model, Paths())
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.maximum_log_likelihood == pytest.approx(9999999.9, 1.0e-4)
+        assert multinest_output.maximum_log_likelihood == pytest.approx(
+            9999999.9, 1.0e-4
+        )
         assert multinest_output.evidence == pytest.approx(0.02, 1.0e-4)
 
-    def test__most_probable_model_parameters(self, multi_nest_summary_path):
+    def test__most_probable_model_parameters__from_summary(self, multi_nest_summary_path):
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
-        model = af.ModelMapper(
-            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
-        )
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
         multinest_output = MultiNestOutput(model, Paths())
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
@@ -191,15 +229,127 @@ class TestMultiNestOutput:
             10.0,
         ]
 
-    def test__most_likely_model_parameters(self, multi_nest_summary_path):
+    def test__most_likely_model_parameters__from_summary(self, multi_nest_summary_path):
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
-        model = af.ModelMapper(
-            mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
-        )
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
         multinest_output = MultiNestOutput(model, Paths())
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
+
+        assert multinest_output.most_likely_model_parameters == [
+            21.0,
+            22.0,
+            23.0,
+            24.0,
+            25.0,
+            -26.0,
+            -27.0,
+            28.0,
+            29.0,
+            30.0,
+        ]
+
+    def test__model_parameters_at_sigma_limit__from_weighted_samples(
+        self, multi_nest_samples_path
+    ):
+        af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
+
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
+
+        params = multinest_output.model_parameters_at_sigma_limit(sigma_limit=3.0)
+        assert params[0][0:2] == pytest.approx((0.88, 1.12), 1e-2)
+        assert params[1][0:2] == pytest.approx((1.88, 2.12), 1e-2)
+        assert params[2][0:2] == pytest.approx((2.88, 3.12), 1e-2)
+        assert params[3][0:2] == pytest.approx((3.88, 4.12), 1e-2)
+
+        params = multinest_output.model_parameters_at_sigma_limit(sigma_limit=1.0)
+        assert params[0][0:2] == pytest.approx((0.93, 1.07), 1e-2)
+        assert params[1][0:2] == pytest.approx((1.93, 2.07), 1e-2)
+        assert params[2][0:2] == pytest.approx((2.93, 3.07), 1e-2)
+        assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
+
+    def test__samples__total_samples__model_parameters_weight_and_likelihood_from_sample_index__from_weighted_samples(
+        self, multi_nest_samples_path
+    ):
+        af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
+
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+        create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
+
+        model = multinest_output.sample_model_parameters_from_sample_index(
+            sample_index=0
+        )
+        weight = multinest_output.sample_weight_from_sample_index(sample_index=0)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(
+            sample_index=0
+        )
+
+        assert multinest_output.total_samples == 10
+        assert model == [1.1, 2.1, 3.1, 4.1]
+        assert weight == 0.02
+        assert likelihood == -0.5 * 9999999.9
+
+        model = multinest_output.sample_model_parameters_from_sample_index(
+            sample_index=5
+        )
+        weight = multinest_output.sample_weight_from_sample_index(sample_index=5)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(
+            sample_index=5
+        )
+
+        assert multinest_output.total_samples == 10
+        assert model == [1.0, 2.0, 3.0, 4.0]
+        assert weight == 0.1
+        assert likelihood == -0.5 * 9999999.9
+
+
+class TestMultiNestOutputUnconverged:
+    def test__maximum_log_likelihood_and_evidence__from_phys_live_points(self, multi_nest_phys_live_path):
+
+        af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
+
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+        multinest_output = MultiNestOutput(model, Paths())
+
+        create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
+
+        assert multinest_output.maximum_log_likelihood == pytest.approx(
+            0.04, 1.0e-4
+        )
+        assert multinest_output.evidence == None
+
+    def test__most_probable_model_parameters(self, multi_nest_phys_live_path):
+        af.conf.instance.output_path = multi_nest_phys_live_path + "/2_classes"
+
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        multinest_output = MultiNestOutput(model, Paths())
+
+        create_phys_live_10_parameters(path=multinest_output.paths.backup_path)
+
+        assert multinest_output.most_probable_model_parameters == [
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            -5.0,
+            -6.0,
+            -7.0,
+            -8.0,
+            9.0,
+            10.0,
+        ]
+
+    def test__most_likely_model_parameters(self, multi_nest_phys_live_path):
+        af.conf.instance.output_path = multi_nest_phys_live_path + "/2_classes"
+
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        multinest_output = MultiNestOutput(model, Paths())
+
+        create_phys_live_10_parameters(path=multinest_output.paths.backup_path)
 
         assert multinest_output.most_likely_model_parameters == [
             21.0,
@@ -244,18 +394,26 @@ class TestMultiNestOutput:
         multinest_output = MultiNestOutput(model, Paths())
         create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
-        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=0)
+        model = multinest_output.sample_model_parameters_from_sample_index(
+            sample_index=0
+        )
         weight = multinest_output.sample_weight_from_sample_index(sample_index=0)
-        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=0)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(
+            sample_index=0
+        )
 
         assert multinest_output.total_samples == 10
         assert model == [1.1, 2.1, 3.1, 4.1]
         assert weight == 0.02
         assert likelihood == -0.5 * 9999999.9
 
-        model = multinest_output.sample_model_parameters_from_sample_index(sample_index=5)
+        model = multinest_output.sample_model_parameters_from_sample_index(
+            sample_index=5
+        )
         weight = multinest_output.sample_weight_from_sample_index(sample_index=5)
-        likelihood = multinest_output.sample_likelihood_from_sample_index(sample_index=5)
+        likelihood = multinest_output.sample_likelihood_from_sample_index(
+            sample_index=5
+        )
 
         assert multinest_output.total_samples == 10
         assert model == [1.0, 2.0, 3.0, 4.0]
@@ -265,7 +423,9 @@ class TestMultiNestOutput:
 
 @pytest.fixture(name="multi_nest")
 def make_multi_nest():
-    multi_nest_fit_path = "{}/test_fit".format(os.path.dirname(os.path.realpath(__file__)))
+    multi_nest_fit_path = "{}/test_fit".format(
+        os.path.dirname(os.path.realpath(__file__))
+    )
 
     try:
         shutil.rmtree(multi_nest_fit_path)

@@ -105,10 +105,7 @@ class NUTS(NonLinearOptimizer):
 
         logger.info("Running NUTS Sampling...")
         samples = nuts_sampler.run_mcmc(
-            initial_state=initial_state,
-            steps=5000,
-            steps_burn_in=5000,
-            delta=0.6
+            initial_state=initial_state, steps=5000, steps_burn_in=5000, delta=0.6
         )
         logger.info("NUTS complete")
 
@@ -120,17 +117,17 @@ class NUTS(NonLinearOptimizer):
         # TODO: have a valid sym-link( e.g. even for aggregator use).
 
         self.paths.backup()
-    #    instance = output.most_likely_model_instance
-    #    analysis.visualize(instance=instance, during_analysis=False)
-    #    output.output_results(during_analysis=False)
-    #    output.output_pdf_plots()
-    #     result = Result(
-    #         instance=instance,
-    #         figure_of_merit=output.evidence,
-    #         previous_model=model,
-    #         gaussian_tuples=output.gaussian_priors_at_sigma_limit(
-    #             self.sigma_limit
-    #         ),
-    #     )
-    #     self.paths.backup_zip_remove()
+        #    instance = output.most_likely_model_instance
+        #    analysis.visualize(instance=instance, during_analysis=False)
+        #    output.output_results(during_analysis=False)
+        #    output.output_pdf_plots()
+        #     result = Result(
+        #         instance=instance,
+        #         figure_of_merit=output.evidence,
+        #         previous_model=model,
+        #         gaussian_tuples=output.gaussian_priors_at_sigma_limit(
+        #             self.sigma_limit
+        #         ),
+        #     )
+        #     self.paths.backup_zip_remove()
         return None

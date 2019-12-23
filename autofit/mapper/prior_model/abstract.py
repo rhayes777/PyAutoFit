@@ -165,7 +165,6 @@ class AbstractPriorModel(AbstractModel):
             except exc.PriorLimitException:
                 pass
 
-
     @property
     def physical_values_from_prior_medians(self):
         """

@@ -195,6 +195,10 @@ class Paths:
         return "{}/{}".format(self.backup_path, "multinest.txt")
 
     @property
+    def file_phys_live(self) -> str:
+        return "{}/{}".format(self.backup_path, "multinestphys_live.points")
+
+    @property
     def file_results(self):
         return "{}/{}".format(self.phase_output_path, "model.results")
 
