@@ -216,9 +216,12 @@ class MultiNestOutput(NestedSamplingOutput):
         model in the second half of entries. The offset parameter is used to start at the desired model.
 
         """
-        return self.read_list_of_results_from_summary_file(
-            number_entries=self.model.prior_count, offset=0
-        )
+        try:
+            return self.read_list_of_results_from_summary_file(
+                number_entries=self.model.prior_count, offset=0
+            )
+        except FileNotFoundError:
+            return self.most_likely_model_parameters
 
     @property
     def most_likely_model_parameters(self):

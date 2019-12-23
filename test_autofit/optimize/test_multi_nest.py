@@ -322,25 +322,16 @@ class TestMultiNestOutputUnconverged:
         )
         assert multinest_output.evidence == None
 
-    def test__most_probable_model_parameters(self, multi_nest_phys_live_path):
-        af.conf.instance.output_path = multi_nest_phys_live_path + "/2_classes"
+    def test__most_probable_model_parameters__use_most_likely_if_no_summary(self, multi_nest_phys_live_path):
+        af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
         multinest_output = MultiNestOutput(model, Paths())
 
-        create_phys_live_10_parameters(path=multinest_output.paths.backup_path)
+        create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
         assert multinest_output.most_probable_model_parameters == [
-            1.0,
-            2.0,
-            3.0,
-            4.0,
-            -5.0,
-            -6.0,
-            -7.0,
-            -8.0,
-            9.0,
-            10.0,
+            1.0, 2.0, 3.0, 5.0
         ]
 
     def test__most_likely_model_parameters__from_phys_live_points(self, multi_nest_phys_live_path):
