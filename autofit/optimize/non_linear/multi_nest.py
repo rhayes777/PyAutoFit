@@ -296,10 +296,16 @@ class MultiNestOutput(NestedSamplingOutput):
 
     def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
-        densities_1d = list(
-            map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
-        )
-        return list(map(lambda p: p.getLimits(limit), densities_1d))
+
+        try:
+            densities_1d = list(
+                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+            )
+            return list(map(lambda p: p.getLimits(limit), densities_1d))
+        except IOError or OSError:
+            parameters_min = [min([point[param_index] for param_index in range(self.model.prior_count)]) for point in self.phys_live_points]
+            parameters_max = [max([point[param_index] for param_index in range(self.model.prior_count)]) for point in self.phys_live_points]
+            return [(parameters_min[index], parameters_max[index]) for index in range(len(parameters_min))]
 
     @property
     def total_samples(self):
