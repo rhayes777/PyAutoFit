@@ -132,8 +132,8 @@ def make_pipeline():
         optimizer_class=af.MultiNest,
     )
 
-    # In phase 2, we will fit the Gaussian on the right, where the best-fit Gaussian resulting from phase 1 
-    # above fits the left-hand Gaussian.
+    # In phase 2, we will fit the Gaussian on the right, where the best-fit Gaussian 
+    # resulting from phase 1 above fits the left-hand Gaussian.
 
     phase2 = af.Phase(
         phase_name="phase_2__right_gaussian",
@@ -145,7 +145,8 @@ def make_pipeline():
         optimizer_class=af.MultiNest,
     )
 
-    # In phase 3, we fit both Gaussians, using the results of phases 1 and 2 to initialize their model parameters.
+    # In phase 3, we fit both Gaussians, using the results of phases 1 and 2 to 
+    # initialize their model parameters.
 
     phase3 = af.Phase(
         phase_name="phase_3__both_gaussian",
