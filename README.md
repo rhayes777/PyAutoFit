@@ -2,7 +2,12 @@
 
 **PyAutoFit** is a Python-based probablistic programming language that allows Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. 
 
-In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan), **PyAutoFit** specializes in fitting **very large-datasets** with **many different models**, with advanced functionality using **transdimensional model-fitting**.
+In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan), **PyAutoFit** specializes in:
+
+- **'Black box'** models with complex likelihood functions as opposed to structured graphical models. 
+- Modeling **extremely large-datasets** with a homogenous fitting procedure. 
+- Fitting **many different model parametrizations** to the same data. 
+- Automating complex model-fitting tasks via **transdimensional model-fitting pipelines**.
 
 ## API Overview
 
@@ -38,18 +43,18 @@ phase = al.PhaseImaging(
 phase.run(dataset=dataset)
 ```
 
-By interfacing with Python classes **PyAutoFit** takes care of the 'heavy lifting' that comes with parametrizing and fitting model. This includes interfacing with a range of non-linear search methods, outputting results in an ordered directory structure and providing on-the-fly output and visusalization of the fit.
+By interfacing with Python classes **PyAutoFit** takes care of the 'heavy lifting' that comes with parametrizing and fitting the model. This includes interfacing with a range of non-linear searches, storing results in an ordered directory structure and providing on-the-fly output and visusalization of the fit.
 
 ## Features
 
 # Model Customization
 
-**PyAutoFit** makes it straight forward to parameterize, customize and fit models made of multiple components. Below, we extend the example above to include a second Gaussian, with user-specified priors and a centre that is aligned with the first Gaussian:
+**PyAutoFit** makes it straight forward to parameterize, customize and fit models made of multiple components. Below, we extend the example above to include a second Gaussian, with user-specified priors and a centre aligned with the first Gaussian:
 
 ```python
 import autofit as af
 
-# The model can be setup with multiple classes and before passing it to a phase,
+# The model can be setup with multiple classes and before passing it to a phase
 # we can customize the model parameters.
 
 model = af.CollectionPriorModel(gaussian_0=af.Gaussian, gaussian_1=af.Gaussian)
@@ -71,9 +76,9 @@ phase = al.PhaseImaging(
 
 # Aggregation
 
-For fits to large data-sets **PyAutoFit** provides tools to inspect and interpret the vast library of results output. 
+For fits to large data-sets **PyAutoFit** provides tools to manipulate the vast library of results output. 
 
-Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. All **PyAutoFit** outputs contain metadata that enables them to be immediately loaded via the **aggregator** in a Python script or Jupyter notebook:
+Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. Every **PyAutoFit** output contain metadata such that we can immediately load it via the **aggregator** into a Python script or Jupyter notebook:
 
 
 ```python
@@ -97,7 +102,7 @@ If many different phases are used to perform different model-fits to a data-set,
 
 ## Transdimensional Modeling
 
-**PyAutoFit** specializes in transdimensional modeling, where many different highly complex models are paramertized and fitted to the same data-set.  
+In transdimensional modeling many different models are paramertized and fitted to the same data-set.  
 
 This is performed using **transdimensional model-fitting pipelines**, which break the model-fit into a series of **linked non-linear searches**, or phases. Initial phases fit simplified realizations of the model, whose results are used to initialize fits using more complex models in later phases. 
 
