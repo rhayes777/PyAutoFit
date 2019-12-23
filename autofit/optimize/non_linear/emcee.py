@@ -4,6 +4,8 @@ import os
 import numpy as np
 import emcee
 
+import math
+
 from autofit import conf, exc
 from autofit.optimize.non_linear.output import MCMCOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
@@ -192,7 +194,7 @@ class EmceeOutput(MCMCOutput):
 
     @property
     def pdf_converged(self):
-        raise NotImplementedError()
+        return True
 
     @property
     def most_likely_index(self):
@@ -226,11 +228,19 @@ class EmceeOutput(MCMCOutput):
         return self.backend.get_log_prob(flat=True)[self.most_likely_index]
 
     def model_parameters_at_sigma_limit(self, sigma_limit):
-        pass
+
+        limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
+
+        if self.pdf_converged:
+            densities_1d = list(
+                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+            )
+
+            return list(map(lambda p: p.getLimits(limit), densities_1d))
 
     @property
     def total_samples(self):
-        pass
+        return len(self.backend.get_log_prob(flat=True))
 
     def sample_model_parameters_from_sample_index(self, sample_index):
         """From a sample return the model parameters.
@@ -240,7 +250,7 @@ class EmceeOutput(MCMCOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        pass
+        return list(self.pdf.samples[sample_index])
 
     def sample_weight_from_sample_index(self, sample_index):
         """From a sample return the sample weight.
@@ -250,7 +260,7 @@ class EmceeOutput(MCMCOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        pass
+        return self.pdf.weights[sample_index]
 
     def sample_likelihood_from_sample_index(self, sample_index):
         """From a sample return the likelihood.
@@ -263,7 +273,7 @@ class EmceeOutput(MCMCOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        pass
+        return self.backend.get_log_prob(flat=True)[sample_index]
 
     def output_pdf_plots(self):
 
