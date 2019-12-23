@@ -301,6 +301,10 @@ class AbstractOutput(object):
     def pdf(self):
         raise NotImplementedError()
 
+    @property
+    def pdf_converged(self):
+        raise NotImplementedError()
+
     def output_pdf_plots(self):
         raise NotImplementedError()
 
@@ -366,13 +370,16 @@ class NestedSamplingOutput(AbstractOutput):
 
         results = []
 
-        results += text_util.label_and_value_string(
-            label="Bayesian Evidence ",
-            value=self.evidence,
-            whitespace=90,
-            format_string="{:.8f}",
-        )
-        results += ["\n"]
+        if self.evidence is not None:
+
+            results += text_util.label_and_value_string(
+                label="Bayesian Evidence ",
+                value=self.evidence,
+                whitespace=90,
+                format_string="{:.8f}",
+            )
+            results += ["\n"]
+
         results += text_util.label_and_value_string(
             label="Maximum Likelihood ",
             value=self.maximum_log_likelihood,
@@ -390,20 +397,26 @@ class NestedSamplingOutput(AbstractOutput):
             formatter.add((prior_path, self.format_str.format(most_likely[i])))
         results += [formatter.text + "\n"]
 
-        if not during_analysis:
+        if self.pdf_converged:
 
             results += self.results_from_sigma_limit(limit=3.0)
             results += ["\n"]
             results += self.results_from_sigma_limit(limit=1.0)
 
-            results += ["\n\ninstances\n"]
+        else:
 
-            formatter = text_formatter.TextFormatter()
+            results += ["WARNING: The chains have not converged to the point where a model with reliable errors\n "
+                        "can be calculated. The model below gives over estimated errors \n\n"]
+            results += self.results_from_sigma_limit(limit=1.0)
 
-            for t in self.model.path_float_tuples:
-                formatter.add(t)
+        results += ["\n\ninstances\n"]
 
-            results += ["\n" + formatter.text]
+        formatter = text_formatter.TextFormatter()
+
+        for t in self.model.path_float_tuples:
+            formatter.add(t)
+
+        results += ["\n" + formatter.text]
 
         text_util.output_list_of_strings_to_file(
             file=self.paths.file_results, list_of_strings=results

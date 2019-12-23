@@ -207,6 +207,16 @@ class MultiNestOutput(NestedSamplingOutput):
         return getdist.mcsamples.loadMCSamples(self.paths.backup_path + "/multinest")
 
     @property
+    def pdf_converged(self):
+        try:
+            list(
+                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+            )
+            return True
+        except IOError or OSError:
+            return False
+
+    @property
     def most_probable_model_parameters(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
@@ -297,12 +307,12 @@ class MultiNestOutput(NestedSamplingOutput):
     def model_parameters_at_sigma_limit(self, sigma_limit):
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
 
-        try:
+        if self.pdf_converged:
             densities_1d = list(
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
             )
             return list(map(lambda p: p.getLimits(limit), densities_1d))
-        except IOError or OSError:
+        else:
             parameters_min = [min([point[param_index] for param_index in range(self.model.prior_count)]) for point in self.phys_live_points]
             parameters_max = [max([point[param_index] for param_index in range(self.model.prior_count)]) for point in self.phys_live_points]
             return [(parameters_min[index], parameters_max[index]) for index in range(len(parameters_min))]
@@ -343,7 +353,3 @@ class MultiNestOutput(NestedSamplingOutput):
             The sample index of the weighted sample to return.
         """
         return -0.5 * self.pdf.loglikes[sample_index]
-
-    def output_results(self, during_analysis):
-        if os.path.isfile(self.paths.file_summary):
-            super().output_results(during_analysis=during_analysis)
