@@ -187,7 +187,7 @@ def create_phys_live_4_parameters(path):
             "    0.100000000000000000E+01    "
             "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1\n"
             "    0.100000000000000000E+01    "
-            "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.040000000000000000E+00   1\n"
+            "0.200000000000000000E+01    0.300000000000000000E+01    0.500000000000000000E+01    0.040000000000000000E+00   1\n"
             "    0.100000000000000000E+01    "
             "0.200000000000000000E+01    0.300000000000000000E+01    0.400000000000000000E+01    0.020000000000000000E+00   1"
         )
@@ -343,25 +343,16 @@ class TestMultiNestOutputUnconverged:
             10.0,
         ]
 
-    def test__most_likely_model_parameters(self, multi_nest_phys_live_path):
-        af.conf.instance.output_path = multi_nest_phys_live_path + "/2_classes"
+    def test__most_likely_model_parameters__from_phys_live_points(self, multi_nest_phys_live_path):
+        af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
         multinest_output = MultiNestOutput(model, Paths())
 
-        create_phys_live_10_parameters(path=multinest_output.paths.backup_path)
+        create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
         assert multinest_output.most_likely_model_parameters == [
-            21.0,
-            22.0,
-            23.0,
-            24.0,
-            25.0,
-            -26.0,
-            -27.0,
-            28.0,
-            29.0,
-            30.0,
+            1.0, 2.0, 3.0, 5.0
         ]
 
     def test__model_parameters_at_sigma_limit__uses_output_files(
