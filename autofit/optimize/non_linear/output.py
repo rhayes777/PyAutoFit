@@ -405,8 +405,8 @@ class NestedSamplingOutput(AbstractOutput):
 
         else:
 
-            results += ["WARNING: The chains have not converged to the point where a model with reliable errors\n "
-                        "can be calculated. The model below gives over estimated errors \n\n"]
+            results += ["\n WARNING: The chains have not converged enough to compute a PDF and model errors. \n "
+                        "The model below over estimates errors. \n\n"]
             results += self.results_from_sigma_limit(limit=1.0)
 
         results += ["\n\ninstances\n"]

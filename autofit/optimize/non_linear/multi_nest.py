@@ -204,16 +204,23 @@ class MultiNestOutput(NestedSamplingOutput):
     def pdf(self):
         import getdist
 
-        return getdist.mcsamples.loadMCSamples(self.paths.backup_path + "/multinest")
+        try:
+            return getdist.mcsamples.loadMCSamples(self.paths.backup_path + "/multinest")
+        except IOError or OSError or ValueError or IndexError:
+            raise Exception
 
     @property
     def pdf_converged(self):
         try:
-            list(
+            densities_1d = list(
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
             )
+
+            if densities_1d == []:
+                return False
+
             return True
-        except IOError or OSError:
+        except Exception:
             return False
 
     @property
@@ -311,6 +318,7 @@ class MultiNestOutput(NestedSamplingOutput):
             densities_1d = list(
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
             )
+
             return list(map(lambda p: p.getLimits(limit), densities_1d))
         else:
             parameters_min = [min([point[param_index] for param_index in range(self.model.prior_count)]) for point in self.phys_live_points]
