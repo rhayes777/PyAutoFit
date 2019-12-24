@@ -52,19 +52,19 @@ class Emcee(NonLinearOptimizer):
         def fit_instance(self, instance):
             likelihood = self.analysis.fit(instance)
 
-            # if likelihood > self.max_likelihood:
-            #
-            #     self.max_likelihood = likelihood
-            #     self.result = Result(instance, likelihood)
-            #
-            #     if self.should_visualize():
-            #         self.analysis.visualize(instance, during_analysis=True)
-            #
-            #     if self.should_backup():
-            #         self.paths.backup()
-            #
-            #     if self.should_output_model_results():
-            #         self.output_results(during_analysis=True)
+            if likelihood > self.max_likelihood:
+
+                self.max_likelihood = likelihood
+                self.result = Result(instance, likelihood)
+
+                if self.should_visualize():
+                    self.analysis.visualize(instance, during_analysis=True)
+
+                if self.should_backup():
+                    self.paths.backup()
+
+                if self.should_output_model_results():
+                    self.output_results(during_analysis=True)
 
             return likelihood
 
@@ -84,11 +84,13 @@ class Emcee(NonLinearOptimizer):
     @persistent_timer
     def fit(self, analysis, model):
 
+        output = EmceeOutput(model=model, paths=self.paths)
+
         fitness_function = Emcee.Fitness(
             paths=self.paths,
             analysis=analysis,
             instance_from_physical_vector=model.instance_from_physical_vector,
-            output_results=None,
+            output_results=output.output_results,
         )
 
         emcee_sampler = emcee.EnsembleSampler(
@@ -97,8 +99,6 @@ class Emcee(NonLinearOptimizer):
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
         )
-
-        output = EmceeOutput(model=model, paths=self.paths)
 
         output.save_model_info()
 
@@ -139,8 +139,9 @@ class Emcee(NonLinearOptimizer):
 
                 converged = np.all(tau * 100 < emcee_sampler.iteration)
                 converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
-                #   if converged:
-                #       break
+
+                if converged:
+                    break
                 old_tau = tau
 
         logger.info("Emcee complete")
@@ -153,21 +154,19 @@ class Emcee(NonLinearOptimizer):
 
         instance = output.most_likely_model_instance
 
-        stop
-
-        #    analysis.visualize(instance=instance, during_analysis=False)
-        #    output.output_results(during_analysis=False)
-        #    output.output_pdf_plots()
-        #     result = Result(
-        #         instance=instance,
-        #         figure_of_merit=output.evidence,
-        #         previous_model=model,
-        #         gaussian_tuples=output.gaussian_priors_at_sigma_limit(
-        #             self.sigma_limit
-        #         ),
-        #     )
-        #     self.paths.backup_zip_remove()
-        return None
+        analysis.visualize(instance=instance, during_analysis=False)
+        output.output_results(during_analysis=False)
+        output.output_pdf_plots()
+        result = Result(
+            instance=instance,
+            figure_of_merit=output.maximum_log_likelihood,
+            previous_model=model,
+            gaussian_tuples=output.gaussian_priors_at_sigma_limit(
+                self.sigma_limit
+            ),
+        )
+        self.paths.backup_zip_remove()
+        return result
 
 
 class EmceeOutput(MCMCOutput):

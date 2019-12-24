@@ -305,6 +305,63 @@ class AbstractOutput(object):
     def pdf_converged(self):
         raise NotImplementedError()
 
+    def output_results(self, during_analysis):
+
+        results = []
+
+        if hasattr(self, "evidence"):
+            if self.evidence is not None:
+
+                results += text_util.label_and_value_string(
+                    label="Bayesian Evidence ",
+                    value=self.evidence,
+                    whitespace=90,
+                    format_string="{:.8f}",
+                )
+                results += ["\n"]
+
+        results += text_util.label_and_value_string(
+            label="Maximum Likelihood ",
+            value=self.maximum_log_likelihood,
+            whitespace=90,
+            format_string="{:.8f}",
+        )
+        results += ["\n\n"]
+
+        results += ["Most Likely Model:\n\n"]
+        most_likely = self.most_likely_model_parameters
+
+        formatter = text_formatter.TextFormatter()
+
+        for i, prior_path in enumerate(self.model.unique_prior_paths):
+            formatter.add((prior_path, self.format_str.format(most_likely[i])))
+        results += [formatter.text + "\n"]
+
+        if self.pdf_converged:
+
+            results += self.results_from_sigma_limit(limit=3.0)
+            results += ["\n"]
+            results += self.results_from_sigma_limit(limit=1.0)
+
+        else:
+
+            results += ["\n WARNING: The chains have not converged enough to compute a PDF and model errors. \n "
+                        "The model below over estimates errors. \n\n"]
+            results += self.results_from_sigma_limit(limit=1.0)
+
+        results += ["\n\ninstances\n"]
+
+        formatter = text_formatter.TextFormatter()
+
+        for t in self.model.path_float_tuples:
+            formatter.add(t)
+
+        results += ["\n" + formatter.text]
+
+        text_util.output_list_of_strings_to_file(
+            file=self.paths.file_results, list_of_strings=results
+        )
+
     def output_pdf_plots(self):
         raise NotImplementedError()
 
@@ -365,59 +422,3 @@ class NestedSamplingOutput(AbstractOutput):
                 )
 
         plt.close()
-
-    def output_results(self, during_analysis):
-
-        results = []
-
-        if self.evidence is not None:
-
-            results += text_util.label_and_value_string(
-                label="Bayesian Evidence ",
-                value=self.evidence,
-                whitespace=90,
-                format_string="{:.8f}",
-            )
-            results += ["\n"]
-
-        results += text_util.label_and_value_string(
-            label="Maximum Likelihood ",
-            value=self.maximum_log_likelihood,
-            whitespace=90,
-            format_string="{:.8f}",
-        )
-        results += ["\n\n"]
-
-        results += ["Most Likely Model:\n\n"]
-        most_likely = self.most_likely_model_parameters
-
-        formatter = text_formatter.TextFormatter()
-
-        for i, prior_path in enumerate(self.model.unique_prior_paths):
-            formatter.add((prior_path, self.format_str.format(most_likely[i])))
-        results += [formatter.text + "\n"]
-
-        if self.pdf_converged:
-
-            results += self.results_from_sigma_limit(limit=3.0)
-            results += ["\n"]
-            results += self.results_from_sigma_limit(limit=1.0)
-
-        else:
-
-            results += ["\n WARNING: The chains have not converged enough to compute a PDF and model errors. \n "
-                        "The model below over estimates errors. \n\n"]
-            results += self.results_from_sigma_limit(limit=1.0)
-
-        results += ["\n\ninstances\n"]
-
-        formatter = text_formatter.TextFormatter()
-
-        for t in self.model.path_float_tuples:
-            formatter.add(t)
-
-        results += ["\n" + formatter.text]
-
-        text_util.output_list_of_strings_to_file(
-            file=self.paths.file_results, list_of_strings=results
-        )
