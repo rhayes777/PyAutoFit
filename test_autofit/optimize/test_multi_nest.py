@@ -194,7 +194,9 @@ def create_phys_live_4_parameters(path):
 
 
 class TestMultiNestOutputConverged:
-    def test__maximum_log_likelihood_and_evidence__from_summary(self, multi_nest_summary_path):
+    def test__maximum_log_likelihood_and_evidence__from_summary(
+        self, multi_nest_summary_path
+    ):
 
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
@@ -208,7 +210,9 @@ class TestMultiNestOutputConverged:
         )
         assert multinest_output.evidence == pytest.approx(0.02, 1.0e-4)
 
-    def test__most_probable_model_parameters__from_summary(self, multi_nest_summary_path):
+    def test__most_probable_model_parameters__from_summary(
+        self, multi_nest_summary_path
+    ):
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
@@ -259,8 +263,10 @@ class TestMultiNestOutputConverged:
         multinest_output = MultiNestOutput(model, Paths())
         create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
         multinest_output.create_paramnames_file()
-        shutil.copy(src=multinest_output.paths.file_param_names,
-                    dst=multinest_output.paths.backup_path + "/multinest.paramnames")
+        shutil.copy(
+            src=multinest_output.paths.file_param_names,
+            dst=multinest_output.paths.backup_path + "/multinest.paramnames",
+        )
 
         params = multinest_output.model_parameters_at_sigma_limit(sigma_limit=3.0)
         assert params[0][0:2] == pytest.approx((0.88, 1.12), 1e-2)
@@ -283,8 +289,10 @@ class TestMultiNestOutputConverged:
         multinest_output = MultiNestOutput(model, Paths())
         create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
         multinest_output.create_paramnames_file()
-        shutil.copy(src=multinest_output.paths.file_param_names,
-                    dst=multinest_output.paths.backup_path + "/multinest.paramnames")
+        shutil.copy(
+            src=multinest_output.paths.file_param_names,
+            dst=multinest_output.paths.backup_path + "/multinest.paramnames",
+        )
 
         model = multinest_output.sample_model_parameters_from_sample_index(
             sample_index=0
@@ -314,7 +322,9 @@ class TestMultiNestOutputConverged:
 
 
 class TestMultiNestOutputUnconverged:
-    def test__maximum_log_likelihood_and_evidence__from_phys_live_points(self, multi_nest_phys_live_path):
+    def test__maximum_log_likelihood_and_evidence__from_phys_live_points(
+        self, multi_nest_phys_live_path
+    ):
 
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
@@ -323,12 +333,12 @@ class TestMultiNestOutputUnconverged:
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.maximum_log_likelihood == pytest.approx(
-            0.04, 1.0e-4
-        )
+        assert multinest_output.maximum_log_likelihood == pytest.approx(0.04, 1.0e-4)
         assert multinest_output.evidence == None
 
-    def test__most_probable_model_parameters__use_most_likely_if_no_summary(self, multi_nest_phys_live_path):
+    def test__most_probable_model_parameters__use_most_likely_if_no_summary(
+        self, multi_nest_phys_live_path
+    ):
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
@@ -336,11 +346,11 @@ class TestMultiNestOutputUnconverged:
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.most_probable_model_parameters == [
-            1.0, 2.0, 3.0, 5.0
-        ]
+        assert multinest_output.most_probable_model_parameters == [1.0, 2.0, 3.0, 5.0]
 
-    def test__most_likely_model_parameters__from_phys_live_points(self, multi_nest_phys_live_path):
+    def test__most_likely_model_parameters__from_phys_live_points(
+        self, multi_nest_phys_live_path
+    ):
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
@@ -348,9 +358,7 @@ class TestMultiNestOutputUnconverged:
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.most_likely_model_parameters == [
-            1.0, 2.0, 3.0, 5.0
-        ]
+        assert multinest_output.most_likely_model_parameters == [1.0, 2.0, 3.0, 5.0]
 
     def test__model_parameters_at_sigma_limit__uses_min_max_of_phys_lives(
         self, multi_nest_phys_live_path

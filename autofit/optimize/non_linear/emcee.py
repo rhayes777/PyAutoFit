@@ -161,9 +161,7 @@ class Emcee(NonLinearOptimizer):
             instance=instance,
             figure_of_merit=output.maximum_log_likelihood,
             previous_model=model,
-            gaussian_tuples=output.gaussian_priors_at_sigma_limit(
-                self.sigma_limit
-            ),
+            gaussian_tuples=output.gaussian_priors_at_sigma_limit(self.sigma_limit),
         )
         self.paths.backup_zip_remove()
         return result
@@ -187,7 +185,9 @@ class EmceeOutput(MCMCOutput):
 
         try:
             total_steps = self.backend.get_chain().shape[0]
-            return getdist.mcsamples.MCSamples(samples=self.backend.get_chain()[:int(0.5*total_steps):-1, :, :])
+            return getdist.mcsamples.MCSamples(
+                samples=self.backend.get_chain()[: int(0.5 * total_steps) : -1, :, :]
+            )
         except IOError or OSError or ValueError or IndexError:
             raise Exception
 

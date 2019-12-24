@@ -205,7 +205,9 @@ class MultiNestOutput(NestedSamplingOutput):
         import getdist
 
         try:
-            return getdist.mcsamples.loadMCSamples(self.paths.backup_path + "/multinest")
+            return getdist.mcsamples.loadMCSamples(
+                self.paths.backup_path + "/multinest"
+            )
         except IOError or OSError or ValueError or IndexError:
             raise Exception
 
@@ -290,7 +292,7 @@ class MultiNestOutput(NestedSamplingOutput):
 
         for line in range(live_points):
             vector = []
-            for param in range(self.model.prior_count+1):
+            for param in range(self.model.prior_count + 1):
                 vector.append(float(phys_live.read(28)))
             phys_live.readline()
             phys_live_points.append(vector)
@@ -321,9 +323,28 @@ class MultiNestOutput(NestedSamplingOutput):
 
             return list(map(lambda p: p.getLimits(limit), densities_1d))
         else:
-            parameters_min = [min([point[param_index] for param_index in range(self.model.prior_count)]) for point in self.phys_live_points]
-            parameters_max = [max([point[param_index] for param_index in range(self.model.prior_count)]) for point in self.phys_live_points]
-            return [(parameters_min[index], parameters_max[index]) for index in range(len(parameters_min))]
+            parameters_min = [
+                min(
+                    [
+                        point[param_index]
+                        for param_index in range(self.model.prior_count)
+                    ]
+                )
+                for point in self.phys_live_points
+            ]
+            parameters_max = [
+                max(
+                    [
+                        point[param_index]
+                        for param_index in range(self.model.prior_count)
+                    ]
+                )
+                for point in self.phys_live_points
+            ]
+            return [
+                (parameters_min[index], parameters_max[index])
+                for index in range(len(parameters_min))
+            ]
 
     @property
     def total_samples(self):
