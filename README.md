@@ -17,7 +17,7 @@ class Gaussian(object):
     def __init__(
         self,
         centre = (0.0, 0.0), # <- PyAutoFit recognises these constructor arguments are the model
-        intensity = 0.1,     # <- parameters of the Gaussian profile.
+        intensity = 0.1,     # <- parameters of the Gaussian.
         sigma = 0.01,
     ):
         self.centre = centre
