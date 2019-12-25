@@ -43,9 +43,9 @@ phase.run(dataset=dataset)
 
 By interfacing with Python classes **PyAutoFit** takes care of the 'heavy lifting' that comes with parametrizing and fitting the model. This includes interfacing with a range of non-linear searches, storing results in an ordered directory structure and providing on-the-fly output and visusalization of the fit.
 
-## Features
+# Features
 
-# Model Customization
+## Model Customization
 
 **PyAutoFit** makes it straight forward to parameterize, customize and fit models made of multiple components. Below, we extend the example above to include a second Gaussian, with user-specified priors and a centre aligned with the first Gaussian:
 
@@ -72,7 +72,7 @@ phase = al.PhaseImaging(
 )
 ```
 
-# Aggregation
+## Aggregation
 
 For fits to large data-sets **PyAutoFit** provides tools to manipulate the vast library of results output. 
 
