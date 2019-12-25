@@ -7,7 +7,7 @@
 - Modeling **extremely large-datasets** with a homogenous fitting procedure. 
 - Automating complex model-fitting tasks via **transdimensional model-fitting pipelines**.
 
-## API Overview
+# API Overview
 
 **PyAutoFit** interfaces with Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html). Lets take a two-dimensional Gaussian as our moodel:
 
