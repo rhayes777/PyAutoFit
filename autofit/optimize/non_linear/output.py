@@ -190,8 +190,11 @@ class AbstractOutput(object):
 
     def results_from_sigma_limit(self, limit):
 
-        lower_limits = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
-        upper_limits = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
+        try:
+            lower_limits = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
+            upper_limits = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
+        except ValueError:
+            return ""
 
         sigma_formatter = text_formatter.TextFormatter()
 
