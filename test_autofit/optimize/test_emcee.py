@@ -1,13 +1,10 @@
 import os
-import shutil
-from functools import wraps
-
 import pytest
 
 import autofit as af
 from autofit import Paths
 from autofit.optimize.non_linear.emcee import EmceeOutput
-from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
+from test_autofit.mock import MockClassNLOx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -31,7 +28,13 @@ def test_emcee_output():
 
     mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-    return EmceeOutput(mapper, Paths())
+    return EmceeOutput(
+        mapper,
+        Paths(),
+        auto_correlation_check_size=10,
+        auto_correlation_required_length=10,
+        auto_correlation_change_threshold=0.01,
+    )
 
 
 class TestEmceeOutput:
@@ -42,7 +45,7 @@ class TestEmceeOutput:
     def test__most_probable_parameters(sel, emcee_output):
 
         assert emcee_output.most_probable_model_parameters == pytest.approx(
-            [0.0073896, -0.0173088, 9.934668, 0.4958672], 1.0e-3
+            [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
         )
 
     def test__most_likely_parameters(self, emcee_output):
@@ -55,22 +58,20 @@ class TestEmceeOutput:
 
         params = emcee_output.model_parameters_at_sigma_limit(sigma_limit=3.0)
 
-        print(params)
-
-        assert params[0][0:2] == pytest.approx((-0.003906, 0.01797), 1e-2)
+        assert params[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
         #   assert params[1][0:2] == pytest.approx((1.88, 2.12), 1e-2)
         #   assert params[2][0:2] == pytest.approx((2.88, 3.12), 1e-2)
         #   assert params[3][0:2] == pytest.approx((3.88, 4.12), 1e-2)
 
         params = emcee_output.model_parameters_at_sigma_limit(sigma_limit=1.0)
 
-        assert params[0][0:2] == pytest.approx((-0.00036844, 0.0140165), 1e-2)
+        assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
     #    assert params[1][0:2] == pytest.approx((1.93, 2.07), 1e-2)
     #    assert params[2][0:2] == pytest.approx((2.93, 3.07), 1e-2)
     #    assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
 
-    def test__samples__total_samples__model_parameters_weight_and_likelihood_from_sample_index(
+    def test__samples__total_steps_samples__model_parameters_weight_and_likelihood_from_sample_index(
         self, emcee_output
     ):
 
@@ -78,9 +79,11 @@ class TestEmceeOutput:
         weight = emcee_output.sample_weight_from_sample_index(sample_index=0)
         likelihood = emcee_output.sample_likelihood_from_sample_index(sample_index=0)
 
+        assert emcee_output.total_walkers == 10
+        assert emcee_output.total_steps == 1000
         assert emcee_output.total_samples == 10000
         assert model == pytest.approx(
-            [0.004281, -0.0040616, 9.944818, 0.493324], 1.0e-2
+            [0.0090338, -0.05790179, 10.192579, 0.480606], 1.0e-2
         )
         assert weight == 1.0
         assert likelihood == pytest.approx(-17257775239, 1.0e-4)
@@ -93,3 +96,15 @@ class TestEmceeOutput:
         # assert model == [1.0, 2.0, 3.0, 4.0]
         # assert weight == 0.1
         # assert likelihood == -0.5 * 9999999.9
+
+    def test__autocorrelation_times(self, emcee_output):
+
+        assert (
+            emcee_output.previous_auto_correlation_times_of_parameters
+            == pytest.approx([31.92692, 36.54546, 73.33737, 67.52170], 1.0e-4)
+        )
+        assert emcee_output.auto_correlation_times_of_parameters == pytest.approx(
+            [31.98507, 36.51001, 73.47629, 67.67495], 1.0e-4
+        )
+
+        assert emcee_output.converged == True
