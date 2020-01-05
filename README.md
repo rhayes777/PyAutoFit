@@ -85,7 +85,7 @@ Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. Ev
 
 
 ```python
-output_path = "/path/to/gaussian_x100_fits/" <- There is 100 separate fits in this folder.
+output_path = "/path/to/gaussian_x100_fits/" # <- There is 100 separate fits in this folder.
 phase_name = "phase_example"
 
 # First, we create an instance of the aggregator, which uses the output path to load results.
@@ -181,7 +181,7 @@ The following features are planned for 2020:
 - **Generalized Linear Models** - Fit for global trends to model fits to large data-sets.
 - **Hierarchical modeling** - Combine fits over multiple data-sets to perform hierarchical inference.
 - **Time series modelling** - Fit temporally varying models using fits which marginalize over time.
-- **Approximate Bayesian Computational** - Likelihood-free modeling.
+- **Approximate Bayesian Computation** - Likelihood-free modeling.
 - **Transdimensional Sampling** - Sample non-linear parameter spaces with variable numbers of model components and parameters.
 
 ## Slack
