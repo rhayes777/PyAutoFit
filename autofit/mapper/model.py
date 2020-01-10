@@ -118,7 +118,7 @@ def populate(obj, collection: ResultsCollection):
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):
     """
     Recursively search the object for instances of a given class
@@ -144,7 +144,12 @@ def path_instances_of_class(
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 
-        for key, value in obj.__dict__.items():
+        if isinstance(obj, dict):
+            d = obj
+        else:
+            d = obj.__dict__
+
+        for key, value in d.items():
             for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
