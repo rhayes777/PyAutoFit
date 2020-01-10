@@ -2,3 +2,4 @@ decorator>=4.2.1
 typing-inspect>=0.4.0
 emcee==3.0.2
 h5py==2.10.0
+GetDist==1.0.3
