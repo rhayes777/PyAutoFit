@@ -172,11 +172,15 @@ class ModelInstance(AbstractModel):
         return self.__dict__ == other.__dict__
 
     def __getitem__(self, item):
-        return self.items[item]
+        if isinstance(item, int):
+            return list(self.values())[item]
+        return self.__dict__[item]
 
-    @property
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
     def items(self):
-        return list(self.dict.values())
+        return self.dict.items()
 
     @property
     def dict(self):
@@ -186,8 +190,11 @@ class ModelInstance(AbstractModel):
             if key not in ("id", "component_number", "item_number")
         }
 
+    def values(self):
+        return self.dict.values()
+
     def __len__(self):
-        return len(self.items)
+        return len(self.values())
 
     def as_model(self, model_classes=tuple()):
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
