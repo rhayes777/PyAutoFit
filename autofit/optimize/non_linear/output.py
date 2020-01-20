@@ -389,14 +389,14 @@ class NestedSamplingOutput(AbstractOutput):
         import getdist.plots
         import matplotlib
 
-        backend = conf.instance.visualize.get("figures", "backend", str)
+        backend = conf.instance.visualize_general.get("general", "backend", str)
         matplotlib.use(backend)
         import matplotlib.pyplot as plt
 
         pdf_plot = getdist.plots.GetDistPlotter()
 
-        plot_pdf_1d_params = conf.instance.visualize.get(
-            "plots", "plot_pdf_1d_params", bool
+        plot_pdf_1d_params = conf.instance.visualize_plots.get(
+            "pdf", "1d_params", bool
         )
 
         if plot_pdf_1d_params:
@@ -409,8 +409,8 @@ class NestedSamplingOutput(AbstractOutput):
 
         plt.close()
 
-        plot_pdf_triangle = conf.instance.visualize.get(
-            "plots", "plot_pdf_triangle", bool
+        plot_pdf_triangle = conf.instance.visualize_plots.get(
+            "pdf", "triangle", bool
         )
 
         if plot_pdf_triangle:
