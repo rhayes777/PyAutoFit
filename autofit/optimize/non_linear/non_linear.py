@@ -87,7 +87,7 @@ class NonLinearOptimizer:
             self.backup_interval = conf.instance.general.get(
                 "output", "backup_interval", int
             )
-            self.visualize_interval = conf.instance.visualize_general.get(
+            self.visualize_interval = conf.instance.visualize.get(
                 "general", "visualize_interval", int
             )
             self.model_results_output_interval = conf.instance.general.get(

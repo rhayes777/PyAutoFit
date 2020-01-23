@@ -9,7 +9,8 @@ from autofit.mapper.prior_model.prior import (
 )
 from autofit.mapper.prior_model.prior import PriorNameValue
 from autofit.mapper.prior_model.prior import cast_collection
-from . import conf
+from autoconfig import conf
+dir(conf)
 from . import exc
 from .aggregator import Aggregator
 from .mapper import *

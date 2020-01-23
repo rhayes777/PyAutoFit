@@ -4,7 +4,7 @@ from functools import wraps
 import numpy as np
 from scipy.special import erfcinv
 
-from autofit import conf
+from autoconfig import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.deferred import DeferredArgument
