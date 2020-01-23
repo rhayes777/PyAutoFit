@@ -44,6 +44,5 @@ class MockAnalysis(af.Analysis):
     def visualize(self, instance, during_analysis):
         pass
 
-    def __init__(self, data, results):
+    def __init__(self, data):
         self.data = data
-        self.results = results
