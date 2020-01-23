@@ -9,7 +9,8 @@ from autofit.mapper.prior_model.prior import (
 )
 from autofit.mapper.prior_model.prior import PriorNameValue
 from autofit.mapper.prior_model.prior import cast_collection
-from . import conf
+from autoconf import conf
+dir(conf)
 from . import exc
 from .aggregator import Aggregator
 from .mapper import *
@@ -52,4 +53,4 @@ from .tools.promise import Promise
 from .tools.promise import PromiseResult
 from .tools.promise import last
 
-__version__ = '0.47.0'
+__version__ = "0.47.0"

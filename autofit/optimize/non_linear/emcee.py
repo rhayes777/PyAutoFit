@@ -29,8 +29,19 @@ class Emcee(NonLinearOptimizer):
         self.sigma_limit = sigma_limit
 
         self.nwalkers = conf.instance.non_linear.get("Emcee", "nwalkers", int)
-
         self.nsteps = conf.instance.non_linear.get("Emcee", "nsteps", int)
+        self.check_auto_correlation = conf.instance.non_linear.get(
+            "Emcee", "check_auto_correlation", bool
+        )
+        self.auto_correlation_check_size = conf.instance.non_linear.get(
+            "Emcee", "auto_correlation_check_size", int
+        )
+        self.auto_correlation_required_length = conf.instance.non_linear.get(
+            "Emcee", "auto_correlation_required_length", int
+        )
+        self.auto_correlation_change_threshold = conf.instance.non_linear.get(
+            "Emcee", "auto_correlation_change_threshold", float
+        )
 
         logger.debug("Creating Emcee NLO")
 
@@ -84,7 +95,13 @@ class Emcee(NonLinearOptimizer):
     @persistent_timer
     def fit(self, analysis, model):
 
-        output = EmceeOutput(model=model, paths=self.paths)
+        output = EmceeOutput(
+            model=model,
+            paths=self.paths,
+            auto_correlation_check_size=self.auto_correlation_check_size,
+            auto_correlation_required_length=self.auto_correlation_required_length,
+            auto_correlation_change_threshold=self.auto_correlation_change_threshold,
+        )
 
         fitness_function = Emcee.Fitness(
             paths=self.paths,
@@ -104,6 +121,7 @@ class Emcee(NonLinearOptimizer):
 
         try:
             emcee_state = emcee_sampler.get_last_sample()
+            previuos_run_converged = output.converged
 
         except AttributeError:
 
@@ -115,12 +133,11 @@ class Emcee(NonLinearOptimizer):
                     model.random_physical_vector_from_priors
                 )
 
+            previuos_run_converged = False
+
         logger.info("Running Emcee Sampling...")
 
-        # This will be useful to testing convergence
-        old_tau = np.inf
-
-        if self.nsteps - emcee_sampler.iteration > 0:
+        if self.nsteps - emcee_sampler.iteration > 0 and not previuos_run_converged:
 
             for sample in emcee_sampler.sample(
                 initial_state=emcee_state,
@@ -130,19 +147,11 @@ class Emcee(NonLinearOptimizer):
                 store=True,
             ):
 
-                # Compute the autocorrelation time so far
-                # Using tol=0 means that we'll always get an estimate even
-                # if it isn't trustworthy
-                tau = emcee_sampler.get_autocorr_time(tol=0)
+                if emcee_sampler.iteration % self.auto_correlation_check_size:
+                    continue
 
-                # Check convergence
-
-                converged = np.all(tau * 100 < emcee_sampler.iteration)
-                converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
-
-                if converged:
+                if output.converged and self.check_auto_correlation:
                     break
-                old_tau = tau
 
         logger.info("Emcee complete")
 
@@ -168,6 +177,21 @@ class Emcee(NonLinearOptimizer):
 
 
 class EmceeOutput(MCMCOutput):
+    def __init__(
+        self,
+        model,
+        paths,
+        auto_correlation_check_size,
+        auto_correlation_required_length,
+        auto_correlation_change_threshold,
+    ):
+
+        super(EmceeOutput, self).__init__(model=model, paths=paths)
+
+        self.auto_correlation_check_size = auto_correlation_check_size
+        self.auto_correlation_required_length = auto_correlation_required_length
+        self.auto_correlation_change_threshold = auto_correlation_change_threshold
+
     @property
     def backend(self):
         if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
@@ -183,17 +207,67 @@ class EmceeOutput(MCMCOutput):
     def pdf(self):
         import getdist
 
-        try:
-            total_steps = self.backend.get_chain().shape[0]
-            return getdist.mcsamples.MCSamples(
-                samples=self.backend.get_chain()[: int(0.5 * total_steps) : -1, :, :]
-            )
-        except IOError or OSError or ValueError or IndexError:
-            raise Exception
+        return getdist.mcsamples.MCSamples(samples=self.samples_after_burn_in)
 
     @property
     def pdf_converged(self):
         return True
+
+    @property
+    def samples_after_burn_in(self):
+
+        discard = int(3.0 * np.max(self.auto_correlation_times_of_parameters))
+        thin = int(np.max(self.auto_correlation_times_of_parameters) / 2.0)
+        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+
+    @property
+    def auto_correlation_times_of_parameters(self):
+        return self.backend.get_autocorr_time(tol=0)
+
+    @property
+    def previous_auto_correlation_times_of_parameters(self):
+        return emcee.autocorr.integrated_time(
+            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
+        )
+
+    @property
+    def relative_auto_correlation_times(self):
+        return (
+            np.abs(
+                self.previous_auto_correlation_times_of_parameters
+                - self.auto_correlation_times_of_parameters
+            )
+            / self.auto_correlation_times_of_parameters
+        )
+
+    @property
+    def converged(self):
+        converged = np.all(
+            self.auto_correlation_times_of_parameters
+            * self.auto_correlation_required_length
+            < self.total_samples
+        )
+        if converged:
+            try:
+                converged &= np.all(
+                    self.relative_auto_correlation_times
+                    < self.auto_correlation_change_threshold
+                )
+            except IndexError:
+                return False
+        return converged
+
+    @property
+    def total_samples(self):
+        return len(self.backend.get_chain(flat=True))
+
+    @property
+    def total_walkers(self):
+        return len(self.backend.get_chain()[0, :, 0])
+
+    @property
+    def total_steps(self):
+        return len(self.backend.get_log_prob())
 
     @property
     def most_likely_index(self):
@@ -209,7 +283,11 @@ class EmceeOutput(MCMCOutput):
         model in the second half of entries. The offset parameter is used to start at the desired model.
 
         """
-        return self.pdf.getMeans()
+        samples = self.samples_after_burn_in
+        return [
+            float(np.percentile(samples[:, i], [50]))
+            for i in range(self.model.prior_count)
+        ]
 
     @property
     def most_likely_model_parameters(self):
@@ -230,16 +308,12 @@ class EmceeOutput(MCMCOutput):
 
         limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
 
-        if self.pdf_converged:
-            densities_1d = list(
-                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
-            )
+        samples = self.samples_after_burn_in
 
-            return list(map(lambda p: p.getLimits(limit), densities_1d))
-
-    @property
-    def total_samples(self):
-        return len(self.backend.get_log_prob(flat=True))
+        return [
+            tuple(np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit]))
+            for i in range(self.model.prior_count)
+        ]
 
     def sample_model_parameters_from_sample_index(self, sample_index):
         """From a sample return the model parameters.

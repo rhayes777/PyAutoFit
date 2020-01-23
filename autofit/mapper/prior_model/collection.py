@@ -1,4 +1,4 @@
-from autofit import exc
+from autofit import exc, Prior
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
@@ -11,10 +11,10 @@ class CollectionPriorModel(AbstractPriorModel):
                 return "{}_{}".format(name, prior_name)
 
     def __getitem__(self, item):
-        return self.items[item]
+        return self.values[item]
 
     def __len__(self):
-        return len(self.items)
+        return len(self.values)
 
     @property
     def dict(self):
@@ -25,8 +25,11 @@ class CollectionPriorModel(AbstractPriorModel):
         }
 
     @property
-    def items(self):
+    def values(self):
         return list(self.dict.values())
+
+    def items(self):
+        return self.dict.items()
 
     def as_model(self):
         return CollectionPriorModel(
@@ -116,6 +119,10 @@ class CollectionPriorModel(AbstractPriorModel):
         for key, value in self.__dict__.items():
             if isinstance(value, AbstractPriorModel):
                 value = value.instance_for_arguments(arguments)
+            if isinstance(value, Prior):
+                value = value.value_for(
+                    arguments[value]
+                )
             setattr(result, key, value)
         return result
 
