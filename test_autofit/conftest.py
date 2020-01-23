@@ -3,7 +3,7 @@ from os import path
 import pytest
 
 import autofit as af
-from autoconfig import conf
+from autoconf import conf
 import shutil
 
 directory = path.dirname(path.realpath(__file__))

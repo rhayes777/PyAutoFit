@@ -1,4 +1,4 @@
-from autoconfig.exc import PriorException
+from autoconf.exc import PriorException
 
 
 class MultiNestException(Exception):
