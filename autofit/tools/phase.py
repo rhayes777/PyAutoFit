@@ -185,8 +185,8 @@ class Phase(AbstractPhase):
     def make_result(self, result, analysis):
         return result
 
-    def make_analysis(self, dataset, results):
-        return self.analysis_class(dataset, results)
+    def make_analysis(self, dataset):
+        return self.analysis_class(dataset)
 
     def run(self, dataset: Dataset, results=None):
         """
@@ -207,7 +207,7 @@ class Phase(AbstractPhase):
         dataset.save(self.paths.phase_output_path)
         self.model = self.model.populate(results)
 
-        analysis = self.make_analysis(dataset=dataset, results=results)
+        analysis = self.make_analysis(dataset=dataset)
 
         self.customize_priors(results)
         self.assert_and_save_pickle()

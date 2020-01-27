@@ -9,7 +9,8 @@ from autofit.mapper.prior_model.prior import (
 )
 from autofit.mapper.prior_model.prior import PriorNameValue
 from autofit.mapper.prior_model.prior import cast_collection
-from . import conf
+from autoconf import conf
+dir(conf)
 from . import exc
 from .aggregator import Aggregator
 from .mapper import *
@@ -44,6 +45,7 @@ from .tools import *
 from .tools import path_util, text_util
 from .tools.phase import AbstractPhase
 from .tools.phase import Phase
+from .tools.phase import Dataset
 from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline

@@ -1,5 +1,4 @@
-class PriorException(Exception):
-    pass
+from autoconf.exc import PriorException
 
 
 class MultiNestException(Exception):
