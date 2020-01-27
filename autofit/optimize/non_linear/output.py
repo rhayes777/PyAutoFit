@@ -1,8 +1,11 @@
+import logging
 import os
+from configparser import NoOptionError
 
 from autofit import conf
 from autofit.tools import text_formatter, text_util
-import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractOutput(object):
@@ -221,7 +224,11 @@ class AbstractOutput(object):
         prior_prior_model_dict = self.model.prior_prior_model_dict
 
         for prior_name, prior in self.model.prior_tuples_ordered_by_id:
-            param_string = conf.instance.label.label(prior_name)
+            try:
+                param_string = conf.instance.label.label(prior_name)
+            except NoOptionError as e:
+                logger.exception(e)
+                param_string = prior_name
             prior_model = prior_prior_model_dict[prior]
             cls = prior_class_dict[prior]
             cls_string = "{}{}".format(
@@ -314,7 +321,6 @@ class AbstractOutput(object):
 
         if hasattr(self, "evidence"):
             if self.evidence is not None:
-
                 results += text_util.label_and_value_string(
                     label="Bayesian Evidence ",
                     value=self.evidence,
@@ -372,7 +378,6 @@ class AbstractOutput(object):
 
 
 class MCMCOutput(AbstractOutput):
-
     pass
 
 
@@ -395,9 +400,7 @@ class NestedSamplingOutput(AbstractOutput):
 
         pdf_plot = getdist.plots.GetDistPlotter()
 
-        plot_pdf_1d_params = conf.instance.visualize_plots.get(
-            "pdf", "1d_params", bool
-        )
+        plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
 
         if plot_pdf_1d_params:
 
@@ -409,9 +412,7 @@ class NestedSamplingOutput(AbstractOutput):
 
         plt.close()
 
-        plot_pdf_triangle = conf.instance.visualize_plots.get(
-            "pdf", "triangle", bool
-        )
+        plot_pdf_triangle = conf.instance.visualize_plots.get("pdf", "triangle", bool)
 
         if plot_pdf_triangle:
 

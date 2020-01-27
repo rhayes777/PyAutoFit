@@ -45,6 +45,7 @@ from .tools import *
 from .tools import path_util, text_util
 from .tools.phase import AbstractPhase
 from .tools.phase import Phase
+from .tools.phase import Dataset
 from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
@@ -53,4 +54,4 @@ from .tools.promise import Promise
 from .tools.promise import PromiseResult
 from .tools.promise import last
 
-__version__ = "0.47.0"
+__version__ = '0.48.0'
