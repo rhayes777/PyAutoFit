@@ -54,4 +54,4 @@ from .tools.promise import Promise
 from .tools.promise import PromiseResult
 from .tools.promise import last
 
-__version__ = '0.48.0'
+__version__ = '0.48.1'
