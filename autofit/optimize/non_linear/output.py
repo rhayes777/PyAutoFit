@@ -395,9 +395,7 @@ class NestedSamplingOutput(AbstractOutput):
 
         pdf_plot = getdist.plots.GetDistPlotter()
 
-        plot_pdf_1d_params = conf.instance.visualize_plots.get(
-            "pdf", "1d_params", bool
-        )
+        plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
 
         if plot_pdf_1d_params:
 
@@ -409,9 +407,7 @@ class NestedSamplingOutput(AbstractOutput):
 
         plt.close()
 
-        plot_pdf_triangle = conf.instance.visualize_plots.get(
-            "pdf", "triangle", bool
-        )
+        plot_pdf_triangle = conf.instance.visualize_plots.get("pdf", "triangle", bool)
 
         if plot_pdf_triangle:
 

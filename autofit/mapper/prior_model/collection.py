@@ -120,9 +120,7 @@ class CollectionPriorModel(AbstractPriorModel):
             if isinstance(value, AbstractPriorModel):
                 value = value.instance_for_arguments(arguments)
             if isinstance(value, Prior):
-                value = value.value_for(
-                    arguments[value]
-                )
+                value = value.value_for(arguments[value])
             setattr(result, key, value)
         return result
 
