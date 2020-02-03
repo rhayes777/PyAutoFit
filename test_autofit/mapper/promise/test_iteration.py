@@ -109,3 +109,18 @@ class TestIteration:
             results_collection
         )
         assert value == 2
+
+    def test_iteration(
+            self,
+            phase
+    ):
+        promises = list(phase.result.model.collection)
+
+        assert len(promises) == 2
+        assert all([
+            isinstance(
+                promise,
+                af.Promise
+            )
+            for promise in promises
+        ])
