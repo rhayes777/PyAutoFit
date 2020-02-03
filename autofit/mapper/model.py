@@ -44,7 +44,10 @@ class AbstractModel(ModelObject):
         """
         instance = self
         for name in path:
-            instance = getattr(instance, name)
+            if isinstance(name, int):
+                instance = instance[name]
+            else:
+                instance = getattr(instance, name)
         return instance
 
     def path_instance_tuples_for_class(self, cls: type, ignore_class=None):

@@ -258,9 +258,15 @@ class TestCase:
         assert isinstance(instance.hyper_galaxy, mock.HyperGalaxy)
 
 
-class IterationTestCase:
+class TestIteration:
     def test_index_promise(self, phase):
         phase.model.collection = af.Collection([
             af.UniformPrior(),
             af.UniformPrior()
         ])
+
+        promise = phase.result.model.collection[0]
+        assert isinstance(
+            promise,
+            af.Promise
+        )
