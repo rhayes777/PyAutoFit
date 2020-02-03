@@ -303,7 +303,7 @@ class TestHashing(object):
         )
 
     def test_prior_prior_model_hash_consecutive(self):
-        prior = af.Prior(0, 1)
+        prior = af.UniformPrior(0, 1)
         prior_model = af.AbstractPriorModel()
 
         assert prior.id + 1 == prior_model.id
