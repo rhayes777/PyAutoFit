@@ -1,15 +1,13 @@
 # PyAutoFit
 
-**PyAutoFit** is a Python-based probablistic programming language that allows Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. 
+**PyAutoFit** is a Python-based probablistic programming language that allows Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. **PyAutoFit** specializes in:
 
-In contrast to libraries such as [PyMC3](https://github.com/pymc-devs/pymc3) and [STAN](https://github.com/stan-dev/stan), **PyAutoFit** specializes in:
-
-- **'Black box'** models with complex likelihood functions as opposed to structured graphical models. 
+- **Black box** models with complex and expensive likelihood functions. 
+- Fitting **many different model parametrizations** to a data-set. 
 - Modeling **extremely large-datasets** with a homogenous fitting procedure. 
-- Fitting **many different model parametrizations** to the same data. 
 - Automating complex model-fitting tasks via **transdimensional model-fitting pipelines**.
 
-## API Overview
+# API Overview
 
 **PyAutoFit** interfaces with Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html). Lets take a two-dimensional Gaussian as our moodel:
 
@@ -19,7 +17,7 @@ class Gaussian(object):
     def __init__(
         self,
         centre = (0.0, 0.0), # <- PyAutoFit recognises these constructor arguments are the model
-        intensity = 0.1,     # <- parameters of Gaussian profile.
+        intensity = 0.1,     # <- parameters of the Gaussian.
         sigma = 0.01,
     ):
         self.centre = centre
@@ -31,8 +29,9 @@ class Gaussian(object):
 ```python
 import autofit as af
 
-# To perform the analysis we set up a phase, which takes a Gaussian class as the 
-# model & fits its parameters using a non-linear search (below, MultiNest).
+# To perform the analysis we set up a phase, which takes the Gaussian as the 
+# model & fits its parameters using the non-linear search MultiNest.
+
 phase = al.PhaseImaging(
     phase_name="example/phase_example",
     model=af.CollectionPriorModel(gaussian_0=af.Gaussian),
@@ -40,14 +39,15 @@ phase = al.PhaseImaging(
 )
 
 # We pass a dataset to the phase, fitting it with the model above.
+
 phase.run(dataset=dataset)
 ```
 
-By interfacing with Python classes **PyAutoFit** takes care of the 'heavy lifting' that comes with parametrizing and fitting the model. This includes interfacing with a range of non-linear searches, storing results in an ordered directory structure and providing on-the-fly output and visusalization of the fit.
+By interfacing with Python classes **PyAutoFit** takes care of the 'heavy lifting' that comes with parametrizing and fitting the model. This includes interfacing with the non-linear search, storing results in structured directories and providing on-the-fly output and visusalization.
 
-## Features
+# Features
 
-# Model Customization
+## Model Customization
 
 **PyAutoFit** makes it straight forward to parameterize, customize and fit models made of multiple components. Below, we extend the example above to include a second Gaussian, with user-specified priors and a centre aligned with the first Gaussian:
 
@@ -59,12 +59,15 @@ import autofit as af
 
 model = af.CollectionPriorModel(gaussian_0=af.Gaussian, gaussian_1=af.Gaussian)
 
-# This aligns the centres of the two Gaussian, reducing the number of free parameters fitted for by 2.
+# This aligns the centres of the two Gaussian, reducing the number of free parameters by 2.
 model.gaussian_0.centre = model.gaussian_1.centre
 
+# This fixes the first Gaussian's sigma value to 0.5, reducing the number of free parameters by 1.
+model.gaussian_0.sigma = 0.5
+
 # We can customize the priors on any model parameter.
-model.gaussian_0.sigma = af.UniformPior(lower_limit=0.0, upper_limit=2.0)
-model.gaussian_1.intensity = af.LogUniformPrior(lower_limit=1e-6, upper_limit=1e6)
+model.gaussian_0.intensity = af.LogUniformPrior(lower_limit=1e-6, upper_limit=1e6)
+model.gaussian_1.sigma = af.UniformPior(lower_limit=0.0, upper_limit=2.0)
 model.gaussian_1.sigma = af.GaussianPrior(mean=0.1, sigma=0.05)
 
 phase = al.PhaseImaging(
@@ -74,21 +77,21 @@ phase = al.PhaseImaging(
 )
 ```
 
-# Aggregation
+## Aggregation
 
 For fits to large data-sets **PyAutoFit** provides tools to manipulate the vast library of results output. 
 
-Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. Every **PyAutoFit** output contain metadata such that we can immediately load it via the **aggregator** into a Python script or Jupyter notebook:
+Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. Every **PyAutoFit** output contains metadata meaning that we can immediately load it via the **aggregator** into a Python script or Jupyter notebook:
 
 
 ```python
-output_folder = "/path/to/gaussian_x100_fits/"
+output_path = "/path/to/gaussian_x100_fits/" # <- There is 100 separate fits in this folder.
 phase_name = "phase_example"
 
-# First, we create an instance of the aggregator, which takes the output path as input, telling it where to load
-# results from.
+# First, we create an instance of the aggregator, which uses the output path to load results.
+
 aggregator = af.Aggregator(
-    directory=str(output_folder)
+    directory=str(output_path)
 )
 
 # We can get the output of every non-linear search of every data-set fitted using the phase above.
@@ -96,9 +99,14 @@ aggregator = af.Aggregator(
 non_linear_outputs = aggregator.filter(
     phase=phase_name
 ).output
+
+# From here, we can inspect results as we please, for example printing all 100 most likely models.
+
+print([output.most_likely_model_instance from output in non_linear_outputs]
+
 ```
 
-If many different phases are used to perform different model-fits to a data-set, the aggregator provides tools to filter the results loaded.
+If many different phases are used to perform different model-fits to a data-set, the aggregator provides tools to filter out results.
 
 ## Transdimensional Modeling
 
@@ -173,7 +181,7 @@ The following features are planned for 2020:
 - **Generalized Linear Models** - Fit for global trends to model fits to large data-sets.
 - **Hierarchical modeling** - Combine fits over multiple data-sets to perform hierarchical inference.
 - **Time series modelling** - Fit temporally varying models using fits which marginalize over time.
-- **Approximate Bayesian Computational** - Likelihood-free modeling.
+- **Approximate Bayesian Computation** - Likelihood-free modeling.
 - **Transdimensional Sampling** - Sample non-linear parameter spaces with variable numbers of model components and parameters.
 
 ## Slack

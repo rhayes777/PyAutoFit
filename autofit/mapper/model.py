@@ -121,7 +121,7 @@ def populate(obj, collection: ResultsCollection):
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):
     """
     Recursively search the object for instances of a given class
