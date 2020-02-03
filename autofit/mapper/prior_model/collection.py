@@ -4,11 +4,26 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
 class CollectionPriorModel(AbstractPriorModel):
-    def name_for_prior(self, prior):
+    def name_for_prior(self, prior: Prior) -> str:
+        """
+        Construct a name for the prior. This is the path taken
+        to get to the prior.
+
+        Parameters
+        ----------
+        prior
+
+        Returns
+        -------
+        A string of object names joined by underscores
+        """
         for name, prior_model in self.prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
             if prior_name is not None:
                 return "{}_{}".format(name, prior_name)
+        for name, direct_prior in self.direct_prior_tuples:
+            if prior == direct_prior:
+                return name
 
     def __getitem__(self, item):
         return self.values[item]

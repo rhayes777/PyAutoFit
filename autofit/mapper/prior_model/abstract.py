@@ -512,7 +512,6 @@ class AbstractPriorModel(AbstractModel):
         for name, p in prior_tuples:
             if p == prior:
                 return name
-        return ""
 
     def __hash__(self):
         return self.id
