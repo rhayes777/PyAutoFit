@@ -1,4 +1,5 @@
 import math
+from abc import ABC, abstractmethod
 from functools import wraps
 
 import numpy as np
@@ -155,7 +156,7 @@ class TuplePrior(object):
         return self.prior_tuples[item][1]
 
 
-class Prior(ModelObject):
+class Prior(ModelObject, ABC):
     """An object used to mappers a unit value to an attribute value for a specific
     class attribute """
 
@@ -206,8 +207,21 @@ class Prior(ModelObject):
     def width(self):
         return self.upper_limit - self.lower_limit
 
-    def value_for(self, unit):
-        raise NotImplementedError()
+    @abstractmethod
+    def value_for(self, unit: float) -> float:
+        """
+        Return a physical value for a value between 0 and 1 with the transformation
+        described by this prior.
+
+        Parameters
+        ----------
+        unit
+            A hypercube value between 0 and 1.
+
+        Returns
+        -------
+        A physical value.
+        """
 
     def __eq__(self, other):
         try:

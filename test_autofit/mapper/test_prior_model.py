@@ -24,7 +24,7 @@ def make_complex_prior_model():
     return af.AbstractPriorModel.from_instance(instance)
 
 
-class TestAsmodel:
+class TestAsModel:
     def test_instance(self, instance_prior_model):
         model = instance_prior_model.as_model()
         assert model.prior_count == 2
@@ -303,7 +303,7 @@ class TestHashing(object):
         )
 
     def test_prior_prior_model_hash_consecutive(self):
-        prior = af.Prior(0, 1)
+        prior = af.UniformPrior(0, 1)
         prior_model = af.AbstractPriorModel()
 
         assert prior.id + 1 == prior_model.id
@@ -500,6 +500,15 @@ class TestCollectionPriorModel(object):
 
         assert len(simple_model) == 1
         assert simple_model.simple == simple_instance
+
+    def test_names_of_priors(self):
+        collection = af.CollectionPriorModel([
+            af.UniformPrior(),
+            af.UniformPrior(),
+        ])
+        assert collection.name_for_prior(
+            collection[0]
+        ) == "0"
 
 
 @pytest.fixture(name="simple_model")

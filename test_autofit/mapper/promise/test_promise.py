@@ -247,8 +247,6 @@ class TestCase:
         model_promise = hyper_result.model
         instance_promise = hyper_result.instance
 
-        print(model_promise.path)
-
         assert isinstance(model_promise.hyper_galaxy, af.Promise)
         assert isinstance(instance_promise.hyper_galaxy, af.Promise)
 

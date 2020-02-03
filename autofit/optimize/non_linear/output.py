@@ -226,8 +226,10 @@ class AbstractOutput(object):
         for prior_name, prior in self.model.prior_tuples_ordered_by_id:
             try:
                 param_string = conf.instance.label.label(prior_name)
-            except NoOptionError as e:
-                logger.exception(e)
+            except NoOptionError:
+                logger.warning(
+                    f"No label provided for {prior_name}. Using prior name instead."
+                )
                 param_string = prior_name
             prior_model = prior_prior_model_dict[prior]
             cls = prior_class_dict[prior]

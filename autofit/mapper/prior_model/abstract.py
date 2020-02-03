@@ -1,5 +1,6 @@
 import copy
 import inspect
+from typing import Tuple, Optional
 
 import numpy as np
 
@@ -287,6 +288,17 @@ class AbstractPriorModel(AbstractModel):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
             mean = tuples[i][0]
+
+            def get_name():
+                name = prior_tuple.name
+                # Use the name of the collection for configuration when a prior's name
+                # is just a number (i.e. its position in a collection)
+                if name.isdigit():
+                    name = self.path_for_prior(
+                        prior_tuple.prior
+                    )[-2]
+                return name
+
             if a is not None and r is not None:
                 raise exc.PriorException(
                     "Width of new priors cannot be both relative and absolute."
@@ -299,7 +311,8 @@ class AbstractPriorModel(AbstractModel):
                 value = r
             else:
                 width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(
-                    cls, prior_tuple.name
+                    cls,
+                    get_name()
                 )
             if width_type == "r":
                 width = value * mean
@@ -313,7 +326,7 @@ class AbstractPriorModel(AbstractModel):
                 limits = (prior.lower_limit, prior.upper_limit)
             else:
                 limits = conf.instance.prior_limit.get_for_nearest_ancestor(
-                    cls, prior_tuple.name
+                    cls, get_name()
                 )
             arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
 
@@ -457,8 +470,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -540,6 +553,26 @@ class AbstractPriorModel(AbstractModel):
         path_priors_tuples = self.path_instance_tuples_for_class(Prior)
         return sorted(path_priors_tuples, key=lambda item: item[1].id)
 
+    def path_for_prior(self, prior: Prior) -> Optional[Tuple[str]]:
+        """
+        Find a path that points at the given tuple.
+
+        Returns the first path or None if no path is found.
+
+        Parameters
+        ----------
+        prior
+            A prior representing what's known about some dimension of the model.
+
+        Returns
+        -------
+        A path, a series of attributes that point to one location of the prior.
+        """
+        for path, path_prior in self.path_priors_tuples:
+            if path_prior == prior:
+                return path
+        return None
+
     @property
     def path_float_tuples(self):
         return self.path_instance_tuples_for_class(float, ignore_class=Prior)
@@ -615,7 +648,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue

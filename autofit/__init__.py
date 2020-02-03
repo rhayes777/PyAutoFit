@@ -1,5 +1,5 @@
+from autoconf import conf
 from autofit.mapper.model import path_instances_of_class
-from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.prior import (
     Prior,
     UniformPrior,
@@ -9,7 +9,8 @@ from autofit.mapper.prior_model.prior import (
 )
 from autofit.mapper.prior_model.prior import PriorNameValue
 from autofit.mapper.prior_model.prior import cast_collection
-from autoconf import conf
+from autofit.mapper.prior_model.prior import instanceNameValue
+
 dir(conf)
 from . import exc
 from .aggregator import Aggregator
@@ -17,16 +18,20 @@ from .mapper import *
 from .mapper import link
 from .mapper.model import AbstractModel
 from .mapper.model import ModelInstance
+from .mapper.model import ModelInstance as Instance
 from .mapper.model_mapper import ModelMapper
+from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
 from .mapper.prior_model import *
 from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel
+from .mapper.prior_model.collection import CollectionPriorModel as Collection
 from .mapper.prior_model.deferred import DeferredArgument
 from .mapper.prior_model.deferred import DeferredInstance
 from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
+from .mapper.prior_model.prior_model import PriorModel as Model
 from .mapper.prior_model.util import PriorModelNameValue
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
