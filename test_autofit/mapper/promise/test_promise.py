@@ -256,17 +256,3 @@ class TestCase:
         assert isinstance(model.hyper_galaxy, af.PriorModel)
         assert model.hyper_galaxy.cls is mock.HyperGalaxy
         assert isinstance(instance.hyper_galaxy, mock.HyperGalaxy)
-
-
-class TestIteration:
-    def test_index_promise(self, phase):
-        phase.model.collection = af.Collection([
-            af.UniformPrior(),
-            af.UniformPrior()
-        ])
-
-        promise = phase.result.model.collection[0]
-        assert isinstance(
-            promise,
-            af.Promise
-        )
