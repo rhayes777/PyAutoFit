@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, List, Iterable
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
@@ -28,9 +28,19 @@ class AbstractModel(ModelObject):
     def populate(self, collection):
         return populate(self, collection)
 
-    def object_for_path(self, path: (str,)) -> object:
+    def object_for_path(
+            self,
+            path: Iterable[Union[str, int, type]]
+    ) -> Union[object, List]:
         """
         Get the object at a given path.
+
+        The path describes the location of some object in the model.
+
+        String entries get an attribute.
+        Int entries index an attribute.
+        Type entries product a new ModelInstance which collates all of the instances
+        of a given type in the path.
 
         Parameters
         ----------
@@ -39,8 +49,7 @@ class AbstractModel(ModelObject):
 
         Returns
         -------
-        object
-            The object
+        An object or Instance collating a collection of objects with a given type.
         """
         instance = self
         for name in path:
