@@ -40,7 +40,7 @@ class PriorModel(AbstractPriorModel):
 
     @property
     def constructor_argument_names(self):
-        return inspect.getfullargspec(self.cls.__init__).args[1:]
+        return inspect.getfullargspec(self.cls).args[1:]
 
     def __init__(self, cls, **kwargs):
         """
@@ -55,7 +55,7 @@ class PriorModel(AbstractPriorModel):
 
         self.cls = cls
 
-        arg_spec = inspect.getfullargspec(cls.__init__)
+        arg_spec = inspect.getfullargspec(cls)
 
         try:
             defaults = dict(
@@ -159,7 +159,13 @@ class PriorModel(AbstractPriorModel):
         exc.PriorException
             If no configuration can be found
         """
-        return Prior.for_class_and_attribute_name(self.cls, attribute_name)
+        cls = self.cls
+        if not inspect.isclass(cls):
+            cls = inspect._findclass(cls)
+        return Prior.for_class_and_attribute_name(
+            cls,
+            attribute_name
+        )
 
     def __setattr__(self, key, value):
         if key not in (
@@ -260,10 +266,12 @@ class PriorModel(AbstractPriorModel):
         if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
 
-        try:
+        if not inspect.isclass(self.cls):
+            result = object.__new__(inspect._findclass(self.cls))
+            cls = self.cls
+            cls(result, **constructor_arguments)
+        else:
             result = self.cls(**constructor_arguments)
-        except TypeError as e:
-            raise e
 
         for key, value in self.__dict__.items():
             if (
