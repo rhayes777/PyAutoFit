@@ -46,6 +46,26 @@ class AbstractModel(ModelObject):
         for name in path:
             if isinstance(name, int):
                 instance = instance[name]
+            elif isinstance(name, type):
+                from autofit.mapper.prior_model.prior_model import PriorModel
+                instances = [
+                    instance
+                    for _, instance
+                    in self.path_instance_tuples_for_class(
+                        name
+                    )
+                ]
+                instances += [
+                    instance
+                    for _, instance
+                    in self.path_instance_tuples_for_class(
+                        PriorModel
+                    ) if issubclass(
+                        instance.cls,
+                        name
+                    )
+                ]
+                instance = ModelInstance(instances)
             else:
                 instance = getattr(instance, name)
         return instance
@@ -121,7 +141,7 @@ def populate(obj, collection: ResultsCollection):
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):
     """
     Recursively search the object for instances of a given class
@@ -170,6 +190,15 @@ class ModelInstance(AbstractModel):
 
     @DynamicAttrs
     """
+
+    def __init__(self, items=None):
+        super().__init__()
+        if isinstance(items, list):
+            for i, item in enumerate(items):
+                self[i] = item
+        if isinstance(items, dict):
+            for key, value in items.items():
+                self[key] = value
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
