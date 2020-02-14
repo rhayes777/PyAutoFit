@@ -1,16 +1,14 @@
 import logging
-
-import os
-import numpy as np
-import emcee
-
 import math
+import os
+
+import emcee
+import numpy as np
 
 from autofit import conf, exc
-from autofit.optimize.non_linear.output import MCMCOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.non_linear import persistent_timer
+from autofit.optimize.non_linear.output import MCMCOutput
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +52,7 @@ class Emcee(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-            self, paths, analysis, instance_from_physical_vector, output_results
+                self, paths, analysis, instance_from_physical_vector, output_results
         ):
             super().__init__(paths, analysis, output_results)
             self.instance_from_physical_vector = instance_from_physical_vector
@@ -92,7 +90,6 @@ class Emcee(NonLinearOptimizer):
 
             return likelihood
 
-    @persistent_timer
     def fit(self, analysis, model):
 
         output = EmceeOutput(
@@ -128,7 +125,6 @@ class Emcee(NonLinearOptimizer):
             emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, emcee_sampler.ndim))
 
             for walker_index in range(emcee_sampler.nwalkers):
-
                 emcee_state[walker_index, :] = np.asarray(
                     model.random_physical_vector_from_priors
                 )
@@ -140,11 +136,11 @@ class Emcee(NonLinearOptimizer):
         if self.nsteps - emcee_sampler.iteration > 0 and not previuos_run_converged:
 
             for sample in emcee_sampler.sample(
-                initial_state=emcee_state,
-                iterations=self.nsteps - emcee_sampler.iteration,
-                progress=True,
-                skip_initial_state_check=True,
-                store=True,
+                    initial_state=emcee_state,
+                    iterations=self.nsteps - emcee_sampler.iteration,
+                    progress=True,
+                    skip_initial_state_check=True,
+                    store=True,
             ):
 
                 if emcee_sampler.iteration % self.auto_correlation_check_size:
@@ -178,12 +174,12 @@ class Emcee(NonLinearOptimizer):
 
 class EmceeOutput(MCMCOutput):
     def __init__(
-        self,
-        model,
-        paths,
-        auto_correlation_check_size,
-        auto_correlation_required_length,
-        auto_correlation_change_threshold,
+            self,
+            model,
+            paths,
+            auto_correlation_check_size,
+            auto_correlation_required_length,
+            auto_correlation_change_threshold,
     ):
 
         super(EmceeOutput, self).__init__(model=model, paths=paths)
@@ -233,11 +229,11 @@ class EmceeOutput(MCMCOutput):
     @property
     def relative_auto_correlation_times(self):
         return (
-            np.abs(
-                self.previous_auto_correlation_times_of_parameters
-                - self.auto_correlation_times_of_parameters
-            )
-            / self.auto_correlation_times_of_parameters
+                np.abs(
+                    self.previous_auto_correlation_times_of_parameters
+                    - self.auto_correlation_times_of_parameters
+                )
+                / self.auto_correlation_times_of_parameters
         )
 
     @property

@@ -5,14 +5,13 @@ import numpy as np
 
 from autofit import conf, exc
 from autofit.optimize import optimizer as opt
-from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.optimize.non_linear.non_linear import (
     NonLinearOptimizer,
     Result,
     IntervalCounter,
-    persistent_timer,
 )
 from autofit.optimize.non_linear.non_linear import logger
+from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.optimize.non_linear.paths import Paths
 
 
@@ -78,15 +77,15 @@ class GridSearch(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-            self,
-            nlo,
-            analysis,
-            instance_from_unit_vector,
-            save_results,
-            prior_count,
-            checkpoint_count=0,
-            best_fit=-np.inf,
-            best_cube=None,
+                self,
+                nlo,
+                analysis,
+                instance_from_unit_vector,
+                save_results,
+                prior_count,
+                checkpoint_count=0,
+                best_fit=-np.inf,
+                best_cube=None,
         ):
             super().__init__(nlo.paths, analysis)
             self.nlo = nlo
@@ -133,7 +132,6 @@ class GridSearch(NonLinearOptimizer):
 
     def save_checkpoint(self, total_calls, best_fit, best_cube, prior_count):
         with open(self.checkpoint_path, "w+") as f:
-
             def write(item):
                 f.writelines("{}\n".format(item))
 
@@ -172,7 +170,6 @@ class GridSearch(NonLinearOptimizer):
     def checkpoint_prior_count(self):
         return int(self.checkpoint_array[4])
 
-    @persistent_timer
     def fit(self, analysis, model):
         gs_output = AbstractOutput(model, self.paths)
 

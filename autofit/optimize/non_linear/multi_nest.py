@@ -1,15 +1,13 @@
 import logging
-
-import os
-import numpy as np
 import math
+
+import numpy as np
 import pymultinest
 
 from autofit import conf, exc
-from autofit.optimize.non_linear.output import NestedSamplingOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.non_linear import persistent_timer
+from autofit.optimize.non_linear.output import NestedSamplingOutput
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +79,7 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-            self, paths, analysis, instance_from_physical_vector, output_results
+                self, paths, analysis, instance_from_physical_vector, output_results
         ):
             super().__init__(paths, analysis, output_results)
             self.instance_from_physical_vector = instance_from_physical_vector
@@ -124,7 +122,6 @@ class MultiNest(NonLinearOptimizer):
 
             return likelihood
 
-    @persistent_timer
     def fit(self, analysis, model):
         multinest_output = MultiNestOutput(model, self.paths)
 
@@ -132,8 +129,7 @@ class MultiNest(NonLinearOptimizer):
 
         # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
-
-            # NEVER EVER REFACTOR THIS LINE!
+            # NEVER EVER REFACTOR THIS LINE! Haha.
 
             phys_cube = model.physical_vector_from_hypercube_vector(
                 hypercube_vector=cube
