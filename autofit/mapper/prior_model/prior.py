@@ -207,6 +207,18 @@ class Prior(ModelObject, ABC):
             }
         )
 
+    @property
+    def dict(self):
+        return {
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit,
+            "type": self.name_of_class()
+        }
+
+    @classmethod
+    def name_of_class(cls):
+        return cls.__name__.replace("Prior", "")
+
 
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
@@ -245,6 +257,15 @@ class GaussianPrior(Prior):
                 self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
             )
         )
+
+    @property
+    def dict(self):
+        prior_dict = super().dict
+        return {
+            **prior_dict,
+            "mean": self.mean,
+            "sigma": self.sigma
+        }
 
 
 class UniformPrior(Prior):
@@ -315,8 +336,8 @@ class LogUniformPrior(UniformPrior):
 
 
 type_dict = {
-    name.replace("Prior", ""): obj
-    for name, obj in inspect.getmembers(
+    obj.name_of_class(): obj
+    for _, obj in inspect.getmembers(
         sys.modules[__name__]
     )
     if (
