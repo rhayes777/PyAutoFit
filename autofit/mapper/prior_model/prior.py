@@ -1,4 +1,6 @@
+import inspect
 import math
+import sys
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -191,6 +193,22 @@ class Prior(ModelObject, ABC):
             self.__class__.__name__, self.id, self.lower_limit, self.upper_limit
         )
 
+    @classmethod
+    def _from_dict(
+            cls,
+            prior_dict
+    ):
+        return cls()
+
+    @classmethod
+    def from_dict(cls, prior_dict):
+        # noinspection PyProtectedMember
+        return type_dict[
+            prior_dict["type"]
+        ]._from_dict(
+            prior_dict
+        )
+
 
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
@@ -296,3 +314,16 @@ class LogUniformPrior(UniformPrior):
                 + ", upper_limit = "
                 + str(self.upper_limit)
         )
+
+
+type_dict = {
+    name.replace("Prior", ""): obj
+    for name, obj in inspect.getmembers(
+        sys.modules[__name__]
+    )
+    if (
+            inspect.isclass(obj)
+            and issubclass(obj, Prior)
+            and obj != Prior
+    )
+}
