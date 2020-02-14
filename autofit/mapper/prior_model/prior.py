@@ -194,19 +194,17 @@ class Prior(ModelObject, ABC):
         )
 
     @classmethod
-    def _from_dict(
-            cls,
-            prior_dict
-    ):
-        return cls()
-
-    @classmethod
     def from_dict(cls, prior_dict):
         # noinspection PyProtectedMember
         return type_dict[
             prior_dict["type"]
-        ]._from_dict(
-            prior_dict
+        ](
+            **{
+                key: value
+                for key, value
+                in prior_dict.items()
+                if key != "type"
+            }
         )
 
 
