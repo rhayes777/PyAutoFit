@@ -194,7 +194,20 @@ class Prior(ModelObject, ABC):
         )
 
     @classmethod
-    def from_dict(cls, prior_dict):
+    def from_dict(cls, prior_dict: dict) -> "Prior":
+        """
+        Create a prior from a JSON representation
+
+        Parameters
+        ----------
+        prior_dict
+            A dictionary representation of a prior including a type (e.g. Uniform)
+            and all constructor arguments.
+
+        Returns
+        -------
+        An instance of a child of this class.
+        """
         # noinspection PyProtectedMember
         return type_dict[
             prior_dict["type"]
@@ -208,7 +221,10 @@ class Prior(ModelObject, ABC):
         )
 
     @property
-    def dict(self):
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this prior
+        """
         return {
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit,
@@ -216,7 +232,10 @@ class Prior(ModelObject, ABC):
         }
 
     @classmethod
-    def name_of_class(cls):
+    def name_of_class(cls) -> str:
+        """
+        A string name for the class, with the prior suffix removed.
+        """
         return cls.__name__.replace("Prior", "")
 
 
@@ -259,7 +278,10 @@ class GaussianPrior(Prior):
         )
 
     @property
-    def dict(self):
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this prior
+        """
         prior_dict = super().dict
         return {
             **prior_dict,
