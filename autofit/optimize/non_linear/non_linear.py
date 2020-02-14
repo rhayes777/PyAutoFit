@@ -1,7 +1,4 @@
-import datetime as dt
-import functools
 import logging
-import time
 
 import numpy as np
 
@@ -35,8 +32,8 @@ class NonLinearOptimizer:
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get("output", "log_level", str)
-                .replace(" ", "")
-                .upper()
+                    .replace(" ", "")
+                    .upper()
             ]
 
         self.paths.restore()
@@ -75,7 +72,7 @@ class NonLinearOptimizer:
 
     class Fitness:
         def __init__(
-            self, paths, analysis, output_results=lambda during_analysis: None
+                self, paths, analysis, output_results=lambda during_analysis: None
         ):
             self.output_results = output_results
             self.paths = paths
@@ -143,7 +140,7 @@ class NonLinearOptimizer:
         raise NotImplementedError()
 
 
-class Analysis(object):
+class Analysis:
     def fit(self, instance):
         raise NotImplementedError()
 
@@ -151,13 +148,13 @@ class Analysis(object):
         raise NotImplementedError()
 
 
-class Result(object):
+class Result:
     """
     @DynamicAttrs
     """
 
     def __init__(
-        self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
+            self, instance, figure_of_merit, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
@@ -229,7 +226,7 @@ class Result(object):
         )
 
 
-class IntervalCounter(object):
+class IntervalCounter:
     def __init__(self, interval):
         self.count = 0
         self.interval = interval
@@ -239,48 +236,3 @@ class IntervalCounter(object):
             return False
         self.count += 1
         return self.count % self.interval == 0
-
-
-def persistent_timer(func):
-    """
-    Times the execution of a function. If the process is stopped and restarted then timing is continued using
-    saved files.
-
-    Parameters
-    ----------
-    func
-        Some function to be timed
-
-    Returns
-    -------
-    timed_function
-        The same function with a timer attached.
-    """
-
-    @functools.wraps(func)
-    def timed_function(optimizer_instance, *args, **kwargs):
-        start_time_path = "{}/.start_time".format(
-            optimizer_instance.paths.phase_output_path
-        )
-        try:
-            with open(start_time_path) as f:
-                start = float(f.read())
-        except FileNotFoundError:
-            start = time.time()
-            with open(start_time_path, "w+") as f:
-                f.write(str(start))
-
-        result = func(optimizer_instance, *args, **kwargs)
-
-        execution_time = str(dt.timedelta(seconds=time.time() - start))
-
-        logger.info(
-            "{} took {} to run".format(
-                optimizer_instance.paths.phase_name, execution_time
-            )
-        )
-        with open(optimizer_instance.paths.execution_time_path, "w+") as f:
-            f.write(execution_time)
-        return result
-
-    return timed_function

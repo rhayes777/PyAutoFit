@@ -45,7 +45,7 @@ def make_result():
     return af.Result(None, None, mapper, [(0, 0), (1, 0)])
 
 
-class TestResult(object):
+class TestResult:
     def test_model(self, result):
         profile = result.model.profile
         assert profile.centre_0.mean == 0
@@ -74,7 +74,7 @@ class TestResult(object):
             )
 
 
-class TestCopyWithNameExtension(object):
+class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
         assert copy.paths.phase_name == "phase_name/one"
@@ -144,7 +144,7 @@ class TestDirectorySetup:
         assert os.path.exists(nlo_setup_path + "1_class")
 
 
-class TestMostProbableAndLikely(object):
+class TestMostProbableAndLikely:
     def test__most_probable_parameters_and_instance__2_classes_6_params(self):
         mapper = af.ModelMapper(
             mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6
@@ -229,7 +229,7 @@ class TestMostProbableAndLikely(object):
         assert most_likely.mock_class.five == 10.0
 
 
-class TestGaussianPriors(object):
+class TestGaussianPriors:
     def test__1_class__gaussian_priors_at_3_sigma_confidence(self):
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
         nlo = MockNonLinearOptimizer(
@@ -311,7 +311,7 @@ def make_optimizer():
     return AbstractOutput(ModelMapper(), Paths(phase_name=""))
 
 
-class TestLabels(object):
+class TestLabels:
     def test_param_names(self, optimizer):
         optimizer.model.prior_model = MockClassNLOx4
         assert [

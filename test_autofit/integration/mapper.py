@@ -26,7 +26,7 @@ def make_tracer_prior_model(source):
     return mapper.PriorModel(mock.Tracer, lens_galaxy=lens, source_galaxy=source)
 
 
-class TestCase(object):
+class TestCase:
     def test_simple_collection(self, source_light_profiles):
         assert len(source_light_profiles) == 1
         assert source_light_profiles.prior_count == 4

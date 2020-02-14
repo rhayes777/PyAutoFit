@@ -18,7 +18,7 @@ def make_results_collection():
     return results
 
 
-class TestResultsCollection(object):
+class TestResultsCollection:
     def test_with_name(self, results):
         assert results.from_phase("first phase") == "one"
         assert results.from_phase("second phase") == "two"
@@ -48,7 +48,7 @@ class MockPhase(af.AbstractPhase):
         pass
 
 
-class TestPipeline(object):
+class TestPipeline:
     def test_unique_phases(self):
         af.Pipeline("name", MockPhase(Paths("one")), MockPhase(Paths("two")))
         with pytest.raises(af.exc.PipelineException):
@@ -92,7 +92,7 @@ class TestPipeline(object):
 
 
 # noinspection PyUnresolvedReferences
-class TestPhasePipelineName(object):
+class TestPhasePipelineName:
     def test_name_stamping(self):
         one = MockPhase(Paths("one"))
         two = MockPhase(Paths("two"))

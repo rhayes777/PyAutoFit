@@ -1,7 +1,7 @@
 import itertools
 
 
-class ModelObject(object):
+class ModelObject:
     _ids = itertools.count()
 
     def __init__(self):

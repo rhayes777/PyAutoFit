@@ -28,25 +28,25 @@ def make_initial_model():
     return af.PriorModel(MockClassMM)
 
 
-class MockClassGaussian(object):
+class MockClassGaussian:
     def __init__(self, one, two):
         self.one = one
         self.two = two
 
 
-class MockClassInf(object):
+class MockClassInf:
     def __init__(self, one, two):
         self.one = one
         self.two = two
 
 
-class TestParamNames(object):
+class TestParamNames:
     def test_has_prior(self):
         prior_model = af.PriorModel(MockClassGaussian)
         assert "one" == prior_model.name_for_prior(prior_model.one)
 
 
-class TestPriorLimits(object):
+class TestPriorLimits:
     def test_out_of_order_prior_limits(self):
         with pytest.raises(af.exc.PriorException):
             af.UniformPrior(1.0, 0)
@@ -145,7 +145,7 @@ class TestPriorLimits(object):
         assert prior_tuples[1].prior.upper_limit == 2
 
 
-class TestPriorMean(object):
+class TestPriorMean:
     def test_simple(self):
         uniform_prior = af.UniformPrior(0.0, 1.0)
         assert uniform_prior.mean == 0.5
@@ -163,7 +163,7 @@ class TestPriorMean(object):
         assert uniform_prior.upper_limit == 2.5
 
 
-class TestAddition(object):
+class TestAddition:
     def test_abstract_plus_abstract(self):
         one = af.AbstractModel()
         two = af.AbstractModel()
@@ -207,7 +207,7 @@ class TestAddition(object):
         assert three.prior_count == 14
 
 
-class TestUniformPrior(object):
+class TestUniformPrior:
     def test__simple_assumptions(self):
         uniform_simple = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
 
@@ -226,7 +226,7 @@ class TestUniformPrior(object):
         assert af.UniformPrior(2, 5).width == 3
 
 
-class TestLogUniformPrior(object):
+class TestLogUniformPrior:
     def test__simple_assumptions(self):
         log_uniform_simple = af.LogUniformPrior(lower_limit=1.0e-8, upper_limit=1.0)
 
@@ -242,7 +242,7 @@ class TestLogUniformPrior(object):
         assert log_uniform_half.value_for(0.5) == pytest.approx(0.70710678118, 1.0e-4)
 
 
-class TestGaussianPrior(object):
+class TestGaussianPrior:
     def test__simple_assumptions(self):
         gaussian_simple = af.GaussianPrior(mean=0.0, sigma=1.0)
 
@@ -258,7 +258,7 @@ class TestGaussianPrior(object):
         assert gaussian_half.value_for(0.5) == 0.5
 
 
-class MockClassMM(object):
+class MockClassMM:
     def __init__(self, one, two):
         self.one = one
         self.two = two
@@ -274,7 +274,7 @@ class ExtendedMockClass(MockClassMM):
         self.three = three
 
 
-class MockProfile(object):
+class MockProfile:
     def __init__(self, centre=(0.0, 0.0), intensity=0.1):
         self.centre = centre
         self.intensity = intensity
@@ -291,7 +291,7 @@ def make_info_dict():
     return formatter
 
 
-class TestGenerateModelInfo(object):
+class TestGenerateModelInfo:
     def test_add_to_info_dict(self, formatter):
         print(formatter.dict)
         assert formatter.dict == {
@@ -340,18 +340,18 @@ class TestGenerateModelInfo(object):
         )
 
 
-class WithFloat(object):
+class WithFloat:
     def __init__(self, value):
         self.value = value
 
 
-class WithTuple(object):
+class WithTuple:
     def __init__(self, tup=(0.0, 0.0)):
         self.tup = tup
 
 
 # noinspection PyUnresolvedReferences
-class TestRegression(object):
+class TestRegression:
     def test_tuple_instance_model_info(self, mapper):
         mapper.profile = test_autofit.mock.EllipticalCoreSersic
         info = mapper.info
@@ -451,7 +451,7 @@ class TestRegression(object):
         assert instance.with_tuple.tup == (1.0, 0.0)
 
 
-class TestModelingMapper(object):
+class TestModelingMapper:
     def test__argument_extraction(self):
         mapper = af.ModelMapper()
         mapper.mock_class = MockClassMM
@@ -475,7 +475,7 @@ class TestModelingMapper(object):
         assert 3 == len(mapper.prior_tuples_ordered_by_id)
 
 
-class TestRealClasses(object):
+class TestRealClasses:
     def test_combination(self):
         mapper = af.ModelMapper(
             source_light_profile=test_autofit.mock.EllipticalSersic,
@@ -566,7 +566,7 @@ class TestConfigFunctions:
         )
 
 
-class TestModelInstancesRealClasses(object):
+class TestModelInstancesRealClasses:
     def test__in_order_of_class_constructor__one_profile(self):
         mapper = af.ModelMapper(profile_1=test_autofit.mock.EllipticalProfile)
 
@@ -767,7 +767,7 @@ class TestModelInstancesRealClasses(object):
         assert mapper.physical_values_from_prior_medians == [0.5, 0.5]
 
 
-class TestUtility(object):
+class TestUtility:
     def test_prior_prior_model_dict(self):
         mapper = af.ModelMapper(mock_class=MockClassMM)
 
@@ -788,7 +788,7 @@ class TestUtility(object):
         assert mapper.name_for_prior(mapper.priors[1]) == "mock_class_two"
 
 
-class TestPriorReplacement(object):
+class TestPriorReplacement:
     def test_prior_replacement(self):
         mapper = af.ModelMapper(mock_class=MockClassMM)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
@@ -824,7 +824,7 @@ class TestPriorReplacement(object):
         assert result.two.two.mean == 4
 
 
-class TestArguments(object):
+class TestArguments:
     def test_same_argument_name(self):
         mapper = af.ModelMapper()
 
@@ -839,7 +839,7 @@ class TestArguments(object):
         assert instance.two.two == 0.4
 
 
-class TestIndependentPriorModel(object):
+class TestIndependentPriorModel:
     def test_associate_prior_model(self):
         prior_model = af.PriorModel(MockClassMM)
 
@@ -862,7 +862,7 @@ def make_list_prior_model():
     )
 
 
-class TestListPriorModel(object):
+class TestListPriorModel:
     def test_instance_from_physical_vector(self, list_prior_model):
         mapper = af.ModelMapper()
         mapper.list = list_prior_model
@@ -931,7 +931,7 @@ def make_mock_with_instance():
     return mock_with_instance
 
 
-class Testinstance(object):
+class Testinstance:
     def test_instance_prior_count(self, mock_with_instance):
         mapper = af.ModelMapper()
         mapper.mock_class = mock_with_instance
@@ -1015,7 +1015,7 @@ def make_mapper_with_list():
     return mapper
 
 
-class TestGaussianWidthConfig(object):
+class TestGaussianWidthConfig:
     def test_(self):
         assert ["a", 1] == af.conf.instance.prior_width.get(
             "test_model_mapper", "MockClassMM", "one"

@@ -13,7 +13,7 @@ def make_prior_model():
     return af.PriorModel(GeometryProfile)
 
 
-class TestCase(object):
+class TestCase:
     def test_prior_model(self, prior_model):
         prior_model_copy = deepcopy(prior_model)
         assert prior_model == prior_model_copy

@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, List, Iterable
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
@@ -28,9 +28,19 @@ class AbstractModel(ModelObject):
     def populate(self, collection):
         return populate(self, collection)
 
-    def object_for_path(self, path: (str,)) -> object:
+    def object_for_path(
+            self,
+            path: Iterable[Union[str, int, type]]
+    ) -> Union[object, List]:
         """
         Get the object at a given path.
+
+        The path describes the location of some object in the model.
+
+        String entries get an attribute.
+        Int entries index an attribute.
+        Type entries product a new ModelInstance which collates all of the instances
+        of a given type in the path.
 
         Parameters
         ----------
@@ -39,12 +49,34 @@ class AbstractModel(ModelObject):
 
         Returns
         -------
-        object
-            The object
+        An object or Instance collating a collection of objects with a given type.
         """
         instance = self
         for name in path:
-            instance = getattr(instance, name)
+            if isinstance(name, int):
+                instance = instance[name]
+            elif isinstance(name, type):
+                from autofit.mapper.prior_model.prior_model import PriorModel
+                instances = [
+                    instance
+                    for _, instance
+                    in self.path_instance_tuples_for_class(
+                        name
+                    )
+                ]
+                instances += [
+                    instance
+                    for _, instance
+                    in self.path_instance_tuples_for_class(
+                        PriorModel
+                    ) if issubclass(
+                        instance.cls,
+                        name
+                    )
+                ]
+                instance = ModelInstance(instances)
+            else:
+                instance = getattr(instance, name)
         return instance
 
     def path_instance_tuples_for_class(self, cls: type, ignore_class=None):
@@ -118,7 +150,7 @@ def populate(obj, collection: ResultsCollection):
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):
     """
     Recursively search the object for instances of a given class
@@ -167,6 +199,15 @@ class ModelInstance(AbstractModel):
 
     @DynamicAttrs
     """
+
+    def __init__(self, items=None):
+        super().__init__()
+        if isinstance(items, list):
+            for i, item in enumerate(items):
+                self[i] = item
+        if isinstance(items, dict):
+            for key, value in items.items():
+                self[key] = value
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

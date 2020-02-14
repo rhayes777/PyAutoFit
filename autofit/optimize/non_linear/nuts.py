@@ -1,13 +1,9 @@
 import logging
 
-import numpy as np
-from autofit.optimize.non_linear.nuts_src import emcee_nuts
-
 from autofit import conf, exc
-from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
-from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.non_linear import persistent_timer
+from autofit.optimize.non_linear.nuts_src import emcee_nuts
+from autofit.optimize.non_linear.output import AbstractOutput
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +32,7 @@ class NUTS(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-            self, paths, analysis, instance_from_physical_vector, output_results
+                self, paths, analysis, instance_from_physical_vector, output_results
         ):
             super().__init__(paths, analysis, output_results)
             self.instance_from_physical_vector = instance_from_physical_vector
@@ -82,7 +78,6 @@ class NUTS(NonLinearOptimizer):
 
             return likelihood
 
-    @persistent_timer
     def fit(self, analysis, model):
         output = AbstractOutput(model=model, paths=self.paths)
 

@@ -30,7 +30,7 @@ def make_downhill_simplex():
     )
 
 
-class TestDownhillSimplex(object):
+class TestDownhillSimplex:
     def test_instance(self, downhill_simplex, model):
         model.mock_class = MockClassNLOx4()
 
@@ -68,7 +68,7 @@ class TestDownhillSimplex(object):
         assert result.figure_of_merit == 1
 
 
-class TestCopyWithNameExtension(object):
+class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy, optimizer):
         assert copy.paths.phase_name == "phase_name/one"

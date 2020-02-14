@@ -45,7 +45,7 @@ def tuple_lists_equal(l1, l2):
     return True
 
 
-class TestGridSearchOptimizer(object):
+class TestGridSearchOptimizer:
     def test_config(self):
         assert (
             autofit.optimize.non_linear.grid_search.GridSearch(
@@ -141,7 +141,7 @@ def make_grid_search():
     )
 
 
-class TestGridSearch(object):
+class TestGridSearch:
     def test_1d(self, grid_search, model):
         model.one = Galaxy
 

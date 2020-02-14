@@ -119,7 +119,7 @@ class NUTSSampler(PTSampler):
         return self.sample(initial_state, steps, steps_burn_in, delta, **kwargs)
 
 
-class _function_wrapper(object):
+class _function_wrapper:
     """
     This is a hack to make the likelihood function pickleable when ``args``
     are also included.

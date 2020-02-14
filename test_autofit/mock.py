@@ -1,8 +1,8 @@
 import inspect
+import math
 import typing
 
 import autofit as af
-
 # noinspection PyAbstractClass
 from autofit import Paths
 from autofit.optimize.non_linear.output import AbstractOutput
@@ -11,15 +11,15 @@ from autofit.tools.phase import Dataset
 
 class MockNonLinearOptimizer(AbstractOutput):
     def __init__(
-        self,
-        phase_name,
-        phase_tag=None,
-        phase_folders=tuple(),
-        most_probable=None,
-        model_mapper=None,
-        most_likely=None,
-        model_upper_params=None,
-        model_lower_params=None,
+            self,
+            phase_name,
+            phase_tag=None,
+            phase_folders=tuple(),
+            most_probable=None,
+            model_mapper=None,
+            most_likely=None,
+            model_upper_params=None,
+            model_lower_params=None,
     ):
         super(MockNonLinearOptimizer, self).__init__(
             model_mapper or af.ModelMapper(),
@@ -65,7 +65,7 @@ class MockNonLinearOptimizer(AbstractOutput):
         return self.model_lower_params
 
 
-class MockClassNLOx4(object):
+class MockClassNLOx4:
     def __init__(self, one=1, two=2, three=3, four=4):
         self.one = one
         self.two = two
@@ -73,7 +73,7 @@ class MockClassNLOx4(object):
         self.four = four
 
 
-class MockClassNLOx5(object):
+class MockClassNLOx5:
     def __init__(self, one=1, two=2, three=3, four=4, five=5):
         self.one = one
         self.two = two
@@ -82,7 +82,7 @@ class MockClassNLOx5(object):
         self.five = five
 
 
-class MockClassNLOx6(object):
+class MockClassNLOx6:
     def __init__(self, one=(1, 2), two=(3, 4), three=3, four=4):
         self.one = one
         self.two = two
@@ -90,7 +90,7 @@ class MockClassNLOx6(object):
         self.four = four
 
 
-class MockAnalysis(object):
+class MockAnalysis:
     def __init__(self):
         self.kwargs = None
         self.instance = None
@@ -105,18 +105,34 @@ class MockAnalysis(object):
         self.visualize_instance = instance
 
 
-class SimpleClass(object):
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius
+
+    def with_circumference(self, circumference):
+        self.circumference = circumference
+
+    @property
+    def circumference(self):
+        return self.radius * 2 * math.pi
+
+    @circumference.setter
+    def circumference(self, circumference):
+        self.radius = circumference / (2 * math.pi)
+
+
+class SimpleClass:
     def __init__(self, one, two: float):
         self.one = one
         self.two = two
 
 
-class ComplexClass(object):
+class ComplexClass:
     def __init__(self, simple: SimpleClass):
         self.simple = simple
 
 
-class ListClass(object):
+class ListClass:
     def __init__(self, ls: list):
         self.ls = ls
 
@@ -144,13 +160,13 @@ class DeferredClass:
         self.two = two
 
 
-class Galaxy(object):
+class Galaxy:
     def __init__(
-        self,
-        light_profiles: list = None,
-        mass_profiles: list = None,
-        redshift=None,
-        **kwargs
+            self,
+            light_profiles: list = None,
+            mass_profiles: list = None,
+            redshift=None,
+            **kwargs
     ):
         self.redshift = redshift
         self.light_profiles = light_profiles
@@ -158,14 +174,14 @@ class Galaxy(object):
         self.kwargs = kwargs
 
 
-class RelativeWidth(object):
+class RelativeWidth:
     def __init__(self, one, two, three):
         self.one = one
         self.two = two
         self.three = three
 
 
-class Redshift(object):
+class Redshift:
     def __init__(self, redshift):
         self.redshift = redshift
 
@@ -213,7 +229,7 @@ class GalaxyModel(af.AbstractPriorModel):
         ]
 
 
-class GeometryProfile(object):
+class GeometryProfile:
     def __init__(self, centre=(0.0, 0.0)):
         """Abstract GeometryProfile, describing an object with y, x cartesian
         coordinates """
@@ -275,13 +291,13 @@ class EllipticalLP(EllipticalProfile):
 
 class AbstractEllipticalSersic(EllipticalProfile):
     def __init__(
-        self,
-        centre=(0.0, 0.0),
-        axis_ratio=1.0,
-        phi=0.0,
-        intensity=0.1,
-        effective_radius=0.6,
-        sersic_index=4.0,
+            self,
+            centre=(0.0, 0.0),
+            axis_ratio=1.0,
+            phi=0.0,
+            intensity=0.1,
+            effective_radius=0.6,
+            sersic_index=4.0,
     ):
         """ Abstract base class for an elliptical Sersic profile, used for computing
         its effective radius and Sersic instance.
@@ -307,7 +323,7 @@ class AbstractEllipticalSersic(EllipticalProfile):
         self.sersic_index = sersic_index
 
 
-class MassProfile(object):
+class MassProfile:
     def surface_density_func(self, eta):
         raise NotImplementedError("surface_density_at_radius should be overridden")
 
@@ -346,13 +362,13 @@ class EllipticalMassProfile(EllipticalProfile, MassProfile):
 # noinspection PyAbstractClass
 class EllipticalCoredPowerLaw(EllipticalMassProfile, MassProfile):
     def __init__(
-        self,
-        centre=(0.0, 0.0),
-        axis_ratio=1.0,
-        phi=0.0,
-        einstein_radius=1.0,
-        slope=2.0,
-        core_radius=0.01,
+            self,
+            centre=(0.0, 0.0),
+            axis_ratio=1.0,
+            phi=0.0,
+            einstein_radius=1.0,
+            slope=2.0,
+            core_radius=0.01,
     ):
         """
         Represents a cored elliptical power-law density distribution
@@ -382,12 +398,12 @@ class EllipticalCoredPowerLaw(EllipticalMassProfile, MassProfile):
 # noinspection PyAbstractClass
 class EllipticalCoredIsothermal(EllipticalCoredPowerLaw):
     def __init__(
-        self,
-        centre=(0.0, 0.0),
-        axis_ratio=1.0,
-        phi=0.0,
-        einstein_radius=1.0,
-        core_radius=0.05,
+            self,
+            centre=(0.0, 0.0),
+            axis_ratio=1.0,
+            phi=0.0,
+            einstein_radius=1.0,
+            core_radius=0.05,
     ):
         """
         Represents a cored elliptical isothermal density distribution, which is
@@ -416,13 +432,13 @@ class EllipticalCoredIsothermal(EllipticalCoredPowerLaw):
 
 class EllipticalSersic(AbstractEllipticalSersic, EllipticalLP):
     def __init__(
-        self,
-        centre=(0.0, 0.0),
-        axis_ratio=1.0,
-        phi=0.0,
-        intensity=0.1,
-        effective_radius=0.6,
-        sersic_index=4.0,
+            self,
+            centre=(0.0, 0.0),
+            axis_ratio=1.0,
+            phi=0.0,
+            intensity=0.1,
+            effective_radius=0.6,
+            sersic_index=4.0,
     ):
         """ The elliptical Sersic profile, used for fitting a model_galaxy's light.
 
@@ -449,17 +465,17 @@ class EllipticalSersic(AbstractEllipticalSersic, EllipticalLP):
 
 class EllipticalCoreSersic(EllipticalSersic):
     def __init__(
-        self,
-        centre=(0.0, 0.0),
-        axis_ratio=1.0,
-        phi=0.0,
-        intensity=0.1,
-        effective_radius=0.6,
-        sersic_index=4.0,
-        radius_break=0.01,
-        intensity_break=0.05,
-        gamma=0.25,
-        alpha=3.0,
+            self,
+            centre=(0.0, 0.0),
+            axis_ratio=1.0,
+            phi=0.0,
+            intensity=0.1,
+            effective_radius=0.6,
+            sersic_index=4.0,
+            radius_break=0.01,
+            intensity_break=0.05,
+            gamma=0.25,
+            alpha=3.0,
     ):
         """ The elliptical cored-Sersic profile, used for fitting a model_galaxy's
         light.
@@ -501,12 +517,12 @@ class EllipticalCoreSersic(EllipticalSersic):
 
 class EllipticalExponential(EllipticalSersic):
     def __init__(
-        self,
-        centre=(0.0, 0.0),
-        axis_ratio=1.0,
-        phi=0.0,
-        intensity=0.1,
-        effective_radius=0.6,
+            self,
+            centre=(0.0, 0.0),
+            axis_ratio=1.0,
+            phi=0.0,
+            intensity=0.1,
+            effective_radius=0.6,
     ):
         """ The elliptical exponential profile, used for fitting a model_galaxy's light.
 
@@ -534,7 +550,7 @@ class EllipticalExponential(EllipticalSersic):
 
 class EllipticalGaussian(EllipticalLP):
     def __init__(
-        self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
+            self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
     ):
         """ The elliptical Gaussian profile.
 
@@ -577,7 +593,7 @@ class Result:
         return self.model
 
 
-class HyperGalaxy(object):
+class HyperGalaxy:
     pass
 
 

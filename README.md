@@ -12,7 +12,7 @@
 **PyAutoFit** interfaces with Python classes and non-linear sampling packages such as [PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html). Lets take a two-dimensional Gaussian as our moodel:
 
 ```python
-class Gaussian(object):
+class Gaussian:
 
     def __init__(
         self,

@@ -439,7 +439,7 @@ def make_multi_nest():
     return multi_nest
 
 
-class TestCopyWithNameExtension(object):
+class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
         assert copy.paths.phase_name == "phase_name/one"
