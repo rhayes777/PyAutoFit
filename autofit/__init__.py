@@ -5,11 +5,9 @@ from autofit.mapper.prior_model.prior import (
     UniformPrior,
     GaussianPrior,
     LogUniformPrior,
-    AttributeNameValue,
 )
-from autofit.mapper.prior_model.prior import PriorNameValue
-from autofit.mapper.prior_model.prior import cast_collection
-from autofit.mapper.prior_model.prior import InstanceNameValue
+from autofit.mapper.prior_model.attribute_pair import cast_collection, AttributeNameValue, PriorNameValue, \
+    InstanceNameValue
 
 dir(conf)
 from . import exc

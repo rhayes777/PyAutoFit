@@ -4,6 +4,7 @@ import typing
 
 import autofit as af
 # noinspection PyAbstractClass
+import autofit.mapper.prior_model.attribute_pair
 from autofit import Paths
 from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.tools.phase import Dataset
@@ -210,7 +211,7 @@ class GalaxyModel(af.AbstractPriorModel):
         return []
 
     @property
-    @af.cast_collection(af.PriorNameValue)
+    @autofit.mapper.prior_model.attribute_pair.cast_collection(autofit.mapper.prior_model.attribute_pair.PriorNameValue)
     def unique_prior_tuples(self):
         return (
             [item for item in self.__dict__.items() if isinstance(item[1], af.Prior)]
@@ -220,7 +221,7 @@ class GalaxyModel(af.AbstractPriorModel):
         )
 
     @property
-    @af.cast_collection(af.PriorModelNameValue)
+    @autofit.mapper.prior_model.attribute_pair.cast_collection(af.PriorModelNameValue)
     def flat_prior_model_tuples(self):
         return [
             item

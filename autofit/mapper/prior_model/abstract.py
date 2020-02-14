@@ -7,20 +7,17 @@ import numpy as np
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
-from autofit import conf
+from autofit import conf, cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
-    cast_collection,
-    PriorNameValue,
     TuplePrior,
     Prior,
-    DeferredNameValue,
 )
-from autofit.mapper.prior_model.prior import InstanceNameValue
+from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
