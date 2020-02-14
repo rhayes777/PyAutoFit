@@ -1,4 +1,4 @@
-class PhaseProperty(object):
+class PhaseProperty:
     def __init__(self, name):
         """
         A phase property is a named property of a phase in a pipeline. It implemented setters and getters that

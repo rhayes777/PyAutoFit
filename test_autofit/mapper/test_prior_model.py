@@ -153,7 +153,7 @@ class TestFromInstance:
         assert new_instance.first == 0.1
 
 
-class TestSum(object):
+class TestSum:
     def test_add_prior_models(self):
         profile_1 = af.PriorModel(mock.EllipticalLP)
         profile_2 = af.PriorModel(mock.EllipticalLP)
@@ -213,7 +213,7 @@ class TestSum(object):
         assert result.light_profiles.light == galaxy_2.light_profiles.light
 
 
-class TestFloatAnnotation(object):
+class TestFloatAnnotation:
     def test_distance_from_distance(self):
         original = mock.Distance(1.0)
         # noinspection PyTypeChecker
@@ -293,7 +293,7 @@ class TestFloatAnnotation(object):
         assert prior_model.unique_prior_tuples[1].name == "second"
 
 
-class TestHashing(object):
+class TestHashing:
     def test_is_hashable(self):
         assert hash(af.AbstractPriorModel()) is not None
         assert hash(af.PriorModel(mock.SimpleClass)) is not None
@@ -314,7 +314,7 @@ class StringDefault:
         self.value = value
 
 
-class TestStringArguments(object):
+class TestStringArguments:
     def test_string_default(self):
         prior_model = af.PriorModel(StringDefault)
         assert prior_model.prior_count == 0
@@ -322,7 +322,7 @@ class TestStringArguments(object):
         assert prior_model.instance_for_arguments({}).value == "a string"
 
 
-class TestPriorModelArguments(object):
+class TestPriorModelArguments:
     def test_list_arguments(self):
         prior_model = af.PriorModel(mock.ListClass)
 
@@ -390,7 +390,7 @@ class TestPriorModelArguments(object):
         assert isinstance(instance.mass, mock.EllipticalMassProfile)
 
 
-class TestCase(object):
+class TestCase:
     def test_complex_class(self):
         prior_model = af.PriorModel(mock.ComplexClass)
 
@@ -443,7 +443,7 @@ class TestCase(object):
         assert instance.list_object.ls[1].two == 2
 
 
-class TestCollectionPriorModel(object):
+class TestCollectionPriorModel:
     def test_keyword_arguments(self):
         prior_model = af.CollectionPriorModel(
             one=mock.SimpleClass, two=mock.SimpleClass(1, 2)

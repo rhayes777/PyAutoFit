@@ -23,7 +23,7 @@ def make_grid_search(mapper):
     return gs.GridSearch(Paths(phase_name=""), number_of_steps=10)
 
 
-class TestGridSearchablePriors(object):
+class TestGridSearchablePriors:
     def test_generated_models(self, grid_search, mapper):
         mappers = list(
             grid_search.model_mappers(
@@ -158,7 +158,7 @@ class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):
         pass
 
 
-class MockClassContainer(object):
+class MockClassContainer:
     def __init__(self):
         self.init_args = init_args
         self.fit_args = fit_args
@@ -185,7 +185,7 @@ def make_grid_search_05(container):
     )
 
 
-class TestGridNLOBehaviour(object):
+class TestGridNLOBehaviour:
     def test_calls(self, grid_search_05, container, mapper):
 
         result = grid_search_05.fit(
@@ -338,7 +338,7 @@ class TestGridNLOBehaviour(object):
         assert grid_search.paths.phase_output_path != optimizer.paths.phase_output_path
 
 
-class MockResult(object):
+class MockResult:
     def __init__(self, figure_of_merit):
         self.figure_of_merit = figure_of_merit
         self.model = figure_of_merit
@@ -352,7 +352,7 @@ def make_grid_search_result():
     return gs.GridSearchResult([one, two], [[1], [2]])
 
 
-class TestGridSearchResult(object):
+class TestGridSearchResult:
     def test_best_result(self, grid_search_result):
         assert grid_search_result.best_result.figure_of_merit == 2
 
@@ -366,7 +366,7 @@ class TestGridSearchResult(object):
         assert grid_search_result.all_models == [1, 2]
 
 
-class TestMixin(object):
+class TestMixin:
     def test_mixin(self, container):
         class MyPhase(phase.as_grid_search(phase.AbstractPhase)):
             @property

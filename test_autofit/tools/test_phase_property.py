@@ -19,7 +19,7 @@ af.conf.instance = af.conf.Config(
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def fit(self, analysis, model):
-        class Fitness(object):
+        class Fitness:
             def __init__(self, instance_from_physical_vector, instance):
                 self.result = None
                 self.instance_from_physical_vector = instance_from_physical_vector
@@ -60,7 +60,7 @@ def make_list_phase():
     return MyPhase(Paths(phase_name=""), optimizer_class=NLO)
 
 
-class TestPhasePropertyList(object):
+class TestPhasePropertyList:
     def test_classes(self, list_phase):
         objects = [GalaxyModel(), GalaxyModel()]
 
@@ -102,7 +102,7 @@ class TestPhasePropertyList(object):
         assert list_phase.prop == [galaxy, galaxy_prior_1]
 
 
-class TestPhasePropertyCollectionAttributes(object):
+class TestPhasePropertyCollectionAttributes:
     def test_set_list_as_dict(self, list_phase):
         galaxy_model = GalaxyModel()
         list_phase.prop = dict(one=galaxy_model)

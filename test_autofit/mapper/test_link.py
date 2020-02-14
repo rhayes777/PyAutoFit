@@ -17,7 +17,7 @@ def delete_trees(*paths):
             os.remove(path)
 
 
-class TestCase(object):
+class TestCase:
     def test_create_dir(self):
         assert os.path.exists(af.link.autolens_dir)
 

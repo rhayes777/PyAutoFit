@@ -137,7 +137,7 @@ class NonLinearOptimizer:
         return new_instance
 
 
-class Analysis(object):
+class Analysis:
     def fit(self, instance):
         raise NotImplementedError()
 
@@ -145,7 +145,7 @@ class Analysis(object):
         raise NotImplementedError()
 
 
-class Result(object):
+class Result:
     """
     @DynamicAttrs
     """
@@ -223,7 +223,7 @@ class Result(object):
         )
 
 
-class IntervalCounter(object):
+class IntervalCounter:
     def __init__(self, interval):
         self.count = 0
         self.interval = interval

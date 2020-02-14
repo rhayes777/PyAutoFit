@@ -65,7 +65,7 @@ class MockNonLinearOptimizer(AbstractOutput):
         return self.model_lower_params
 
 
-class MockClassNLOx4(object):
+class MockClassNLOx4:
     def __init__(self, one=1, two=2, three=3, four=4):
         self.one = one
         self.two = two
@@ -73,7 +73,7 @@ class MockClassNLOx4(object):
         self.four = four
 
 
-class MockClassNLOx5(object):
+class MockClassNLOx5:
     def __init__(self, one=1, two=2, three=3, four=4, five=5):
         self.one = one
         self.two = two
@@ -82,7 +82,7 @@ class MockClassNLOx5(object):
         self.five = five
 
 
-class MockClassNLOx6(object):
+class MockClassNLOx6:
     def __init__(self, one=(1, 2), two=(3, 4), three=3, four=4):
         self.one = one
         self.two = two
@@ -90,7 +90,7 @@ class MockClassNLOx6(object):
         self.four = four
 
 
-class MockAnalysis(object):
+class MockAnalysis:
     def __init__(self):
         self.kwargs = None
         self.instance = None
@@ -121,18 +121,18 @@ class Circle:
         self.radius = circumference / (2 * math.pi)
 
 
-class SimpleClass(object):
+class SimpleClass:
     def __init__(self, one, two: float):
         self.one = one
         self.two = two
 
 
-class ComplexClass(object):
+class ComplexClass:
     def __init__(self, simple: SimpleClass):
         self.simple = simple
 
 
-class ListClass(object):
+class ListClass:
     def __init__(self, ls: list):
         self.ls = ls
 
@@ -160,7 +160,7 @@ class DeferredClass:
         self.two = two
 
 
-class Galaxy(object):
+class Galaxy:
     def __init__(
             self,
             light_profiles: list = None,
@@ -174,14 +174,14 @@ class Galaxy(object):
         self.kwargs = kwargs
 
 
-class RelativeWidth(object):
+class RelativeWidth:
     def __init__(self, one, two, three):
         self.one = one
         self.two = two
         self.three = three
 
 
-class Redshift(object):
+class Redshift:
     def __init__(self, redshift):
         self.redshift = redshift
 
@@ -229,7 +229,7 @@ class GalaxyModel(af.AbstractPriorModel):
         ]
 
 
-class GeometryProfile(object):
+class GeometryProfile:
     def __init__(self, centre=(0.0, 0.0)):
         """Abstract GeometryProfile, describing an object with y, x cartesian
         coordinates """
@@ -323,7 +323,7 @@ class AbstractEllipticalSersic(EllipticalProfile):
         self.sersic_index = sersic_index
 
 
-class MassProfile(object):
+class MassProfile:
     def surface_density_func(self, eta):
         raise NotImplementedError("surface_density_at_radius should be overridden")
 
@@ -593,7 +593,7 @@ class Result:
         return self.model
 
 
-class HyperGalaxy(object):
+class HyperGalaxy:
     pass
 
 

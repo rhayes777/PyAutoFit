@@ -22,7 +22,7 @@ def cast_collection(named_tuple):
     return decorator
 
 
-class AttributeNameValue(object):
+class AttributeNameValue:
     def __init__(self, name, value):
         self.name = name
         self.value = value
@@ -72,7 +72,7 @@ class DeferredNameValue(AttributeNameValue):
         return self.value
 
 
-class TuplePrior(object):
+class TuplePrior:
     """
     A prior comprising one or more priors in a tuple
     """

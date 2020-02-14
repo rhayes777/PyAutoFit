@@ -8,7 +8,7 @@ from autofit.tools import text_formatter, text_util
 logger = logging.getLogger(__name__)
 
 
-class AbstractOutput(object):
+class AbstractOutput:
     def __init__(self, model, paths):
         self.model = model
         self.paths = paths

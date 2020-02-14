@@ -82,7 +82,7 @@ def numerical_grad(theta, f, dx=1e-3, order=1):
     return df
 
 
-class _function_wrapper(object):
+class _function_wrapper:
     """
     This is a hack to make the likelihood function pickleable when ``args``
     are also included.
@@ -108,7 +108,7 @@ class _function_wrapper(object):
             raise
 
 
-class NutsSampler_fn_wrapper(object):
+class NutsSampler_fn_wrapper:
     """ Create a function-like object that combines provided lnp and grad(lnp)
     functions into one as required by nuts6.
 

@@ -33,7 +33,7 @@ def make_instance(galaxy_1, galaxy_2):
     return instance
 
 
-class TestModelInstance(object):
+class TestModelInstance:
     def test_as_model(self, instance):
         model = instance.as_model()
         assert isinstance(model, af.ModelMapper)
