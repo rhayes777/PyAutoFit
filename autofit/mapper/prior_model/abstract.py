@@ -20,7 +20,7 @@ from autofit.mapper.prior_model.prior import (
     Prior,
     DeferredNameValue,
 )
-from autofit.mapper.prior_model.prior import instanceNameValue
+from autofit.mapper.prior_model.prior import InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -418,7 +418,7 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(Prior)
 
     @property
-    @cast_collection(instanceNameValue)
+    @cast_collection(InstanceNameValue)
     def direct_instance_tuples(self):
         return self.direct_tuples_with_type(float)
 
@@ -475,7 +475,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
-    @cast_collection(instanceNameValue)
+    @cast_collection(InstanceNameValue)
     def instance_tuples(self):
         """
         Returns

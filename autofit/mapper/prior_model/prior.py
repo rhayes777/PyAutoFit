@@ -60,7 +60,7 @@ class PriorNameValue(AttributeNameValue):
         return self.value
 
 
-class instanceNameValue(AttributeNameValue):
+class InstanceNameValue(AttributeNameValue):
     @property
     def instance(self):
         return self.value
@@ -93,7 +93,7 @@ class TuplePrior:
         return self.prior_tuples
 
     @property
-    @cast_collection(instanceNameValue)
+    @cast_collection(InstanceNameValue)
     def instance_tuples(self):
         """
         Returns
@@ -157,10 +157,22 @@ class TuplePrior:
 
 
 class Prior(ModelObject, ABC):
-    """An object used to mappers a unit value to an attribute value for a specific
-    class attribute """
+    def __init__(
+            self,
+            lower_limit=0.0,
+            upper_limit=1.0
+    ):
+        """
+        An object used to mappers a unit value to an attribute value for a specific
+        class attribute.
 
-    def __init__(self, lower_limit, upper_limit):
+        Parameters
+        ----------
+        lower_limit: Float
+            The lowest value this prior can return
+        upper_limit: Float
+            The highest value this prior can return
+        """
         if lower_limit >= upper_limit:
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
@@ -245,7 +257,7 @@ class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
 
     def __init__(self, mean, sigma, lower_limit=-math.inf, upper_limit=math.inf):
-        super(GaussianPrior, self).__init__(lower_limit, upper_limit)
+        super().__init__(lower_limit, upper_limit)
         self.mean = mean
         self.sigma = sigma
         self.lower_limit = lower_limit
@@ -268,7 +280,7 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
+                "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
         )
 
     def __repr__(self):
@@ -282,18 +294,6 @@ class GaussianPrior(Prior):
 
 class UniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
-
-    def __init__(self, lower_limit=0.0, upper_limit=1.0):
-        """
-
-        Parameters
-        ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
-        """
-        super(UniformPrior, self).__init__(lower_limit, upper_limit)
 
     def value_for(self, unit):
         """
@@ -322,27 +322,15 @@ class UniformPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "UniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "UniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
 
 
 class LogUniformPrior(UniformPrior):
     """A prior with a uniform distribution between a lower and upper limit"""
-
-    def __init__(self, lower_limit=0.0, upper_limit=1.0):
-        """
-
-        Parameters
-        ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
-        """
-        super(LogUniformPrior, self).__init__(lower_limit, upper_limit)
 
     def value_for(self, unit):
         """
@@ -357,15 +345,15 @@ class LogUniformPrior(UniformPrior):
             A value for the attribute between the upper and lower limits
         """
         return 10.0 ** (
-            np.log10(self.lower_limit)
-            + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
+                np.log10(self.lower_limit)
+                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "LogUniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "LogUniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
