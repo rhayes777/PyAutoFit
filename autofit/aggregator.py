@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 """
-Filter and collate phase simulator in all subdirectories.
+Filter and collate phase dataset in all subdirectories.
 
 Usage:
 
-./aggregator.py (root_directory) [pipeline=pipeline phase=phase simulator=simulator]
+./aggregator.py (root_directory) [pipeline=pipeline phase=phase dataset=dataset]
 
 Example:
 
@@ -20,6 +20,7 @@ from typing import List
 
 import autofit.optimize.non_linear.non_linear
 from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.multi_nest import MultiNestOutput
 
 
 class PhaseOutput:
@@ -29,7 +30,7 @@ class PhaseOutput:
 
     def __init__(self, directory: str):
         """
-        Represents the output of a single phase. Comprises a metadata file and other simulator files.
+        Represents the output of a single phase. Comprises a metadata file and other dataset files.
 
         Parameters
         ----------
@@ -50,7 +51,7 @@ class PhaseOutput:
         """
         An object describing the output data from the nonlinear search performed in this phase
         """
-        return AbstractOutput(model=self.model, paths=self.optimizer.paths)
+        return self.optimizer.output_from_model(model=self.model, paths=self.optimizer.paths)
 
     @property
     def model_results(self) -> str:
@@ -162,13 +163,14 @@ class AbstractAggregator:
     def phases_with(self, **kwargs) -> [PhaseOutput]:
         """
         Filters phases. If no arguments are passed all phases are returned. Arguments must be key value pairs, with
-        phase, simulator or pipeline as the key.
+        phase, dataset or pipeline as the key.
 
         Parameters
         ----------
         kwargs
             Filters, e.g. pipeline=pipeline1
         """
+
         return [
             phase
             for phase in self.phases
@@ -270,7 +272,7 @@ if __name__ == "__main__":
         root_directory = argv[1]
     except IndexError:
         print(
-            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase simulator=simulator]"
+            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase dataset=dataset]"
         )
         exit(1)
     filter_dict = {pair[0]: pair[1] for pair in [line.split("=") for line in argv[2:]]}

@@ -198,8 +198,12 @@ class MultiNest(NonLinearOptimizer):
         self.paths.backup_zip_remove()
         return result
 
+    def output_from_model(self, model, paths):
+        return MultiNestOutput(model=model, paths=paths)
+
 
 class MultiNestOutput(NestedSamplingOutput):
+
     @property
     def pdf(self):
         import getdist

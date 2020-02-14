@@ -175,6 +175,8 @@ class Emcee(NonLinearOptimizer):
         self.paths.backup_zip_remove()
         return result
 
+    def output_from_model(self, model, paths):
+        return EmceeOutput(model=model, paths=paths)
 
 class EmceeOutput(MCMCOutput):
     def __init__(

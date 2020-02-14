@@ -139,6 +139,9 @@ class NonLinearOptimizer:
 
         return new_instance
 
+    def output_from_model(self, model, paths):
+        raise NotImplementedError()
+
 
 class Analysis(object):
     def fit(self, instance):

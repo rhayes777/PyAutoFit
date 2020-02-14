@@ -36,6 +36,13 @@ class MockNLO(af.NonLinearOptimizer):
             ],
         )
 
+    def output_from_model(self, model, paths):
+        return MockOutput()
+
+class MockOutput(object):
+
+    def __init__(self):
+        pass
 
 class MockAnalysis(af.Analysis):
     def fit(self, instance):
