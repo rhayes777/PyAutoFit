@@ -10,7 +10,6 @@ from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
-from autofit.mapper.prior_model.deferred import DeferredArgument
 
 
 class TuplePrior:
@@ -133,27 +132,12 @@ class Prior(ModelObject, ABC):
 
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
-        config_arr = conf.instance.prior_default.get_for_nearest_ancestor(
-            cls, attribute_name
+        prior_dict = conf.instance.prior_config.for_class_and_prior_name(
+            cls,
+            attribute_name
         )
-        if config_arr[0] == "u":
-            return UniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "n":
-            return None
-        elif config_arr[0] == "l":
-            return LogUniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "g":
-            limits = conf.instance.prior_limit.get_for_nearest_ancestor(
-                cls, attribute_name
-            )
-            return GaussianPrior(config_arr[1], config_arr[2], *limits)
-        elif config_arr[0] == "c":
-            return config_arr[1]
-        elif config_arr[0] == "d":
-            return DeferredArgument()
-        raise exc.PriorException(
-            "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, "
-            "c - instance, d - Deferred)".format(attribute_name)
+        return Prior.from_dict(
+            prior_dict
         )
 
     @property
