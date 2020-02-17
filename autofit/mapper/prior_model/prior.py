@@ -41,6 +41,16 @@ class WidthModifier:
             "value": self.value
         }
 
+    @staticmethod
+    def for_class_and_attribute_name(cls, attribute_name):
+        prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls,
+            [attribute_name, "width_modifier"]
+        )
+        return WidthModifier.from_dict(
+            prior_dict
+        )
+
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.value == other.value
 
@@ -143,8 +153,7 @@ class Prior(ModelObject, ABC):
     def __init__(
             self,
             lower_limit=0.0,
-            upper_limit=1.0,
-            width_modifier=None
+            upper_limit=1.0
     ):
         """
         An object used to mappers a unit value to an attribute value for a specific
@@ -164,7 +173,6 @@ class Prior(ModelObject, ABC):
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
             )
-        self.width_modifier = width_modifier
 
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
@@ -177,9 +185,9 @@ class Prior(ModelObject, ABC):
 
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
-        prior_dict = conf.instance.prior_config.for_class_and_prior_name(
+        prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
             cls,
-            attribute_name
+            [attribute_name]
         )
         return Prior.from_dict(
             prior_dict
@@ -242,11 +250,6 @@ class Prior(ModelObject, ABC):
         if prior_dict["type"] == "Deferred":
             return DeferredArgument()
 
-        prior_dict = copy.deepcopy(prior_dict)
-        if "width_modifier" in prior_dict:
-            prior_dict["width_modifier"] = WidthModifier.from_dict(
-                prior_dict["width_modifier"]
-            )
         # noinspection PyProtectedMember
         return prior_type_dict[
             prior_dict["type"]
@@ -255,7 +258,7 @@ class Prior(ModelObject, ABC):
                 key: value
                 for key, value
                 in prior_dict.items()
-                if key != "type"
+                if key not in ("type", "width_modifier")
             }
         )
 
@@ -269,8 +272,6 @@ class Prior(ModelObject, ABC):
             "upper_limit": self.upper_limit,
             "type": self.name_of_class()
         }
-        if self.width_modifier is not None:
-            prior_dict["width_modifier"] = self.width_modifier.dict
         return prior_dict
 
     @classmethod
@@ -293,13 +294,11 @@ class GaussianPrior(Prior):
             mean,
             sigma,
             lower_limit=-math.inf,
-            upper_limit=math.inf,
-            width_modifier=None
+            upper_limit=math.inf
     ):
         super().__init__(
             lower_limit,
-            upper_limit,
-            width_modifier=width_modifier
+            upper_limit
         )
         self.mean = float(mean)
         self.sigma = float(sigma)

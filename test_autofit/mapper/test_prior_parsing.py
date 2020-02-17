@@ -29,12 +29,11 @@ def make_uniform_prior(
 @pytest.fixture(
     name="log_uniform_dict"
 )
-def make_log_uniform_dict(absolute_width_dict):
+def make_log_uniform_dict():
     return {
         "type": "LogUniform",
         "lower_limit": 0.2,
-        "upper_limit": 0.3,
-        "width_modifier": absolute_width_dict
+        "upper_limit": 0.3
     }
 
 
@@ -152,7 +151,6 @@ class TestFromDict:
         assert isinstance(log_uniform_prior, af.LogUniformPrior)
         assert log_uniform_prior.lower_limit == 0.2
         assert log_uniform_prior.upper_limit == 0.3
-        assert log_uniform_prior.width_modifier == absolute_width_modifier
 
     def test_gaussian(self, gaussian_prior):
         assert isinstance(gaussian_prior, af.GaussianPrior)

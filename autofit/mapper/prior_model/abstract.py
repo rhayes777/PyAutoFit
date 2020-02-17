@@ -7,17 +7,18 @@ import numpy as np
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
-from autofit import conf, cast_collection, PriorNameValue, InstanceNameValue
+from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
+from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
     TuplePrior,
     Prior,
+    WidthModifier
 )
-from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -278,11 +279,28 @@ class AbstractPriorModel(AbstractModel):
         """
 
         prior_tuples = self.prior_tuples_ordered_by_id
+        prior_class_dict = self.prior_class_dict
         arguments = {}
 
         for i, prior_tuple in enumerate(prior_tuples):
             prior = prior_tuple.prior
+            cls = prior_class_dict[prior]
             mean, sigma = tuples[i]
+
+            def get_name():
+                name = prior_tuple.name
+                # Use the name of the collection for configuration when a prior's name
+                # is just a number (i.e. its position in a collection)
+                if name.isdigit():
+                    name = self.path_for_prior(
+                        prior_tuple.prior
+                    )[-2]
+                return name
+
+            width_modifier = WidthModifier.for_class_and_attribute_name(
+                cls,
+                get_name()
+            )
 
             if a is not None and r is not None:
                 raise exc.PriorException(
@@ -293,11 +311,11 @@ class AbstractPriorModel(AbstractModel):
             elif r is not None:
                 width = r * mean
             else:
-                width = prior.width_modifier(
+                width = width_modifier(
                     mean
                 )
 
-            arguments[prior] = GaussianPrior(mean, max(sigma, width), *prior.limits)
+            arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *prior.limits)
 
         return self.mapper_from_prior_arguments(arguments)
 
