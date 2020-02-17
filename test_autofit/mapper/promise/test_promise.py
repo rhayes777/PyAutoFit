@@ -31,6 +31,26 @@ def make_last_instance():
     return af.last.instance.one.redshift
 
 
+class TestHasAttr:
+    def test_model(self, phase):
+        model = phase.result.model
+        assert hasattr(model, "one")
+        assert not hasattr(model, "gone")
+
+        galaxy = model.one
+        assert hasattr(galaxy, "light")
+        assert not hasattr(galaxy, "nada")
+
+    def test_instance(self, phase):
+        model = phase.result.instance
+        assert hasattr(model, "one")
+        assert not hasattr(model, "gone")
+
+        galaxy = model.one
+        assert hasattr(galaxy, "light")
+        assert not hasattr(galaxy, "nada")
+
+
 class TestLastPromises:
     def test_indexed_hyper(self, collection):
         result = af.last[0].hyper_result.model.populate(collection)
