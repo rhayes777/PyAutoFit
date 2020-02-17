@@ -1,16 +1,18 @@
+import copy
 import inspect
 import math
 import sys
 from abc import ABC, abstractmethod
+from typing import Union
 
 import numpy as np
 from scipy.special import erfcinv
-import copy
 
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
+from autofit.mapper.prior_model.deferred import DeferredArgument
 
 
 class WidthModifier:
@@ -219,7 +221,7 @@ class Prior(ModelObject, ABC):
         )
 
     @classmethod
-    def from_dict(cls, prior_dict: dict) -> "Prior":
+    def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
         """
         Create a prior from a JSON representation
 
@@ -233,6 +235,11 @@ class Prior(ModelObject, ABC):
         -------
         An instance of a child of this class.
         """
+        if prior_dict["type"] == "Constant":
+            return prior_dict["value"]
+        if prior_dict["type"] == "Deferred":
+            return DeferredArgument()
+
         prior_dict = copy.deepcopy(prior_dict)
         if "width_modifier" in prior_dict:
             prior_dict["width_modifier"] = WidthModifier.from_dict(

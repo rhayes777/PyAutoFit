@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit import DeferredArgument
 
 
 @pytest.fixture(
@@ -159,3 +160,20 @@ class TestFromDict:
         assert gaussian_prior.upper_limit == 10
         assert gaussian_prior.mean == 3
         assert gaussian_prior.sigma == 4
+
+    def test_constant(self):
+        result = af.Prior.from_dict(
+            {
+                "type": "Constant",
+                "value": 1.5
+            }
+        )
+        assert result == 1.5
+
+    def test_deferred(self):
+        result = af.Prior.from_dict(
+            {
+                "type": "Deferred"
+            }
+        )
+        assert isinstance(result, DeferredArgument)
