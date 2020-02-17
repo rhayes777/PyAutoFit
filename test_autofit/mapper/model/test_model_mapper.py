@@ -14,13 +14,13 @@ from test_autofit.mock import GeometryProfile
 dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
 
-@pytest.fixture(scope="session", autouse=True)
-def do_something():
-    af.conf.instance = af.conf.Config(
-        "{}/../test_files/configs/model_mapper".format(
-            os.path.dirname(os.path.realpath(__file__))
-        )
-    )
+# @pytest.fixture(scope="session", autouse=True)
+# def do_something():
+#     af.conf.instance = af.conf.Config(
+#         "{}/../test_files/configs/model_mapper".format(
+#             os.path.dirname(os.path.realpath(__file__))
+#         )
+#     )
 
 
 @pytest.fixture(name="initial_model")
