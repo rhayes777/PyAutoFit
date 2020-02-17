@@ -12,13 +12,13 @@ from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-@pytest.fixture(scope="session", autouse=True)
-def do_something():
-    af.conf.instance = af.conf.Config(
-        "{}/../test_files/configs/non_linear".format(
-            os.path.dirname(os.path.realpath(__file__))
-        )
-    )
+# @pytest.fixture(scope="session", autouse=True)
+# def do_something():
+#     af.conf.instance = af.conf.Config(
+#         "{}/../test_files/configs/non_linear".format(
+#             os.path.dirname(os.path.realpath(__file__))
+#         )
+#     )
 
 
 @pytest.fixture(name="multi_nest_summary_path")

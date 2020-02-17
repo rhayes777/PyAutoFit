@@ -3,7 +3,7 @@ import inspect
 import math
 import sys
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Tuple
 
 import numpy as np
 from scipy.special import erfcinv
@@ -17,7 +17,7 @@ from autofit.mapper.prior_model.deferred import DeferredArgument
 
 class WidthModifier:
     def __init__(self, value):
-        self.value = value
+        self.value = float(value)
 
     @classmethod
     def name_of_class(cls) -> str:
@@ -46,11 +46,13 @@ class WidthModifier:
 
 
 class RelativeWidthModifier(WidthModifier):
-    pass
+    def __call__(self, mean):
+        return self.value * mean
 
 
 class AbsoluteWidthModifier(WidthModifier):
-    pass
+    def __call__(self, _):
+        return self.value
 
 
 class TuplePrior:
@@ -155,13 +157,13 @@ class Prior(ModelObject, ABC):
         upper_limit: Float
             The highest value this prior can return
         """
-        if lower_limit >= upper_limit:
+        super().__init__()
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
+        if self.lower_limit >= self.upper_limit:
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
             )
-        super().__init__()
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
         self.width_modifier = width_modifier
 
     def assert_within_limits(self, value):
@@ -278,6 +280,10 @@ class Prior(ModelObject, ABC):
         """
         return cls.__name__.replace("Prior", "")
 
+    @property
+    def limits(self) -> Tuple[float, float]:
+        return self.lower_limit, self.upper_limit
+
 
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
@@ -295,10 +301,8 @@ class GaussianPrior(Prior):
             upper_limit,
             width_modifier=width_modifier
         )
-        self.mean = mean
-        self.sigma = sigma
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
+        self.mean = float(mean)
+        self.sigma = float(sigma)
 
     def value_for(self, unit):
         """

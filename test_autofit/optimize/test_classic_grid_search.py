@@ -11,11 +11,11 @@ from autofit.optimize.optimizer import grid
 from test_autofit.mock import Galaxy
 
 
-@pytest.fixture(scope="session", autouse=True)
-def do_something():
-    conf.instance = conf.Config(
-        "{}/../../workspace/config".format(os.path.dirname(os.path.realpath(__file__)))
-    )
+# @pytest.fixture(scope="session", autouse=True)
+# def do_something():
+#     conf.instance = conf.Config(
+#         "{}/../../workspace/config".format(os.path.dirname(os.path.realpath(__file__)))
+#     )
 
 
 class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):

@@ -278,54 +278,26 @@ class AbstractPriorModel(AbstractModel):
         """
 
         prior_tuples = self.prior_tuples_ordered_by_id
-        prior_class_dict = self.prior_class_dict
         arguments = {}
 
         for i, prior_tuple in enumerate(prior_tuples):
             prior = prior_tuple.prior
-            cls = prior_class_dict[prior]
-            mean = tuples[i][0]
-
-            def get_name():
-                name = prior_tuple.name
-                # Use the name of the collection for configuration when a prior's name
-                # is just a number (i.e. its position in a collection)
-                if name.isdigit():
-                    name = self.path_for_prior(
-                        prior_tuple.prior
-                    )[-2]
-                return name
+            mean, sigma = tuples[i]
 
             if a is not None and r is not None:
                 raise exc.PriorException(
                     "Width of new priors cannot be both relative and absolute."
                 )
             if a is not None:
-                width_type = "a"
-                value = a
+                width = a
             elif r is not None:
-                width_type = "r"
-                value = r
+                width = r * mean
             else:
-                width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(
-                    cls,
-                    get_name()
+                width = prior.width_modifier(
+                    mean
                 )
-            if width_type == "r":
-                width = value * mean
-            elif width_type == "a":
-                width = value
-            else:
-                raise exc.PriorException(
-                    "Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0"
-                )
-            if isinstance(prior, GaussianPrior):
-                limits = (prior.lower_limit, prior.upper_limit)
-            else:
-                limits = conf.instance.prior_limit.get_for_nearest_ancestor(
-                    cls, get_name()
-                )
-            arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
+
+            arguments[prior] = GaussianPrior(mean, max(sigma, width), *prior.limits)
 
         return self.mapper_from_prior_arguments(arguments)
 
