@@ -28,11 +28,12 @@ def make_uniform_prior(
 @pytest.fixture(
     name="log_uniform_dict"
 )
-def make_log_uniform_dict():
+def make_log_uniform_dict(absolute_width_dict):
     return {
         "type": "LogUniform",
         "lower_limit": 0.2,
-        "upper_limit": 0.3
+        "upper_limit": 0.3,
+        "width_modifier": absolute_width_dict
     }
 
 
@@ -71,6 +72,64 @@ def make_gaussian_prior(
     )
 
 
+@pytest.fixture(
+    name="relative_width_dict"
+)
+def make_relative_width_dict():
+    return {
+        "type": "Relative",
+        "value": 1.0
+    }
+
+
+@pytest.fixture(
+    name="absolute_width_dict"
+)
+def make_absolute_width_dict():
+    return {
+        "type": "Absolute",
+        "value": 2.0
+    }
+
+
+@pytest.fixture(
+    name="relative_width_modifier"
+)
+def make_relative_width_modifier(
+        relative_width_dict
+):
+    return af.WidthModifier.from_dict(
+        relative_width_dict
+    )
+
+
+@pytest.fixture(
+    name="absolute_width_modifier"
+)
+def make_absolute_width_modifier(
+        absolute_width_dict
+):
+    return af.WidthModifier.from_dict(
+        absolute_width_dict
+    )
+
+
+class TestWidth:
+    def test_relative(self, relative_width_modifier):
+        assert isinstance(
+            relative_width_modifier,
+            af.RelativeWidthModifier
+        )
+        assert relative_width_modifier.value == 1.0
+
+    def test_absolute(self, absolute_width_modifier):
+        assert isinstance(
+            absolute_width_modifier,
+            af.AbsoluteWidthModifier
+        )
+        assert absolute_width_modifier.value == 2.0
+
+
 class TestDict:
     def test_uniform(self, uniform_prior, uniform_dict):
         assert uniform_prior.dict == uniform_dict
@@ -88,10 +147,11 @@ class TestFromDict:
         assert uniform_prior.lower_limit == 2
         assert uniform_prior.upper_limit == 3
 
-    def test_log_uniform(self, log_uniform_prior):
+    def test_log_uniform(self, log_uniform_prior, absolute_width_modifier):
         assert isinstance(log_uniform_prior, af.LogUniformPrior)
         assert log_uniform_prior.lower_limit == 0.2
         assert log_uniform_prior.upper_limit == 0.3
+        assert log_uniform_prior.width_modifier == absolute_width_modifier
 
     def test_gaussian(self, gaussian_prior):
         assert isinstance(gaussian_prior, af.GaussianPrior)

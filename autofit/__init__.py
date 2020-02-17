@@ -5,6 +5,9 @@ from autofit.mapper.prior_model.prior import (
     UniformPrior,
     GaussianPrior,
     LogUniformPrior,
+    WidthModifier,
+    RelativeWidthModifier,
+    AbsoluteWidthModifier
 )
 from autofit.mapper.prior_model.attribute_pair import cast_collection, AttributeNameValue, PriorNameValue, \
     InstanceNameValue

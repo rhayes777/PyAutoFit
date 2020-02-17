@@ -5,11 +5,50 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy.special import erfcinv
+import copy
 
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
+
+
+class WidthModifier:
+    def __init__(self, value):
+        self.value = value
+
+    @classmethod
+    def name_of_class(cls) -> str:
+        """
+        A string name for the class, with the prior suffix removed.
+        """
+        return cls.__name__.replace("WidthModifier", "")
+
+    @classmethod
+    def from_dict(cls, width_modifier_dict):
+        return width_modifier_type_dict[
+            width_modifier_dict["type"]
+        ](
+            value=width_modifier_dict["value"]
+        )
+
+    @property
+    def dict(self):
+        return {
+            "type": self.name_of_class(),
+            "value": self.value
+        }
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__ and self.value == other.value
+
+
+class RelativeWidthModifier(WidthModifier):
+    pass
+
+
+class AbsoluteWidthModifier(WidthModifier):
+    pass
 
 
 class TuplePrior:
@@ -100,7 +139,8 @@ class Prior(ModelObject, ABC):
     def __init__(
             self,
             lower_limit=0.0,
-            upper_limit=1.0
+            upper_limit=1.0,
+            width_modifier=None
     ):
         """
         An object used to mappers a unit value to an attribute value for a specific
@@ -120,6 +160,7 @@ class Prior(ModelObject, ABC):
         super().__init__()
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
+        self.width_modifier = width_modifier
 
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
@@ -192,8 +233,13 @@ class Prior(ModelObject, ABC):
         -------
         An instance of a child of this class.
         """
+        prior_dict = copy.deepcopy(prior_dict)
+        if "width_modifier" in prior_dict:
+            prior_dict["width_modifier"] = WidthModifier.from_dict(
+                prior_dict["width_modifier"]
+            )
         # noinspection PyProtectedMember
-        return type_dict[
+        return prior_type_dict[
             prior_dict["type"]
         ](
             **{
@@ -209,11 +255,14 @@ class Prior(ModelObject, ABC):
         """
         A dictionary representation of this prior
         """
-        return {
+        prior_dict = {
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit,
             "type": self.name_of_class()
         }
+        if self.width_modifier is not None:
+            prior_dict["width_modifier"] = self.width_modifier.dict
+        return prior_dict
 
     @classmethod
     def name_of_class(cls) -> str:
@@ -226,8 +275,19 @@ class Prior(ModelObject, ABC):
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
 
-    def __init__(self, mean, sigma, lower_limit=-math.inf, upper_limit=math.inf):
-        super().__init__(lower_limit, upper_limit)
+    def __init__(
+            self,
+            mean,
+            sigma,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            width_modifier=None
+    ):
+        super().__init__(
+            lower_limit,
+            upper_limit,
+            width_modifier=width_modifier
+        )
         self.mean = mean
         self.sigma = sigma
         self.lower_limit = lower_limit
@@ -341,14 +401,24 @@ class LogUniformPrior(UniformPrior):
         )
 
 
-type_dict = {
-    obj.name_of_class(): obj
-    for _, obj in inspect.getmembers(
-        sys.modules[__name__]
-    )
-    if (
-            inspect.isclass(obj)
-            and issubclass(obj, Prior)
-            and obj != Prior
-    )
-}
+def make_type_dict(cls):
+    return {
+        obj.name_of_class(): obj
+        for _, obj in inspect.getmembers(
+            sys.modules[__name__]
+        )
+        if (
+                inspect.isclass(obj)
+                and issubclass(obj, cls)
+                and obj != Prior
+        )
+    }
+
+
+prior_type_dict = make_type_dict(
+    Prior
+)
+
+width_modifier_type_dict = make_type_dict(
+    WidthModifier
+)
