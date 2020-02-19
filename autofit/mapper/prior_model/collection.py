@@ -169,8 +169,5 @@ class CollectionPriorModel(AbstractPriorModel):
                 for prior_model in self.direct_prior_model_tuples
                 for prior, cls in prior_model[1].prior_class_dict.items()
             },
-            **{
-                prior: ModelInstance
-                for _, prior in self.direct_prior_tuples
-            }
+            **{prior: ModelInstance for _, prior in self.direct_prior_tuples},
         }

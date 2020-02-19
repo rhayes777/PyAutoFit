@@ -51,7 +51,9 @@ class PhaseOutput:
         """
         An object describing the output data from the nonlinear search performed in this phase
         """
-        return self.optimizer.output_from_model(model=self.model, paths=self.optimizer.paths)
+        return self.optimizer.output_from_model(
+            model=self.model, paths=self.optimizer.paths
+        )
 
     @property
     def model_results(self) -> str:
@@ -250,7 +252,7 @@ class Aggregator(AbstractAggregator):
             for filename in filenames:
                 if filename.endswith(".zip"):
                     with zipfile.ZipFile(f"{root}/{filename}", "r") as f:
-                        f.extractall(root)
+                        f.extractall(f"{root}/{filename[:-4]}")
 
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:

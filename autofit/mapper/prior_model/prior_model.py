@@ -59,7 +59,7 @@ class PriorModel(AbstractPriorModel):
 
         try:
             defaults = dict(
-                zip(arg_spec.args[-len(arg_spec.defaults):], arg_spec.defaults)
+                zip(arg_spec.args[-len(arg_spec.defaults) :], arg_spec.defaults)
             )
         except TypeError:
             defaults = {}
@@ -126,9 +126,9 @@ class PriorModel(AbstractPriorModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, PriorModel)
-                and self.cls == other.cls
-                and self.prior_tuples == other.prior_tuples
+            isinstance(other, PriorModel)
+            and self.cls == other.cls
+            and self.prior_tuples == other.prior_tuples
         )
 
     def make_prior(self, attribute_name):
@@ -162,17 +162,14 @@ class PriorModel(AbstractPriorModel):
         cls = self.cls
         if not inspect.isclass(cls):
             cls = inspect._findclass(cls)
-        return Prior.for_class_and_attribute_name(
-            cls,
-            attribute_name
-        )
+        return Prior.for_class_and_attribute_name(cls, attribute_name)
 
     def __setattr__(self, key, value):
         if key not in (
-                "component_number",
-                "phase_property_position",
-                "mapping_name",
-                "id",
+            "component_number",
+            "phase_property_position",
+            "mapping_name",
+            "id",
         ):
             try:
                 if "_" in key:
@@ -275,9 +272,9 @@ class PriorModel(AbstractPriorModel):
 
         for key, value in self.__dict__.items():
             if (
-                    not hasattr(result, key)
-                    and not isinstance(value, Prior)
-                    and not isinstance(value, Promise)
+                not hasattr(result, key)
+                and not isinstance(value, Prior)
+                and not isinstance(value, Promise)
             ):
                 if isinstance(value, PriorModel):
                     value = value.instance_for_arguments(arguments)

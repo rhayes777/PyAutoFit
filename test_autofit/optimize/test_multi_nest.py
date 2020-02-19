@@ -370,16 +370,16 @@ class TestMultiNestOutputUnconverged:
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
         params = multinest_output.model_parameters_at_sigma_limit(sigma_limit=3.0)
-        assert params[0][0:2] == pytest.approx((1.1, 4.1), 1e-2)
-        assert params[1][0:2] == pytest.approx((0.9, 3.9), 1e-2)
-        assert params[2][0:2] == pytest.approx((1.0, 4.0), 1e-2)
-        assert params[3][0:2] == pytest.approx((1.0, 4.0), 1e-2)
+        assert params[0][0:2] == pytest.approx((0.9, 1.1), 1e-2)
+        assert params[1][0:2] == pytest.approx((1.9, 2.1), 1e-2)
+        assert params[2][0:2] == pytest.approx((2.9, 3.1), 1e-2)
+        assert params[3][0:2] == pytest.approx((3.9, 5.0), 1e-2)
 
         params = multinest_output.model_parameters_at_sigma_limit(sigma_limit=1.0)
-        assert params[0][0:2] == pytest.approx((1.1, 4.1), 1e-2)
-        assert params[1][0:2] == pytest.approx((0.9, 3.9), 1e-2)
-        assert params[2][0:2] == pytest.approx((1.0, 4.0), 1e-2)
-        assert params[3][0:2] == pytest.approx((1.0, 4.0), 1e-2)
+        assert params[0][0:2] == pytest.approx((0.9, 1.1), 1e-2)
+        assert params[1][0:2] == pytest.approx((1.9, 2.1), 1e-2)
+        assert params[2][0:2] == pytest.approx((2.9, 3.1), 1e-2)
+        assert params[3][0:2] == pytest.approx((3.9, 5.0), 1e-2)
 
 
 @pytest.fixture(name="multi_nest")

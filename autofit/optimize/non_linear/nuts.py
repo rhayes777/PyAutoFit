@@ -32,7 +32,7 @@ class NUTS(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-                self, paths, analysis, instance_from_physical_vector, output_results
+            self, paths, analysis, instance_from_physical_vector, output_results
         ):
             super().__init__(paths, analysis, output_results)
             self.instance_from_physical_vector = instance_from_physical_vector

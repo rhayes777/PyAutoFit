@@ -15,26 +15,17 @@ def make_prior_1():
 
 
 @pytest.fixture(name="model")
-def make_model(
-        prior_0,
-        prior_1
-):
+def make_model(prior_0, prior_1):
     model = af.Mapper()
 
-    model.collection = af.Collection([
-        prior_0,
-        prior_1
-    ])
+    model.collection = af.Collection([prior_0, prior_1])
 
     return model
 
 
 @pytest.fixture(name="phase")
 def make_phase(model):
-    return af.AbstractPhase(
-        phase_name="phase name",
-        model=model
-    )
+    return af.AbstractPhase(phase_name="phase name", model=model)
 
 
 @pytest.fixture(name="results_collection")
@@ -43,10 +34,7 @@ def make_results_collection(model):
     instance = af.Instance()
     instance.collection = [1, 2]
 
-    result = mock.Result(
-        model=model,
-        instance=instance
-    )
+    result = mock.Result(model=model, instance=instance)
 
     collection.add("phase name", result)
 
@@ -54,73 +42,35 @@ def make_results_collection(model):
 
 
 class TestIteration:
-    def test_index_type(
-            self,
-            phase
-    ):
+    def test_index_type(self, phase):
         promise_0 = phase.result.model.collection[0]
         promise_1 = phase.result.model.collection[1]
 
-        assert isinstance(
-            promise_0,
-            af.Promise
-        )
-        assert isinstance(
-            promise_1,
-            af.Promise
-        )
+        assert isinstance(promise_0, af.Promise)
+        assert isinstance(promise_1, af.Promise)
 
-    def test_index_populate_model(
-            self,
-            phase,
-            prior_0,
-            prior_1,
-            results_collection
-    ):
+    def test_index_populate_model(self, phase, prior_0, prior_1, results_collection):
         promise_0 = phase.result.model.collection[0]
         promise_1 = phase.result.model.collection[1]
 
-        prior = promise_0.populate(
-            results_collection
-        )
+        prior = promise_0.populate(results_collection)
         assert prior == prior_0
 
-        prior = promise_1.populate(
-            results_collection
-        )
+        prior = promise_1.populate(results_collection)
         assert prior == prior_1
 
-    def test_index_populate_instance(
-            self,
-            phase,
-            prior_0,
-            prior_1,
-            results_collection
-    ):
+    def test_index_populate_instance(self, phase, prior_0, prior_1, results_collection):
         promise_0 = phase.result.instance.collection[0]
         promise_1 = phase.result.instance.collection[1]
 
-        value = promise_0.populate(
-            results_collection
-        )
+        value = promise_0.populate(results_collection)
         assert value == 1
 
-        value = promise_1.populate(
-            results_collection
-        )
+        value = promise_1.populate(results_collection)
         assert value == 2
 
-    def test_iteration(
-            self,
-            phase
-    ):
+    def test_iteration(self, phase):
         promises = list(phase.result.model.collection)
 
         assert len(promises) == 2
-        assert all([
-            isinstance(
-                promise,
-                af.Promise
-            )
-            for promise in promises
-        ])
+        assert all([isinstance(promise, af.Promise) for promise in promises])

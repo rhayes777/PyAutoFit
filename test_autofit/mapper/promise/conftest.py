@@ -7,10 +7,7 @@ from test_autofit import mock
 @pytest.fixture(name="phase")
 def make_phase():
     phase = af.AbstractPhase(phase_name="phase name")
-    phase.model.one = af.PriorModel(
-        mock.Galaxy,
-        light=mock.EllipticalLP
-    )
+    phase.model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
     return phase
 
 

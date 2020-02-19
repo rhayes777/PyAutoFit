@@ -294,9 +294,7 @@ class AbstractPriorModel(AbstractModel):
                 # Use the name of the collection for configuration when a prior's name
                 # is just a number (i.e. its position in a collection)
                 if name.isdigit():
-                    name = self.path_for_prior(
-                        prior_tuple.prior
-                    )[-2]
+                    name = self.path_for_prior(prior_tuple.prior)[-2]
                 return name
 
             if a is not None and r is not None:
@@ -311,8 +309,7 @@ class AbstractPriorModel(AbstractModel):
                 value = r
             else:
                 width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(
-                    cls,
-                    get_name()
+                    cls, get_name()
                 )
             if width_type == "r":
                 width = value * mean
@@ -470,8 +467,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, AbstractPriorModel)
-                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+            isinstance(other, AbstractPriorModel)
+            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -648,7 +645,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                    mapper_value, AnnotationPriorModel
+                mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
