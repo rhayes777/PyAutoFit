@@ -121,6 +121,41 @@ class TestAssertion:
                 }
             )
 
+    def test_numerical_assertion_left(self, prior_1):
+        assertion = 0.5 < prior_1
+
+        assertion(
+            {
+                prior_1: 0.6
+            }
+        )
+        with pytest.raises(af.exc.FitException):
+            assertion(
+                {
+                    prior_1: 0.4
+                }
+            )
+
+    def test_compound_assertion(self, prior_1):
+        assertion = (0.2 < prior_1) < 0.5
+        assertion(
+            {
+                prior_1: 0.3
+            }
+        )
+        with pytest.raises(af.exc.FitException):
+            assertion(
+                {
+                    prior_1: 0.1
+                }
+            )
+        with pytest.raises(af.exc.FitException):
+            assertion(
+                {
+                    prior_1: 0.6
+                }
+            )
+
 
 def test_assertion_in_model(
         prior_1,

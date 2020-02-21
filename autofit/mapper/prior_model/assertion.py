@@ -22,6 +22,18 @@ class Assertion:
         self.greater = greater
         self.name = None
 
+    def __gt__(self, other):
+        return CompoundAssertion(
+            self,
+            self.lower > other
+        )
+
+    def __lt__(self, other):
+        return CompoundAssertion(
+            self,
+            self.greater < other
+        )
+
     def __call__(self, arg_dict: dict):
         """
         Assert that the value in the dictionary associated with the lower
@@ -63,3 +75,13 @@ class Assertion:
                     "" if self.name is None else f" '{self.name}'"
                 )
             )
+
+
+class CompoundAssertion:
+    def __init__(self, assertion_1, assertion_2):
+        self.assertion_1 = assertion_1
+        self.assertion_2 = assertion_2
+
+    def __call__(self, arg_dict: dict):
+        self.assertion_1(arg_dict)
+        self.assertion_2(arg_dict)
