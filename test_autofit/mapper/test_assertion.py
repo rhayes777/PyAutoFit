@@ -59,6 +59,26 @@ class TestAssertion:
                 prior_2: 0.5
             })
 
+    def test_greater_equal_assertion(
+            self,
+            prior_1,
+            prior_2
+    ):
+        assertion = prior_1 >= prior_2
+        assertion({
+            prior_1: 0.6,
+            prior_2: 0.5
+        })
+        assertion({
+            prior_1: 0.5,
+            prior_2: 0.5
+        })
+        with pytest.raises(af.exc.FitException):
+            assertion({
+                prior_1: 0.4,
+                prior_2: 0.5
+            })
+
     def test_lower_assertion(
             self,
             lower_assertion,
