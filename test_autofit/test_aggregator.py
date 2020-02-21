@@ -4,7 +4,8 @@ import autofit as af
 
 
 class MockPhaseOutput:
-    def __init__(self, pipeline, phase, dataset):
+    def __init__(self, directory, pipeline, phase, dataset):
+        self.directory = directory
         self.pipeline = pipeline
         self.phase = phase
         self.dataset = dataset
@@ -14,9 +15,24 @@ class MockPhaseOutput:
 def make_aggregator():
     aggregator = af.Aggregator("")
     aggregator.phases = [
-        MockPhaseOutput("pipeline1", "phase1", "dataset1"),
-        MockPhaseOutput("pipeline1", "phase2", "dataset1"),
-        MockPhaseOutput("pipeline2", "phase2", "dataset2"),
+        MockPhaseOutput(
+            "directory/number/one",
+            "pipeline1",
+            "phase1",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/number/two",
+            "pipeline1",
+            "phase2",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/letter/a",
+            "pipeline2",
+            "phase2",
+            "dataset2"
+        ),
     ]
     return aggregator
 
@@ -28,35 +44,65 @@ def test_attribute(aggregator):
 
 
 def test_filter(aggregator):
-    result = aggregator.filter(pipeline="pipeline1")
+    result = aggregator.filter(
+        pipeline="pipeline1"
+    )
     assert len(result) == 2
     assert result[0].pipeline == "pipeline1"
 
-    result = aggregator.filter(pipeline="pipeline1", phase="phase1")
+    result = aggregator.filter(
+        pipeline="pipeline1",
+        phase="phase1"
+    )
 
     assert len(result) == 1
     assert result[0].pipeline == "pipeline1"
 
-    result = aggregator.filter(pipeline="pipeline1").filter(phase="phase1")
+    result = aggregator.filter(
+        pipeline="pipeline1"
+    ).filter(
+        phase="phase1"
+    )
 
     assert len(result) == 1
     assert result[0].pipeline == "pipeline1"
 
 
 def test_filter_contains(aggregator):
-    result = aggregator.filter_contains(pipeline="1")
+    result = aggregator.filter_contains(
+        pipeline="1"
+    )
     assert len(result) == 2
     assert result[0].pipeline == "pipeline1"
 
-    result = aggregator.filter_contains(pipeline="1", phase="1")
+    result = aggregator.filter_contains(
+        pipeline="1",
+        phase="1"
+    )
 
     assert len(result) == 1
     assert result[0].pipeline == "pipeline1"
 
-    result = aggregator.filter_contains(pipeline="1").filter(phase="phase1")
+    result = aggregator.filter_contains(
+        pipeline="1"
+    ).filter(
+        phase="phase1"
+    )
 
     assert len(result) == 1
     assert result[0].pipeline == "pipeline1"
+
+
+def test_filter_contains_directory(aggregator):
+    result = aggregator.filter_contains(
+        directory="number"
+    )
+    assert len(result) == 2
+
+    result = aggregator.filter_contains(
+        directory="letter"
+    )
+    assert len(result) == 1
 
 
 def test_group_by(aggregator):
@@ -66,7 +112,9 @@ def test_group_by(aggregator):
     assert len(result[0]) == 2
     assert len(result[1]) == 1
 
-    result = result.filter(phase="phase2")
+    result = result.filter(
+        phase="phase2"
+    )
 
     assert len(result) == 2
     assert len(result[0]) == 1
