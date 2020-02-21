@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from test_autofit import mock
-from test_autofit.mapper.test_model_mapper import MockClassMM, MockProfile
+from test_autofit.mapper.model.test_model_mapper import MockClassMM, MockProfile
 
 
 @pytest.fixture(name="galaxy_1")

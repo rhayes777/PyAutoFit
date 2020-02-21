@@ -14,13 +14,9 @@ from test_autofit.mock import GeometryProfile
 dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
 
-@pytest.fixture(scope="session", autouse=True)
-def do_something():
-    af.conf.instance = af.conf.Config(
-        "{}/../test_files/configs/model_mapper".format(
-            os.path.dirname(os.path.realpath(__file__))
-        )
-    )
+
+
+
 
 
 @pytest.fixture(name="initial_model")
@@ -506,14 +502,6 @@ class TestRealClasses:
 
 
 class TestConfigFunctions:
-    def test_loading_config(self):
-        assert ["u", 0, 1.0] == af.conf.instance.prior_default.get(
-            "geometry_profiles", "GeometryProfile", "centre_0"
-        )
-        assert ["u", 0, 1.0] == af.conf.instance.prior_default.get(
-            "geometry_profiles", "GeometryProfile", "centre_1"
-        )
-
     def test_model_from_unit_vector(self):
         mapper = af.ModelMapper(geometry_profile=GeometryProfile)
 
@@ -885,7 +873,7 @@ class TestListPriorModel:
             [(1, 5), (2, 5), (3, 5), (4, 5)]
         )
 
-        # assert isinstance(gaussian_mapper.list, list)
+
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1
         assert gaussian_mapper.list[0].two.mean == 2
@@ -906,7 +894,7 @@ class TestListPriorModel:
             [(1, 0), (2, 0), (3, 0), (4, 0)]
         )
 
-        # assert isinstance(gaussian_mapper.list, list)
+
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1
         assert gaussian_mapper.list[0].two.mean == 2
@@ -1016,14 +1004,6 @@ def make_mapper_with_list():
 
 
 class TestGaussianWidthConfig:
-    def test_(self):
-        assert ["a", 1] == af.conf.instance.prior_width.get(
-            "test_model_mapper", "MockClassMM", "one"
-        )
-        assert ["a", 2] == af.conf.instance.prior_width.get(
-            "test_model_mapper", "MockClassMM", "two"
-        )
-
     def test_relative_widths(self, mapper):
         mapper.relative_width = test_autofit.mock.RelativeWidth
         new_mapper = mapper.mapper_from_gaussian_tuples([(1, 0), (1, 0), (1, 0)])
