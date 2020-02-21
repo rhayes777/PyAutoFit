@@ -10,7 +10,9 @@ from scipy.special import erfcinv
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior_model.assertion import Assertion
+from autofit.mapper.prior_model.assertion import (
+    GreaterThanLessThanAssertion, GreaterThanLessThanEqualAssertion
+)
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 
@@ -219,7 +221,7 @@ class Prior(ModelObject, ABC):
         except AttributeError:
             return False
 
-    def __gt__(self, other_prior: "Prior") -> Assertion:
+    def __gt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
         """
         Add an assertion that values associated with this prior are greater.
 
@@ -233,12 +235,12 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return Assertion(
+        return GreaterThanLessThanAssertion(
             greater=self,
             lower=other_prior
         )
 
-    def __lt__(self, other_prior: "Prior") -> Assertion:
+    def __lt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
         """
         Add an assertion that values associated with this prior are lower.
 
@@ -252,7 +254,45 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return Assertion(
+        return GreaterThanLessThanAssertion(
+            lower=self,
+            greater=other_prior
+        )
+
+    def __ge__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+        """
+        Add an assertion that values associated with this prior are greater or equal.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            lower physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
+        return GreaterThanLessThanEqualAssertion(
+            greater=self,
+            lower=other_prior
+        )
+
+    def __le__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+        """
+        Add an assertion that values associated with this prior are lower or equal.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            greater physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
+        return GreaterThanLessThanEqualAssertion(
             lower=self,
             greater=other_prior
         )

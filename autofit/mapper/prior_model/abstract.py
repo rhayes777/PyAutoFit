@@ -11,7 +11,7 @@ from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
-from autofit.mapper.prior_model.assertion import Assertion
+from autofit.mapper.prior_model.assertion import AbstractAssertion
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.prior import GaussianPrior
@@ -40,7 +40,7 @@ class AbstractPriorModel(AbstractModel):
 
     def add_assertion(
             self,
-            assertion: Assertion,
+            assertion: AbstractAssertion,
             name=None
     ):
         """

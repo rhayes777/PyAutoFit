@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mapper.prior_model import assertion as a
 
 
 @pytest.fixture(
@@ -38,6 +39,26 @@ def make_greater_assertion(
 
 
 class TestAssertion:
+    def test_lower_equal_assertion(
+            self,
+            prior_1,
+            prior_2
+    ):
+        assertion = prior_1 <= prior_2
+        assertion({
+            prior_1: 0.4,
+            prior_2: 0.5
+        })
+        assertion({
+            prior_1: 0.5,
+            prior_2: 0.5
+        })
+        with pytest.raises(af.exc.FitException):
+            assertion({
+                prior_1: 0.6,
+                prior_2: 0.5
+            })
+
     def test_lower_assertion(
             self,
             lower_assertion,
@@ -46,11 +67,11 @@ class TestAssertion:
     ):
         assert isinstance(
             lower_assertion,
-            af.Assertion
+            a.GreaterThanLessThanAssertion
         )
 
-        assert lower_assertion.lower is prior_1
-        assert lower_assertion.greater is prior_2
+        assert lower_assertion._lower is prior_1
+        assert lower_assertion._greater is prior_2
 
     def test_greater_assertion(
             self,
@@ -60,11 +81,11 @@ class TestAssertion:
     ):
         assert isinstance(
             greater_assertion,
-            af.Assertion
+            a.GreaterThanLessThanAssertion
         )
 
-        assert greater_assertion.lower is prior_2
-        assert greater_assertion.greater is prior_1
+        assert greater_assertion._lower is prior_2
+        assert greater_assertion._greater is prior_1
 
     def test_assert_on_arguments_lower(
             self,
