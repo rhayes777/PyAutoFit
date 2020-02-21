@@ -11,6 +11,7 @@ from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
+from autofit.mapper.prior_model.assertion import Assertion
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.prior import GaussianPrior
@@ -32,6 +33,15 @@ class AbstractPriorModel(AbstractModel):
 
     @DynamicAttrs
     """
+
+    def __init__(self):
+        super().__init__()
+        self._assertions = list()
+
+    def add_assertion(self, assertion: Assertion):
+        self._assertions.append(
+            assertion
+        )
 
     @property
     def name(self):
@@ -83,6 +93,11 @@ class AbstractPriorModel(AbstractModel):
                 unit_vector,
             )
         )
+
+        for assertion in self._assertions:
+            assertion(
+                arguments
+            )
 
         return self.instance_for_arguments(arguments)
 
