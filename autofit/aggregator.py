@@ -20,7 +20,6 @@ from typing import List
 
 import autofit.optimize.non_linear.non_linear
 from autofit.optimize.non_linear.output import AbstractOutput
-from autofit.optimize.non_linear.multi_nest import MultiNestOutput
 
 
 class PhaseOutput:
@@ -69,7 +68,7 @@ class PhaseOutput:
         The dataset that this phase ran on
         """
         with open(
-            os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
+                os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -176,7 +175,22 @@ class AbstractAggregator:
         return [
             phase
             for phase in self.phases
-            if all([getattr(phase, key) == value for key, value in kwargs.items()])
+            if all([
+                getattr(phase, key) == value
+                for key, value
+                in kwargs.items()
+            ])
+        ]
+
+    def phases_with_contains(self, **kwargs) -> [PhaseOutput]:
+        return [
+            phase
+            for phase in self.phases
+            if all([
+                value in getattr(phase, key)
+                for key, value
+                in kwargs.items()
+            ])
         ]
 
     def filter(self, **kwargs) -> "AbstractAggregator":
@@ -195,6 +209,23 @@ class AbstractAggregator:
         An aggregator comprising all phases that match the filters.
         """
         return AbstractAggregator(phases=self.phases_with(**kwargs))
+
+    def filter_contains(self, **kwargs) -> "AbstractAggregator":
+        """
+        Filter by key value pairs found in the metadata.
+
+        Another aggregator object is returned.
+
+        Parameters
+        ----------
+        kwargs
+            Key value arguments which are expected to match those found the in metadata file.
+
+        Returns
+        -------
+        An aggregator comprising all phases that match the filters.
+        """
+        return AbstractAggregator(phases=self.phases_with_contains(**kwargs))
 
     def __getattr__(self, item):
         """

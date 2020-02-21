@@ -43,6 +43,22 @@ def test_filter(aggregator):
     assert result[0].pipeline == "pipeline1"
 
 
+def test_filter_contains(aggregator):
+    result = aggregator.filter_contains(pipeline="1")
+    assert len(result) == 2
+    assert result[0].pipeline == "pipeline1"
+
+    result = aggregator.filter_contains(pipeline="1", phase="1")
+
+    assert len(result) == 1
+    assert result[0].pipeline == "pipeline1"
+
+    result = aggregator.filter_contains(pipeline="1").filter(phase="phase1")
+
+    assert len(result) == 1
+    assert result[0].pipeline == "pipeline1"
+
+
 def test_group_by(aggregator):
     result = aggregator.group_by("pipeline")
 
