@@ -38,7 +38,24 @@ class AbstractPriorModel(AbstractModel):
         super().__init__()
         self._assertions = list()
 
-    def add_assertion(self, assertion: Assertion):
+    def add_assertion(
+            self,
+            assertion: Assertion,
+            name=None
+    ):
+        """
+        Assert that some relationship holds between physical values associated with
+        priors at the point an instance is created. If this fails a FitException is
+        raised causing the model to be re-sampled.
+
+        Parameters
+        ----------
+        assertion
+            An assertion that one prior must be greater than another.
+        name
+            A name describing the assertion that is logged when it is violated.
+        """
+        assertion.name = name
         self._assertions.append(
             assertion
         )

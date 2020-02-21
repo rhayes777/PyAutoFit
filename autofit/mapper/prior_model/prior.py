@@ -219,16 +219,42 @@ class Prior(ModelObject, ABC):
         except AttributeError:
             return False
 
-    def __gt__(self, other):
+    def __gt__(self, other_prior: "Prior") -> Assertion:
+        """
+        Add an assertion that values associated with this prior are greater.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            lower physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
         return Assertion(
             greater=self,
-            lower=other
+            lower=other_prior
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other_prior: "Prior") -> Assertion:
+        """
+        Add an assertion that values associated with this prior are lower.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            greater physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
         return Assertion(
             lower=self,
-            greater=other
+            greater=other_prior
         )
 
     def __ne__(self, other):
