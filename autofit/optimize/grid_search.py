@@ -51,8 +51,8 @@ class GridSearchResult:
         best_result = None
         for result in self.results:
             if (
-                best_result is None
-                or result.figure_of_merit > best_result.figure_of_merit
+                    best_result is None
+                    or result.figure_of_merit > best_result.figure_of_merit
             ):
                 best_result = result
         return best_result
@@ -95,7 +95,7 @@ class GridSearchResult:
 class GridSearch:
     # TODO: this should be using paths
     def __init__(
-        self, paths, number_of_steps=4, optimizer_class=DownhillSimplex, parallel=False
+            self, paths, number_of_steps=4, optimizer_class=DownhillSimplex, parallel=False
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -152,16 +152,16 @@ class GridSearch:
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
             if (
-                float("-inf") == grid_prior.lower_limit
-                or float("inf") == grid_prior.upper_limit
+                    float("-inf") == grid_prior.lower_limit
+                    or float("inf") == grid_prior.upper_limit
             ):
                 raise exc.PriorException(
                     "Priors passed to the grid search must have definite limits"
                 )
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
             upper_limit = (
-                grid_prior.lower_limit
-                + (value + self.hyper_step_size) * grid_prior.width
+                    grid_prior.lower_limit
+                    + (value + self.hyper_step_size) * grid_prior.width
             )
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
@@ -273,7 +273,7 @@ class GridSearch:
             The result of the grid search
         """
 
-        grid_priors = list(sorted(set(grid_priors)))
+        grid_priors = list(sorted(set(grid_priors), key=lambda prior: prior.id))
         results = []
         lists = self.make_lists(grid_priors)
 
@@ -314,13 +314,13 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-        self, analysis, model, grid_priors, values
+            self, analysis, model, grid_priors, values
     ):
         arguments = self.make_arguments(values, grid_priors)
         model_mapper = model.mapper_from_partial_prior_arguments(arguments)
 
         labels = []
-        for prior in sorted(arguments.values()):
+        for prior in sorted(arguments.values(), key=lambda pr: pr.id):
             labels.append(
                 "{}_{:.2f}_{:.2f}".format(
                     model_mapper.name_for_prior(prior),

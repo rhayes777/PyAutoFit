@@ -1,4 +1,3 @@
-import copy
 import inspect
 import math
 import sys
@@ -11,6 +10,7 @@ from scipy.special import erfcinv
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior_model.assertion import Assertion
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 
@@ -218,6 +218,18 @@ class Prior(ModelObject, ABC):
             return self.id == other.id
         except AttributeError:
             return False
+
+    def __gt__(self, other):
+        return Assertion(
+            greater=self,
+            lower=other
+        )
+
+    def __lt__(self, other):
+        return Assertion(
+            lower=self,
+            greater=other
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)

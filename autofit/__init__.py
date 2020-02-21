@@ -9,6 +9,7 @@ from autofit.mapper.prior_model.prior import (
     RelativeWidthModifier,
     AbsoluteWidthModifier
 )
+from autofit.mapper.prior_model.assertion import Assertion
 from autofit.mapper.prior_model.attribute_pair import cast_collection, AttributeNameValue, PriorNameValue, \
     InstanceNameValue
 
