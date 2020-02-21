@@ -1,5 +1,6 @@
-import autofit as af
 import pytest
+
+import autofit as af
 
 
 @pytest.fixture(
@@ -62,3 +63,43 @@ def test_greater_assertion(
 
     assert greater_assertion.lower is prior_2
     assert greater_assertion.greater is prior_1
+
+
+def test_assert_on_arguments_lower(
+        lower_assertion,
+        prior_1,
+        prior_2
+):
+    lower_assertion(
+        {
+            prior_1: 0.3,
+            prior_2: 0.5
+        }
+    )
+    with pytest.raises(af.exc.FitException):
+        lower_assertion(
+            {
+                prior_1: 0.6,
+                prior_2: 0.5
+            }
+        )
+
+
+def test_assert_on_arguments_greater(
+        greater_assertion,
+        prior_1,
+        prior_2
+):
+    greater_assertion(
+        {
+            prior_1: 0.6,
+            prior_2: 0.5
+        }
+    )
+    with pytest.raises(af.exc.FitException):
+        greater_assertion(
+            {
+                prior_1: 0.3,
+                prior_2: 0.5
+            }
+        )
