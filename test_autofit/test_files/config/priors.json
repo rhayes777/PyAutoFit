@@ -1,5 +1,5 @@
 {
-    "*.geometry_profiles": {
+    "geometry_profiles": {
         "GeometryProfile": {
             "centre_0": {
                 "type": "Uniform",
@@ -63,7 +63,7 @@
             }
         }
     },
-    "*.mock": {
+    "mock": {
         "Redshift": {
             "redshift": {
                 "type": "Uniform",
@@ -558,7 +558,7 @@
             }
         }
     },
-    "*.test_model_mapper": {
+    "test_model_mapper": {
         "MockClassMM": {
             "one": {
                 "type": "Uniform",
@@ -686,5 +686,5 @@
             }
         }
     },
-    "*.test_prior_model": {}
+    "test_prior_model": {}
 }
