@@ -9,13 +9,9 @@ from test_autofit.mock import MockClassNLOx4
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-# @pytest.fixture(scope="session", autouse=True)
-# def do_something():
-#     af.conf.instance = af.conf.Config(
-#         "{}/../test_files/configs/non_linear".format(
-#             os.path.dirname(os.path.realpath(__file__))
-#         )
-#     )
+
+
+
 
 
 @pytest.fixture(name="emcee_output")
@@ -59,17 +55,17 @@ class TestEmceeOutput:
         params = emcee_output.model_parameters_at_sigma_limit(sigma_limit=3.0)
 
         assert params[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
-        #   assert params[1][0:2] == pytest.approx((1.88, 2.12), 1e-2)
-        #   assert params[2][0:2] == pytest.approx((2.88, 3.12), 1e-2)
-        #   assert params[3][0:2] == pytest.approx((3.88, 4.12), 1e-2)
+
+
+
 
         params = emcee_output.model_parameters_at_sigma_limit(sigma_limit=1.0)
 
         assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
-    #    assert params[1][0:2] == pytest.approx((1.93, 2.07), 1e-2)
-    #    assert params[2][0:2] == pytest.approx((2.93, 3.07), 1e-2)
-    #    assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
+
+
+
 
     def test__samples__total_steps_samples__model_parameters_weight_and_likelihood_from_sample_index(
         self, emcee_output
@@ -88,9 +84,9 @@ class TestEmceeOutput:
         assert weight == 1.0
         assert likelihood == pytest.approx(-17257775239, 1.0e-4)
 
-        # model = emcee_output.sample_model_parameters_from_sample_index(sample_index=5)
-        # weight = emcee_output.sample_weight_from_sample_index(sample_index=5)
-        # likelihood = emcee_output.sample_likelihood_from_sample_index(sample_index=5)
+
+
+
         #
         # assert emcee_output.total_samples == 10
         # assert model == [1.0, 2.0, 3.0, 4.0]

@@ -331,11 +331,11 @@ class MassProfile:
 
     def surface_density_from_grid(self, grid):
         pass
-        # raise NotImplementedError("surface_density_from_grid should be overridden")
+
 
     def potential_from_grid(self, grid):
         pass
-        # raise NotImplementedError("potential_from_grid should be overridden")
+
 
     def deflections_from_grid(self, grid):
         raise NotImplementedError("deflections_from_grid should be overridden")

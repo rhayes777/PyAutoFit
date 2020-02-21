@@ -14,13 +14,9 @@ from test_autofit.mock import GeometryProfile
 dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
 
-# @pytest.fixture(scope="session", autouse=True)
-# def do_something():
-#     af.conf.instance = af.conf.Config(
-#         "{}/../test_files/configs/model_mapper".format(
-#             os.path.dirname(os.path.realpath(__file__))
-#         )
-#     )
+
+
+
 
 
 @pytest.fixture(name="initial_model")
@@ -877,7 +873,7 @@ class TestListPriorModel:
             [(1, 5), (2, 5), (3, 5), (4, 5)]
         )
 
-        # assert isinstance(gaussian_mapper.list, list)
+
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1
         assert gaussian_mapper.list[0].two.mean == 2
@@ -898,7 +894,7 @@ class TestListPriorModel:
             [(1, 0), (2, 0), (3, 0), (4, 0)]
         )
 
-        # assert isinstance(gaussian_mapper.list, list)
+
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1
         assert gaussian_mapper.list[0].two.mean == 2
