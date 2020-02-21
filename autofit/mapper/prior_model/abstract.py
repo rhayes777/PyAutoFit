@@ -292,9 +292,7 @@ class AbstractPriorModel(AbstractModel):
                 # Use the name of the collection for configuration when a prior's name
                 # is just a number (i.e. its position in a collection)
                 if name.isdigit():
-                    name = self.path_for_prior(
-                        prior_tuple.prior
-                    )[-2]
+                    name = self.path_for_prior(prior_tuple.prior)[-2]
                 return name
 
             width_modifier = WidthModifier.for_class_and_attribute_name(

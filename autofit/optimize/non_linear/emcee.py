@@ -52,7 +52,7 @@ class Emcee(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-                self, paths, analysis, instance_from_physical_vector, output_results
+            self, paths, analysis, instance_from_physical_vector, output_results
         ):
             super().__init__(paths, analysis, output_results)
             self.instance_from_physical_vector = instance_from_physical_vector
@@ -136,11 +136,11 @@ class Emcee(NonLinearOptimizer):
         if self.nsteps - emcee_sampler.iteration > 0 and not previuos_run_converged:
 
             for sample in emcee_sampler.sample(
-                    initial_state=emcee_state,
-                    iterations=self.nsteps - emcee_sampler.iteration,
-                    progress=True,
-                    skip_initial_state_check=True,
-                    store=True,
+                initial_state=emcee_state,
+                iterations=self.nsteps - emcee_sampler.iteration,
+                progress=True,
+                skip_initial_state_check=True,
+                store=True,
             ):
 
                 if emcee_sampler.iteration % self.auto_correlation_check_size:
@@ -174,14 +174,15 @@ class Emcee(NonLinearOptimizer):
     def output_from_model(self, model, paths):
         return EmceeOutput(model=model, paths=paths)
 
+
 class EmceeOutput(MCMCOutput):
     def __init__(
-            self,
-            model,
-            paths,
-            auto_correlation_check_size,
-            auto_correlation_required_length,
-            auto_correlation_change_threshold,
+        self,
+        model,
+        paths,
+        auto_correlation_check_size,
+        auto_correlation_required_length,
+        auto_correlation_change_threshold,
     ):
 
         super(EmceeOutput, self).__init__(model=model, paths=paths)
@@ -231,11 +232,11 @@ class EmceeOutput(MCMCOutput):
     @property
     def relative_auto_correlation_times(self):
         return (
-                np.abs(
-                    self.previous_auto_correlation_times_of_parameters
-                    - self.auto_correlation_times_of_parameters
-                )
-                / self.auto_correlation_times_of_parameters
+            np.abs(
+                self.previous_auto_correlation_times_of_parameters
+                - self.auto_correlation_times_of_parameters
+            )
+            / self.auto_correlation_times_of_parameters
         )
 
     @property

@@ -502,13 +502,8 @@ class TestCollectionPriorModel:
         assert simple_model.simple == simple_instance
 
     def test_names_of_priors(self):
-        collection = af.CollectionPriorModel([
-            af.UniformPrior(),
-            af.UniformPrior(),
-        ])
-        assert collection.name_for_prior(
-            collection[0]
-        ) == "0"
+        collection = af.CollectionPriorModel([af.UniformPrior(), af.UniformPrior()])
+        assert collection.name_for_prior(collection[0]) == "0"
 
 
 @pytest.fixture(name="simple_model")

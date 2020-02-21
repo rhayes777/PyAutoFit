@@ -79,7 +79,7 @@ class MultiNest(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
         def __init__(
-                self, paths, analysis, instance_from_physical_vector, output_results
+            self, paths, analysis, instance_from_physical_vector, output_results
         ):
             super().__init__(paths, analysis, output_results)
             self.instance_from_physical_vector = instance_from_physical_vector
@@ -199,7 +199,6 @@ class MultiNest(NonLinearOptimizer):
 
 
 class MultiNestOutput(NestedSamplingOutput):
-
     @property
     def pdf(self):
         import getdist
@@ -301,6 +300,9 @@ class MultiNestOutput(NestedSamplingOutput):
 
         return phys_live_points
 
+    def phys_live_points_of_param(self, param_index):
+        return [point[param_index] for point in self.phys_live_points]
+
     def read_list_of_results_from_summary_file(self, number_entries, offset):
 
         summary = open(self.paths.file_summary)
@@ -323,24 +325,16 @@ class MultiNestOutput(NestedSamplingOutput):
 
             return list(map(lambda p: p.getLimits(limit), densities_1d))
         else:
+
             parameters_min = [
-                min(
-                    [
-                        point[param_index]
-                        for param_index in range(self.model.prior_count)
-                    ]
-                )
-                for point in self.phys_live_points
+                min(self.phys_live_points_of_param(param_index=param_index))
+                for param_index in range(self.model.prior_count)
             ]
             parameters_max = [
-                max(
-                    [
-                        point[param_index]
-                        for param_index in range(self.model.prior_count)
-                    ]
-                )
-                for point in self.phys_live_points
+                max(self.phys_live_points_of_param(param_index=param_index))
+                for param_index in range(self.model.prior_count)
             ]
+
             return [
                 (parameters_min[index], parameters_max[index])
                 for index in range(len(parameters_min))
