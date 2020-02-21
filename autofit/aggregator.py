@@ -183,6 +183,15 @@ class AbstractAggregator:
         ]
 
     def phases_with_contains(self, **kwargs) -> [PhaseOutput]:
+        """
+        Filters phases by checking if an attribute contains some substring. If no arguments are passed all phases
+        are returned. Arguments must be key value pairs, with phase, dataset or pipeline as the key.
+
+        Parameters
+        ----------
+        kwargs
+            Filters, e.g. pipeline1 in pipeline
+        """
         return [
             phase
             for phase in self.phases
@@ -212,7 +221,8 @@ class AbstractAggregator:
 
     def filter_contains(self, **kwargs) -> "AbstractAggregator":
         """
-        Filter by key value pairs found in the metadata.
+        Filter by key value pairs found in the metadata. Checks whether the value contains
+        the given filter value.
 
         Another aggregator object is returned.
 
