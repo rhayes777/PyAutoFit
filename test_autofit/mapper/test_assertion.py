@@ -106,6 +106,21 @@ class TestAssertion:
                 }
             )
 
+    def test_numerical_assertion(self, prior_1):
+        assertion = prior_1 < 0.5
+
+        assertion(
+            {
+                prior_1: 0.4
+            }
+        )
+        with pytest.raises(af.exc.FitException):
+            assertion(
+                {
+                    prior_1: 0.6
+                }
+            )
+
 
 def test_assertion_in_model(
         prior_1,

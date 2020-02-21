@@ -37,11 +37,27 @@ class Assertion:
         FitException
             If the assertion is not met
         """
-        if arg_dict[
-            self.lower
-        ] > arg_dict[
-            self.greater
-        ]:
+        if isinstance(
+                self.lower,
+                float
+        ):
+            lower = self.lower
+        else:
+            lower = arg_dict[
+                self.lower
+            ]
+
+        if isinstance(
+                self.greater,
+                float
+        ):
+            greater = self.greater
+        else:
+            greater = arg_dict[
+                self.greater
+            ]
+
+        if lower > greater:
             raise exc.FitException(
                 "Assertion failed" + (
                     "" if self.name is None else f" '{self.name}'"
