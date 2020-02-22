@@ -1,6 +1,8 @@
+import inspect
 import math
+import sys
 from abc import ABC, abstractmethod
-from functools import wraps
+from typing import Union, Tuple
 
 import numpy as np
 from scipy.special import erfcinv
@@ -8,67 +10,60 @@ from scipy.special import erfcinv
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior_model.assertion import (
+    GreaterThanLessThanAssertion, GreaterThanLessThanEqualAssertion
+)
+from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 
 
-def cast_collection(named_tuple):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return list(map(lambda tup: named_tuple(*tup), func(*args, **kwargs)))
+class WidthModifier:
+    def __init__(self, value):
+        self.value = float(value)
 
-        return wrapper
+    @classmethod
+    def name_of_class(cls) -> str:
+        """
+        A string name for the class, with the prior suffix removed.
+        """
+        return cls.__name__.replace("WidthModifier", "")
 
-    return decorator
-
-
-class AttributeNameValue:
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-    def __iter__(self):
-        return iter(self.tuple)
+    @classmethod
+    def from_dict(cls, width_modifier_dict):
+        return width_modifier_type_dict[
+            width_modifier_dict["type"]
+        ](
+            value=width_modifier_dict["value"]
+        )
 
     @property
-    def tuple(self):
-        return self.name, self.value
+    def dict(self):
+        return {
+            "type": self.name_of_class(),
+            "value": self.value
+        }
 
-    def __getitem__(self, item):
-        return self.tuple[item]
+    @staticmethod
+    def for_class_and_attribute_name(cls, attribute_name):
+        prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls,
+            [attribute_name, "width_modifier"]
+        )
+        return WidthModifier.from_dict(
+            prior_dict
+        )
 
     def __eq__(self, other):
-        if isinstance(other, AttributeNameValue):
-            return self.tuple == other.tuple
-        if isinstance(other, tuple):
-            return self.tuple == other
-        return False
-
-    def __hash__(self):
-        return hash(self.tuple)
-
-    def __str__(self):
-        return "({}, {})".format(self.name, self.value)
-
-    def __repr__(self):
-        return "<{} {}>".format(self.__class__.__name__, str(self))
+        return self.__class__ is other.__class__ and self.value == other.value
 
 
-class PriorNameValue(AttributeNameValue):
-    @property
-    def prior(self):
-        return self.value
+class RelativeWidthModifier(WidthModifier):
+    def __call__(self, mean):
+        return self.value * mean
 
 
-class instanceNameValue(AttributeNameValue):
-    @property
-    def instance(self):
-        return self.value
-
-
-class DeferredNameValue(AttributeNameValue):
-    @property
-    def deferred(self):
+class AbsoluteWidthModifier(WidthModifier):
+    def __call__(self, _):
         return self.value
 
 
@@ -93,7 +88,7 @@ class TuplePrior:
         return self.prior_tuples
 
     @property
-    @cast_collection(instanceNameValue)
+    @cast_collection(InstanceNameValue)
     def instance_tuples(self):
         """
         Returns
@@ -157,17 +152,29 @@ class TuplePrior:
 
 
 class Prior(ModelObject, ABC):
-    """An object used to mappers a unit value to an attribute value for a specific
-    class attribute """
+    def __init__(
+            self,
+            lower_limit=0.0,
+            upper_limit=1.0
+    ):
+        """
+        An object used to mappers a unit value to an attribute value for a specific
+        class attribute.
 
-    def __init__(self, lower_limit, upper_limit):
-        if lower_limit >= upper_limit:
+        Parameters
+        ----------
+        lower_limit: Float
+            The lowest value this prior can return
+        upper_limit: Float
+            The highest value this prior can return
+        """
+        super().__init__()
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
+        if self.lower_limit >= self.upper_limit:
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
             )
-        super().__init__()
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
 
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
@@ -180,27 +187,12 @@ class Prior(ModelObject, ABC):
 
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
-        config_arr = conf.instance.prior_default.get_for_nearest_ancestor(
-            cls, attribute_name
+        prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls,
+            [attribute_name]
         )
-        if config_arr[0] == "u":
-            return UniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "n":
-            return None
-        elif config_arr[0] == "l":
-            return LogUniformPrior(config_arr[1], config_arr[2])
-        elif config_arr[0] == "g":
-            limits = conf.instance.prior_limit.get_for_nearest_ancestor(
-                cls, attribute_name
-            )
-            return GaussianPrior(config_arr[1], config_arr[2], *limits)
-        elif config_arr[0] == "c":
-            return config_arr[1]
-        elif config_arr[0] == "d":
-            return DeferredArgument()
-        raise exc.PriorException(
-            "Default prior for {} has no type indicator (u - Uniform, g - Gaussian, "
-            "c - instance, d - Deferred)".format(attribute_name)
+        return Prior.from_dict(
+            prior_dict
         )
 
     @property
@@ -229,6 +221,82 @@ class Prior(ModelObject, ABC):
         except AttributeError:
             return False
 
+    def __gt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
+        """
+        Add an assertion that values associated with this prior are greater.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            lower physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
+        return GreaterThanLessThanAssertion(
+            greater=self,
+            lower=other_prior
+        )
+
+    def __lt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
+        """
+        Add an assertion that values associated with this prior are lower.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            greater physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
+        return GreaterThanLessThanAssertion(
+            lower=self,
+            greater=other_prior
+        )
+
+    def __ge__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+        """
+        Add an assertion that values associated with this prior are greater or equal.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            lower physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
+        return GreaterThanLessThanEqualAssertion(
+            greater=self,
+            lower=other_prior
+        )
+
+    def __le__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+        """
+        Add an assertion that values associated with this prior are lower or equal.
+
+        Parameters
+        ----------
+        other_prior
+            Another prior which is associated with a field that should always have
+            greater physical values.
+
+        Returns
+        -------
+        An assertion object
+        """
+        return GreaterThanLessThanEqualAssertion(
+            lower=self,
+            greater=other_prior
+        )
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -240,16 +308,78 @@ class Prior(ModelObject, ABC):
             self.__class__.__name__, self.id, self.lower_limit, self.upper_limit
         )
 
+    @classmethod
+    def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
+        """
+        Create a prior from a JSON representation
+
+        Parameters
+        ----------
+        prior_dict
+            A dictionary representation of a prior including a type (e.g. Uniform)
+            and all constructor arguments.
+
+        Returns
+        -------
+        An instance of a child of this class.
+        """
+        if prior_dict["type"] == "Constant":
+            return prior_dict["value"]
+        if prior_dict["type"] == "Deferred":
+            return DeferredArgument()
+
+        # noinspection PyProtectedMember
+        return prior_type_dict[
+            prior_dict["type"]
+        ](
+            **{
+                key: value
+                for key, value
+                in prior_dict.items()
+                if key not in ("type", "width_modifier")
+            }
+        )
+
+    @property
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this prior
+        """
+        prior_dict = {
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit,
+            "type": self.name_of_class()
+        }
+        return prior_dict
+
+    @classmethod
+    def name_of_class(cls) -> str:
+        """
+        A string name for the class, with the prior suffix removed.
+        """
+        return cls.__name__.replace("Prior", "")
+
+    @property
+    def limits(self) -> Tuple[float, float]:
+        return self.lower_limit, self.upper_limit
+
 
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
 
-    def __init__(self, mean, sigma, lower_limit=-math.inf, upper_limit=math.inf):
-        super(GaussianPrior, self).__init__(lower_limit, upper_limit)
-        self.mean = mean
-        self.sigma = sigma
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
+    def __init__(
+            self,
+            mean,
+            sigma,
+            lower_limit=-math.inf,
+            upper_limit=math.inf
+    ):
+        super().__init__(
+            lower_limit,
+            upper_limit
+        )
+        self.mean = float(mean)
+        self.sigma = float(sigma)
 
     def value_for(self, unit):
         """
@@ -268,7 +398,7 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
+                "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
         )
 
     def __repr__(self):
@@ -279,21 +409,21 @@ class GaussianPrior(Prior):
             )
         )
 
+    @property
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this prior
+        """
+        prior_dict = super().dict
+        return {
+            **prior_dict,
+            "mean": self.mean,
+            "sigma": self.sigma
+        }
+
 
 class UniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
-
-    def __init__(self, lower_limit=0.0, upper_limit=1.0):
-        """
-
-        Parameters
-        ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
-        """
-        super(UniformPrior, self).__init__(lower_limit, upper_limit)
 
     def value_for(self, unit):
         """
@@ -322,27 +452,15 @@ class UniformPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "UniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "UniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
 
 
 class LogUniformPrior(UniformPrior):
     """A prior with a uniform distribution between a lower and upper limit"""
-
-    def __init__(self, lower_limit=0.0, upper_limit=1.0):
-        """
-
-        Parameters
-        ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
-        """
-        super(LogUniformPrior, self).__init__(lower_limit, upper_limit)
 
     def value_for(self, unit):
         """
@@ -357,15 +475,38 @@ class LogUniformPrior(UniformPrior):
             A value for the attribute between the upper and lower limits
         """
         return 10.0 ** (
-            np.log10(self.lower_limit)
-            + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
+                np.log10(self.lower_limit)
+                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "LogUniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "LogUniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
+
+
+def make_type_dict(cls):
+    return {
+        obj.name_of_class(): obj
+        for _, obj in inspect.getmembers(
+            sys.modules[__name__]
+        )
+        if (
+                inspect.isclass(obj)
+                and issubclass(obj, cls)
+                and obj != Prior
+        )
+    }
+
+
+prior_type_dict = make_type_dict(
+    Prior
+)
+
+width_modifier_type_dict = make_type_dict(
+    WidthModifier
+)

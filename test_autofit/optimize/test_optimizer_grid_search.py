@@ -8,7 +8,7 @@ from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior_model import prior as p
 from autofit.optimize import grid_search as gs
 from autofit.tools import phase
-from test_autofit.mapper.test_model_mapper import GeometryProfile
+from test_autofit.mapper.model.test_model_mapper import GeometryProfile
 
 
 @pytest.fixture(name="mapper")

@@ -4,7 +4,7 @@ import pytest
 
 import autofit as af
 from autofit import Paths
-from test_autofit.mapper.test_model_mapper import GeometryProfile
+from test_autofit.mapper.model.test_model_mapper import GeometryProfile
 from test_autofit.mock import GalaxyModel
 
 

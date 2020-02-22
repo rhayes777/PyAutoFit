@@ -7,20 +7,19 @@ import numpy as np
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
-from autofit import conf
+from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
+from autofit.mapper.prior_model.assertion import AbstractAssertion
+from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.prior import GaussianPrior
 from autofit.mapper.prior_model.prior import (
-    cast_collection,
-    PriorNameValue,
     TuplePrior,
     Prior,
-    DeferredNameValue,
+    WidthModifier
 )
-from autofit.mapper.prior_model.prior import instanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -34,6 +33,32 @@ class AbstractPriorModel(AbstractModel):
 
     @DynamicAttrs
     """
+
+    def __init__(self):
+        super().__init__()
+        self._assertions = list()
+
+    def add_assertion(
+            self,
+            assertion: AbstractAssertion,
+            name=None
+    ):
+        """
+        Assert that some relationship holds between physical values associated with
+        priors at the point an instance is created. If this fails a FitException is
+        raised causing the model to be re-sampled.
+
+        Parameters
+        ----------
+        assertion
+            An assertion that one prior must be greater than another.
+        name
+            A name describing the assertion that is logged when it is violated.
+        """
+        assertion.name = name
+        self._assertions.append(
+            assertion
+        )
 
     @property
     def name(self):
@@ -85,6 +110,11 @@ class AbstractPriorModel(AbstractModel):
                 unit_vector,
             )
         )
+
+        for assertion in self._assertions:
+            assertion(
+                arguments
+            )
 
         return self.instance_for_arguments(arguments)
 
@@ -287,7 +317,7 @@ class AbstractPriorModel(AbstractModel):
         for i, prior_tuple in enumerate(prior_tuples):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
-            mean = tuples[i][0]
+            mean, sigma = tuples[i]
 
             def get_name():
                 name = prior_tuple.name
@@ -297,35 +327,25 @@ class AbstractPriorModel(AbstractModel):
                     name = self.path_for_prior(prior_tuple.prior)[-2]
                 return name
 
+            width_modifier = WidthModifier.for_class_and_attribute_name(
+                cls,
+                get_name()
+            )
+
             if a is not None and r is not None:
                 raise exc.PriorException(
                     "Width of new priors cannot be both relative and absolute."
                 )
             if a is not None:
-                width_type = "a"
-                value = a
+                width = a
             elif r is not None:
-                width_type = "r"
-                value = r
+                width = r * mean
             else:
-                width_type, value = conf.instance.prior_width.get_for_nearest_ancestor(
-                    cls, get_name()
+                width = width_modifier(
+                    mean
                 )
-            if width_type == "r":
-                width = value * mean
-            elif width_type == "a":
-                width = value
-            else:
-                raise exc.PriorException(
-                    "Prior widths must be relative 'r' or absolute 'a' e.g. a, 1.0"
-                )
-            if isinstance(prior, GaussianPrior):
-                limits = (prior.lower_limit, prior.upper_limit)
-            else:
-                limits = conf.instance.prior_limit.get_for_nearest_ancestor(
-                    cls, get_name()
-                )
-            arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *limits)
+
+            arguments[prior] = GaussianPrior(mean, max(tuples[i][1], width), *prior.limits)
 
         return self.mapper_from_prior_arguments(arguments)
 
@@ -415,7 +435,7 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(Prior)
 
     @property
-    @cast_collection(instanceNameValue)
+    @cast_collection(InstanceNameValue)
     def direct_instance_tuples(self):
         return self.direct_tuples_with_type(float)
 
@@ -467,12 +487,12 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
-    @cast_collection(instanceNameValue)
+    @cast_collection(InstanceNameValue)
     def instance_tuples(self):
         """
         Returns
@@ -645,7 +665,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue

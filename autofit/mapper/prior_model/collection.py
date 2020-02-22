@@ -36,7 +36,7 @@ class CollectionPriorModel(AbstractPriorModel):
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id")
+            if key not in ("component_number", "item_number", "id") and not key.startswith("_")
         }
 
     @property
@@ -107,7 +107,10 @@ class CollectionPriorModel(AbstractPriorModel):
         setattr(self, str(key), obj)
 
     def __setattr__(self, key, value):
-        super().__setattr__(key, AbstractPriorModel.from_object(value))
+        if key.startswith("_"):
+            super().__setattr__(key, value)
+        else:
+            super().__setattr__(key, AbstractPriorModel.from_object(value))
 
     def remove(self, item):
         for key, value in self.__dict__.copy().items():

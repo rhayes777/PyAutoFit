@@ -161,6 +161,7 @@ class PriorModel(AbstractPriorModel):
         """
         cls = self.cls
         if not inspect.isclass(cls):
+            # noinspection PyProtectedMember
             cls = inspect._findclass(cls)
         return Prior.for_class_and_attribute_name(cls, attribute_name)
 
