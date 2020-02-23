@@ -9,11 +9,6 @@ from test_autofit.mock import MockClassNLOx4, MockAnalysis
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-
-
-
-
-
 @pytest.fixture(name="downhill_simplex")
 def make_downhill_simplex():
     def fmin(fitness_function, x0):

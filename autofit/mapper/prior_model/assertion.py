@@ -32,48 +32,26 @@ class ComparisonAssertion(AbstractAssertion, ABC):
         self._greater = greater
 
     def __gt__(self, other):
-        return CompoundAssertion(
-            self,
-            self._lower > other
-        )
+        return CompoundAssertion(self, self._lower > other)
 
     def __lt__(self, other):
-        return CompoundAssertion(
-            self,
-            self._greater < other
-        )
+        return CompoundAssertion(self, self._greater < other)
 
     def __ge__(self, other):
-        return CompoundAssertion(
-            self,
-            self._lower >= other
-        )
+        return CompoundAssertion(self, self._lower >= other)
 
     def __le__(self, other):
-        return CompoundAssertion(
-            self,
-            self._greater <= other
-        )
+        return CompoundAssertion(self, self._greater <= other)
 
     def lower(self, arg_dict: dict):
-        if isinstance(
-                self._lower,
-                float
-        ):
+        if isinstance(self._lower, float):
             return self._lower
-        return arg_dict[
-            self._lower
-        ]
+        return arg_dict[self._lower]
 
     def greater(self, arg_dict: dict):
-        if isinstance(
-                self._greater,
-                float
-        ):
+        if isinstance(self._greater, float):
             return self._greater
-        return arg_dict[
-            self._greater
-        ]
+        return arg_dict[self._greater]
 
 
 class GreaterThanLessThanAssertion(ComparisonAssertion):
@@ -94,9 +72,7 @@ class GreaterThanLessThanAssertion(ComparisonAssertion):
         """
         if self.lower(arg_dict) > self.greater(arg_dict):
             raise exc.FitException(
-                "Assertion failed" + (
-                    "" if self.name is None else f" '{self.name}'"
-                )
+                "Assertion failed" + ("" if self.name is None else f" '{self.name}'")
             )
 
 
@@ -118,9 +94,7 @@ class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
         """
         if not self.lower(arg_dict) <= self.greater(arg_dict):
             raise exc.FitException(
-                "Assertion failed" + (
-                    "" if self.name is None else f" '{self.name}'"
-                )
+                "Assertion failed" + ("" if self.name is None else f" '{self.name}'")
             )
 
 

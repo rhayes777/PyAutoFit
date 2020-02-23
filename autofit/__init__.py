@@ -7,10 +7,14 @@ from autofit.mapper.prior_model.prior import (
     LogUniformPrior,
     WidthModifier,
     RelativeWidthModifier,
-    AbsoluteWidthModifier
+    AbsoluteWidthModifier,
 )
-from autofit.mapper.prior_model.attribute_pair import cast_collection, AttributeNameValue, PriorNameValue, \
-    InstanceNameValue
+from autofit.mapper.prior_model.attribute_pair import (
+    cast_collection,
+    AttributeNameValue,
+    PriorNameValue,
+    InstanceNameValue,
+)
 
 dir(conf)
 from . import exc
@@ -60,4 +64,4 @@ from .tools.promise import Promise
 from .tools.promise import PromiseResult
 from .tools.promise import last
 
-__version__ = '0.49.1'
+__version__ = "0.49.1"

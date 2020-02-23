@@ -11,9 +11,6 @@ from autofit.optimize.optimizer import grid
 from test_autofit.mock import Galaxy
 
 
-
-
-
 class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):
     def __init__(self):
         self.instances = []

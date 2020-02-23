@@ -29,7 +29,7 @@ class AbstractModel(ModelObject):
         return populate(self, collection)
 
     def object_for_path(
-            self, path: Iterable[Union[str, int, type]]
+        self, path: Iterable[Union[str, int, type]]
     ) -> Union[object, List]:
         """
         Get the object at a given path.
@@ -142,7 +142,7 @@ def populate(obj, collection: ResultsCollection):
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):
     """
     Recursively search the object for instances of a given class
@@ -220,9 +220,8 @@ class ModelInstance(AbstractModel):
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in ("id", "component_number", "item_number") and not (
-                    isinstance(key, str) and key.startswith("_")
-            )
+            if key not in ("id", "component_number", "item_number")
+            and not (isinstance(key, str) and key.startswith("_"))
         }
 
     def values(self):

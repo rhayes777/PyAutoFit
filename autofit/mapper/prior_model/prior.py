@@ -11,9 +11,14 @@ from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.assertion import (
-    GreaterThanLessThanAssertion, GreaterThanLessThanEqualAssertion
+    GreaterThanLessThanAssertion,
+    GreaterThanLessThanEqualAssertion,
 )
-from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
+from autofit.mapper.prior_model.attribute_pair import (
+    cast_collection,
+    PriorNameValue,
+    InstanceNameValue,
+)
 from autofit.mapper.prior_model.deferred import DeferredArgument
 
 
@@ -30,28 +35,20 @@ class WidthModifier:
 
     @classmethod
     def from_dict(cls, width_modifier_dict):
-        return width_modifier_type_dict[
-            width_modifier_dict["type"]
-        ](
+        return width_modifier_type_dict[width_modifier_dict["type"]](
             value=width_modifier_dict["value"]
         )
 
     @property
     def dict(self):
-        return {
-            "type": self.name_of_class(),
-            "value": self.value
-        }
+        return {"type": self.name_of_class(), "value": self.value}
 
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
         prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
-            cls,
-            [attribute_name, "width_modifier"]
+            cls, [attribute_name, "width_modifier"]
         )
-        return WidthModifier.from_dict(
-            prior_dict
-        )
+        return WidthModifier.from_dict(prior_dict)
 
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.value == other.value
@@ -152,11 +149,7 @@ class TuplePrior:
 
 
 class Prior(ModelObject, ABC):
-    def __init__(
-            self,
-            lower_limit=0.0,
-            upper_limit=1.0
-    ):
+    def __init__(self, lower_limit=0.0, upper_limit=1.0):
         """
         An object used to mappers a unit value to an attribute value for a specific
         class attribute.
@@ -188,12 +181,9 @@ class Prior(ModelObject, ABC):
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
         prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
-            cls,
-            [attribute_name]
+            cls, [attribute_name]
         )
-        return Prior.from_dict(
-            prior_dict
-        )
+        return Prior.from_dict(prior_dict)
 
     @property
     def width(self):
@@ -235,10 +225,7 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanAssertion(
-            greater=self,
-            lower=other_prior
-        )
+        return GreaterThanLessThanAssertion(greater=self, lower=other_prior)
 
     def __lt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
         """
@@ -254,10 +241,7 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanAssertion(
-            lower=self,
-            greater=other_prior
-        )
+        return GreaterThanLessThanAssertion(lower=self, greater=other_prior)
 
     def __ge__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
         """
@@ -273,10 +257,7 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanEqualAssertion(
-            greater=self,
-            lower=other_prior
-        )
+        return GreaterThanLessThanEqualAssertion(greater=self, lower=other_prior)
 
     def __le__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
         """
@@ -292,10 +273,7 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanEqualAssertion(
-            lower=self,
-            greater=other_prior
-        )
+        return GreaterThanLessThanEqualAssertion(lower=self, greater=other_prior)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -329,13 +307,10 @@ class Prior(ModelObject, ABC):
             return DeferredArgument()
 
         # noinspection PyProtectedMember
-        return prior_type_dict[
-            prior_dict["type"]
-        ](
+        return prior_type_dict[prior_dict["type"]](
             **{
                 key: value
-                for key, value
-                in prior_dict.items()
+                for key, value in prior_dict.items()
                 if key not in ("type", "width_modifier")
             }
         )
@@ -348,7 +323,7 @@ class Prior(ModelObject, ABC):
         prior_dict = {
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit,
-            "type": self.name_of_class()
+            "type": self.name_of_class(),
         }
         return prior_dict
 
@@ -367,17 +342,8 @@ class Prior(ModelObject, ABC):
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
 
-    def __init__(
-            self,
-            mean,
-            sigma,
-            lower_limit=-math.inf,
-            upper_limit=math.inf
-    ):
-        super().__init__(
-            lower_limit,
-            upper_limit
-        )
+    def __init__(self, mean, sigma, lower_limit=-math.inf, upper_limit=math.inf):
+        super().__init__(lower_limit, upper_limit)
         self.mean = float(mean)
         self.sigma = float(sigma)
 
@@ -398,7 +364,7 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-                "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
+            "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
         )
 
     def __repr__(self):
@@ -415,11 +381,7 @@ class GaussianPrior(Prior):
         A dictionary representation of this prior
         """
         prior_dict = super().dict
-        return {
-            **prior_dict,
-            "mean": self.mean,
-            "sigma": self.sigma
-        }
+        return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
 
 
 class UniformPrior(Prior):
@@ -452,10 +414,10 @@ class UniformPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-                "UniformPrior, lower_limit = "
-                + str(self.lower_limit)
-                + ", upper_limit = "
-                + str(self.upper_limit)
+            "UniformPrior, lower_limit = "
+            + str(self.lower_limit)
+            + ", upper_limit = "
+            + str(self.upper_limit)
         )
 
 
@@ -475,38 +437,28 @@ class LogUniformPrior(UniformPrior):
             A value for the attribute between the upper and lower limits
         """
         return 10.0 ** (
-                np.log10(self.lower_limit)
-                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
+            np.log10(self.lower_limit)
+            + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-                "LogUniformPrior, lower_limit = "
-                + str(self.lower_limit)
-                + ", upper_limit = "
-                + str(self.upper_limit)
+            "LogUniformPrior, lower_limit = "
+            + str(self.lower_limit)
+            + ", upper_limit = "
+            + str(self.upper_limit)
         )
 
 
 def make_type_dict(cls):
     return {
         obj.name_of_class(): obj
-        for _, obj in inspect.getmembers(
-            sys.modules[__name__]
-        )
-        if (
-                inspect.isclass(obj)
-                and issubclass(obj, cls)
-                and obj != Prior
-        )
+        for _, obj in inspect.getmembers(sys.modules[__name__])
+        if (inspect.isclass(obj) and issubclass(obj, cls) and obj != Prior)
     }
 
 
-prior_type_dict = make_type_dict(
-    Prior
-)
+prior_type_dict = make_type_dict(Prior)
 
-width_modifier_type_dict = make_type_dict(
-    WidthModifier
-)
+width_modifier_type_dict = make_type_dict(WidthModifier)
