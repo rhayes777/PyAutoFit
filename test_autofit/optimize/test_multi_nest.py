@@ -12,11 +12,6 @@ from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-
-
-
-
-
 @pytest.fixture(name="multi_nest_summary_path")
 def test_multi_nest_summary():
     multi_nest_summary_path = "{}/../test_files/non_linear/multinest/summary".format(

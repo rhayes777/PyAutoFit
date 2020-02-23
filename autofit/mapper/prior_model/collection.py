@@ -36,7 +36,8 @@ class CollectionPriorModel(AbstractPriorModel):
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id") and not key.startswith("_")
+            if key not in ("component_number", "item_number", "id")
+            and not key.startswith("_")
         }
 
     @property

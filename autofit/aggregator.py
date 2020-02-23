@@ -68,7 +68,7 @@ class PhaseOutput:
         The dataset that this phase ran on
         """
         with open(
-                os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
+            os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -175,11 +175,7 @@ class AbstractAggregator:
         return [
             phase
             for phase in self.phases
-            if all([
-                getattr(phase, key) == value
-                for key, value
-                in kwargs.items()
-            ])
+            if all([getattr(phase, key) == value for key, value in kwargs.items()])
         ]
 
     def phases_with_contains(self, **kwargs) -> [PhaseOutput]:
@@ -195,11 +191,7 @@ class AbstractAggregator:
         return [
             phase
             for phase in self.phases
-            if all([
-                value in getattr(phase, key)
-                for key, value
-                in kwargs.items()
-            ])
+            if all([value in getattr(phase, key) for key, value in kwargs.items()])
         ]
 
     def filter(self, **kwargs) -> "AbstractAggregator":
