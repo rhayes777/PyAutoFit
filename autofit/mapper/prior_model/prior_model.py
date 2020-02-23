@@ -11,6 +11,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.deferred import DeferredInstance
 from autofit.mapper.prior_model.prior import TuplePrior, Prior
 from autofit.tools.promise import Promise
+from autofit.mapper.prior_model.abstract import check_assertions
 
 logger = logging.getLogger(__name__)
 
@@ -217,6 +218,7 @@ class PriorModel(AbstractPriorModel):
         return len(self.direct_deferred_tuples) > 0
 
     # noinspection PyUnresolvedReferences
+    @check_assertions
     def instance_for_arguments(self, arguments: {ModelObject: object}):
         """
         Create an instance of the associated class for a set of arguments
