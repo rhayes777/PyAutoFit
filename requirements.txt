@@ -1,4 +1,4 @@
-autoconf==0.2.2
+autoconf==0.3.0
 decorator>=4.2.1
 typing-inspect>=0.4.0
 emcee==3.0.2

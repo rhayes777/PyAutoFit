@@ -18,11 +18,6 @@ from test_autofit.mock import (
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-
-
-
-
-
 @pytest.fixture(name="mapper")
 def make_mapper():
     return af.ModelMapper()
