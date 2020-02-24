@@ -24,7 +24,7 @@ from autofit.mapper.prior_model.prior import (
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
-
+ 
 
 def check_assertions(func):
     @wraps(func)
