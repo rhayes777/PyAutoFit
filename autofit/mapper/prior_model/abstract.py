@@ -19,7 +19,7 @@ from autofit.mapper.prior_model.prior import TuplePrior, Prior, WidthModifier
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
-
+ 
 
 class AbstractPriorModel(AbstractModel):
     """
