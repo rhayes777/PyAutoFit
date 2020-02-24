@@ -38,7 +38,7 @@ def check_assertions(func):
 
     return wrapper
 
-
+ 
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
