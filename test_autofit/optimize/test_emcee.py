@@ -9,11 +9,6 @@ from test_autofit.mock import MockClassNLOx4
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-
-
-
-
-
 @pytest.fixture(name="emcee_output")
 def test_emcee_output():
     emcee_output_path = "{}/../test_files/non_linear/emcee/".format(
@@ -56,16 +51,9 @@ class TestEmceeOutput:
 
         assert params[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
 
-
-
-
         params = emcee_output.model_parameters_at_sigma_limit(sigma_limit=1.0)
 
         assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
-
-
-
-
 
     def test__samples__total_steps_samples__model_parameters_weight_and_likelihood_from_sample_index(
         self, emcee_output
@@ -83,9 +71,6 @@ class TestEmceeOutput:
         )
         assert weight == 1.0
         assert likelihood == pytest.approx(-17257775239, 1.0e-4)
-
-
-
 
         #
         # assert emcee_output.total_samples == 10

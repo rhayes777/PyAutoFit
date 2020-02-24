@@ -212,7 +212,9 @@ class GalaxyModel(af.AbstractPriorModel):
         return []
 
     @property
-    @autofit.mapper.prior_model.attribute_pair.cast_collection(autofit.mapper.prior_model.attribute_pair.PriorNameValue)
+    @autofit.mapper.prior_model.attribute_pair.cast_collection(
+        autofit.mapper.prior_model.attribute_pair.PriorNameValue
+    )
     def unique_prior_tuples(self):
         return (
             [item for item in self.__dict__.items() if isinstance(item[1], af.Prior)]
@@ -332,10 +334,8 @@ class MassProfile:
     def surface_density_from_grid(self, grid):
         pass
 
-
     def potential_from_grid(self, grid):
         pass
-
 
     def deflections_from_grid(self, grid):
         raise NotImplementedError("deflections_from_grid should be overridden")
