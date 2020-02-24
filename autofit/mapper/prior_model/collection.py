@@ -1,6 +1,7 @@
 from autofit import exc, Prior
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import check_assertions
 
 
 class CollectionPriorModel(AbstractPriorModel):
@@ -118,6 +119,7 @@ class CollectionPriorModel(AbstractPriorModel):
             if value == item:
                 del self.__dict__[key]
 
+    @check_assertions
     def instance_for_arguments(self, arguments):
         """
         Parameters

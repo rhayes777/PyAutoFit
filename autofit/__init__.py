@@ -64,4 +64,8 @@ from .tools.promise import Promise
 from .tools.promise import PromiseResult
 from .tools.promise import last
 
+<<<<<<< HEAD
 __version__ = '0.50.1'
+=======
+__version__ = '0.50.2'
+>>>>>>> release/0.50.2
