@@ -1,6 +1,7 @@
 import copy
 import inspect
 from typing import Tuple, Optional
+from functools import wraps
 
 import numpy as np
 
@@ -20,6 +21,17 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
 
+def check_assertions(func):
+    @wraps(func)
+    def wrapper(s, arguments):
+        # noinspection PyProtectedMember
+        for assertion in s._assertions:
+            assertion(
+                arguments
+            )
+        return func(s, arguments)
+
+    return wrapper
 
 class AbstractPriorModel(AbstractModel):
     """
