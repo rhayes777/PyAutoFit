@@ -35,23 +35,23 @@ class TestEmceeOutput:
 
     def test__most_probable_parameters(sel, emcee_output):
 
-        assert emcee_output.most_probable_model_parameters == pytest.approx(
+        assert emcee_output.most_probable_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
         )
 
     def test__most_likely_parameters(self, emcee_output):
 
-        assert emcee_output.most_likely_model_parameters == pytest.approx(
+        assert emcee_output.most_likely_vector == pytest.approx(
             [0.003825, -0.00360509, 9.957799, 0.4940334], 1.0e-3
         )
 
-    def test__model_parameters_at_sigma_limit__uses_output_files(self, emcee_output):
+    def test__vector_at_sigma__uses_output_files(self, emcee_output):
 
-        params = emcee_output.model_parameters_at_sigma_limit(sigma_limit=3.0)
+        params = emcee_output.vector_at_sigma(sigma=3.0)
 
         assert params[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
 
-        params = emcee_output.model_parameters_at_sigma_limit(sigma_limit=1.0)
+        params = emcee_output.vector_at_sigma(sigma=1.0)
 
         assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
@@ -59,9 +59,9 @@ class TestEmceeOutput:
         self, emcee_output
     ):
 
-        model = emcee_output.sample_model_parameters_from_sample_index(sample_index=0)
-        weight = emcee_output.sample_weight_from_sample_index(sample_index=0)
-        likelihood = emcee_output.sample_likelihood_from_sample_index(sample_index=0)
+        model = emcee_output.vector_from_sample_index(sample_index=0)
+        weight = emcee_output.weight_from_sample_index(sample_index=0)
+        likelihood = emcee_output.likelihood_from_sample_index(sample_index=0)
 
         assert emcee_output.total_walkers == 10
         assert emcee_output.total_steps == 1000

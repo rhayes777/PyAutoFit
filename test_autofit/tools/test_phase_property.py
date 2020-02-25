@@ -15,13 +15,13 @@ directory = os.path.dirname(os.path.realpath(__file__))
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def fit(self, analysis, model):
         class Fitness:
-            def __init__(self, instance_from_physical_vector, instance):
+            def __init__(self, instance_from_vector, instance):
                 self.result = None
-                self.instance_from_physical_vector = instance_from_physical_vector
+                self.instance_from_vector = instance_from_vector
                 self.instance = instance
 
             def __call__(self, vector):
-                instance = self.instance_from_physical_vector(vector)
+                instance = self.instance_from_vector(vector)
                 for key, value in self.instance.__dict__.items():
                     setattr(instance, key, value)
 
@@ -34,7 +34,7 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
                 return -2 * likelihood
 
         fitness_function = Fitness(
-            model.instance_from_physical_vector, model.instance_from_prior_medians
+            model.instance_from_vector, model.instance_from_prior_medians
         )
         fitness_function(model.prior_count * [0.5])
 

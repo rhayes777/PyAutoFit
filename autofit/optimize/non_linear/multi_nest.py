@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class MultiNest(NonLinearOptimizer):
-    def __init__(self, paths, sigma_limit=3, run=pymultinest.run):
+    def __init__(self, paths, sigma=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
 
@@ -23,7 +23,7 @@ class MultiNest(NonLinearOptimizer):
 
         super().__init__(paths)
 
-        self.sigma_limit = sigma_limit
+        self.sigma = sigma
 
         self.importance_nested_sampling = self.config(
             "importance_nested_sampling", bool
@@ -54,7 +54,7 @@ class MultiNest(NonLinearOptimizer):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma_limit = self.sigma_limit
+        copy.sigma = self.sigma
         copy.run = self.run
         copy.importance_nested_sampling = self.importance_nested_sampling
         copy.multimodal = self.multimodal
@@ -78,11 +78,9 @@ class MultiNest(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(
-            self, paths, analysis, instance_from_physical_vector, output_results
-        ):
+        def __init__(self, paths, analysis, instance_from_vector, output_results):
             super().__init__(paths, analysis, output_results)
-            self.instance_from_physical_vector = instance_from_physical_vector
+            self.instance_from_vector = instance_from_vector
             self.accepted_samples = 0
 
             self.model_results_output_interval = conf.instance.general.get(
@@ -102,7 +100,7 @@ class MultiNest(NonLinearOptimizer):
         def __call__(self, cube, ndim, nparams, lnew):
 
             try:
-                instance = self.instance_from_physical_vector(cube)
+                instance = self.instance_from_vector(cube)
                 likelihood = self.fit_instance(instance)
             except exc.FitException:
 
@@ -131,9 +129,7 @@ class MultiNest(NonLinearOptimizer):
         def prior(cube, ndim, nparams):
             # NEVER EVER REFACTOR THIS LINE! Haha.
 
-            phys_cube = model.physical_vector_from_hypercube_vector(
-                hypercube_vector=cube
-            )
+            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
 
             for i in range(len(phys_cube)):
                 cube[i] = phys_cube[i]
@@ -143,7 +139,7 @@ class MultiNest(NonLinearOptimizer):
         fitness_function = MultiNest.Fitness(
             self.paths,
             analysis,
-            model.instance_from_physical_vector,
+            model.instance_from_vector,
             multinest_output.output_results,
         )
 
@@ -179,7 +175,7 @@ class MultiNest(NonLinearOptimizer):
         # TODO: have a valid sym-link( e.g. even for aggregator use).
 
         self.paths.backup()
-        instance = multinest_output.most_likely_model_instance
+        instance = multinest_output.most_likely_instance
         analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)
         multinest_output.output_pdf_plots()
@@ -187,9 +183,7 @@ class MultiNest(NonLinearOptimizer):
             instance=instance,
             figure_of_merit=multinest_output.evidence,
             previous_model=model,
-            gaussian_tuples=multinest_output.gaussian_priors_at_sigma_limit(
-                self.sigma_limit
-            ),
+            gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
         )
         self.paths.backup_zip_remove()
         return result
@@ -225,7 +219,7 @@ class MultiNestOutput(NestedSamplingOutput):
             return False
 
     @property
-    def most_probable_model_parameters(self):
+    def most_probable_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lens.
@@ -239,10 +233,10 @@ class MultiNestOutput(NestedSamplingOutput):
                 number_entries=self.model.prior_count, offset=0
             )
         except FileNotFoundError:
-            return self.most_likely_model_parameters
+            return self.most_likely_vector
 
     @property
-    def most_likely_model_parameters(self):
+    def most_likely_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lens.
@@ -315,8 +309,8 @@ class MultiNestOutput(NestedSamplingOutput):
 
         return vector
 
-    def model_parameters_at_sigma_limit(self, sigma_limit):
-        limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
+    def vector_at_sigma(self, sigma):
+        limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
             densities_1d = list(
@@ -344,7 +338,7 @@ class MultiNestOutput(NestedSamplingOutput):
     def total_samples(self):
         return len(self.pdf.weights)
 
-    def sample_model_parameters_from_sample_index(self, sample_index):
+    def vector_from_sample_index(self, sample_index):
         """From a sample return the model parameters.
 
         Parameters
@@ -354,7 +348,7 @@ class MultiNestOutput(NestedSamplingOutput):
         """
         return list(self.pdf.samples[sample_index])
 
-    def sample_weight_from_sample_index(self, sample_index):
+    def weight_from_sample_index(self, sample_index):
         """From a sample return the sample weight.
 
         Parameters
@@ -364,7 +358,7 @@ class MultiNestOutput(NestedSamplingOutput):
         """
         return self.pdf.weights[sample_index]
 
-    def sample_likelihood_from_sample_index(self, sample_index):
+    def likelihood_from_sample_index(self, sample_index):
         """From a sample return the likelihood.
 
         NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \

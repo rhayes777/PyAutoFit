@@ -198,9 +198,7 @@ class GridSearch(NonLinearOptimizer):
             results_list = [model.param_names + ["fit"]]
 
             for item in all_fit_items:
-                results_list.append(
-                    [*model.physical_vector_from_hypercube_vector(item[0]), item[1]]
-                )
+                results_list.append([*model.vector_from_unit_vector(item[0]), item[1]])
 
             with open("{}/results".format(self.paths.phase_output_path), "w+") as f:
                 f.write(

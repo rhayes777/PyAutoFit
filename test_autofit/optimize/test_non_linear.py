@@ -146,7 +146,7 @@ class TestMostProbableAndLikely:
             most_probable=[1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0],
         )
 
-        most_probable = nlo.most_probable_model_instance
+        most_probable = nlo.most_probable_instance
 
         assert most_probable.mock_class_1.one == 1.0
         assert most_probable.mock_class_1.two == 2.0
@@ -170,7 +170,7 @@ class TestMostProbableAndLikely:
             most_probable=[1.0, -2.0, 3.0, 4.0, 10.0],
         )
 
-        most_probable = nlo.most_probable_model_instance
+        most_probable = nlo.most_probable_instance
 
         assert most_probable.mock_class.one == 1.0
         assert most_probable.mock_class.two == -2.0
@@ -188,7 +188,7 @@ class TestMostProbableAndLikely:
             most_likely=[21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0],
         )
 
-        most_likely = nlo.most_likely_model_instance
+        most_likely = nlo.most_likely_instance
 
         assert most_likely.mock_class_1.one == 21.0
         assert most_likely.mock_class_1.two == 22.0
@@ -211,7 +211,7 @@ class TestMostProbableAndLikely:
             most_likely=[9.0, -10.0, -11.0, 12.0, 10.0],
         )
 
-        most_likely = nlo.most_likely_model_instance
+        most_likely = nlo.most_likely_instance
 
         assert most_likely.mock_class.one == 9.0
         assert most_likely.mock_class.two == -10.0
@@ -231,7 +231,7 @@ class TestGaussianPriors:
             model_upper_params=[1.12, 2.12, 3.12, 4.12],
         )
 
-        gaussian_priors = nlo.gaussian_priors_at_sigma_limit(sigma_limit=3.0)
+        gaussian_priors = nlo.gaussian_priors_at_sigma(sigma=3.0)
 
         assert gaussian_priors[0][0] == 1.0
         assert gaussian_priors[1][0] == 2.0
@@ -253,8 +253,8 @@ class TestOffsetFromInput:
             phase_name="", model_mapper=mapper, most_probable=[1.0, -2.0, 3.0, 4.0]
         )
 
-        offset_values = nlo.values_offset_from_input_model_parameters(
-            input_model_parameters=[1.0, 1.0, 2.0, 3.0]
+        offset_values = nlo.offset_vector_from_input_vector(
+            input_vector=[1.0, 1.0, 2.0, 3.0]
         )
 
         assert offset_values == [0.0, -3.0, 1.0, 1.0]
@@ -268,19 +268,8 @@ class TestOffsetFromInput:
             most_probable=[1.0, 2.0, 3.0, 4.0, -5.0, -6.0, -7.0, -8.0, 9.0, 10.0],
         )
 
-        offset_values = nlo.values_offset_from_input_model_parameters(
-            input_model_parameters=[
-                1.0,
-                1.0,
-                2.0,
-                3.0,
-                10.0,
-                10.0,
-                10.0,
-                10.0,
-                10.0,
-                20.0,
-            ]
+        offset_values = nlo.offset_vector_from_input_vector(
+            input_vector=[1.0, 1.0, 2.0, 3.0, 10.0, 10.0, 10.0, 10.0, 10.0, 20.0]
         )
 
         assert offset_values == [

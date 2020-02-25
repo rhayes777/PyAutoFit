@@ -18,11 +18,11 @@ class AbstractOutput:
         raise NotImplementedError()
 
     @property
-    def most_probable_model_parameters(self):
+    def most_probable_vector(self):
         raise NotImplementedError()
 
     @property
-    def most_likely_model_parameters(self):
+    def most_likely_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lens.
@@ -33,21 +33,17 @@ class AbstractOutput:
         raise NotImplementedError()
 
     @property
-    def most_probable_model_instance(self):
-        return self.model.instance_from_physical_vector(
-            physical_vector=self.most_probable_model_parameters
-        )
+    def most_probable_instance(self):
+        return self.model.instance_from_vector(vector=self.most_probable_vector)
 
     @property
-    def most_likely_model_instance(self):
-        return self.model.instance_from_physical_vector(
-            physical_vector=self.most_likely_model_parameters
-        )
+    def most_likely_instance(self):
+        return self.model.instance_from_vector(vector=self.most_likely_vector)
 
-    def model_parameters_at_sigma_limit(self, sigma_limit):
+    def vector_at_sigma(self, sigma):
         raise NotImplementedError()
 
-    def model_parameters_at_upper_sigma_limit(self, sigma_limit):
+    def vector_at_upper_sigma(self, sigma):
         """Setup 1D vectors of the upper and lower limits of the multinest nlo.
 
         These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
@@ -55,18 +51,13 @@ class AbstractOutput:
 
         Parameters
         -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
+        sigma : float
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(
-            map(
-                lambda param: param[1],
-                self.model_parameters_at_sigma_limit(sigma_limit),
-            )
-        )
+        return list(map(lambda param: param[1], self.vector_at_sigma(sigma)))
 
-    def model_parameters_at_lower_sigma_limit(self, sigma_limit):
+    def vector_at_lower_sigma(self, sigma):
         """Setup 1D vectors of the upper and lower limits of the multinest nlo.
 
         These are generated at an input limfrac, which gives the percentage of 1d posterior weighted samples within \
@@ -74,75 +65,79 @@ class AbstractOutput:
 
         Parameters
         -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
+        sigma : float
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(
-            map(
-                lambda param: param[0],
-                self.model_parameters_at_sigma_limit(sigma_limit),
-            )
+        return list(map(lambda param: param[0], self.vector_at_sigma(sigma)))
+
+    def instance_at_sigma(self, sigma):
+        return self.model.instance_from_vector(vector=self.vector_at_sigma(sigma=sigma))
+
+    def instance_at_upper_sigma(self, sigma):
+        return self.model.instance_from_vector(
+            vector=self.vector_at_upper_sigma(sigma=sigma)
         )
 
-    def model_errors_at_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+    def instance_at_lower_sigma(self, sigma):
+        return self.model.instance_from_vector(
+            vector=self.vector_at_lower_sigma(sigma=sigma)
+        )
+
+    def error_vector_at_sigma(self, sigma):
+        uppers = self.vector_at_upper_sigma(sigma=sigma)
+        lowers = self.vector_at_lower_sigma(sigma=sigma)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
-    def model_errors_at_upper_sigma_limit(self, sigma_limit):
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
+    def error_vector_at_upper_sigma(self, sigma):
+        uppers = self.vector_at_upper_sigma(sigma=sigma)
         return list(
             map(
                 lambda upper, most_probable: upper - most_probable,
                 uppers,
-                self.most_probable_model_parameters,
+                self.most_probable_vector,
             )
         )
 
-    def model_errors_at_lower_sigma_limit(self, sigma_limit):
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+    def error_vector_at_lower_sigma(self, sigma):
+        lowers = self.vector_at_lower_sigma(sigma=sigma)
         return list(
             map(
                 lambda lower, most_probable: most_probable - lower,
                 lowers,
-                self.most_probable_model_parameters,
+                self.most_probable_vector,
             )
         )
 
-    def model_errors_instance_at_sigma_limit(self, sigma_limit):
-        return self.model.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_sigma_limit(sigma_limit=sigma_limit)
+    def error_instance_at_sigma(self, sigma):
+        return self.model.instance_from_vector(
+            vector=self.error_vector_at_sigma(sigma=sigma)
         )
 
-    def model_errors_instance_at_upper_sigma_limit(self, sigma_limit):
-        return self.model.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_upper_sigma_limit(
-                sigma_limit=sigma_limit
-            )
+    def error_instance_at_upper_sigma(self, sigma):
+        return self.model.instance_from_vector(
+            vector=self.error_vector_at_upper_sigma(sigma=sigma)
         )
 
-    def model_errors_instance_at_lower_sigma_limit(self, sigma_limit):
-        return self.model.instance_from_physical_vector(
-            physical_vector=self.model_errors_at_lower_sigma_limit(
-                sigma_limit=sigma_limit
-            )
+    def error_instance_at_lower_sigma(self, sigma):
+        return self.model.instance_from_vector(
+            vector=self.error_vector_at_lower_sigma(sigma=sigma)
         )
 
-    def gaussian_priors_at_sigma_limit(self, sigma_limit):
+    def gaussian_priors_at_sigma(self, sigma):
         """Compute the Gaussian Priors these results should be initialzed with in the next phase, by taking their \
-        most probable values (e.g the means of their PDF) and computing the error at an input sigma_limit.
+        most probable values (e.g the means of their PDF) and computing the error at an input sigma.
 
         Parameters
         -----------
-        sigma_limit : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma_limit = 1.0 uses 0.6826 of the \
+        sigma : float
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
             PDF).
         """
 
-        means = self.most_probable_model_parameters
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        means = self.most_probable_vector
+        uppers = self.vector_at_upper_sigma(sigma=sigma)
+        lowers = self.vector_at_lower_sigma(sigma=sigma)
 
         # noinspection PyArgumentList
         sigmas = list(
@@ -160,13 +155,13 @@ class AbstractOutput:
     def total_samples(self):
         raise NotImplementedError()
 
-    def sample_likelihood_from_sample_index(self, sample_index):
+    def likelihood_from_sample_index(self, sample_index):
         raise NotImplementedError()
 
-    def sample_model_parameters_from_sample_index(self, sample_index):
+    def vector_from_sample_index(self, sample_index):
         raise NotImplementedError()
 
-    def sample_model_instance_from_sample_index(self, sample_index):
+    def instance_from_sample_index(self, sample_index):
         """Setup a model instance of a weighted sample.
 
         Parameters
@@ -174,42 +169,38 @@ class AbstractOutput:
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        model_parameters = self.sample_model_parameters_from_sample_index(
-            sample_index=sample_index
-        )
+        model_parameters = self.vector_from_sample_index(sample_index=sample_index)
 
-        return self.model.instance_from_physical_vector(
-            physical_vector=model_parameters
-        )
+        return self.model.instance_from_vector(vector=model_parameters)
 
-    def values_offset_from_input_model_parameters(self, input_model_parameters):
+    def offset_vector_from_input_vector(self, input_vector):
         return list(
             map(
                 lambda input, most_probable: most_probable - input,
-                input_model_parameters,
-                self.most_probable_model_parameters,
+                input_vector,
+                self.most_probable_vector,
             )
         )
 
-    def results_from_sigma_limit(self, limit):
+    def results_from_sigma(self, sigma):
 
         try:
-            lower_limits = self.model_parameters_at_lower_sigma_limit(sigma_limit=limit)
-            upper_limits = self.model_parameters_at_upper_sigma_limit(sigma_limit=limit)
+            lower_limits = self.vector_at_lower_sigma(sigma=sigma)
+            upper_limits = self.vector_at_upper_sigma(sigma=sigma)
         except ValueError:
             return ""
 
         sigma_formatter = text_formatter.TextFormatter()
 
         for i, prior_path in enumerate(self.model.unique_prior_paths):
-            value = self.format_str.format(self.most_probable_model_parameters[i])
+            value = self.format_str.format(self.most_probable_vector[i])
             upper_limit = self.format_str.format(upper_limits[i])
             lower_limit = self.format_str.format(lower_limits[i])
             value = value + " (" + lower_limit + ", " + upper_limit + ")"
             sigma_formatter.add((prior_path, value))
 
         return "\n\nMost probable model ({} sigma limits):\n\n{}".format(
-            limit, sigma_formatter.text
+            sigma, sigma_formatter.text
         )
 
     @property
@@ -275,12 +266,12 @@ class AbstractOutput:
             file=self.paths.file_model_info, list_of_strings=self.model.info
         )
 
-    def latex_results_at_sigma_limit(self, sigma_limit, format_str="{:.2f}"):
+    def latex_results_at_sigma(self, sigma, format_str="{:.2f}"):
 
         labels = self.param_labels
-        most_probables = self.most_probable_model_parameters
-        uppers = self.model_parameters_at_upper_sigma_limit(sigma_limit=sigma_limit)
-        lowers = self.model_parameters_at_lower_sigma_limit(sigma_limit=sigma_limit)
+        most_probables = self.most_probable_vector
+        uppers = self.vector_at_upper_sigma(sigma=sigma)
+        lowers = self.vector_at_lower_sigma(sigma=sigma)
 
         line = []
 
@@ -340,7 +331,7 @@ class AbstractOutput:
         results += ["\n\n"]
 
         results += ["Most Likely Model:\n\n"]
-        most_likely = self.most_likely_model_parameters
+        most_likely = self.most_likely_vector
 
         formatter = text_formatter.TextFormatter()
 
@@ -350,9 +341,9 @@ class AbstractOutput:
 
         if self.pdf_converged:
 
-            results += self.results_from_sigma_limit(limit=3.0)
+            results += self.results_from_sigma(sigma=3.0)
             results += ["\n"]
-            results += self.results_from_sigma_limit(limit=1.0)
+            results += self.results_from_sigma(sigma=1.0)
 
         else:
 
@@ -360,7 +351,7 @@ class AbstractOutput:
                 "\n WARNING: The chains have not converged enough to compute a PDF and model errors. \n "
                 "The model below over estimates errors. \n\n"
             ]
-            results += self.results_from_sigma_limit(limit=1.0)
+            results += self.results_from_sigma(sigma=1.0)
 
         results += ["\n\ninstances\n"]
 
@@ -384,7 +375,7 @@ class MCMCOutput(AbstractOutput):
 
 
 class NestedSamplingOutput(AbstractOutput):
-    def sample_weight_from_sample_index(self, sample_index):
+    def weight_from_sample_index(self, sample_index):
         raise NotImplementedError()
 
     @property
