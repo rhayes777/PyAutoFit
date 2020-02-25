@@ -40,13 +40,13 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_physical_vector):
+        def __init__(self, paths, analysis, instance_from_vector):
             super().__init__(paths, analysis)
-            self.instance_from_physical_vector = instance_from_physical_vector
+            self.instance_from_vector = instance_from_vector
 
         def __call__(self, vector):
             try:
-                instance = self.instance_from_physical_vector(vector)
+                instance = self.instance_from_vector(vector)
                 likelihood = self.fit_instance(instance)
             except exc.FitException:
                 likelihood = -np.inf
@@ -58,7 +58,7 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            self.paths, analysis, model.instance_from_physical_vector
+            self.paths, analysis, model.instance_from_vector
         )
 
         logger.info("Running DownhillSimplex...")

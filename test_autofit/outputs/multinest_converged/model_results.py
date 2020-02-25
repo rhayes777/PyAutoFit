@@ -28,27 +28,22 @@ multinest_outputs = [
 
 print(multinest_outputs)
 
-most_likely_model_parameters = [
-    output.most_likely_model_parameters for output in multinest_outputs
+most_likely_vector = [output.most_likely_vector for output in multinest_outputs]
+
+print(most_likely_vector)
+
+most_probable_vector = [output.most_probable_vector for output in multinest_outputs]
+
+print(most_probable_vector)
+
+most_probable_instances = [
+    output.most_probable_instance for output in multinest_outputs
 ]
 
-print(most_likely_model_parameters)
-
-most_probable_model_parameters = [
-    output.most_probable_model_parameters for output in multinest_outputs
-]
-
-print(most_probable_model_parameters)
-
-most_probable_model_instances = [
-    output.most_probable_model_instance for output in multinest_outputs
-]
-
-print(most_probable_model_instances)
+print(most_probable_instances)
 
 model_parameters_at_1_sigma = [
-    output.model_parameters_at_sigma_limit(sigma_limit=1.0)
-    for output in multinest_outputs
+    output.vector_at_sigma(sigma=1.0) for output in multinest_outputs
 ]
 
 print(model_parameters_at_1_sigma)

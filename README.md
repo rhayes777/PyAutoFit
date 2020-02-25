@@ -102,7 +102,7 @@ non_linear_outputs = aggregator.filter(
 
 # From here, we can inspect results as we please, for example printing all 100 most likely models.
 
-print([output.most_likely_model_instance from output in non_linear_outputs]
+print([output.most_likely_instance from output in non_linear_outputs]
 
 ```
 

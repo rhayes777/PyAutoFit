@@ -21,17 +21,17 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
 
+
 def check_assertions(func):
     @wraps(func)
     def wrapper(s, arguments):
         # noinspection PyProtectedMember
         for assertion in s._assertions:
-            assertion(
-                arguments
-            )
+            assertion(arguments)
         return func(s, arguments)
 
     return wrapper
+
 
 class AbstractPriorModel(AbstractModel):
     """
@@ -154,11 +154,11 @@ class AbstractPriorModel(AbstractModel):
             list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
         )
 
-    def physical_vector_from_hypercube_vector(self, hypercube_vector):
+    def vector_from_unit_vector(self, unit_vector):
         """
         Parameters
         ----------
-        hypercube_vector: [float]
+        unit_vector: [float]
             A unit hypercube vector
 
         Returns
@@ -170,12 +170,12 @@ class AbstractPriorModel(AbstractModel):
             map(
                 lambda prior_tuple, unit: prior_tuple.prior.value_for(unit),
                 self.prior_tuples_ordered_by_id,
-                hypercube_vector,
+                unit_vector,
             )
         )
 
     @property
-    def random_physical_vector_from_priors(self):
+    def random_vector_from_priors(self):
         """
         Returns
         -------
@@ -186,13 +186,13 @@ class AbstractPriorModel(AbstractModel):
 
         while True:
 
-            physical_vector = self.physical_vector_from_hypercube_vector(
+            vector = self.vector_from_unit_vector(
                 list(np.random.random(self.prior_count))
             )
 
             try:
-                self.instance_from_physical_vector(physical_vector=physical_vector)
-                return physical_vector
+                self.instance_from_vector(vector=vector)
+                return vector
             except exc.PriorLimitException:
                 pass
 
@@ -205,11 +205,9 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values constructed by taking the mean possible value from
             each prior.
         """
-        return self.physical_vector_from_hypercube_vector(
-            [0.5] * len(self.unique_prior_tuples)
-        )
+        return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_physical_vector(self, physical_vector):
+    def instance_from_vector(self, vector):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
         to every PriorModel attributed to this instance.
@@ -219,7 +217,7 @@ class AbstractPriorModel(AbstractModel):
 
         Parameters
         ----------
-        physical_vector: [float]
+        vector: [float]
             A unit hypercube vector
 
         Returns
@@ -232,7 +230,7 @@ class AbstractPriorModel(AbstractModel):
             map(
                 lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
                 self.prior_tuples_ordered_by_id,
-                physical_vector,
+                vector,
             )
         )
 

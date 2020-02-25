@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class NUTS(NonLinearOptimizer):
-    def __init__(self, paths, sigma_limit=3):
+    def __init__(self, paths, sigma=3):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
 
@@ -19,7 +19,7 @@ class NUTS(NonLinearOptimizer):
 
         super().__init__(paths)
 
-        self.sigma_limit = sigma_limit
+        self.sigma = sigma
 
         logger.debug("Creating NUTS NLO")
 
@@ -27,15 +27,13 @@ class NUTS(NonLinearOptimizer):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma_limit = self.sigma_limit
+        copy.sigma = self.sigma
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(
-            self, paths, analysis, instance_from_physical_vector, output_results
-        ):
+        def __init__(self, paths, analysis, instance_from_vector, output_results):
             super().__init__(paths, analysis, output_results)
-            self.instance_from_physical_vector = instance_from_physical_vector
+            self.instance_from_vector = instance_from_vector
             self.accepted_samples = 0
 
             self.model_results_output_interval = conf.instance.general.get(
@@ -64,7 +62,7 @@ class NUTS(NonLinearOptimizer):
         def __call__(self, cube):
 
             try:
-                instance = self.instance_from_physical_vector(cube)
+                instance = self.instance_from_vector(cube)
                 likelihood = self.fit_instance(instance)
 
                 print()
@@ -86,7 +84,7 @@ class NUTS(NonLinearOptimizer):
         fitness_function = NUTS.Fitness(
             paths=self.paths,
             analysis=analysis,
-            instance_from_physical_vector=model.instance_from_physical_vector,
+            instance_from_vector=model.instance_from_vector,
             output_results=None,
         )
 
@@ -112,7 +110,7 @@ class NUTS(NonLinearOptimizer):
         # TODO: have a valid sym-link( e.g. even for aggregator use).
 
         self.paths.backup()
-        #    instance = output.most_likely_model_instance
+        #    instance = output.most_likely_instance
         #    analysis.visualize(instance=instance, during_analysis=False)
         #    output.output_results(during_analysis=False)
         #    output.output_pdf_plots()
@@ -120,8 +118,8 @@ class NUTS(NonLinearOptimizer):
         #         instance=instance,
         #         figure_of_merit=output.evidence,
         #         previous_model=model,
-        #         gaussian_tuples=output.gaussian_priors_at_sigma_limit(
-        #             self.sigma_limit
+        #         gaussian_tuples=output.gaussian_priors_at_sigma(
+        #             self.sigma
         #         ),
         #     )
         #     self.paths.backup_zip_remove()

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Emcee(NonLinearOptimizer):
-    def __init__(self, paths, sigma_limit=3):
+    def __init__(self, paths, sigma=3):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
 
@@ -24,7 +24,7 @@ class Emcee(NonLinearOptimizer):
 
         super().__init__(paths)
 
-        self.sigma_limit = sigma_limit
+        self.sigma = sigma
 
         self.nwalkers = conf.instance.non_linear.get("Emcee", "nwalkers", int)
         self.nsteps = conf.instance.non_linear.get("Emcee", "nsteps", int)
@@ -47,15 +47,13 @@ class Emcee(NonLinearOptimizer):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma_limit = self.sigma_limit
+        copy.sigma = self.sigma
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(
-            self, paths, analysis, instance_from_physical_vector, output_results
-        ):
+        def __init__(self, paths, analysis, instance_from_vector, output_results):
             super().__init__(paths, analysis, output_results)
-            self.instance_from_physical_vector = instance_from_physical_vector
+            self.instance_from_vector = instance_from_vector
             self.accepted_samples = 0
 
         def fit_instance(self, instance):
@@ -81,7 +79,7 @@ class Emcee(NonLinearOptimizer):
 
             try:
 
-                instance = self.instance_from_physical_vector(params)
+                instance = self.instance_from_vector(params)
                 likelihood = self.fit_instance(instance)
 
             except exc.FitException:
@@ -103,7 +101,7 @@ class Emcee(NonLinearOptimizer):
         fitness_function = Emcee.Fitness(
             paths=self.paths,
             analysis=analysis,
-            instance_from_physical_vector=model.instance_from_physical_vector,
+            instance_from_vector=model.instance_from_vector,
             output_results=output.output_results,
         )
 
@@ -126,7 +124,7 @@ class Emcee(NonLinearOptimizer):
 
             for walker_index in range(emcee_sampler.nwalkers):
                 emcee_state[walker_index, :] = np.asarray(
-                    model.random_physical_vector_from_priors
+                    model.random_vector_from_priors
                 )
 
             previuos_run_converged = False
@@ -157,7 +155,7 @@ class Emcee(NonLinearOptimizer):
 
         self.paths.backup()
 
-        instance = output.most_likely_model_instance
+        instance = output.most_likely_instance
 
         analysis.visualize(instance=instance, during_analysis=False)
         output.output_results(during_analysis=False)
@@ -166,7 +164,7 @@ class Emcee(NonLinearOptimizer):
             instance=instance,
             figure_of_merit=output.maximum_log_likelihood,
             previous_model=model,
-            gaussian_tuples=output.gaussian_priors_at_sigma_limit(self.sigma_limit),
+            gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),
         )
         self.paths.backup_zip_remove()
         return result
@@ -273,7 +271,7 @@ class EmceeOutput(MCMCOutput):
         return np.argmax(self.backend.get_log_prob(flat=True))
 
     @property
-    def most_probable_model_parameters(self):
+    def most_probable_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lens.
@@ -289,7 +287,7 @@ class EmceeOutput(MCMCOutput):
         ]
 
     @property
-    def most_likely_model_parameters(self):
+    def most_likely_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
         multinest lens.
@@ -303,9 +301,9 @@ class EmceeOutput(MCMCOutput):
     def maximum_log_likelihood(self):
         return self.backend.get_log_prob(flat=True)[self.most_likely_index]
 
-    def model_parameters_at_sigma_limit(self, sigma_limit):
+    def vector_at_sigma(self, sigma):
 
-        limit = math.erf(0.5 * sigma_limit * math.sqrt(2))
+        limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         samples = self.samples_after_burn_in
 
@@ -314,7 +312,7 @@ class EmceeOutput(MCMCOutput):
             for i in range(self.model.prior_count)
         ]
 
-    def sample_model_parameters_from_sample_index(self, sample_index):
+    def vector_from_sample_index(self, sample_index):
         """From a sample return the model parameters.
 
         Parameters
@@ -324,7 +322,7 @@ class EmceeOutput(MCMCOutput):
         """
         return list(self.pdf.samples[sample_index])
 
-    def sample_weight_from_sample_index(self, sample_index):
+    def weight_from_sample_index(self, sample_index):
         """From a sample return the sample weight.
 
         Parameters
@@ -334,7 +332,7 @@ class EmceeOutput(MCMCOutput):
         """
         return self.pdf.weights[sample_index]
 
-    def sample_likelihood_from_sample_index(self, sample_index):
+    def likelihood_from_sample_index(self, sample_index):
         """From a sample return the likelihood.
 
         NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \

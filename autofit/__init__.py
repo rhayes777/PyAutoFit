@@ -18,7 +18,7 @@ from autofit.mapper.prior_model.attribute_pair import (
 
 dir(conf)
 from . import exc
-from .aggregator import Aggregator
+from .aggregator import Aggregator, PhaseOutput
 from .mapper import *
 from .mapper import link
 from .mapper.model import AbstractModel
@@ -64,4 +64,4 @@ from .tools.promise import Promise
 from .tools.promise import PromiseResult
 from .tools.promise import last
 
-__version__ = '0.50.4'
+__version__ = '0.50.5'

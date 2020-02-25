@@ -36,7 +36,7 @@ class MockNonLinearOptimizer(AbstractOutput):
         self.model_lower_params = model_lower_params
 
     @property
-    def most_probable_model_parameters(self):
+    def most_probable_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
         file which nlo from a multinest lens.
@@ -49,7 +49,7 @@ class MockNonLinearOptimizer(AbstractOutput):
         return self.most_probable
 
     @property
-    def most_likely_model_parameters(self):
+    def most_likely_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
         file which nlo from a \ multinest lens.
@@ -60,10 +60,10 @@ class MockNonLinearOptimizer(AbstractOutput):
         """
         return self.most_likely
 
-    def model_parameters_at_upper_sigma_limit(self, sigma_limit):
+    def vector_at_upper_sigma(self, sigma):
         return self.model_upper_params
 
-    def model_parameters_at_lower_sigma_limit(self, sigma_limit):
+    def vector_at_lower_sigma(self, sigma):
         return self.model_lower_params
 
 

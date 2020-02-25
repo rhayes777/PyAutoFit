@@ -93,13 +93,13 @@ class TestPriorLimits:
         mm = af.ModelMapper()
         mm.mock_class_gaussian = MockClassGaussian
 
-        assert mm.instance_from_physical_vector([1, 2]) is not None
+        assert mm.instance_from_vector([1, 2]) is not None
 
         with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_physical_vector(([1, 3]))
+            mm.instance_from_vector(([1, 3]))
 
         with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_physical_vector(([-1, 2]))
+            mm.instance_from_vector(([-1, 2]))
 
     def test_inf(self):
         mm = af.ModelMapper()
@@ -113,13 +113,13 @@ class TestPriorLimits:
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == math.inf
 
-        assert mm.instance_from_physical_vector([-10000, 10000]) is not None
+        assert mm.instance_from_vector([-10000, 10000]) is not None
 
         with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_physical_vector(([1, 0]))
+            mm.instance_from_vector(([1, 0]))
 
         with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_physical_vector(([0, -1]))
+            mm.instance_from_vector(([0, -1]))
 
     def test_preserve_limits_tuples(self):
         mm = af.ModelMapper()
@@ -504,10 +504,10 @@ class TestConfigFunctions:
 
         assert model_map.geometry_profile.centre == (1.0, 1.0)
 
-    def test_model_from_physical_vector(self):
+    def test_model_from_vector(self):
         mapper = af.ModelMapper(geometry_profile=GeometryProfile)
 
-        model_map = mapper.instance_from_physical_vector([1.0, 0.5])
+        model_map = mapper.instance_from_vector([1.0, 0.5])
 
         assert model_map.geometry_profile.centre == (1.0, 0.5)
 
@@ -660,7 +660,7 @@ class TestModelInstancesRealClasses:
             profile_3=test_autofit.mock.EllipticalProfile,
         )
 
-        model_map = mapper.instance_from_physical_vector(
+        model_map = mapper.instance_from_vector(
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
@@ -721,16 +721,16 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
         assert model_map.profile_1.phi == model_2.profile_1.phi == 1.0
 
-    def test_random_physical_vector_from_prior_medians(self):
+    def test_random_vector_from_prior_medians(self):
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(MockClassMM)
 
         np.random.seed(1)
 
-        assert mapper.random_physical_vector_from_priors == pytest.approx(
+        assert mapper.random_vector_from_priors == pytest.approx(
             [0.41702, 0.720324], 1.0e-4
         )
-        assert mapper.random_physical_vector_from_priors == pytest.approx(
+        assert mapper.random_vector_from_priors == pytest.approx(
             [0.00011437, 0.302332], 1.0e-4
         )
 
@@ -739,11 +739,11 @@ class TestModelInstancesRealClasses:
 
         mapper.mock_class.one.lower_limit = 0.15
 
-        assert mapper.random_physical_vector_from_priors == pytest.approx(
+        assert mapper.random_vector_from_priors == pytest.approx(
             [0.27474, 0.092333], 1.0e-4
         )
 
-    def test_physical_vector_from_prior_medians(self):
+    def test_vector_from_prior_medians(self):
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(MockClassMM)
 
@@ -814,7 +814,7 @@ class TestArguments:
         mapper.one = af.PriorModel(MockClassMM)
         mapper.two = af.PriorModel(MockClassMM)
 
-        instance = mapper.instance_from_physical_vector([0.1, 0.2, 0.3, 0.4])
+        instance = mapper.instance_from_vector([0.1, 0.2, 0.3, 0.4])
 
         assert instance.one.one == 0.1
         assert instance.one.two == 0.2
@@ -832,7 +832,7 @@ class TestIndependentPriorModel:
 
         assert len(mapper.prior_model_tuples) == 1
 
-        instance = mapper.instance_from_physical_vector([0.1, 0.2])
+        instance = mapper.instance_from_vector([0.1, 0.2])
 
         assert instance.prior_model.one == 0.1
         assert instance.prior_model.two == 0.2
@@ -846,11 +846,11 @@ def make_list_prior_model():
 
 
 class TestListPriorModel:
-    def test_instance_from_physical_vector(self, list_prior_model):
+    def test_instance_from_vector(self, list_prior_model):
         mapper = af.ModelMapper()
         mapper.list = list_prior_model
 
-        instance = mapper.instance_from_physical_vector([0.1, 0.2, 0.3, 0.4])
+        instance = mapper.instance_from_vector([0.1, 0.2, 0.3, 0.4])
 
         assert isinstance(instance.list, af.ModelInstance)
         print(instance.list.items)
