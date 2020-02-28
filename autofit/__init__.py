@@ -1,5 +1,11 @@
 from autoconf import conf
 from autofit.mapper.model import path_instances_of_class
+from autofit.mapper.prior_model.attribute_pair import (
+    cast_collection,
+    AttributeNameValue,
+    PriorNameValue,
+    InstanceNameValue,
+)
 from autofit.mapper.prior_model.prior import (
     Prior,
     UniformPrior,
@@ -8,12 +14,6 @@ from autofit.mapper.prior_model.prior import (
     WidthModifier,
     RelativeWidthModifier,
     AbsoluteWidthModifier,
-)
-from autofit.mapper.prior_model.attribute_pair import (
-    cast_collection,
-    AttributeNameValue,
-    PriorNameValue,
-    InstanceNameValue,
 )
 
 dir(conf)
@@ -26,6 +26,10 @@ from .mapper.model import ModelInstance
 from .mapper.model import ModelInstance as Instance
 from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
+from .mapper.prior_model.assertion import GreaterThanLessThanAssertion
+from .mapper.prior_model.assertion import AbstractAssertion
+from .mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion
+from .mapper.prior_model.assertion import CompoundAssertion
 from .mapper.model_object import ModelObject
 from .mapper.prior_model import *
 from .mapper.prior_model.abstract import AbstractPriorModel
@@ -60,8 +64,12 @@ from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
-from .tools.promise import Promise
-from .tools.promise import PromiseResult
-from .tools.promise import last
+from autofit.mapper.promise import Promise
+from autofit.mapper.promise import AbstractPromise
+from autofit.mapper.promise import PromiseResult
+from autofit.mapper.promise import GreaterThanLessThanAssertionPromise
+from autofit.mapper.promise import GreaterThanLessThanEqualAssertionPromise
+from autofit.mapper.promise import CompoundAssertionPromise
+from autofit.mapper.promise import last
 
 __version__ = '0.50.5'
