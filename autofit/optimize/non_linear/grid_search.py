@@ -245,7 +245,7 @@ class GridSearch(NonLinearOptimizer):
             res, instances, model, [(mean, 0) for mean in fitness_function.best_cube]
         )
 
-        analysis.visualize(instance=res.instance, during_analysis=False)
+    #    analysis.visualize(instance=res.instance, during_analysis=False)
 
         self.paths.backup_zip_remove()
         return res
