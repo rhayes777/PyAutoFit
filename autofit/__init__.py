@@ -72,4 +72,4 @@ from autofit.mapper.promise import GreaterThanLessThanEqualAssertionPromise
 from autofit.mapper.promise import CompoundAssertionPromise
 from autofit.mapper.promise import last
 
-__version__ = "0.50.5"
+__version__ = '0.51.0'
