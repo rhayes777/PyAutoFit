@@ -86,13 +86,17 @@ class TestAssertion:
 
 class TestPromiseAssertion:
     def test_simple_inequality(self, phase, collection):
-        model = phase.result.model.one.light
+        promise_model = phase.result.model.one.light
 
-        promise = model.axis_ratio < model.phi
+        promise = promise_model.axis_ratio < promise_model.phi
         assert isinstance(promise, af.AssertionPromise)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.GreaterThanLessThanAssertion)
+
+        model = collection.last.model.one.light
+        assert model.axis_ratio == assertion._lower
+        assert model.phi == assertion._greater
 
 
 def test_assertion_in_model(prior_1, prior_2):
