@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
-from autofit.mapper.prior_model.assertion import GreaterThanLessThanAssertion
+from autofit.mapper.prior_model.assertion import (
+    GreaterThanLessThanAssertion,
+    CompoundAssertion
+)
 from autofit.tools.pipeline import ResultsCollection
 
 
@@ -249,10 +252,38 @@ class AbstractPromise(ABC):
             raise e
 
 
+class CompoundAssertionPromise:
+    def __init__(self, assertion_1, assertion_2):
+        self.assertion_1 = assertion_1
+        self.assertion_2 = assertion_2
+
+    def populate(self, results_collection):
+        return CompoundAssertion(
+            self.assertion_1.populate(
+                results_collection
+            ),
+            self.assertion_2.populate(
+                results_collection
+            )
+        )
+
+
 class AssertionPromise:
     def __init__(self, lower, greater):
         self._lower = lower
         self._greater = greater
+
+    def __gt__(self, other):
+        return CompoundAssertionPromise(self, self._lower > other)
+
+    def __lt__(self, other):
+        return CompoundAssertionPromise(self, self._greater < other)
+
+    def __ge__(self, other):
+        return CompoundAssertionPromise(self, self._lower >= other)
+
+    def __le__(self, other):
+        return CompoundAssertionPromise(self, self._greater <= other)
 
     def lower(self, results_collection):
         try:

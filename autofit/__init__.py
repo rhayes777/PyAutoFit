@@ -29,6 +29,7 @@ from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.prior_model.assertion import GreaterThanLessThanAssertion
 from .mapper.prior_model.assertion import AbstractAssertion
 from .mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion
+from .mapper.prior_model.assertion import CompoundAssertion
 from .mapper.model_object import ModelObject
 from .mapper.prior_model import *
 from .mapper.prior_model.abstract import AbstractPriorModel
@@ -67,6 +68,7 @@ from .tools.promise import Promise
 from .tools.promise import AbstractPromise
 from .tools.promise import PromiseResult
 from .tools.promise import AssertionPromise
+from .tools.promise import CompoundAssertionPromise
 from .tools.promise import last
 
 __version__ = '0.50.5'

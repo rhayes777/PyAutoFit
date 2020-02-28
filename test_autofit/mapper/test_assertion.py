@@ -122,6 +122,13 @@ class TestPromiseAssertion:
         assert model.axis_ratio == assertion._greater
         assert 1.0 == assertion._lower
 
+    def test_compound_assertion(self, promise_model, collection, model):
+        promise = (1.0 < promise_model.axis_ratio) < 1.0
+        assert isinstance(promise, af.CompoundAssertionPromise)
+
+        assertion = promise.populate(collection)
+        assert isinstance(assertion, af.CompoundAssertion)
+
 
 def test_assertion_in_model(prior_1, prior_2):
     model = af.ModelMapper()
