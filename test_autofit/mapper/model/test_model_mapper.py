@@ -135,6 +135,21 @@ class TestPriorLimits:
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == 2
 
+    def test_from_gaussian_no_limits(self):
+        mm = af.ModelMapper()
+        mm.mock_class_gaussian = MockClassGaussian
+
+        new_mapper = mm.mapper_from_gaussian_tuples(
+            [(0.0, 0.5), (0.0, 1)],
+            no_limits=True
+        )
+
+        priors = new_mapper.priors
+        assert priors[0].lower_limit == float("-inf")
+        assert priors[0].upper_limit == float("inf")
+        assert priors[1].lower_limit == float("-inf")
+        assert priors[1].upper_limit == float("inf")
+
 
 class TestPriorMean:
     def test_simple(self):

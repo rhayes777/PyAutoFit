@@ -1,3 +1,4 @@
+import copy
 import logging
 import multiprocessing
 from time import sleep
@@ -232,7 +233,10 @@ class GridSearch:
 
         for values in lists:
             job = self.job_for_analysis_grid_priors_and_values(
-                analysis, model, grid_priors, values
+                copy.deepcopy(analysis),
+                model,
+                grid_priors,
+                values
             )
             job_queue.put(job)
 

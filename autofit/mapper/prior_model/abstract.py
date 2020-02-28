@@ -1,7 +1,7 @@
 import copy
 import inspect
-from typing import Tuple, Optional
 from functools import wraps
+from typing import Tuple, Optional
 
 import numpy as np
 
@@ -282,7 +282,13 @@ class AbstractPriorModel(AbstractModel):
 
         return mapper
 
-    def mapper_from_gaussian_tuples(self, tuples, a=None, r=None):
+    def mapper_from_gaussian_tuples(
+            self,
+            tuples,
+            a=None,
+            r=None,
+            no_limits=False
+    ):
         """
         Creates a new model mapper from a list of floats describing the mean values
         of gaussian priors. The widths of the new priors are taken from the
@@ -295,6 +301,8 @@ class AbstractPriorModel(AbstractModel):
 
         Parameters
         ----------
+        no_limits
+            If True generated priors have infinite limits
         r
             The relative width to be assigned to gaussian priors
         a
@@ -339,7 +347,9 @@ class AbstractPriorModel(AbstractModel):
                 width = width_modifier(mean)
 
             arguments[prior] = GaussianPrior(
-                mean, max(tuples[i][1], width), *prior.limits
+                mean,
+                max(tuples[i][1], width),
+                *((float("-inf"), float("inf")) if no_limits else prior.limits)
             )
 
         return self.mapper_from_prior_arguments(arguments)
@@ -482,8 +492,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -660,7 +670,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
