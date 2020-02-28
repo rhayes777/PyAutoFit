@@ -84,6 +84,17 @@ class TestAssertion:
             assertion({prior_1: 0.6})
 
 
+class TestPromiseAssertion:
+    def test_simple_inequality(self, phase, collection):
+        model = phase.result.model.one.light
+
+        promise = model.axis_ratio < model.phi
+        assert isinstance(promise, af.AssertionPromise)
+
+        assertion = promise.populate(collection)
+        assert isinstance(assertion, af.GreaterThanLessThanAssertion)
+
+
 def test_assertion_in_model(prior_1, prior_2):
     model = af.ModelMapper()
     model.one = prior_1
