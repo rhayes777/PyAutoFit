@@ -4,8 +4,8 @@ from autofit import exc
 
 
 class AbstractAssertion(ABC):
-    def __init__(self):
-        self.name = None
+    def __init__(self, name=None):
+        self.name = name
 
     @abstractmethod
     def __call__(self, arg_dict: dict):

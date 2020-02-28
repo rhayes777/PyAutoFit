@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from autofit.mapper.prior_model.assertion import (
     GreaterThanLessThanAssertion,
+    GreaterThanLessThanEqualAssertion,
     CompoundAssertion
 )
 from autofit.tools.pipeline import ResultsCollection
@@ -199,16 +200,29 @@ class AbstractPromise(ABC):
         pass
 
     def __lt__(self, other):
-        return AssertionPromise(
+        return GreaterThanLessThanAssertionPromise(
             self,
             other
         )
 
     def __gt__(self, other):
-        return AssertionPromise(
+        return GreaterThanLessThanAssertionPromise(
             other,
             self
         )
+
+    def __le__(self, other):
+        return GreaterThanLessThanEqualAssertionPromise(
+            self,
+            other
+        )
+
+    def __ge__(self, other):
+        return GreaterThanLessThanEqualAssertionPromise(
+            other,
+            self
+        )
+
 
     @abstractmethod
     def populate(self, results_collection):
@@ -252,8 +266,27 @@ class AbstractPromise(ABC):
             raise e
 
 
-class CompoundAssertionPromise:
+class AbstractAssertionPromise(ABC):
+    def __init__(self, name=None):
+        self.name = name
+
+    @abstractmethod
+    def populate(self, results_collection):
+        """
+
+        Parameters
+        ----------
+        results_collection
+
+        Returns
+        -------
+
+        """
+
+
+class CompoundAssertionPromise(AbstractAssertionPromise):
     def __init__(self, assertion_1, assertion_2):
+        super().__init__()
         self.assertion_1 = assertion_1
         self.assertion_2 = assertion_2
 
@@ -268,8 +301,9 @@ class CompoundAssertionPromise:
         )
 
 
-class AssertionPromise:
+class ComparisonAssertionPromise(AbstractAssertionPromise, ABC):
     def __init__(self, lower, greater):
+        super().__init__()
         self._lower = lower
         self._greater = greater
 
@@ -301,6 +335,8 @@ class AssertionPromise:
         except AttributeError:
             return self._greater
 
+
+class GreaterThanLessThanAssertionPromise(ComparisonAssertionPromise):
     def populate(self, results_collection):
         lower = self.lower(
             results_collection
@@ -309,6 +345,20 @@ class AssertionPromise:
             results_collection
         )
         return GreaterThanLessThanAssertion(
+            lower=lower,
+            greater=greater
+        )
+
+
+class GreaterThanLessThanEqualAssertionPromise(ComparisonAssertionPromise):
+    def populate(self, results_collection):
+        lower = self.lower(
+            results_collection
+        )
+        greater = self.greater(
+            results_collection
+        )
+        return GreaterThanLessThanEqualAssertion(
             lower=lower,
             greater=greater
         )

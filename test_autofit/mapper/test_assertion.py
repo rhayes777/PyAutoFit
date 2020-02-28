@@ -99,7 +99,7 @@ def make_model(collection):
 class TestPromiseAssertion:
     def test_less_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio < promise_model.phi
-        assert isinstance(promise, af.AssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.GreaterThanLessThanAssertion)
@@ -108,7 +108,15 @@ class TestPromiseAssertion:
 
     def test_greater_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > promise_model.phi
-        assert isinstance(promise, af.AssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
+
+        assertion = promise.populate(collection)
+        assert model.axis_ratio == assertion._greater
+        assert model.phi == assertion._lower
+
+    def test_greater_than_equal(self, promise_model, collection, model):
+        promise = promise_model.axis_ratio >= promise_model.phi
+        assert isinstance(promise, af.GreaterThanLessThanEqualAssertionPromise)
 
         assertion = promise.populate(collection)
         assert model.axis_ratio == assertion._greater
@@ -116,7 +124,7 @@ class TestPromiseAssertion:
 
     def test_integer_promise_assertion(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > 1.0
-        assert isinstance(promise, af.AssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
 
         assertion = promise.populate(collection)
         assert model.axis_ratio == assertion._greater

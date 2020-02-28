@@ -67,7 +67,8 @@ from .tools.pipeline import ResultsCollection
 from .tools.promise import Promise
 from .tools.promise import AbstractPromise
 from .tools.promise import PromiseResult
-from .tools.promise import AssertionPromise
+from .tools.promise import GreaterThanLessThanAssertionPromise
+from .tools.promise import GreaterThanLessThanEqualAssertionPromise
 from .tools.promise import CompoundAssertionPromise
 from .tools.promise import last
 
