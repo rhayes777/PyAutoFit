@@ -64,12 +64,12 @@ from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
-from .tools.promise import Promise
-from .tools.promise import AbstractPromise
-from .tools.promise import PromiseResult
-from .tools.promise import GreaterThanLessThanAssertionPromise
-from .tools.promise import GreaterThanLessThanEqualAssertionPromise
-from .tools.promise import CompoundAssertionPromise
-from .tools.promise import last
+from autofit.mapper.promise import Promise
+from autofit.mapper.promise import AbstractPromise
+from autofit.mapper.promise import PromiseResult
+from autofit.mapper.promise import GreaterThanLessThanAssertionPromise
+from autofit.mapper.promise import GreaterThanLessThanEqualAssertionPromise
+from autofit.mapper.promise import CompoundAssertionPromise
+from autofit.mapper.promise import last
 
 __version__ = '0.50.5'

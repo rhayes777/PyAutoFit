@@ -4,7 +4,7 @@ from typing import Optional, Union, Tuple, List, Iterable
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.tools.pipeline import ResultsCollection
-from autofit.tools.promise import AbstractPromise
+from autofit.mapper.promise.promise import AbstractPromise
 
 
 class AbstractModel(ModelObject):
