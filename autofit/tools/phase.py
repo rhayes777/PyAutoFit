@@ -8,7 +8,7 @@ from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.paths import Paths
-from autofit.tools.promise import PromiseResult
+from autofit.mapper.promise.promise import PromiseResult
 
 
 class AbstractPhase:

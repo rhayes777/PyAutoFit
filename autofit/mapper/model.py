@@ -3,8 +3,8 @@ from typing import Optional, Union, Tuple, List, Iterable
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
+from autofit.mapper.promise import AbstractPromise, AbstractAssertionPromise
 from autofit.tools.pipeline import ResultsCollection
-from autofit.tools.promise import AbstractPromise
 
 
 class AbstractModel(ModelObject):
@@ -29,7 +29,7 @@ class AbstractModel(ModelObject):
         return populate(self, collection)
 
     def object_for_path(
-        self, path: Iterable[Union[str, int, type]]
+            self, path: Iterable[Union[str, int, type]]
     ) -> Union[object, List]:
         """
         Get the object at a given path.
@@ -129,7 +129,7 @@ def populate(obj, collection: ResultsCollection):
         return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
         return {key: populate(value, collection) for key, value in obj.items()}
-    if isinstance(obj, AbstractPromise):
+    if isinstance(obj, (AbstractPromise, AbstractAssertionPromise)):
         return obj.populate(collection)
     try:
         new = copy.copy(obj)
@@ -142,7 +142,7 @@ def populate(obj, collection: ResultsCollection):
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-    obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):
     """
     Recursively search the object for instances of a given class
@@ -221,7 +221,7 @@ class ModelInstance(AbstractModel):
             key: value
             for key, value in self.__dict__.items()
             if key not in ("id", "component_number", "item_number")
-            and not (isinstance(key, str) and key.startswith("_"))
+               and not (isinstance(key, str) and key.startswith("_"))
         }
 
     def values(self):
