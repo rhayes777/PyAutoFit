@@ -241,7 +241,6 @@ class GridSearch:
             job_queue.put(job)
 
         for process in processes:
-            print("KEY GRID BEFORE MULTIPROCESS", analysis.masked_dataset.grid.mask.sub_size)
             process.start()
 
         while len(results) < len(lists):
@@ -396,8 +395,7 @@ class Job:
         self.arguments = arguments
 
     def perform(self):
-        print("KEY GRId AFTER MULTIPROCESS", self.analysis.masked_dataset.grid.mask.sub_size)
-        self.analysis.masked_dataset.grid.mask.sub_size = 2
+     #   self.analysis.masked_dataset.grid.mask.sub_size = 2
         result = self.optimizer_instance.fit(self.analysis, self.model)
         result_list_row = [
             *[prior.lower_limit for prior in self.arguments.values()],
