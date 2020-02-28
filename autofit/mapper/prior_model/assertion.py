@@ -70,7 +70,9 @@ class GreaterThanLessThanAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        if self.lower(arg_dict) > self.greater(arg_dict):
+        lower = self.lower(arg_dict)
+        greater = self.greater(arg_dict)
+        if not lower < greater:
             raise exc.FitException(
                 "Assertion failed" + ("" if self.name is None else f" '{self.name}'")
             )

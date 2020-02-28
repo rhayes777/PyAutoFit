@@ -74,6 +74,8 @@ class TestAssertion:
         assertion({prior_1: 0.6})
         with pytest.raises(af.exc.FitException):
             assertion({prior_1: 0.4})
+        with pytest.raises(af.exc.FitException):
+            assertion({prior_1: 0.5})
 
     def test_compound_assertion(self, prior_1):
         assertion = (0.2 < prior_1) < 0.5
@@ -84,19 +86,32 @@ class TestAssertion:
             assertion({prior_1: 0.6})
 
 
-class TestPromiseAssertion:
-    def test_simple_inequality(self, phase, collection):
-        promise_model = phase.result.model.one.light
+@pytest.fixture(name="promise_model")
+def make_promise_model(phase):
+    return phase.result.model.one.light
 
+
+@pytest.fixture(name="model")
+def make_model(collection):
+    return collection.last.model.one.light
+
+
+class TestPromiseAssertion:
+    def test_less_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio < promise_model.phi
         assert isinstance(promise, af.AssertionPromise)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.GreaterThanLessThanAssertion)
-
-        model = collection.last.model.one.light
         assert model.axis_ratio == assertion._lower
         assert model.phi == assertion._greater
+
+    def test_greater_than(self, promise_model, collection, model):
+        promise = promise_model.axis_ratio > promise_model.phi
+        # noinspection PyUnresolvedReferences
+        assertion = promise.populate(collection)
+        assert model.axis_ratio == assertion._greater
+        assert model.phi == assertion._lower
 
 
 def test_assertion_in_model(prior_1, prior_2):
