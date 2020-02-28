@@ -108,10 +108,19 @@ class TestPromiseAssertion:
 
     def test_greater_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > promise_model.phi
-        # noinspection PyUnresolvedReferences
+        assert isinstance(promise, af.AssertionPromise)
+
         assertion = promise.populate(collection)
         assert model.axis_ratio == assertion._greater
         assert model.phi == assertion._lower
+
+    def test_integer_promise_assertion(self, promise_model, collection, model):
+        promise = promise_model.axis_ratio > 1.0
+        assert isinstance(promise, af.AssertionPromise)
+
+        assertion = promise.populate(collection)
+        assert model.axis_ratio == assertion._greater
+        assert 1.0 == assertion._lower
 
 
 def test_assertion_in_model(prior_1, prior_2):

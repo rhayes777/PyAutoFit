@@ -251,13 +251,35 @@ class AbstractPromise(ABC):
 
 class AssertionPromise:
     def __init__(self, lower, greater):
-        self.lower = lower
-        self.greater = greater
+        self._lower = lower
+        self._greater = greater
+
+    def lower(self, results_collection):
+        try:
+            return self._lower.populate(
+                results_collection
+            )
+        except AttributeError:
+            return self._lower
+
+    def greater(self, results_collection):
+        try:
+            return self._greater.populate(
+                results_collection
+            )
+        except AttributeError:
+            return self._greater
 
     def populate(self, results_collection):
+        lower = self.lower(
+            results_collection
+        )
+        greater = self.greater(
+            results_collection
+        )
         return GreaterThanLessThanAssertion(
-            self.lower.populate(results_collection),
-            self.greater.populate(results_collection)
+            lower=lower,
+            greater=greater
         )
 
 
