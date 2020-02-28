@@ -27,17 +27,16 @@ def make_greater_assertion(prior_1, prior_2):
 class TestAssertion:
     def test_lower_equal_assertion(self, prior_1, prior_2):
         assertion = prior_1 <= prior_2
-        assertion({prior_1: 0.4, prior_2: 0.5})
-        assertion({prior_1: 0.5, prior_2: 0.5})
-        with pytest.raises(af.exc.FitException):
-            assertion({prior_1: 0.6, prior_2: 0.5})
+        assert assertion({prior_1: 0.4, prior_2: 0.5}) is True
+        assert assertion({prior_1: 0.5, prior_2: 0.5}) is True
+        assert assertion({prior_1: 0.6, prior_2: 0.5}) is False
 
     def test_greater_equal_assertion(self, prior_1, prior_2):
         assertion = prior_1 >= prior_2
-        assertion({prior_1: 0.6, prior_2: 0.5})
-        assertion({prior_1: 0.5, prior_2: 0.5})
-        with pytest.raises(af.exc.FitException):
-            assertion({prior_1: 0.4, prior_2: 0.5})
+        assert assertion({prior_1: 0.6, prior_2: 0.5}) is True
+        assert assertion({prior_1: 0.5, prior_2: 0.5}) is True
+
+        assert assertion({prior_1: 0.4, prior_2: 0.5}) is False
 
     def test_lower_assertion(self, lower_assertion, prior_1, prior_2):
         assert isinstance(lower_assertion, a.GreaterThanLessThanAssertion)
@@ -52,38 +51,31 @@ class TestAssertion:
         assert greater_assertion._greater is prior_1
 
     def test_assert_on_arguments_lower(self, lower_assertion, prior_1, prior_2):
-        lower_assertion({prior_1: 0.3, prior_2: 0.5})
-        with pytest.raises(af.exc.FitException):
-            lower_assertion({prior_1: 0.6, prior_2: 0.5})
+        assert lower_assertion({prior_1: 0.3, prior_2: 0.5}) is True
+        assert lower_assertion({prior_1: 0.6, prior_2: 0.5}) is False
 
     def test_assert_on_arguments_greater(self, greater_assertion, prior_1, prior_2):
-        greater_assertion({prior_1: 0.6, prior_2: 0.5})
-        with pytest.raises(af.exc.FitException):
-            greater_assertion({prior_1: 0.3, prior_2: 0.5})
+        assert greater_assertion({prior_1: 0.6, prior_2: 0.5}) is True
+        assert greater_assertion({prior_1: 0.3, prior_2: 0.5}) is False
 
     def test_numerical_assertion(self, prior_1):
         assertion = prior_1 < 0.5
 
-        assertion({prior_1: 0.4})
-        with pytest.raises(af.exc.FitException):
-            assertion({prior_1: 0.6})
+        assert assertion({prior_1: 0.4}) is True
+        assert assertion({prior_1: 0.6}) is False
 
     def test_numerical_assertion_left(self, prior_1):
         assertion = 0.5 < prior_1
 
-        assertion({prior_1: 0.6})
-        with pytest.raises(af.exc.FitException):
-            assertion({prior_1: 0.4})
-        with pytest.raises(af.exc.FitException):
-            assertion({prior_1: 0.5})
+        assert assertion({prior_1: 0.6}) is True
+        assert assertion({prior_1: 0.4}) is False
+        assert assertion({prior_1: 0.5}) is False
 
     def test_compound_assertion(self, prior_1):
         assertion = (0.2 < prior_1) < 0.5
-        assertion({prior_1: 0.3})
-        with pytest.raises(af.exc.FitException):
-            assertion({prior_1: 0.1})
-        with pytest.raises(af.exc.FitException):
-            assertion({prior_1: 0.6})
+        assert assertion({prior_1: 0.3}) is True
+        assert assertion({prior_1: 0.1}) is False
+        assert assertion({prior_1: 0.6}) is False
 
 
 @pytest.fixture(name="promise_model")

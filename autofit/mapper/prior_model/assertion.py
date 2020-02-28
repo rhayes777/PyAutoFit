@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from autofit import exc
-
 
 class AbstractAssertion(ABC):
     def __init__(self, name=None):
@@ -72,10 +70,7 @@ class GreaterThanLessThanAssertion(ComparisonAssertion):
         """
         lower = self.lower(arg_dict)
         greater = self.greater(arg_dict)
-        if not lower < greater:
-            raise exc.FitException(
-                "Assertion failed" + ("" if self.name is None else f" '{self.name}'")
-            )
+        return lower < greater
 
 
 class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
@@ -94,10 +89,7 @@ class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        if not self.lower(arg_dict) <= self.greater(arg_dict):
-            raise exc.FitException(
-                "Assertion failed" + ("" if self.name is None else f" '{self.name}'")
-            )
+        return self.lower(arg_dict) <= self.greater(arg_dict)
 
 
 class CompoundAssertion(AbstractAssertion):
@@ -107,5 +99,4 @@ class CompoundAssertion(AbstractAssertion):
         self.assertion_2 = assertion_2
 
     def __call__(self, arg_dict: dict):
-        self.assertion_1(arg_dict)
-        self.assertion_2(arg_dict)
+        return self.assertion_1(arg_dict) and self.assertion_2(arg_dict)

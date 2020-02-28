@@ -1,7 +1,7 @@
 import copy
 import inspect
-from typing import Tuple, Optional
 from functools import wraps
+from typing import Tuple, Optional
 
 import numpy as np
 
@@ -101,6 +101,10 @@ class AbstractPriorModel(AbstractModel):
         model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
 
+        Raises
+        ------
+        exc.FitException
+            If any assertion attached to this object returns False.
         """
         arguments = dict(
             map(
@@ -113,8 +117,23 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        for assertion in self._assertions:
-            assertion(arguments)
+        failed_assertions = [
+            assertion
+            for assertion
+            in self._assertions
+            if not assertion(arguments)
+        ]
+        number_of_failed_assertions = len(failed_assertions)
+        if number_of_failed_assertions > 0:
+            name_string = "\n".join([
+                assertion.name
+                for assertion
+                in failed_assertions
+                if assertion.name is not None
+            ])
+            raise exc.FitException(
+                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
+            )
 
         return self.instance_for_arguments(arguments)
 
@@ -482,8 +501,8 @@ class AbstractPriorModel(AbstractModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, AbstractPriorModel)
-            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+                isinstance(other, AbstractPriorModel)
+                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -660,7 +679,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                mapper_value, AnnotationPriorModel
+                    mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
