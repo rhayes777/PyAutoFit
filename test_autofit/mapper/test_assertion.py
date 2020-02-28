@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit import exc
 from autofit.mapper.prior_model import assertion as a
 
 
@@ -130,13 +131,33 @@ class TestPromiseAssertion:
         assert isinstance(assertion, af.CompoundAssertion)
 
 
-def test_assertion_in_model(prior_1, prior_2):
-    model = af.ModelMapper()
-    model.one = prior_1
-    model.two = prior_2
+class TestModel:
+    def test_assertion_in_model(self, prior_1, prior_2):
+        model = af.ModelMapper()
+        model.one = prior_1
+        model.two = prior_2
 
-    model.add_assertion(prior_1 < prior_2)
+        model.add_assertion(prior_1 < prior_2)
 
-    model.instance_from_unit_vector([0.1, 0.2])
-    with pytest.raises(af.exc.FitException):
-        model.instance_from_unit_vector([0.2, 0.1])
+        model.instance_from_unit_vector([0.1, 0.2])
+        with pytest.raises(af.exc.FitException):
+            model.instance_from_unit_vector([0.2, 0.1])
+
+    def test_populate_assertion_promises(self, promise_model, collection):
+        model = af.ModelMapper()
+        model.light = promise_model
+        # noinspection PyTypeChecker
+        model.add_assertion(promise_model.axis_ratio < promise_model.phi)
+
+        model = model.populate(collection)
+        assert isinstance(model._assertions[0], a.AbstractAssertion)
+
+    def test_numerical(self):
+        model = af.ModelMapper()
+        model.add_assertion(True)
+        model.instance_from_unit_vector([])
+
+        model = af.ModelMapper()
+        model.add_assertion(False)
+        with pytest.raises(exc.FitException):
+            model.instance_from_unit_vector([])

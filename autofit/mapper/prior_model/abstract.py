@@ -12,7 +12,6 @@ from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
-from autofit.mapper.prior_model.assertion import AbstractAssertion
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.prior import GaussianPrior
@@ -46,7 +45,7 @@ class AbstractPriorModel(AbstractModel):
         super().__init__()
         self._assertions = list()
 
-    def add_assertion(self, assertion: AbstractAssertion, name=None):
+    def add_assertion(self, assertion, name=None):
         """
         Assert that some relationship holds between physical values associated with
         priors at the point an instance is created. If this fails a FitException is
@@ -59,7 +58,12 @@ class AbstractPriorModel(AbstractModel):
         name
             A name describing the assertion that is logged when it is violated.
         """
-        assertion.name = name
+        if assertion is True:
+            return
+        try:
+            assertion.name = name
+        except AttributeError:
+            pass
         self._assertions.append(assertion)
 
     @property
@@ -121,7 +125,9 @@ class AbstractPriorModel(AbstractModel):
             assertion
             for assertion
             in self._assertions
-            if not assertion(arguments)
+            if assertion is False or not assertion(
+                arguments
+            )
         ]
         number_of_failed_assertions = len(failed_assertions)
         if number_of_failed_assertions > 0:
@@ -129,7 +135,7 @@ class AbstractPriorModel(AbstractModel):
                 assertion.name
                 for assertion
                 in failed_assertions
-                if assertion.name is not None
+                if hasattr(assertion, "name") and assertion.name is not None
             ])
             raise exc.FitException(
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
