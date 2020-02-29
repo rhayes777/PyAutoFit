@@ -395,7 +395,6 @@ class Job:
         self.arguments = arguments
 
     def perform(self):
-     #   self.analysis.masked_dataset.grid.mask.sub_size = 2
         result = self.optimizer_instance.fit(self.analysis, self.model)
         result_list_row = [
             *[prior.lower_limit for prior in self.arguments.values()],
