@@ -123,6 +123,13 @@ class Paths:
         )
 
     @property
+    def has_completed_path(self) -> str:
+        """
+        A file indicating that a multinest search has been completed previously
+        """
+        return f"{self.phase_output_path}/.completed"
+
+    @property
     def execution_time_path(self) -> str:
         """
         The path to the output information for a phase.

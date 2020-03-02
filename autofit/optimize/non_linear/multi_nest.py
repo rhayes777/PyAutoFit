@@ -1,5 +1,6 @@
 import logging
 import math
+import os
 
 import numpy as np
 import pymultinest
@@ -125,56 +126,63 @@ class MultiNest(NonLinearOptimizer):
 
         multinest_output.save_model_info()
 
-        # noinspection PyUnusedLocal
-        def prior(cube, ndim, nparams):
-            # NEVER EVER REFACTOR THIS LINE! Haha.
+        if not os.path.exists(self.paths.has_completed_path):
+            # noinspection PyUnusedLocal
+            def prior(cube, ndim, nparams):
+                # NEVER EVER REFACTOR THIS LINE! Haha.
 
-            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+                phys_cube = model.vector_from_unit_vector(unit_vector=cube)
 
-            for i in range(len(phys_cube)):
-                cube[i] = phys_cube[i]
+                for i in range(len(phys_cube)):
+                    cube[i] = phys_cube[i]
 
-            return cube
+                return cube
 
-        fitness_function = MultiNest.Fitness(
-            self.paths,
-            analysis,
-            model.instance_from_vector,
-            multinest_output.output_results,
-        )
+            fitness_function = MultiNest.Fitness(
+                self.paths,
+                analysis,
+                model.instance_from_vector,
+                multinest_output.output_results,
+            )
 
-        logger.info("Running MultiNest...")
-        self.run(
-            fitness_function.__call__,
-            prior,
-            model.prior_count,
-            outputfiles_basename="{}/multinest".format(self.paths.path),
-            n_live_points=self.n_live_points,
-            const_efficiency_mode=self.const_efficiency_mode,
-            importance_nested_sampling=self.importance_nested_sampling,
-            evidence_tolerance=self.evidence_tolerance,
-            sampling_efficiency=self.sampling_efficiency,
-            null_log_evidence=self.null_log_evidence,
-            n_iter_before_update=self.n_iter_before_update,
-            multimodal=self.multimodal,
-            max_modes=self.max_modes,
-            mode_tolerance=self.mode_tolerance,
-            seed=self.seed,
-            verbose=self.verbose,
-            resume=self.resume,
-            context=self.context,
-            write_output=self.write_output,
-            log_zero=self.log_zero,
-            max_iter=self.max_iter,
-            init_MPI=self.init_MPI,
-        )
-        logger.info("MultiNest complete")
+            logger.info("Running MultiNest...")
+            self.run(
+                fitness_function.__call__,
+                prior,
+                model.prior_count,
+                outputfiles_basename="{}/multinest".format(self.paths.path),
+                n_live_points=self.n_live_points,
+                const_efficiency_mode=self.const_efficiency_mode,
+                importance_nested_sampling=self.importance_nested_sampling,
+                evidence_tolerance=self.evidence_tolerance,
+                sampling_efficiency=self.sampling_efficiency,
+                null_log_evidence=self.null_log_evidence,
+                n_iter_before_update=self.n_iter_before_update,
+                multimodal=self.multimodal,
+                max_modes=self.max_modes,
+                mode_tolerance=self.mode_tolerance,
+                seed=self.seed,
+                verbose=self.verbose,
+                resume=self.resume,
+                context=self.context,
+                write_output=self.write_output,
+                log_zero=self.log_zero,
+                max_iter=self.max_iter,
+                init_MPI=self.init_MPI,
+            )
+            logger.info("MultiNest complete")
 
-        # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
-        # TODO: not located here. Do we need to rely just ono the optimizer foldeR? This is a good idea if we always
-        # TODO: have a valid sym-link( e.g. even for aggregator use).
+            # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
+            # TODO: not located here. Do we need to rely just ono the optimizer foldeR? This is a good idea if we always
+            # TODO: have a valid sym-link( e.g. even for aggregator use).
 
-        self.paths.backup()
+            self.paths.backup()
+            open(self.paths.has_completed_path, "w+").close()
+        else:
+            logger.warning(
+                f"{self.paths.phase_name} has run previously - skipping"
+            )
+
         instance = multinest_output.most_likely_instance
         analysis.visualize(instance=instance, during_analysis=False)
         multinest_output.output_results(during_analysis=False)
