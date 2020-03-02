@@ -189,7 +189,7 @@ class MultiNest(NonLinearOptimizer):
         multinest_output.output_pdf_plots()
         result = Result(
             instance=instance,
-            figure_of_merit=multinest_output.evidence,
+            likelihood=multinest_output.evidence,
             previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
         )

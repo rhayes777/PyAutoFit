@@ -255,7 +255,7 @@ class TestGridNLOBehaviour:
         assert len(result.results) == 4
         assert result.no_dimensions == 2
         assert np.equal(
-            result.figure_of_merit_array, np.array([[1.0, 1.0], [1.0, 1.0]])
+            result.likelihood_merit_array, np.array([[1.0, 1.0], [1.0, 1.0]])
         ).all()
 
         grid_search = gs.GridSearch(
@@ -271,7 +271,7 @@ class TestGridNLOBehaviour:
 
         assert len(result.results) == 100
         assert result.no_dimensions == 2
-        assert result.figure_of_merit_array.shape == (10, 10)
+        assert result.likelihood_merit_array.shape == (10, 10)
 
     def test_results_parallel(self, mapper, container):
         grid_search = gs.GridSearch(
@@ -288,7 +288,7 @@ class TestGridNLOBehaviour:
 
         assert len(result.results) == 100
         assert result.no_dimensions == 2
-        assert result.figure_of_merit_array.shape == (10, 10)
+        assert result.likelihood_merit_array.shape == (10, 10)
 
     def test_generated_models_with_instances(self, grid_search, container, mapper):
         instance_profile = GeometryProfile()
@@ -339,9 +339,9 @@ class TestGridNLOBehaviour:
 
 
 class MockResult:
-    def __init__(self, figure_of_merit):
-        self.figure_of_merit = figure_of_merit
-        self.model = figure_of_merit
+    def __init__(self, likelihood_merit):
+        self.likelihood_merit = likelihood_merit
+        self.model = likelihood_merit
 
 
 @pytest.fixture(name="grid_search_result")
@@ -354,7 +354,7 @@ def make_grid_search_result():
 
 class TestGridSearchResult:
     def test_best_result(self, grid_search_result):
-        assert grid_search_result.best_result.figure_of_merit == 2
+        assert grid_search_result.best_result.likelihood_merit == 2
 
     def test_attributes(self, grid_search_result):
         assert grid_search_result.model == 2

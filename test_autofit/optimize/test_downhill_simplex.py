@@ -31,7 +31,7 @@ class TestDownhillSimplex:
 
         assert result.instance.mock_class.one == 1
         assert result.instance.mock_class.two == 2
-        assert result.figure_of_merit == 1
+        assert result.likelihood_merit == 1
 
     def test_model(self, downhill_simplex, model):
         model.mock_class = af.PriorModel(MockClassNLOx4)
@@ -39,7 +39,7 @@ class TestDownhillSimplex:
 
         assert result.instance.mock_class.one == 0.0
         assert result.instance.mock_class.two == 0.0
-        assert result.figure_of_merit == 1
+        assert result.likelihood_merit == 1
 
         assert result.model.mock_class.one.mean == 0.0
         assert result.model.mock_class.two.mean == 0.0
@@ -56,7 +56,7 @@ class TestDownhillSimplex:
         assert result.instance.model.two == 0.0
         assert result.model.model.one.mean == 0.0
         assert result.model.model.two.mean == 0.0
-        assert result.figure_of_merit == 1
+        assert result.likelihood_merit == 1
 
 
 class TestCopyWithNameExtension:
