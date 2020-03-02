@@ -13,6 +13,7 @@ from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.assertion import (
     GreaterThanLessThanAssertion,
     GreaterThanLessThanEqualAssertion,
+    unwrap
 )
 from autofit.mapper.prior_model.attribute_pair import (
     cast_collection,
@@ -52,6 +53,15 @@ class WidthModifier:
 
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.value == other.value
+
+
+class Limits:
+    @staticmethod
+    def for_class_and_attributes_name(cls, attribute_name):
+        limit_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls, [attribute_name, "gaussian_limits"], should_retry=False
+        )
+        return limit_dict["lower"], limit_dict["upper"]
 
 
 class RelativeWidthModifier(WidthModifier):
@@ -211,7 +221,7 @@ class Prior(ModelObject, ABC):
         except AttributeError:
             return False
 
-    def __gt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
+    def __gt__(self, other_prior) -> GreaterThanLessThanAssertion:
         """
         Add an assertion that values associated with this prior are greater.
 
@@ -225,9 +235,13 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanAssertion(greater=self, lower=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanAssertion(
+            greater=unwrap(self),
+            lower=unwrap(other_prior)
+        )
 
-    def __lt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
+    def __lt__(self, other_prior) -> GreaterThanLessThanAssertion:
         """
         Add an assertion that values associated with this prior are lower.
 
@@ -241,9 +255,13 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanAssertion(lower=self, greater=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanAssertion(
+            lower=unwrap(self),
+            greater=unwrap(other_prior)
+        )
 
-    def __ge__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+    def __ge__(self, other_prior) -> GreaterThanLessThanEqualAssertion:
         """
         Add an assertion that values associated with this prior are greater or equal.
 
@@ -257,9 +275,13 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanEqualAssertion(greater=self, lower=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanEqualAssertion(
+            greater=unwrap(self),
+            lower=unwrap(other_prior)
+        )
 
-    def __le__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+    def __le__(self, other_prior) -> GreaterThanLessThanEqualAssertion:
         """
         Add an assertion that values associated with this prior are lower or equal.
 
@@ -273,7 +295,11 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanEqualAssertion(lower=self, greater=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanEqualAssertion(
+            lower=unwrap(self),
+            greater=unwrap(other_prior)
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -311,7 +337,7 @@ class Prior(ModelObject, ABC):
             **{
                 key: value
                 for key, value in prior_dict.items()
-                if key not in ("type", "width_modifier")
+                if key not in ("type", "width_modifier", "gaussian_limits")
             }
         )
 
@@ -364,7 +390,7 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
+                "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
         )
 
     def __repr__(self):
@@ -414,10 +440,10 @@ class UniformPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "UniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "UniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
 
 
@@ -437,17 +463,17 @@ class LogUniformPrior(UniformPrior):
             A value for the attribute between the upper and lower limits
         """
         return 10.0 ** (
-            np.log10(self.lower_limit)
-            + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
+                np.log10(self.lower_limit)
+                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "LogUniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "LogUniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
 
 

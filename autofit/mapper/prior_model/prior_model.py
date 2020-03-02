@@ -306,6 +306,7 @@ class PriorModel(AbstractPriorModel):
             A new model mapper populated with Gaussian priors
         """
         new_model = copy.deepcopy(self)
+        new_model._assertions = list()
 
         model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}
 

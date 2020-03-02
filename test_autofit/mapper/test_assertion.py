@@ -3,6 +3,7 @@ import pytest
 import autofit as af
 from autofit import exc
 from autofit.mapper.prior_model import assertion as a
+from test_autofit import mock
 
 
 @pytest.fixture(name="prior_1")
@@ -77,6 +78,20 @@ class TestAssertion:
         assert assertion({prior_1: 0.3}) is True
         assert assertion({prior_1: 0.1}) is False
         assert assertion({prior_1: 0.6}) is False
+
+    # noinspection PyCallingNonCallable
+    def test_annotation(self):
+        model = af.Model(mock.DistanceClass)
+        assertion = model.first < model.second
+
+        assert assertion({
+            model.first.value: 0.3,
+            model.second.value: 0.4
+        }) is True
+        assert assertion({
+            model.first.value: 0.5,
+            model.second.value: 0.4
+        }) is False
 
 
 @pytest.fixture(name="promise_model")

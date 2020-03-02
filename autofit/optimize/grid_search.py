@@ -53,7 +53,7 @@ class GridSearchResult:
         for result in self.results:
             if (
                 best_result is None
-                or result.figure_of_merit > best_result.figure_of_merit
+                or result.likelihood_merit > best_result.likelihood_merit
             ):
                 best_result = result
         return best_result
@@ -79,16 +79,16 @@ class GridSearchResult:
         return [result.model for result in self.results]
 
     @property
-    def figure_of_merit_array(self):
+    def likelihood_merit_array(self):
         """
         Returns
         -------
-        figure_of_merit_array: np.ndarray
+        likelihood_merit_array: np.ndarray
             An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
             each entry being the figure of merit taken from the optimization performed at that point.
         """
         return np.reshape(
-            np.array([result.figure_of_merit for result in self.results]),
+            np.array([result.likelihood_merit for result in self.results]),
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
 
@@ -221,7 +221,7 @@ class GridSearch:
         lists = self.make_lists(grid_priors)
 
         results_list = [
-            list(map(model.name_for_prior, grid_priors)) + ["figure_of_merit"]
+            list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
         ]
 
         job_queue = multiprocessing.Queue()
@@ -282,7 +282,7 @@ class GridSearch:
         lists = self.make_lists(grid_priors)
 
         results_list = [
-            list(map(model.name_for_prior, grid_priors)) + ["figure_of_merit"]
+            list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
         ]
 
         for values in lists:
@@ -398,7 +398,7 @@ class Job:
         result = self.optimizer_instance.fit(self.analysis, self.model)
         result_list_row = [
             *[prior.lower_limit for prior in self.arguments.values()],
-            result.figure_of_merit,
+            result.likelihood_merit,
         ]
 
         return JobResult(result, result_list_row)

@@ -100,3 +100,11 @@ class CompoundAssertion(AbstractAssertion):
 
     def __call__(self, arg_dict: dict):
         return self.assertion_1(arg_dict) and self.assertion_2(arg_dict)
+
+
+def unwrap(obj):
+    try:
+        return obj._value
+    except AttributeError:
+        return obj
+

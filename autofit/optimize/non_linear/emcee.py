@@ -162,7 +162,7 @@ class Emcee(NonLinearOptimizer):
         output.output_pdf_plots()
         result = Result(
             instance=instance,
-            figure_of_merit=output.maximum_log_likelihood,
+            likelihood=output.maximum_log_likelihood,
             previous_model=model,
             gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),
         )

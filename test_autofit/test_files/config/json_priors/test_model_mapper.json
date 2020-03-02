@@ -1,0 +1,148 @@
+{
+    "MockClassMM": {
+        "one": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 1.0
+            },
+            "gaussian_limits": {
+                "lower": -10.0,
+                "upper": 10.0
+            }
+        },
+        "two": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "gaussian_limits": {
+                "lower": -10.0,
+                "upper": 10.0
+            }
+        }
+    },
+    "MockClassMMinstance": {
+        "one": {
+            "type": "Constant",
+            "value": 3.0
+        },
+        "two": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0
+        }
+    },
+    "MockClassGaussian": {
+        "one": {
+            "type": "Gaussian",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 1.0
+            },
+            "mean": 0.0,
+            "sigma": 1.0
+        },
+        "two": {
+            "type": "Gaussian",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "mean": 0.0,
+            "sigma": 1.0
+        }
+    },
+    "MockClassInf": {
+        "one": {
+            "type": "Gaussian",
+            "lower_limit": "-inf",
+            "upper_limit": 0.0,
+            "mean": 0.0,
+            "sigma": 1.0
+        },
+        "two": {
+            "type": "Gaussian",
+            "lower_limit": 0.0,
+            "upper_limit": "inf",
+            "mean": 0.0,
+            "sigma": 1.0
+        }
+    },
+    "ExtendedMockClass": {
+        "three": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0
+        }
+    },
+    "MockProfile": {
+        "centre_0": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.0
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "centre_1": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.0
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "intensity": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.0
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        }
+    },
+    "WithFloat": {
+        "value": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0
+        }
+    },
+    "WithTuple": {
+        "tup_0": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0
+        },
+        "tup_1": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0
+        }
+    }
+}
