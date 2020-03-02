@@ -93,7 +93,7 @@ class AbstractModel(ModelObject):
     def direct_tuples_with_type(self, class_type):
         return list(
             filter(
-                lambda t: t[0] != "id" and isinstance(t[1], class_type),
+                lambda t: t[0] != "id" and not t[0].startswith("_") and isinstance(t[1], class_type),
                 self.__dict__.items(),
             )
         )
