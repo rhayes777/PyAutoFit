@@ -79,17 +79,18 @@ class TestAssertion:
         assert assertion({prior_1: 0.1}) is False
         assert assertion({prior_1: 0.6}) is False
 
+    # noinspection PyCallingNonCallable
     def test_annotation(self):
         model = af.Model(mock.DistanceClass)
         assertion = model.first < model.second
 
         assert assertion({
-            model.first: 0.3,
-            model.second: 0.4
+            model.first.value: 0.3,
+            model.second.value: 0.4
         }) is True
         assert assertion({
-            model.first: 0.5,
-            model.second: 0.4
+            model.first.value: 0.5,
+            model.second.value: 0.4
         }) is False
 
 

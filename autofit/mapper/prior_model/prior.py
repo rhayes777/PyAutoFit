@@ -13,6 +13,7 @@ from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.assertion import (
     GreaterThanLessThanAssertion,
     GreaterThanLessThanEqualAssertion,
+    unwrap
 )
 from autofit.mapper.prior_model.attribute_pair import (
     cast_collection,
@@ -220,7 +221,7 @@ class Prior(ModelObject, ABC):
         except AttributeError:
             return False
 
-    def __gt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
+    def __gt__(self, other_prior) -> GreaterThanLessThanAssertion:
         """
         Add an assertion that values associated with this prior are greater.
 
@@ -234,9 +235,13 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanAssertion(greater=self, lower=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanAssertion(
+            greater=unwrap(self),
+            lower=unwrap(other_prior)
+        )
 
-    def __lt__(self, other_prior: "Prior") -> GreaterThanLessThanAssertion:
+    def __lt__(self, other_prior) -> GreaterThanLessThanAssertion:
         """
         Add an assertion that values associated with this prior are lower.
 
@@ -250,9 +255,13 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanAssertion(lower=self, greater=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanAssertion(
+            lower=unwrap(self),
+            greater=unwrap(other_prior)
+        )
 
-    def __ge__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+    def __ge__(self, other_prior) -> GreaterThanLessThanEqualAssertion:
         """
         Add an assertion that values associated with this prior are greater or equal.
 
@@ -266,9 +275,13 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanEqualAssertion(greater=self, lower=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanEqualAssertion(
+            greater=unwrap(self),
+            lower=unwrap(other_prior)
+        )
 
-    def __le__(self, other_prior: "Prior") -> GreaterThanLessThanEqualAssertion:
+    def __le__(self, other_prior) -> GreaterThanLessThanEqualAssertion:
         """
         Add an assertion that values associated with this prior are lower or equal.
 
@@ -282,7 +295,11 @@ class Prior(ModelObject, ABC):
         -------
         An assertion object
         """
-        return GreaterThanLessThanEqualAssertion(lower=self, greater=other_prior)
+        # noinspection PyTypeChecker
+        return GreaterThanLessThanEqualAssertion(
+            lower=unwrap(self),
+            greater=unwrap(other_prior)
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
