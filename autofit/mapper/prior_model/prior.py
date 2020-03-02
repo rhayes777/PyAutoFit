@@ -54,6 +54,15 @@ class WidthModifier:
         return self.__class__ is other.__class__ and self.value == other.value
 
 
+class Limits:
+    @staticmethod
+    def for_class_and_attributes_name(cls, attribute_name):
+        limit_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls, [attribute_name, "limits"]
+        )
+        return limit_dict["lower"], limit_dict["upper"]
+
+
 class RelativeWidthModifier(WidthModifier):
     def __call__(self, mean):
         return self.value * mean
@@ -311,7 +320,7 @@ class Prior(ModelObject, ABC):
             **{
                 key: value
                 for key, value in prior_dict.items()
-                if key not in ("type", "width_modifier")
+                if key not in ("type", "width_modifier", "limit")
             }
         )
 
@@ -364,7 +373,7 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
+                "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
         )
 
     def __repr__(self):
@@ -414,10 +423,10 @@ class UniformPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "UniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "UniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
 
 
@@ -437,17 +446,17 @@ class LogUniformPrior(UniformPrior):
             A value for the attribute between the upper and lower limits
         """
         return 10.0 ** (
-            np.log10(self.lower_limit)
-            + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
+                np.log10(self.lower_limit)
+                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            "LogUniformPrior, lower_limit = "
-            + str(self.lower_limit)
-            + ", upper_limit = "
-            + str(self.upper_limit)
+                "LogUniformPrior, lower_limit = "
+                + str(self.lower_limit)
+                + ", upper_limit = "
+                + str(self.upper_limit)
         )
 
 

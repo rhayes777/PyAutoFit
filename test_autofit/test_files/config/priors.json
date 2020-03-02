@@ -79,6 +79,10 @@
                 "width_modifier": {
                     "type": "Relative",
                     "value": 0.1
+                },
+                "limit": {
+                    "lower": -Infinity,
+                    "upper": Infinity
                 }
             },
             "two": {
@@ -88,6 +92,10 @@
                 "width_modifier": {
                     "type": "Relative",
                     "value": 0.5
+                },
+                "limit": {
+                    "lower": -Infinity,
+                    "upper": Infinity
                 }
             },
             "three": {
@@ -97,6 +105,10 @@
                 "width_modifier": {
                     "type": "Relative",
                     "value": 1.0
+                },
+                "limit": {
+                    "lower": -Infinity,
+                    "upper": Infinity
                 }
             }
         },
@@ -121,7 +133,11 @@
             "intensity": {
                 "type": "Uniform",
                 "lower_limit": 0.0,
-                "upper_limit": 1.0
+                "upper_limit": 1.0,
+                "limit": {
+                    "lower": 0.0,
+                    "upper": 10.0
+                }
             }
         },
         "AbstractEllipticalSersic": {
@@ -309,6 +325,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 0.05
+                },
+                "limit": {
+                    "lower": -Infinity,
+                    "upper": Infinity
                 }
             },
             "centre_1": {
@@ -318,6 +338,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 0.05
+                },
+                "limit": {
+                    "lower": -Infinity,
+                    "upper": Infinity
                 }
             }
         },
@@ -330,6 +354,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 0.1
+                },
+                "limit": {
+                    "lower": 0.0,
+                    "upper": 1.0
                 }
             },
             "phi": {
@@ -339,6 +367,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 10.0
+                },
+                "limit": {
+                    "lower": 0.0,
+                    "upper": 180.0
                 }
             }
         },
@@ -386,6 +418,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 1.0
+                },
+                "limit": {
+                    "lower": -120.0,
+                    "upper": 120.0
                 }
             },
             "two": {
@@ -395,6 +431,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -120.0,
+                    "upper": 120.0
                 }
             },
             "three": {
@@ -404,6 +444,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -120.0,
+                    "upper": 120.0
                 }
             },
             "four": {
@@ -413,6 +457,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -120.0,
+                    "upper": 120.0
                 }
             }
         },
@@ -424,6 +472,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 1.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "two": {
@@ -433,6 +485,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "three": {
@@ -442,6 +498,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "four": {
@@ -451,6 +511,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "five": {
@@ -460,6 +524,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             }
         },
@@ -471,6 +539,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 1.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "one_1": {
@@ -480,6 +552,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 1.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "two_0": {
@@ -489,6 +565,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "two_1": {
@@ -498,6 +578,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "three": {
@@ -507,6 +591,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 3.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             },
             "four": {
@@ -516,6 +604,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 4.0
+                },
+                "limit": {
+                    "lower": -100.0,
+                    "upper": 101.0
                 }
             }
         },
@@ -527,6 +619,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -Infinity,
+                    "upper": Infinity
                 }
             }
         },
@@ -567,6 +663,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 1.0
+                },
+                "limit": {
+                    "lower": -10.0,
+                    "upper": 10.0
                 }
             },
             "two": {
@@ -576,6 +676,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 2.0
+                },
+                "limit": {
+                    "lower": -10.0,
+                    "upper": 10.0
                 }
             }
         },
@@ -645,6 +749,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 0.0
+                },
+                "limit": {
+                    "lower": 0.0,
+                    "upper": 1.0
                 }
             },
             "centre_1": {
@@ -654,6 +762,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 0.0
+                },
+                "limit": {
+                    "lower": 0.0,
+                    "upper": 1.0
                 }
             },
             "intensity": {
@@ -663,6 +775,10 @@
                 "width_modifier": {
                     "type": "Absolute",
                     "value": 0.0
+                },
+                "limit": {
+                    "lower": 0.0,
+                    "upper": 1.0
                 }
             }
         },

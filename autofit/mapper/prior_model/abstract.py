@@ -15,7 +15,7 @@ from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.deferred import DeferredArgument
 from autofit.mapper.prior_model.prior import GaussianPrior
-from autofit.mapper.prior_model.prior import TuplePrior, Prior, WidthModifier
+from autofit.mapper.prior_model.prior import TuplePrior, Prior, WidthModifier, Limits
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -350,15 +350,13 @@ class AbstractPriorModel(AbstractModel):
             cls = prior_class_dict[prior]
             mean, sigma = tuples[i]
 
-            def get_name():
-                name = prior_tuple.name
-                # Use the name of the collection for configuration when a prior's name
-                # is just a number (i.e. its position in a collection)
-                if name.isdigit():
-                    name = self.path_for_prior(prior_tuple.prior)[-2]
-                return name
+            name = prior_tuple.name
+            # Use the name of the collection for configuration when a prior's name
+            # is just a number (i.e. its position in a collection)
+            if name.isdigit():
+                name = self.path_for_prior(prior_tuple.prior)[-2]
 
-            width_modifier = WidthModifier.for_class_and_attribute_name(cls, get_name())
+            width_modifier = WidthModifier.for_class_and_attribute_name(cls, name)
 
             if a is not None and r is not None:
                 raise exc.PriorException(
@@ -371,10 +369,21 @@ class AbstractPriorModel(AbstractModel):
             else:
                 width = width_modifier(mean)
 
+            if no_limits:
+                limits = (float("-inf"), float("inf"))
+            else:
+                try:
+                    limits = Limits.for_class_and_attributes_name(
+                        cls,
+                        name
+                    )
+                except exc.PriorException:
+                    limits = prior.limits
+
             arguments[prior] = GaussianPrior(
                 mean,
                 max(tuples[i][1], width),
-                *((float("-inf"), float("inf")) if no_limits else prior.limits)
+                *limits
             )
 
         return self.mapper_from_prior_arguments(arguments)
