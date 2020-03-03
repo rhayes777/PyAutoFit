@@ -154,7 +154,7 @@ class Result:
     """
 
     def __init__(
-        self, instance, likelihood, previous_model=None, gaussian_tuples=None
+        self, instance, likelihood, output=None, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
@@ -170,6 +170,7 @@ class Result:
         """
         self.instance = instance
         self.likelihood = likelihood
+        self.output = output
         self.previous_model = previous_model
         self.gaussian_tuples = gaussian_tuples
         self.__model = None
