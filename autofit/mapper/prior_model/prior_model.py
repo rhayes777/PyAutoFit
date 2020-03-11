@@ -59,8 +59,6 @@ class PriorModel(AbstractPriorModel):
 
         self.cls = cls
 
-        print(cls)
-
         try:
             annotations = inspect.getfullargspec(cls).annotations
         except TypeError:
