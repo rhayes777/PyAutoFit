@@ -325,7 +325,7 @@ class TestMultiNestOutputConverged:
         assert weight == 0.1
         assert likelihood == -0.5 * 9999999.9
 
-    def test__total_samples__accepted_samples__acceptance_rate__from_resume_file(self, multi_nest_resume_path):
+    def test__total_samples__accepted_samples__acceptance_ratio__from_resume_file(self, multi_nest_resume_path):
 
         af.conf.instance.output_path = multi_nest_resume_path + "/2_classes"
 
@@ -336,7 +336,7 @@ class TestMultiNestOutputConverged:
 
         assert multinest_output.accepted_samples == 3000
         assert multinest_output.total_samples == 12345
-        assert multinest_output.acceptance_rate == 3000 / 12345
+        assert multinest_output.acceptance_ratio == 3000 / 12345
 
 
 class TestMultiNestOutputUnconverged:
