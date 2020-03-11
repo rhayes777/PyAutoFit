@@ -35,12 +35,14 @@ def make_instance(galaxy_1, galaxy_2):
 
 class TestModelInstance:
     def test_as_model(self, instance):
+
         model = instance.as_model()
         assert isinstance(model, af.ModelMapper)
         assert isinstance(model.galaxy_2, af.PriorModel)
         assert model.galaxy_2.cls == mock.Galaxy
 
     def test_object_for_path(self, instance, galaxy_1, galaxy_2):
+
         assert instance.object_for_path(("galaxy_2",)) is galaxy_2
         assert instance.object_for_path(("sub", "galaxy_1")) is galaxy_1
         assert instance.object_for_path(("sub", "sub", "galaxy_1")) is galaxy_1

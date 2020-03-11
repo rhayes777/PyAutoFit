@@ -54,6 +54,20 @@ def test_multi_nest_phys_live():
     return multi_nest_phys_live_path
 
 
+@pytest.fixture(name="multi_nest_resume_path")
+def test_multi_nest_resume():
+    multi_nest_resume_path = "{}/../test_files/non_linear/multinest/resume".format(
+        os.path.dirname(os.path.realpath(__file__))
+    )
+
+    if os.path.exists(multi_nest_resume_path):
+        shutil.rmtree(multi_nest_resume_path)
+
+    os.mkdir(multi_nest_resume_path)
+
+    return multi_nest_resume_path
+
+
 def create_path(func):
     @wraps(func)
     def wrapper(path):
@@ -184,6 +198,20 @@ def create_phys_live_4_parameters(path):
         )
 
 
+
+@create_path
+def create_resume(path):
+    with open(path + "/multinestresume.dat", "w+") as resume:
+        resume.write(
+            " F\n"
+            "        3000       12345           1          50\n"
+            "    0.502352236277967168E+05    0.502900436569068333E+05\n"
+            " T\n"
+            "   0\n"
+            " T F     0          50\n"
+            "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n")
+
+
 class TestMultiNestOutputConverged:
     def test__maximum_log_likelihood_and_evidence__from_summary(
         self, multi_nest_summary_path
@@ -267,7 +295,7 @@ class TestMultiNestOutputConverged:
         assert params[2][0:2] == pytest.approx((2.93, 3.07), 1e-2)
         assert params[3][0:2] == pytest.approx((3.93, 4.07), 1e-2)
 
-    def test__samples__total_samples__model_parameters_weight_and_likelihood_from_sample_index__from_weighted_samples(
+    def test__samples__model_parameters_weight_and_likelihood_from_sample_index__from_weighted_samples(
         self, multi_nest_samples_path
     ):
         af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
@@ -285,7 +313,6 @@ class TestMultiNestOutputConverged:
         weight = multinest_output.weight_from_sample_index(sample_index=0)
         likelihood = multinest_output.likelihood_from_sample_index(sample_index=0)
 
-        assert multinest_output.total_samples == 10
         assert model == [1.1, 2.1, 3.1, 4.1]
         assert weight == 0.02
         assert likelihood == -0.5 * 9999999.9
@@ -294,10 +321,22 @@ class TestMultiNestOutputConverged:
         weight = multinest_output.weight_from_sample_index(sample_index=5)
         likelihood = multinest_output.likelihood_from_sample_index(sample_index=5)
 
-        assert multinest_output.total_samples == 10
         assert model == [1.0, 2.0, 3.0, 4.0]
         assert weight == 0.1
         assert likelihood == -0.5 * 9999999.9
+
+    def test__total_samples__accepted_samples__acceptance_rate__from_resume_file(self, multi_nest_resume_path):
+
+        af.conf.instance.output_path = multi_nest_resume_path + "/2_classes"
+
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        multinest_output = MultiNestOutput(model, Paths())
+
+        create_resume(path=multinest_output.paths.backup_path)
+
+        assert multinest_output.accepted_samples == 3000
+        assert multinest_output.total_samples == 12345
+        assert multinest_output.acceptance_rate == 3000 / 12345
 
 
 class TestMultiNestOutputUnconverged:

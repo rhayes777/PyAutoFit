@@ -47,6 +47,13 @@ class MultiNest(NonLinearOptimizer):
         self.log_zero = self.config("log_zero", float)
         self.max_iter = self.config("max_iter", int)
         self.init_MPI = self.config("init_MPI", bool)
+        self.terminate_at_acceptance_ratio = conf.instance.non_linear.get(
+            "MultiNest", "terminate_at_acceptance_ratio", bool
+        )
+        self.acceptance_ratio_threshold = conf.instance.non_linear.get(
+            "MultiNest", "acceptance_ratio_threshold", float
+        )
+
         self.run = run
 
         logger.debug("Creating MultiNest NLO")
@@ -79,10 +86,12 @@ class MultiNest(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_vector, output_results):
-            super().__init__(paths, analysis, output_results)
+        def __init__(self, paths, analysis, instance_from_vector, multinest_output, terminate_at_acceptance_ratio,
+                     acceptance_ratio_threshold):
+            super().__init__(paths, analysis, multinest_output.output_results)
             self.instance_from_vector = instance_from_vector
             self.accepted_samples = 0
+            self.multinest_output = multinest_output
 
             self.model_results_output_interval = conf.instance.general.get(
                 "output", "model_results_output_interval", int
@@ -96,9 +105,19 @@ class MultiNest(NonLinearOptimizer):
             self.resampling_likelihood = conf.instance.non_linear.get(
                 "MultiNest", "null_log_evidence", float
             )
+            self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
+            self.acceptance_ratio_threshold = acceptance_ratio_threshold
+
+            self.terminate_has_begun = False
             self.stagger_accepted_samples = 0
 
         def __call__(self, cube, ndim, nparams, lnew):
+
+            if self.terminate_at_acceptance_ratio:
+                if os.path.isfile(self.paths.file_summary):
+                    if (self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
+                        self.terminate_has_begun = True
+                        return self.max_likelihood
 
             try:
                 instance = self.instance_from_vector(cube)
@@ -142,7 +161,9 @@ class MultiNest(NonLinearOptimizer):
                 self.paths,
                 analysis,
                 model.instance_from_vector,
-                multinest_output.output_results,
+                multinest_output,
+                self.terminate_at_acceptance_ratio,
+                self.acceptance_ratio_threshold
             )
 
             logger.info("Running MultiNest...")
@@ -345,7 +366,24 @@ class MultiNestOutput(NestedSamplingOutput):
 
     @property
     def total_samples(self):
-        return len(self.pdf.weights)
+        resume = open(self.paths.file_resume)
+
+        resume.seek(1)
+        resume.read(19)
+        return float(resume.read(8))
+
+    @property
+    def accepted_samples(self):
+
+        resume = open(self.paths.file_resume)
+
+        resume.seek(1)
+        resume.read(8)
+        return float(resume.read(10))
+
+    @property
+    def acceptance_ratio(self):
+        return self.accepted_samples / self.total_samples
 
     def vector_from_sample_index(self, sample_index):
         """From a sample return the model parameters.
