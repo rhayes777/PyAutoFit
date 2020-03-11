@@ -28,6 +28,12 @@ def test_attribute(aggregator):
     assert aggregator.dataset == ["dataset1", "dataset1", "dataset2"]
 
 
+def test_indexing(aggregator):
+    assert aggregator[1:].pipeline == ["pipeline1", "pipeline2"]
+    assert aggregator[-1:].pipeline == ["pipeline2"]
+    assert aggregator[0].pipeline == "pipeline1"
+
+
 def test_filter(aggregator):
     result = aggregator.filter(pipeline="pipeline1")
     assert len(result) == 2
