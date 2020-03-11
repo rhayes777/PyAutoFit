@@ -177,7 +177,8 @@ class AbstractPromise(ABC):
             The path through the result collection to the result object required. This is used for hyper phases
             where a result object can have child result objects for each phase extension.
         is_instance
-            True if the promised object belongs to the instance result object
+            True if the promised object belongs to the instance result object. Otherwise it belongs to the
+            model.
         """
         self.path = path
         self.is_instance = is_instance
