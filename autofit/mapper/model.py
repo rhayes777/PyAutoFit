@@ -3,7 +3,6 @@ from typing import Optional, Union, Tuple, List, Iterable
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
-from autofit.mapper.promise import AbstractPromise, AbstractAssertionPromise
 from autofit.tools.pipeline import ResultsCollection
 
 
@@ -133,6 +132,7 @@ def populate(obj, collection: ResultsCollection):
         return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
         return {key: populate(value, collection) for key, value in obj.items()}
+    from autofit.mapper.promise import AbstractPromise, AbstractAssertionPromise
     if isinstance(obj, (AbstractPromise, AbstractAssertionPromise)):
         return obj.populate(collection)
     try:

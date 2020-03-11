@@ -26,6 +26,31 @@ def make_greater_assertion(prior_1, prior_2):
     return prior_1 > prior_2
 
 
+def test_as_argument(
+        prior_1,
+        prior_2
+):
+    model = af.Collection(
+        truth=prior_1 < prior_2
+    )
+
+    result = model.instance_for_arguments(
+        {
+            prior_1: 0,
+            prior_2: 1
+        }
+    )
+    assert result.truth is True
+
+    result = model.instance_for_arguments(
+        {
+            prior_1: 1,
+            prior_2: 0
+        }
+    )
+    assert result.truth is False
+
+
 class TestAssertion:
     def test_lower_equal_assertion(self, prior_1, prior_2):
         assertion = prior_1 <= prior_2

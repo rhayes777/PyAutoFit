@@ -1,9 +1,5 @@
 from abc import ABC, abstractmethod
 
-from autofit.mapper.promise.assertion_promise import (
-    GreaterThanLessThanAssertionPromise,
-    GreaterThanLessThanEqualAssertionPromise
-)
 from autofit.tools.pipeline import ResultsCollection
 
 
@@ -207,24 +203,28 @@ class AbstractPromise(ABC):
         pass
 
     def __lt__(self, other):
+        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanAssertionPromise
         return GreaterThanLessThanAssertionPromise(
             self,
             other
         )
 
     def __gt__(self, other):
+        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanAssertionPromise
         return GreaterThanLessThanAssertionPromise(
             other,
             self
         )
 
     def __le__(self, other):
+        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanEqualAssertionPromise
         return GreaterThanLessThanEqualAssertionPromise(
             self,
             other
         )
 
     def __ge__(self, other):
+        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanEqualAssertionPromise
         return GreaterThanLessThanEqualAssertionPromise(
             other,
             self

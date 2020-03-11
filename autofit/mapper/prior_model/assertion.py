@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
-class AbstractAssertion(ABC):
+class AbstractAssertion(AbstractPriorModel):
     def __init__(self, name=None):
-        self.name = name
+        super().__init__()
+        self._name = name
 
     @abstractmethod
     def __call__(self, arg_dict: dict):
