@@ -88,7 +88,11 @@ class AbstractModel(ModelObject):
         path_instance_tuples: [((str,), object)]
             Tuples containing the path to and instance of objects of the given type.
         """
-        return path_instances_of_class(self, cls, ignore_class=ignore_class)
+        return path_instances_of_class(
+            self,
+            cls,
+            ignore_class=ignore_class
+        )
 
     def direct_tuples_with_type(self, class_type):
         return list(
@@ -174,7 +178,13 @@ def path_instances_of_class(
             d = obj.__dict__
 
         for key, value in d.items():
-            for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
+            if key.startswith("_"):
+                continue
+            for item in path_instances_of_class(
+                    value,
+                    cls,
+                    ignore_class=ignore_class
+            ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
                 else:

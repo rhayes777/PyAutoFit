@@ -164,11 +164,20 @@ class TestIndexLast:
 
 
 class TestCase:
+    def test_does_not_contribute_to_prior_count(
+            self,
+            model_promise
+    ):
+        model = af.ModelMapper(
+            argument=model_promise
+        )
+        assert model.prior_count == 0
+
     def test_model_promise(self, model_promise, phase):
         assert isinstance(model_promise, af.Promise)
         assert model_promise.path == ("one", "redshift")
         assert model_promise.is_instance is False
-        assert model_promise.phase is phase
+        assert model_promise._phase is phase
 
     def test_optional(self, collection, phase):
         promise = phase.result.model.optional.heart
@@ -184,7 +193,7 @@ class TestCase:
         assert isinstance(instance_promise, af.Promise)
         assert instance_promise.path == ("one", "redshift")
         assert instance_promise.is_instance is True
-        assert instance_promise.phase is phase
+        assert instance_promise._phase is phase
 
     def test_non_existent(self, phase):
         with pytest.raises(AttributeError):

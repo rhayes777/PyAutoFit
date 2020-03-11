@@ -126,7 +126,7 @@ class PromiseResult(AbstractPromiseResult):
             model of the origin phase
         """
         super().__init__(*result_path)
-        self.phase = phase
+        self._phase = phase
         self.assert_exists = assert_exists
 
     @property
@@ -135,7 +135,9 @@ class PromiseResult(AbstractPromiseResult):
         A promise for an object in the model result. This might be a prior or prior model.
         """
         return Promise(
-            self.phase, result_path=self.result_path, assert_exists=self.assert_exists
+            self._phase,
+            result_path=self.result_path,
+            assert_exists=self.assert_exists
         )
 
     @property
@@ -144,14 +146,19 @@ class PromiseResult(AbstractPromiseResult):
         A promise for an object in the best fit result. This must be an instance or instance.
         """
         return Promise(
-            self.phase,
+            self._phase,
             result_path=self.result_path,
             is_instance=True,
             assert_exists=self.assert_exists,
         )
 
     def __getattr__(self, item):
-        return PromiseResult(self.phase, *self.result_path, item, assert_exists=False)
+        return PromiseResult(
+            self._phase,
+            *self.result_path,
+            item,
+            assert_exists=False
+        )
 
 
 class AbstractPromise(ABC):
@@ -305,14 +312,14 @@ class Promise(AbstractPromise):
             relative=relative,
             is_optional=is_optional,
         )
-        self.phase = phase
+        self._phase = phase
         self.assert_exists = assert_exists
         if assert_exists:
             phase.model.object_for_path(path)
 
     def __getattr__(self, item):
         if item in (
-                "phase",
+                "_phase",
                 "path",
                 "is_instance",
                 "_populate_from_results",
@@ -321,7 +328,7 @@ class Promise(AbstractPromise):
         ):
             return super().__getattribute__(item)
         return Promise(
-            self.phase,
+            self._phase,
             *self.path,
             item,
             result_path=self.result_path,
@@ -331,7 +338,7 @@ class Promise(AbstractPromise):
 
     def __getitem__(self, item):
         return Promise(
-            self.phase,
+            self._phase,
             *self.path,
             item,
             result_path=self.result_path,
@@ -342,7 +349,7 @@ class Promise(AbstractPromise):
     @property
     def optional(self):
         return Promise(
-            self.phase,
+            self._phase,
             *self.path,
             result_path=self.result_path,
             assert_exists=False,
@@ -369,7 +376,9 @@ class Promise(AbstractPromise):
         obj
             The promised prior, prior model, instance or instance
         """
-        results = results_collection.from_phase(self.phase.phase_name)
+        results = results_collection.from_phase(
+            self._phase.phase_name
+        )
         return self._populate_from_results(results)
 
 
