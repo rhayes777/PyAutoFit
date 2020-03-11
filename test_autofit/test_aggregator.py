@@ -34,6 +34,15 @@ def test_indexing(aggregator):
     assert aggregator[0].pipeline == "pipeline1"
 
 
+def test_filter_index(aggregator):
+    assert aggregator.filter(
+        pipeline="pipeline1"
+    )[1:].pipeline == ["pipeline1"]
+    assert aggregator[1:].filter(
+        pipeline="pipeline1"
+    ).pipeline == ["pipeline1"]
+
+
 def test_filter(aggregator):
     result = aggregator.filter(pipeline="pipeline1")
     assert len(result) == 2
