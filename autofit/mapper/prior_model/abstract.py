@@ -30,7 +30,7 @@ def check_assertions(func):
             assertion
             for assertion
             in s._assertions
-            if assertion is False or not assertion(
+            if assertion is False or assertion is not True and not assertion.instance_for_arguments(
                 arguments
             )
         ]
@@ -549,7 +549,13 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def prior_class_dict(self):
-        raise NotImplementedError()
+        from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+
+        d = {prior[1]: self.cls for prior in self.prior_tuples}
+        for prior_model in self.prior_model_tuples:
+            if not isinstance(prior_model[1], AnnotationPriorModel):
+                d.update(prior_model[1].prior_class_dict)
+        return d
 
     def instance_for_arguments(self, arguments):
         raise NotImplementedError()

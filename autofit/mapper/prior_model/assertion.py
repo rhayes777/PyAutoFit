@@ -1,17 +1,12 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
-class AbstractAssertion(AbstractPriorModel):
+class AbstractAssertion(AbstractPriorModel, ABC):
     def __init__(self, name=None):
         super().__init__()
         self._name = name
-
-    @abstractmethod
-    def __call__(self, arg_dict: dict):
-        """
-
-        """
 
 
 class ComparisonAssertion(AbstractAssertion, ABC):
@@ -55,14 +50,14 @@ class ComparisonAssertion(AbstractAssertion, ABC):
 
 
 class GreaterThanLessThanAssertion(ComparisonAssertion):
-    def __call__(self, arg_dict: dict):
+    def instance_for_arguments(self, arguments):
         """
         Assert that the value in the dictionary associated with the lower
         prior is lower than the value associated with the greater prior.
 
         Parameters
         ----------
-        arg_dict
+        arguments
             A dictionary mapping priors to physical values.
 
         Raises
@@ -70,20 +65,20 @@ class GreaterThanLessThanAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        lower = self.lower(arg_dict)
-        greater = self.greater(arg_dict)
+        lower = self.lower(arguments)
+        greater = self.greater(arguments)
         return lower < greater
 
 
 class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
-    def __call__(self, arg_dict: dict):
+    def instance_for_arguments(self, arguments):
         """
         Assert that the value in the dictionary associated with the lower
         prior is lower than the value associated with the greater prior.
 
         Parameters
         ----------
-        arg_dict
+        arguments
             A dictionary mapping priors to physical values.
 
         Raises
@@ -91,7 +86,7 @@ class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        return self.lower(arg_dict) <= self.greater(arg_dict)
+        return self.lower(arguments) <= self.greater(arguments)
 
 
 class CompoundAssertion(AbstractAssertion):
@@ -100,8 +95,12 @@ class CompoundAssertion(AbstractAssertion):
         self.assertion_1 = assertion_1
         self.assertion_2 = assertion_2
 
-    def __call__(self, arg_dict: dict):
-        return self.assertion_1(arg_dict) and self.assertion_2(arg_dict)
+    def instance_for_arguments(self, arguments):
+        return self.assertion_1.instance_for_arguments(
+            arguments
+        ) and self.assertion_2.instance_for_arguments(
+            arguments
+        )
 
 
 def unwrap(obj):
@@ -109,4 +108,3 @@ def unwrap(obj):
         return obj._value
     except AttributeError:
         return obj
-
