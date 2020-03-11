@@ -1,6 +1,7 @@
 import copy
 import inspect
 from functools import wraps
+from random import random
 from typing import Tuple, Optional
 
 import numpy as np
@@ -400,6 +401,14 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * len(self.prior_tuples)
+        )
+
+    def random_instance(self):
+        """
+        Creates a random instance of the model.
+        """
+        return self.instance_from_unit_vector(
+            unit_vector=[random() for _ in self.prior_tuples]
         )
 
     @staticmethod
