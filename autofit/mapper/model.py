@@ -3,7 +3,6 @@ from typing import Optional, Union, Tuple, List, Iterable
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
-from autofit.mapper.promise import AbstractPromise, AbstractAssertionPromise
 from autofit.tools.pipeline import ResultsCollection
 
 
@@ -88,7 +87,11 @@ class AbstractModel(ModelObject):
         path_instance_tuples: [((str,), object)]
             Tuples containing the path to and instance of objects of the given type.
         """
-        return path_instances_of_class(self, cls, ignore_class=ignore_class)
+        return path_instances_of_class(
+            self,
+            cls,
+            ignore_class=ignore_class
+        )
 
     def direct_tuples_with_type(self, class_type):
         return list(
@@ -129,6 +132,7 @@ def populate(obj, collection: ResultsCollection):
         return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
         return {key: populate(value, collection) for key, value in obj.items()}
+    from autofit.mapper.promise import AbstractPromise, AbstractAssertionPromise
     if isinstance(obj, (AbstractPromise, AbstractAssertionPromise)):
         return obj.populate(collection)
     try:
@@ -174,7 +178,13 @@ def path_instances_of_class(
             d = obj.__dict__
 
         for key, value in d.items():
-            for item in path_instances_of_class(value, cls, ignore_class=ignore_class):
+            if key.startswith("_"):
+                continue
+            for item in path_instances_of_class(
+                    value,
+                    cls,
+                    ignore_class=ignore_class
+            ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
                 else:

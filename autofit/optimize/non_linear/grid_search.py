@@ -49,7 +49,13 @@ class GridSearch(NonLinearOptimizer):
         return new_instance
 
     class Result(Result):
-        def __init__(self, result, instances, previous_model, gaussian_tuples):
+        def __init__(
+                self,
+                result,
+                instances,
+                previous_model,
+                gaussian_tuples
+        ):
             """
             The result of an grid search optimization.
 
@@ -61,7 +67,10 @@ class GridSearch(NonLinearOptimizer):
                 A model instance for each point in the grid search
             """
             super().__init__(
-                result.instance, result.likelihood, previous_model, gaussian_tuples
+                instance=result.instance,
+                likelihood=result.likelihood,
+                previous_model=previous_model,
+                gaussian_tuples=gaussian_tuples
             )
             self.instances = instances
 

@@ -206,6 +206,10 @@ class Paths:
         return "{}/{}".format(self.backup_path, "multinestphys_live.points")
 
     @property
+    def file_resume(self) -> str:
+        return "{}/{}".format(self.backup_path, "multinestresume.dat")
+
+    @property
     def file_results(self):
         return "{}/{}".format(self.phase_output_path, "model.results")
 

@@ -1054,7 +1054,13 @@ def make_promise_mapper():
     mapper = af.ModelMapper()
     mapper.galaxy = af.PriorModel(
         mock.Galaxy,
-        redshift=af.Promise(None, None, result_path=None, assert_exists=False),
+        redshift=af.Promise(
+            None,
+            None,
+            is_instance=False,
+            result_path=None,
+            assert_exists=False
+        ),
     )
     return mapper
 
@@ -1062,6 +1068,10 @@ def make_promise_mapper():
 class TestPromises:
     def test_promise_count(self, promise_mapper):
         assert promise_mapper.promise_count == 1
+        assert promise_mapper.variable_promise_count == 1
+
+        promise_mapper.galaxy.redshift.is_instance = True
+        assert promise_mapper.variable_promise_count == 0
 
     def test_raises(self, promise_mapper):
         with pytest.raises(exc.PriorException):

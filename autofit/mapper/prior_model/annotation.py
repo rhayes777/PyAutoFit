@@ -1,5 +1,3 @@
-from autofit.mapper.prior_model.assertion import (
-    GreaterThanLessThanEqualAssertion, GreaterThanLessThanAssertion, unwrap)
 from autofit.mapper.prior_model.prior_model import PriorModel, Prior
 
 
@@ -17,7 +15,7 @@ class AnnotationPriorModel(PriorModel):
             )
         return self._value
 
-    def __gt__(self, other_prior) -> GreaterThanLessThanAssertion:
+    def __gt__(self, other_prior):
         """
         Add an assertion that values associated with this prior are greater.
 
@@ -31,13 +29,14 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
+        from autofit.mapper.prior_model.assertion import GreaterThanLessThanAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanAssertion(
             greater=unwrap(self),
             lower=unwrap(other_prior)
         )
 
-    def __lt__(self, other_prior) -> GreaterThanLessThanAssertion:
+    def __lt__(self, other_prior):
         """
         Add an assertion that values associated with this prior are lower.
 
@@ -51,13 +50,14 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
+        from autofit.mapper.prior_model.assertion import GreaterThanLessThanAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanAssertion(
             lower=unwrap(self),
             greater=unwrap(other_prior)
         )
 
-    def __ge__(self, other_prior) -> GreaterThanLessThanEqualAssertion:
+    def __ge__(self, other_prior):
         """
         Add an assertion that values associated with this prior are greater or equal.
 
@@ -71,13 +71,14 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
+        from autofit.mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanEqualAssertion(
             greater=unwrap(self),
             lower=unwrap(other_prior)
         )
 
-    def __le__(self, other_prior) -> GreaterThanLessThanEqualAssertion:
+    def __le__(self, other_prior):
         """
         Add an assertion that values associated with this prior are lower or equal.
 
@@ -91,6 +92,7 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
+        from autofit.mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanEqualAssertion(
             lower=unwrap(self),

@@ -16,7 +16,7 @@ import os
 import pickle
 import zipfile
 from collections import defaultdict
-from typing import List
+from typing import List, Union
 
 import autofit.optimize.non_linear.non_linear
 from autofit.optimize.non_linear.output import AbstractOutput
@@ -68,7 +68,7 @@ class PhaseOutput:
         The dataset that this phase ran on
         """
         with open(
-            os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
+                os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -155,7 +155,31 @@ class AbstractAggregator:
         """
         self.phases = phases
 
-    def __getitem__(self, item):
+    def __getitem__(
+            self,
+            item: Union[slice, int]
+    ) -> Union[
+        "AbstractAggregator",
+        PhaseOutput
+    ]:
+        """
+        If an index is passed in then a specific phase output is returned.
+
+        If a slice is passed in then an aggregator comprising several phases is returned.
+
+        Parameters
+        ----------
+        item
+            A slice or index
+
+        Returns
+        -------
+        An aggregator or phase
+        """
+        if isinstance(item, slice):
+            return AbstractAggregator(
+                self.phases[item]
+            )
         return self.phases[item]
 
     def __len__(self):

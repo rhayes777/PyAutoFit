@@ -339,9 +339,9 @@ class TestGridNLOBehaviour:
 
 
 class MockResult:
-    def __init__(self, likelihood_merit):
-        self.likelihood_merit = likelihood_merit
-        self.model = likelihood_merit
+    def __init__(self, likelihood):
+        self.likelihood = likelihood
+        self.model = likelihood
 
 
 @pytest.fixture(name="grid_search_result")
@@ -354,7 +354,7 @@ def make_grid_search_result():
 
 class TestGridSearchResult:
     def test_best_result(self, grid_search_result):
-        assert grid_search_result.best_result.likelihood_merit == 2
+        assert grid_search_result.best_result.likelihood == 2
 
     def test_attributes(self, grid_search_result):
         assert grid_search_result.model == 2

@@ -23,7 +23,7 @@ def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="con
         pixel_scales=0.1,
     )
 
-    module.make_pipeline(
+    module.make_pipeline_no_lens_light(
         name=test_name,
         phase_folders=[module.test_type, test_name],
         optimizer_class=optimizer_class,

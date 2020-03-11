@@ -388,7 +388,8 @@ class NestedSamplingOutput(AbstractOutput):
         import matplotlib
 
         backend = conf.instance.visualize_general.get("general", "backend", str)
-        matplotlib.use(backend)
+        if not backend in "default":
+            matplotlib.use(backend)
         import matplotlib.pyplot as plt
 
         pdf_plot = getdist.plots.GetDistPlotter()

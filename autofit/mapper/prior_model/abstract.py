@@ -1,6 +1,7 @@
 import copy
 import inspect
 from functools import wraps
+from random import random
 from typing import Tuple, Optional
 
 import numpy as np
@@ -25,8 +26,26 @@ def check_assertions(func):
     @wraps(func)
     def wrapper(s, arguments):
         # noinspection PyProtectedMember
-        for assertion in s._assertions:
-            assertion(arguments)
+        failed_assertions = [
+            assertion
+            for assertion
+            in s._assertions
+            if assertion is False or assertion is not True and not assertion.instance_for_arguments(
+                arguments
+            )
+        ]
+        number_of_failed_assertions = len(failed_assertions)
+        if number_of_failed_assertions > 0:
+            name_string = "\n".join([
+                assertion.name
+                for assertion
+                in failed_assertions
+                if hasattr(assertion, "name") and assertion.name is not None
+            ])
+            raise exc.FitException(
+                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
+            )
+
         return func(s, arguments)
 
     return wrapper
@@ -121,26 +140,6 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        failed_assertions = [
-            assertion
-            for assertion
-            in self._assertions
-            if assertion is False or not assertion(
-                arguments
-            )
-        ]
-        number_of_failed_assertions = len(failed_assertions)
-        if number_of_failed_assertions > 0:
-            name_string = "\n".join([
-                assertion.name
-                for assertion
-                in failed_assertions
-                if hasattr(assertion, "name") and assertion.name is not None
-            ])
-            raise exc.FitException(
-                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
-            )
-
         return self.instance_for_arguments(arguments)
 
     @property
@@ -159,11 +158,11 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_promise_tuples(self):
-        from autofit import Promise
+        from autofit import AbstractPromise
 
         return {
             prior_tuple[1]: prior_tuple
-            for prior_tuple in self.attribute_tuples_with_type(Promise)
+            for prior_tuple in self.attribute_tuples_with_type(AbstractPromise)
         }.values()
 
     @property
@@ -402,6 +401,14 @@ class AbstractPriorModel(AbstractModel):
             unit_vector=[0.5] * len(self.prior_tuples)
         )
 
+    def random_instance(self):
+        """
+        Creates a random instance of the model.
+        """
+        return self.instance_from_unit_vector(
+            unit_vector=[random() for _ in self.prior_tuples]
+        )
+
     @staticmethod
     @DynamicRecursionCache()
     def from_instance(instance, model_classes=tuple()):
@@ -542,7 +549,13 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def prior_class_dict(self):
-        raise NotImplementedError()
+        from autofit.mapper.prior_model.annotation import AnnotationPriorModel
+
+        d = {prior[1]: self.cls for prior in self.prior_tuples}
+        for prior_model in self.prior_model_tuples:
+            if not isinstance(prior_model[1], AnnotationPriorModel):
+                d.update(prior_model[1].prior_class_dict)
+        return d
 
     def instance_for_arguments(self, arguments):
         raise NotImplementedError()
@@ -554,6 +567,14 @@ class AbstractPriorModel(AbstractModel):
     @property
     def promise_count(self):
         return len(self.unique_promise_tuples)
+
+    @property
+    def variable_promise_count(self):
+        return len([
+            value for key, value in
+            self.unique_promise_tuples
+            if not value.is_instance
+        ])
 
     @property
     def priors(self):
