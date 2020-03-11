@@ -159,11 +159,11 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_promise_tuples(self):
-        from autofit import Promise
+        from autofit import AbstractPromise
 
         return {
             prior_tuple[1]: prior_tuple
-            for prior_tuple in self.attribute_tuples_with_type(Promise)
+            for prior_tuple in self.attribute_tuples_with_type(AbstractPromise)
         }.values()
 
     @property
