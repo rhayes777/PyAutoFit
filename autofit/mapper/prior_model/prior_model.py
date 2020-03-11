@@ -8,10 +8,10 @@ from typing_inspect import is_tuple_type
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import check_assertions
 from autofit.mapper.prior_model.deferred import DeferredInstance
 from autofit.mapper.prior_model.prior import TuplePrior, Prior
 from autofit.mapper.promise.promise import Promise
-from autofit.mapper.prior_model.abstract import check_assertions
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,10 @@ class PriorModel(AbstractPriorModel):
 
     @property
     def constructor_argument_names(self):
-        return inspect.getfullargspec(self.cls).args[1:]
+        try:
+            return inspect.getfullargspec(self.cls).args[1:]
+        except TypeError:
+            return []
 
     def __init__(self, cls, **kwargs):
         """
@@ -56,11 +59,17 @@ class PriorModel(AbstractPriorModel):
 
         self.cls = cls
 
-        arg_spec = inspect.getfullargspec(cls)
+        print(cls)
 
         try:
+            annotations = inspect.getfullargspec(cls).annotations
+        except TypeError:
+            annotations = dict()
+
+        try:
+            arg_spec = inspect.getfullargspec(cls)
             defaults = dict(
-                zip(arg_spec.args[-len(arg_spec.defaults) :], arg_spec.defaults)
+                zip(arg_spec.args[-len(arg_spec.defaults):], arg_spec.defaults)
             )
         except TypeError:
             defaults = {}
@@ -98,8 +107,8 @@ class PriorModel(AbstractPriorModel):
                         tuple_prior, attribute_name, self.make_prior(attribute_name)
                     )
                 setattr(self, arg, tuple_prior)
-            elif arg in arg_spec.annotations and arg_spec.annotations[arg] != float:
-                spec = arg_spec.annotations[arg]
+            elif arg in annotations and annotations[arg] != float:
+                spec = annotations[arg]
                 # noinspection PyUnresolvedReferences
                 if inspect.isclass(spec) and issubclass(spec, float):
                     from autofit.mapper.prior_model.annotation import (
@@ -116,7 +125,7 @@ class PriorModel(AbstractPriorModel):
                         )
                     setattr(self, arg, tuple_prior)
                 else:
-                    setattr(self, arg, PriorModel(arg_spec.annotations[arg]))
+                    setattr(self, arg, PriorModel(annotations[arg]))
             else:
                 setattr(self, arg, self.make_prior(arg))
         for key, value in kwargs.items():
@@ -127,9 +136,9 @@ class PriorModel(AbstractPriorModel):
 
     def __eq__(self, other):
         return (
-            isinstance(other, PriorModel)
-            and self.cls == other.cls
-            and self.prior_tuples == other.prior_tuples
+                isinstance(other, PriorModel)
+                and self.cls == other.cls
+                and self.prior_tuples == other.prior_tuples
         )
 
     def make_prior(self, attribute_name):
@@ -168,10 +177,10 @@ class PriorModel(AbstractPriorModel):
 
     def __setattr__(self, key, value):
         if key not in (
-            "component_number",
-            "phase_property_position",
-            "mapping_name",
-            "id",
+                "component_number",
+                "phase_property_position",
+                "mapping_name",
+                "id",
         ):
             try:
                 if "_" in key:
@@ -275,9 +284,9 @@ class PriorModel(AbstractPriorModel):
 
         for key, value in self.__dict__.items():
             if (
-                not hasattr(result, key)
-                and not isinstance(value, Prior)
-                and not isinstance(value, Promise)
+                    not hasattr(result, key)
+                    and not isinstance(value, Prior)
+                    and not isinstance(value, Promise)
             ):
                 if isinstance(value, PriorModel):
                     value = value.instance_for_arguments(arguments)
