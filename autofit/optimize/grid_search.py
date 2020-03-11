@@ -53,7 +53,7 @@ class GridSearchResult:
         for result in self.results:
             if (
                 best_result is None
-                or result.likelihood_merit > best_result.likelihood_merit
+                or result.likelihood > best_result.likelihood
             ):
                 best_result = result
         return best_result
@@ -88,7 +88,7 @@ class GridSearchResult:
             each entry being the figure of merit taken from the optimization performed at that point.
         """
         return np.reshape(
-            np.array([result.likelihood_merit for result in self.results]),
+            np.array([result.likelihood for result in self.results]),
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
 
