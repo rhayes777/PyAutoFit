@@ -398,7 +398,7 @@ class Job:
         result = self.optimizer_instance.fit(self.analysis, self.model)
         result_list_row = [
             *[prior.lower_limit for prior in self.arguments.values()],
-            result.likelihood_merit,
+            result.likelihood,
         ]
 
         return JobResult(result, result_list_row)
