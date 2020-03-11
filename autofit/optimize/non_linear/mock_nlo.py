@@ -27,9 +27,9 @@ class MockNLO(af.NonLinearOptimizer):
                     raise e
                 index = (index + 1) % model.prior_count
         return af.Result(
-            instance,
-            fit,
-            model,
+            instance=instance,
+            likelihood=fit,
+            previous_model=model,
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)

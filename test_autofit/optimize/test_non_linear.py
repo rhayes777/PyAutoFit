@@ -33,7 +33,12 @@ def make_result():
     mapper = af.ModelMapper()
     mapper.profile = GeometryProfile
     # noinspection PyTypeChecker
-    return af.Result(None, None, mapper, [(0, 0), (1, 0)])
+    return af.Result(
+        instance=None,
+        likelihood=None,
+        previous_model=mapper,
+        gaussian_tuples=[(0, 0), (1, 0)]
+    )
 
 
 class TestResult:
@@ -159,7 +164,7 @@ class TestMostProbableAndLikely:
         assert most_probable.mock_class_2.four == 10.0
 
     def test__most_probable__setup_model_instance__1_class_5_params_but_1_is_instance(
-        self
+            self
     ):
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)
         mapper.mock_class.five = 10.0
@@ -201,7 +206,7 @@ class TestMostProbableAndLikely:
         assert most_likely.mock_class_2.four == 30.0
 
     def test__most_likely__setup_model_instance__1_class_5_params_but_1_is_instance(
-        self
+            self
     ):
         mapper = af.ModelMapper(mock_class=MockClassNLOx5)
         mapper.mock_class.five = 10.0
@@ -246,7 +251,7 @@ class TestGaussianPriors:
 
 class TestOffsetFromInput:
     def test__input_model_offset_from_most_probable__parameters_and_instance__1_class_4_params(
-        self
+            self
     ):
         mapper = af.ModelMapper(mock_class=MockClassNLOx4)
         nlo = MockNonLinearOptimizer(
@@ -295,11 +300,11 @@ class TestLabels:
     def test_param_names(self, optimizer):
         optimizer.model.prior_model = MockClassNLOx4
         assert [
-            "prior_model_one",
-            "prior_model_two",
-            "prior_model_three",
-            "prior_model_four",
-        ] == optimizer.model.param_names
+                   "prior_model_one",
+                   "prior_model_two",
+                   "prior_model_three",
+                   "prior_model_four",
+               ] == optimizer.model.param_names
 
     def test_properties(self, optimizer):
         optimizer.model.prior_model = MockClassNLOx4

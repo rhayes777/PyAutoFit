@@ -7,7 +7,10 @@ def make_pipeline_1(name, phase_folders, optimizer_class):
     phase = af.Phase(
         phase_name="phase_1",
         phase_folders=phase_folders,
-        model=af.PriorModel(mock.Galaxy, redshift=af.GaussianPrior(10.0, 1.0)),
+        model=af.PriorModel(
+            mock.Galaxy,
+            redshift=af.GaussianPrior(10.0, 1.0)
+        ),
         optimizer_class=optimizer_class,
         analysis_class=MockAnalysis,
     )
@@ -18,20 +21,35 @@ def make_pipeline_2(name, phase_folders, optimizer_class):
     phase = af.Phase(
         phase_name="phase_2",
         phase_folders=phase_folders,
-        model=af.PriorModel(mock.Galaxy, redshift=af.last.model.redshift),
+        model=af.PriorModel(
+            mock.Galaxy,
+            redshift=af.last.model.redshift
+        ),
         optimizer_class=optimizer_class,
         analysis_class=MockAnalysis,
     )
     return af.Pipeline(f"{name}_2", phase)
 
 
-def make_pipeline(name, phase_folders=tuple(), optimizer_class=MockNLO):
-    return make_pipeline_1(name, phase_folders, optimizer_class) + make_pipeline_2(
-        name, phase_folders, optimizer_class
+def make_pipeline(
+        name,
+        phase_folders=tuple(),
+        optimizer_class=MockNLO
+):
+    return make_pipeline_1(
+        name,
+        phase_folders,
+        optimizer_class
+    ) + make_pipeline_2(
+        name,
+        phase_folders,
+        optimizer_class
     )
 
 
 def test_pipeline_composition():
     pipeline = make_pipeline("test")
-    results = pipeline.run(mock.MockDataset())
+    results = pipeline.run(
+        mock.MockDataset()
+    )
     assert results[0].model.redshift.mean == results[1].model.redshift.mean
