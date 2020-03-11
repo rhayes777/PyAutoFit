@@ -26,8 +26,26 @@ def check_assertions(func):
     @wraps(func)
     def wrapper(s, arguments):
         # noinspection PyProtectedMember
-        for assertion in s._assertions:
-            assertion(arguments)
+        failed_assertions = [
+            assertion
+            for assertion
+            in s._assertions
+            if assertion is False or not assertion(
+                arguments
+            )
+        ]
+        number_of_failed_assertions = len(failed_assertions)
+        if number_of_failed_assertions > 0:
+            name_string = "\n".join([
+                assertion.name
+                for assertion
+                in failed_assertions
+                if hasattr(assertion, "name") and assertion.name is not None
+            ])
+            raise exc.FitException(
+                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
+            )
+
         return func(s, arguments)
 
     return wrapper
@@ -121,26 +139,6 @@ class AbstractPriorModel(AbstractModel):
                 unit_vector,
             )
         )
-
-        failed_assertions = [
-            assertion
-            for assertion
-            in self._assertions
-            if assertion is False or not assertion(
-                arguments
-            )
-        ]
-        number_of_failed_assertions = len(failed_assertions)
-        if number_of_failed_assertions > 0:
-            name_string = "\n".join([
-                assertion.name
-                for assertion
-                in failed_assertions
-                if hasattr(assertion, "name") and assertion.name is not None
-            ])
-            raise exc.FitException(
-                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
-            )
 
         return self.instance_for_arguments(arguments)
 
