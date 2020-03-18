@@ -174,6 +174,12 @@ class Prior(ModelObject, ABC):
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+    def __add__(self, other):
+        from autofit.mapper.prior_model.compound import CompoundPrior
+        return CompoundPrior(
+            self, other
+        )
+
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(
@@ -209,6 +215,11 @@ class Prior(ModelObject, ABC):
         -------
         A physical value.
         """
+
+    def instance_for_arguments(self, arguments):
+        return self.value_for(
+            arguments[self]
+        )
 
     def __eq__(self, other):
         try:
