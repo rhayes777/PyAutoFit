@@ -601,5 +601,9 @@ class HyperGalaxy:
 
 class MockDataset(Dataset):
     @property
+    def metadata(self) -> dict:
+        return dict()
+
+    @property
     def name(self) -> str:
         return "name"

@@ -98,7 +98,7 @@ class AbstractPhase:
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.model))
 
-    def save_metadata(self, data_name):
+    def save_metadata(self, dataset):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
@@ -110,7 +110,8 @@ class AbstractPhase:
                     for key, value
                     in {
                         **self._default_metadata,
-                        "dataset_name": data_name
+                        **dataset.metadata,
+                        "dataset_name": dataset.name
                     }.items()
                 )
             )
@@ -160,6 +161,13 @@ class Dataset(ABC):
     def name(self) -> str:
         """
         The name of this data for use in querying
+        """
+
+    @property
+    @abstractmethod
+    def metadata(self) -> dict:
+        """
+        A dictionary describing metadata associated with this instance
         """
 
     def save(self, directory: str):
@@ -227,7 +235,7 @@ class Phase(AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising the best fit model and other hyper_galaxies.
         """
-        self.save_metadata(dataset.name)
+        self.save_metadata(dataset)
         dataset.save(self.paths.phase_output_path)
         self.model = self.model.populate(results)
 
