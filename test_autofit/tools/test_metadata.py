@@ -35,7 +35,8 @@ def test_metadata_text(phase):
         MockData(
             "data",
             {
-                "some": "metadata"
+                "some": "metadata",
+                "number": 1.0
             }
         )
     )
@@ -44,4 +45,5 @@ phase_tag=phase_tag
 pipeline=
 pipeline_tag=
 some=metadata
+number=1.0
 dataset_name=data"""
