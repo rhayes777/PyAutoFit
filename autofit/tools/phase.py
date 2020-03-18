@@ -1,6 +1,7 @@
 import os
 import pickle
 from abc import ABC, abstractmethod
+from typing import Dict
 
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
@@ -39,7 +40,11 @@ class AbstractPhase:
         self.pipeline_tag = None
 
     @property
-    def _default_metadata(self):
+    def _default_metadata(self) -> Dict[str, str]:
+        """
+        A dictionary of metadata describing this phase, including the pipeline
+        that it's embedded in.
+        """
         return {
             "phase": self.paths.phase_name,
             "phase_tag": self.paths.phase_tag,
@@ -54,7 +59,12 @@ class AbstractPhase:
         return f"<{self.__class__.__name__} {self.optimizer.paths.phase_name}>"
 
     @property
-    def result(self):
+    def result(self) -> PromiseResult:
+        """
+        A PromiseResult allows promises to be defined, which express the equality
+        between posteriors or best fits from this phase and priors or constants
+        in some subsequent phase.
+        """
         return PromiseResult(self)
 
     def run_analysis(self, analysis):
@@ -95,12 +105,13 @@ class AbstractPhase:
         """
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
-                "pipeline={}\nphase={}\ndataset_name={}\nphase_tag={}\npipeline_tag={}".format(
-                    self.pipeline_name,
-                    self.paths.phase_name,
-                    data_name,
-                    self.paths.phase_tag,
-                    self.pipeline_tag,
+                "\n".join(
+                    f"{key}={value or ''}"
+                    for key, value
+                    in {
+                        **self._default_metadata,
+                        "dataset_name": data_name
+                    }.items()
                 )
             )
 
