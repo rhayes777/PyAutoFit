@@ -191,11 +191,17 @@ class AbstractPromise(ABC):
         self.is_optional = is_optional
 
     @property
-    def attribute_name(self):
+    def attribute_name(self) -> str:
+        """
+        The name of the attribute which was called to create this prior.
+        """
         return "instance" if self.is_instance else "model"
 
     @property
     def path_string(self):
+        """
+        A string expressing the path of attributes called to create this prior.
+        """
         return ".".join(self.path)
 
     def __str__(self):
@@ -361,7 +367,12 @@ class Promise(AbstractPromise):
         )
 
     @property
-    def optional(self):
+    def optional(self) -> "Promise":
+        """
+        Make this promise evaluate to None if a corresponding float or prior
+        does not exist at evaluation time. This is instead of raising an
+        AttributeError.
+        """
         return Promise(
             self._phase,
             *self.path,
