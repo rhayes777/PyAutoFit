@@ -158,6 +158,10 @@ class Pipeline:
         )
 
     def run(self, dataset):
+        for ph in self.phases:
+            with open(ph.paths.file_model_info, "w+") as f:
+                f.write(ph.model.info)
+
         def runner(phase, results):
             return phase.run(dataset=dataset, results=results)
 
