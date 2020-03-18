@@ -41,9 +41,10 @@ class AbstractPhase:
     @property
     def _default_metadata(self):
         return {
-            "phase_name": self.paths.phase_name,
-            "pipeline_name": self.pipeline_name,
-            "pipeline_tag": self.pipeline_tag
+            "phase": self.paths.phase_name,
+            "phase_tag": self.paths.phase_tag,
+            "pipeline": self.pipeline_name,
+            "pipeline_tag": self.pipeline_tag,
         }
 
     def __str__(self):
