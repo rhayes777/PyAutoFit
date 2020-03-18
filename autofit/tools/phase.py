@@ -38,6 +38,14 @@ class AbstractPhase:
         self.pipeline_name = None
         self.pipeline_tag = None
 
+    @property
+    def _default_metadata(self):
+        return {
+            "phase_name": self.paths.phase_name,
+            "pipeline_name": self.pipeline_name,
+            "pipeline_tag": self.pipeline_tag
+        }
+
     def __str__(self):
         return self.optimizer.paths.phase_name
 
