@@ -687,7 +687,7 @@ class AbstractPriorModel(AbstractModel):
         formatter = TextFormatter()
 
         for t in self.path_instance_tuples_for_class((
-                Prior, float, AbstractPromise
+                Prior, float, AbstractPromise, tuple
         )):
             formatter.add(t)
 

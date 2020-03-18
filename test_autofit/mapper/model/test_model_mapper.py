@@ -359,6 +359,12 @@ class TestGenerateModelInfo:
 
         assert mm.info == 'promise                                                                                   phase.result.model.path'
 
+    def test_with_tuple(self):
+        mm = af.ModelMapper()
+        mm.tuple = (0, 1)
+
+        assert mm.info == 'tuple                                                                                     (0, 1)'
+
 
 class WithFloat:
     def __init__(self, value):
