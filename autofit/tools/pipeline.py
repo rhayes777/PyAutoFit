@@ -125,8 +125,10 @@ class Pipeline:
         self.pipeline_tag = None
 
         for phase in phases:
-            if not hasattr(phase, "pipeline_name"):
+            if phase.pipeline_name is None:
                 phase.pipeline_name = pipeline_name
+            if phase.pipeline_tag is None:
+                phase.pipeline_tag = self.pipeline_tag
 
             with open(phase.paths.file_model_info, "w+") as f:
                 f.write(phase.model.info)
@@ -157,7 +159,10 @@ class Pipeline:
             A pipeline that runs all the  phases from this pipeline and then all the phases from the other pipeline
         """
         return self.__class__(
-            "{} + {}".format(self.pipeline_name, other.pipeline_name),
+            "{} + {}".format(
+                self.pipeline_name,
+                other.pipeline_name
+            ),
             *(self.phases + other.phases)
         )
 
@@ -167,13 +172,12 @@ class Pipeline:
 
         return self.run_function(runner)
 
-    def run_function(self, func, data_name=None):
+    def run_function(self, func):
         """
         Run the function for each phase in the pipeline.
 
         Parameters
         ----------
-        data_name
         func
             A function that takes a phase and prior results, returning results for that phase
 
@@ -184,8 +188,12 @@ class Pipeline:
         """
         results = ResultsCollection()
         for i, phase in enumerate(self.phases):
-            logger.info("Running Phase {} (Number {})".format(phase.phase_name, i))
-            phase.save_metadata(data_name, phase.pipeline_name, self.pipeline_tag)
+            logger.info(
+                "Running Phase {} (Number {})".format(
+                    phase.phase_name,
+                    i
+                )
+            )
             name = phase.phase_name
             results.add(name, func(phase, results))
         return results

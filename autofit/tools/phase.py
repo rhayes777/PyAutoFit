@@ -6,19 +6,19 @@ import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
+from autofit.mapper.promise.promise import PromiseResult
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.paths import Paths
-from autofit.mapper.promise.promise import PromiseResult
 
 
 class AbstractPhase:
     @convert_paths
     def __init__(
-        self,
-        paths: Paths,
-        *,
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        model=None,
+            self,
+            paths: Paths,
+            *,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
     ):
         """
         A phase in an lens pipeline. Uses the set non_linear optimizer to try to
@@ -34,6 +34,9 @@ class AbstractPhase:
 
         self.optimizer = optimizer_class(self.paths)
         self.model = model or ModelMapper()
+
+        self.pipeline_name = None
+        self.pipeline_tag = None
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -76,7 +79,7 @@ class AbstractPhase:
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.model))
 
-    def save_metadata(self, data_name, pipeline_name, pipeline_tag):
+    def save_metadata(self, data_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
@@ -84,11 +87,11 @@ class AbstractPhase:
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
                 "pipeline={}\nphase={}\ndataset_name={}\nphase_tag={}\npipeline_tag={}".format(
-                    pipeline_name,
+                    self.pipeline_name,
                     self.paths.phase_name,
                     data_name,
                     self.paths.phase_tag,
-                    pipeline_tag,
+                    self.pipeline_tag,
                 )
             )
 
@@ -172,12 +175,12 @@ class Dataset(ABC):
 class Phase(AbstractPhase):
     @convert_paths
     def __init__(
-        self,
-        paths,
-        *,
-        analysis_class,
-        optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-        model=None,
+            self,
+            paths,
+            *,
+            analysis_class,
+            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            model=None,
     ):
         super().__init__(paths, optimizer_class=optimizer_class, model=model)
         self.analysis_class = analysis_class
@@ -204,6 +207,7 @@ class Phase(AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising the best fit model and other hyper_galaxies.
         """
+        self.save_metadata(dataset.name)
         dataset.save(self.paths.phase_output_path)
         self.model = self.model.populate(results)
 
@@ -242,12 +246,12 @@ def as_grid_search(phase_class, parallel=False):
     class GridSearchExtension(phase_class):
         @convert_paths
         def __init__(
-            self,
-            paths,
-            *,
-            number_of_steps=4,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
-            **kwargs,
+                self,
+                paths,
+                *,
+                number_of_steps=4,
+                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                **kwargs,
         ):
             super().__init__(paths, optimizer_class=optimizer_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
