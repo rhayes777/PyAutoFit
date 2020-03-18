@@ -676,7 +676,7 @@ class AbstractPriorModel(AbstractModel):
         }
 
     @property
-    def info(self):
+    def info(self) -> str:
         """
         Use the priors that make up the model_mapper to generate information on each
         parameter of the overall model.
