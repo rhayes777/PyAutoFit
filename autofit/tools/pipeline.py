@@ -127,6 +127,10 @@ class Pipeline:
         for phase in phases:
             if not hasattr(phase, "pipeline_name"):
                 phase.pipeline_name = pipeline_name
+
+            with open(phase.paths.file_model_info, "w+") as f:
+                f.write(phase.model.info)
+
         phase_names = [phase.phase_name for phase in phases]
         if len(set(phase_names)) < len(phase_names):
             raise exc.PipelineException(
@@ -158,10 +162,6 @@ class Pipeline:
         )
 
     def run(self, dataset):
-        for ph in self.phases:
-            with open(ph.paths.file_model_info, "w+") as f:
-                f.write(ph.model.info)
-
         def runner(phase, results):
             return phase.run(dataset=dataset, results=results)
 
