@@ -202,7 +202,7 @@ class AbstractPromise(ABC):
         """
         A string expressing the path of attributes called to create this prior.
         """
-        return ".".join(self.path)
+        return ".".join(map(str, self.path))
 
     def __str__(self):
         return f"result.{self.attribute_name}.{self.path_string}"
