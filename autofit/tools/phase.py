@@ -52,6 +52,29 @@ class AbstractPhase:
             "pipeline_tag": self.pipeline_tag,
         }
 
+    def make_metadata_text(self, dataset):
+        return "\n".join(
+            f"{key}={value or ''}"
+            for key, value
+            in {
+                **self._default_metadata,
+                **dataset.metadata,
+                "dataset_name": dataset.name
+            }.items()
+        )
+
+    def save_metadata(self, dataset):
+        """
+        Save metadata associated with the phase, such as the name of the pipeline, the
+        name of the phase and the name of the dataset being fit
+        """
+        with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
+            f.write(
+                self.make_metadata_text(
+                    dataset
+                )
+            )
+
     def __str__(self):
         return self.optimizer.paths.phase_name
 
@@ -97,24 +120,6 @@ class AbstractPhase:
             f.write(pickle.dumps(self.optimizer))
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.model))
-
-    def save_metadata(self, dataset):
-        """
-        Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the dataset being fit
-        """
-        with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
-            f.write(
-                "\n".join(
-                    f"{key}={value or ''}"
-                    for key, value
-                    in {
-                        **self._default_metadata,
-                        **dataset.metadata,
-                        "dataset_name": dataset.name
-                    }.items()
-                )
-            )
 
     def assert_optimizer_pickle_matches_for_phase(self):
         """
