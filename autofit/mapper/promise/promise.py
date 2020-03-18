@@ -191,6 +191,17 @@ class AbstractPromise(ABC):
         self.is_optional = is_optional
 
     @property
+    def attribute_name(self):
+        return "instance" if self.is_instance else "model"
+
+    @property
+    def path_string(self):
+        return ".".join(self.path)
+
+    def __str__(self):
+        return f"result.{self.attribute_name}.{self.path_string}"
+
+    @property
     def settings(self):
         return dict(
             is_instance=self.is_instance,
@@ -316,6 +327,9 @@ class Promise(AbstractPromise):
         self.assert_exists = assert_exists
         if assert_exists:
             phase.model.object_for_path(path)
+
+    def __str__(self):
+        return f"{self._phase.phase_name}.{super().__str__()}"
 
     def __getattr__(self, item):
         if item in (

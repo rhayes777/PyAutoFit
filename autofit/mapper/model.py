@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, Union, Tuple, List, Iterable
+from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
@@ -70,7 +70,11 @@ class AbstractModel(ModelObject):
                 instance = getattr(instance, name)
         return instance
 
-    def path_instance_tuples_for_class(self, cls: type, ignore_class=None):
+    def path_instance_tuples_for_class(
+            self,
+            cls: Union[Tuple, Type],
+            ignore_class=None
+    ):
         """
         Tuples containing the path tuple and instance for every instance of the class
         in the model tree.

@@ -683,9 +683,12 @@ class AbstractPriorModel(AbstractModel):
 
         This information is extracted from each priors *model_info* property.
         """
+        from autofit.mapper.promise import AbstractPromise
         formatter = TextFormatter()
 
-        for t in self.path_priors_tuples + self.path_float_tuples:
+        for t in self.path_instance_tuples_for_class((
+                Prior, float, AbstractPromise
+        )):
             formatter.add(t)
 
         return formatter.text
