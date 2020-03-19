@@ -180,6 +180,15 @@ class Prior(ModelObject, ABC):
             self, other
         )
 
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __neg__(self):
+        from autofit.mapper.prior_model.compound import NegativePrior
+        return NegativePrior(
+            self
+        )
+
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(
