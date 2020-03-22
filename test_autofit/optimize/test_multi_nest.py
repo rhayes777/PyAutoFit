@@ -212,6 +212,19 @@ def create_resume(path):
             "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n")
 
 
+
+@create_path
+def create_resume_2(path):
+    with open(path + "/multinestresume.dat", "w+") as resume:
+        resume.write(
+            " F\n"
+            "          60          60           1          50\n"
+            "    0.502352236277967168E+05    0.502900436569068333E+05\n"
+            " T\n"
+            "   0\n"
+            " T F     0          50\n"
+            "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n")
+
 class TestMultiNestOutputConverged:
     def test__maximum_log_likelihood_and_evidence__from_summary(
         self, multi_nest_summary_path
@@ -337,6 +350,12 @@ class TestMultiNestOutputConverged:
         assert multinest_output.accepted_samples == 3000
         assert multinest_output.total_samples == 12345
         assert multinest_output.acceptance_ratio == 3000 / 12345
+
+        create_resume_2(path=multinest_output.paths.backup_path)
+
+        assert multinest_output.accepted_samples == 60
+        assert multinest_output.total_samples == 60
+        assert multinest_output.acceptance_ratio == 1.0
 
 
 class TestMultiNestOutputUnconverged:
