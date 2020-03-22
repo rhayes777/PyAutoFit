@@ -31,12 +31,7 @@ import autofit as af
 
 # To perform the analysis we set up a phase, which takes the Gaussian as the 
 # model & fits its parameters using the non-linear search MultiNest.
-
-phase = al.PhaseImaging(
-    phase_name="example/phase_example",
-    model=af.CollectionPriorModel(gaussian_0=af.Gaussian),
-    optimizer_class=af.MultiNest,
-)
+phase = af.Phase(model=af.Gaussian, phase_name="phase_example", optimizer_class=af.MultiNest)
 
 # We pass a dataset to the phase, fitting it with the model above.
 
@@ -54,27 +49,28 @@ By interfacing with Python classes **PyAutoFit** takes care of the 'heavy liftin
 ```python
 import autofit as af
 
-# The model can be setup with multiple classes and before passing it to a phase
+# The model can be setup with multiple classes and before passing it to a phase and 
 # we can customize the model parameters.
 
-model = af.CollectionPriorModel(gaussian_0=af.Gaussian, gaussian_1=af.Gaussian)
+model = af.CollectionPriorModel(
+    gaussian_0=af.Gaussian, gaussian_1=af.Gaussian, exponential=af.Exponential
+)
 
-# This aligns the centres of the two Gaussian, reducing the number of free parameters by 2.
-model.gaussian_0.centre = model.gaussian_1.centre
+# This aligns the centres of the Gaussian and Exponential, reducing the number of free parameters by 1.
+model.gaussian_0.centre = model.exponential.centre
 
-# This fixes the first Gaussian's sigma value to 0.5, reducing the number of free parameters by 1.
-model.gaussian_0.sigma = 0.5
+# This fixes the Gaussian's sigma value to 0.5, reducing the number of free parameters by 1.
+model.gaussian_1.sigma = 0.5
 
 # We can customize the priors on any model parameter.
 model.gaussian_0.intensity = af.LogUniformPrior(lower_limit=1e-6, upper_limit=1e6)
-model.gaussian_1.sigma = af.UniformPior(lower_limit=0.0, upper_limit=2.0)
-model.gaussian_1.sigma = af.GaussianPrior(mean=0.1, sigma=0.05)
+model.exponential.rate = af.GaussianPrior(mean=0.1, sigma=0.05)
 
-phase = al.PhaseImaging(
-    phase_name="example/phase_example",
-    model=model,
-    optimizer_class=af.MultiNest,
-)
+# We can make assertions on parameters which remove regions of parameter space where these are not valid
+model.add_assertion(model.exponential.intensity > 0.5)
+
+# We pass the customized model to a phase to fit it via a non-linear search.
+phase = af.Phase(model=model, phase_name="phase_example", optimizer_class=af.MultiNest)
 ```
 
 ## Aggregation
@@ -85,25 +81,42 @@ Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. Ev
 
 
 ```python
-output_path = "/path/to/gaussian_x100_fits/" # <- There is 100 separate fits in this folder.
+import autofit as af
+
+# Lets pretend we've used a Phase object to fit 100 different datasets with the same model. The results of these 100
+# fits are in a structured output format in this folder.
+output_path = "/path/to/gaussian_x100_fits/"
+
+# To create an instance of the aggregator, we pass it the output path above. The aggregator will detect that
+# 100 fits using a specific phase have been performed and that their results are in this folder.
+aggregator = af.Aggregator(directory=str(output_path))
+
+# The aggregator can now load results from these fits. The command below loads results as instances of the
+# NonLinearOutput class which provides an interface to the non-linear search output of every phase's fit.
+non_linear_outputs = aggregator.output
+
+# The results of all 100 non-linear searches are now available. The command below creates a list of instances of the 
+# best-fit model parameters of all 100 model fits (many other results are available, e.g. marginalized 1D parameter 
+# estimates, errors, Bayesian evidences, etc.).
+instances = [output.most_likely_instance for output in non_linear_outputs]
+
+# These are instances of the 'model-components' defined using the PyAutoFit Python class format illustrated in figure 1.
+# For the Gaussian class, each instance in this list is an instance of this class and its parameters are accessible.
+print("Instance Parameters \n")
+print("centre = ", instances[0].centre)
+print("intensity = ", instances[0].intensity)
+print("sigma = ", instances[0].sigma)
+
+# The aggregator can be customized to interface with model-specific aspects of a project like the data and fitting
+# procedure. Below, the aggregator has been set up to provide instances of of all 100 datasets, masks and fits.
+datasets = aggregator.dataset
+masks = aggregator.mask
+fits = aggregator.fit
+
+# If the datasets are fitted with many different phases (e.g. with different models), the aggregator's filter tool can
+# be used to load results of a specific phase (and therefore model).
 phase_name = "phase_example"
-
-# First, we create an instance of the aggregator, which uses the output path to load results.
-
-aggregator = af.Aggregator(
-    directory=str(output_path)
-)
-
-# We can get the output of every non-linear search of every data-set fitted using the phase above.
-
-non_linear_outputs = aggregator.filter(
-    phase=phase_name
-).output
-
-# From here, we can inspect results as we please, for example printing all 100 most likely models.
-
-print([output.most_likely_instance from output in non_linear_outputs]
-
+non_linear_outputs = aggregator.filter(phase=phase_name).output
 ```
 
 If many different phases are used to perform different model-fits to a data-set, the aggregator provides tools to filter out results.

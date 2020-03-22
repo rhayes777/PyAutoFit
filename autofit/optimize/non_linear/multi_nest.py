@@ -115,9 +115,12 @@ class MultiNest(NonLinearOptimizer):
 
             if self.terminate_at_acceptance_ratio:
                 if os.path.isfile(self.paths.file_summary):
-                    if (self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
-                        self.terminate_has_begun = True
-                        return self.max_likelihood
+                    try:
+                        if (self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
+                            self.terminate_has_begun = True
+                            return self.max_likelihood
+                    except ValueError:
+                        pass
 
             try:
                 instance = self.instance_from_vector(cube)

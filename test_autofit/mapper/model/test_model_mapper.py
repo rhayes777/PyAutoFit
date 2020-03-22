@@ -1,8 +1,8 @@
 import math
 import os
 
-import pytest
 import numpy as np
+import pytest
 
 import autofit as af
 import test_autofit.mock
@@ -323,8 +323,8 @@ class TestGenerateModelInfo:
         model_info = mm.info
 
         assert (
-            model_info
-            == """mock_class
+                model_info
+                == """mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
         )
@@ -339,11 +339,31 @@ class TestGenerateModelInfo:
         print(model_info)
 
         assert (
-            model_info
-            == """mock_class
+                model_info
+                == """mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   1.0"""
         )
+
+    def test_with_promise(self):
+        mm = af.ModelMapper()
+        mm.promise = af.Promise(
+            af.Phase(
+                phase_name="phase",
+                analysis_class=None
+            ),
+            "path",
+            result_path=[],
+            assert_exists=False
+        )
+
+        assert mm.info == 'promise                                                                                   phase.result.model.path'
+
+    def test_with_tuple(self):
+        mm = af.ModelMapper()
+        mm.tuple = (0, 1)
+
+        assert mm.info == 'tuple                                                                                     (0, 1)'
 
 
 class WithFloat:
@@ -630,7 +650,7 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_3.phi == 1.0
 
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(
-        self
+            self
     ):
         mapper = af.ModelMapper(
             profile_1=test_autofit.mock.EllipticalProfile,
@@ -771,12 +791,12 @@ class TestUtility:
 
         assert len(mapper.prior_prior_model_dict) == 2
         assert (
-            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
-            == MockClassMM
+                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
+                == MockClassMM
         )
         assert (
-            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
-            == MockClassMM
+                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
+                == MockClassMM
         )
 
     def test_name_for_prior(self):
@@ -894,7 +914,7 @@ class TestListPriorModel:
         assert gaussian_mapper.list[1].two.sigma == 5
 
     def test_prior_results_for_gaussian_tuples__include_override_from_width_file(
-        self, list_prior_model
+            self, list_prior_model
     ):
         mapper = af.ModelMapper()
         mapper.list = list_prior_model

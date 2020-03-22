@@ -262,9 +262,8 @@ class AbstractOutput:
 
         self.create_paramnames_file()
 
-        text_util.output_list_of_strings_to_file(
-            file=self.paths.file_model_info, list_of_strings=self.model.info
-        )
+        with open(self.paths.file_model_info, "w+") as f:
+            f.write(self.model.info)
 
     def latex_results_at_sigma(self, sigma, format_str="{:.2f}"):
 
