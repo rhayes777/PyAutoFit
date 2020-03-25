@@ -9,9 +9,9 @@ from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
-from autofit.mapper.prior_model.deferred import DeferredInstance
-from autofit.mapper.prior_model.prior import TuplePrior, Prior
-from autofit.mapper.promise.promise import Promise
+from autofit.mapper.prior.deferred import DeferredInstance
+from autofit.mapper.prior import TuplePrior, Prior
+from autofit.mapper.prior.promise import Promise
 
 logger = logging.getLogger(__name__)
 

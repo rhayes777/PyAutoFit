@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import exc
-from autofit.mapper.prior_model import assertion as a
 from test_autofit import mock
 
 
@@ -65,18 +64,6 @@ class TestAssertion:
 
         assert assertion.instance_for_arguments({prior_1: 0.4, prior_2: 0.5}) is False
 
-    def test_lower_assertion(self, lower_assertion, prior_1, prior_2):
-        assert isinstance(lower_assertion, a.GreaterThanLessThanAssertion)
-
-        assert lower_assertion._lower is prior_1
-        assert lower_assertion._greater is prior_2
-
-    def test_greater_assertion(self, greater_assertion, prior_1, prior_2):
-        assert isinstance(greater_assertion, a.GreaterThanLessThanAssertion)
-
-        assert greater_assertion._lower is prior_2
-        assert greater_assertion._greater is prior_1
-
     def test_assert_on_arguments_lower(self, lower_assertion, prior_1, prior_2):
         assert lower_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5}) is True
         assert lower_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5}) is False
@@ -132,40 +119,26 @@ def make_model(collection):
 class TestPromiseAssertion:
     def test_less_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio < promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.GreaterThanLessThanAssertion)
-        assert model.axis_ratio == assertion._lower
-        assert model.phi == assertion._greater
 
     def test_greater_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
-
-        assertion = promise.populate(collection)
-        assert model.axis_ratio == assertion._greater
-        assert model.phi == assertion._lower
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
     def test_greater_than_equal(self, promise_model, collection, model):
         promise = promise_model.axis_ratio >= promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanEqualAssertionPromise)
-
-        assertion = promise.populate(collection)
-        assert model.axis_ratio == assertion._greater
-        assert model.phi == assertion._lower
+        assert isinstance(promise, af.GreaterThanLessThanEqualAssertion)
 
     def test_integer_promise_assertion(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > 1.0
-        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
-
-        assertion = promise.populate(collection)
-        assert model.axis_ratio == assertion._greater
-        assert 1.0 == assertion._lower
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
     def test_compound_assertion(self, promise_model, collection, model):
         promise = (1.0 < promise_model.axis_ratio) < 1.0
-        assert isinstance(promise, af.CompoundAssertionPromise)
+        assert isinstance(promise, af.CompoundAssertion)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.CompoundAssertion)
@@ -190,7 +163,19 @@ class TestModel:
         model.add_assertion(promise_model.axis_ratio < promise_model.phi)
 
         model = model.populate(collection)
-        assert isinstance(model._assertions[0], a.AbstractAssertion)
+
+        assert model._assertions[0].instance_for_arguments(
+            {
+                model.light.axis_ratio: 0.0,
+                model.light.phi: 1.0
+            }
+        ) is True
+        assert model._assertions[0].instance_for_arguments(
+            {
+                model.light.axis_ratio: 1.0,
+                model.light.phi: 0.0
+            }
+        ) is False
 
     def test_numerical(self):
         model = af.ModelMapper()

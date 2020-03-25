@@ -5,10 +5,11 @@ from time import sleep
 
 import numpy as np
 
-from autofit import conf, Paths
+from autofit import conf
+from autofit.optimize.non_linear.paths import Paths
 from autofit import exc
 from autofit.mapper import model_mapper as mm
-from autofit.mapper.prior_model import prior as p
+from autofit.mapper.prior import prior as p
 from autofit.optimize import optimizer
 from autofit.optimize.non_linear.downhill_simplex import DownhillSimplex
 

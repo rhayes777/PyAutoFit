@@ -7,7 +7,7 @@ import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
-from autofit.mapper.promise.promise import PromiseResult
+from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.paths import Paths
 
