@@ -120,26 +120,26 @@ def make_model(collection):
 class TestPromiseAssertion:
     def test_less_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio < promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.GreaterThanLessThanAssertion)
 
     def test_greater_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
     def test_greater_than_equal(self, promise_model, collection, model):
         promise = promise_model.axis_ratio >= promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanEqualAssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanEqualAssertion)
 
     def test_integer_promise_assertion(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > 1.0
-        assert isinstance(promise, af.GreaterThanLessThanAssertionPromise)
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
     def test_compound_assertion(self, promise_model, collection, model):
         promise = (1.0 < promise_model.axis_ratio) < 1.0
-        assert isinstance(promise, af.CompoundAssertionPromise)
+        assert isinstance(promise, af.CompoundAssertion)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.CompoundAssertion)
@@ -164,6 +164,19 @@ class TestModel:
         model.add_assertion(promise_model.axis_ratio < promise_model.phi)
 
         model = model.populate(collection)
+
+        assert model._assertions[0].instance_for_arguments(
+            {
+                model.light.axis_ratio: 0.0,
+                model.light.phi: 1.0
+            }
+        ) is True
+        assert model._assertions[0].instance_for_arguments(
+            {
+                model.light.axis_ratio: 1.0,
+                model.light.phi: 0.0
+            }
+        ) is False
         assert isinstance(model._assertions[0], a.AbstractAssertion)
 
     def test_numerical(self):

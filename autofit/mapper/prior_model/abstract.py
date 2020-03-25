@@ -106,6 +106,17 @@ class AbstractPriorModel(AbstractModel):
             obj = t
         return obj
 
+    def arguments_for_prior_medians(self):
+        return dict(
+            map(
+                lambda prior_tuple: (
+                    prior_tuple.prior,
+                    prior_tuple.prior.value_for(0.5),
+                ),
+                self.prior_tuples_ordered_by_id
+            )
+        )
+
     def instance_from_unit_vector(self, unit_vector):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding

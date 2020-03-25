@@ -67,9 +67,6 @@ from .tools.pipeline import ResultsCollection
 from autofit.mapper.promise import Promise
 from autofit.mapper.promise import AbstractPromise
 from autofit.mapper.promise import PromiseResult
-from autofit.mapper.promise import GreaterThanLessThanAssertionPromise
-from autofit.mapper.promise import GreaterThanLessThanEqualAssertionPromise
-from autofit.mapper.promise import CompoundAssertionPromise
 from autofit.mapper.promise import last
 
 __version__ = '0.53.0'
