@@ -23,6 +23,10 @@ class TestAddition:
         sum_prior = prior - prior
         assert sum_prior.instance_from_unit_vector([1.0]) == 0.0
 
+    def test_prior_plus_float(self, prior):
+        sum_prior = prior + 1.0
+        assert sum_prior.instance_from_unit_vector([1.0]) == 2.0
+
 
 class TestMultiplication:
     def test_prior_times_prior(self, prior):

@@ -10,21 +10,37 @@ class CompoundPrior(AbstractPriorModel, ArithmeticMixin, ABC):
         self.left = left
         self.right = right
 
+    def left_for_arguments(self, arguments):
+        try:
+            return self.left.instance_for_arguments(
+                arguments
+            )
+        except AttributeError:
+            return self.left
+
+    def right_for_arguments(self, arguments):
+        try:
+            return self.right.instance_for_arguments(
+                arguments
+            )
+        except AttributeError:
+            return self.right
+
 
 class SumPrior(CompoundPrior):
     def instance_for_arguments(self, arguments):
-        return self.left.instance_for_arguments(
+        return self.left_for_arguments(
             arguments
-        ) + self.right.instance_for_arguments(
+        ) + self.right_for_arguments(
             arguments
         )
 
 
 class MultiplePrior(CompoundPrior):
     def instance_for_arguments(self, arguments):
-        return self.left.instance_for_arguments(
+        return self.left_for_arguments(
             arguments
-        ) * self.right.instance_for_arguments(
+        ) * self.right_for_arguments(
             arguments
         )
 
