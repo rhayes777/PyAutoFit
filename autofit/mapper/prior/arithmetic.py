@@ -46,6 +46,14 @@ class ArithmeticMixin:
         from autofit.mapper.prior.compound import PowerPrior
         return PowerPrior(other, self)
 
+    def __mod__(self, other):
+        from autofit.mapper.prior.compound import ModPrior
+        return ModPrior(self, other)
+
+    def __rmod__(self, other):
+        from autofit.mapper.prior.compound import ModPrior
+        return ModPrior(other, self)
+
     def __radd__(self, other):
         """
         Add this object to another object. Addition occurs

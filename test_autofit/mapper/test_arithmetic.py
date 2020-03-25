@@ -80,6 +80,20 @@ class TestFloorDiv:
         ) == 1.0
 
 
+class TestMod:
+    def test_prior_mod_int(self, prior):
+        mod_prior = prior % 3
+        assert mod_prior.instance_from_unit_vector(
+            [5.0]
+        ) == 2.0
+
+    def test_int_mod_prior(self, prior):
+        mod_prior = 5.0 % prior
+        assert mod_prior.instance_from_unit_vector(
+            [3.0]
+        ) == 2.0
+
+
 def test_abs(prior):
     prior = af.UniformPrior(
             -1, 0

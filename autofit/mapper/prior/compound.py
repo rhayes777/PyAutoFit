@@ -124,6 +124,19 @@ class FloorDivPrior(CompoundPrior):
         )
 
 
+class ModPrior(CompoundPrior):
+    """
+    The modulus of a pair of objects, computed after realisation.
+    """
+
+    def instance_for_arguments(self, arguments):
+        return self.left_for_arguments(
+            arguments
+        ) % self.right_for_arguments(
+            arguments
+        )
+
+
 class PowerPrior(CompoundPrior):
     """
     One object to the power of another, computed after realisation.
