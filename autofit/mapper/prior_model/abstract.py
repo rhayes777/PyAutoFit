@@ -14,9 +14,9 @@ from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
-from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.prior_model.prior import GaussianPrior
-from autofit.mapper.prior_model.prior import TuplePrior, Prior, WidthModifier, Limits
+from autofit.mapper.prior.deferred import DeferredArgument
+from autofit.mapper.prior.prior import GaussianPrior
+from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -694,7 +694,7 @@ class AbstractPriorModel(AbstractModel):
 
         This information is extracted from each priors *model_info* property.
         """
-        from autofit.mapper.promise import AbstractPromise
+        from autofit.mapper.prior import AbstractPromise
         formatter = TextFormatter()
 
         for t in self.path_instance_tuples_for_class((

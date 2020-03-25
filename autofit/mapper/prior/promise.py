@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from autofit.mapper.arithmetic import ArithmeticMixin
+from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.tools.pipeline import ResultsCollection
 
 

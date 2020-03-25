@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import exc
-from autofit.mapper.prior_model import assertion as a
 from test_autofit import mock
 
 
@@ -177,7 +176,7 @@ class TestModel:
                 model.light.phi: 0.0
             }
         ) is False
-        assert isinstance(model._assertions[0], a.AbstractAssertion)
+        assert isinstance(model._assertions[0], af.AbstractAssertion)
 
     def test_numerical(self):
         model = af.ModelMapper()

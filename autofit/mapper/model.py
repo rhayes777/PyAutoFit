@@ -136,7 +136,7 @@ def populate(obj, collection: ResultsCollection):
         return [populate(item, collection) for item in obj]
     if isinstance(obj, dict):
         return {key: populate(value, collection) for key, value in obj.items()}
-    from autofit.mapper.promise import AbstractPromise
+    from autofit.mapper.prior.promise import AbstractPromise
     if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
     try:

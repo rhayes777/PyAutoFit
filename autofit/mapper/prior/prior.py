@@ -15,8 +15,8 @@ from autofit.mapper.prior_model.attribute_pair import (
     PriorNameValue,
     InstanceNameValue,
 )
-from autofit.mapper.prior_model.deferred import DeferredArgument
-from autofit.mapper.arithmetic import ArithmeticMixin
+from autofit.mapper.prior.deferred import DeferredArgument
+from autofit.mapper.prior.arithmetic import ArithmeticMixin
 
 
 class WidthModifier:

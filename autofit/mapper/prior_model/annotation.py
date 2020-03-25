@@ -29,7 +29,7 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanAssertion, unwrap
+        from autofit.mapper.prior.assertion import GreaterThanLessThanAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanAssertion(
             greater=unwrap(self),
@@ -50,7 +50,7 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanAssertion, unwrap
+        from autofit.mapper.prior.assertion import GreaterThanLessThanAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanAssertion(
             lower=unwrap(self),
@@ -71,7 +71,7 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion, unwrap
+        from autofit.mapper.prior.assertion import GreaterThanLessThanEqualAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanEqualAssertion(
             greater=unwrap(self),
@@ -92,7 +92,7 @@ class AnnotationPriorModel(PriorModel):
         -------
         An assertion object
         """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion, unwrap
+        from autofit.mapper.prior.assertion import GreaterThanLessThanEqualAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanEqualAssertion(
             lower=unwrap(self),

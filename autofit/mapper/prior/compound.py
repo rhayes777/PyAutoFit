@@ -1,6 +1,6 @@
 from abc import ABC
 
-from autofit.mapper.arithmetic import ArithmeticMixin
+from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
