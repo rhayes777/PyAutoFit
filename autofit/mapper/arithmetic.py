@@ -1,26 +1,82 @@
 class ArithmeticMixin:
     def __add__(self, other):
+        """
+        Add this object to another object. Addition occurs
+        after priors have been converted into values.
+
+        Parameters
+        ----------
+        other
+
+        Returns
+        -------
+        An object comprising two objects to be summed after
+        realisation
+        """
         from autofit.mapper.prior_model.compound import SumPrior
         return SumPrior(
             self, other
         )
 
     def __radd__(self, other):
+        """
+        Add this object to another object. Addition occurs
+        after priors have been converted into values.
+
+        Parameters
+        ----------
+        other
+
+        Returns
+        -------
+        An object comprising two objects to be summed after
+        realisation
+        """
         from autofit.mapper.prior_model.compound import SumPrior
         return SumPrior(
             other, self
         )
 
     def __sub__(self, other):
+        """
+        Subtract another object from this object. Subtraction
+        occurs after priors have been converted into values.
+
+        Parameters
+        ----------
+        other
+
+        Returns
+        -------
+        An object comprising two objects to be summed after
+        realisation
+        """
         return self + (-other)
 
     def __neg__(self):
+        """
+        Create an object representing the negation of this
+        object.
+        """
         from autofit.mapper.prior_model.compound import NegativePrior
         return NegativePrior(
             self
         )
 
     def __mul__(self, other):
+        """
+        Multiple another object by this object. Multiplication
+        occurs after priors have been converted into values.
+
+        Parameters
+        ----------
+        other
+
+        Returns
+        -------
+        An object comprising two objects to be multiplied after
+        realisation
+        """
         from autofit.mapper.prior_model.compound import MultiplePrior
         return MultiplePrior(
             self, other
