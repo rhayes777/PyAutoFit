@@ -160,6 +160,12 @@ class ArithmeticMixin:
             self, other
         )
 
+    def __radd__(self, other):
+        from autofit.mapper.prior_model.compound import SumPrior
+        return SumPrior(
+            other, self
+        )
+
     def __sub__(self, other):
         return self + (-other)
 
@@ -173,6 +179,12 @@ class ArithmeticMixin:
         from autofit.mapper.prior_model.compound import MultiplePrior
         return MultiplePrior(
             self, other
+        )
+
+    def __rmul__(self, other):
+        from autofit.mapper.prior_model.compound import MultiplePrior
+        return MultiplePrior(
+            other, self
         )
 
 
