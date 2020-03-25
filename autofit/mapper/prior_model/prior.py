@@ -153,7 +153,30 @@ class TuplePrior:
         return self.prior_tuples[item][1]
 
 
-class Prior(ModelObject, ABC):
+class ArithmeticMixin:
+    def __add__(self, other):
+        from autofit.mapper.prior_model.compound import SumPrior
+        return SumPrior(
+            self, other
+        )
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __neg__(self):
+        from autofit.mapper.prior_model.compound import NegativePrior
+        return NegativePrior(
+            self
+        )
+
+    def __mul__(self, other):
+        from autofit.mapper.prior_model.compound import MultiplePrior
+        return MultiplePrior(
+            self, other
+        )
+
+
+class Prior(ModelObject, ABC, ArithmeticMixin):
     def __init__(self, lower_limit=0.0, upper_limit=1.0):
         """
         An object used to mappers a unit value to an attribute value for a specific
@@ -173,21 +196,6 @@ class Prior(ModelObject, ABC):
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
             )
-
-    def __add__(self, other):
-        from autofit.mapper.prior_model.compound import CompoundPrior
-        return CompoundPrior(
-            self, other
-        )
-
-    def __sub__(self, other):
-        return self + (-other)
-
-    def __neg__(self):
-        from autofit.mapper.prior_model.compound import NegativePrior
-        return NegativePrior(
-            self
-        )
 
     def assert_within_limits(self, value):
         if not (self.lower_limit <= value <= self.upper_limit):
