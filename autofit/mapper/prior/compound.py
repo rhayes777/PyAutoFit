@@ -99,6 +99,10 @@ class MultiplePrior(CompoundPrior):
 
 
 class DivisionPrior(CompoundPrior):
+    """
+    One object divided by another, computed after realisation
+    """
+
     def instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
@@ -108,6 +112,10 @@ class DivisionPrior(CompoundPrior):
 
 
 class FloorDivPrior(CompoundPrior):
+    """
+    One object divided by another and floored, computed after realisation.
+    """
+
     def instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
@@ -117,6 +125,10 @@ class FloorDivPrior(CompoundPrior):
 
 
 class PowerPrior(CompoundPrior):
+    """
+    One object to the power of another, computed after realisation.
+    """
+
     def instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
@@ -147,6 +159,10 @@ class NegativePrior(ModifiedPrior):
 
 
 class AbsolutePrior(ModifiedPrior):
+    """
+    The absolute value of an object, computed after realisation.
+    """
+
     def instance_for_arguments(self, arguments):
         return abs(self.prior.instance_for_arguments(
             arguments
