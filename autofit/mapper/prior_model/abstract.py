@@ -12,11 +12,11 @@ import autofit.mapper.prior_model.collection
 from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
-from autofit.mapper.prior_model import dimension_type as dim
-from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
+from autofit.mapper.prior_model import dimension_type as dim
+from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.tools.text_formatter import TextFormatter
@@ -105,17 +105,6 @@ class AbstractPriorModel(AbstractModel):
         else:
             obj = t
         return obj
-
-    def arguments_for_prior_medians(self):
-        return dict(
-            map(
-                lambda prior_tuple: (
-                    prior_tuple.prior,
-                    prior_tuple.prior.value_for(0.5),
-                ),
-                self.prior_tuples_ordered_by_id
-            )
-        )
 
     def instance_from_unit_vector(self, unit_vector):
         """
