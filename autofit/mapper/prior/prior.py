@@ -10,13 +10,13 @@ from scipy.special import erfcinv
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior.arithmetic import ArithmeticMixin
+from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior_model.attribute_pair import (
     cast_collection,
     PriorNameValue,
     InstanceNameValue,
 )
-from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior.arithmetic import ArithmeticMixin
 
 
 class WidthModifier:
@@ -212,9 +212,7 @@ class Prior(ModelObject, ABC, ArithmeticMixin):
         """
 
     def instance_for_arguments(self, arguments):
-        return self.value_for(
-            arguments[self]
-        )
+        return arguments[self]
 
     def __eq__(self, other):
         try:

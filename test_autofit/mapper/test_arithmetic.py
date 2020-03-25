@@ -81,10 +81,12 @@ class TestFloorDiv:
 
 
 def test_abs(prior):
-    prior = abs(
-        af.UniformPrior(
-            -1.0, 0.0
+    prior = af.UniformPrior(
+            -1, 0
         )
+    assert prior.value_for(0.0) == -1
+    prior = abs(
+        prior
     )
     assert prior.instance_from_unit_vector(
         [0.0]

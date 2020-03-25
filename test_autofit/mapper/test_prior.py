@@ -200,6 +200,12 @@ class TestUniformPrior:
     def test_width(self):
         assert af.UniformPrior(2, 5).width == 3
 
+    def test_negative_range(self):
+        prior = af.UniformPrior(-1, 0)
+        assert prior.width == 1
+        assert prior.value_for(0.0) == -1
+        assert prior.value_for(1.0) == 0.0
+
 
 class TestLogUniformPrior:
     def test__simple_assumptions(self):
