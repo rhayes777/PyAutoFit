@@ -187,75 +187,6 @@ class ArithmeticMixin:
             other, self
         )
 
-
-class Prior(ModelObject, ABC, ArithmeticMixin):
-    def __init__(self, lower_limit=0.0, upper_limit=1.0):
-        """
-        An object used to mappers a unit value to an attribute value for a specific
-        class attribute.
-
-        Parameters
-        ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
-        """
-        super().__init__()
-        self.lower_limit = float(lower_limit)
-        self.upper_limit = float(upper_limit)
-        if self.lower_limit >= self.upper_limit:
-            raise exc.PriorException(
-                "The upper limit of a prior must be greater than its lower limit"
-            )
-
-    def assert_within_limits(self, value):
-        if not (self.lower_limit <= value <= self.upper_limit):
-            raise exc.PriorLimitException(
-                "The physical value {} for a prior "
-                "was not within its limits {}, {}".format(
-                    value, self.lower_limit, self.upper_limit
-                )
-            )
-
-    @staticmethod
-    def for_class_and_attribute_name(cls, attribute_name):
-        prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
-            cls, [attribute_name]
-        )
-        return Prior.from_dict(prior_dict)
-
-    @property
-    def width(self):
-        return self.upper_limit - self.lower_limit
-
-    @abstractmethod
-    def value_for(self, unit: float) -> float:
-        """
-        Return a physical value for a value between 0 and 1 with the transformation
-        described by this prior.
-
-        Parameters
-        ----------
-        unit
-            A hypercube value between 0 and 1.
-
-        Returns
-        -------
-        A physical value.
-        """
-
-    def instance_for_arguments(self, arguments):
-        return self.value_for(
-            arguments[self]
-        )
-
-    def __eq__(self, other):
-        try:
-            return self.id == other.id
-        except AttributeError:
-            return False
-
     def __gt__(self, other_prior):
         """
         Add an assertion that values associated with this prior are greater.
@@ -339,6 +270,75 @@ class Prior(ModelObject, ABC, ArithmeticMixin):
             lower=unwrap(self),
             greater=unwrap(other_prior)
         )
+
+
+class Prior(ModelObject, ABC, ArithmeticMixin):
+    def __init__(self, lower_limit=0.0, upper_limit=1.0):
+        """
+        An object used to mappers a unit value to an attribute value for a specific
+        class attribute.
+
+        Parameters
+        ----------
+        lower_limit: Float
+            The lowest value this prior can return
+        upper_limit: Float
+            The highest value this prior can return
+        """
+        super().__init__()
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
+        if self.lower_limit >= self.upper_limit:
+            raise exc.PriorException(
+                "The upper limit of a prior must be greater than its lower limit"
+            )
+
+    def assert_within_limits(self, value):
+        if not (self.lower_limit <= value <= self.upper_limit):
+            raise exc.PriorLimitException(
+                "The physical value {} for a prior "
+                "was not within its limits {}, {}".format(
+                    value, self.lower_limit, self.upper_limit
+                )
+            )
+
+    @staticmethod
+    def for_class_and_attribute_name(cls, attribute_name):
+        prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls, [attribute_name]
+        )
+        return Prior.from_dict(prior_dict)
+
+    @property
+    def width(self):
+        return self.upper_limit - self.lower_limit
+
+    @abstractmethod
+    def value_for(self, unit: float) -> float:
+        """
+        Return a physical value for a value between 0 and 1 with the transformation
+        described by this prior.
+
+        Parameters
+        ----------
+        unit
+            A hypercube value between 0 and 1.
+
+        Returns
+        -------
+        A physical value.
+        """
+
+    def instance_for_arguments(self, arguments):
+        return self.value_for(
+            arguments[self]
+        )
+
+    def __eq__(self, other):
+        try:
+            return self.id == other.id
+        except AttributeError:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)

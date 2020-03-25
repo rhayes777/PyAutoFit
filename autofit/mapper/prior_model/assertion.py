@@ -23,30 +23,36 @@ class ComparisonAssertion(AbstractAssertion, ABC):
             A prior object with physical values that must be greater
         """
         super().__init__()
-        self._lower = lower
-        self._greater = greater
+        self.lower_object = lower
+        self.greater_object = greater
 
     def __gt__(self, other):
-        return CompoundAssertion(self, self._lower > other)
+        return CompoundAssertion(self, self.lower_object > other)
 
     def __lt__(self, other):
-        return CompoundAssertion(self, self._greater < other)
+        return CompoundAssertion(self, self.greater_object < other)
 
     def __ge__(self, other):
-        return CompoundAssertion(self, self._lower >= other)
+        return CompoundAssertion(self, self.lower_object >= other)
 
     def __le__(self, other):
-        return CompoundAssertion(self, self._greater <= other)
+        return CompoundAssertion(self, self.greater_object <= other)
 
     def lower(self, arg_dict: dict):
-        if isinstance(self._lower, float):
-            return self._lower
-        return arg_dict[self._lower]
+        try:
+            return self.lower_object.instance_for_arguments(
+                arg_dict
+            )
+        except AttributeError:
+            return self.lower_object
 
     def greater(self, arg_dict: dict):
-        if isinstance(self._greater, float):
-            return self._greater
-        return arg_dict[self._greater]
+        try:
+            return self.greater_object.instance_for_arguments(
+                arg_dict
+            )
+        except AttributeError:
+            return self.greater_object
 
 
 class GreaterThanLessThanAssertion(ComparisonAssertion):

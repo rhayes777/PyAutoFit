@@ -44,3 +44,10 @@ class TestMultiplication:
     def test_float_times_prior(self, prior):
         multiple_prior = 2.0 * prior
         assert multiple_prior.instance_from_unit_vector([1.0]) == 2.0
+
+
+class TestInequality:
+    def test_prior_lt_prior(self, prior):
+        inequality_prior = (prior * prior) > prior
+        assert inequality_prior.instance_from_unit_vector([2.0]) is True
+        assert inequality_prior.instance_from_unit_vector([0.5]) is False
