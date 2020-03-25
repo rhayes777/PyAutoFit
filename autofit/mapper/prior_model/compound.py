@@ -1,7 +1,7 @@
 from abc import ABC
 
+from autofit.mapper.arithmetic import ArithmeticMixin
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.prior import ArithmeticMixin
 
 
 class CompoundPrior(AbstractPriorModel, ArithmeticMixin, ABC):
