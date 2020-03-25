@@ -176,7 +176,6 @@ class TestModel:
                 model.light.phi: 0.0
             }
         ) is False
-        assert isinstance(model._assertions[0], af.AbstractAssertion)
 
     def test_numerical(self):
         model = af.ModelMapper()
