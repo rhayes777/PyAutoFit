@@ -46,6 +46,40 @@ class TestMultiplication:
         assert multiple_prior.instance_from_unit_vector([1.0]) == 2.0
 
 
+class TestDivision:
+    def test_prior_over_prior(self, prior):
+        division_prior = prior / prior
+        assert division_prior.instance_from_unit_vector(
+            [10.0]
+        ) == 1
+
+    def test_prior_over_float(self, prior):
+        division_prior = prior / 2
+        assert division_prior.instance_from_unit_vector(
+            [4.0]
+        ) == 2.0
+
+    def test_float_over_prior(self, prior):
+        division_prior = 4.0 / prior
+        assert division_prior.instance_from_unit_vector(
+            [2.0]
+        ) == 2.0
+
+
+class TestPowers:
+    def test_prior_to_prior(self, prior):
+        power_prior = prior ** prior
+        assert power_prior.instance_from_unit_vector([2.0]) == 4.0
+
+    def test_prior_to_float(self, prior):
+        power_prior = prior ** 3
+        assert power_prior.instance_from_unit_vector([2.0]) == 8.0
+
+    def test_float_to_prior(self, prior):
+        power_prior = 3.0 ** prior
+        assert power_prior.instance_from_unit_vector([2.0]) == 9.0
+
+
 class TestInequality:
     def test_prior_lt_prior(self, prior):
         inequality_prior = (prior * prior) > prior

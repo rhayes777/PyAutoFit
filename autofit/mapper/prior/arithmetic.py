@@ -18,6 +18,22 @@ class ArithmeticMixin:
             self, other
         )
 
+    def __truediv__(self, other):
+        from autofit.mapper.prior.compound import DivisionPrior
+        return DivisionPrior(self, other)
+
+    def __rtruediv__(self, other):
+        from autofit.mapper.prior.compound import DivisionPrior
+        return DivisionPrior(other, self)
+
+    def __pow__(self, other):
+        from autofit.mapper.prior.compound import PowerPrior
+        return PowerPrior(self, other)
+
+    def __rpow__(self, other):
+        from autofit.mapper.prior.compound import PowerPrior
+        return PowerPrior(other, self)
+
     def __radd__(self, other):
         """
         Add this object to another object. Addition occurs
