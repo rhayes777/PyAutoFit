@@ -65,6 +65,12 @@ class TestDivision:
             [2.0]
         ) == 2.0
 
+    def test_div_mod(self, prior):
+        division_prior = prior // 2
+        assert division_prior.instance_from_unit_vector(
+            [3.0]
+        ) == 1.0
+
 
 class TestPowers:
     def test_prior_to_prior(self, prior):

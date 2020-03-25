@@ -18,6 +18,14 @@ class ArithmeticMixin:
             self, other
         )
 
+    def __floordiv__(self, other):
+        from autofit.mapper.prior.compound import FloorDivPrior
+        return FloorDivPrior(self, other)
+
+    def __rfloordiv__(self, other):
+        from autofit.mapper.prior.compound import FloorDivPrior
+        return FloorDivPrior(other, self)
+
     def __truediv__(self, other):
         from autofit.mapper.prior.compound import DivisionPrior
         return DivisionPrior(self, other)

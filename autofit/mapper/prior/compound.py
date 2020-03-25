@@ -107,6 +107,15 @@ class DivisionPrior(CompoundPrior):
         )
 
 
+class FloorDivPrior(CompoundPrior):
+    def instance_for_arguments(self, arguments):
+        return self.left_for_arguments(
+            arguments
+        ) // self.right_for_arguments(
+            arguments
+        )
+
+
 class PowerPrior(CompoundPrior):
     def instance_for_arguments(self, arguments):
         return self.left_for_arguments(
