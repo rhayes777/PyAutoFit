@@ -125,16 +125,29 @@ class PowerPrior(CompoundPrior):
         )
 
 
-class NegativePrior(AbstractPriorModel, ArithmeticMixin):
-    """
-    The negation of an object, computed after realisation.
-    """
-
+class ModifiedPrior(
+    AbstractPriorModel,
+    ABC,
+    ArithmeticMixin
+):
     def __init__(self, prior):
         super().__init__()
         self.prior = prior
+
+
+class NegativePrior(ModifiedPrior):
+    """
+    The negation of an object, computed after realisation.
+    """
 
     def instance_for_arguments(self, arguments):
         return -self.prior.instance_for_arguments(
             arguments
         )
+
+
+class AbsolutePrior(ModifiedPrior):
+    def instance_for_arguments(self, arguments):
+        return abs(self.prior.instance_for_arguments(
+            arguments
+        ))

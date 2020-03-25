@@ -65,11 +65,30 @@ class TestDivision:
             [2.0]
         ) == 2.0
 
-    def test_div_mod(self, prior):
+
+class TestFloorDiv:
+    def test_prior_over_int(self, prior):
         division_prior = prior // 2
         assert division_prior.instance_from_unit_vector(
             [3.0]
         ) == 1.0
+
+    def test_int_over_prior(self, prior):
+        division_prior = 3 // prior
+        assert division_prior.instance_from_unit_vector(
+            [2.0]
+        ) == 1.0
+
+
+def test_abs(prior):
+    prior = abs(
+        af.UniformPrior(
+            -1.0, 0.0
+        )
+    )
+    assert prior.instance_from_unit_vector(
+        [0.0]
+    ) == 1.0
 
 
 class TestPowers:

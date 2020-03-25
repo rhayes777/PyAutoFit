@@ -26,6 +26,10 @@ class ArithmeticMixin:
         from autofit.mapper.prior.compound import FloorDivPrior
         return FloorDivPrior(other, self)
 
+    def __abs__(self):
+        from autofit.mapper.prior.compound import AbsolutePrior
+        return AbsolutePrior(self)
+
     def __truediv__(self, other):
         from autofit.mapper.prior.compound import DivisionPrior
         return DivisionPrior(self, other)
