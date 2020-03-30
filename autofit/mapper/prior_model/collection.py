@@ -1,4 +1,5 @@
-from autofit import exc, Prior
+from autofit import exc
+from autofit.mapper.prior import Prior
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions

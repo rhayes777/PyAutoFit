@@ -6,11 +6,11 @@ test_name = "phase_x1"
 data_type = "gaussian"
 
 
-def make_pipeline(name, phase_folders, optimizer_class=af.MultiNest):
+def make_pipeline(name, phase_folders, non_linear_class=af.MultiNest):
     phase1 = af.PhaseImaging(
         phase_name="phase_1",
         phase_folders=phase_folders,
-        optimizer_class=optimizer_class,
+        non_linear_class=non_linear_class,
     )
 
     phase1.optimizer.const_efficiency_mode = True

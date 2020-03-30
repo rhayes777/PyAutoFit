@@ -1,26 +1,21 @@
 import numpy as np
 import pytest
 
-import autofit.optimize.non_linear.multi_nest
-import autofit.optimize.non_linear.non_linear
-from autofit import exc, Paths
-from autofit.mapper import model_mapper as mm
-from autofit.mapper.prior_model import prior as p
-from autofit.optimize import grid_search as gs
-from autofit.tools import phase
+import autofit as af
+from autofit import exc
 from test_autofit.mapper.model.test_model_mapper import GeometryProfile
 
 
 @pytest.fixture(name="mapper")
 def make_mapper():
-    mapper = mm.ModelMapper()
+    mapper = af.ModelMapper()
     mapper.profile = GeometryProfile
     return mapper
 
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return gs.GridSearch(Paths(phase_name=""), number_of_steps=10)
+    return af.OptimizerGridSearch(af.Paths(phase_name=""), number_of_steps=10)
 
 
 class TestGridSearchablePriors:
@@ -44,7 +39,7 @@ class TestGridSearchablePriors:
         assert mappers[-1].profile.centre_1.upper_limit == 1.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = gs.GridSearch(Paths(phase_name=""), number_of_steps=10)
+        grid_search = af.OptimizerGridSearch(af.Paths(phase_name=""), number_of_steps=10)
 
         mappers = list(
             grid_search.model_mappers(mapper, grid_priors=[mapper.profile.centre_0])
@@ -88,7 +83,7 @@ class TestGridSearchablePriors:
             assert mapper.profile.centre_0 == mapper.profile.centre_1
 
     def test_different_prior_width(self, grid_search, mapper):
-        mapper.profile.centre_0 = p.UniformPrior(0.0, 2.0)
+        mapper.profile.centre_0 = af.UniformPrior(0.0, 2.0)
         mappers = list(
             grid_search.model_mappers(
                 grid_priors=[mapper.profile.centre_0], model=mapper
@@ -103,7 +98,7 @@ class TestGridSearchablePriors:
         assert mappers[-1].profile.centre_0.lower_limit == 1.8
         assert mappers[-1].profile.centre_0.upper_limit == 2.0
 
-        mapper.profile.centre_0 = p.UniformPrior(1.0, 1.5)
+        mapper.profile.centre_0 = af.UniformPrior(1.0, 1.5)
         mappers = list(
             grid_search.model_mappers(mapper, grid_priors=[mapper.profile.centre_0])
         )
@@ -117,7 +112,7 @@ class TestGridSearchablePriors:
         assert mappers[-1].profile.centre_0.upper_limit == 1.5
 
     def test_raises_exception_for_bad_limits(self, grid_search, mapper):
-        mapper.profile.centre_0 = p.GaussianPrior(
+        mapper.profile.centre_0 = af.GaussianPrior(
             0.0, 2.0, lower_limit=float("-inf"), upper_limit=float("inf")
         )
         with pytest.raises(exc.PriorException):
@@ -133,7 +128,7 @@ fit_args = []
 fit_instances = []
 
 
-class MockOptimizer(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
+class MockOptimizer(af.NonLinearOptimizer):
     def __init__(self, paths):
         super().__init__(paths)
         init_args.append(paths.phase_name)
@@ -141,12 +136,12 @@ class MockOptimizer(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def fit(self, analysis, model):
         fit_args.append(analysis)
         # noinspection PyTypeChecker
-        return autofit.optimize.non_linear.non_linear.Result(
+        return af.Result(
             None, analysis.fit(None), None
         )
 
 
-class MockAnalysis(autofit.optimize.non_linear.non_linear.Analysis):
+class MockAnalysis(af.Analysis):
     def fit(self, instance):
         fit_instances.append(instance)
         return 1
@@ -178,10 +173,10 @@ def make_mock_class_container():
 
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05(container):
-    return gs.GridSearch(
-        optimizer_class=container.MockOptimizer,
+    return af.OptimizerGridSearch(
+        non_linear_class=container.MockOptimizer,
         number_of_steps=2,
-        paths=Paths(phase_name="sample_name"),
+        paths=af.Paths(phase_name="sample_name"),
     )
 
 
@@ -204,10 +199,10 @@ class TestGridNLOBehaviour:
         assert container.init_args[1] == "sample_name//profile_centre_0_0.50_1.00"
 
     def test_round_names(self, container, mapper):
-        grid_search = gs.GridSearch(
-            optimizer_class=container.MockOptimizer,
+        grid_search = af.OptimizerGridSearch(
+            non_linear_class=container.MockOptimizer,
             number_of_steps=3,
-            paths=Paths(phase_name="sample_name"),
+            paths=af.Paths(phase_name="sample_name"),
         )
 
         grid_search.fit(container.MockAnalysis(), mapper, [mapper.profile.centre_0])
@@ -229,20 +224,20 @@ class TestGridNLOBehaviour:
         sorted_args = list(sorted(container.init_args[n] for n in range(4)))
 
         assert (
-            sorted_args[0]
-            == "sample_name//profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
+                sorted_args[0]
+                == "sample_name//profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
         )
         assert (
-            sorted_args[1]
-            == "sample_name//profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
+                sorted_args[1]
+                == "sample_name//profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
         )
         assert (
-            sorted_args[2]
-            == "sample_name//profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
+                sorted_args[2]
+                == "sample_name//profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
         )
         assert (
-            sorted_args[3]
-            == "sample_name//profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
+                sorted_args[3]
+                == "sample_name//profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
         )
 
     def test_results(self, grid_search_05, mapper, container):
@@ -258,10 +253,10 @@ class TestGridNLOBehaviour:
             result.likelihood_merit_array, np.array([[1.0, 1.0], [1.0, 1.0]])
         ).all()
 
-        grid_search = gs.GridSearch(
-            optimizer_class=container.MockOptimizer,
+        grid_search = af.OptimizerGridSearch(
+            non_linear_class=container.MockOptimizer,
             number_of_steps=10,
-            paths=Paths(phase_name="sample_name"),
+            paths=af.Paths(phase_name="sample_name"),
         )
         result = grid_search.fit(
             container.MockAnalysis(),
@@ -274,10 +269,10 @@ class TestGridNLOBehaviour:
         assert result.likelihood_merit_array.shape == (10, 10)
 
     def test_results_parallel(self, mapper, container):
-        grid_search = gs.GridSearch(
-            optimizer_class=container.MockOptimizer,
+        grid_search = af.OptimizerGridSearch(
+            non_linear_class=container.MockOptimizer,
             number_of_steps=10,
-            paths=Paths(phase_name="sample_name"),
+            paths=af.Paths(phase_name="sample_name"),
             parallel=True,
         )
         result = grid_search.fit(
@@ -303,7 +298,7 @@ class TestGridNLOBehaviour:
             assert instance.instance_profile == instance_profile
 
     def test_generated_models_with_instance_attributes(
-        self, grid_search, mapper, container
+            self, grid_search, mapper, container
     ):
         instance = 2.0
         mapper.profile.centre_1 = instance
@@ -320,10 +315,10 @@ class TestGridNLOBehaviour:
             assert instance.profile.centre[1] == 2
 
     def test_passes_attributes(self):
-        grid_search = gs.GridSearch(
-            Paths(phase_name=""),
+        grid_search = af.OptimizerGridSearch(
+            af.Paths(phase_name=""),
             number_of_steps=10,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            non_linear_class=af.MultiNest,
         )
 
         grid_search.n_live_points = 20
@@ -349,7 +344,7 @@ def make_grid_search_result():
     one = MockResult(1)
     two = MockResult(2)
 
-    return gs.GridSearchResult([one, two], [[1], [2]])
+    return af.GridSearchResult([one, two], [[1], [2]])
 
 
 class TestGridSearchResult:
@@ -368,7 +363,7 @@ class TestGridSearchResult:
 
 class TestMixin:
     def test_mixin(self, container):
-        class MyPhase(phase.as_grid_search(phase.AbstractPhase)):
+        class MyPhase(af.as_grid_search(af.AbstractPhase)):
             @property
             def grid_priors(self):
                 return [self.model.profile.centre_0]
@@ -378,23 +373,23 @@ class TestMixin:
                 return self.make_result(self.run_analysis(analysis), analysis)
 
         my_phase = MyPhase(
-            Paths(phase_name="", phase_folders=tuple()),
+            af.Paths(phase_name="", phase_folders=tuple()),
             number_of_steps=2,
-            optimizer_class=container.MockOptimizer,
+            non_linear_class=container.MockOptimizer,
         )
         my_phase.model.profile = GeometryProfile
 
         result = my_phase.run()
 
-        assert isinstance(result, gs.GridSearchResult)
+        assert isinstance(result, af.GridSearchResult)
         assert len(result.results) == 2
 
         assert isinstance(
-            result.best_result, autofit.optimize.non_linear.non_linear.Result
+            result.best_result, af.Result
         )
 
     def test_parallel_flag(self):
-        my_phase = phase.as_grid_search(phase.AbstractPhase, parallel=True)(
-            Paths(phase_name="phase name")
+        my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
+            af.Paths(phase_name="phase name")
         )
         assert my_phase.optimizer.parallel

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.tools.pipeline import ResultsCollection
 
 
@@ -157,7 +158,7 @@ class PromiseResult(AbstractPromiseResult):
         )
 
 
-class AbstractPromise(ABC):
+class AbstractPromise(ABC, ArithmeticMixin):
     def __init__(
             self,
             *path,
@@ -218,34 +219,6 @@ class AbstractPromise(ABC):
 
     def __call__(self, *args, **kwargs):
         pass
-
-    def __lt__(self, other):
-        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanAssertionPromise
-        return GreaterThanLessThanAssertionPromise(
-            self,
-            other
-        )
-
-    def __gt__(self, other):
-        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanAssertionPromise
-        return GreaterThanLessThanAssertionPromise(
-            other,
-            self
-        )
-
-    def __le__(self, other):
-        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanEqualAssertionPromise
-        return GreaterThanLessThanEqualAssertionPromise(
-            self,
-            other
-        )
-
-    def __ge__(self, other):
-        from autofit.mapper.promise.assertion_promise import GreaterThanLessThanEqualAssertionPromise
-        return GreaterThanLessThanEqualAssertionPromise(
-            other,
-            self
-        )
 
     @abstractmethod
     def populate(self, results_collection):

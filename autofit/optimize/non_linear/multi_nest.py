@@ -373,7 +373,7 @@ class MultiNestOutput(NestedSamplingOutput):
 
         resume.seek(1)
         resume.read(19)
-        return float(resume.read(8))
+        return int(resume.read(8))
 
     @property
     def accepted_samples(self):
@@ -382,7 +382,7 @@ class MultiNestOutput(NestedSamplingOutput):
 
         resume.seek(1)
         resume.read(8)
-        return float(resume.read(10))
+        return int(resume.read(10))
 
     @property
     def acceptance_ratio(self):
