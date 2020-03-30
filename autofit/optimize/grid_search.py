@@ -97,7 +97,7 @@ class GridSearchResult:
 class GridSearch:
     # TODO: this should be using paths
     def __init__(
-        self, paths, number_of_steps=4, optimizer_class=DownhillSimplex, parallel=False
+        self, paths, number_of_steps=4, non_linear_class=DownhillSimplex, parallel=False
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -108,7 +108,7 @@ class GridSearch:
         ----------
         number_of_steps: int
             The number of steps to go in each direction
-        optimizer_class: class
+        non_linear_class: class
             The class of the optimizer that is run at each step
         """
         self.paths = paths
@@ -120,7 +120,7 @@ class GridSearch:
         self.phase_tag_input = paths.phase_tag
 
         self.number_of_steps = number_of_steps
-        self.optimizer_class = optimizer_class
+        self.non_linear_class = non_linear_class
 
     @property
     def hyper_step_size(self):
@@ -343,7 +343,7 @@ class GridSearch:
 
     def optimizer_instance(self, name_path):
 
-        optimizer_instance = self.optimizer_class(
+        optimizer_instance = self.non_linear_class(
             Paths(
                 phase_name=name_path,
                 phase_tag=self.paths.phase_tag,

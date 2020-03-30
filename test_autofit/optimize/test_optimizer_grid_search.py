@@ -174,7 +174,7 @@ def make_mock_class_container():
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05(container):
     return af.OptimizerGridSearch(
-        optimizer_class=container.MockOptimizer,
+        non_linear_class=container.MockOptimizer,
         number_of_steps=2,
         paths=af.Paths(phase_name="sample_name"),
     )
@@ -200,7 +200,7 @@ class TestGridNLOBehaviour:
 
     def test_round_names(self, container, mapper):
         grid_search = af.OptimizerGridSearch(
-            optimizer_class=container.MockOptimizer,
+            non_linear_class=container.MockOptimizer,
             number_of_steps=3,
             paths=af.Paths(phase_name="sample_name"),
         )
@@ -254,7 +254,7 @@ class TestGridNLOBehaviour:
         ).all()
 
         grid_search = af.OptimizerGridSearch(
-            optimizer_class=container.MockOptimizer,
+            non_linear_class=container.MockOptimizer,
             number_of_steps=10,
             paths=af.Paths(phase_name="sample_name"),
         )
@@ -270,7 +270,7 @@ class TestGridNLOBehaviour:
 
     def test_results_parallel(self, mapper, container):
         grid_search = af.OptimizerGridSearch(
-            optimizer_class=container.MockOptimizer,
+            non_linear_class=container.MockOptimizer,
             number_of_steps=10,
             paths=af.Paths(phase_name="sample_name"),
             parallel=True,
@@ -318,7 +318,7 @@ class TestGridNLOBehaviour:
         grid_search = af.OptimizerGridSearch(
             af.Paths(phase_name=""),
             number_of_steps=10,
-            optimizer_class=af.MultiNest,
+            non_linear_class=af.MultiNest,
         )
 
         grid_search.n_live_points = 20
@@ -375,7 +375,7 @@ class TestMixin:
         my_phase = MyPhase(
             af.Paths(phase_name="", phase_folders=tuple()),
             number_of_steps=2,
-            optimizer_class=container.MockOptimizer,
+            non_linear_class=container.MockOptimizer,
         )
         my_phase.model.profile = GeometryProfile
 
