@@ -10,12 +10,13 @@ from scipy.special import erfcinv
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior.arithmetic import ArithmeticMixin
+from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior_model.attribute_pair import (
     cast_collection,
     PriorNameValue,
     InstanceNameValue,
 )
-from autofit.mapper.prior_model.deferred import DeferredArgument
 
 
 class WidthModifier:
@@ -153,7 +154,7 @@ class TuplePrior:
         return self.prior_tuples[item][1]
 
 
-class Prior(ModelObject, ABC):
+class Prior(ModelObject, ABC, ArithmeticMixin):
     def __init__(self, lower_limit=0.0, upper_limit=1.0):
         """
         An object used to mappers a unit value to an attribute value for a specific
@@ -210,95 +211,14 @@ class Prior(ModelObject, ABC):
         A physical value.
         """
 
+    def instance_for_arguments(self, arguments):
+        return arguments[self]
+
     def __eq__(self, other):
         try:
             return self.id == other.id
         except AttributeError:
             return False
-
-    def __gt__(self, other_prior):
-        """
-        Add an assertion that values associated with this prior are greater.
-
-        Parameters
-        ----------
-        other_prior
-            Another prior which is associated with a field that should always have
-            lower physical values.
-
-        Returns
-        -------
-        An assertion object
-        """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanAssertion, unwrap
-        # noinspection PyTypeChecker
-        return GreaterThanLessThanAssertion(
-            greater=unwrap(self),
-            lower=unwrap(other_prior)
-        )
-
-    def __lt__(self, other_prior):
-        """
-        Add an assertion that values associated with this prior are lower.
-
-        Parameters
-        ----------
-        other_prior
-            Another prior which is associated with a field that should always have
-            greater physical values.
-
-        Returns
-        -------
-        An assertion object
-        """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanAssertion, unwrap
-        # noinspection PyTypeChecker
-        return GreaterThanLessThanAssertion(
-            lower=unwrap(self),
-            greater=unwrap(other_prior)
-        )
-
-    def __ge__(self, other_prior):
-        """
-        Add an assertion that values associated with this prior are greater or equal.
-
-        Parameters
-        ----------
-        other_prior
-            Another prior which is associated with a field that should always have
-            lower physical values.
-
-        Returns
-        -------
-        An assertion object
-        """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion, unwrap
-        # noinspection PyTypeChecker
-        return GreaterThanLessThanEqualAssertion(
-            greater=unwrap(self),
-            lower=unwrap(other_prior)
-        )
-
-    def __le__(self, other_prior):
-        """
-        Add an assertion that values associated with this prior are lower or equal.
-
-        Parameters
-        ----------
-        other_prior
-            Another prior which is associated with a field that should always have
-            greater physical values.
-
-        Returns
-        -------
-        An assertion object
-        """
-        from autofit.mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion, unwrap
-        # noinspection PyTypeChecker
-        return GreaterThanLessThanEqualAssertion(
-            lower=unwrap(self),
-            greater=unwrap(other_prior)
-        )
 
     def __ne__(self, other):
         return not self.__eq__(other)

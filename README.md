@@ -31,7 +31,7 @@ import autofit as af
 
 # To perform the analysis we set up a phase, which takes the Gaussian as the 
 # model & fits its parameters using the non-linear search MultiNest.
-phase = af.Phase(model=af.Gaussian, phase_name="phase_example", optimizer_class=af.MultiNest)
+phase = af.Phase(model=af.Gaussian, phase_name="phase_example", non_linear_class=af.MultiNest)
 
 # We pass a dataset to the phase, fitting it with the model above.
 
@@ -70,7 +70,7 @@ model.exponential.rate = af.GaussianPrior(mean=0.1, sigma=0.05)
 model.add_assertion(model.exponential.intensity > 0.5)
 
 # We pass the customized model to a phase to fit it via a non-linear search.
-phase = af.Phase(model=model, phase_name="phase_example", optimizer_class=af.MultiNest)
+phase = af.Phase(model=model, phase_name="phase_example", non_linear_class=af.MultiNest)
 ```
 
 ## Aggregation
@@ -150,7 +150,7 @@ def make_pipeline():
     phase1 = af.Phase(
         phase_name="phase_1__left_gaussian",
         gaussians=af.CollectionPriorModel(gaussian_0=af.profiles.Gaussian),
-        optimizer_class=af.MultiNest,
+        non_linear_class=af.MultiNest,
     )
 
     # In phase 2, we will fit the Gaussian on the right, where the best-fit Gaussian 
@@ -163,7 +163,7 @@ def make_pipeline():
             gaussian_0=phase1.result.instance.gaussians.gaussian_0, # <- Use the Gaussian fitted in phase 1
             gaussian_1=gaussian_1,
         ),
-        optimizer_class=af.MultiNest,
+        non_linear_class=af.MultiNest,
     )
 
     # In phase 3, we fit both Gaussians, using the results of phases 1 and 2 to 
@@ -176,7 +176,7 @@ def make_pipeline():
             gaussian_0=phase1.result.model.gaussians.gaussian_0, # <- use phase 1 Gaussian results.
             gaussian_1=phase2.result.model.gaussians.gaussian_1, # <- use phase 2 Gaussian results.
         ),
-        optimizer_class=af.MultiNest,
+        non_linear_class=af.MultiNest,
     )
 
     return toy.Pipeline(pipeline_name, phase1, phase2, phase3)

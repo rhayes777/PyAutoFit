@@ -5,7 +5,7 @@ from test_autofit.integration import integration_util
 from autofit.optimize.non_linear.mock_nlo import MockNLO
 
 
-def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="config"):
+def run(module, test_name=None, non_linear_class=af.MultiNest, config_folder="config"):
     test_name = test_name or module.test_name
     test_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
     output_path = test_path + "output/"
@@ -17,7 +17,7 @@ def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="con
         path=test_path, folder_names=["dataset", module.data_type]
     )
 
-    imaging = aa.imaging.from_fits(
+    imaging = aa.Imaging.from_fits(
         image_path=dataset_path + "/image.fits",
         noise_map_path=dataset_path + "/noise_map.fits",
         pixel_scales=0.1,
@@ -26,7 +26,7 @@ def run(module, test_name=None, optimizer_class=af.MultiNest, config_folder="con
     module.make_pipeline_no_lens_light(
         name=test_name,
         phase_folders=[module.test_type, test_name],
-        optimizer_class=optimizer_class,
+        non_linear_class=non_linear_class,
     ).run(dataset=imaging)
 
 
@@ -35,7 +35,7 @@ def run_a_mock(module):
     run(
         module,
         test_name=f"{module.test_name}_mock",
-        optimizer_class=MockNLO,
+        non_linear_class=MockNLO,
         config_folder="config_mock",
     )
 
@@ -45,6 +45,6 @@ def run_with_multi_nest(module):
     run(
         module,
         test_name=f"{module.test_name}_nest",
-        optimizer_class=af.MultiNest,
+        non_linear_class=af.MultiNest,
         config_folder="config_mock",
     )

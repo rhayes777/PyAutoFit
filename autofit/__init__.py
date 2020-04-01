@@ -6,15 +6,6 @@ from autofit.mapper.prior_model.attribute_pair import (
     PriorNameValue,
     InstanceNameValue,
 )
-from autofit.mapper.prior_model.prior import (
-    Prior,
-    UniformPrior,
-    GaussianPrior,
-    LogUniformPrior,
-    WidthModifier,
-    RelativeWidthModifier,
-    AbsoluteWidthModifier,
-)
 
 dir(conf)
 from . import exc
@@ -26,26 +17,24 @@ from .mapper.model import ModelInstance
 from .mapper.model import ModelInstance as Instance
 from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
-from .mapper.prior_model.assertion import GreaterThanLessThanAssertion
-from .mapper.prior_model.assertion import AbstractAssertion
-from .mapper.prior_model.assertion import GreaterThanLessThanEqualAssertion
-from .mapper.prior_model.assertion import CompoundAssertion
 from .mapper.model_object import ModelObject
 from .mapper.prior_model import *
 from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel as Collection
-from .mapper.prior_model.deferred import DeferredArgument
-from .mapper.prior_model.deferred import DeferredInstance
+from autofit.mapper.prior.deferred import DeferredArgument
+from autofit.mapper.prior.deferred import DeferredInstance
 from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.prior_model import PriorModel as Model
 from .mapper.prior_model.util import PriorModelNameValue
+from .optimize.grid_search import GridSearch as OptimizerGridSearch
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.grid_search import GridSearch
+from .optimize.grid_search import GridSearchResult
 from .optimize.non_linear.multi_nest import MultiNest
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
@@ -64,12 +53,8 @@ from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
-from autofit.mapper.promise import Promise
-from autofit.mapper.promise import AbstractPromise
-from autofit.mapper.promise import PromiseResult
-from autofit.mapper.promise import GreaterThanLessThanAssertionPromise
-from autofit.mapper.promise import GreaterThanLessThanEqualAssertionPromise
-from autofit.mapper.promise import CompoundAssertionPromise
-from autofit.mapper.promise import last
+from autofit.mapper.prior import AbstractPromise
+from autofit.mapper.prior import last
+from .mapper.prior import *
 
-__version__ = '0.54.0'
+__version__ = '0.55.0'

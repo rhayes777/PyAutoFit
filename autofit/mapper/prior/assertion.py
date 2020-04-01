@@ -1,52 +1,30 @@
 from abc import ABC
 
+from autofit.mapper.prior.compound import CompoundPrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
-class AbstractAssertion(AbstractPriorModel, ABC):
-    def __init__(self, name=None):
-        super().__init__()
+class ComparisonAssertion(CompoundPrior, ABC):
+    def __init__(
+            self,
+            lower,
+            greater,
+            name=None
+    ):
+        super().__init__(lower, greater)
         self._name = name
 
-
-class ComparisonAssertion(AbstractAssertion, ABC):
-    def __init__(self, lower, greater):
-        """
-        Describes an assertion that the physical values associated with
-        the lower and greater priors are lower and greater respectively.
-
-        Parameters
-        ----------
-        lower: Prior
-            A prior object with physical values that must be lower
-        greater: Prior
-            A prior object with physical values that must be greater
-        """
-        super().__init__()
-        self._lower = lower
-        self._greater = greater
-
     def __gt__(self, other):
-        return CompoundAssertion(self, self._lower > other)
+        return CompoundAssertion(self, self.left > other)
 
     def __lt__(self, other):
-        return CompoundAssertion(self, self._greater < other)
+        return CompoundAssertion(self, self.right < other)
 
     def __ge__(self, other):
-        return CompoundAssertion(self, self._lower >= other)
+        return CompoundAssertion(self, self.left >= other)
 
     def __le__(self, other):
-        return CompoundAssertion(self, self._greater <= other)
-
-    def lower(self, arg_dict: dict):
-        if isinstance(self._lower, float):
-            return self._lower
-        return arg_dict[self._lower]
-
-    def greater(self, arg_dict: dict):
-        if isinstance(self._greater, float):
-            return self._greater
-        return arg_dict[self._greater]
+        return CompoundAssertion(self, self.right <= other)
 
 
 class GreaterThanLessThanAssertion(ComparisonAssertion):
@@ -65,8 +43,8 @@ class GreaterThanLessThanAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        lower = self.lower(arguments)
-        greater = self.greater(arguments)
+        lower = self.left_for_arguments(arguments)
+        greater = self.right_for_arguments(arguments)
         return lower < greater
 
 
@@ -86,14 +64,24 @@ class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        return self.lower(arguments) <= self.greater(arguments)
+        return self.left_for_arguments(
+            arguments
+        ) <= self.right_for_arguments(
+            arguments
+        )
 
 
-class CompoundAssertion(AbstractAssertion):
-    def __init__(self, assertion_1, assertion_2):
+class CompoundAssertion(AbstractPriorModel):
+    def __init__(
+            self,
+            assertion_1,
+            assertion_2,
+            name=None
+    ):
         super().__init__()
         self.assertion_1 = assertion_1
         self.assertion_2 = assertion_2
+        self._name = name
 
     def instance_for_arguments(self, arguments):
         return self.assertion_1.instance_for_arguments(

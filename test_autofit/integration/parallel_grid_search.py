@@ -34,7 +34,7 @@ if __name__ == "__main__":
         phase_name="phase_grid_search",
         phase_tag="_tag",
         phase_folders=["integration"],
-        optimizer_class=af.MultiNest,
+        non_linear_class=af.MultiNest,
         parallel=False,
     )
     grid_search.model.profile = test_autofit.mock.EllipticalProfile

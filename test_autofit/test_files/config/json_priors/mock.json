@@ -1,4 +1,44 @@
 {
+    "MockClassGaussian": {
+        "one": {
+            "type": "Gaussian",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 1.0
+            },
+            "mean": 0.0,
+            "sigma": 1.0
+        },
+        "two": {
+            "type": "Gaussian",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "mean": 0.0,
+            "sigma": 1.0
+        }
+    },
+    "MockClassInf": {
+        "one": {
+            "type": "Gaussian",
+            "lower_limit": "-inf",
+            "upper_limit": 0.0,
+            "mean": 0.0,
+            "sigma": 1.0
+        },
+        "two": {
+            "type": "Gaussian",
+            "lower_limit": 0.0,
+            "upper_limit": "inf",
+            "mean": 0.0,
+            "sigma": 1.0
+        }
+    },
     "Redshift": {
         "redshift": {
             "type": "Uniform",

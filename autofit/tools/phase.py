@@ -7,7 +7,7 @@ import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
-from autofit.mapper.promise.promise import PromiseResult
+from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.paths import Paths
 
@@ -18,7 +18,7 @@ class AbstractPhase:
             self,
             paths: Paths,
             *,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             model=None,
     ):
         """
@@ -27,13 +27,13 @@ class AbstractPhase:
 
         Parameters
         ----------
-        optimizer_class: class
+        non_linear_class: class
             The class of a non_linear optimizer
         """
 
         self.paths = paths
 
-        self.optimizer = optimizer_class(self.paths)
+        self.optimizer = non_linear_class(self.paths)
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
@@ -212,10 +212,10 @@ class Phase(AbstractPhase):
             paths,
             *,
             analysis_class,
-            optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
             model=None,
     ):
-        super().__init__(paths, optimizer_class=optimizer_class, model=model)
+        super().__init__(paths, non_linear_class=non_linear_class, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
@@ -283,14 +283,14 @@ def as_grid_search(phase_class, parallel=False):
                 paths,
                 *,
                 number_of_steps=4,
-                optimizer_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
                 **kwargs,
         ):
-            super().__init__(paths, optimizer_class=optimizer_class, **kwargs)
+            super().__init__(paths, non_linear_class=non_linear_class, **kwargs)
             self.optimizer = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,
-                optimizer_class=optimizer_class,
+                non_linear_class=non_linear_class,
                 parallel=parallel,
             )
 
