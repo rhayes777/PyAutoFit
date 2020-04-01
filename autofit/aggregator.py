@@ -259,6 +259,26 @@ class AbstractAggregator:
         """
         return [getattr(phase, item) for phase in self.phases]
 
+    def map_most_probable_instance(self, func):
+        """
+        Map some function onto the most probable instance from each result.
+
+        Parameters
+        ----------
+        func
+            Some function that accepts an instance of the model.
+
+        Returns
+        -------
+        A generator returning values for the function mapping.
+        """
+        return map(
+            lambda output: func(
+                output.most_probable_instance
+            ),
+            self.output
+        )
+
     def group_by(self, field: str) -> AggregatorGroup:
         """
         Group the phases by a field, e.g. pipeline.

@@ -3,12 +3,27 @@ import pytest
 import autofit as af
 
 
+class MostProbableInstance:
+    def __init__(self, name):
+        self.name = name
+
+
 class MockPhaseOutput:
     def __init__(self, directory, pipeline, phase, dataset):
         self.directory = directory
         self.pipeline = pipeline
         self.phase = phase
         self.dataset = dataset
+
+    @property
+    def most_probable_instance(self):
+        return MostProbableInstance(
+            self.phase
+        )
+
+    @property
+    def output(self):
+        return self
 
 
 @pytest.fixture(name="aggregator")
@@ -97,3 +112,12 @@ def test_group_by(aggregator):
     assert len(result[1]) == 1
 
     assert result.phase == [["phase2"], ["phase2"]]
+
+
+def test_map_output(aggregator):
+    result = aggregator.map_most_probable_instance(
+        lambda instance: instance.name
+    )
+    assert list(result) == [
+        "phase1", "phase2", "phase2"
+    ]
