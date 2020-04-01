@@ -75,6 +75,13 @@ class AbstractPhase:
                 )
             )
 
+    def save_mask(self, mask):
+        """
+        Save the mask associated with the phase
+        """
+        with open("{}/mask.pickle".format(self.paths.make_path()), "wb+") as f:
+            pickle.dump(mask, f)
+
     def __str__(self):
         return self.optimizer.paths.phase_name
 
