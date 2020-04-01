@@ -42,7 +42,12 @@ class PhaseOutput:
         self.file_path = os.path.join(directory, "metadata")
         with open(self.file_path) as f:
             self.text = f.read()
-            pairs = [line.split("=") for line in self.text.split("\n")]
+            pairs = [
+                line.split("=")
+                for line
+                in self.text.split("\n")
+                if "=" in line
+            ]
             self.__dict__.update({pair[0]: pair[1] for pair in pairs})
 
     @property

@@ -60,12 +60,9 @@ class TestLoading:
         assert len(path_aggregator) == 1
 
     def test_pickles(self, path_aggregator):
-        assert path_aggregator.dataset["name"] == "dataset"
-        assert path_aggregator.model["name"] == "model"
-        assert path_aggregator.optimizer["name"] == "optimizer"
-
-    def test_model_results(self, path_aggregator):
-        assert path_aggregator.model_results == "model_results"
+        assert path_aggregator.dataset[0]["name"] == "dataset"
+        assert path_aggregator.model[0]["name"] == "model"
+        assert path_aggregator.optimizer[0]["name"] == "optimizer"
 
 
 class TestOperations:
