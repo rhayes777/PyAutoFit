@@ -114,10 +114,22 @@ def test_group_by(aggregator):
     assert result.phase == [["phase2"], ["phase2"]]
 
 
-def test_map_output(aggregator):
+def test_map_most_probable(aggregator):
     result = aggregator.map_most_probable_instance(
         lambda instance: instance.name
     )
     assert list(result) == [
         "phase1", "phase2", "phase2"
+    ]
+
+
+def test_map(aggregator):
+    def some_function(output):
+        return f"{output.phase} {output.dataset}"
+
+    results = aggregator.map(some_function)
+    assert list(results) == [
+        "phase1 dataset1",
+        "phase2 dataset1",
+        "phase2 dataset2",
     ]

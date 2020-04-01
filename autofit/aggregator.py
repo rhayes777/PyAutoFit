@@ -279,6 +279,24 @@ class AbstractAggregator:
             self.output
         )
 
+    def map(self, func):
+        """
+        Map some function onto the aggregated output objects.
+
+        Parameters
+        ----------
+        func
+            A function
+
+        Returns
+        -------
+        A generator of results
+        """
+        return map(
+            func,
+            self.output
+        )
+
     def group_by(self, field: str) -> AggregatorGroup:
         """
         Group the phases by a field, e.g. pipeline.
