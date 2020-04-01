@@ -356,7 +356,9 @@ class TestPriorModelArguments:
         lens_galaxy = af.PriorModel(mock.Galaxy)
         source_galaxy = mock.Galaxy()
         tracer = af.PriorModel(
-            mock.Tracer, lens_galaxy=lens_galaxy, source_galaxy=source_galaxy
+            mock.Tracer,
+            lens_galaxy=lens_galaxy,
+            source_galaxy=source_galaxy
         )
 
         assert tracer.lens_galaxy is lens_galaxy
