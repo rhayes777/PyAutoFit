@@ -612,7 +612,9 @@
         }
     },
     "Tracer": {
-        "grid": "Deferred"
+        "grid": {
+            "type": "Deferred"
+        }
     },
     "Circle": {
         "circumference": {
