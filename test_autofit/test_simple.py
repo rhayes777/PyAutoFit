@@ -12,12 +12,19 @@ def fitness_function(instance: Class):
     return -(instance.argument - 30) ** 2
 
 
-def test_simple():
+@pytest.mark.parametrize(
+    "optimizer",
+    [
+        af.MultiNest,
+        af.DownhillSimplex
+    ]
+)
+def test_simple(optimizer):
     model = af.Model(
         Class,
         argument=af.UniformPrior(10, 100)
     )
-    result = af.MultiNest.simple_fit(
+    result = optimizer.simple_fit(
         model,
         fitness_function
     )
