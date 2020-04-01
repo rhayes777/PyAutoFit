@@ -1,4 +1,5 @@
 import logging
+import shutil
 
 import numpy as np
 
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 class NonLinearOptimizer:
     @convert_paths
-    def __init__(self, paths):
+    def __init__(self, paths=None):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
@@ -22,6 +23,9 @@ class NonLinearOptimizer:
         ------------
 
         """
+        if paths is None:
+            paths = Paths()
+
         log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
         self.paths = paths
 
@@ -32,11 +36,32 @@ class NonLinearOptimizer:
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get("output", "log_level", str)
-                .replace(" ", "")
-                .upper()
+                    .replace(" ", "")
+                    .upper()
             ]
 
         self.paths.restore()
+
+    @classmethod
+    def simple_fit(
+            cls,
+            model,
+            fitness_function,
+            remove_output=True
+    ):
+        optimizer = cls()
+        result = optimizer._simple_fit(
+            model,
+            fitness_function
+        )
+        if remove_output:
+            shutil.rmtree(
+                optimizer.paths.phase_output_path
+            )
+        return result
+
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -72,7 +97,7 @@ class NonLinearOptimizer:
 
     class Fitness:
         def __init__(
-            self, paths, analysis, output_results=lambda during_analysis: None
+                self, paths, analysis, output_results=lambda during_analysis: None
         ):
             self.output_results = output_results
             self.paths = paths
@@ -154,7 +179,7 @@ class Result:
     """
 
     def __init__(
-        self, instance, likelihood, output=None, previous_model=None, gaussian_tuples=None
+            self, instance, likelihood, output=None, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.

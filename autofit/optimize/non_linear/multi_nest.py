@@ -9,18 +9,21 @@ from autofit import conf, exc
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.output import NestedSamplingOutput
+from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
 class MultiNest(NonLinearOptimizer):
-    def __init__(self, paths, sigma=3, run=pymultinest.run):
+    def __init__(self, paths=None, sigma=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
 
         This interfaces with an input model_mapper, which is used for setting up the \
         individual model instances that are passed to each iteration of MultiNest.
         """
+        if paths is None:
+            paths = Paths()
 
         super().__init__(paths)
 
@@ -116,7 +119,8 @@ class MultiNest(NonLinearOptimizer):
             if self.terminate_at_acceptance_ratio:
                 if os.path.isfile(self.paths.file_summary):
                     try:
-                        if (self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
+                        if (
+                                self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
                             self.terminate_has_begun = True
                             return self.max_likelihood
                     except ValueError:
@@ -142,6 +146,64 @@ class MultiNest(NonLinearOptimizer):
                         likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
 
             return likelihood
+
+    def _simple_fit(self, model, fitness_function):
+        multinest_output = MultiNestOutput(model, self.paths)
+
+        def prior(cube, ndim, nparams):
+            # NEVER EVER REFACTOR THIS LINE! Haha.
+
+            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+
+            for i in range(len(phys_cube)):
+                cube[i] = phys_cube[i]
+
+            return cube
+
+        def fitness(cube, ndim, nparams, lnew):
+            return fitness_function(
+                model.instance_from_vector(
+                    cube
+                )
+            )
+
+        self.run(
+            fitness,
+            prior,
+            model.prior_count,
+            outputfiles_basename="{}/multinest".format(self.paths.path),
+            n_live_points=self.n_live_points,
+            const_efficiency_mode=self.const_efficiency_mode,
+            importance_nested_sampling=self.importance_nested_sampling,
+            evidence_tolerance=self.evidence_tolerance,
+            sampling_efficiency=self.sampling_efficiency,
+            null_log_evidence=self.null_log_evidence,
+            n_iter_before_update=self.n_iter_before_update,
+            multimodal=self.multimodal,
+            max_modes=self.max_modes,
+            mode_tolerance=self.mode_tolerance,
+            seed=self.seed,
+            verbose=self.verbose,
+            resume=self.resume,
+            context=self.context,
+            write_output=self.write_output,
+            log_zero=self.log_zero,
+            max_iter=self.max_iter,
+            init_MPI=self.init_MPI,
+        )
+        self.paths.backup()
+
+        instance = multinest_output.most_likely_instance
+        multinest_output.output_results(
+            during_analysis=False
+        )
+        return Result(
+            instance=instance,
+            likelihood=multinest_output.maximum_log_likelihood,
+            output=multinest_output,
+            previous_model=model,
+            gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
+        )
 
     def fit(self, analysis, model):
         multinest_output = MultiNestOutput(model, self.paths)
