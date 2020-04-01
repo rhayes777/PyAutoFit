@@ -78,6 +78,16 @@ class PhaseOutput:
             return pickle.load(f)
 
     @property
+    def mask(self):
+        """
+        A pickled mask object
+        """
+        with open(
+                os.path.join(self.directory, "mask.pickle"), "wb"
+        ) as f:
+            return pickle.load(f)
+
+    @property
     def header(self) -> str:
         """
         A header created by joining the pipeline, phase and dataset names
