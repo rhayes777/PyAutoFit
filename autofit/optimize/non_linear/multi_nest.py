@@ -6,6 +6,7 @@ import numpy as np
 import pymultinest
 
 from autofit import conf, exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.output import NestedSamplingOutput
@@ -89,10 +90,9 @@ class MultiNest(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_vector, multinest_output, terminate_at_acceptance_ratio,
+        def __init__(self, paths, analysis, multinest_output, terminate_at_acceptance_ratio,
                      acceptance_ratio_threshold):
             super().__init__(paths, analysis, multinest_output.output_results)
-            self.instance_from_vector = instance_from_vector
             self.accepted_samples = 0
             self.multinest_output = multinest_output
 
@@ -114,8 +114,7 @@ class MultiNest(NonLinearOptimizer):
             self.terminate_has_begun = False
             self.stagger_accepted_samples = 0
 
-        def __call__(self, cube, ndim, nparams, lnew):
-
+        def __call__(self, instance):
             if self.terminate_at_acceptance_ratio:
                 if os.path.isfile(self.paths.file_summary):
                     try:
@@ -127,7 +126,6 @@ class MultiNest(NonLinearOptimizer):
                         pass
 
             try:
-                instance = self.instance_from_vector(cube)
                 likelihood = self.fit_instance(instance)
             except exc.FitException:
 
@@ -147,7 +145,24 @@ class MultiNest(NonLinearOptimizer):
 
             return likelihood
 
-    def _simple_fit(self, model, fitness_function):
+    def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
+        """
+        Fit a model using MultiNest and some function that
+        scores instances of that model.
+
+        Parameters
+        ----------
+        model
+            The model which is used to generate instances for different
+            points in parameter space
+        fitness_function
+            A function that gives a score to the model, with the highest (least
+            negative) number corresponding to the best fit.
+
+        Returns
+        -------
+        A result object comprising a fitness score, model instance and model.
+        """
         multinest_output = MultiNestOutput(model, self.paths)
 
         def prior(cube, ndim, nparams):
@@ -211,50 +226,18 @@ class MultiNest(NonLinearOptimizer):
         multinest_output.save_model_info()
 
         if not os.path.exists(self.paths.has_completed_path):
-            # noinspection PyUnusedLocal
-            def prior(cube, ndim, nparams):
-                # NEVER EVER REFACTOR THIS LINE! Haha.
-
-                phys_cube = model.vector_from_unit_vector(unit_vector=cube)
-
-                for i in range(len(phys_cube)):
-                    cube[i] = phys_cube[i]
-
-                return cube
-
             fitness_function = MultiNest.Fitness(
                 self.paths,
                 analysis,
-                model.instance_from_vector,
                 multinest_output,
                 self.terminate_at_acceptance_ratio,
                 self.acceptance_ratio_threshold
             )
 
             logger.info("Running MultiNest...")
-            self.run(
-                fitness_function.__call__,
-                prior,
-                model.prior_count,
-                outputfiles_basename="{}/multinest".format(self.paths.path),
-                n_live_points=self.n_live_points,
-                const_efficiency_mode=self.const_efficiency_mode,
-                importance_nested_sampling=self.importance_nested_sampling,
-                evidence_tolerance=self.evidence_tolerance,
-                sampling_efficiency=self.sampling_efficiency,
-                null_log_evidence=self.null_log_evidence,
-                n_iter_before_update=self.n_iter_before_update,
-                multimodal=self.multimodal,
-                max_modes=self.max_modes,
-                mode_tolerance=self.mode_tolerance,
-                seed=self.seed,
-                verbose=self.verbose,
-                resume=self.resume,
-                context=self.context,
-                write_output=self.write_output,
-                log_zero=self.log_zero,
-                max_iter=self.max_iter,
-                init_MPI=self.init_MPI,
+            self._simple_fit(
+                model,
+                fitness_function.__call__
             )
             logger.info("MultiNest complete")
 

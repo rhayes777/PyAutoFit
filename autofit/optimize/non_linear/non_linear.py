@@ -48,7 +48,24 @@ class NonLinearOptimizer:
             model,
             fitness_function,
             remove_output=True
-    ):
+    ) -> "Result":
+        """
+        Fit a model, M with some function f that takes instances of the
+        class represented by model M and gives a score for their fitness
+
+        Parameters
+        ----------
+        model
+            A model that can be instantiated
+        fitness_function
+            A function that takes an instance of the model and scores it
+        remove_output
+            If True then output files are removed after the fit
+
+        Returns
+        -------
+        A result comprising a score, the best fit instance and an updated prior model
+        """
         optimizer = cls()
         result = optimizer._simple_fit(
             model,
@@ -190,7 +207,7 @@ class Result:
             An instance object comprising the class instances that gave the optimal fit
         likelihood: float
             A value indicating the figure of merit given by the optimal fit
-        previous_model: mm.ModelMapper
+        previous_model
             The model mapper from the stage that produced this result
         """
         self.instance = instance
