@@ -59,6 +59,14 @@ class TestLoading:
     def test_unzip(self, path_aggregator):
         assert len(path_aggregator) == 1
 
+    def test_pickles(self, path_aggregator):
+        assert path_aggregator.dataset["name"] == "dataset"
+        assert path_aggregator.model["name"] == "model"
+        assert path_aggregator.optimizer["name"] == "optimizer"
+
+    def test_model_results(self, path_aggregator):
+        assert path_aggregator.model_results == "model_results"
+
 
 class TestOperations:
     def test_attribute(self, aggregator):
