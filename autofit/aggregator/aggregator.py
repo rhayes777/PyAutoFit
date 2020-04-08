@@ -210,7 +210,11 @@ class AbstractAggregator:
 
 
 class Aggregator(AbstractAggregator):
-    def __init__(self, directory: str):
+    def __init__(
+            self,
+            directory: str,
+            completed_only=False
+    ):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
 
@@ -220,6 +224,10 @@ class Aggregator(AbstractAggregator):
         Parameters
         ----------
         directory
+            A directory in which the outputs of phases are kept. This is searched recursively.
+        completed_only
+            If True only phases with a .completed file (indicating the phase was completed)
+            are included in the aggregator.
         """
         self._directory = directory
         phases = []
@@ -232,7 +240,8 @@ class Aggregator(AbstractAggregator):
 
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:
-                phases.append(PhaseOutput(root))
+                if not completed_only or ".completed" in filenames:
+                    phases.append(PhaseOutput(root))
 
         if len(phases) == 0:
             print(f"\nNo phases found in {directory}\n")

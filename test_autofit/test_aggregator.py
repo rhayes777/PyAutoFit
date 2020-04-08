@@ -55,9 +55,22 @@ def make_aggregator_directory():
 def make_path_aggregator(
         aggregator_directory
 ):
-    aggregator = af.Aggregator(aggregator_directory)
+    aggregator = af.Aggregator(
+        aggregator_directory
+    )
     yield aggregator
     aggregator.remove_unzipped()
+
+
+def test_completed_aggregator(
+        aggregator_directory
+):
+    aggregator = af.Aggregator(
+        aggregator_directory,
+        completed_only=True
+    )
+    assert len(aggregator) == 1
+    assert "completed" in aggregator[0].directory
 
 
 class TestLoading:
