@@ -3,6 +3,7 @@ import pickle
 from abc import ABC, abstractmethod
 from typing import Dict
 
+import dill
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
@@ -38,6 +39,7 @@ class AbstractPhase:
 
         self.pipeline_name = None
         self.pipeline_tag = None
+        self.meta_dataset = None
 
     @property
     def _default_metadata(self) -> Dict[str, str]:
@@ -75,12 +77,44 @@ class AbstractPhase:
                 )
             )
 
+    def save_dataset(self, dataset):
+        """
+        Save the dataset associated with the phase
+        """
+
+        name = "dataset"
+
+        if hasattr(dataset, "name"):
+            if dataset.name is not None:
+                name = dataset.name
+
+        with open("{}/{}.pickle".format(self.paths.make_path(), name), "wb") as f:
+            pickle.dump(dataset, f)
+
     def save_mask(self, mask):
         """
         Save the mask associated with the phase
         """
-        with open("{}/mask.pickle".format(self.paths.make_path()), "wb+") as f:
-            pickle.dump(mask, f)
+        with open("{}/mask.pickle".format(self.paths.make_path()), "wb") as f:
+            dill.dump(mask, f)
+
+    def save_meta_dataset(self, meta_dataset):
+        with open(
+                f"{self.paths.phase_output_path}/meta_dataset.pickle",
+                "wb+"
+        ) as f:
+            pickle.dump(
+                meta_dataset, f
+            )
+
+    def save_phase_attributes(self, phase_attributes):
+        with open(
+                f"{self.paths.phase_output_path}/phase_attributes.pickle",
+                "wb+"
+        ) as f:
+            pickle.dump(
+                phase_attributes, f
+            )
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -111,6 +145,9 @@ class AbstractPhase:
             The result of the previous phase
         """
         pass
+
+    def make_phase_attributes(self, analysis):
+        raise NotImplementedError()
 
     def make_result(self, result, analysis):
         raise NotImplementedError()
