@@ -78,15 +78,15 @@ class TestLoading:
         assert len(path_aggregator) == 2
 
     def test_pickles(self, path_aggregator):
-        assert path_aggregator.values(
+        assert list(path_aggregator.values(
             "dataset"
-        )[0]["name"] == "dataset"
-        assert path_aggregator.values(
+        ))[0]["name"] == "dataset"
+        assert list(path_aggregator.values(
             "model"
-        )[0]["name"] == "model"
-        assert path_aggregator.values(
+        ))[0]["name"] == "model"
+        assert list(path_aggregator.values(
             "optimizer"
-        )[0]["name"] == "optimizer"
+        ))[0]["name"] == "optimizer"
 
 
 class TestOperations:
@@ -120,22 +120,32 @@ class TestOperations:
         assert result.pipeline == ["pipeline1", "pipeline1"]
 
     def test_attribute(self, aggregator):
-        assert aggregator.values("pipeline") == ["pipeline1", "pipeline1", "pipeline2"]
-        assert aggregator.values("phase") == ["phase1", "phase2", "phase2"]
-        assert aggregator.values("dataset") == ["dataset1", "dataset1", "dataset2"]
+        assert list(
+            aggregator.values("pipeline")
+        ) == ["pipeline1", "pipeline1", "pipeline2"]
+        assert list(
+            aggregator.values("phase")
+        ) == ["phase1", "phase2", "phase2"]
+        assert list(
+            aggregator.values("dataset")
+        ) == ["dataset1", "dataset1", "dataset2"]
 
     def test_indexing(self, aggregator):
-        assert aggregator[1:].values("pipeline") == ["pipeline1", "pipeline2"]
-        assert aggregator[-1:].values("pipeline") == ["pipeline2"]
+        assert list(
+            aggregator[1:].values("pipeline")
+        ) == ["pipeline1", "pipeline2"]
+        assert list(
+            aggregator[-1:].values("pipeline")
+        ) == ["pipeline2"]
         assert aggregator[0].pipeline == "pipeline1"
 
     def test_filter_index(self, aggregator):
-        assert aggregator.filter(
+        assert list(aggregator.filter(
             aggregator.pipeline == "pipeline1"
-        )[1:].values("pipeline") == ["pipeline1"]
-        assert aggregator[1:].filter(
+        )[1:].values("pipeline")) == ["pipeline1"]
+        assert list(aggregator[1:].filter(
             aggregator.pipeline == "pipeline1"
-        ).values("pipeline") == ["pipeline1"]
+        ).values("pipeline")) == ["pipeline1"]
 
     def test_filter(self, aggregator):
         result = aggregator.filter(
@@ -209,7 +219,10 @@ class TestOperations:
         assert len(result[0]) == 1
         assert len(result[1]) == 1
 
-        assert result.values("phase") == [["phase2"], ["phase2"]]
+        assert list(map(
+            list,
+            result.values("phase")
+        )) == [["phase2"], ["phase2"]]
 
     def test_map(self, aggregator):
         def some_function(output):

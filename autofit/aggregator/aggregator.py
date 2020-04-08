@@ -16,7 +16,7 @@ import os
 import zipfile
 from collections import defaultdict
 from shutil import rmtree
-from typing import List, Union
+from typing import List, Union, Iterator
 
 from .phase_output import PhaseOutput
 from .predicate import AttributePredicate
@@ -160,8 +160,31 @@ class AbstractAggregator:
             phases = predicate.filter(phases)
         return AbstractAggregator(phases=list(phases))
 
-    def values(self, item):
-        return [getattr(phase, item) for phase in self.phases]
+    def values(self, name: str) -> Iterator:
+        """
+        Get values from outputs with a given name.
+
+        A list the same length as the number of phases is returned
+        where each item is the value of the attribute for a given
+        phase.
+
+        Parameters
+        ----------
+        name
+            The name of an attribute expected to be associated with
+            phase output. If a pickle file with this name is in the
+            phase output directory then that pickle will be loaded.
+
+        Returns
+        -------
+        A generator of values for the attribute
+        """
+        return map(
+            lambda phase: getattr(
+                phase, name
+            ),
+            self.phases
+        )
 
     def map(self, func):
         """
