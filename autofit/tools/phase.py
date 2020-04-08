@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Dict
 
 import dill
+
 import autofit.optimize.non_linear.multi_nest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
@@ -228,7 +229,7 @@ class Dataset(ABC):
         directory
             The directory to save into
         """
-        with open(f"{directory}/{self.name}.pickle", "wb") as f:
+        with open(f"{directory}/dataset.pickle", "wb") as f:
             pickle.dump(self, f)
 
     @classmethod
