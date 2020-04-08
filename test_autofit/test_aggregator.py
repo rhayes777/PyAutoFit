@@ -85,16 +85,25 @@ class TestOperations:
         ).pipeline == ["pipeline1"]
 
     def test_filter(self, aggregator):
-        result = aggregator.filter(pipeline="pipeline1")
+        result = aggregator.filter(
+            aggregator.pipeline == "pipeline1"
+        )
         assert len(result) == 2
         assert result[0].pipeline == "pipeline1"
 
-        result = aggregator.filter(pipeline="pipeline1", phase="phase1")
+        result = aggregator.filter(
+            aggregator.pipeline == "pipeline1",
+            aggregator.phase == "phase1"
+        )
 
         assert len(result) == 1
         assert result[0].pipeline == "pipeline1"
 
-        result = aggregator.filter(pipeline="pipeline1").filter(phase="phase1")
+        result = aggregator.filter(
+            aggregator.pipeline == "pipeline1"
+        ).filter(
+            aggregator.phase == "phase1"
+        )
 
         assert len(result) == 1
         assert result[0].pipeline == "pipeline1"

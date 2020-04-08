@@ -154,8 +154,37 @@ class AggregatorGroup:
     def __len__(self):
         return len(self.groups)
 
-    def __getattr__(self, item):
+    def values(self, item):
         return [getattr(group, item) for group in self.groups]
+
+
+class AttributePredicate:
+    def __init__(self, attribute):
+        self.attribute = attribute
+
+    def __eq__(self, other):
+        return EqualityPredicate(
+            self.attribute,
+            other
+        )
+
+
+class EqualityPredicate:
+    def __init__(self, attribute, value):
+        self.attribute = attribute
+        self.value = value
+
+    def __call__(self, phase):
+        return getattr(
+            phase,
+            self.attribute
+        ) == self.value
+
+    def filter(self, phases):
+        return filter(
+            lambda phase: self(phase),
+            phases
+        )
 
 
 class AbstractAggregator:
@@ -200,6 +229,9 @@ class AbstractAggregator:
     def __len__(self):
         return len(self.phases)
 
+    def __getattr__(self, item):
+        return AttributePredicate(item)
+
     def phases_with(self, **kwargs) -> [PhaseOutput]:
         """
         Filters phases. If no arguments are passed all phases are returned. Arguments must be key value pairs, with
@@ -233,7 +265,7 @@ class AbstractAggregator:
             if all([value in getattr(phase, key) for key, value in kwargs.items()])
         ]
 
-    def filter(self, **kwargs) -> "AbstractAggregator":
+    def filter(self, *args) -> "AbstractAggregator":
         """
         Filter by key value pairs found in the metadata.
 
@@ -248,7 +280,10 @@ class AbstractAggregator:
         -------
         An aggregator comprising all phases that match the filters.
         """
-        return AbstractAggregator(phases=self.phases_with(**kwargs))
+        phases = self.phases
+        for predicate in args:
+            phases = predicate.filter(phases)
+        return AbstractAggregator(phases=list(phases))
 
     def filter_contains(self, **kwargs) -> "AbstractAggregator":
         """
@@ -268,10 +303,7 @@ class AbstractAggregator:
         """
         return AbstractAggregator(phases=self.phases_with_contains(**kwargs))
 
-    def __getattr__(self, item):
-        """
-        If an attribute is not found then attempt to grab a list of values from the underlying phases
-        """
+    def values(self, item):
         return [getattr(phase, item) for phase in self.phases]
 
     def map(self, func):
