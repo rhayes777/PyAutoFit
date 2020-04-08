@@ -1,5 +1,5 @@
 import os
-import pickle
+import pickle, dill
 
 import autofit.optimize.non_linear.non_linear
 from autofit.optimize.non_linear.output import AbstractOutput
@@ -66,9 +66,9 @@ class PhaseOutput:
         A pickled mask object
         """
         with open(
-                os.path.join(self.directory, "mask.pickle"), "wb"
+                os.path.join(self.directory, "mask.pickle"), "rb"
         ) as f:
-            return pickle.load(f)
+            return dill.load(f)
 
     @property
     def meta_dataset(self):

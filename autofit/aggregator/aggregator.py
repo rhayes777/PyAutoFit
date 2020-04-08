@@ -164,7 +164,7 @@ class AbstractAggregator:
         """
         return map(
             func,
-            self.values("output")
+            self.phases
         )
 
     def group_by(self, field: str) -> AggregatorGroup:
