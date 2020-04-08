@@ -134,7 +134,7 @@ class AggregatorGroup:
         """
         self.groups = groups
 
-    def filter(self, **kwargs) -> "AggregatorGroup":
+    def filter(self, *args) -> "AggregatorGroup":
         """
         Apply a filter to the underlying groups whilst maintaining the total number of groups.
 
@@ -147,7 +147,7 @@ class AggregatorGroup:
         -------
         A collection of groups of the same length with each group having the same or fewer members.
         """
-        return AggregatorGroup([group.filter(**kwargs) for group in self.groups])
+        return AggregatorGroup([group.filter(*args) for group in self.groups])
 
     def __getitem__(self, item):
         return self.groups[item]
@@ -346,7 +346,7 @@ class AbstractAggregator:
         """
         return map(
             func,
-            self.output
+            self.values("output")
         )
 
     def group_by(self, field: str) -> AggregatorGroup:
@@ -392,7 +392,7 @@ class Aggregator(AbstractAggregator):
         ----------
         directory
         """
-        self.directory = directory
+        self._directory = directory
         phases = []
 
         for root, _, filenames in os.walk(directory):
@@ -411,20 +411,3 @@ class Aggregator(AbstractAggregator):
             paths_string = "\n".join(phase.directory for phase in phases)
             print(f"\nPhases were found in these directories:\n\n{paths_string}\n")
         super().__init__(phases)
-
-
-if __name__ == "__main__":
-    from sys import argv
-
-    root_directory = None
-    try:
-        root_directory = argv[1]
-    except IndexError:
-        print(
-            "Usage:\n\naggregator.py (root_directory) [pipeline=pipeline phase=phase dataset=dataset]"
-        )
-        exit(1)
-    filter_dict = {pair[0]: pair[1] for pair in [line.split("=") for line in argv[2:]]}
-
-    with open("model.results", "w+") as out:
-        out.write(Aggregator(root_directory).filter(**filter_dict).model_results)

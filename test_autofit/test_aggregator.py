@@ -133,10 +133,14 @@ class TestOperations:
         assert result[0].pipeline == "pipeline1"
 
     def test_filter_contains_directory(self, aggregator):
-        result = aggregator.filter_contains(directory="number")
+        result = aggregator.filter(
+            aggregator.directory.contains("number")
+        )
         assert len(result) == 2
 
-        result = aggregator.filter_contains(directory="letter")
+        result = aggregator.filter(
+            aggregator.directory.contains("letter")
+        )
         assert len(result) == 1
 
     def test_group_by(self, aggregator):
@@ -146,13 +150,13 @@ class TestOperations:
         assert len(result[0]) == 2
         assert len(result[1]) == 1
 
-        result = result.filter(phase="phase2")
+        result = result.filter(aggregator.phase == "phase2")
 
         assert len(result) == 2
         assert len(result[0]) == 1
         assert len(result[1]) == 1
 
-        assert result.phase == [["phase2"], ["phase2"]]
+        assert result.values("phase") == [["phase2"], ["phase2"]]
 
     def test_map(self, aggregator):
         def some_function(output):
