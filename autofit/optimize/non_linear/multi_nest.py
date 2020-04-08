@@ -99,20 +99,10 @@ class MultiNest(NonLinearOptimizer):
             self.model_results_output_interval = conf.instance.general.get(
                 "output", "model_results_output_interval", int
             )
-            self.stagger_resampling_likelihood = conf.instance.non_linear.get(
-                "MultiNest", "stagger_resampling_likelihood", bool
-            )
-            self.stagger_resampling_value = conf.instance.non_linear.get(
-                "MultiNest", "stagger_resampling_value", float
-            )
-            self.resampling_likelihood = conf.instance.non_linear.get(
-                "MultiNest", "null_log_evidence", float
-            )
             self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
             self.acceptance_ratio_threshold = acceptance_ratio_threshold
 
             self.terminate_has_begun = False
-            self.stagger_accepted_samples = 0
 
         def __call__(self, instance):
             if self.terminate_at_acceptance_ratio:
@@ -125,25 +115,7 @@ class MultiNest(NonLinearOptimizer):
                     except ValueError:
                         pass
 
-            try:
-                likelihood = self.fit_instance(instance)
-            except exc.FitException:
-
-                if not self.stagger_resampling_likelihood:
-                    likelihood = -np.inf
-                else:
-
-                    if self.stagger_accepted_samples < 10:
-
-                        self.stagger_accepted_samples += 1
-                        self.resampling_likelihood += self.stagger_resampling_value
-                        likelihood = self.resampling_likelihood
-
-                    else:
-
-                        likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
-
-            return likelihood
+            return self.fit_instance(instance)
 
     def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
         """
@@ -175,15 +147,51 @@ class MultiNest(NonLinearOptimizer):
 
             return cube
 
-        def fitness(cube, ndim, nparams, lnew):
-            return fitness_function(
-                model.instance_from_vector(
-                    cube
+        stagger_resampling_likelihood = conf.instance.non_linear.get(
+            "MultiNest", "stagger_resampling_likelihood", bool
+        )
+        stagger_resampling_value = conf.instance.non_linear.get(
+            "MultiNest", "stagger_resampling_value", float
+        )
+
+        class Fitness:
+            def __init__(
+                    self
+            ):
+                """
+                Fitness function that only handles resampling
+                """
+                self.stagger_accepted_samples = 0
+                self.resampling_likelihood = conf.instance.non_linear.get(
+                    "MultiNest", "null_log_evidence", float
                 )
-            )
+
+            def __call__(self, cube, ndim, nparams, lnew):
+                """
+                This call converts a vector of physical values then determines a fit.
+
+                If an exception is thrown it handles resampling.
+                """
+                try:
+                    return fitness_function(
+                        model.instance_from_vector(
+                            cube
+                        )
+                    )
+                except exc.FitException:
+                    if not stagger_resampling_likelihood:
+                        likelihood = -np.inf
+                    else:
+                        if self.stagger_accepted_samples < 10:
+                            self.stagger_accepted_samples += 1
+                            self.resampling_likelihood += stagger_resampling_value
+                            likelihood = self.resampling_likelihood
+                        else:
+                            likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
+                    return likelihood
 
         self.run(
-            fitness,
+            Fitness().__call__,
             prior,
             model.prior_count,
             outputfiles_basename="{}/multinest".format(self.paths.path),
@@ -289,7 +297,7 @@ class MultiNestOutput(NestedSamplingOutput):
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
             )
 
-            if densities_1d == []:
+            if len(densities_1d) == 0:
                 return False
 
             return True
