@@ -109,16 +109,25 @@ class TestOperations:
         assert result[0].pipeline == "pipeline1"
 
     def test_filter_contains(self, aggregator):
-        result = aggregator.filter_contains(pipeline="1")
+        result = aggregator.filter(
+            aggregator.pipeline.contains("1")
+        )
         assert len(result) == 2
         assert result[0].pipeline == "pipeline1"
 
-        result = aggregator.filter_contains(pipeline="1", phase="1")
+        result = aggregator.filter(
+            aggregator.pipeline.contains("1"),
+            aggregator.phase.contains("1")
+        )
 
         assert len(result) == 1
         assert result[0].pipeline == "pipeline1"
 
-        result = aggregator.filter_contains(pipeline="1").filter(phase="phase1")
+        result = aggregator.filter(
+            aggregator.pipeline.contains("1")
+        ).filter(
+            aggregator.phase == "phase1"
+        )
 
         assert len(result) == 1
         assert result[0].pipeline == "pipeline1"

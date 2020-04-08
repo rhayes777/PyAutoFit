@@ -15,6 +15,7 @@ Example:
 import os
 import pickle
 import zipfile
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import List, Union
 
@@ -168,8 +169,38 @@ class AttributePredicate:
             other
         )
 
+    def contains(self, value):
+        return ContainsPredicate(
+            self.attribute,
+            value
+        )
 
-class EqualityPredicate:
+
+class AbstractPredicate(ABC):
+    def filter(self, phases):
+        return filter(
+            lambda phase: self(phase),
+            phases
+        )
+
+    @abstractmethod
+    def __call__(self, phase):
+        pass
+
+
+class ContainsPredicate(AbstractPredicate):
+    def __init__(self, attribute, value):
+        self.attribute = attribute
+        self.value = value
+
+    def __call__(self, phase):
+        return self.value in getattr(
+            phase,
+            self.attribute
+        )
+
+
+class EqualityPredicate(AbstractPredicate):
     def __init__(self, attribute, value):
         self.attribute = attribute
         self.value = value
@@ -179,12 +210,6 @@ class EqualityPredicate:
             phase,
             self.attribute
         ) == self.value
-
-    def filter(self, phases):
-        return filter(
-            lambda phase: self(phase),
-            phases
-        )
 
 
 class AbstractAggregator:
