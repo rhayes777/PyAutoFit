@@ -56,7 +56,7 @@ class PhaseOutput:
         The dataset that this phase ran on
         """
         with open(
-                os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
+                os.path.join(self.directory, f"dataset.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
