@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from autofit import conf, AbstractPriorModel
+from autofit import conf
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
 
@@ -90,7 +90,7 @@ class NonLinearOptimizer(ABC):
     def fit(
             self,
             analysis: "Analysis",
-            model: AbstractPriorModel
+            model
     ) -> "Result":
         """
         A model which represents possible instances with some dimensionality is fit.
