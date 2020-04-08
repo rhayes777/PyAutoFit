@@ -5,11 +5,17 @@ from autofit import exc
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import logger
 from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.paths import Paths
 
 
 class DownhillSimplex(NonLinearOptimizer):
-    def __init__(self, paths, fmin=scipy.optimize.fmin):
-
+    def __init__(
+            self,
+            paths=None,
+            fmin=scipy.optimize.fmin
+    ):
+        if paths is None:
+            paths = Paths()
         super().__init__(paths)
 
         self.xtol = self.config("xtol", float)
