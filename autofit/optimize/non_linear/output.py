@@ -72,16 +72,21 @@ class AbstractOutput:
         return list(map(lambda param: param[0], self.vector_at_sigma(sigma)))
 
     def instance_at_sigma(self, sigma):
-        return self.model.instance_from_vector(vector=self.vector_at_sigma(sigma=sigma))
+        return self.model.instance_from_vector(
+            vector=self.vector_at_sigma(sigma=sigma),
+            assert_priors_in_limits=False
+        )
 
     def instance_at_upper_sigma(self, sigma):
         return self.model.instance_from_vector(
-            vector=self.vector_at_upper_sigma(sigma=sigma)
+            vector=self.vector_at_upper_sigma(sigma=sigma),
+            assert_priors_in_limits=False
         )
 
     def instance_at_lower_sigma(self, sigma):
         return self.model.instance_from_vector(
-            vector=self.vector_at_lower_sigma(sigma=sigma)
+            vector=self.vector_at_lower_sigma(sigma=sigma),
+            assert_priors_in_limits=False
         )
 
     def error_vector_at_sigma(self, sigma):
