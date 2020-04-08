@@ -257,39 +257,6 @@ class AbstractAggregator:
     def __getattr__(self, item):
         return AttributePredicate(item)
 
-    def phases_with(self, **kwargs) -> [PhaseOutput]:
-        """
-        Filters phases. If no arguments are passed all phases are returned. Arguments must be key value pairs, with
-        phase, dataset or pipeline as the key.
-
-        Parameters
-        ----------
-        kwargs
-            Filters, e.g. pipeline=pipeline1
-        """
-
-        return [
-            phase
-            for phase in self.phases
-            if all([getattr(phase, key) == value for key, value in kwargs.items()])
-        ]
-
-    def phases_with_contains(self, **kwargs) -> [PhaseOutput]:
-        """
-        Filters phases by checking if an attribute contains some substring. If no arguments are passed all phases
-        are returned. Arguments must be key value pairs, with phase, dataset or pipeline as the key.
-
-        Parameters
-        ----------
-        kwargs
-            Filters, e.g. pipeline1 in pipeline
-        """
-        return [
-            phase
-            for phase in self.phases
-            if all([value in getattr(phase, key) for key, value in kwargs.items()])
-        ]
-
     def filter(self, *args) -> "AbstractAggregator":
         """
         Filter by key value pairs found in the metadata.
@@ -309,24 +276,6 @@ class AbstractAggregator:
         for predicate in args:
             phases = predicate.filter(phases)
         return AbstractAggregator(phases=list(phases))
-
-    def filter_contains(self, **kwargs) -> "AbstractAggregator":
-        """
-        Filter by key value pairs found in the metadata. Checks whether the value contains
-        the given filter value.
-
-        Another aggregator object is returned.
-
-        Parameters
-        ----------
-        kwargs
-            Key value arguments which are expected to match those found the in metadata file.
-
-        Returns
-        -------
-        An aggregator comprising all phases that match the filters.
-        """
-        return AbstractAggregator(phases=self.phases_with_contains(**kwargs))
 
     def values(self, item):
         return [getattr(phase, item) for phase in self.phases]
