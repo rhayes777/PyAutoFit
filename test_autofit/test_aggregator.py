@@ -73,12 +73,16 @@ class TestLoading:
 
 
 class TestOperations:
-    def test_not(self, aggregator):
-        predicate = ~(aggregator.pipeline == "pipeline1")
-        assert isinstance(
-            predicate,
-            NotPredicate
+    def test_not_contains(self, aggregator):
+        predicate = ~(aggregator.pipeline.contains("1"))
+        result = aggregator.filter(
+            predicate
         )
+        assert len(result) == 1
+        assert result[0].pipeline == "pipeline2"
+
+    def test_not_equal(self, aggregator):
+        predicate = aggregator.pipeline != "pipeline1"
         result = aggregator.filter(
             predicate
         )

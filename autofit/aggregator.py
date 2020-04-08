@@ -169,6 +169,9 @@ class AttributePredicate:
             other
         )
 
+    def __ne__(self, other):
+        return ~(self == other)
+
     def contains(self, value):
         return ContainsPredicate(
             self.attribute,
