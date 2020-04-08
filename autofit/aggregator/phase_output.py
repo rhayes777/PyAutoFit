@@ -1,6 +1,8 @@
 import os
 import pickle
 
+import dill
+
 import autofit.optimize.non_linear.non_linear
 from autofit.optimize.non_linear.output import AbstractOutput
 
@@ -50,11 +52,21 @@ class PhaseOutput:
         with open(os.path.join(self.directory, "model.results")) as f:
             return f.read()
 
+    @property
+    def mask(self):
+        """
+        A pickled mask object
+        """
+        with open(
+                os.path.join(self.directory, "mask.pickle"), "rb"
+        ) as f:
+            return dill.load(f)
+
     def __getattr__(self, item):
         """
         Attempt to load a pickle by the same name from the phase output directory.
 
-        dataset.pickle, mask.pickle, meta_dataset.pickle etc.
+        dataset.pickle, meta_dataset.pickle etc.
         """
         with open(
                 os.path.join(self.directory, f"{item}.pickle"), "rb"
