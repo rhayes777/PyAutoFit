@@ -58,38 +58,6 @@ class DownhillSimplex(NonLinearOptimizer):
                 likelihood = -np.inf
             return -2 * likelihood
 
-    def _simple_fit(self, model, fitness_function):
-        """
-        Fit a model using MultiNest and some function that
-        scores instances of that model.
-
-        Parameters
-        ----------
-        model
-            The model which is used to generate instances for different
-            points in parameter space
-        fitness_function
-            A function that gives a score to the model, with the highest (least
-            negative) number corresponding to the best fit.
-
-        Returns
-        -------
-        A result object comprising a fitness score, model instance and model.
-        """
-        def _fitness_function(
-            vector
-        ):
-            try:
-                instance = self.instance_from_vector(vector)
-                likelihood = self.fit_instance(instance)
-            except exc.FitException:
-                likelihood = -np.inf
-            return -2 * likelihood
-
-
-        initial_vector = model.physical_values_from_prior_median
-        output = self.fmin(fitness_function, x0=initial_vector)
-
     def fit(self, analysis, model):
         dhs_output = AbstractOutput(model, self.paths)
         dhs_output.save_model_info()

@@ -15,8 +15,7 @@ def fitness_function(instance: Class):
 @pytest.mark.parametrize(
     "optimizer",
     [
-        af.MultiNest,
-        af.DownhillSimplex
+        af.MultiNest
     ]
 )
 def test_simple(optimizer):
