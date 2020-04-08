@@ -2,10 +2,15 @@ import math
 
 import autofit as af
 from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear.non_linear import Analysis
 
 
-class MockNLO(af.NonLinearOptimizer):
-    def fit(self, analysis, model):
+class MockNLO(NonLinearOptimizer):
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
+    def _fit(self, analysis, model):
         mock_output = AbstractOutput(model, self.paths)
         mock_output.save_model_info()
         if model.prior_count == 0:
@@ -45,7 +50,7 @@ class MockOutput(object):
         pass
 
 
-class MockAnalysis(af.Analysis):
+class MockAnalysis(Analysis):
     def fit(self, instance):
         return 1.0
 

@@ -9,6 +9,9 @@ from autofit.optimize.non_linear.paths import Paths
 
 
 class DownhillSimplex(NonLinearOptimizer):
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
     def __init__(
             self,
             paths=None,
@@ -58,7 +61,7 @@ class DownhillSimplex(NonLinearOptimizer):
                 likelihood = -np.inf
             return -2 * likelihood
 
-    def fit(self, analysis, model):
+    def _fit(self, analysis, model):
         dhs_output = AbstractOutput(model, self.paths)
         dhs_output.save_model_info()
         initial_vector = model.physical_values_from_prior_medians

@@ -15,7 +15,8 @@ Example:
 import os
 import zipfile
 from collections import defaultdict
-from typing import List, Union
+from shutil import rmtree
+from typing import List, Union, Iterator
 
 from .phase_output import PhaseOutput
 from .predicate import AttributePredicate
@@ -91,6 +92,19 @@ class AbstractAggregator:
         """
         self.phases = phases
 
+    def remove_unzipped(self):
+        """
+        Removes the unzipped output directory for each phase.
+        """
+        for phase in self.phases:
+            path = "/".join(
+                phase.directory.split("/")[:-1]
+            )
+            rmtree(
+                path,
+                ignore_errors=True
+            )
+
     def __getitem__(
             self,
             item: Union[slice, int]
@@ -146,8 +160,31 @@ class AbstractAggregator:
             phases = predicate.filter(phases)
         return AbstractAggregator(phases=list(phases))
 
-    def values(self, item):
-        return [getattr(phase, item) for phase in self.phases]
+    def values(self, name: str) -> Iterator:
+        """
+        Get values from outputs with a given name.
+
+        A list the same length as the number of phases is returned
+        where each item is the value of the attribute for a given
+        phase.
+
+        Parameters
+        ----------
+        name
+            The name of an attribute expected to be associated with
+            phase output. If a pickle file with this name is in the
+            phase output directory then that pickle will be loaded.
+
+        Returns
+        -------
+        A generator of values for the attribute
+        """
+        return map(
+            lambda phase: getattr(
+                phase, name
+            ),
+            self.phases
+        )
 
     def map(self, func):
         """
@@ -199,7 +236,11 @@ class AbstractAggregator:
 
 
 class Aggregator(AbstractAggregator):
-    def __init__(self, directory: str):
+    def __init__(
+            self,
+            directory: str,
+            completed_only=False
+    ):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
 
@@ -209,6 +250,10 @@ class Aggregator(AbstractAggregator):
         Parameters
         ----------
         directory
+            A directory in which the outputs of phases are kept. This is searched recursively.
+        completed_only
+            If True only phases with a .completed file (indicating the phase was completed)
+            are included in the aggregator.
         """
         self._directory = directory
         phases = []
@@ -221,7 +266,8 @@ class Aggregator(AbstractAggregator):
 
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:
-                phases.append(PhaseOutput(root))
+                if not completed_only or ".completed" in filenames:
+                    phases.append(PhaseOutput(root))
 
         if len(phases) == 0:
             print(f"\nNo phases found in {directory}\n")

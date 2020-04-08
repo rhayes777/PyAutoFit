@@ -23,6 +23,9 @@ class NUTS(NonLinearOptimizer):
 
         logger.debug("Creating NUTS NLO")
 
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
@@ -76,7 +79,7 @@ class NUTS(NonLinearOptimizer):
 
             return likelihood
 
-    def fit(self, analysis, model):
+    def _fit(self, analysis, model):
         output = AbstractOutput(model=model, paths=self.paths)
 
         output.save_model_info()

@@ -1,5 +1,6 @@
 import logging
 import shutil
+from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -11,7 +12,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 
-class NonLinearOptimizer:
+class NonLinearOptimizer(ABC):
     @convert_paths
     def __init__(self, paths=None):
         """Abstract base class for non-linear optimizers.
@@ -78,8 +79,47 @@ class NonLinearOptimizer:
             )
         return result
 
+    @abstractmethod
     def _simple_fit(self, model, fitness_function):
-        raise NotImplementedError()
+        pass
+
+    @abstractmethod
+    def _fit(self, analysis, model):
+        pass
+
+    def fit(
+            self,
+            analysis: "Analysis",
+            model
+    ) -> "Result":
+        """
+        A model which represents possible instances with some dimensionality is fit.
+
+        The analysis provides two functions. One visualises an instance of a model and the
+        other scores an instance based on how well it fits some data. The optimizer
+        produces instances of the model by picking points in an N dimensional space.
+
+        Parameters
+        ----------
+        analysis
+            An object that encapsulates some data and implements a fit function
+        model
+            An object that represents possible instances of some model with a
+            given dimensionality which is the number of free dimensions of the
+            model.
+
+        Returns
+        -------
+        An object encapsulating how well the model fit the data, the best fit instance
+        and an updated model with free parameters updated to represent beliefs
+        produced by this fit.
+        """
+        result = self._fit(
+            analysis,
+            model
+        )
+        open(self.paths.has_completed_path, "w+").close()
+        return result
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -107,11 +147,6 @@ class NonLinearOptimizer:
     def __setstate__(self, state):
         self.__dict__.update(state)
         self.paths.restore()
-
-    def fit(self, analysis, model):
-        raise NotImplementedError(
-            "Fitness function must be overridden by non linear optimizers"
-        )
 
     class Fitness:
         def __init__(

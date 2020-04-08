@@ -228,7 +228,7 @@ class MultiNest(NonLinearOptimizer):
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def fit(self, analysis, model):
+    def _fit(self, analysis, model):
         multinest_output = MultiNestOutput(model, self.paths)
 
         multinest_output.save_model_info()

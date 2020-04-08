@@ -133,7 +133,10 @@ class MockOptimizer(af.NonLinearOptimizer):
         super().__init__(paths)
         init_args.append(paths.phase_name)
 
-    def fit(self, analysis, model):
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
+    def _fit(self, analysis, model):
         fit_args.append(analysis)
         # noinspection PyTypeChecker
         return af.Result(
