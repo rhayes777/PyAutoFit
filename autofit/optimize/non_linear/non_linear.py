@@ -23,6 +23,7 @@ class NonLinearOptimizer:
         ------------
 
         """
+
         if paths is None:
             paths = Paths()
 

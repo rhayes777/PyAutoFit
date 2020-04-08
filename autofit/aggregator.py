@@ -14,6 +14,7 @@ Example:
 
 import os
 import pickle
+import dill
 import zipfile
 from collections import defaultdict
 from typing import List, Union
@@ -74,6 +75,36 @@ class PhaseOutput:
         """
         with open(
                 os.path.join(self.directory, f"{self.dataset_name}.pickle"), "rb"
+        ) as f:
+            return pickle.load(f)
+
+    @property
+    def mask(self):
+        """
+        A pickled mask object
+        """
+        with open(
+                os.path.join(self.directory, "mask.pickle"), "rb"
+        ) as f:
+            return dill.load(f)
+
+    @property
+    def meta_dataset(self):
+        """
+        A pickled mask object
+        """
+        with open(
+                os.path.join(self.directory, "meta_dataset.pickle"), "rb"
+        ) as f:
+            return pickle.load(f)
+
+    @property
+    def phase_attributes(self):
+        """
+        A pickled mask object
+        """
+        with open(
+                os.path.join(self.directory, "phase_attributes.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -279,7 +310,7 @@ class AbstractAggregator:
         """
         return map(
             func,
-            self.output
+            self.phases,
         )
 
     def group_by(self, field: str) -> AggregatorGroup:

@@ -327,8 +327,8 @@ class MultiNestOutput(NestedSamplingOutput):
                 number_entries=self.model.prior_count, offset=56
             )
         except FileNotFoundError:
-            most_likey_index = np.argmax([point[-1] for point in self.phys_live_points])
-            return self.phys_live_points[most_likey_index][0:-1]
+            most_likely_index = np.argmax([point[-1] for point in self.phys_live_points])
+            return self.phys_live_points[most_likely_index][0:-1]
 
     @property
     def maximum_log_likelihood(self):
