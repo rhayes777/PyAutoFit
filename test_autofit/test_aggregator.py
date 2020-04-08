@@ -4,7 +4,6 @@ import shutil
 import pytest
 
 import autofit as af
-from autofit.aggregator import NotPredicate
 
 
 class MostProbableInstance:
@@ -88,6 +87,19 @@ class TestOperations:
         )
         assert len(result) == 1
         assert result[0].pipeline == "pipeline2"
+
+    def test_rhs(self, aggregator):
+        predicate = "pipeline1" != aggregator.pipeline
+        result = aggregator.filter(
+            predicate
+        )
+        assert result.pipeline == ["pipeline2"]
+
+        predicate = "pipeline1" == aggregator.pipeline
+        result = aggregator.filter(
+            predicate
+        )
+        assert result.pipeline == ["pipeline1", "pipeline1"]
 
     def test_attribute(self, aggregator):
         assert aggregator.values("pipeline") == ["pipeline1", "pipeline1", "pipeline2"]
