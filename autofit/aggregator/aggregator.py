@@ -93,6 +93,9 @@ class AbstractAggregator:
         self.phases = phases
 
     def remove_unzipped(self):
+        """
+        Removes the unzipped output directory for each phase.
+        """
         for phase in self.phases:
             path = "/".join(
                 phase.directory.split("/")[:-1]

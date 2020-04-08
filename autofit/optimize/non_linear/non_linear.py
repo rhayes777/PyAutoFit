@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from autofit import conf
+from autofit import conf, AbstractPriorModel
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
 
@@ -87,7 +87,33 @@ class NonLinearOptimizer(ABC):
     def _fit(self, analysis, model):
         pass
 
-    def fit(self, analysis, model):
+    def fit(
+            self,
+            analysis: "Analysis",
+            model: AbstractPriorModel
+    ) -> "Result":
+        """
+        A model which represents possible instances with some dimensionality is fit.
+
+        The analysis provides two functions. One visualises an instance of a model and the
+        other scores an instance based on how well it fits some data. The optimizer
+        produces instances of the model by picking points in an N dimensional space.
+
+        Parameters
+        ----------
+        analysis
+            An object that encapsulates some data and implements a fit function
+        model
+            An object that represents possible instances of some model with a
+            given dimensionality which is the number of free dimensions of the
+            model.
+
+        Returns
+        -------
+        An object encapsulating how well the model fit the data, the best fit instance
+        and an updated model with free parameters updated to represent beliefs
+        produced by this fit.
+        """
         result = self._fit(
             analysis,
             model
