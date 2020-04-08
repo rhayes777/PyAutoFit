@@ -50,43 +50,14 @@ class PhaseOutput:
         with open(os.path.join(self.directory, "model.results")) as f:
             return f.read()
 
-    @property
-    def dataset(self):
+    def __getattr__(self, item):
         """
-        The dataset that this phase ran on
-        """
-        with open(
-                os.path.join(self.directory, f"dataset.pickle"), "rb"
-        ) as f:
-            return pickle.load(f)
+        Attempt to load a pickle by the same name from the phase output directory.
 
-    @property
-    def mask(self):
-        """
-        A pickled mask object
+        dataset.pickle, mask.pickle, meta_dataset.pickle etc.
         """
         with open(
-                os.path.join(self.directory, "mask.pickle"), "wb"
-        ) as f:
-            return pickle.load(f)
-
-    @property
-    def meta_dataset(self):
-        """
-        A pickled mask object
-        """
-        with open(
-                os.path.join(self.directory, "meta_dataset.pickle"), "rb"
-        ) as f:
-            return pickle.load(f)
-
-    @property
-    def phase_attributes(self):
-        """
-        A pickled mask object
-        """
-        with open(
-                os.path.join(self.directory, "phase_attributes.pickle"), "rb"
+                os.path.join(self.directory, f"{item}.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
