@@ -9,7 +9,7 @@ class TestPathDecorator:
         assert paths.phase_folders == ["phase_folders"]
 
     def test_with_arguments(self):
-        optimizer = af.NonLinearOptimizer(
+        optimizer = af.MockNLO(
             phase_name="phase_name",
             phase_tag="phase_tag",
             phase_folders=("phase_folders",),
@@ -17,13 +17,13 @@ class TestPathDecorator:
         self.assert_paths_as_expected(optimizer.paths)
 
     def test_positional(self):
-        optimizer = af.NonLinearOptimizer("phase_name")
+        optimizer = af.MockNLO("phase_name")
         paths = optimizer.paths
 
         assert paths.phase_name == "phase_name"
 
     def test_paths_argument(self):
-        optimizer = af.NonLinearOptimizer(
+        optimizer = af.MockNLO(
             paths=af.Paths(
                 phase_name="phase_name",
                 phase_tag="phase_tag",
@@ -33,7 +33,7 @@ class TestPathDecorator:
         self.assert_paths_as_expected(optimizer.paths)
 
     def test_combination_argument(self):
-        optimizer = af.NonLinearOptimizer(
+        optimizer = af.MockNLO(
             "other",
             paths=af.Paths(
                 phase_name="phase_name",

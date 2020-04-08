@@ -43,6 +43,9 @@ class Emcee(NonLinearOptimizer):
 
         logger.debug("Creating Emcee NLO")
 
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
@@ -88,7 +91,7 @@ class Emcee(NonLinearOptimizer):
 
             return likelihood
 
-    def fit(self, analysis, model):
+    def _fit(self, analysis, model):
 
         output = EmceeOutput(
             model=model,

@@ -13,7 +13,10 @@ directory = os.path.dirname(os.path.realpath(__file__))
 
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
-    def fit(self, analysis, model):
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
+    def _fit(self, analysis, model):
         class Fitness:
             def __init__(self, instance_from_vector, instance):
                 self.result = None

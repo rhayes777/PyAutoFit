@@ -16,6 +16,9 @@ from autofit.optimize.non_linear.paths import Paths
 
 
 class GridSearch(NonLinearOptimizer):
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
     def __init__(self, paths, step_size=None, grid=opt.grid):
         """
         Optimise by performing a grid search.
@@ -180,7 +183,7 @@ class GridSearch(NonLinearOptimizer):
     def checkpoint_prior_count(self):
         return int(self.checkpoint_array[4])
 
-    def fit(self, analysis, model):
+    def _fit(self, analysis, model):
         gs_output = AbstractOutput(model, self.paths)
 
         gs_output.save_model_info()

@@ -37,6 +37,7 @@ from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.grid_search import GridSearch
 from .optimize.grid_search import GridSearchResult
 from .optimize.non_linear.multi_nest import MultiNest
+from .optimize.non_linear.mock_nlo import MockNLO
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.emcee import Emcee
