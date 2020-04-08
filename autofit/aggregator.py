@@ -183,16 +183,23 @@ class AbstractPredicate(ABC):
             phases
         )
 
+    def __invert__(self):
+        return NotPredicate(
+            self
+        )
+
     @abstractmethod
     def __call__(self, phase):
         pass
 
 
-class ContainsPredicate(AbstractPredicate):
+class ComparisonPredicate(AbstractPredicate, ABC):
     def __init__(self, attribute, value):
         self.attribute = attribute
         self.value = value
 
+
+class ContainsPredicate(ComparisonPredicate):
     def __call__(self, phase):
         return self.value in getattr(
             phase,
@@ -200,16 +207,22 @@ class ContainsPredicate(AbstractPredicate):
         )
 
 
-class EqualityPredicate(AbstractPredicate):
-    def __init__(self, attribute, value):
-        self.attribute = attribute
-        self.value = value
-
+class EqualityPredicate(ComparisonPredicate):
     def __call__(self, phase):
         return getattr(
             phase,
             self.attribute
         ) == self.value
+
+
+class NotPredicate(AbstractPredicate):
+    def __init__(self, predicate):
+        self.predicate = predicate
+
+    def __call__(self, phase):
+        return not self.predicate(
+            phase
+        )
 
 
 class AbstractAggregator:

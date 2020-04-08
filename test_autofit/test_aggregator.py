@@ -4,6 +4,7 @@ import shutil
 import pytest
 
 import autofit as af
+from autofit.aggregator import NotPredicate
 
 
 class MostProbableInstance:
@@ -72,6 +73,18 @@ class TestLoading:
 
 
 class TestOperations:
+    def test_not(self, aggregator):
+        predicate = ~(aggregator.pipeline == "pipeline1")
+        assert isinstance(
+            predicate,
+            NotPredicate
+        )
+        result = aggregator.filter(
+            predicate
+        )
+        assert len(result) == 1
+        assert result[0].pipeline == "pipeline2"
+
     def test_attribute(self, aggregator):
         assert aggregator.values("pipeline") == ["pipeline1", "pipeline1", "pipeline2"]
         assert aggregator.values("phase") == ["phase1", "phase2", "phase2"]
