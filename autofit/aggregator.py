@@ -17,7 +17,7 @@ import pickle
 import zipfile
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Union, Iterator
 
 import autofit.optimize.non_linear.non_linear
 from autofit.optimize.non_linear.output import AbstractOutput
@@ -134,20 +134,25 @@ class AggregatorGroup:
         """
         self.groups = groups
 
-    def filter(self, *args) -> "AggregatorGroup":
+    def filter(self, *predicates) -> "AggregatorGroup":
         """
-        Apply a filter to the underlying groups whilst maintaining the total number of groups.
+        Apply predicates to the underlying groups whilst maintaining the total number of groups.
 
         Parameters
         ----------
-        kwargs
-            Key word arguments for filtering
+        predicates
+            Predicates that evaluate to True or False for any given phase.
 
         Returns
         -------
         A collection of groups of the same length with each group having the same or fewer members.
         """
-        return AggregatorGroup([group.filter(*args) for group in self.groups])
+        return AggregatorGroup(
+            [
+                group.filter(*predicates)
+                for group in self.groups
+            ]
+        )
 
     def __getitem__(self, item):
         return self.groups[item]
@@ -155,24 +160,64 @@ class AggregatorGroup:
     def __len__(self):
         return len(self.groups)
 
-    def values(self, item):
-        return [getattr(group, item) for group in self.groups]
+    def values(self, name: str) -> List[List]:
+        """
+        Extract a list of lists values with a certain name from the output objects in
+        this group.
+
+        Parameters
+        ----------
+        name
+            The name of the attribute to be extracted
+
+        Returns
+        -------
+        A list of lists of values.
+        """
+        return [
+            group.values(name)
+            for group in self.groups
+        ]
 
 
 class AttributePredicate:
-    def __init__(self, attribute):
+    def __init__(self, attribute: str):
+        """
+        Used to produce predicate objects for filtering in the aggregator.
+
+        When an unrecognised attribute is called on an aggregator an instance
+        of this object is created. This object implements comparison methods
+        facilitating construction of predicates.
+
+        Parameters
+        ----------
+        attribute
+            The name of the attribute this predicate relates to.
+        """
         self.attribute = attribute
 
-    def __eq__(self, other):
+    def __eq__(self, value):
+        """
+        Create a predicate which asks whether the given value is equal to
+        the attribute of a phase.
+        """
         return EqualityPredicate(
             self.attribute,
-            other
+            value
         )
 
     def __ne__(self, other):
+        """
+        Create a predicate which asks whether the given value is not equal to
+        the attribute of a phase.
+        """
         return ~(self == other)
 
     def contains(self, value):
+        """
+        Create a predicate which asks whether the given is contained within
+        the attribute of a phase.
+        """
         return ContainsPredicate(
             self.attribute,
             value
@@ -180,30 +225,82 @@ class AttributePredicate:
 
 
 class AbstractPredicate(ABC):
-    def filter(self, phases):
+    """
+    Comparison between a value and some attribute of a phase
+    """
+
+    def filter(
+            self,
+            phases: List[PhaseOutput]
+    ) -> Iterator[PhaseOutput]:
+        """
+        Only return phases for which this predicate evaluates to True
+
+        Parameters
+        ----------
+        phases
+
+        Returns
+        -------
+
+        """
         return filter(
             lambda phase: self(phase),
             phases
         )
 
-    def __invert__(self):
+    def __invert__(self) -> "NotPredicate":
+        """
+        A predicate that evaluates to True when this predicate evaluates
+        to False
+        """
         return NotPredicate(
             self
         )
 
     @abstractmethod
-    def __call__(self, phase):
-        pass
+    def __call__(self, phase: PhaseOutput) -> bool:
+        """
+        Does the attribute of the phase match the requirement of this predicate?
+        """
 
 
 class ComparisonPredicate(AbstractPredicate, ABC):
-    def __init__(self, attribute, value):
+    def __init__(
+            self,
+            attribute: str,
+            value
+    ):
+        """
+        Compare an attribute of a phase with a value.
+
+        Parameters
+        ----------
+        attribute
+            An attribute of a phase
+        value
+            A value to which the attribute is compared
+        """
         self.attribute = attribute
         self.value = value
 
 
 class ContainsPredicate(ComparisonPredicate):
-    def __call__(self, phase):
+    def __call__(
+            self,
+            phase: PhaseOutput
+    ) -> bool:
+        """
+        Parameters
+        ----------
+        phase
+            An object representing the output of a given phase.
+
+        Returns
+        -------
+        True iff the value of the attribute of the phase contains
+        the value associated with this predicate
+        """
         return self.value in getattr(
             phase,
             self.attribute
@@ -212,6 +309,17 @@ class ContainsPredicate(ComparisonPredicate):
 
 class EqualityPredicate(ComparisonPredicate):
     def __call__(self, phase):
+        """
+        Parameters
+        ----------
+        phase
+            An object representing the output of a given phase.
+
+        Returns
+        -------
+        True iff the value of the attribute of the phase is equal to
+        the value associated with this predicate
+        """
         return getattr(
             phase,
             self.attribute
@@ -219,10 +327,37 @@ class EqualityPredicate(ComparisonPredicate):
 
 
 class NotPredicate(AbstractPredicate):
-    def __init__(self, predicate):
+    def __init__(
+            self,
+            predicate: AbstractPredicate
+    ):
+        """
+        Negates the output of a predicate.
+
+        If the predicate would have returned True for a given phase
+        it now returns False and vice-versa.
+
+        Parameters
+        ----------
+        predicate
+            A predicate that is negated
+        """
         self.predicate = predicate
 
-    def __call__(self, phase):
+    def __call__(self, phase: PhaseOutput) -> bool:
+        """
+        Evaluate the predicate for the phase and return the negation
+        of the result.
+
+        Parameters
+        ----------
+        phase
+            The output of an AutoFit phase
+
+        Returns
+        -------
+        The negation of the underlying predicate
+        """
         return not self.predicate(
             phase
         )
@@ -273,23 +408,25 @@ class AbstractAggregator:
     def __getattr__(self, item):
         return AttributePredicate(item)
 
-    def filter(self, *args) -> "AbstractAggregator":
+    def filter(self, *predicates) -> "AbstractAggregator":
         """
-        Filter by key value pairs found in the metadata.
+        Filter phase outputs by predicates. A predicate is created using a conditional
+        operator.
 
         Another aggregator object is returned.
 
         Parameters
         ----------
-        kwargs
-            Key value arguments which are expected to match those found the in metadata file.
+        predicates
+            Objects representing predicates that may evaluate to True or False for any
+            given phase output.
 
         Returns
         -------
-        An aggregator comprising all phases that match the filters.
+        An aggregator comprising all phases that evaluate to True for all predicates.
         """
         phases = self.phases
-        for predicate in args:
+        for predicate in predicates:
             phases = predicate.filter(phases)
         return AbstractAggregator(phases=list(phases))
 
