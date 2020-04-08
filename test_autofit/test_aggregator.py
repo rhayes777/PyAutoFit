@@ -1,5 +1,4 @@
 import os
-import shutil
 
 import pytest
 
@@ -41,23 +40,29 @@ def make_aggregator():
 
 
 @pytest.fixture(
-    name="path_aggregator"
+    name="aggregator_directory"
 )
-def make_path_aggregator():
+def make_aggregator_directory():
     directory = os.path.dirname(
         os.path.realpath(__file__)
     )
-    aggregator_directory = f"{directory}/test_files/aggregator"
-    yield af.Aggregator(aggregator_directory)
-    shutil.rmtree(
-        f"{aggregator_directory}/phase",
-        ignore_errors=True
-    )
+    return f"{directory}/test_files/aggregator"
+
+
+@pytest.fixture(
+    name="path_aggregator"
+)
+def make_path_aggregator(
+        aggregator_directory
+):
+    aggregator = af.Aggregator(aggregator_directory)
+    yield aggregator
+    aggregator.remove_unzipped()
 
 
 class TestLoading:
     def test_unzip(self, path_aggregator):
-        assert len(path_aggregator) == 1
+        assert len(path_aggregator) == 2
 
     def test_pickles(self, path_aggregator):
         assert path_aggregator.values(

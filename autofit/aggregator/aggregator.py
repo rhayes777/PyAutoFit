@@ -15,6 +15,7 @@ Example:
 import os
 import zipfile
 from collections import defaultdict
+from shutil import rmtree
 from typing import List, Union
 
 from .phase_output import PhaseOutput
@@ -90,6 +91,16 @@ class AbstractAggregator:
             Phases that were found to have matching filters
         """
         self.phases = phases
+
+    def remove_unzipped(self):
+        for phase in self.phases:
+            path = "/".join(
+                phase.directory.split("/")[:-1]
+            )
+            rmtree(
+                path,
+                ignore_errors=True
+            )
 
     def __getitem__(
             self,

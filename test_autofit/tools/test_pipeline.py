@@ -3,7 +3,6 @@ import os
 import pytest
 
 import autofit as af
-import autofit.optimize.non_linear.paths
 from autofit import Paths
 from test_autofit.mock import GeometryProfile, Galaxy
 
