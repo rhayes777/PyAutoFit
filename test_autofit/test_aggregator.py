@@ -67,22 +67,22 @@ class TestLoading:
 
 class TestOperations:
     def test_attribute(self, aggregator):
-        assert aggregator.pipeline == ["pipeline1", "pipeline1", "pipeline2"]
-        assert aggregator.phase == ["phase1", "phase2", "phase2"]
-        assert aggregator.dataset == ["dataset1", "dataset1", "dataset2"]
+        assert aggregator.values("pipeline") == ["pipeline1", "pipeline1", "pipeline2"]
+        assert aggregator.values("phase") == ["phase1", "phase2", "phase2"]
+        assert aggregator.values("dataset") == ["dataset1", "dataset1", "dataset2"]
 
     def test_indexing(self, aggregator):
-        assert aggregator[1:].pipeline == ["pipeline1", "pipeline2"]
-        assert aggregator[-1:].pipeline == ["pipeline2"]
+        assert aggregator[1:].values("pipeline") == ["pipeline1", "pipeline2"]
+        assert aggregator[-1:].values("pipeline") == ["pipeline2"]
         assert aggregator[0].pipeline == "pipeline1"
 
     def test_filter_index(self, aggregator):
         assert aggregator.filter(
-            pipeline="pipeline1"
-        )[1:].pipeline == ["pipeline1"]
+            aggregator.pipeline == "pipeline1"
+        )[1:].values("pipeline") == ["pipeline1"]
         assert aggregator[1:].filter(
-            pipeline="pipeline1"
-        ).pipeline == ["pipeline1"]
+            aggregator.pipeline == "pipeline1"
+        ).values("pipeline") == ["pipeline1"]
 
     def test_filter(self, aggregator):
         result = aggregator.filter(
