@@ -3,15 +3,12 @@ import math
 import os
 import pickle
 import numpy as np
-from dynesty import NestedSampler
+from dynesty import NestedSampler as DynestySampler
 from multiprocessing.pool import Pool
 
-from autofit import conf, exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear.nested_sampling.nested_sampler import NestedSampler, NestedSamplerOutput
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.output import NestedSamplingOutput
-from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +29,7 @@ def fitness(cube, model, fitness_function):
     )
 
 
-class Dynesty(NonLinearOptimizer):
+class Dynesty(NestedSampler):
     def __init__(self, paths=None, sigma=3):
         """
         Class to setup and run a Dynesty lens and output the MultiNest nlo.
@@ -40,19 +37,10 @@ class Dynesty(NonLinearOptimizer):
         This interfaces with an input model_mapper, which is used for setting up the \
         individual model instances that are passed to each iteration of MultiNest.
         """
-        if paths is None:
-            paths = Paths()
 
         super().__init__(paths)
 
         self.sigma = sigma
-
-        self.terminate_at_acceptance_ratio = self.config(
-             "terminate_at_acceptance_ratio", bool
-        )
-        self.acceptance_ratio_threshold = self.config(
-            "acceptance_ratio_threshold", float
-        )
 
         logger.debug("Creating Dynesty NLO")
 
@@ -64,67 +52,7 @@ class Dynesty(NonLinearOptimizer):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma = self.sigma
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
-
-    class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, dynesty_output, terminate_at_acceptance_ratio,
-                     acceptance_ratio_threshold):
-            super().__init__(paths, analysis, dynesty_output.output_results)
-            self.accepted_samples = 0
-            self.dynesty_output = dynesty_output
-
-            self.model_results_output_interval = conf.instance.general.get(
-                "output", "model_results_output_interval", int
-            )
-            self.stagger_resampling_likelihood = conf.instance.non_linear.get(
-                "MultiNest", "stagger_resampling_likelihood", bool
-            )
-            self.stagger_resampling_value = conf.instance.non_linear.get(
-                "MultiNest", "stagger_resampling_value", float
-            )
-            self.resampling_likelihood = conf.instance.non_linear.get(
-                "MultiNest", "null_log_evidence", float
-            )
-            self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
-            self.acceptance_ratio_threshold = acceptance_ratio_threshold
-
-            self.terminate_has_begun = False
-            self.stagger_accepted_samples = 0
-
-        def __call__(self, instance):
-
-            if self.terminate_at_acceptance_ratio:
-                if os.path.isfile(self.paths.file_summary):
-                    try:
-                        if (
-                                self.dynesty_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
-                            self.terminate_has_begun = True
-                            return self.max_likelihood
-                    except ValueError:
-                        pass
-
-            try:
-                likelihood = self.fit_instance(instance)
-            except exc.FitException:
-
-                if not self.stagger_resampling_likelihood:
-                    likelihood = -np.inf
-                else:
-
-                    if self.stagger_accepted_samples < 10:
-
-                        self.stagger_accepted_samples += 1
-                        self.resampling_likelihood += self.stagger_resampling_value
-                        likelihood = self.resampling_likelihood
-
-                    else:
-
-                        likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
-
-            return likelihood
 
     def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
         """
@@ -152,7 +80,7 @@ class Dynesty(NonLinearOptimizer):
 
         else:
 
-            dynesty_sampler = NestedSampler(loglikelihood=fitness, prior_transform=prior, ndim=model.prior_count,
+            dynesty_sampler = DynestySampler(loglikelihood=fitness, prior_transform=prior, ndim=model.prior_count,
                                             logl_args=[model, fitness_function], ptform_args=[model])
 
         dynesty_sampler.rstate = np.random
@@ -181,54 +109,11 @@ class Dynesty(NonLinearOptimizer):
             gaussian_tuples=dynesty_output.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def _fit(self, analysis, model):
-        dynesty_output = DynestyOutput(model, self.paths)
-
-        dynesty_output.save_model_info()
-
-        if not os.path.exists(self.paths.has_completed_path):
-            fitness_function = Dynesty.Fitness(
-                self.paths,
-                analysis,
-                dynesty_output,
-                self.terminate_at_acceptance_ratio,
-                self.acceptance_ratio_threshold
-            )
-
-            logger.info("Running MultiNest...")
-            self._simple_fit(
-                model,
-                fitness_function.__call__
-            )
-            logger.info("MultiNest complete")
-
-
-            self.paths.backup()
-            open(self.paths.has_completed_path, "w+").close()
-        else:
-            logger.warning(
-                f"{self.paths.phase_name} has run previously - skipping"
-            )
-
-        instance = dynesty_output.most_likely_instance
-        analysis.visualize(instance=instance, during_analysis=False)
-        dynesty_output.output_results(during_analysis=False)
-        dynesty_output.output_pdf_plots()
-        result = Result(
-            instance=instance,
-            likelihood=dynesty_output.maximum_log_likelihood,
-            output=dynesty_output,
-            previous_model=model,
-            gaussian_tuples=dynesty_output.gaussian_priors_at_sigma(self.sigma),
-        )
-        self.paths.backup_zip_remove()
-        return result
-
     def output_from_model(self, model, paths):
         return DynestyOutput(model=model, paths=paths)
 
 
-class DynestyOutput(NestedSamplingOutput):
+class DynestyOutput(NestedSamplerOutput):
     @property
     def pdf(self):
         import getdist

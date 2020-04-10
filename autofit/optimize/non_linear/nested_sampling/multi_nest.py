@@ -7,15 +7,14 @@ import pymultinest
 
 from autofit import conf, exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear.nested_sampling.nested_sampler import NestedSampler, NestedSamplerOutput
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.output import NestedSamplingOutput
 from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
-class MultiNest(NonLinearOptimizer):
+class MultiNest(NestedSampler):
     def __init__(self, paths=None, sigma=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
@@ -23,9 +22,6 @@ class MultiNest(NonLinearOptimizer):
         This interfaces with an input model_mapper, which is used for setting up the \
         individual model instances that are passed to each iteration of MultiNest.
         """
-        if paths is None:
-            paths = Paths(non_linear_name=self.name)
-
         super().__init__(paths)
 
         self.sigma = sigma
@@ -92,34 +88,6 @@ class MultiNest(NonLinearOptimizer):
         copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
-
-    class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, multinest_output, terminate_at_acceptance_ratio,
-                     acceptance_ratio_threshold):
-            super().__init__(paths, analysis, multinest_output.output_results)
-            self.accepted_samples = 0
-            self.multinest_output = multinest_output
-
-            self.model_results_output_interval = conf.instance.general.get(
-                "output", "model_results_output_interval", int
-            )
-            self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
-            self.acceptance_ratio_threshold = acceptance_ratio_threshold
-
-            self.terminate_has_begun = False
-
-        def __call__(self, instance):
-            if self.terminate_at_acceptance_ratio:
-                if os.path.isfile(self.paths.file_summary):
-                    try:
-                        if (
-                                self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
-                            self.terminate_has_begun = True
-                            return self.max_likelihood
-                    except ValueError:
-                        pass
-
-            return self.fit_instance(instance)
 
     def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
         """
@@ -232,57 +200,11 @@ class MultiNest(NonLinearOptimizer):
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def _fit(self, analysis, model):
-        multinest_output = MultiNestOutput(model, self.paths)
-
-        multinest_output.save_model_info()
-
-        if not os.path.exists(self.paths.has_completed_path):
-            fitness_function = MultiNest.Fitness(
-                self.paths,
-                analysis,
-                multinest_output,
-                self.terminate_at_acceptance_ratio,
-                self.acceptance_ratio_threshold
-            )
-
-            logger.info("Running MultiNest...")
-            self._simple_fit(
-                model,
-                fitness_function.__call__
-            )
-            logger.info("MultiNest complete")
-
-            # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
-            # TODO: not located here. Do we need to rely just ono the optimizer foldeR? This is a good idea if we always
-            # TODO: have a valid sym-link( e.g. even for aggregator use).
-
-            self.paths.backup()
-            open(self.paths.has_completed_path, "w+").close()
-        else:
-            logger.warning(
-                f"{self.paths.phase_name} has run previously - skipping"
-            )
-
-        instance = multinest_output.most_likely_instance
-        analysis.visualize(instance=instance, during_analysis=False)
-        multinest_output.output_results(during_analysis=False)
-        multinest_output.output_pdf_plots()
-        result = Result(
-            instance=instance,
-            likelihood=multinest_output.maximum_log_likelihood,
-            output=multinest_output,
-            previous_model=model,
-            gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
-        )
-        self.paths.backup_zip_remove()
-        return result
-
     def output_from_model(self, model, paths):
         return MultiNestOutput(model=model, paths=paths)
 
 
-class MultiNestOutput(NestedSamplingOutput):
+class MultiNestOutput(NestedSamplerOutput):
     @property
     def pdf(self):
         import getdist

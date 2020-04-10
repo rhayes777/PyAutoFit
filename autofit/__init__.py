@@ -9,7 +9,8 @@ from autofit.mapper.prior_model.attribute_pair import (
 
 dir(conf)
 from . import exc
-from autofit.optimize.non_linear.multi_nest import MultiNestOutput
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNestOutput
+from autofit.optimize.non_linear.nested_sampling.dynesty import DynestyOutput
 from .aggregator import Aggregator, PhaseOutput
 from .mapper import *
 from .mapper import link
@@ -33,10 +34,10 @@ from .mapper.prior_model.util import PriorModelNameValue
 from .optimize.grid_search import GridSearch as OptimizerGridSearch
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
-from .optimize.non_linear.dynesty import Dynesty
+from .optimize.non_linear.nested_sampling.dynesty import Dynesty
 from .optimize.non_linear.grid_search import GridSearch
 from .optimize.grid_search import GridSearchResult
-from .optimize.non_linear.multi_nest import MultiNest
+from .optimize.non_linear.nested_sampling.multi_nest import MultiNest
 from .optimize.non_linear.mock_nlo import MockNLO
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer

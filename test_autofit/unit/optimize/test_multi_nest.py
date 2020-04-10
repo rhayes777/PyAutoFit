@@ -7,7 +7,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit import Paths
-from autofit.optimize.non_linear.multi_nest import MultiNestOutput
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNestOutput
 from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -259,6 +259,19 @@ class TestMulitNestConfig:
         assert multi_nest.init_MPI == False
         assert multi_nest.terminate_at_acceptance_ratio == False
         assert multi_nest.acceptance_ratio_threshold == 1.0
+
+        fitness = af.MultiNest.Fitness(
+            paths=multi_nest.paths,
+            analysis=None,
+            output=MultiNestOutput(model=af.ModelMapper(), paths=multi_nest.paths),
+            terminate_at_acceptance_ratio=False,
+            acceptance_ratio_threshold=0.0)
+
+        assert fitness.accepted_samples == 0
+        assert isinstance(fitness.output, MultiNestOutput)
+        assert fitness.model_results_output_interval == 100
+        assert fitness.terminate_at_acceptance_ratio == False
+        assert fitness.acceptance_ratio_threshold == 0.0
 
 class TestMultiNestOutputConverged:
     def test__maximum_log_likelihood_and_evidence__from_summary(
