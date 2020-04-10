@@ -44,6 +44,9 @@ class MockNLO(NonLinearOptimizer):
     def output_from_model(self, model, paths):
         return MockOutput()
 
+    @property
+    def name(self):
+        return "mock_nlo"
 
 class MockOutput(object):
     def __init__(self):

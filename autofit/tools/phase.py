@@ -53,6 +53,7 @@ class AbstractPhase:
             "phase_tag": self.paths.phase_tag,
             "pipeline": self.pipeline_name,
             "pipeline_tag": self.pipeline_tag,
+            "non_linear_search": self.optimizer.name,
         }
 
     def make_metadata_text(self, dataset_name):
