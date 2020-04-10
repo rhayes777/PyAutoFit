@@ -181,11 +181,11 @@ class Paths:
         """
         return "{}pdf/".format(self.image_path)
 
-    def make_optimizer_pickle_path(self) -> str:
+    def make_non_linear_pickle_path(self) -> str:
         """
         Create the path at which the optimizer pickle should be saved
         """
-        return "{}/optimizer.pickle".format(self.make_path())
+        return "{}/non_linear.pickle".format(self.make_path())
 
     def make_model_pickle_path(self):
         """
