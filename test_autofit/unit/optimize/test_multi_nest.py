@@ -543,3 +543,5 @@ class TestCopyWithNameExtension:
         assert copy.log_zero is optimizer.log_zero
         assert copy.max_iter is optimizer.max_iter
         assert copy.init_MPI is optimizer.init_MPI
+        assert copy.terminate_at_acceptance_ratio is optimizer.terminate_at_acceptance_ratio
+        assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold

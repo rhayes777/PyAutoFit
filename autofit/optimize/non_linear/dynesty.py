@@ -64,6 +64,9 @@ class Dynesty(NonLinearOptimizer):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
+        copy.sigma = self.sigma
+        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
+        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):

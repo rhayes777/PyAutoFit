@@ -51,6 +51,13 @@ class Emcee(NonLinearOptimizer):
             extension=extension, remove_phase_tag=remove_phase_tag
         )
         copy.sigma = self.sigma
+        copy.nwalkers = self.nwalkers
+        copy.nsteps = self.nsteps
+        copy.check_auto_correlation = self.check_auto_correlation
+        copy.auto_correlation_check_size = self.auto_correlation_check_size
+        copy.auto_correlation_required_length = self.auto_correlation_required_length
+        copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
+
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):

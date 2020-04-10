@@ -89,6 +89,8 @@ class MultiNest(NonLinearOptimizer):
         copy.log_zero = self.log_zero
         copy.max_iter = self.max_iter
         copy.init_MPI = self.init_MPI
+        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
+        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
