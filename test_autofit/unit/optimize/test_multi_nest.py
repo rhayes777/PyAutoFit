@@ -430,7 +430,7 @@ class TestMultiNestOutputUnconverged:
 
 @pytest.fixture(name="multi_nest")
 def make_multi_nest():
-    multi_nest_fit_path = "{}/test_fit".format(
+    multi_nest_fit_path = "{}/files/multinest/test_fit".format(
         os.path.dirname(os.path.realpath(__file__))
     )
 
