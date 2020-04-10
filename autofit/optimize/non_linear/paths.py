@@ -159,7 +159,7 @@ class Paths:
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.path, "multinest.paramnames")
+        return "{}/{}".format(self.path, ".paramnames")
 
     @property
     def file_model_info(self) -> str:
@@ -202,6 +202,8 @@ class Paths:
         return "{}/{}/{}/{}/{}/".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
         )
+
+    # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
 
     @property
     def file_summary(self) -> str:
