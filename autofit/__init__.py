@@ -33,7 +33,7 @@ from .mapper.prior_model.util import PriorModelNameValue
 from .optimize.grid_search import GridSearch as OptimizerGridSearch
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
-from .optimize.non_linear.downhill_simplex import DownhillSimplex
+from .optimize.non_linear.dynesty import Dynesty
 from .optimize.non_linear.grid_search import GridSearch
 from .optimize.grid_search import GridSearchResult
 from .optimize.non_linear.multi_nest import MultiNest
