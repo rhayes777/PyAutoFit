@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Emcee(NonLinearOptimizer):
-    def __init__(self, paths, sigma=3):
+    def __init__(self, paths=None, sigma=3):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
 
@@ -30,20 +30,12 @@ class Emcee(NonLinearOptimizer):
 
         self.sigma = sigma
 
-        self.nwalkers = conf.instance.non_linear.get("Emcee", "nwalkers", int)
-        self.nsteps = conf.instance.non_linear.get("Emcee", "nsteps", int)
-        self.check_auto_correlation = conf.instance.non_linear.get(
-            "Emcee", "check_auto_correlation", bool
-        )
-        self.auto_correlation_check_size = conf.instance.non_linear.get(
-            "Emcee", "auto_correlation_check_size", int
-        )
-        self.auto_correlation_required_length = conf.instance.non_linear.get(
-            "Emcee", "auto_correlation_required_length", int
-        )
-        self.auto_correlation_change_threshold = conf.instance.non_linear.get(
-            "Emcee", "auto_correlation_change_threshold", float
-        )
+        self.nwalkers = self.config("nwalkers", int)
+        self.nsteps = self.config("nsteps", int)
+        self.check_auto_correlation = self.config("check_auto_correlation", bool)
+        self.auto_correlation_check_size = self.config( "auto_correlation_check_size", int)
+        self.auto_correlation_required_length = self.config("auto_correlation_required_length", int)
+        self.auto_correlation_change_threshold = self.config("auto_correlation_change_threshold", float)
 
         logger.debug("Creating Emcee NLO")
 

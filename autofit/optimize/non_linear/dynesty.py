@@ -47,11 +47,11 @@ class Dynesty(NonLinearOptimizer):
 
         self.sigma = sigma
 
-        self.terminate_at_acceptance_ratio = conf.instance.non_linear.get(
-            "MultiNest", "terminate_at_acceptance_ratio", bool
+        self.terminate_at_acceptance_ratio = self.config(
+             "terminate_at_acceptance_ratio", bool
         )
-        self.acceptance_ratio_threshold = conf.instance.non_linear.get(
-            "MultiNest", "acceptance_ratio_threshold", float
+        self.acceptance_ratio_threshold = self.config(
+            "acceptance_ratio_threshold", float
         )
 
         logger.debug("Creating Dynesty NLO")
@@ -178,7 +178,7 @@ class Dynesty(NonLinearOptimizer):
             gaussian_tuples=dynesty_output.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def fit(self, analysis, model):
+    def _fit(self, analysis, model):
         dynesty_output = DynestyOutput(model, self.paths)
 
         dynesty_output.save_model_info()

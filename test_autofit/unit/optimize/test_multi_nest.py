@@ -233,6 +233,33 @@ def create_resume_2(path):
             " T F     0          50\n"
             "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n")
 
+class TestMulitNestConfig:
+
+    def test__loads_from_config_file_correct(self):
+
+        multi_nest = af.MultiNest()
+
+        assert multi_nest.importance_nested_sampling == True
+        assert multi_nest.multimodal == True
+        assert multi_nest.const_efficiency_mode == False
+        assert multi_nest.n_live_points == 50
+        assert multi_nest.evidence_tolerance == 0.5
+        assert multi_nest.sampling_efficiency == 0.6
+        assert multi_nest.n_iter_before_update == 100
+        assert multi_nest.null_log_evidence == -1e90
+        assert multi_nest.max_modes == 100
+        assert multi_nest.mode_tolerance == -1e89
+        assert multi_nest.seed == -1
+        assert multi_nest.verbose == False
+        assert multi_nest.resume == True
+        assert multi_nest.context == 0
+        assert multi_nest.write_output == True
+        assert multi_nest.log_zero == -1e100
+        assert multi_nest.max_iter == 0
+        assert multi_nest.init_MPI == False
+        assert multi_nest.terminate_at_acceptance_ratio == False
+        assert multi_nest.acceptance_ratio_threshold == 1.0
+
 class TestMultiNestOutputConverged:
     def test__maximum_log_likelihood_and_evidence__from_summary(
         self, multi_nest_summary_path
@@ -508,7 +535,6 @@ class TestCopyWithNameExtension:
         assert copy.null_log_evidence is optimizer.null_log_evidence
         assert copy.max_modes is optimizer.max_modes
         assert copy.mode_tolerance is optimizer.mode_tolerance
-        assert copy.outputfiles_basename is optimizer.outputfiles_basename
         assert copy.seed is optimizer.seed
         assert copy.verbose is optimizer.verbose
         assert copy.resume is optimizer.resume

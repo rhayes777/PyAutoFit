@@ -42,7 +42,6 @@ class MultiNest(NonLinearOptimizer):
         self.null_log_evidence = self.config("null_log_evidence", float)
         self.max_modes = self.config("max_modes", int)
         self.mode_tolerance = self.config("mode_tolerance", float)
-        self.outputfiles_basename = self.config("outputfiles_basename", str)
         self.seed = self.config("seed", int)
         self.verbose = self.config("verbose", bool)
         self.resume = self.config("resume", bool)
@@ -51,11 +50,11 @@ class MultiNest(NonLinearOptimizer):
         self.log_zero = self.config("log_zero", float)
         self.max_iter = self.config("max_iter", int)
         self.init_MPI = self.config("init_MPI", bool)
-        self.terminate_at_acceptance_ratio = conf.instance.non_linear.get(
-            "MultiNest", "terminate_at_acceptance_ratio", bool
+        self.terminate_at_acceptance_ratio = self.config(
+             "terminate_at_acceptance_ratio", bool
         )
-        self.acceptance_ratio_threshold = conf.instance.non_linear.get(
-            "MultiNest", "acceptance_ratio_threshold", float
+        self.acceptance_ratio_threshold = self.config(
+            "acceptance_ratio_threshold", float
         )
 
         self.run = run
@@ -82,7 +81,6 @@ class MultiNest(NonLinearOptimizer):
         copy.null_log_evidence = self.null_log_evidence
         copy.max_modes = self.max_modes
         copy.mode_tolerance = self.mode_tolerance
-        copy.outputfiles_basename = self.outputfiles_basename
         copy.seed = self.seed
         copy.verbose = self.verbose
         copy.resume = self.resume

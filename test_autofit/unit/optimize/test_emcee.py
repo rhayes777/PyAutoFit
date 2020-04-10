@@ -37,6 +37,19 @@ def test_emcee_output():
         auto_correlation_change_threshold=0.01,
     )
 
+class TestEmceeConfig:
+
+    def test__loads_from_config_file_correct(self):
+
+        emcee = af.Emcee()
+
+        assert emcee.nwalkers == 50
+        assert emcee.nsteps == 2000
+        assert emcee.check_auto_correlation == True
+        assert emcee.auto_correlation_check_size == 100
+        assert emcee.auto_correlation_required_length == 50
+        assert emcee.auto_correlation_change_threshold == 0.01
+
 
 class TestEmceeOutput:
     def test__maximum_log_likelihood(self, emcee_output):
