@@ -76,7 +76,7 @@ class TestCopyWithNameExtension:
         assert copy.paths.phase_name == "phase_name/one"
 
     def test_copy_with_name_extension(self):
-        optimizer = af.NonLinearOptimizer(Paths("phase_name", phase_tag="tag"))
+        optimizer = af.MockNLO(Paths("phase_name", phase_tag="tag"))
         copy = optimizer.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy)
@@ -135,7 +135,7 @@ def test_nlo_wrong_info():
 class TestDirectorySetup:
     def test__1_class__correct_directory(self, nlo_setup_path):
         af.conf.instance.output_path = nlo_setup_path + "1_class"
-        af.NonLinearOptimizer(Paths(phase_name=""))
+        af.MockNLO(Paths(phase_name=""))
 
         assert os.path.exists(nlo_setup_path + "1_class")
 

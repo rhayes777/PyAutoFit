@@ -37,6 +37,7 @@ from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.grid_search import GridSearch
 from .optimize.grid_search import GridSearchResult
 from .optimize.non_linear.multi_nest import MultiNest
+from .optimize.non_linear.mock_nlo import MockNLO
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.emcee import Emcee
@@ -58,4 +59,4 @@ from autofit.mapper.prior import AbstractPromise
 from autofit.mapper.prior import last
 from .mapper.prior import *
 
-__version__ = '0.55.1'
+__version__ = '0.56.0'

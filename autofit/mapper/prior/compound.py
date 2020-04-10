@@ -77,7 +77,7 @@ class SumPrior(CompoundPrior):
     The sum of two objects, computed after realisation.
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
         ) + self.right_for_arguments(
@@ -90,7 +90,7 @@ class MultiplePrior(CompoundPrior):
     The multiple of two objects, computed after realisation.
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
         ) * self.right_for_arguments(
@@ -103,7 +103,7 @@ class DivisionPrior(CompoundPrior):
     One object divided by another, computed after realisation
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
         ) / self.right_for_arguments(
@@ -116,7 +116,7 @@ class FloorDivPrior(CompoundPrior):
     One object divided by another and floored, computed after realisation.
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
         ) // self.right_for_arguments(
@@ -129,7 +129,7 @@ class ModPrior(CompoundPrior):
     The modulus of a pair of objects, computed after realisation.
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
         ) % self.right_for_arguments(
@@ -142,7 +142,7 @@ class PowerPrior(CompoundPrior):
     One object to the power of another, computed after realisation.
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(
             arguments
         ) ** self.right_for_arguments(
@@ -165,7 +165,7 @@ class NegativePrior(ModifiedPrior):
     The negation of an object, computed after realisation.
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return -self.prior.instance_for_arguments(
             arguments
         )
@@ -176,7 +176,7 @@ class AbsolutePrior(ModifiedPrior):
     The absolute value of an object, computed after realisation.
     """
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         return abs(self.prior.instance_for_arguments(
             arguments
         ))

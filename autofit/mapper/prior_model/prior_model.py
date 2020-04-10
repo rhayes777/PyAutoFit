@@ -216,7 +216,7 @@ class PriorModel(AbstractPriorModel):
 
     # noinspection PyUnresolvedReferences
     @check_assertions
-    def instance_for_arguments(self, arguments: {ModelObject: object}):
+    def _instance_for_arguments(self, arguments: {ModelObject: object}):
         """
         Create an instance of the associated class for a set of arguments
 
@@ -229,14 +229,6 @@ class PriorModel(AbstractPriorModel):
         -------
             An instance of the class
         """
-        if self.promise_count > 0:
-            raise exc.PriorException(
-                "All promises must be populated prior to instantiation"
-            )
-        for prior, value in arguments.items():
-            if isinstance(value, Number):
-                prior.assert_within_limits(value)
-
         model_arguments = dict()
         attribute_arguments = {
             key: value

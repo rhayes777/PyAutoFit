@@ -34,6 +34,12 @@ class MockNonLinearOptimizer(AbstractOutput):
         self.model_upper_params = model_upper_params
         self.model_lower_params = model_lower_params
 
+    def _simple_fit(self, model, fitness_function):
+        raise NotImplementedError()
+
+    def _fit(self, model, analysis):
+        raise NotImplementedError()
+
     @property
     def most_probable_vector(self):
         """

@@ -1,6 +1,7 @@
 import copy
 import inspect
 from functools import wraps
+from numbers import Number
 from random import random
 from typing import Tuple, Optional
 
@@ -106,7 +107,7 @@ class AbstractPriorModel(AbstractModel):
             obj = t
         return obj
 
-    def instance_from_unit_vector(self, unit_vector):
+    def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
         to every PriorModel attributed to this instance.
@@ -140,7 +141,7 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        return self.instance_for_arguments(arguments)
+        return self.instance_for_arguments(arguments, assert_priors_in_limits=assert_priors_in_limits)
 
     @property
     @cast_collection(PriorNameValue)
@@ -231,7 +232,11 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_vector(self, vector):
+    def instance_from_vector(
+            self,
+            vector,
+            assert_priors_in_limits=True
+    ):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
         to every PriorModel attributed to this instance.
@@ -243,6 +248,8 @@ class AbstractPriorModel(AbstractModel):
         ----------
         vector: [float]
             A unit hypercube vector
+        assert_priors_in_limits
+            If True it is checked that the physical values of priors are within set limits
 
         Returns
         -------
@@ -258,7 +265,10 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        return self.instance_for_arguments(arguments)
+        return self.instance_for_arguments(
+            arguments,
+            assert_priors_in_limits=assert_priors_in_limits
+        )
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
@@ -557,8 +567,40 @@ class AbstractPriorModel(AbstractModel):
                 d.update(prior_model[1].prior_class_dict)
         return d
 
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         raise NotImplementedError()
+
+    def instance_for_arguments(
+            self,
+            arguments,
+            assert_priors_in_limits=True
+    ):
+        """
+        Create an instance of the model for a set of arguments
+
+        Parameters
+        ----------
+        assert_priors_in_limits
+            If true it is asserted that the physical values that replace piors are
+            within their limits
+        arguments: {Prior: float}
+            Dictionary mapping_matrix priors to attribute analysis_path and value pairs
+
+        Returns
+        -------
+            An instance of the class
+        """
+        if self.promise_count > 0:
+            raise exc.PriorException(
+                "All promises must be populated prior to instantiation"
+            )
+        if assert_priors_in_limits:
+            for prior, value in arguments.items():
+                if isinstance(value, Number):
+                    prior.assert_within_limits(value)
+        return self._instance_for_arguments(
+            arguments
+        )
 
     @property
     def prior_count(self):

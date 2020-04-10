@@ -121,7 +121,7 @@ class CollectionPriorModel(AbstractPriorModel):
                 del self.__dict__[key]
 
     @check_assertions
-    def instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments):
         """
         Parameters
         ----------

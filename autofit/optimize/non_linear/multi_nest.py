@@ -6,21 +6,25 @@ import numpy as np
 import pymultinest
 
 from autofit import conf, exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.output import NestedSamplingOutput
+from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
 class MultiNest(NonLinearOptimizer):
-    def __init__(self, paths, sigma=3, run=pymultinest.run):
+    def __init__(self, paths=None, sigma=3, run=pymultinest.run):
         """
         Class to setup and run a MultiNest lens and output the MultiNest nlo.
 
         This interfaces with an input model_mapper, which is used for setting up the \
         individual model instances that are passed to each iteration of MultiNest.
         """
+        if paths is None:
+            paths = Paths()
 
         super().__init__(paths)
 
@@ -86,113 +90,162 @@ class MultiNest(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_vector, multinest_output, terminate_at_acceptance_ratio,
+        def __init__(self, paths, analysis, multinest_output, terminate_at_acceptance_ratio,
                      acceptance_ratio_threshold):
             super().__init__(paths, analysis, multinest_output.output_results)
-            self.instance_from_vector = instance_from_vector
             self.accepted_samples = 0
             self.multinest_output = multinest_output
 
             self.model_results_output_interval = conf.instance.general.get(
                 "output", "model_results_output_interval", int
             )
-            self.stagger_resampling_likelihood = conf.instance.non_linear.get(
-                "MultiNest", "stagger_resampling_likelihood", bool
-            )
-            self.stagger_resampling_value = conf.instance.non_linear.get(
-                "MultiNest", "stagger_resampling_value", float
-            )
-            self.resampling_likelihood = conf.instance.non_linear.get(
-                "MultiNest", "null_log_evidence", float
-            )
             self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
             self.acceptance_ratio_threshold = acceptance_ratio_threshold
 
             self.terminate_has_begun = False
-            self.stagger_accepted_samples = 0
 
-        def __call__(self, cube, ndim, nparams, lnew):
-
+        def __call__(self, instance):
             if self.terminate_at_acceptance_ratio:
                 if os.path.isfile(self.paths.file_summary):
                     try:
-                        if (self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
+                        if (
+                                self.multinest_output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
                             self.terminate_has_begun = True
                             return self.max_likelihood
                     except ValueError:
                         pass
 
-            try:
-                instance = self.instance_from_vector(cube)
-                likelihood = self.fit_instance(instance)
-            except exc.FitException:
+            return self.fit_instance(instance)
 
-                if not self.stagger_resampling_likelihood:
-                    likelihood = -np.inf
-                else:
+    def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
+        """
+        Fit a model using MultiNest and some function that
+        scores instances of that model.
 
-                    if self.stagger_accepted_samples < 10:
+        Parameters
+        ----------
+        model
+            The model which is used to generate instances for different
+            points in parameter space
+        fitness_function
+            A function that gives a score to the model, with the highest (least
+            negative) number corresponding to the best fit.
 
-                        self.stagger_accepted_samples += 1
-                        self.resampling_likelihood += self.stagger_resampling_value
-                        likelihood = self.resampling_likelihood
+        Returns
+        -------
+        A result object comprising a fitness score, model instance and model.
+        """
+        multinest_output = MultiNestOutput(model, self.paths)
 
+        def prior(cube, ndim, nparams):
+            # NEVER EVER REFACTOR THIS LINE! Haha.
+
+            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+
+            for i in range(len(phys_cube)):
+                cube[i] = phys_cube[i]
+
+            return cube
+
+        stagger_resampling_likelihood = conf.instance.non_linear.get(
+            "MultiNest", "stagger_resampling_likelihood", bool
+        )
+        stagger_resampling_value = conf.instance.non_linear.get(
+            "MultiNest", "stagger_resampling_value", float
+        )
+
+        class Fitness:
+            def __init__(
+                    self
+            ):
+                """
+                Fitness function that only handles resampling
+                """
+                self.stagger_accepted_samples = 0
+                self.resampling_likelihood = conf.instance.non_linear.get(
+                    "MultiNest", "null_log_evidence", float
+                )
+
+            def __call__(self, cube, ndim, nparams, lnew):
+                """
+                This call converts a vector of physical values then determines a fit.
+
+                If an exception is thrown it handles resampling.
+                """
+                try:
+                    return fitness_function(
+                        model.instance_from_vector(
+                            cube
+                        )
+                    )
+                except exc.FitException:
+                    if not stagger_resampling_likelihood:
+                        likelihood = -np.inf
                     else:
+                        if self.stagger_accepted_samples < 10:
+                            self.stagger_accepted_samples += 1
+                            self.resampling_likelihood += stagger_resampling_value
+                            likelihood = self.resampling_likelihood
+                        else:
+                            likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
+                    return likelihood
 
-                        likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
+        self.run(
+            Fitness().__call__,
+            prior,
+            model.prior_count,
+            outputfiles_basename="{}/multinest".format(self.paths.path),
+            n_live_points=self.n_live_points,
+            const_efficiency_mode=self.const_efficiency_mode,
+            importance_nested_sampling=self.importance_nested_sampling,
+            evidence_tolerance=self.evidence_tolerance,
+            sampling_efficiency=self.sampling_efficiency,
+            null_log_evidence=self.null_log_evidence,
+            n_iter_before_update=self.n_iter_before_update,
+            multimodal=self.multimodal,
+            max_modes=self.max_modes,
+            mode_tolerance=self.mode_tolerance,
+            seed=self.seed,
+            verbose=self.verbose,
+            resume=self.resume,
+            context=self.context,
+            write_output=self.write_output,
+            log_zero=self.log_zero,
+            max_iter=self.max_iter,
+            init_MPI=self.init_MPI,
+        )
+        self.paths.backup()
 
-            return likelihood
+        instance = multinest_output.most_likely_instance
+        multinest_output.output_results(
+            during_analysis=False
+        )
+        return Result(
+            instance=instance,
+            likelihood=multinest_output.maximum_log_likelihood,
+            output=multinest_output,
+            previous_model=model,
+            gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
+        )
 
-    def fit(self, analysis, model):
+    def _fit(self, analysis, model):
         multinest_output = MultiNestOutput(model, self.paths)
 
         multinest_output.save_model_info()
 
         if not os.path.exists(self.paths.has_completed_path):
-            # noinspection PyUnusedLocal
-            def prior(cube, ndim, nparams):
-                # NEVER EVER REFACTOR THIS LINE! Haha.
-
-                phys_cube = model.vector_from_unit_vector(unit_vector=cube)
-
-                for i in range(len(phys_cube)):
-                    cube[i] = phys_cube[i]
-
-                return cube
-
             fitness_function = MultiNest.Fitness(
                 self.paths,
                 analysis,
-                model.instance_from_vector,
                 multinest_output,
                 self.terminate_at_acceptance_ratio,
                 self.acceptance_ratio_threshold
             )
 
             logger.info("Running MultiNest...")
-            self.run(
-                fitness_function.__call__,
-                prior,
-                model.prior_count,
-                outputfiles_basename="{}/multinest".format(self.paths.path),
-                n_live_points=self.n_live_points,
-                const_efficiency_mode=self.const_efficiency_mode,
-                importance_nested_sampling=self.importance_nested_sampling,
-                evidence_tolerance=self.evidence_tolerance,
-                sampling_efficiency=self.sampling_efficiency,
-                null_log_evidence=self.null_log_evidence,
-                n_iter_before_update=self.n_iter_before_update,
-                multimodal=self.multimodal,
-                max_modes=self.max_modes,
-                mode_tolerance=self.mode_tolerance,
-                seed=self.seed,
-                verbose=self.verbose,
-                resume=self.resume,
-                context=self.context,
-                write_output=self.write_output,
-                log_zero=self.log_zero,
-                max_iter=self.max_iter,
-                init_MPI=self.init_MPI,
+            self._simple_fit(
+                model,
+                fitness_function.__call__
             )
             logger.info("MultiNest complete")
 
@@ -244,7 +297,7 @@ class MultiNestOutput(NestedSamplingOutput):
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
             )
 
-            if densities_1d == []:
+            if len(densities_1d) == 0:
                 return False
 
             return True
@@ -282,8 +335,8 @@ class MultiNestOutput(NestedSamplingOutput):
                 number_entries=self.model.prior_count, offset=56
             )
         except FileNotFoundError:
-            most_likey_index = np.argmax([point[-1] for point in self.phys_live_points])
-            return self.phys_live_points[most_likey_index][0:-1]
+            most_likely_index = np.argmax([point[-1] for point in self.phys_live_points])
+            return self.phys_live_points[most_likely_index][0:-1]
 
     @property
     def maximum_log_likelihood(self):
