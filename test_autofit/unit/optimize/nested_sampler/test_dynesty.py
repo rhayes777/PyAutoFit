@@ -34,6 +34,7 @@ def test_dynesty_output():
 
 
 class TestDynestyConfig:
+
     def test__loads_from_config_file_correct(self):
 
         dynesty = af.DynestyStatic()
@@ -43,8 +44,6 @@ class TestDynestyConfig:
         assert dynesty.bound == "multi"
         assert dynesty.sample == "auto"
         assert dynesty.update_interval == None
-        assert dynesty.terminate_at_acceptance_ratio == True
-        assert dynesty.acceptance_ratio_threshold == 2.0
         assert dynesty.bootstrap == 0.0
         assert dynesty.enlarge == 1.0
         assert dynesty.vol_dec == 0.5
@@ -54,6 +53,26 @@ class TestDynestyConfig:
         assert dynesty.slices == 5
         assert dynesty.fmove == 0.9
         assert dynesty.max_move == 100
+        assert dynesty.terminate_at_acceptance_ratio == True
+        assert dynesty.acceptance_ratio_threshold == 2.0
+
+        dynesty = af.DynestyDynamic()
+
+        assert dynesty.iterations_per_update == 501
+        assert dynesty.bound == "balls"
+        assert dynesty.sample == "rwalk"
+        assert dynesty.update_interval == 2.0
+        assert dynesty.bootstrap == 1.0
+        assert dynesty.enlarge == 2.0
+        assert dynesty.vol_dec == 0.4
+        assert dynesty.vol_check == 3.0
+        assert dynesty.walks == 26
+        assert dynesty.facc == 0.6
+        assert dynesty.slices == 6
+        assert dynesty.fmove == 0.8
+        assert dynesty.max_move == 101
+        assert dynesty.terminate_at_acceptance_ratio == False
+        assert dynesty.acceptance_ratio_threshold == 3.0
 
 
 # class TestDynestyOutputConverged:
@@ -264,6 +283,32 @@ class TestCopyWithNameExtension:
 
         assert copy.iterations_per_update is optimizer.iterations_per_update
         assert copy.n_live_points == optimizer.n_live_points
+        assert copy.bound == optimizer.bound
+        assert copy.sample == optimizer.sample
+        assert copy.update_interval == optimizer.update_interval
+        assert copy.bootstrap == optimizer.bootstrap
+        assert copy.enlarge == optimizer.enlarge
+        assert copy.vol_dec == optimizer.vol_dec
+        assert copy.vol_check == optimizer.vol_check
+        assert copy.walks == optimizer.walks
+        assert copy.facc == optimizer.facc
+        assert copy.slices == optimizer.slices
+        assert copy.fmove == optimizer.fmove
+        assert copy.max_move == optimizer.max_move
+
+        optimizer = af.DynestyDynamic(Paths("phase_name"), sigma=2.0)
+
+        copy = optimizer.copy_with_name_extension("one")
+        self.assert_non_linear_attributes_equal(copy)
+        assert isinstance(copy, af.DynestyDynamic)
+        assert copy.sigma is optimizer.sigma
+        assert (
+            copy.terminate_at_acceptance_ratio
+            is optimizer.terminate_at_acceptance_ratio
+        )
+        assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
+
+        assert copy.iterations_per_update is optimizer.iterations_per_update
         assert copy.bound == optimizer.bound
         assert copy.sample == optimizer.sample
         assert copy.update_interval == optimizer.update_interval

@@ -60,7 +60,30 @@ class AbstractDynesty(NestedSampler):
 
         super().__init__(paths=paths, sigma=sigma)
 
+        self.iterations_per_update = self.config("iterations_per_update", int)
         self.bound = self.config("bound", str)
+        self.sample = self.config("sample", str)
+        self.bootstrap = self.config("bootstrap", int)
+        self.enlarge = self.config("enlarge", float)
+
+        self.update_interval = self.config("update_interval", float)
+
+        if self.update_interval < 0.0:
+            self.update_interval = None
+
+        if self.enlarge < 0.0:
+            if self.bootstrap == 0.0:
+                self.enlarge = 1.0
+            else:
+                self.enlarge = 1.25
+
+        self.vol_dec = self.config("vol_dec", float)
+        self.vol_check = self.config("vol_check", float)
+        self.walks = self.config("walks", int)
+        self.facc = self.config("facc", float)
+        self.slices = self.config("slices", int)
+        self.fmove = self.config("fmove", float)
+        self.max_move = self.config("max_move", int)
 
         logger.debug("Creating DynestyStatic NLO")
 
@@ -68,8 +91,19 @@ class AbstractDynesty(NestedSampler):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-
+        copy.iterations_per_update = self.iterations_per_update
         copy.bound = self.bound
+        copy.sample = self.sample
+        copy.update_interval = self.update_interval
+        copy.bootstrap = self.bootstrap
+        copy.enlarge = self.enlarge
+        copy.vol_dec = self.vol_dec
+        copy.vol_check = self.vol_check
+        copy.walks = self.walks
+        copy.facc = self.facc
+        copy.slices = self.slices
+        copy.fmove = self.fmove
+        copy.max_move = self.max_move
 
         return copy
 
@@ -123,7 +157,7 @@ class AbstractDynesty(NestedSampler):
             iterations_after_run = len(dynesty_sampler.results["ncall"])
 
             with open(
-                "{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "wb+"
+                "{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "wb"
             ) as f:
                 pickle.dump(dynesty_sampler, f)
 
@@ -149,6 +183,7 @@ class AbstractDynesty(NestedSampler):
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
+
 
 class DynestyStatic(AbstractDynesty):
 
@@ -180,31 +215,7 @@ class DynestyStatic(AbstractDynesty):
 
         super().__init__(paths=paths, sigma=sigma)
 
-        self.iterations_per_update = self.config("iterations_per_update", int)
         self.n_live_points = self.config("n_live_points", int)
-        self.bound = self.config("bound", str)
-        self.sample = self.config("sample", str)
-        self.bootstrap = self.config("bootstrap", int)
-        self.enlarge = self.config("enlarge", float)
-
-        self.update_interval = self.config("update_interval", float)
-
-        if self.update_interval < 0.0:
-            self.update_interval = None
-
-        if self.enlarge < 0.0:
-            if self.bootstrap == 0.0:
-                self.enlarge = 1.0
-            else:
-                self.enlarge = 1.25
-
-        self.vol_dec = self.config("vol_dec", float)
-        self.vol_check = self.config("vol_check", float)
-        self.walks = self.config("walks", int)
-        self.facc = self.config("facc", float)
-        self.slices = self.config("slices", int)
-        self.fmove = self.config("fmove", float)
-        self.max_move = self.config("max_move", int)
 
         logger.debug("Creating DynestyStatic NLO")
 
@@ -216,19 +227,7 @@ class DynestyStatic(AbstractDynesty):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.iterations_per_update = self.iterations_per_update
         copy.n_live_points = self.n_live_points
-        copy.sample = self.sample
-        copy.update_interval = self.update_interval
-        copy.bootstrap = self.bootstrap
-        copy.enlarge = self.enlarge
-        copy.vol_dec = self.vol_dec
-        copy.vol_check = self.vol_check
-        copy.walks = self.walks
-        copy.facc = self.facc
-        copy.slices = self.slices
-        copy.fmove = self.fmove
-        copy.max_move = self.max_move
 
         return copy
 
@@ -240,7 +239,66 @@ class DynestyStatic(AbstractDynesty):
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],
-            nlive=self.n_live_points,
+            # nlive=self.n_live_points,
+            # bound=self.bound,
+            # sample=self.sample,
+            # update_interval=self.update_interval,
+            # bootstrap=self.bootstrap,
+            # enlarge=self.enlarge,
+            # vol_dec=self.vol_dec,
+            # vol_check=self.vol_check,
+            # walks=self.walks,
+            # facc=self.facc,
+            # slices=self.slices,
+            # fmove=self.fmove,
+            # max_move=self.max_move,
+        )
+
+
+class DynestyDynamic(AbstractDynesty):
+
+    def __init__(self, paths=None, sigma=3):
+        """
+        Class to setup and run a Dynesty non-linear search.
+
+        For a full description of Dynesty, checkout its GitHub and readthedocs webpages:
+
+        https://github.com/joshspeagle/dynesty
+
+        https://dynesty.readthedocs.io/en/latest/index.html
+
+        Attributes
+        ----------
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        iterations_per_update : int
+            The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
+            pickle).
+
+        All remaining attributes are DyNesty parameters and described at the Dynesty API webpage:
+
+        https://dynesty.readthedocs.io/en/latest/api.html#dynesty.dynamicsampler.stopping_function
+
+
+        """
+
+        super().__init__(paths=paths, sigma=sigma)
+
+        logger.debug("Creating DynestyDynamic NLO")
+
+    @property
+    def name(self):
+        return "dynesty_dynamic"
+
+    def sampler_fom_model_and_fitness(self, model, fitness_function):
+
+        return DynamicSampler(
+            loglikelihood=fitness,
+            prior_transform=prior,
+            ndim=model.prior_count,
+            logl_args=[model, fitness_function],
+            ptform_args=[model],
             bound=self.bound,
             sample=self.sample,
             update_interval=self.update_interval,
@@ -254,6 +312,7 @@ class DynestyStatic(AbstractDynesty):
             fmove=self.fmove,
             max_move=self.max_move,
         )
+
 
 class DynestyOutput(NestedSamplerOutput):
     @property
