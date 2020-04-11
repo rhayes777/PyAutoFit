@@ -20,7 +20,7 @@ class NestedSampler(NonLinearOptimizer):
         """
 
         if paths is None:
-            paths = Paths()
+            paths = Paths(non_linear_name=self.name)
 
         super().__init__(paths)
 

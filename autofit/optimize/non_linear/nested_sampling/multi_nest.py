@@ -25,9 +25,7 @@ class MultiNest(NestedSampler):
         This interfaces with an input model_mapper, which is used for setting up the \
         individual model instances that are passed to each iteration of MultiNest.
         """
-        super().__init__(paths)
-
-        self.sigma = sigma
+        super().__init__(paths=paths, sigma=sigma)
 
         self.importance_nested_sampling = self.config(
             "importance_nested_sampling", bool

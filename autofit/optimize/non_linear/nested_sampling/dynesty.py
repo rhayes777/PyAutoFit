@@ -1,10 +1,10 @@
 import logging
 import math
 import os
-import pickle
+import pickle, pickle
 import numpy as np
 from dynesty import NestedSampler as StaticSampler
-from dynesty.dynamicsampler import DynamicSampler
+from dynesty.dynesty import DynamicNestedSampler
 from multiprocessing.pool import Pool
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -148,13 +148,13 @@ class AbstractDynesty(NestedSampler):
         while dynesty_finished is False:
 
             try:
-                iterations_before_run = len(dynesty_sampler.results["ncall"])
+                iterations_before_run = np.sum(dynesty_sampler.results.ncall)
             except AttributeError:
                 iterations_before_run = 0
 
             dynesty_sampler.run_nested(maxcall=self.iterations_per_update)
 
-            iterations_after_run = len(dynesty_sampler.results["ncall"])
+            iterations_after_run = np.sum(dynesty_sampler.results.ncall)
 
             with open(
                 "{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "wb"
@@ -164,7 +164,7 @@ class AbstractDynesty(NestedSampler):
             if iterations_before_run == iterations_after_run:
                 dynesty_finished = True
 
-        self.paths.backup()
+#        self.paths.backup()
 
         print(dynesty_output.pdf.getMeans())
 
@@ -239,19 +239,19 @@ class DynestyStatic(AbstractDynesty):
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],
-            # nlive=self.n_live_points,
-            # bound=self.bound,
-            # sample=self.sample,
-            # update_interval=self.update_interval,
-            # bootstrap=self.bootstrap,
-            # enlarge=self.enlarge,
-            # vol_dec=self.vol_dec,
-            # vol_check=self.vol_check,
-            # walks=self.walks,
-            # facc=self.facc,
-            # slices=self.slices,
-            # fmove=self.fmove,
-            # max_move=self.max_move,
+            nlive=self.n_live_points,
+            bound=self.bound,
+            sample=self.sample,
+            update_interval=self.update_interval,
+            bootstrap=self.bootstrap,
+            enlarge=self.enlarge,
+            vol_dec=self.vol_dec,
+            vol_check=self.vol_check,
+            walks=self.walks,
+            facc=self.facc,
+            slices=self.slices,
+            fmove=self.fmove,
+            max_move=self.max_move,
         )
 
 
@@ -293,7 +293,7 @@ class DynestyDynamic(AbstractDynesty):
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
 
-        return DynamicSampler(
+        return DynamicNestedSampler(
             loglikelihood=fitness,
             prior_transform=prior,
             ndim=model.prior_count,
@@ -328,9 +328,6 @@ class DynestyOutput(NestedSamplerOutput):
     def pdf(self):
         import getdist
 
-        print(self.results.samples)
-        print(self.results.logwt)
-
         return getdist.mcsamples.MCSamples(
             samples=self.results.samples,
             weights=self.results.logwt,
@@ -361,12 +358,14 @@ class DynestyOutput(NestedSamplerOutput):
         model in the second half of entries. The offset parameter is used to start at the desired model.
 
         """
-        try:
-            return self.read_list_of_results_from_summary_file(
-                number_entries=self.model.prior_count, offset=0
-            )
-        except FileNotFoundError:
-            return self.most_likely_vector
+        if self.pdf_converged:
+            return self.pdf.getMeans()
+        else:
+            return list(np.mean(self.results.samples, axis=0))
+
+    @property
+    def most_likely_index(self):
+        return np.argmax(self.results.logl)
 
     @property
     def most_likely_vector(self):
@@ -377,70 +376,15 @@ class DynestyOutput(NestedSamplerOutput):
         This file stores the parameters of the most probable model in the first half of entries and the most likely
         model in the second half of entries. The offset parameter is used to start at the desired model.
         """
-        try:
-            return self.read_list_of_results_from_summary_file(
-                number_entries=self.model.prior_count, offset=56
-            )
-        except FileNotFoundError:
-            most_likey_index = np.argmax([point[-1] for point in self.phys_live_points])
-            return self.phys_live_points[most_likey_index][0:-1]
+        return self.results.samples[self.most_likely_index]
 
     @property
     def maximum_log_likelihood(self):
-        try:
-            return self.read_list_of_results_from_summary_file(
-                number_entries=2, offset=112
-            )[1]
-        except FileNotFoundError:
-            return max([point[-1] for point in self.phys_live_points])
+        return np.max(self.results.logl)
 
     @property
     def evidence(self):
-        try:
-            return self.read_list_of_results_from_summary_file(
-                number_entries=2, offset=112
-            )[0]
-        except FileNotFoundError:
-            return None
-
-    @property
-    def phys_live_points(self):
-
-        phys_live = open(self.paths.file_phys_live)
-
-        live_points = 0
-        for line in phys_live:
-            live_points += 1
-
-        phys_live.seek(0)
-
-        phys_live_points = []
-
-        for line in range(live_points):
-            vector = []
-            for param in range(self.model.prior_count + 1):
-                vector.append(float(phys_live.read(28)))
-            phys_live.readline()
-            phys_live_points.append(vector)
-
-        phys_live.close()
-
-        return phys_live_points
-
-    def phys_live_points_of_param(self, param_index):
-        return [point[param_index] for point in self.phys_live_points]
-
-    def read_list_of_results_from_summary_file(self, number_entries, offset):
-
-        summary = open(self.paths.file_summary)
-        summary.read(2 + offset * self.model.prior_count)
-        vector = []
-        for param in range(number_entries):
-            vector.append(float(summary.read(28)))
-
-        summary.close()
-
-        return vector
+        return np.max(self.results.logz)
 
     def vector_at_sigma(self, sigma):
         limit = math.erf(0.5 * sigma * math.sqrt(2))
@@ -453,14 +397,8 @@ class DynestyOutput(NestedSamplerOutput):
             return list(map(lambda p: p.getLimits(limit), densities_1d))
         else:
 
-            parameters_min = [
-                min(self.phys_live_points_of_param(param_index=param_index))
-                for param_index in range(self.model.prior_count)
-            ]
-            parameters_max = [
-                max(self.phys_live_points_of_param(param_index=param_index))
-                for param_index in range(self.model.prior_count)
-            ]
+            parameters_min = list(np.min(self.results.samples[-self.number_live_points:], axis=0))
+            parameters_max = list(np.max(self.results.samples[-self.number_live_points:], axis=0))
 
             return [
                 (parameters_min[index], parameters_max[index])
@@ -468,21 +406,16 @@ class DynestyOutput(NestedSamplerOutput):
             ]
 
     @property
-    def total_samples(self):
-        resume = open(self.paths.file_resume)
+    def number_live_points(self):
+        return np.sum(self.results.nlive)
 
-        resume.seek(1)
-        resume.read(19)
-        return int(resume.read(8))
+    @property
+    def total_samples(self):
+        return np.sum(self.results.ncall)
 
     @property
     def accepted_samples(self):
-
-        resume = open(self.paths.file_resume)
-
-        resume.seek(1)
-        resume.read(8)
-        return int(resume.read(10))
+        return self.results.niter
 
     @property
     def acceptance_ratio(self):
@@ -496,7 +429,7 @@ class DynestyOutput(NestedSamplerOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return list(self.pdf.samples[sample_index])
+        return self.results.samples[sample_index]
 
     def weight_from_sample_index(self, sample_index):
         """From a sample return the sample weight.
@@ -506,7 +439,7 @@ class DynestyOutput(NestedSamplerOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return self.pdf.weights[sample_index]
+        return self.results.logwt[sample_index]
 
     def likelihood_from_sample_index(self, sample_index):
         """From a sample return the likelihood.
@@ -519,4 +452,4 @@ class DynestyOutput(NestedSamplerOutput):
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return -0.5 * self.pdf.loglikes[sample_index]
+        return self.results.logl[sample_index]

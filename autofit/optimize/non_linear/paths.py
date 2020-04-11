@@ -207,19 +207,19 @@ class Paths:
 
     @property
     def file_summary(self) -> str:
-        return "{}/{}".format(self.backup_path, self.non_linear_name + "summary.txt")
+        return "{}/{}".format(self.backup_path, "multinestsummary.txt")
 
     @property
     def file_weighted_samples(self):
-        return "{}/{}".format(self.backup_path, self.non_linear_name + ".txt")
+        return "{}/{}".format(self.backup_path, "multinest.txt")
 
     @property
     def file_phys_live(self) -> str:
-        return "{}/{}".format(self.backup_path, self.non_linear_name + "phys_live.points")
+        return "{}/{}".format(self.backup_path, "multinestphys_live.points")
 
     @property
     def file_resume(self) -> str:
-        return "{}/{}".format(self.backup_path, self.non_linear_name + "resume.dat")
+        return "{}/{}".format(self.backup_path, "multinestresume.dat")
 
     @property
     def file_results(self):
