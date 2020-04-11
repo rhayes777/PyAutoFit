@@ -36,7 +36,7 @@ def test_dynesty_output():
 class TestDynestyConfig:
     def test__loads_from_config_file_correct(self):
 
-        dynesty = af.Dynesty()
+        dynesty = af.DynestyStatic()
 
         assert dynesty.iterations_per_update == 500
         assert dynesty.n_live_points == 150
@@ -250,11 +250,11 @@ class TestCopyWithNameExtension:
         assert copy.paths.phase_name == "phase_name/one"
 
     def test_dynesty(self):
-        optimizer = af.Dynesty(Paths("phase_name"), sigma=2.0)
+        optimizer = af.DynestyStatic(Paths("phase_name"), sigma=2.0)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
-        assert isinstance(copy, af.Dynesty)
+        assert isinstance(copy, af.DynestyStatic)
         assert copy.sigma is optimizer.sigma
         assert (
             copy.terminate_at_acceptance_ratio
