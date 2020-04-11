@@ -42,6 +42,8 @@ class Dynesty(NestedSampler):
 
         self.sigma = sigma
 
+        self.iterations_per_update = self.config("iterations_per_update", int)
+
         logger.debug("Creating Dynesty NLO")
 
     @property
@@ -52,6 +54,7 @@ class Dynesty(NestedSampler):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
+        copy.iterations_per_update = self.iterations_per_update
         return copy
 
     def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
@@ -74,9 +77,12 @@ class Dynesty(NestedSampler):
         """
         dynesty_output = DynestyOutput(model, self.paths)
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.sym_path, "nls")):
-            with open("{}/{}.pickle".format(self.paths.sym_path, "nls"), "rb") as f:
+        if os.path.exists("{}/{}.pickle".format(self.paths.backup_path, "dynesty")):
+
+            with open("{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "rb") as f:
                 dynesty_sampler = pickle.load(f)
+
+          #  print(dynesty_sampler.stopping_function())
 
         else:
 
@@ -88,12 +94,34 @@ class Dynesty(NestedSampler):
         dynesty_sampler.pool = pool
         dynesty_sampler.M = pool.map
 
-        dynesty_sampler.run_nested(maxcall=2000)
+        dynesty_finished = False
 
-        with open("{}/{}.pickle".format(self.paths.sym_path, "nls"), "wb") as f:
-            pickle.dump(dynesty_sampler, f)
+        while dynesty_finished is False:
 
-        print(dynesty_sampler.results.summary())
+            try:
+                iterations_before_run = len(dynesty_sampler.results["ncall"])
+            except AttributeError:
+                iterations_before_run = 0
+
+            dynesty_sampler.run_nested(maxcall=self.iterations_per_update)
+
+            iterations_after_run = len(dynesty_sampler.results["ncall"])
+
+            with open("{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "wb+") as f:
+             #   os.remove(path=self.paths.sym_path+"/dynesty.pickle")
+                pickle.dump(dynesty_sampler, f)
+
+            if iterations_before_run == iterations_after_run:
+                dynesty_finished = True
+
+            print(dynesty_sampler.results["niter"])
+            print(dynesty_sampler.results["ncall"])
+            print(iterations_before_run)
+            print(iterations_after_run)
+            print(dynesty_finished)
+
+
+        stop
 
         self.paths.backup()
 

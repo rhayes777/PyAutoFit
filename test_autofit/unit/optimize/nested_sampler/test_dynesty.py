@@ -22,6 +22,7 @@ class TestDynestyConfig:
 
         dynesty = af.Dynesty()
 
+        assert dynesty.iterations_per_update == 500
         assert dynesty.terminate_at_acceptance_ratio == True
         assert dynesty.acceptance_ratio_threshold == 2.0
 
@@ -37,5 +38,6 @@ class TestCopyWithNameExtension:
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.Dynesty)
         assert copy.sigma is optimizer.sigma
+        assert copy.iterations_per_update is optimizer.iterations_per_update
         assert copy.terminate_at_acceptance_ratio is optimizer.terminate_at_acceptance_ratio
         assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
