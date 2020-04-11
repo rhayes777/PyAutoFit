@@ -273,6 +273,7 @@ class TestMulitNestConfig:
         assert fitness.terminate_at_acceptance_ratio == False
         assert fitness.acceptance_ratio_threshold == 0.0
 
+
 class TestMultiNestOutputConverged:
     def test__maximum_log_likelihood_and_evidence__from_summary(
         self, multi_nest_summary_path

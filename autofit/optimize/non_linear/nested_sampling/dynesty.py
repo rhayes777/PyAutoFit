@@ -82,8 +82,6 @@ class Dynesty(NestedSampler):
             with open("{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "rb") as f:
                 dynesty_sampler = pickle.load(f)
 
-          #  print(dynesty_sampler.stopping_function())
-
         else:
 
             dynesty_sampler = DynestySampler(loglikelihood=fitness, prior_transform=prior, ndim=model.prior_count,
@@ -108,22 +106,14 @@ class Dynesty(NestedSampler):
             iterations_after_run = len(dynesty_sampler.results["ncall"])
 
             with open("{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "wb+") as f:
-             #   os.remove(path=self.paths.sym_path+"/dynesty.pickle")
                 pickle.dump(dynesty_sampler, f)
 
             if iterations_before_run == iterations_after_run:
                 dynesty_finished = True
 
-            print(dynesty_sampler.results["niter"])
-            print(dynesty_sampler.results["ncall"])
-            print(iterations_before_run)
-            print(iterations_after_run)
-            print(dynesty_finished)
-
-
-        stop
-
         self.paths.backup()
+
+        print(dynesty_output.pdf.getMeans())
 
         instance = dynesty_output.most_likely_instance
         dynesty_output.output_results(
@@ -142,16 +132,26 @@ class Dynesty(NestedSampler):
 
 
 class DynestyOutput(NestedSamplerOutput):
+
+    @property
+    def sampler(self):
+        with open("{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "rb") as f:
+            return pickle.load(f)
+
+    @property
+    def results(self):
+        return self.sampler.results
+
     @property
     def pdf(self):
         import getdist
 
-        try:
-            return getdist.mcsamples.loadMCSamples(
-                self.paths.backup_path + "/dynesty"
-            )
-        except IOError or OSError or ValueError or IndexError:
-            raise Exception
+        print(self.results.samples)
+        print(self.results.logwt)
+
+        return getdist.mcsamples.MCSamples(
+            samples=self.results.samples, weights=self.results.logwt, loglikes=self.results.logl
+        )
 
     @property
     def pdf_converged(self):
