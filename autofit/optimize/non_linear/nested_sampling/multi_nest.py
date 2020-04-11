@@ -7,7 +7,10 @@ import pymultinest
 
 from autofit import conf, exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.optimize.non_linear.nested_sampling.nested_sampler import NestedSampler, NestedSamplerOutput
+from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
+    NestedSampler,
+    NestedSamplerOutput,
+)
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
 
@@ -47,7 +50,7 @@ class MultiNest(NestedSampler):
         self.max_iter = self.config("max_iter", int)
         self.init_MPI = self.config("init_MPI", bool)
         self.terminate_at_acceptance_ratio = self.config(
-             "terminate_at_acceptance_ratio", bool
+            "terminate_at_acceptance_ratio", bool
         )
         self.acceptance_ratio_threshold = self.config(
             "acceptance_ratio_threshold", float
@@ -127,9 +130,7 @@ class MultiNest(NestedSampler):
         )
 
         class Fitness:
-            def __init__(
-                    self
-            ):
+            def __init__(self):
                 """
                 Fitness function that only handles resampling
                 """
@@ -145,11 +146,7 @@ class MultiNest(NestedSampler):
                 If an exception is thrown it handles resampling.
                 """
                 try:
-                    return fitness_function(
-                        model.instance_from_vector(
-                            cube
-                        )
-                    )
+                    return fitness_function(model.instance_from_vector(cube))
                 except exc.FitException:
                     if not stagger_resampling_likelihood:
                         likelihood = -np.inf
@@ -159,7 +156,9 @@ class MultiNest(NestedSampler):
                             self.resampling_likelihood += stagger_resampling_value
                             likelihood = self.resampling_likelihood
                         else:
-                            likelihood = -1.0 * np.abs(self.resampling_likelihood) * 10.0
+                            likelihood = (
+                                -1.0 * np.abs(self.resampling_likelihood) * 10.0
+                            )
                     return likelihood
 
         self.run(
@@ -189,9 +188,7 @@ class MultiNest(NestedSampler):
         self.paths.backup()
 
         instance = multinest_output.most_likely_instance
-        multinest_output.output_results(
-            during_analysis=False
-        )
+        multinest_output.output_results(during_analysis=False)
         return Result(
             instance=instance,
             likelihood=multinest_output.maximum_log_likelihood,
@@ -261,7 +258,9 @@ class MultiNestOutput(NestedSamplerOutput):
                 number_entries=self.model.prior_count, offset=56
             )
         except FileNotFoundError:
-            most_likely_index = np.argmax([point[-1] for point in self.phys_live_points])
+            most_likely_index = np.argmax(
+                [point[-1] for point in self.phys_live_points]
+            )
             return self.phys_live_points[most_likely_index][0:-1]
 
     @property
