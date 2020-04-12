@@ -18,7 +18,7 @@ class DownhillSimplex(NonLinearOptimizer):
             fmin=scipy.optimize.fmin
     ):
         if paths is None:
-            paths = Paths()
+            paths = Paths(non_linear_name=self.name)
         super().__init__(paths)
 
         self.xtol = self.config("xtol", float)
@@ -33,6 +33,10 @@ class DownhillSimplex(NonLinearOptimizer):
         self.fmin = fmin
 
         logger.debug("Creating DownhillSimplex NLO")
+
+    @property
+    def name(self):
+        return "downhill_simple"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(
