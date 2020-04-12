@@ -7,18 +7,20 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit import Paths
-from autofit.optimize.non_linear.multi_nest import MultiNestOutput
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNestOutput
 from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
+
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance = conf.Config(
         config_path=os.path.join(directory, "files/multinest/config"),
-        output_path=os.path.join(directory, "files/multinest/output")
+        output_path=os.path.join(directory, "files/multinest/output"),
     )
+
 
 @pytest.fixture(name="multi_nest_summary_path")
 def test_multi_nest_summary():
@@ -206,7 +208,6 @@ def create_phys_live_4_parameters(path):
         )
 
 
-
 @create_path
 def create_resume(path):
     with open(path + "/multinestresume.dat", "w+") as resume:
@@ -217,8 +218,8 @@ def create_resume(path):
             " T\n"
             "   0\n"
             " T F     0          50\n"
-            "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n")
-
+            "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n"
+        )
 
 
 @create_path
@@ -231,7 +232,50 @@ def create_resume_2(path):
             " T\n"
             "   0\n"
             " T F     0          50\n"
-            "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n")
+            "    0.648698272260014622E-26    0.502352236277967168E+05    0.502900436569068333E+05\n"
+        )
+
+
+class TestMulitNestConfig:
+    def test__loads_from_config_file_correct(self):
+
+        multi_nest = af.MultiNest()
+
+        assert multi_nest.importance_nested_sampling == True
+        assert multi_nest.multimodal == True
+        assert multi_nest.const_efficiency_mode == False
+        assert multi_nest.n_live_points == 50
+        assert multi_nest.evidence_tolerance == 0.5
+        assert multi_nest.sampling_efficiency == 0.6
+        assert multi_nest.n_iter_before_update == 100
+        assert multi_nest.null_log_evidence == -1e90
+        assert multi_nest.max_modes == 100
+        assert multi_nest.mode_tolerance == -1e89
+        assert multi_nest.seed == -1
+        assert multi_nest.verbose == False
+        assert multi_nest.resume == True
+        assert multi_nest.context == 0
+        assert multi_nest.write_output == True
+        assert multi_nest.log_zero == -1e100
+        assert multi_nest.max_iter == 0
+        assert multi_nest.init_MPI == False
+        assert multi_nest.terminate_at_acceptance_ratio == False
+        assert multi_nest.acceptance_ratio_threshold == 1.0
+
+        fitness = af.MultiNest.Fitness(
+            paths=multi_nest.paths,
+            analysis=None,
+            output=MultiNestOutput(model=af.ModelMapper(), paths=multi_nest.paths),
+            terminate_at_acceptance_ratio=False,
+            acceptance_ratio_threshold=0.0,
+        )
+
+        assert fitness.accepted_samples == 0
+        assert isinstance(fitness.output, MultiNestOutput)
+        assert fitness.model_results_output_interval == 100
+        assert fitness.terminate_at_acceptance_ratio == False
+        assert fitness.acceptance_ratio_threshold == 0.0
+
 
 class TestMultiNestOutputConverged:
     def test__maximum_log_likelihood_and_evidence__from_summary(
@@ -347,7 +391,9 @@ class TestMultiNestOutputConverged:
         assert weight == 0.1
         assert likelihood == -0.5 * 9999999.9
 
-    def test__total_samples__accepted_samples__acceptance_ratio__from_resume_file(self, multi_nest_resume_path):
+    def test__total_samples__accepted_samples__acceptance_ratio__from_resume_file(
+        self, multi_nest_resume_path
+    ):
 
         af.conf.instance.output_path = multi_nest_resume_path + "/2_classes"
 
@@ -356,13 +402,13 @@ class TestMultiNestOutputConverged:
 
         create_resume(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.accepted_samples == 3000
+        assert multinest_output.total_accepted_samples == 3000
         assert multinest_output.total_samples == 12345
         assert multinest_output.acceptance_ratio == 3000 / 12345
 
         create_resume_2(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.accepted_samples == 60
+        assert multinest_output.total_accepted_samples == 60
         assert multinest_output.total_samples == 60
         assert multinest_output.acceptance_ratio == 1.0
 
@@ -508,7 +554,6 @@ class TestCopyWithNameExtension:
         assert copy.null_log_evidence is optimizer.null_log_evidence
         assert copy.max_modes is optimizer.max_modes
         assert copy.mode_tolerance is optimizer.mode_tolerance
-        assert copy.outputfiles_basename is optimizer.outputfiles_basename
         assert copy.seed is optimizer.seed
         assert copy.verbose is optimizer.verbose
         assert copy.resume is optimizer.resume
@@ -517,3 +562,8 @@ class TestCopyWithNameExtension:
         assert copy.log_zero is optimizer.log_zero
         assert copy.max_iter is optimizer.max_iter
         assert copy.init_MPI is optimizer.init_MPI
+        assert (
+            copy.terminate_at_acceptance_ratio
+            is optimizer.terminate_at_acceptance_ratio
+        )
+        assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold

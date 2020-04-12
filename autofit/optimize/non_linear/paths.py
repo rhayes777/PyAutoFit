@@ -45,10 +45,10 @@ def convert_paths(func):
 
         remove_files = conf.instance.general.get("output", "remove_files", bool)
 
-        # TODO : This is a hack you'll need to fix. I can acces the name by instantiating the NonLinearClass, but I have
-        # TODO : to make sure patths are not created by setting it to an empty string.
+        # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
+        # TODO : nicely though.
 
-        non_linear_name = kwargs["non_linear_class"](paths="").name if "non_linear_class" in kwargs else ""
+        non_linear_name = kwargs["non_linear_class"].__name__.lower() if "non_linear_class" in kwargs else ""
 
         func(
             self,
@@ -103,9 +103,16 @@ class Paths:
         return self.phase_path.split("/")
 
     @property
+    def chains_path(self) -> str:
+        """
+        The path to the chains folder.
+        """
+        return f"{self.phase_output_path}/chains"
+
+    @property
     def backup_path(self) -> str:
         """
-        The path to the backed up optimizer folder.
+        The path to the backed up chains folder.
         """
         return f"{self.phase_output_path}/chains_backup"
 
@@ -159,7 +166,7 @@ class Paths:
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.path, ".paramnames")
+        return "{}/{}".format(self.path, self.non_linear_name + ".paramnames")
 
     @property
     def file_model_info(self) -> str:

@@ -5,7 +5,7 @@ from typing import Dict
 
 import dill
 
-import autofit.optimize.non_linear.multi_nest
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
 import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
@@ -20,7 +20,7 @@ class AbstractPhase:
             self,
             paths: Paths,
             *,
-            non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            non_linear_class=MultiNest,
             model=None,
     ):
         """
@@ -53,7 +53,7 @@ class AbstractPhase:
             "phase_tag": self.paths.phase_tag,
             "pipeline": self.pipeline_name,
             "pipeline_tag": self.pipeline_tag,
-            "non_linear_search": self.optimizer.name,
+            "non_linear_search": type(self.optimizer).__name__.lower(),
         }
 
     def make_metadata_text(self, dataset_name):
@@ -238,7 +238,7 @@ class Phase(AbstractPhase):
             paths,
             *,
             analysis_class,
-            non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            non_linear_class=MultiNest,
             model=None,
     ):
         super().__init__(paths, non_linear_class=non_linear_class, model=model)
@@ -310,7 +310,7 @@ def as_grid_search(phase_class, parallel=False):
                 paths,
                 *,
                 number_of_steps=4,
-                non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                non_linear_class=MultiNest,
                 **kwargs,
         ):
             super().__init__(paths, non_linear_class=non_linear_class, **kwargs)
