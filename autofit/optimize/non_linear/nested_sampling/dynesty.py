@@ -182,7 +182,7 @@ class AbstractDynesty(NestedSampler):
             iterations_after_run = np.sum(dynesty_sampler.results.ncall)
 
             with open(
-                "{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "wb"
+                f"{self.paths.chains_path}/dynesty.pickle", "wb"
             ) as f:
                 pickle.dump(dynesty_sampler, f)
 
@@ -190,8 +190,6 @@ class AbstractDynesty(NestedSampler):
                 dynesty_finished = True
 
         self.paths.backup()
-
-        print(dynesty_output.pdf.getMeans())
 
         instance = dynesty_output.most_likely_instance
         dynesty_output.output_results(during_analysis=False)
@@ -238,10 +236,6 @@ class DynestyStatic(AbstractDynesty):
         self.n_live_points = self.config("n_live_points", int)
 
         logger.debug("Creating DynestyStatic NLO")
-
-    @property
-    def name(self):
-        return "dynesty_static"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty non-linear search with all associated attributes.
@@ -304,10 +298,6 @@ class DynestyDynamic(AbstractDynesty):
 
         logger.debug("Creating DynestyDynamic NLO")
 
-    @property
-    def name(self):
-        return "dynesty_dynamic"
-
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         """Get the dynamic Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
@@ -369,7 +359,7 @@ class DynestyOutput(NestedSamplerOutput):
         )
 
     @property
-    def pdf_converged(self):
+    def pdf_converged(self) -> bool:
         """ To analyse and visualize chains using *GetDist*, the analysis must be sufficiently converged to produce
         smooth enough PDF for analysis. This property checks whether the non-linear search's chains are sufficiently
         converged for *GetDist* use.
@@ -390,20 +380,20 @@ class DynestyOutput(NestedSamplerOutput):
             return False
 
     @property
-    def number_live_points(self):
+    def number_live_points(self) -> int:
         """The number of live points used by the nested sampler."""
-        return np.sum(self.results.nlive)
+        return int(np.sum(self.results.nlive))
 
     @property
-    def total_samples(self):
+    def total_samples(self) -> int:
         """The total number of samples performed by the non-linear search.
 
         For Dynesty, this includes all accepted and rejected samples, and is loaded from the sampler pickle.
         """
-        return np.sum(self.results.ncall)
+        return int(np.sum(self.results.ncall))
 
     @property
-    def total_accepted_samples(self):
+    def total_accepted_samples(self) -> int:
         """The total number of accepted samples performed by the non-linear search.
 
         For Dynesty, this is loaded from the pickled sampler.
@@ -411,26 +401,26 @@ class DynestyOutput(NestedSamplerOutput):
         return self.results.niter
 
     @property
-    def acceptance_ratio(self):
+    def acceptance_ratio(self) -> float:
         """The ratio of accepted samples to total samples."""
         return self.total_accepted_samples / self.total_samples
 
     @property
-    def maximum_log_likelihood(self):
+    def maximum_log_likelihood(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
 
         For Dynesty, this is computed from the pickled sampler's list of all likelihood values."""
         return np.max(self.results.logl)
 
     @property
-    def evidence(self):
+    def evidence(self) -> float:
         """The Bayesian evidence estimated by the nested sampling algorithm.
 
         For Dynesty, this is computed from the pickled sample's list of all evidence estimates."""
         return np.max(self.results.logz)
 
     @property
-    def most_probable_vector(self):
+    def most_probable_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
 
@@ -442,12 +432,12 @@ class DynestyOutput(NestedSamplerOutput):
             return list(np.mean(self.results.samples, axis=0))
 
     @property
-    def most_likely_index(self):
+    def most_likely_index(self) -> int:
         """The index of the accepted sample with the highest likelihood, e.g. that of best-fit / most_likely model."""
-        return np.argmax(self.results.logl)
+        return int(np.argmax(self.results.logl))
 
     @property
-    def most_likely_vector(self):
+    def most_likely_vector(self) -> [float]:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a list of values.
 
@@ -455,7 +445,7 @@ class DynestyOutput(NestedSamplerOutput):
         likelihood accepted sample."""
         return self.results.samples[self.most_likely_index]
 
-    def vector_at_sigma(self, sigma):
+    def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
 
@@ -482,21 +472,20 @@ class DynestyOutput(NestedSamplerOutput):
             )
 
             return list(map(lambda p: p.getLimits(limit), densities_1d))
-        else:
 
-            parameters_min = list(
-                np.min(self.results.samples[-self.number_live_points :], axis=0)
-            )
-            parameters_max = list(
-                np.max(self.results.samples[-self.number_live_points :], axis=0)
-            )
+        parameters_min = list(
+            np.min(self.results.samples[-self.number_live_points :], axis=0)
+        )
+        parameters_max = list(
+            np.max(self.results.samples[-self.number_live_points :], axis=0)
+        )
 
-            return [
-                (parameters_min[index], parameters_max[index])
-                for index in range(len(parameters_min))
-            ]
+        return [
+            (parameters_min[index], parameters_max[index])
+            for index in range(len(parameters_min))
+        ]
 
-    def vector_from_sample_index(self, sample_index):
+    def vector_from_sample_index(self, sample_index) -> [float]:
         """The model parameters of an individual sample of the non-linear search.
 
         Parameters
@@ -506,7 +495,7 @@ class DynestyOutput(NestedSamplerOutput):
         """
         return self.results.samples[sample_index]
 
-    def weight_from_sample_index(self, sample_index):
+    def weight_from_sample_index(self, sample_index) -> float:
         """The weight of an individual sample of the non-linear search.
 
         Parameters
@@ -516,7 +505,7 @@ class DynestyOutput(NestedSamplerOutput):
         """
         return self.results.logwt[sample_index]
 
-    def likelihood_from_sample_index(self, sample_index):
+    def likelihood_from_sample_index(self, sample_index) -> float:
         """The likelihood of an individual sample of the non-linear search.
 
         Parameters

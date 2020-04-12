@@ -45,10 +45,10 @@ def convert_paths(func):
 
         remove_files = conf.instance.general.get("output", "remove_files", bool)
 
-        # TODO : This is a hack you'll need to fix. I can acces the name by instantiating the NonLinearClass, but I have
-        # TODO : to make sure patths are not created by setting it to an empty string.
+        # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
+        # TODO : nicely though.
 
-        non_linear_name = kwargs["non_linear_class"](paths="").name if "non_linear_class" in kwargs else ""
+        non_linear_name = kwargs["non_linear_class"].__name__.lower() if "non_linear_class" in kwargs else ""
 
         func(
             self,

@@ -69,7 +69,7 @@ class Emcee(NonLinearOptimizer):
         """
 
         if paths is None:
-            paths = Paths(non_linear_name=self.name)
+            paths = Paths(non_linear_name=type(self).__name__.lower())
 
         super().__init__(paths)
 
@@ -89,10 +89,6 @@ class Emcee(NonLinearOptimizer):
         )
 
         logger.debug("Creating Emcee NLO")
-
-    @property
-    def name(self):
-        return "emcee"
 
     def _simple_fit(self, model, fitness_function):
         """
@@ -274,7 +270,7 @@ class EmceeOutput(MCMCOutput):
         self.auto_correlation_change_threshold = auto_correlation_change_threshold
 
     @property
-    def backend(self):
+    def backend(self) -> emcee.backends.HDFBackend:
         """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
 
         The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
@@ -315,7 +311,7 @@ class EmceeOutput(MCMCOutput):
         return True
 
     @property
-    def total_samples(self):
+    def total_samples(self) -> int:
         """The total number of samples performed by the non-linear search.
 
         For Emcee, this includes all accepted and rejected proposed steps and is loaded from the results backend.
@@ -323,26 +319,26 @@ class EmceeOutput(MCMCOutput):
         return len(self.backend.get_chain(flat=True))
 
     @property
-    def total_walkers(self):
+    def total_walkers(self) -> int:
         """The total number of walkers used by this *Emcee* non-linear search.
         """
         return len(self.backend.get_chain()[0, :, 0])
 
     @property
-    def total_steps(self):
+    def total_steps(self) -> int:
         """The total number of steps taken by each walk of this *Emcee* non-linear search.
         """
         return len(self.backend.get_log_prob())
 
     @property
-    def maximum_log_likelihood(self):
+    def maximum_log_likelihood(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
 
         For emcee, this is computed from the backend's list of all likelihood values."""
         return self.backend.get_log_prob(flat=True)[self.most_likely_index]
 
     @property
-    def samples_after_burn_in(self):
+    def samples_after_burn_in(self) -> [list]:
         """The emcee samples with the initial burn-in samples removed.
 
         The burn-in period is estimated using the auto-correlation times o the parameters."""
@@ -352,18 +348,18 @@ class EmceeOutput(MCMCOutput):
         return self.backend.get_chain(discard=discard, thin=thin, flat=True)
 
     @property
-    def auto_correlation_times_of_parameters(self):
+    def auto_correlation_times_of_parameters(self) -> [float]:
         """Estimate the autocorrelation time of all parameters from the emcee backend results."""
         return self.backend.get_autocorr_time(tol=0)
 
     @property
-    def previous_auto_correlation_times_of_parameters(self):
+    def previous_auto_correlation_times_of_parameters(self) -> [float]:
         return emcee.autocorr.integrated_time(
             x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
         )
 
     @property
-    def relative_auto_correlation_times(self):
+    def relative_auto_correlation_times(self) -> [float]:
         return (
             np.abs(
                 self.previous_auto_correlation_times_of_parameters
@@ -373,7 +369,7 @@ class EmceeOutput(MCMCOutput):
         )
 
     @property
-    def converged(self):
+    def converged(self) -> bool:
         """Whether the emcee chains have converged on a solution or if they are still in a burn-in period, based on the 
         auto correlation times of parameters."""
         converged = np.all(
@@ -392,7 +388,7 @@ class EmceeOutput(MCMCOutput):
         return converged
 
     @property
-    def most_probable_vector(self):
+    def most_probable_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
 
@@ -404,12 +400,12 @@ class EmceeOutput(MCMCOutput):
         ]
 
     @property
-    def most_likely_index(self):
+    def most_likely_index(self) -> int:
         """The index of the accepted sample with the highest likelihood, e.g. that of best-fit / most_likely model."""
-        return np.argmax(self.backend.get_log_prob(flat=True))
+        return int(np.argmax(self.backend.get_log_prob(flat=True)))
 
     @property
-    def most_likely_vector(self):
+    def most_likely_vector(self) -> [float]:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a list of values.
 
@@ -417,7 +413,7 @@ class EmceeOutput(MCMCOutput):
         likelihood accepted sample."""
         return self.backend.get_chain(flat=True)[self.most_likely_index]
 
-    def vector_at_sigma(self, sigma):
+    def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
 
@@ -444,7 +440,7 @@ class EmceeOutput(MCMCOutput):
             for i in range(self.model.prior_count)
         ]
 
-    def vector_from_sample_index(self, sample_index):
+    def vector_from_sample_index(self, sample_index) -> [float]:
         """The model parameters of an individual sample of the non-linear search.
 
         Parameters
@@ -454,7 +450,7 @@ class EmceeOutput(MCMCOutput):
         """
         return list(self.pdf.samples[sample_index])
 
-    def weight_from_sample_index(self, sample_index):
+    def weight_from_sample_index(self, sample_index) -> [float]:
         """The weight of an individual sample of the non-linear search.
 
         Parameters
@@ -464,7 +460,7 @@ class EmceeOutput(MCMCOutput):
         """
         return self.pdf.weights[sample_index]
 
-    def likelihood_from_sample_index(self, sample_index):
+    def likelihood_from_sample_index(self, sample_index) -> [float]:
         """The likelihood of an individual sample of the non-linear search.
 
         Parameters

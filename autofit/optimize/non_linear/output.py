@@ -3,6 +3,7 @@ import os
 from configparser import NoOptionError
 
 from autofit import conf
+from autofit.mapper import model
 from autofit.tools import text_formatter, text_util
 
 logger = logging.getLogger(__name__)
@@ -27,40 +28,40 @@ class AbstractOutput:
         self.paths = paths
 
     @property
-    def total_samples(self):
+    def total_samples(self) -> int:
         """The total number of samples performed by the non-linear search."""
         raise NotImplementedError()
 
     @property
-    def maximum_log_likelihood(self):
+    def maximum_log_likelihood(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model."""
         raise NotImplementedError()
 
     @property
-    def most_likely_vector(self):
+    def most_likely_vector(self) -> [float]:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a list of values."""
         raise NotImplementedError()
 
     @property
-    def most_likely_instance(self):
+    def most_likely_instance(self) -> model.ModelInstance:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a model instance."""
         return self.model.instance_from_vector(vector=self.most_likely_vector)
 
     @property
-    def most_probable_vector(self):
+    def most_probable_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values."""
         raise NotImplementedError()
 
     @property
-    def most_probable_instance(self):
+    def most_probable_instance(self) -> model.ModelInstance:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a model instance."""
         return self.model.instance_from_vector(vector=self.most_probable_vector)
 
-    def vector_at_sigma(self, sigma):
+    def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
 
@@ -77,7 +78,7 @@ class AbstractOutput:
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
         raise NotImplementedError()
 
-    def vector_at_upper_sigma(self, sigma):
+    def vector_at_upper_sigma(self, sigma) -> [float]:
         """The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
@@ -91,7 +92,7 @@ class AbstractOutput:
         """
         return list(map(lambda param: param[1], self.vector_at_sigma(sigma)))
 
-    def vector_at_lower_sigma(self, sigma):
+    def vector_at_lower_sigma(self, sigma) -> [float]:
         """The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
@@ -105,7 +106,7 @@ class AbstractOutput:
         """
         return list(map(lambda param: param[0], self.vector_at_sigma(sigma)))
 
-    def instance_at_sigma(self, sigma):
+    def instance_at_sigma(self, sigma) -> model.ModelInstance:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper values estimated from the PDF.
 
@@ -116,11 +117,10 @@ class AbstractOutput:
         sigma : float
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
         return self.model.instance_from_vector(
-            vector=self.vector_at_sigma(sigma=sigma),
-            assert_priors_in_limits=False
+            vector=self.vector_at_sigma(sigma=sigma), assert_priors_in_limits=False
         )
 
-    def instance_at_upper_sigma(self, sigma):
+    def instance_at_upper_sigma(self, sigma) -> model.ModelInstance:
         """The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -134,10 +134,10 @@ class AbstractOutput:
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_upper_sigma(sigma=sigma),
-            assert_priors_in_limits=False
+            assert_priors_in_limits=False,
         )
 
-    def instance_at_lower_sigma(self, sigma):
+    def instance_at_lower_sigma(self, sigma) -> model.ModelInstance:
         """The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -151,10 +151,10 @@ class AbstractOutput:
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_lower_sigma(sigma=sigma),
-            assert_priors_in_limits=False
+            assert_priors_in_limits=False,
         )
 
-    def error_vector_at_sigma(self, sigma):
+    def error_vector_at_sigma(self, sigma) -> [float]:
         """ The value of every error after marginalization in 1D at an input sigma value of the probability density
         function (PDF), returned as two lists of values corresponding to the lower and upper errors.
 
@@ -168,7 +168,7 @@ class AbstractOutput:
         lowers = self.vector_at_lower_sigma(sigma=sigma)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
-    def error_vector_at_upper_sigma(self, sigma):
+    def error_vector_at_upper_sigma(self, sigma) -> [float]:
         """The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
@@ -189,7 +189,7 @@ class AbstractOutput:
             )
         )
 
-    def error_vector_at_lower_sigma(self, sigma):
+    def error_vector_at_lower_sigma(self, sigma) -> [float]:
         """The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
@@ -210,7 +210,7 @@ class AbstractOutput:
             )
         )
 
-    def error_instance_at_sigma(self, sigma):
+    def error_instance_at_sigma(self, sigma) -> model.ModelInstance:
         """ The error of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper errors.
 
@@ -224,7 +224,7 @@ class AbstractOutput:
             vector=self.error_vector_at_sigma(sigma=sigma)
         )
 
-    def error_instance_at_upper_sigma(self, sigma):
+    def error_instance_at_upper_sigma(self, sigma) -> model.ModelInstance:
         """The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -240,7 +240,7 @@ class AbstractOutput:
             vector=self.error_vector_at_upper_sigma(sigma=sigma)
         )
 
-    def error_instance_at_lower_sigma(self, sigma):
+    def error_instance_at_lower_sigma(self, sigma) -> model.ModelInstance:
         """The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -256,7 +256,7 @@ class AbstractOutput:
             vector=self.error_vector_at_lower_sigma(sigma=sigma)
         )
 
-    def gaussian_priors_at_sigma(self, sigma):
+    def gaussian_priors_at_sigma(self, sigma) -> [list]:
         """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
@@ -286,7 +286,7 @@ class AbstractOutput:
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def likelihood_from_sample_index(self, sample_index):
+    def likelihood_from_sample_index(self, sample_index) -> float:
         """The likelihood of an individual sample of the non-linear search.
 
         Parameters
@@ -296,7 +296,7 @@ class AbstractOutput:
         """
         raise NotImplementedError()
 
-    def vector_from_sample_index(self, sample_index):
+    def vector_from_sample_index(self, sample_index) -> [float]:
         """The parameters of an individual sample of the non-linear search, returned as a 1D list.
 
         Parameters
@@ -306,7 +306,7 @@ class AbstractOutput:
         """
         raise NotImplementedError()
 
-    def instance_from_sample_index(self, sample_index):
+    def instance_from_sample_index(self, sample_index) -> model.ModelInstance:
         """The parameters of an individual saple of the non-linear search, returned as a model instance.
 
         Parameters
@@ -318,7 +318,7 @@ class AbstractOutput:
 
         return self.model.instance_from_vector(vector=model_parameters)
 
-    def offset_vector_from_input_vector(self, input_vector):
+    def offset_vector_from_input_vector(self, input_vector) -> [float]:
         """ The values of an input_vector offset by the *most_probable_vector* (the PDF medians).
 
         If the 'true' values of a model are known and input as the *input_vector*, this function returns the results
@@ -340,7 +340,7 @@ class AbstractOutput:
             )
         )
 
-    def results_from_sigma(self, sigma):
+    def results_from_sigma(self, sigma) -> str:
         """ Create a string summarizing the results of the non-linear search at an input sigma value.
 
         This function is used for creating the model.results files of a non-linear search.
@@ -369,7 +369,7 @@ class AbstractOutput:
         )
 
     @property
-    def param_labels(self):
+    def param_labels(self) -> [str]:
         """A list of every parameter's label, used by *GetDist* for model estimation and visualization.
 
         The parameter labels are determined using the label.ini and label_format.ini config files."""
@@ -429,7 +429,7 @@ class AbstractOutput:
         with open(self.paths.file_model_info, "w+") as f:
             f.write(self.model.info)
 
-    def latex_results_at_sigma(self, sigma, format_str="{:.2f}"):
+    def latex_results_at_sigma(self, sigma, format_str="{:.2f}") -> [str]:
         """Return the results of the non-linear search at an input sigma value as a string that is formated for simple
         copy and pasting in a LaTex document.
 
@@ -467,7 +467,7 @@ class AbstractOutput:
         return line
 
     @property
-    def format_str(self):
+    def format_str(self) -> str:
         """The format string for the model.results file, describing to how many decimal points every parameter
         estimate is output in the model.results file.
         """

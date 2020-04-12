@@ -40,7 +40,7 @@ class NestedSampler(NonLinearOptimizer):
         """
 
         if paths is None:
-            paths = Paths(non_linear_name=self.name)
+            paths = Paths(non_linear_name=type(self).__name__.lower())
 
         super().__init__(paths)
 
@@ -145,24 +145,23 @@ class NestedSampler(NonLinearOptimizer):
 
 
 class NestedSamplerOutput(AbstractOutput):
-
     @property
-    def number_live_points(self):
+    def number_live_points(self) -> int:
         """The number of live points used by the nested sampler."""
         raise NotImplementedError()
 
     @property
-    def total_accepted_samples(self):
+    def total_accepted_samples(self) -> int:
         """The total number of accepted samples performed by the non-linear search.
         """
         raise NotImplementedError()
 
     @property
-    def evidence(self):
+    def evidence(self) -> float:
         """The Bayesian evidence estimated by the nested sampling algorithm."""
         raise NotImplementedError()
 
-    def weight_from_sample_index(self, sample_index):
+    def weight_from_sample_index(self, sample_index) -> float:
         """The weight of an individual sample of the non-linear search.
 
         Parameters
