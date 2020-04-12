@@ -148,10 +148,10 @@ class AbstractDynesty(NestedSampler):
         """
         dynesty_output = DynestyOutput(model=model, paths=self.paths)
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.backup_path, "dynesty")):
+        if os.path.exists("{}/{}.pickle".format(self.paths.chains_path, "dynesty")):
 
             with open(
-                "{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "rb"
+                "{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "rb"
             ) as f:
                 dynesty_sampler = pickle.load(f)
 
@@ -182,14 +182,14 @@ class AbstractDynesty(NestedSampler):
             iterations_after_run = np.sum(dynesty_sampler.results.ncall)
 
             with open(
-                "{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "wb"
+                "{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "wb"
             ) as f:
                 pickle.dump(dynesty_sampler, f)
 
             if iterations_before_run == iterations_after_run:
                 dynesty_finished = True
 
-        #        self.paths.backup()
+        self.paths.backup()
 
         print(dynesty_output.pdf.getMeans())
 
@@ -339,7 +339,7 @@ class DynestyOutput(NestedSamplerOutput):
         weights, etc. of the non-linear search.
 
         The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        with open("{}/{}.pickle".format(self.paths.backup_path, "dynesty"), "rb") as f:
+        with open("{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "rb") as f:
             return pickle.load(f)
 
     @property

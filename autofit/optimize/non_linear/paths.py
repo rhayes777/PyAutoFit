@@ -103,9 +103,16 @@ class Paths:
         return self.phase_path.split("/")
 
     @property
+    def chains_path(self) -> str:
+        """
+        The path to the chains folder.
+        """
+        return f"{self.phase_output_path}/chains"
+
+    @property
     def backup_path(self) -> str:
         """
-        The path to the backed up optimizer folder.
+        The path to the backed up chains folder.
         """
         return f"{self.phase_output_path}/chains_backup"
 
