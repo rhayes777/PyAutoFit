@@ -48,7 +48,6 @@ def test_dynesty_output_unconverged():
 
 
 class TestDynestyConfig:
-
     def test__loads_from_config_file_correct(self):
 
         dynesty = af.DynestyStatic()
@@ -101,21 +100,15 @@ class TestDynestyOutputConverged:
 
     def test__most_probable_vector__from_chains(self, dynesty_output_converged):
 
-        assert dynesty_output_converged.most_probable_vector == pytest.approx([
-            10.011122,
-            0.4996056,
-            0.00232913,
-            0.00101658,
-        ], 1.0e-4)
+        assert dynesty_output_converged.most_probable_vector == pytest.approx(
+            [10.011122, 0.4996056, 0.00232913, 0.00101658], 1.0e-4
+        )
 
     def test__most_likely_vector__from_summary(self, dynesty_output_converged):
 
-        assert dynesty_output_converged.most_likely_vector == pytest.approx([
-            10.0221,
-            0.49940,
-            0.002401,
-            0.00133179,
-        ], 1.0e-4)
+        assert dynesty_output_converged.most_likely_vector == pytest.approx(
+            [10.0221, 0.49940, 0.002401, 0.00133179], 1.0e-4
+        )
 
     def test__vector_at_sigma__from_weighted_samples(self, dynesty_output_converged):
 
@@ -141,48 +134,40 @@ class TestDynestyOutputConverged:
 
         model = dynesty_output_converged.vector_from_sample_index(sample_index=100)
         weight = dynesty_output_converged.weight_from_sample_index(sample_index=100)
-        likelihood = dynesty_output_converged.likelihood_from_sample_index(sample_index=100)
+        likelihood = dynesty_output_converged.likelihood_from_sample_index(
+            sample_index=100
+        )
 
-        assert model == pytest.approx([
-            11.84474,
-            5.13973,
-            -0.045362,
-            -0.093680,
-        ], 1.0e-3)
+        assert model == pytest.approx([11.84474, 5.13973, -0.045362, -0.093680], 1.0e-3)
 
         assert weight == pytest.approx(-85780.18, 1.0e-2)
         assert likelihood == pytest.approx(-85771.5, 1.0e-2)
 
         model = dynesty_output_converged.vector_from_sample_index(sample_index=629)
         weight = dynesty_output_converged.weight_from_sample_index(sample_index=629)
-        likelihood = dynesty_output_converged.likelihood_from_sample_index(sample_index=629)
+        likelihood = dynesty_output_converged.likelihood_from_sample_index(
+            sample_index=629
+        )
 
-        assert model == pytest.approx([
-            10.0221,
-            0.49940,
-            0.002401,
-            0.00133179,
-        ], 1.0e-3)
+        assert model == pytest.approx([10.0221, 0.49940, 0.002401, 0.00133179], 1.0e-3)
 
         assert weight == pytest.approx(585.809, 1.0e-2)
         assert likelihood == pytest.approx(618.65, 1.0e-2)
 
-    def test__total_samples__accepted_samples__acceptance_ratio(self, dynesty_output_converged):
+    def test__total_samples__accepted_samples__acceptance_ratio(
+        self, dynesty_output_converged
+    ):
 
-        assert dynesty_output_converged.accepted_samples == 610
+        assert dynesty_output_converged.total_accepted_samples == 610
         assert dynesty_output_converged.total_samples == 2282
 
 
 class TestDynestyOutputUnconverged:
-
     def test__most_probable_vector__from_chains(self, dynesty_output_unconverged):
 
-        assert dynesty_output_unconverged.most_probable_vector == pytest.approx([
-            571.815,
-            10.8658,
-            -0.0048052,
-            0.0257509,
-        ], 1.0e-2)
+        assert dynesty_output_unconverged.most_probable_vector == pytest.approx(
+            [571.815, 10.8658, -0.0048052, 0.0257509], 1.0e-2
+        )
 
     def test__vector_at_sigma__from_weighted_samples(self, dynesty_output_unconverged):
 

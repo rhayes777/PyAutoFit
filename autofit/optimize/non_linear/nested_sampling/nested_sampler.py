@@ -13,10 +13,30 @@ logger = logging.getLogger(__name__)
 class NestedSampler(NonLinearOptimizer):
     def __init__(self, paths=None, sigma=3):
         """
-        Class to setup and run a MultiNest lens and output the MultiNest nlo.
+        Abstract class of a nested sampling non-linear search (e.g. MultiNest, Dynesty).
 
-        This interfaces with an input model_mapper, which is used for setting up the \
-        individual model instances that are passed to each iteration of MultiNest.
+        **PyAutoFit** allows a nested sampler to automatically terminate when the acceptance ratio falls below an input
+        threshold value. When this occurs, all samples are accepted using the current maximum likelihood value,
+        irrespective of how well the model actually fits the data.
+
+        This feature should be used for non-linear searches where the nested sampler gets 'stuck', for example because
+        the likelihood function is stochastic or varies rapidly over small scales in parameter space. The results of
+        chains using this feature are not realiable (given the likelihood is being manipulated to end the run), but
+        they are still valid results for linking priors to a new phase and non-linear search.
+
+        Parameters
+        ----------
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            backups, etc.
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        terminate_at_acceptance_ratio : bool
+            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            threshold value.
+        acceptance_ratio_threshold : float
+            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is *True*.
         """
 
         if paths is None:
@@ -27,7 +47,7 @@ class NestedSampler(NonLinearOptimizer):
         self.sigma = sigma
 
         self.terminate_at_acceptance_ratio = self.config(
-             "terminate_at_acceptance_ratio", bool
+            "terminate_at_acceptance_ratio", bool
         )
         self.acceptance_ratio_threshold = self.config(
             "acceptance_ratio_threshold", float
@@ -43,8 +63,14 @@ class NestedSampler(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, output, terminate_at_acceptance_ratio,
-                     acceptance_ratio_threshold):
+        def __init__(
+            self,
+            paths,
+            analysis,
+            output,
+            terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold,
+        ):
             super().__init__(paths, analysis, output.output_results)
             self.accepted_samples = 0
             self.output = output
@@ -62,7 +88,9 @@ class NestedSampler(NonLinearOptimizer):
                 if os.path.isfile(self.paths.file_summary):
                     try:
                         if (
-                                self.output.acceptance_ratio < self.acceptance_ratio_threshold) or self.terminate_has_begun:
+                            self.output.acceptance_ratio
+                            < self.acceptance_ratio_threshold
+                        ) or self.terminate_has_begun:
                             self.terminate_has_begun = True
                             return self.max_likelihood
                     except ValueError:
@@ -82,14 +110,11 @@ class NestedSampler(NonLinearOptimizer):
                 analysis,
                 output,
                 self.terminate_at_acceptance_ratio,
-                self.acceptance_ratio_threshold
+                self.acceptance_ratio_threshold,
             )
 
             logger.info("Running Nested Sampler...")
-            self._simple_fit(
-                model,
-                fitness_function.__call__
-            )
+            self._simple_fit(model, fitness_function.__call__)
             logger.info("Nested Sampler complete")
 
             # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
@@ -99,9 +124,7 @@ class NestedSampler(NonLinearOptimizer):
             self.paths.backup()
             open(self.paths.has_completed_path, "w+").close()
         else:
-            logger.warning(
-                f"{self.paths.phase_name} has run previously - skipping"
-            )
+            logger.warning(f"{self.paths.phase_name} has run previously - skipping")
 
         instance = output.most_likely_instance
         analysis.visualize(instance=instance, during_analysis=False)
@@ -122,15 +145,42 @@ class NestedSampler(NonLinearOptimizer):
 
 
 class NestedSamplerOutput(AbstractOutput):
-    def weight_from_sample_index(self, sample_index):
+
+    @property
+    def number_live_points(self):
+        """The number of live points used by the nested sampler."""
+        raise NotImplementedError()
+
+    @property
+    def total_accepted_samples(self):
+        """The total number of accepted samples performed by the non-linear search.
+        """
         raise NotImplementedError()
 
     @property
     def evidence(self):
+        """The Bayesian evidence estimated by the nested sampling algorithm."""
+        raise NotImplementedError()
+
+    def weight_from_sample_index(self, sample_index):
+        """The weight of an individual sample of the non-linear search.
+
+        Parameters
+        ----------
+        sample_index : int
+            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
+        """
         raise NotImplementedError()
 
     def output_pdf_plots(self):
+        """Output plots of the probability density functions of the non-linear seach.
 
+        This uses *GetDist* to plot:
+
+         - The marginalize 1D PDF of every parameter.
+         - The marginalized 2D PDF of every parameter pair.
+         - A Triangle plot of the 2D and 1D PDF's.
+         """
         import getdist.plots
         import matplotlib
 
@@ -169,4 +219,3 @@ class NestedSamplerOutput(AbstractOutput):
                 )
 
         plt.close()
-

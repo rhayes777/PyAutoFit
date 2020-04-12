@@ -20,10 +20,30 @@ logger = logging.getLogger(__name__)
 class MultiNest(NestedSampler):
     def __init__(self, paths=None, sigma=3, run=pymultinest.run):
         """
-        Class to setup and run a MultiNest lens and output the MultiNest nlo.
+        Class to setup and run a MultiNest non-linear search.
 
-        This interfaces with an input model_mapper, which is used for setting up the \
-        individual model instances that are passed to each iteration of MultiNest.
+        For a full description of MultiNest and its Python wrapper PyMultiNest, checkout its Github and documentation
+        webpages:
+
+        https://github.com/JohannesBuchner/MultiNest
+        https://github.com/JohannesBuchner/PyMultiNest
+        http://johannesbuchner.github.io/PyMultiNest/index.html#
+
+        Parameters
+        ----------
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            backups, etc.
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        terminate_at_acceptance_ratio : bool
+            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            threshold value (see *NestedSampler* for a full description of this feature).
+        acceptance_ratio_threshold : float
+            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
+            *True* (see *NestedSampler* for a full description of this feature).
+
         """
         super().__init__(paths=paths, sigma=sigma)
 
@@ -63,6 +83,9 @@ class MultiNest(NestedSampler):
         return "multinest"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        """Copy this instance of the multinest non-linear search with all associated attributes.
+
+        This is used to set up the non-linear search on phase extensions."""
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
@@ -92,21 +115,20 @@ class MultiNest(NestedSampler):
 
     def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
         """
-        Fit a model using MultiNest and some function that
-        scores instances of that model.
+        Fit a model using MultiNest and a function that returns a likelihood from instances of that model.
 
         Parameters
         ----------
         model
-            The model which is used to generate instances for different
-            points in parameter space
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
         fitness_function
-            A function that gives a score to the model, with the highest (least
-            negative) number corresponding to the best fit.
+            A function that fits this model to the data, returning the likelihood of the fit.
 
         Returns
         -------
-        A result object comprising a fitness score, model instance and model.
+        A result object comprising the best-fit model instance, likelihood and an *Output* class that enables analysis
+        of the full chains used by the fit.
         """
         multinest_output = MultiNestOutput(model, self.paths)
 
@@ -196,12 +218,27 @@ class MultiNest(NestedSampler):
         )
 
     def output_from_model(self, model, paths):
+        """Create this non-linear search's output class from the model and paths.
+
+        This function is required by the aggregator, so it knows which output class to generate an instance of."""
         return MultiNestOutput(model=model, paths=paths)
 
 
 class MultiNestOutput(NestedSamplerOutput):
     @property
     def pdf(self):
+        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search chains.
+
+        *GetDist* can only be used when chains are converged enough to provide a smooth PDF and this convergence is
+        checked using the *pdf_converged* bool before *GetDist* is called.
+
+        https://github.com/cmbant/getdist
+        https://getdist.readthedocs.io/en/latest/
+
+        For *MultiNest*, chains are passed to *GetDist* via the multinest.txt file, which contains the physical model
+        parameters of every accepted sample and its sampling probabilitiy which is used as the weight.
+        """
+
         import getdist
 
         try:
@@ -213,6 +250,13 @@ class MultiNestOutput(NestedSamplerOutput):
 
     @property
     def pdf_converged(self):
+        """ To analyse and visualize chains using *GetDist*, the analysis must be sufficiently converged to produce
+        smooth enough PDF for analysis. This property checks whether the non-linear search's chains are sufficiently
+        converged for *GetDist* use.
+
+        For *MultiNest*, during initial sampling one accepted live point typically has > 99% of the probabilty as its
+        likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
+        all live points have similar likelihood and sampling probabilities."""
         try:
             densities_1d = list(
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
@@ -226,31 +270,70 @@ class MultiNestOutput(NestedSamplerOutput):
             return False
 
     @property
-    def most_probable_vector(self):
-        """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lens.
+    def number_live_points(self):
+        """The number of live points used by the nested sampler."""
+        return len(self.phys_live_points)
 
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
+    @property
+    def total_samples(self):
+        """The total number of samples performed by the non-linear search.
 
+        For MulitNest, this includes all accepted and rejected samples, and is loaded from the "multinestresume" file.
         """
+        resume = open(self.paths.file_resume)
+
+        resume.seek(1)
+        resume.read(19)
+        return int(resume.read(8))
+
+    @property
+    def total_accepted_samples(self):
+        """The total number of accepted samples performed by the non-linear search.
+
+        For MulitNest, this is loaded from the "multinestresume" file.
+        """
+        resume = open(self.paths.file_resume)
+
+        resume.seek(1)
+        resume.read(8)
+        return int(resume.read(10))
+
+    @property
+    def acceptance_ratio(self):
+        """The ratio of accepted samples to total samples."""
+        return self.total_accepted_samples / self.total_samples
+
+    @property
+    def maximum_log_likelihood(self):
+        """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
+
+        For MultiNest, this is read from the "multinestsummary.txt" file. """
         try:
             return self.read_list_of_results_from_summary_file(
-                number_entries=self.model.prior_count, offset=0
-            )
+                number_entries=2, offset=112
+            )[1]
         except FileNotFoundError:
-            return self.most_likely_vector
+            return max([point[-1] for point in self.phys_live_points])
+
+    @property
+    def evidence(self):
+        """The Bayesian evidence estimated by the nested sampling algorithm.
+
+        For MultiNest, this is read from the "multinestsummary.txt" file."""
+        try:
+            return self.read_list_of_results_from_summary_file(
+                number_entries=2, offset=112
+            )[0]
+        except FileNotFoundError:
+            return None
 
     @property
     def most_likely_vector(self):
-        """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lens.
+        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
+        as a list of values.
 
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
-        """
+        The vector is read from the MulitNest file "multinestsummary.txt, which stores the parameters of the most
+        likely model in the second half of entries."""
         try:
             return self.read_list_of_results_from_summary_file(
                 number_entries=self.model.prior_count, offset=56
@@ -262,63 +345,39 @@ class MultiNestOutput(NestedSamplerOutput):
             return self.phys_live_points[most_likely_index][0:-1]
 
     @property
-    def maximum_log_likelihood(self):
+    def most_probable_vector(self):
+        """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
+        as a list of values.
+
+        The vector is read from the MulitNest file "multinestsummary.txt, which stores the parameters of the most
+        probable model in the first half of entries.
+        """
         try:
             return self.read_list_of_results_from_summary_file(
-                number_entries=2, offset=112
-            )[1]
+                number_entries=self.model.prior_count, offset=0
+            )
         except FileNotFoundError:
-            return max([point[-1] for point in self.phys_live_points])
-
-    @property
-    def evidence(self):
-        try:
-            return self.read_list_of_results_from_summary_file(
-                number_entries=2, offset=112
-            )[0]
-        except FileNotFoundError:
-            return None
-
-    @property
-    def phys_live_points(self):
-
-        phys_live = open(self.paths.file_phys_live)
-
-        live_points = 0
-        for line in phys_live:
-            live_points += 1
-
-        phys_live.seek(0)
-
-        phys_live_points = []
-
-        for line in range(live_points):
-            vector = []
-            for param in range(self.model.prior_count + 1):
-                vector.append(float(phys_live.read(28)))
-            phys_live.readline()
-            phys_live_points.append(vector)
-
-        phys_live.close()
-
-        return phys_live_points
-
-    def phys_live_points_of_param(self, param_index):
-        return [point[param_index] for point in self.phys_live_points]
-
-    def read_list_of_results_from_summary_file(self, number_entries, offset):
-
-        summary = open(self.paths.file_summary)
-        summary.read(2 + offset * self.model.prior_count)
-        vector = []
-        for param in range(number_entries):
-            vector.append(float(summary.read(28)))
-
-        summary.close()
-
-        return vector
+            return self.most_likely_vector
 
     def vector_at_sigma(self, sigma):
+        """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
+        (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
+
+        For example, if sigma is 1.0, the marginalized values of every parameter at 31.7% and 68.2% percentiles of each
+        PDF is returned.
+
+        This does not account for covariance between parameters. For example, if two parameters (x, y) are degenerate
+        whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
+        upper values. Thus, caution is advised when using the function to reperform a model-fits.
+
+        For *MultiNest*, this is estimated using *GetDist* if the chains have converged, by sampling the density
+        function at an input PDF %. If not converged, a crude estimate using the range of values of the current
+        physical live points is used.
+
+        Parameters
+        ----------
+        sigma : float
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
         limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
@@ -343,56 +402,82 @@ class MultiNestOutput(NestedSamplerOutput):
                 for index in range(len(parameters_min))
             ]
 
-    @property
-    def total_samples(self):
-        resume = open(self.paths.file_resume)
-
-        resume.seek(1)
-        resume.read(19)
-        return int(resume.read(8))
-
-    @property
-    def accepted_samples(self):
-
-        resume = open(self.paths.file_resume)
-
-        resume.seek(1)
-        resume.read(8)
-        return int(resume.read(10))
-
-    @property
-    def acceptance_ratio(self):
-        return self.accepted_samples / self.total_samples
-
     def vector_from_sample_index(self, sample_index):
-        """From a sample return the model parameters.
+        """The model parameters of an individual sample of the non-linear search.
 
         Parameters
-        -----------
+        ----------
         sample_index : int
-            The sample index of the weighted sample to return.
+            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
         """
         return list(self.pdf.samples[sample_index])
 
     def weight_from_sample_index(self, sample_index):
-        """From a sample return the sample weight.
+        """The weight of an individual sample of the non-linear search.
 
         Parameters
-        -----------
+        ----------
         sample_index : int
-            The sample index of the weighted sample to return.
+            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
         """
         return self.pdf.weights[sample_index]
 
     def likelihood_from_sample_index(self, sample_index):
-        """From a sample return the likelihood.
+        """The likelihood of an individual sample of the non-linear search.
 
         NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \
         -2.0*likelihood. This routine converts these back to likelihood.
 
         Parameters
-        -----------
+        ----------
         sample_index : int
-            The sample index of the weighted sample to return.
+            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
         """
         return -0.5 * self.pdf.loglikes[sample_index]
+
+    @property
+    def phys_live_points(self):
+        """Open the MultiNest "multinestphys_live_points" file, read it and return all physical live point models as
+        a list of 1D lists."""
+        phys_live = open(self.paths.file_phys_live)
+
+        live_points = 0
+        for line in phys_live:
+            live_points += 1
+
+        phys_live.seek(0)
+
+        phys_live_points = []
+
+        for line in range(live_points):
+            vector = []
+            for param in range(self.model.prior_count + 1):
+                vector.append(float(phys_live.read(28)))
+            phys_live.readline()
+            phys_live_points.append(vector)
+
+        phys_live.close()
+
+        return phys_live_points
+
+    def phys_live_points_of_param(self, param_index):
+        """Return all parameter values of a given parameter for all of the current physical live points.
+
+        These are read from the "multinestphys_live_points" file."""
+        return [point[param_index] for point in self.phys_live_points]
+
+    def read_list_of_results_from_summary_file(self, number_entries, offset):
+        """Read a list of results from the "multinestsummary.txt" file, which stores information on the MulitNest run
+        incuding the most likely and most probable models.
+
+        This file stores the results as a text file where different columns correspnd to different models."""
+
+        summary = open(self.paths.file_summary)
+        summary.read(2 + offset * self.model.prior_count)
+        vector = []
+        for param in range(number_entries):
+            vector.append(float(summary.read(28)))
+
+        summary.close()
+
+        return vector

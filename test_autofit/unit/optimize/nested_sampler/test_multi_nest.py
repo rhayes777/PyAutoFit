@@ -402,13 +402,13 @@ class TestMultiNestOutputConverged:
 
         create_resume(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.accepted_samples == 3000
+        assert multinest_output.total_accepted_samples == 3000
         assert multinest_output.total_samples == 12345
         assert multinest_output.acceptance_ratio == 3000 / 12345
 
         create_resume_2(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.accepted_samples == 60
+        assert multinest_output.total_accepted_samples == 60
         assert multinest_output.total_samples == 60
         assert multinest_output.acceptance_ratio == 1.0
 
