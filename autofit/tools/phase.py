@@ -53,6 +53,7 @@ class AbstractPhase:
             "phase_tag": self.paths.phase_tag,
             "pipeline": self.pipeline_name,
             "pipeline_tag": self.pipeline_tag,
+            "non_linear_search": self.optimizer.name,
         }
 
     def make_metadata_text(self, dataset_name):
@@ -160,7 +161,7 @@ class AbstractPhase:
         """
         Save the optimizer associated with the phase as a pickle
         """
-        with open(self.paths.make_optimizer_pickle_path(), "w+b") as f:
+        with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.optimizer))
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.model))
@@ -174,7 +175,7 @@ class AbstractPhase:
         -------
         exc.PipelineException
         """
-        path = self.paths.make_optimizer_pickle_path()
+        path = self.paths.make_non_linear_pickle_path()
         if os.path.exists(path):
             with open(path, "r+b") as f:
                 loaded_optimizer = pickle.loads(f.read())

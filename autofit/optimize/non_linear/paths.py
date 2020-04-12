@@ -45,6 +45,11 @@ def convert_paths(func):
 
         remove_files = conf.instance.general.get("output", "remove_files", bool)
 
+        # TODO : This is a hack you'll need to fix. I can acces the name by instantiating the NonLinearClass, but I have
+        # TODO : to make sure patths are not created by setting it to an empty string.
+
+        non_linear_name = kwargs["non_linear_class"](paths="").name if "non_linear_class" in kwargs else ""
+
         func(
             self,
             paths=Paths(
@@ -52,6 +57,7 @@ def convert_paths(func):
                 phase_tag=kwargs.pop("phase_tag", None),
                 phase_folders=kwargs.pop("phase_folders", tuple()),
                 phase_path=kwargs.pop("phase_path", None),
+                non_linear_name=non_linear_name,
                 remove_files=remove_files,
             ),
             **kwargs,
@@ -67,6 +73,7 @@ class Paths:
         phase_tag=None,
         phase_folders=tuple(),
         phase_path=None,
+        non_linear_name=None,
         remove_files=True,
     ):
         if not isinstance(phase_name, str):
@@ -74,6 +81,7 @@ class Paths:
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ""
+        self.non_linear_name = non_linear_name or ""
         self.remove_files = remove_files
 
     @property
@@ -86,6 +94,7 @@ class Paths:
                 self.phase_path == other.phase_path,
                 self.phase_name == other.phase_name,
                 self.phase_tag == other.phase_tag,
+                self.non_linear_name == other.non_linear_name,
             ]
         )
 
@@ -98,7 +107,7 @@ class Paths:
         """
         The path to the backed up optimizer folder.
         """
-        return f"{self.phase_output_path}/optimizer_backup"
+        return f"{self.phase_output_path}/chains_backup"
 
     @property
     def zip_path(self) -> str:
@@ -118,6 +127,7 @@ class Paths:
                     self.phase_path,
                     self.phase_name,
                     self.phase_tag,
+                    self.non_linear_name,
                 ],
             )
         )
@@ -143,13 +153,13 @@ class Paths:
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        return "{}/{}/{}/{}/{}/chains".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
         )
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.path, "multinest.paramnames")
+        return "{}/{}".format(self.path, ".paramnames")
 
     @property
     def file_model_info(self) -> str:
@@ -171,11 +181,11 @@ class Paths:
         """
         return "{}pdf/".format(self.image_path)
 
-    def make_optimizer_pickle_path(self) -> str:
+    def make_non_linear_pickle_path(self) -> str:
         """
         Create the path at which the optimizer pickle should be saved
         """
-        return "{}/optimizer.pickle".format(self.make_path())
+        return "{}/non_linear.pickle".format(self.make_path())
 
     def make_model_pickle_path(self):
         """
@@ -189,9 +199,11 @@ class Paths:
         Create the path to the folder at which the metadata and optimizer pickle should
         be saved
         """
-        return "{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        return "{}/{}/{}/{}/{}/".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
         )
+
+    # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
 
     @property
     def file_summary(self) -> str:

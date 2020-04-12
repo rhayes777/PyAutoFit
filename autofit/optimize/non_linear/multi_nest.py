@@ -24,7 +24,7 @@ class MultiNest(NonLinearOptimizer):
         individual model instances that are passed to each iteration of MultiNest.
         """
         if paths is None:
-            paths = Paths()
+            paths = Paths(non_linear_name=self.name)
 
         super().__init__(paths)
 
@@ -61,6 +61,10 @@ class MultiNest(NonLinearOptimizer):
         self.run = run
 
         logger.debug("Creating MultiNest NLO")
+
+    @property
+    def name(self):
+        return "multinest"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(

@@ -9,6 +9,7 @@ from autofit import conf, exc
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.output import MCMCOutput
+from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,9 @@ class Emcee(NonLinearOptimizer):
         This interfaces with an input model_mapper, which is used for setting up the \
         individual model instances that are passed to each iteration of MultiNest.
         """
+
+        if paths is None:
+            paths = Paths(non_linear_name=self.name)
 
         super().__init__(paths)
 
@@ -42,6 +46,10 @@ class Emcee(NonLinearOptimizer):
         )
 
         logger.debug("Creating Emcee NLO")
+
+    @property
+    def name(self):
+        return "emcee"
 
     def _simple_fit(self, model, fitness_function):
         raise NotImplementedError()
