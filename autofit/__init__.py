@@ -41,7 +41,6 @@ from .optimize.non_linear.mock_nlo import MockNLO
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.emcee import Emcee
-from .optimize.non_linear.nuts import NUTS
 from autofit.optimize.non_linear.paths import Paths
 from autofit.optimize.non_linear.paths import make_path
 from autofit.optimize.non_linear.paths import convert_paths
