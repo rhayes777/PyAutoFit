@@ -15,7 +15,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 def set_config_path():
     conf.instance = conf.Config(
         config_path=os.path.join(directory, "files/emcee/config"),
-        output_path=os.path.join(directory, "files/emcee/output")
+        output_path=os.path.join(directory, "files/emcee/output"),
     )
 
 
@@ -36,6 +36,19 @@ def test_emcee_output():
         auto_correlation_required_length=10,
         auto_correlation_change_threshold=0.01,
     )
+
+
+class TestEmceeConfig:
+    def test__loads_from_config_file_correct(self):
+
+        emcee = af.Emcee()
+
+        assert emcee.nwalkers == 50
+        assert emcee.nsteps == 2000
+        assert emcee.check_auto_correlation == True
+        assert emcee.auto_correlation_check_size == 100
+        assert emcee.auto_correlation_required_length == 50
+        assert emcee.auto_correlation_change_threshold == 0.01
 
 
 class TestEmceeOutput:
@@ -99,3 +112,29 @@ class TestEmceeOutput:
         )
 
         assert emcee_output.converged == True
+
+
+class TestCopyWithNameExtension:
+    @staticmethod
+    def assert_non_linear_attributes_equal(copy):
+        assert copy.paths.phase_name == "phase_name/one"
+
+    def test_emcee(self):
+        optimizer = af.Emcee(Paths("phase_name"), sigma=2.0)
+
+        copy = optimizer.copy_with_name_extension("one")
+        self.assert_non_linear_attributes_equal(copy)
+        assert isinstance(copy, af.Emcee)
+        assert copy.sigma is optimizer.sigma
+        assert copy.nwalkers is optimizer.nwalkers
+        assert copy.nsteps is optimizer.nsteps
+        assert copy.check_auto_correlation is optimizer.check_auto_correlation
+        assert copy.auto_correlation_check_size is optimizer.auto_correlation_check_size
+        assert (
+            copy.auto_correlation_required_length
+            is optimizer.auto_correlation_required_length
+        )
+        assert (
+            copy.auto_correlation_change_threshold
+            is optimizer.auto_correlation_change_threshold
+        )

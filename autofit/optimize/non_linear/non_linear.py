@@ -44,10 +44,6 @@ class NonLinearOptimizer(ABC):
 
         self.paths.restore()
 
-    @property
-    def name(self):
-        raise NotImplementedError()
-
     @classmethod
     def simple_fit(
             cls,
