@@ -85,6 +85,9 @@ class AbstractPredicate(ABC):
     def __or__(self, other) -> "OrPredicate":
         return OrPredicate(self, other)
 
+    def __and__(self, other) -> "AndPredicate":
+        return AndPredicate(self, other)
+
     @abstractmethod
     def __call__(self, phase: PhaseOutput) -> bool:
         """
@@ -101,6 +104,11 @@ class CombinationPredicate(AbstractPredicate, ABC):
 class OrPredicate(CombinationPredicate):
     def __call__(self, phase: PhaseOutput):
         return self.one(phase) or self.two(phase)
+
+
+class AndPredicate(CombinationPredicate):
+    def __call__(self, phase: PhaseOutput):
+        return self.one(phase) and self.two(phase)
 
 
 class ComparisonPredicate(AbstractPredicate, ABC):

@@ -32,9 +32,24 @@ class MockPhaseOutput:
 def make_aggregator():
     aggregator = af.Aggregator("")
     aggregator.phases = [
-        MockPhaseOutput("directory/number/one", "pipeline1", "phase1", "dataset1"),
-        MockPhaseOutput("directory/number/two", "pipeline1", "phase2", "dataset1"),
-        MockPhaseOutput("directory/letter/a", "pipeline2", "phase2", "dataset2"),
+        MockPhaseOutput(
+            "directory/number/one",
+            "pipeline1",
+            "phase1",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/number/two",
+            "pipeline1",
+            "phase2",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/letter/a",
+            "pipeline2",
+            "phase2",
+            "dataset2"
+        ),
     ]
     return aggregator
 
@@ -91,14 +106,29 @@ class TestLoading:
 
 class TestFiltering:
     def test_or(self, aggregator):
-        predicate_one = aggregator.directory.contains("one")
-        predicate_two = aggregator.directory.contains("two")
+        predicate_one = aggregator.directory.contains(
+            "one"
+        )
+        predicate_two = aggregator.directory.contains(
+            "two"
+        )
         result = aggregator.filter(
             predicate_one | predicate_two
         )
         assert len(result) == 2
         assert result.directories == [
             "directory/number/one",
+            "directory/number/two"
+        ]
+
+    def test_and(self, aggregator):
+        predicate_one = aggregator.pipeline == "pipeline1"
+        predicate_two = aggregator.phase == "phase2"
+        result = aggregator.filter(
+            predicate_one & predicate_two
+        )
+        assert len(result) == 1
+        assert result.directories == [
             "directory/number/two"
         ]
 
