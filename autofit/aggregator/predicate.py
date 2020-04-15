@@ -16,7 +16,9 @@ class AttributePredicate:
         Parameters
         ----------
         path
-            The names of the attribute this predicate relates to.
+            A series of names of attributes that can be used to get a value.
+            For example, (mask, pixel_size) would get the pixel size of a mask
+            when evaluated for a given phase.
         """
         self.path = path
 
@@ -30,7 +32,10 @@ class AttributePredicate:
             value
         )
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> "AttributePredicate":
+        """
+        Adds another item to the path
+        """
         return AttributePredicate(
             *self.path, item
         )
@@ -87,10 +92,18 @@ class AbstractPredicate(ABC):
             self
         )
 
-    def __or__(self, other) -> "OrPredicate":
+    def __or__(self, other: "AbstractPredicate") -> "OrPredicate":
+        """
+        Returns a predicate that is true if either predicate is true
+        for a given phase.
+        """
         return OrPredicate(self, other)
 
-    def __and__(self, other) -> "AndPredicate":
+    def __and__(self, other: "AbstractPredicate") -> "AndPredicate":
+        """
+        Returns a predicate that is true if both predicates are true
+        for a given phase.
+        """
         return AndPredicate(self, other)
 
     @abstractmethod
