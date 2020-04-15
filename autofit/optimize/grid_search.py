@@ -114,8 +114,10 @@ class GridSearch:
         self.paths = paths
 
         self.parallel = parallel
-        self.number_of_cores = conf.instance.non_linear.get(
-            "GridSearch", "number_of_cores", int
+        self.number_of_cores = conf.instance.non_linear.config_for(
+            "GridSearch"
+        ).get(
+            "general", "number_of_cores", int
         )
         self.phase_tag_input = paths.phase_tag
 
