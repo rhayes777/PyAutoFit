@@ -170,6 +170,13 @@ class TestNumericalFiltering:
         )
         assert ages == [10]
 
+    def test_aggregator_to_aggregator(self, path_aggregator):
+        predicate = path_aggregator.child.age == path_aggregator.child.age
+        assert len(path_aggregator.filter(predicate)) == 2
+
+        predicate = path_aggregator.child.age > path_aggregator.child.age
+        assert len(path_aggregator.filter(predicate)) == 0
+
 
 class TestFiltering:
     def test_or(self, aggregator):

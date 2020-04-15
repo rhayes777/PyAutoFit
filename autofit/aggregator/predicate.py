@@ -22,13 +22,29 @@ class AttributePredicate:
         """
         self.path = path
 
+    def value_for_phase(
+            self,
+            phase: PhaseOutput
+    ):
+        """
+        Recurse the phase output by iterating the attributes in the path
+        and getting a value for each attribute.
+        """
+        value = phase
+        for attribute in self.path:
+            value = getattr(
+                value,
+                attribute
+            )
+        return value
+
     def __eq__(self, value):
         """
         Create a predicate which asks whether the given value is equal to
         the attribute of a phase.
         """
         return EqualityPredicate(
-            self.path,
+            self,
             value
         )
 
@@ -46,7 +62,7 @@ class AttributePredicate:
         other value?
         """
         return GreaterThanPredicate(
-            self.path, other
+            self, other
         )
 
     def __lt__(self, other):
@@ -55,7 +71,7 @@ class AttributePredicate:
         other value?
         """
         return LessThanPredicate(
-            self.path, other
+            self, other
         )
 
     def __ne__(self, other):
@@ -71,7 +87,7 @@ class AttributePredicate:
         the attribute of a phase.
         """
         return ContainsPredicate(
-            self.path,
+            self,
             value
         )
 
@@ -187,7 +203,7 @@ class AndPredicate(CombinationPredicate):
 class ComparisonPredicate(AbstractPredicate, ABC):
     def __init__(
             self,
-            path: Iterable[str],
+            attribute_predicate: AttributePredicate,
             value
     ):
         """
@@ -195,29 +211,23 @@ class ComparisonPredicate(AbstractPredicate, ABC):
 
         Parameters
         ----------
-        path
+        attribute_predicate
             An attribute path of a phase
         value
             A value to which the attribute is compared
         """
-        self.path = path
-        self.value = value
+        self.attribute_predicate = attribute_predicate
+        self._value = value
 
-    def value_for_phase(
+    def value(
             self,
-            phase: PhaseOutput
+            phase
     ):
-        """
-        Recurse the phase output by iterating the attributes in the path
-        and getting a value for each attribute.
-        """
-        value = phase
-        for attribute in self.path:
-            value = getattr(
-                value,
-                attribute
+        if isinstance(self._value, AttributePredicate):
+            return self._value.value_for_phase(
+                phase
             )
-        return value
+        return self._value
 
 
 class GreaterThanPredicate(ComparisonPredicate):
@@ -237,9 +247,11 @@ class GreaterThanPredicate(ComparisonPredicate):
         the value associated with this predicate
         """
 
-        return self.value_for_phase(
+        return self.attribute_predicate.value_for_phase(
             phase
-        ) > self.value
+        ) > self.value(
+            phase
+        )
 
 
 class LessThanPredicate(ComparisonPredicate):
@@ -258,9 +270,11 @@ class LessThanPredicate(ComparisonPredicate):
         True iff the value of the attribute of the phase is less than
         the value associated with this predicate
         """
-        return self.value_for_phase(
+        return self.attribute_predicate.value_for_phase(
             phase
-        ) < self.value
+        ) < self.value(
+            phase
+        )
 
 
 class ContainsPredicate(ComparisonPredicate):
@@ -279,7 +293,9 @@ class ContainsPredicate(ComparisonPredicate):
         True iff the value of the attribute of the phase contains
         the value associated with this predicate
         """
-        return self.value in self.value_for_phase(
+        return self.value(
+            phase
+        ) in self.attribute_predicate.value_for_phase(
             phase
         )
 
@@ -297,9 +313,15 @@ class EqualityPredicate(ComparisonPredicate):
         True iff the value of the attribute of the phase is equal to
         the value associated with this predicate
         """
-        return self.value_for_phase(
+        try:
+            value = self.value(
+                phase
+            )
+        except AttributeError:
+            value = self.value
+        return self.attribute_predicate.value_for_phase(
             phase
-        ) == self.value
+        ) == value
 
 
 class NotPredicate(AbstractPredicate):
