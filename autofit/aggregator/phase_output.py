@@ -86,7 +86,7 @@ class PhaseOutput:
         The optimizer object that was used in this phase
         """
         if self.__optimizer is None:
-            with open(os.path.join(self.directory, "optimizer.pickle"), "r+b") as f:
+            with open(os.path.join(self.directory, "non_linear.pickle"), "r+b") as f:
                 self.__optimizer = pickle.loads(f.read())
         return self.__optimizer
 
