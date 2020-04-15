@@ -1,3 +1,4 @@
+__MACOSX
 *.swp
 test/autofit/test_fit
 # Byte-compiled / optimized / DLL files
@@ -114,4 +115,4 @@ test_autofit/optimize/test_fit/
 test_autofit/test_files/text/psycopg2-binary==2.8.1
 test_autofit/test_files/text/
 fit/test_autofit/optimize/test_fit
-.DS_Store
+*.DS_Store

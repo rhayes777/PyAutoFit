@@ -67,11 +67,15 @@ class MultiNest(NestedSampler):
         self.log_zero = self.config("log_zero", float)
         self.max_iter = self.config("max_iter", int)
         self.init_MPI = self.config("init_MPI", bool)
-        self.terminate_at_acceptance_ratio = self.config(
-            "terminate_at_acceptance_ratio", bool
+
+        multinest_config = conf.instance.non_linear.config_for(
+            "MultiNest"
         )
-        self.acceptance_ratio_threshold = self.config(
-            "acceptance_ratio_threshold", float
+        self.terminate_at_acceptance_ratio = multinest_config.get(
+            "general", "terminate_at_acceptance_ratio", bool
+        )
+        self.acceptance_ratio_threshold = multinest_config.get(
+            "general", "acceptance_ratio_threshold", float
         )
 
         self.run = run
@@ -138,11 +142,14 @@ class MultiNest(NestedSampler):
 
             return cube
 
-        stagger_resampling_likelihood = conf.instance.non_linear.get(
-            "MultiNest", "stagger_resampling_likelihood", bool
+        multinest = conf.instance.non_linear.config_for(
+            "MultiNest"
         )
-        stagger_resampling_value = conf.instance.non_linear.get(
-            "MultiNest", "stagger_resampling_value", float
+        stagger_resampling_likelihood = multinest.get(
+            "general", "stagger_resampling_likelihood", bool
+        )
+        stagger_resampling_value = multinest.get(
+            "general", "stagger_resampling_value", float
         )
 
         class Fitness:
@@ -151,8 +158,8 @@ class MultiNest(NestedSampler):
                 Fitness function that only handles resampling
                 """
                 self.stagger_accepted_samples = 0
-                self.resampling_likelihood = conf.instance.non_linear.get(
-                    "MultiNest", "null_log_evidence", float
+                self.resampling_likelihood = multinest.get(
+                    "general", "null_log_evidence", float
                 )
 
             def __call__(self, cube, ndim, nparams, lnew):

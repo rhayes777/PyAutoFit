@@ -36,6 +36,10 @@ class PhaseOutput:
             self.__dict__.update({pair[0]: pair[1] for pair in pairs})
 
     @property
+    def pickle_path(self):
+        return f"{self.directory}/pickles"
+
+    @property
     def output(self) -> AbstractOutput:
         """
         An object describing the output data from the nonlinear search performed in this phase
@@ -58,7 +62,7 @@ class PhaseOutput:
         A pickled mask object
         """
         with open(
-                os.path.join(self.directory, "mask.pickle"), "rb"
+                os.path.join(self.pickle_path, "mask.pickle"), "rb"
         ) as f:
             return dill.load(f)
 
@@ -69,7 +73,7 @@ class PhaseOutput:
         dataset.pickle, meta_dataset.pickle etc.
         """
         with open(
-                os.path.join(self.directory, f"{item}.pickle"), "rb"
+                os.path.join(self.pickle_path, f"{item}.pickle"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -86,17 +90,17 @@ class PhaseOutput:
         The optimizer object that was used in this phase
         """
         if self.__optimizer is None:
-            with open(os.path.join(self.directory, "non_linear.pickle"), "r+b") as f:
+            with open(os.path.join(self.pickle_path, "optimizer.pickle"), "r+b") as f:
                 self.__optimizer = pickle.loads(f.read())
         return self.__optimizer
 
     @property
-    def model(self) -> autofit.optimize.non_linear.non_linear.NonLinearOptimizer:
+    def model(self):
         """
-        The optimizer object that was used in this phase
+        The model that was used in this phase
         """
         if self.__model is None:
-            with open(os.path.join(self.directory, "model.pickle"), "r+b") as f:
+            with open(os.path.join(self.pickle_path, "model.pickle"), "r+b") as f:
                 self.__model = pickle.loads(f.read())
         return self.__model
 

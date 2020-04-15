@@ -82,19 +82,19 @@ class AbstractPhase:
         """
         Save the dataset associated with the phase
         """
-        with open("{}/dataset.pickle".format(self.paths.make_path()), "wb") as f:
+        with open(f"{self.paths.pickle_path}/dataset.pickle", "wb") as f:
             pickle.dump(dataset, f)
 
     def save_mask(self, mask):
         """
         Save the mask associated with the phase
         """
-        with open("{}/mask.pickle".format(self.paths.make_path()), "wb") as f:
+        with open(f"{self.paths.pickle_path}/mask.pickle", "wb") as f:
             dill.dump(mask, f)
 
     def save_meta_dataset(self, meta_dataset):
         with open(
-                f"{self.paths.phase_output_path}/meta_dataset.pickle",
+                f"{self.paths.pickle_path}/meta_dataset.pickle",
                 "wb+"
         ) as f:
             pickle.dump(
@@ -103,7 +103,7 @@ class AbstractPhase:
 
     def save_phase_attributes(self, phase_attributes):
         with open(
-                f"{self.paths.phase_output_path}/phase_attributes.pickle",
+                f"{self.paths.pickle_path}/phase_attributes.pickle",
                 "wb+"
         ) as f:
             pickle.dump(
