@@ -82,11 +82,25 @@ class AbstractPredicate(ABC):
             self
         )
 
+    def __or__(self, other) -> "OrPredicate":
+        return OrPredicate(self, other)
+
     @abstractmethod
     def __call__(self, phase: PhaseOutput) -> bool:
         """
         Does the attribute of the phase match the requirement of this predicate?
         """
+
+
+class CombinationPredicate(AbstractPredicate, ABC):
+    def __init__(self, one, two):
+        self.one = one
+        self.two = two
+
+
+class OrPredicate(CombinationPredicate):
+    def __call__(self, phase: PhaseOutput):
+        return self.one(phase) or self.two(phase)
 
 
 class ComparisonPredicate(AbstractPredicate, ABC):

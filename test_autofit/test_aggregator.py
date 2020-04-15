@@ -90,6 +90,18 @@ class TestLoading:
 
 
 class TestFiltering:
+    def test_or(self, aggregator):
+        predicate_one = aggregator.directory.contains("one")
+        predicate_two = aggregator.directory.contains("two")
+        result = aggregator.filter(
+            predicate_one | predicate_two
+        )
+        assert len(result) == 2
+        assert result.directories == [
+            "directory/number/one",
+            "directory/number/two"
+        ]
+
     def test_not_contains(self, aggregator):
         predicate = ~(aggregator.pipeline.contains("1"))
         result = aggregator.filter(
