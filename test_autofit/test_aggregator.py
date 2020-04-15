@@ -89,7 +89,7 @@ class TestLoading:
         ))[0]["name"] == "optimizer"
 
 
-class TestOperations:
+class TestFiltering:
     def test_not_contains(self, aggregator):
         predicate = ~(aggregator.pipeline.contains("1"))
         result = aggregator.filter(
@@ -118,26 +118,6 @@ class TestOperations:
             predicate
         )
         assert result.pipeline == ["pipeline1", "pipeline1"]
-
-    def test_attribute(self, aggregator):
-        assert list(
-            aggregator.values("pipeline")
-        ) == ["pipeline1", "pipeline1", "pipeline2"]
-        assert list(
-            aggregator.values("phase")
-        ) == ["phase1", "phase2", "phase2"]
-        assert list(
-            aggregator.values("dataset")
-        ) == ["dataset1", "dataset1", "dataset2"]
-
-    def test_indexing(self, aggregator):
-        assert list(
-            aggregator[1:].values("pipeline")
-        ) == ["pipeline1", "pipeline2"]
-        assert list(
-            aggregator[-1:].values("pipeline")
-        ) == ["pipeline2"]
-        assert aggregator[0].pipeline == "pipeline1"
 
     def test_filter_index(self, aggregator):
         assert list(aggregator.filter(
@@ -205,6 +185,29 @@ class TestOperations:
             aggregator.directory.contains("letter")
         )
         assert len(result) == 1
+
+
+class TestOperations:
+
+    def test_attribute(self, aggregator):
+        assert list(
+            aggregator.values("pipeline")
+        ) == ["pipeline1", "pipeline1", "pipeline2"]
+        assert list(
+            aggregator.values("phase")
+        ) == ["phase1", "phase2", "phase2"]
+        assert list(
+            aggregator.values("dataset")
+        ) == ["dataset1", "dataset1", "dataset2"]
+
+    def test_indexing(self, aggregator):
+        assert list(
+            aggregator[1:].values("pipeline")
+        ) == ["pipeline1", "pipeline2"]
+        assert list(
+            aggregator[-1:].values("pipeline")
+        ) == ["pipeline2"]
+        assert aggregator[0].pipeline == "pipeline1"
 
     def test_group_by(self, aggregator):
         result = aggregator.group_by("pipeline")
