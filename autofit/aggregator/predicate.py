@@ -41,11 +41,19 @@ class AttributePredicate:
         )
 
     def __gt__(self, other):
+        """
+        Is the value of this attribute for a given phase greater than some
+        other value?
+        """
         return GreaterThanPredicate(
             self.path, other
         )
 
     def __lt__(self, other):
+        """
+        Is the value of this attribute for a given phase less than some
+        other value?
+        """
         return LessThanPredicate(
             self.path, other
         )
@@ -206,14 +214,43 @@ class ComparisonPredicate(AbstractPredicate, ABC):
 
 
 class GreaterThanPredicate(ComparisonPredicate):
-    def __call__(self, phase):
+    def __call__(
+            self,
+            phase: PhaseOutput
+    ) -> bool:
+        """
+        Parameters
+        ----------
+        phase
+            An object representing the output of a given phase.
+
+        Returns
+        -------
+        True iff the value of the attribute of the phase is greater than
+        the value associated with this predicate
+        """
+
         return self.value_for_phase(
             phase
         ) > self.value
 
 
 class LessThanPredicate(ComparisonPredicate):
-    def __call__(self, phase):
+    def __call__(
+            self,
+            phase: PhaseOutput
+    ) -> bool:
+        """
+        Parameters
+        ----------
+        phase
+            An object representing the output of a given phase.
+
+        Returns
+        -------
+        True iff the value of the attribute of the phase is less than
+        the value associated with this predicate
+        """
         return self.value_for_phase(
             phase
         ) < self.value
