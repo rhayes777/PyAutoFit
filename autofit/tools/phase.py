@@ -55,14 +55,13 @@ class AbstractPhase:
             "pipeline_tag": self.pipeline_tag,
         }
 
-    def make_metadata_text(self, dataset):
+    def make_metadata_text(self, dataset_name):
         return "\n".join(
             f"{key}={value or ''}"
             for key, value
             in {
                 **self._default_metadata,
-                **dataset.metadata,
-                "dataset_name": dataset.name
+                "dataset_name": dataset_name
             }.items()
         )
 
@@ -74,7 +73,7 @@ class AbstractPhase:
         with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
             f.write(
                 self.make_metadata_text(
-                    dataset
+                    dataset.name
                 )
             )
 
@@ -109,6 +108,13 @@ class AbstractPhase:
             pickle.dump(
                 phase_attributes, f
             )
+
+    def save_info(self, info):
+        """
+        Save the dataset associated with the phase
+        """
+        with open("{}/info.pickle".format(self.paths.make_path()), "wb") as f:
+            pickle.dump(info, f)
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -206,25 +212,6 @@ class Dataset(ABC):
         The name of this data for use in querying
         """
 
-    @property
-    @abstractmethod
-    def metadata(self) -> dict:
-        """
-        A dictionary describing metadata associated with this instance
-        """
-
-    def save(self, directory: str):
-        """
-        Save this instance as a pickle with the dataset name in the given directory.
-
-        Parameters
-        ----------
-        directory
-            The directory to save into
-        """
-        with open(f"{directory}/dataset.pickle", "wb") as f:
-            pickle.dump(self, f)
-
     @classmethod
     def load(cls, filename) -> "Dataset":
         """
@@ -262,7 +249,7 @@ class Phase(AbstractPhase):
     def make_analysis(self, dataset):
         return self.analysis_class(dataset)
 
-    def run(self, dataset: Dataset, results=None):
+    def run(self, dataset: Dataset, results=None, info=None):
         """
         Run this phase.
 
@@ -278,8 +265,9 @@ class Phase(AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising the best fit model and other hyper_galaxies.
         """
-        self.save_metadata(dataset)
-        dataset.save(self.paths.phase_output_path)
+        self.save_metadata(dataset=dataset)
+        self.save_dataset(dataset=dataset)
+        self.save_info(info=info)
         self.model = self.model.populate(results)
 
         analysis = self.make_analysis(dataset=dataset)

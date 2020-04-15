@@ -24,26 +24,13 @@ def test_metadata_dictionary(phase):
     }
 
 
-class MockData:
-    def __init__(self, name, metadata):
-        self.name = name
-        self.metadata = metadata
 
-
-def test_metadata_text(phase):
+def test_datset_name_in_metadata_text(phase):
     text = phase.make_metadata_text(
-        MockData(
-            "data",
-            {
-                "some": "metadata",
-                "number": 1.0
-            }
-        )
+        dataset_name="data"
     )
     assert text == """phase=phase_name
 phase_tag=phase_tag
 pipeline=
 pipeline_tag=
-some=metadata
-number=1.0
 dataset_name=data"""
