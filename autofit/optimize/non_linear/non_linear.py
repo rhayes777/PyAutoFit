@@ -137,8 +137,11 @@ class NonLinearOptimizer(ABC):
         attribute
             An attribute for the key with the specified type.
         """
-        return conf.instance.non_linear.get(
-            self.__class__.__name__, attribute_name, attribute_type
+        return conf.instance.non_linear.config_for(
+            self.__class__.__name__).get(
+            "general",
+            attribute_name,
+            attribute_type
         )
 
     def __eq__(self, other):
