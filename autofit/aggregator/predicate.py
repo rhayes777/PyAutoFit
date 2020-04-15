@@ -203,7 +203,14 @@ class ComparisonPredicate(AbstractPredicate, ABC):
         self.path = path
         self.value = value
 
-    def value_for_phase(self, phase):
+    def value_for_phase(
+            self,
+            phase: PhaseOutput
+    ):
+        """
+        Recurse the phase output by iterating the attributes in the path
+        and getting a value for each attribute.
+        """
         value = phase
         for attribute in self.path:
             value = getattr(
