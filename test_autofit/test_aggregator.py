@@ -32,9 +32,24 @@ class MockPhaseOutput:
 def make_aggregator():
     aggregator = af.Aggregator("")
     aggregator.phases = [
-        MockPhaseOutput("directory/number/one", "pipeline1", "phase1", "dataset1"),
-        MockPhaseOutput("directory/number/two", "pipeline1", "phase2", "dataset1"),
-        MockPhaseOutput("directory/letter/a", "pipeline2", "phase2", "dataset2"),
+        MockPhaseOutput(
+            "directory/number/one",
+            "pipeline1",
+            "phase1",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/number/two",
+            "pipeline1",
+            "phase2",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/letter/a",
+            "pipeline2",
+            "phase2",
+            "dataset2"
+        ),
     ]
     return aggregator
 
@@ -89,7 +104,118 @@ class TestLoading:
         ))[0]["name"] == "optimizer"
 
 
-class TestOperations:
+@pytest.fixture(
+    name="ages_for_predicate"
+)
+def make_ages_for_predicate(path_aggregator):
+    def ages_for_predicate(
+            predicate
+    ):
+        result = path_aggregator.filter(
+            predicate
+        )
+        return [child.age for child in result.values(
+            "child"
+        )]
+
+    return ages_for_predicate
+
+
+class TestNumericalFiltering:
+    def test_equality(self, path_aggregator):
+        predicate = path_aggregator.child.age == 17
+        result = path_aggregator.filter(
+            predicate
+        )
+        assert len(result) == 1
+        assert list(result.values("child"))[0].age == 17
+
+    def test_greater_than(
+            self,
+            ages_for_predicate,
+            path_aggregator
+    ):
+        ages = ages_for_predicate(
+            path_aggregator.child.age > 10
+        )
+        assert ages == [17]
+
+    def test_greater_than_equal(
+            self,
+            ages_for_predicate,
+            path_aggregator
+    ):
+        ages = ages_for_predicate(
+            path_aggregator.child.age >= 10
+        )
+        assert set(ages) == {10, 17}
+
+    def test_less_than(
+            self,
+            ages_for_predicate,
+            path_aggregator
+    ):
+        ages = ages_for_predicate(
+            path_aggregator.child.age < 11
+        )
+        assert ages == [10]
+
+    def test_greater_than_rhs(
+            self,
+            ages_for_predicate,
+            path_aggregator
+    ):
+        ages = ages_for_predicate(
+            10 < path_aggregator.child.age
+        )
+        assert ages == [17]
+
+    def test_less_than_rhs(
+            self,
+            ages_for_predicate,
+            path_aggregator
+    ):
+        ages = ages_for_predicate(
+            11 > path_aggregator.child.age
+        )
+        assert ages == [10]
+
+    def test_aggregator_to_aggregator(self, path_aggregator):
+        predicate = path_aggregator.child.age == path_aggregator.child.age
+        assert len(path_aggregator.filter(predicate)) == 2
+
+        predicate = path_aggregator.child.age > path_aggregator.child.age
+        assert len(path_aggregator.filter(predicate)) == 0
+
+
+class TestFiltering:
+    def test_or(self, aggregator):
+        predicate_one = aggregator.directory.contains(
+            "one"
+        )
+        predicate_two = aggregator.directory.contains(
+            "two"
+        )
+        result = aggregator.filter(
+            predicate_one | predicate_two
+        )
+        assert len(result) == 2
+        assert result.directories == [
+            "directory/number/one",
+            "directory/number/two"
+        ]
+
+    def test_and(self, aggregator):
+        predicate_one = aggregator.pipeline == "pipeline1"
+        predicate_two = aggregator.phase == "phase2"
+        result = aggregator.filter(
+            predicate_one & predicate_two
+        )
+        assert len(result) == 1
+        assert result.directories == [
+            "directory/number/two"
+        ]
+
     def test_not_contains(self, aggregator):
         predicate = ~(aggregator.pipeline.contains("1"))
         result = aggregator.filter(
@@ -118,26 +244,6 @@ class TestOperations:
             predicate
         )
         assert result.pipeline == ["pipeline1", "pipeline1"]
-
-    def test_attribute(self, aggregator):
-        assert list(
-            aggregator.values("pipeline")
-        ) == ["pipeline1", "pipeline1", "pipeline2"]
-        assert list(
-            aggregator.values("phase")
-        ) == ["phase1", "phase2", "phase2"]
-        assert list(
-            aggregator.values("dataset")
-        ) == ["dataset1", "dataset1", "dataset2"]
-
-    def test_indexing(self, aggregator):
-        assert list(
-            aggregator[1:].values("pipeline")
-        ) == ["pipeline1", "pipeline2"]
-        assert list(
-            aggregator[-1:].values("pipeline")
-        ) == ["pipeline2"]
-        assert aggregator[0].pipeline == "pipeline1"
 
     def test_filter_index(self, aggregator):
         assert list(aggregator.filter(
@@ -205,6 +311,29 @@ class TestOperations:
             aggregator.directory.contains("letter")
         )
         assert len(result) == 1
+
+
+class TestOperations:
+
+    def test_attribute(self, aggregator):
+        assert list(
+            aggregator.values("pipeline")
+        ) == ["pipeline1", "pipeline1", "pipeline2"]
+        assert list(
+            aggregator.values("phase")
+        ) == ["phase1", "phase2", "phase2"]
+        assert list(
+            aggregator.values("dataset")
+        ) == ["dataset1", "dataset1", "dataset2"]
+
+    def test_indexing(self, aggregator):
+        assert list(
+            aggregator[1:].values("pipeline")
+        ) == ["pipeline1", "pipeline2"]
+        assert list(
+            aggregator[-1:].values("pipeline")
+        ) == ["pipeline2"]
+        assert aggregator[0].pipeline == "pipeline1"
 
     def test_group_by(self, aggregator):
         result = aggregator.group_by("pipeline")

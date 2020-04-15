@@ -171,23 +171,27 @@ class Paths:
         """
         return "{}pdf/".format(self.image_path)
 
+    @property
+    @make_path
+    def pickle_path(self) -> str:
+        return f"{self.make_path()}/pickles"
+
     def make_optimizer_pickle_path(self) -> str:
         """
         Create the path at which the optimizer pickle should be saved
         """
-        return "{}/optimizer.pickle".format(self.make_path())
+        return f"{self.pickle_path}/optimizer.pickle"
 
     def make_model_pickle_path(self):
         """
         Create the path at which the model pickle should be saved
         """
-        return "{}/model.pickle".format(self.make_path())
+        return f"{self.pickle_path}/model.pickle"
 
     @make_path
     def make_path(self) -> str:
         """
-        Create the path to the folder at which the metadata and optimizer pickle should
-        be saved
+        Create the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
