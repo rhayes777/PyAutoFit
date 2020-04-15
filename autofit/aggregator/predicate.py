@@ -40,6 +40,16 @@ class AttributePredicate:
             *self.path, item
         )
 
+    def __gt__(self, other):
+        return GreaterThanPredicate(
+            self.path, other
+        )
+
+    def __lt__(self, other):
+        return LessThanPredicate(
+            self.path, other
+        )
+
     def __ne__(self, other):
         """
         Create a predicate which asks whether the given value is not equal to
@@ -193,6 +203,20 @@ class ComparisonPredicate(AbstractPredicate, ABC):
                 attribute
             )
         return value
+
+
+class GreaterThanPredicate(ComparisonPredicate):
+    def __call__(self, phase):
+        return self.value_for_phase(
+            phase
+        ) > self.value
+
+
+class LessThanPredicate(ComparisonPredicate):
+    def __call__(self, phase):
+        return self.value_for_phase(
+            phase
+        ) < self.value
 
 
 class ContainsPredicate(ComparisonPredicate):
