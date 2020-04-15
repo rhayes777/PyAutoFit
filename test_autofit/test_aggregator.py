@@ -105,6 +105,14 @@ class TestLoading:
 
 
 class TestFiltering:
+    def test_filter_pickle(self, path_aggregator):
+        predicate = path_aggregator.child.age == 17
+        result = path_aggregator.filter(
+            predicate
+        )
+        assert len(result) == 1
+        assert list(result.values("child"))[0].age == 17
+
     def test_or(self, aggregator):
         predicate_one = aggregator.directory.contains(
             "one"

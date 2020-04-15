@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterator
+from typing import List, Iterator, Iterable
 
 from .phase_output import PhaseOutput
 
 
 class AttributePredicate:
-    def __init__(self, attribute: str):
+    def __init__(self, *path):
         """
         Used to produce predicate objects for filtering in the aggregator.
 
@@ -15,10 +15,10 @@ class AttributePredicate:
 
         Parameters
         ----------
-        attribute
-            The name of the attribute this predicate relates to.
+        path
+            The names of the attribute this predicate relates to.
         """
-        self.attribute = attribute
+        self.path = path
 
     def __eq__(self, value):
         """
@@ -26,8 +26,13 @@ class AttributePredicate:
         the attribute of a phase.
         """
         return EqualityPredicate(
-            self.attribute,
+            self.path,
             value
+        )
+
+    def __getattr__(self, item):
+        return AttributePredicate(
+            *self.path, item
         )
 
     def __ne__(self, other):
@@ -43,7 +48,7 @@ class AttributePredicate:
         the attribute of a phase.
         """
         return ContainsPredicate(
-            self.attribute,
+            self.path,
             value
         )
 
@@ -151,7 +156,7 @@ class AndPredicate(CombinationPredicate):
 class ComparisonPredicate(AbstractPredicate, ABC):
     def __init__(
             self,
-            attribute: str,
+            path: Iterable[str],
             value
     ):
         """
@@ -159,13 +164,22 @@ class ComparisonPredicate(AbstractPredicate, ABC):
 
         Parameters
         ----------
-        attribute
-            An attribute of a phase
+        path
+            An attribute path of a phase
         value
             A value to which the attribute is compared
         """
-        self.attribute = attribute
+        self.path = path
         self.value = value
+
+    def value_for_phase(self, phase):
+        value = phase
+        for attribute in self.path:
+            value = getattr(
+                value,
+                attribute
+            )
+        return value
 
 
 class ContainsPredicate(ComparisonPredicate):
@@ -184,9 +198,8 @@ class ContainsPredicate(ComparisonPredicate):
         True iff the value of the attribute of the phase contains
         the value associated with this predicate
         """
-        return self.value in getattr(
-            phase,
-            self.attribute
+        return self.value in self.value_for_phase(
+            phase
         )
 
 
@@ -203,9 +216,8 @@ class EqualityPredicate(ComparisonPredicate):
         True iff the value of the attribute of the phase is equal to
         the value associated with this predicate
         """
-        return getattr(
-            phase,
-            self.attribute
+        return self.value_for_phase(
+            phase
         ) == self.value
 
 
