@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterator, Iterable
+from typing import List, Iterator
 
 from .phase_output import PhaseOutput
 
@@ -46,6 +46,18 @@ class AttributePredicate:
         return EqualityPredicate(
             self,
             value
+        )
+
+    def __le__(self, other):
+        return OrPredicate(
+            self == other,
+            self < other
+        )
+
+    def __ge__(self, other):
+        return OrPredicate(
+            self == other,
+            self > other
         )
 
     def __getattr__(self, item: str) -> "AttributePredicate":

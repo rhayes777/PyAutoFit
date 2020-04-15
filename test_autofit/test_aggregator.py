@@ -140,6 +140,16 @@ class TestNumericalFiltering:
         )
         assert ages == [17]
 
+    def test_greater_than_equal(
+            self,
+            ages_for_predicate,
+            path_aggregator
+    ):
+        ages = ages_for_predicate(
+            path_aggregator.child.age >= 10
+        )
+        assert set(ages) == {10, 17}
+
     def test_less_than(
             self,
             ages_for_predicate,
