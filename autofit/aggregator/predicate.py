@@ -96,18 +96,55 @@ class AbstractPredicate(ABC):
 
 
 class CombinationPredicate(AbstractPredicate, ABC):
-    def __init__(self, one, two):
+    def __init__(
+            self,
+            one: AbstractPredicate,
+            two: AbstractPredicate
+    ):
+        """
+        Abstract predicate combining two other predicates.
+
+        Parameters
+        ----------
+        one
+        two
+            Child predicates
+        """
         self.one = one
         self.two = two
 
 
 class OrPredicate(CombinationPredicate):
     def __call__(self, phase: PhaseOutput):
+        """
+        The disjunction of two predicates.
+
+        Parameters
+        ----------
+        phase
+            An object representing the output of a given phase.
+
+        Returns
+        -------
+        True if either predicate is True for the phase
+        """
         return self.one(phase) or self.two(phase)
 
 
 class AndPredicate(CombinationPredicate):
     def __call__(self, phase: PhaseOutput):
+        """
+        The conjunction of two predicates.
+
+        Parameters
+        ----------
+        phase
+            An object representing the output of a given phase.
+
+        Returns
+        -------
+        True if both predicates are True for the phase
+        """
         return self.one(phase) and self.two(phase)
 
 
