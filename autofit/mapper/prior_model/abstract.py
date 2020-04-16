@@ -420,7 +420,7 @@ class AbstractPriorModel(AbstractModel):
 
         The log prior values are used by Emcee to map the log likelihood to the poserior of the model.
 
-        Parameters
+        Parameters 
         ----------
         vector: [float]
             A vector of physical parameter values.
