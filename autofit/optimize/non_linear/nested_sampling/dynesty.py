@@ -186,6 +186,11 @@ class AbstractDynesty(NestedSampler):
             ) as f:
                 pickle.dump(dynesty_sampler, f)
 
+            with open(
+                f"{self.paths.chains_path}/results.pickle", "wb"
+            ) as f:
+                pickle.dump(dynesty_sampler.results, f)
+
             if iterations_before_run == iterations_after_run:
                 dynesty_finished = True
 
@@ -335,7 +340,8 @@ class DynestyOutput(NestedSamplerOutput):
     @property
     def results(self):
         """Convenience method to the pickled sample's results."""
-        return self.sampler.results
+        with open("{}/{}.pickle".format(self.paths.chains_path, "results"), "rb") as f:
+            return pickle.load(f)
 
     @property
     def pdf(self):

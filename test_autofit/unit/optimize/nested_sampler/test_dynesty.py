@@ -92,7 +92,6 @@ class TestDynestyOutputConverged:
     def test__maximum_log_likelihood_and_evidence__from_summary(
         self, dynesty_output_converged
     ):
-
         assert dynesty_output_converged.maximum_log_likelihood == pytest.approx(
             618.65239, 1.0e-4
         )

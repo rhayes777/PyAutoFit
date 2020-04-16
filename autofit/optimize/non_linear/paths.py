@@ -193,11 +193,11 @@ class Paths:
     def pickle_path(self) -> str:
         return f"{self.make_path()}/pickles"
 
-    def make_optimizer_pickle_path(self) -> str:
+    def make_non_linear_pickle_path(self) -> str:
         """
         Create the path at which the optimizer pickle should be saved
         """
-        return f"{self.pickle_path}/optimizer.pickle"
+        return f"{self.pickle_path}/non_linear.pickle"
 
     def make_model_pickle_path(self):
         """
