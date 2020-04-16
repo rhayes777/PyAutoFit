@@ -118,7 +118,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         unit_vector: [float]
-            A vector of physical parameter values.
+            A unit hypercube vector that is mapped to an instance of physical values via the priors.
 
         Returns
         -------
@@ -247,7 +247,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         vector: [float]
-            A unit hypercube vector
+            A vector of physical parameter values that is mapped to an instance.
         assert_priors_in_limits
             If True it is checked that the physical values of priors are within set limits
 
@@ -410,6 +410,37 @@ class AbstractPriorModel(AbstractModel):
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * len(self.prior_tuples)
         )
+
+    def log_priors_from_vector(
+            self,
+            vector,
+    ):
+        """
+        Compute the log priors of every parameter in a vector, using the Prior of every parameter.
+
+        The log prior values are used by Emcee to map the log likelihood to the poserior of the model.
+
+        Parameters
+        ----------
+        vector: [float]
+            A vector of physical parameter values.
+        assert_priors_in_limits
+            If True it is checked that the physical values of priors are within set limits
+
+        Returns
+        -------
+        log_priors : []
+            An list of the log prior value of every parameter.
+
+        """
+        return list(
+            map(
+                lambda prior_tuple, value : prior_tuple.prior.log_prior_from_value(value=value),
+                self.prior_tuples_ordered_by_id,
+                vector,
+            )
+        )
+
 
     def random_instance(self):
         """

@@ -517,6 +517,16 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
         assert model_map.profile_1.phi == model_2.profile_1.phi == 1.0
 
+    def test_log_priors_from_vector(self):
+        mapper = af.ModelMapper()
+        mapper.mock_class = af.PriorModel(MockClassMM)
+        mapper.mock_class.one = af.GaussianPrior(mean=1.0, sigma=2.0)
+        mapper.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+
+        log_priors = mapper.log_priors_from_vector(vector=[0.0, 5.0])
+
+        assert log_priors == [0.125, 0.2]
+
     def test_random_vector_from_prior_medians(self):
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(MockClassMM)
