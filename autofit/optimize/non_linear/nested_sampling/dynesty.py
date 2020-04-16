@@ -200,7 +200,7 @@ class AbstractDynesty(NestedSampler):
         dynesty_output.output_results(during_analysis=False)
         return Result(
             instance=instance,
-            likelihood=dynesty_output.maximum_log_likelihood,
+            likelihood=dynesty_output.max_log_posterior,
             output=dynesty_output,
             previous_model=model,
             gaussian_tuples=dynesty_output.gaussian_priors_at_sigma(self.sigma),
@@ -412,7 +412,7 @@ class DynestyOutput(NestedSamplerOutput):
         return self.total_accepted_samples / self.total_samples
 
     @property
-    def maximum_log_likelihood(self) -> float:
+    def max_log_posterior(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
 
         For Dynesty, this is computed from the pickled sampler's list of all likelihood values."""
@@ -438,18 +438,18 @@ class DynestyOutput(NestedSamplerOutput):
             return list(np.mean(self.results.samples, axis=0))
 
     @property
-    def most_likely_index(self) -> int:
+    def max_likelihood_index(self) -> int:
         """The index of the accepted sample with the highest likelihood, e.g. that of best-fit / most_likely model."""
         return int(np.argmax(self.results.logl))
 
     @property
-    def most_likely_vector(self) -> [float]:
+    def max_log_likelihood_vector(self) -> [float]:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a list of values.
 
         The vector is read from the pickled sampler instance, by first locating the index corresponding to the highest
         likelihood accepted sample."""
-        return self.results.samples[self.most_likely_index]
+        return self.results.samples[self.max_likelihood_index]
 
     def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function

@@ -278,7 +278,7 @@ class TestMulitNestConfig:
 
 
 class TestMultiNestOutputConverged:
-    def test__maximum_log_likelihood_and_evidence__from_summary(
+    def test__max_log_likelihood_and_evidence__from_summary(
         self, multi_nest_summary_path
     ):
 
@@ -289,7 +289,7 @@ class TestMultiNestOutputConverged:
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.maximum_log_likelihood == pytest.approx(
+        assert multinest_output.max_log_posterior == pytest.approx(
             9999999.9, 1.0e-4
         )
         assert multinest_output.evidence == pytest.approx(0.02, 1.0e-4)
@@ -316,7 +316,7 @@ class TestMultiNestOutputConverged:
             10.0,
         ]
 
-    def test__most_likely_vector__from_summary(self, multi_nest_summary_path):
+    def test__max_log_likelihood_vector__from_summary(self, multi_nest_summary_path):
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
@@ -324,7 +324,7 @@ class TestMultiNestOutputConverged:
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.most_likely_vector == [
+        assert multinest_output.max_log_likelihood_vector == [
             21.0,
             22.0,
             23.0,
@@ -414,7 +414,7 @@ class TestMultiNestOutputConverged:
 
 
 class TestMultiNestOutputUnconverged:
-    def test__maximum_log_likelihood_and_evidence__from_phys_live_points(
+    def test__max_log_likelihood_and_evidence__from_phys_live_points(
         self, multi_nest_phys_live_path
     ):
 
@@ -425,7 +425,7 @@ class TestMultiNestOutputUnconverged:
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.maximum_log_likelihood == pytest.approx(0.04, 1.0e-4)
+        assert multinest_output.max_log_posterior == pytest.approx(0.04, 1.0e-4)
         assert multinest_output.evidence == None
 
     def test__most_probable_vector__use_most_likely_if_no_summary(
@@ -440,7 +440,7 @@ class TestMultiNestOutputUnconverged:
 
         assert multinest_output.most_probable_vector == [1.0, 2.0, 3.0, 5.0]
 
-    def test__most_likely_vector__from_phys_live_points(
+    def test__max_log_likelihood_vector__from_phys_live_points(
         self, multi_nest_phys_live_path
     ):
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
@@ -450,7 +450,7 @@ class TestMultiNestOutputUnconverged:
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
-        assert multinest_output.most_likely_vector == [1.0, 2.0, 3.0, 5.0]
+        assert multinest_output.max_log_likelihood_vector == [1.0, 2.0, 3.0, 5.0]
 
     def test__vector_at_sigma__uses_min_max_of_phys_lives(
         self, multi_nest_phys_live_path

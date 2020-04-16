@@ -241,7 +241,7 @@ class Emcee(NonLinearOptimizer):
         output.output_pdf_plots()
         result = Result(
             instance=instance,
-            likelihood=output.maximum_log_likelihood,
+            likelihood=output.max_log_posterior,
             output=output,
             previous_model=model,
             gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),
@@ -334,13 +334,6 @@ class EmceeOutput(MCMCOutput):
         return len(self.backend.get_log_prob())
 
     @property
-    def maximum_log_likelihood(self) -> float:
-        """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
-
-        For emcee, this is computed from the backend's list of all likelihood values."""
-        return self.backend.get_log_prob(flat=True)[self.most_likely_index]
-
-    @property
     def samples_after_burn_in(self) -> [list]:
         """The emcee samples with the initial burn-in samples removed.
 
@@ -373,7 +366,7 @@ class EmceeOutput(MCMCOutput):
 
     @property
     def converged(self) -> bool:
-        """Whether the emcee chains have converged on a solution or if they are still in a burn-in period, based on the 
+        """Whether the emcee chains have converged on a solution or if they are still in a burn-in period, based on the
         auto correlation times of parameters."""
         converged = np.all(
             self.auto_correlation_times_of_parameters
@@ -391,6 +384,69 @@ class EmceeOutput(MCMCOutput):
         return converged
 
     @property
+    def log_likelihoods(self) -> [float]:
+        """A list of log likelihood values of every sample of the Emcee chains.
+
+        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
+        log_prior values."""
+        params = self.backend.get_chain(flat=True)
+        log_priors = [sum(self.model.log_priors_from_vector(vector=vector)) for vector in params]
+        log_posteriors = self.backend.get_log_prob(flat=True)
+
+        return list(map(lambda log_prior, log_posterior : log_posterior - log_prior, log_priors, log_posteriors))
+
+    @property
+    def max_log_likelihood_index(self) -> int:
+        """The index of the accepted sample with the highest likelihood.
+
+        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
+        log_prior values."""
+        return int(np.argmax(self.log_likelihoods))
+
+    @property
+    def max_log_likelihood(self) -> float:
+        """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
+
+        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
+        log_prior values."""
+        return self.log_likelihoods[self.max_log_likelihood_index]
+
+    @property
+    def max_log_likelihood_vector(self) -> [float]:
+        """ The vector of parameters corresponding to the highest log likelihood sample, returned as a list of
+        parameter values.
+
+        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
+        log_prior values."""
+        return self.backend.get_chain(flat=True)[self.max_log_likelihood_index]
+
+    @property
+    def max_log_posterior_index(self) -> int:
+        """The index of the accepted sample with the highest posterior value.
+
+        This is directly extracted from the Emcee results backend."""
+        return int(np.argmax(self.backend.get_log_prob(flat=True)))
+
+    @property
+    def max_log_posterior(self) -> float:
+        """The maximum posterior value of a sample in the non-linear search.
+
+        For emcee, this is computed from the backend's list of all posterior values."""
+        return self.backend.get_log_prob(flat=True)[self.max_log_posterior_index]
+
+    @property
+    def max_log_posterior_vector(self) -> [float]:
+        """ The vector of parameters corresponding to the highest log-posterior sample, returned as a list of
+        parameter values.
+
+        The vector is read from the Emcee results backend, using the index of the highest posterior sample."""
+        return self.backend.get_chain(flat=True)[self.max_log_posterior_index]
+
+    @property
     def most_probable_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
@@ -401,20 +457,6 @@ class EmceeOutput(MCMCOutput):
             float(np.percentile(samples[:, i], [50]))
             for i in range(self.model.prior_count)
         ]
-
-    @property
-    def most_likely_index(self) -> int:
-        """The index of the accepted sample with the highest likelihood, e.g. that of best-fit / most_likely model."""
-        return int(np.argmax(self.backend.get_log_prob(flat=True)))
-
-    @property
-    def most_likely_vector(self) -> [float]:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
-        as a list of values.
-
-        The vector is read from the results backend instance, by first locating the index corresponding to the highest
-        likelihood accepted sample."""
-        return self.backend.get_chain(flat=True)[self.most_likely_index]
 
     def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
@@ -463,8 +505,36 @@ class EmceeOutput(MCMCOutput):
         """
         return self.pdf.weights[sample_index]
 
-    def likelihood_from_sample_index(self, sample_index) -> [float]:
+    def log_likelihood_from_sample_index(self, sample_index) -> [float]:
         """The likelihood of an individual sample of the non-linear search.
+
+        This is computed by subtract the log prior from the log posterior.
+
+        Parameters
+        ----------
+        sample_index : int
+            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
+        """
+        return self.log_posterior_from_sample_index(sample_index=sample_index) - \
+               self.log_prior_from_sample_index(sample_index=sample_index)
+
+    def log_prior_from_sample_index(self, sample_index) -> [float]:
+        """The sum of log priors of all parameters of an individual sample of the non-linear search.
+
+        This is computed using the physical values of each parameter and their prior.
+
+        Parameters
+        ----------
+        sample_index : int
+            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
+        """
+        vector = self.vector_from_sample_index(sample_index=sample_index)
+        return sum(self.model.log_priors_from_vector(vector=vector))
+
+    def log_posterior_from_sample_index(self, sample_index) -> [float]:
+        """The log of the posterior of an individual sample of the non-linear search.
+
+        This is directly extracted from the Emcee samples.
 
         Parameters
         ----------

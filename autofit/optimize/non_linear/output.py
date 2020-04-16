@@ -33,12 +33,12 @@ class AbstractOutput:
         raise NotImplementedError()
 
     @property
-    def maximum_log_likelihood(self) -> float:
+    def max_log_posterior(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model."""
         raise NotImplementedError()
 
     @property
-    def most_likely_vector(self) -> [float]:
+    def max_log_likelihood_vector(self) -> [float]:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a list of values."""
         raise NotImplementedError()
@@ -47,7 +47,7 @@ class AbstractOutput:
     def most_likely_instance(self) -> model.ModelInstance:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a model instance."""
-        return self.model.instance_from_vector(vector=self.most_likely_vector)
+        return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
 
     @property
     def most_probable_vector(self) -> [float]:
@@ -519,14 +519,14 @@ class AbstractOutput:
 
         results += text_util.label_and_value_string(
             label="Maximum Likelihood ",
-            value=self.maximum_log_likelihood,
+            value=self.max_log_posterior,
             whitespace=90,
             format_string="{:.8f}",
         )
         results += ["\n\n"]
 
         results += ["Most Likely Model:\n\n"]
-        most_likely = self.most_likely_vector
+        most_likely = self.max_log_likelihood_vector
 
         formatter = text_formatter.TextFormatter()
 

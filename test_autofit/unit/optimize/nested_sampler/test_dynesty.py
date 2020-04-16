@@ -89,10 +89,10 @@ class TestDynestyConfig:
 
 
 class TestDynestyOutputConverged:
-    def test__maximum_log_likelihood_and_evidence__from_summary(
+    def test__max_log_likelihood_and_evidence__from_summary(
         self, dynesty_output_converged
     ):
-        assert dynesty_output_converged.maximum_log_likelihood == pytest.approx(
+        assert dynesty_output_converged.max_log_posterior == pytest.approx(
             618.65239, 1.0e-4
         )
         assert dynesty_output_converged.evidence == pytest.approx(592.45643, 1.0e-4)
@@ -103,9 +103,9 @@ class TestDynestyOutputConverged:
             [10.011122, 0.4996056, 0.00232913, 0.00101658], 1.0e-4
         )
 
-    def test__most_likely_vector__from_summary(self, dynesty_output_converged):
+    def test__max_log_likelihood_vector__from_summary(self, dynesty_output_converged):
 
-        assert dynesty_output_converged.most_likely_vector == pytest.approx(
+        assert dynesty_output_converged.max_log_likelihood_vector == pytest.approx(
             [10.0221, 0.49940, 0.002401, 0.00133179], 1.0e-4
         )
 

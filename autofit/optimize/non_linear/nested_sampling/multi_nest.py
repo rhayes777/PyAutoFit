@@ -214,7 +214,7 @@ class MultiNest(NestedSampler):
         multinest_output.output_results(during_analysis=False)
         return Result(
             instance=instance,
-            likelihood=multinest_output.maximum_log_likelihood,
+            likelihood=multinest_output.max_log_posterior,
             output=multinest_output,
             previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
@@ -307,7 +307,7 @@ class MultiNestOutput(NestedSamplerOutput):
         return self.total_accepted_samples / self.total_samples
 
     @property
-    def maximum_log_likelihood(self) -> float:
+    def max_log_posterior(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
 
         For MultiNest, this is read from the "multinestsummary.txt" file. """
@@ -331,12 +331,12 @@ class MultiNestOutput(NestedSamplerOutput):
             return None
 
     @property
-    def most_likely_index(self) -> int:
+    def max_likelihood_index(self) -> int:
         """The index of the accepted sample with the highest likelihood, e.g. that of best-fit / most_likely model."""
         return int(np.argmax([point[-1] for point in self.phys_live_points]))
 
     @property
-    def most_likely_vector(self) -> [float]:
+    def max_log_likelihood_vector(self) -> [float]:
         """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
         as a list of values.
 
@@ -347,7 +347,7 @@ class MultiNestOutput(NestedSamplerOutput):
                 number_entries=self.model.prior_count, offset=56
             )
         except FileNotFoundError:
-            return self.phys_live_points[self.most_likely_index][0:-1]
+            return self.phys_live_points[self.max_likelihood_index][0:-1]
 
     @property
     def most_probable_vector(self) -> [float]:
@@ -362,7 +362,7 @@ class MultiNestOutput(NestedSamplerOutput):
                 number_entries=self.model.prior_count, offset=0
             )
         except FileNotFoundError:
-            return self.most_likely_vector
+            return self.max_log_likelihood_vector
 
     def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function

@@ -52,20 +52,29 @@ class TestEmceeConfig:
 
 
 class TestEmceeOutput:
-    def test__maximum_log_likelihood(self, emcee_output):
 
-        assert emcee_output.maximum_log_likelihood == pytest.approx(583.26625, 1.0e-4)
+    def test__max_log_likelihood(self, emcee_output):
+
+        emcee_output.model.mock_class_1.one = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+
+        assert emcee_output.max_log_likelihood_index == 9977
+        assert emcee_output.max_log_likelihood == pytest.approx(581.24209, 1.0e-4)
+        assert emcee_output.max_log_likelihood_vector == pytest.approx(
+            [0.003825, -0.00360509, 9.957799, 0.4940334], 1.0e-3
+        )
+
+    def test__max_log_posterior(self, emcee_output):
+
+        assert emcee_output.max_log_posterior_index == 9977
+        assert emcee_output.max_log_posterior == pytest.approx(583.26625, 1.0e-4)
+        assert emcee_output.max_log_posterior_vector == pytest.approx(
+            [0.003825, -0.00360509, 9.957799, 0.4940334], 1.0e-3
+        )
 
     def test__most_probable_parameters(sel, emcee_output):
 
         assert emcee_output.most_probable_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
-        )
-
-    def test__most_likely_parameters(self, emcee_output):
-
-        assert emcee_output.most_likely_vector == pytest.approx(
-            [0.003825, -0.00360509, 9.957799, 0.4940334], 1.0e-3
         )
 
     def test__vector_at_sigma__uses_output_files(self, emcee_output):
@@ -78,13 +87,17 @@ class TestEmceeOutput:
 
         assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
-    def test__samples__total_steps_samples__model_parameters_weight_and_likelihood_from_sample_index(
+    def test__samples__total_steps_samples__model_parameters_weight_and_log_posterior_from_sample_index(
         self, emcee_output
     ):
 
+        emcee_output.model.mock_class_1.one = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+
         model = emcee_output.vector_from_sample_index(sample_index=0)
         weight = emcee_output.weight_from_sample_index(sample_index=0)
-        likelihood = emcee_output.likelihood_from_sample_index(sample_index=0)
+        log_prior = emcee_output.log_prior_from_sample_index(sample_index=0)
+        log_posterior = emcee_output.log_posterior_from_sample_index(sample_index=0)
+        log_likelihood = emcee_output.log_likelihood_from_sample_index(sample_index=0)
 
         assert emcee_output.total_walkers == 10
         assert emcee_output.total_steps == 1000
@@ -93,7 +106,9 @@ class TestEmceeOutput:
             [0.0090338, -0.05790179, 10.192579, 0.480606], 1.0e-2
         )
         assert weight == 1.0
-        assert likelihood == pytest.approx(-17257775239, 1.0e-4)
+        assert log_likelihood == pytest.approx(-17257775239 + 2.0807033, 1.0e-4)
+        assert log_prior == pytest.approx(2.0807033, 1.0e-4)
+        assert log_posterior == pytest.approx(-17257775239, 1.0e-4)
 
         #
         # assert emcee_output.total_samples == 10

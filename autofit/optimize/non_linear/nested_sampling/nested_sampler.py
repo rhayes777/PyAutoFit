@@ -132,7 +132,7 @@ class NestedSampler(NonLinearOptimizer):
         output.output_pdf_plots()
         result = Result(
             instance=instance,
-            likelihood=output.maximum_log_likelihood,
+            likelihood=output.max_log_posterior,
             output=output,
             previous_model=model,
             gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),

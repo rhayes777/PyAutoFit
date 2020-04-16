@@ -18,7 +18,7 @@ class MockOutput(AbstractOutput):
         model,
         paths,
         most_probable_vector=None,
-        most_likely_vector=None,
+        max_log_likelihood_vector=None,
         vector_at_sigma=None,
         sample_vector=None,
     ):
@@ -26,7 +26,7 @@ class MockOutput(AbstractOutput):
         super(MockOutput, self).__init__(model=model, paths=paths)
 
         self._most_probable_vector = most_probable_vector
-        self._most_likely_vector = most_likely_vector
+        self._max_log_likelihood_vector = max_log_likelihood_vector
         self._vector_at_sigma = vector_at_sigma
         self._sample_vector = sample_vector
 
@@ -35,8 +35,8 @@ class MockOutput(AbstractOutput):
         return self._most_probable_vector
 
     @property
-    def most_likely_vector(self):
-        return self._most_likely_vector
+    def max_log_likelihood_vector(self):
+        return self._max_log_likelihood_vector
 
     def vector_at_sigma(self, sigma):
         return [(sigma * value[0], sigma * value[1]) for value in self._vector_at_sigma]
@@ -86,7 +86,7 @@ class TestOutput:
         output = MockOutput(
             model=model,
             paths=Paths(),
-            most_likely_vector=[
+            max_log_likelihood_vector=[
                 21.0,
                 22.0,
                 23.0,

@@ -54,7 +54,7 @@ class MockNonLinearOptimizer(AbstractOutput):
         return self.most_probable
 
     @property
-    def most_likely_vector(self):
+    def max_log_likelihood_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
         file which nlo from a \ multinest lens.

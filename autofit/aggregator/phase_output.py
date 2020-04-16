@@ -90,7 +90,7 @@ class PhaseOutput:
         The optimizer object that was used in this phase
         """
         if self.__optimizer is None:
-            with open(os.path.join(self.pickle_path, "optimizer.pickle"), "r+b") as f:
+            with open(os.path.join(self.pickle_path, "non_linear.pickle"), "r+b") as f:
                 self.__optimizer = pickle.loads(f.read())
         return self.__optimizer
 
