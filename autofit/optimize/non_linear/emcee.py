@@ -127,9 +127,10 @@ class Emcee(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_vector, output_results):
+        def __init__(self, paths, analysis, instance_from_vector, log_priors_from_vector, output_results):
             super().__init__(paths, analysis, output_results)
             self.instance_from_vector = instance_from_vector
+            self.log_priors_from_vector = log_priors_from_vector
             self.accepted_samples = 0
 
         def fit_instance(self, instance):
@@ -156,13 +157,14 @@ class Emcee(NonLinearOptimizer):
             try:
 
                 instance = self.instance_from_vector(params)
-                likelihood = self.fit_instance(instance)
+                log_likelihood = self.fit_instance(instance)
+                log_priors = self.log_priors_from_vector(params)
 
             except exc.FitException:
 
-                likelihood = -np.inf
+                return -np.inf
 
-            return likelihood
+            return log_likelihood + sum(log_priors)
 
     def _fit(self, analysis, model):
 
@@ -178,6 +180,7 @@ class Emcee(NonLinearOptimizer):
             paths=self.paths,
             analysis=analysis,
             instance_from_vector=model.instance_from_vector,
+            log_priors_from_vector=model.log_priors_from_vector,
             output_results=output.output_results,
         )
 

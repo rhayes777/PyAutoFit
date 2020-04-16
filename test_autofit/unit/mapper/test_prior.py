@@ -280,7 +280,7 @@ class TestGaussianPrior:
         assert gaussian_half.value_for(0.5) == 0.5
 
     def test__log_prior_from_value(self):
-
+ 
         gaussian_simple = af.GaussianPrior(mean=0.0, sigma=1.0)
 
         log_prior = gaussian_simple.log_prior_from_value(value=0.0)
