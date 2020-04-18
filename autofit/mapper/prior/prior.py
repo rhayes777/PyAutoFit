@@ -307,10 +307,10 @@ class GaussianPrior(Prior):
         return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
 
     def log_prior_from_value(self, value):
-        """Compute the log prior of a physical value, so the likelihood of a model evaluation can be converted to a
+        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
-        This is used by Emcee in the likelihood function evaluation.
+        This is used by Emcee in the log likelihood function evaluation.
 
         Parameters
         ----------
@@ -359,10 +359,10 @@ class UniformPrior(Prior):
         return self.lower_limit + unit * (self.upper_limit - self.lower_limit)
 
     def log_prior_from_value(self, value):
-        """Compute the log prior of a physical value, so the likelihood of a model evaluation can be converted to a
+        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
-        This is used by Emcee in the likelihood function evaluation.
+        This is used by Emcee in the log likelihood function evaluation.
 
         NOTE: For a UniformPrior this is always zero, provided the value is between the lower and upper limit. Given
         this is check for when the instance is made (in the *instance_from_vector* function), we thus can simply return
@@ -415,10 +415,10 @@ class LogUniformPrior(UniformPrior):
         )
 
     def log_prior_from_value(self, value):
-        """Compute the log prior of a physical value, so the likelihood of a model evaluation can be converted to a
+        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
-        This is used by Emcee in the likelihood function evaluation.
+        This is used by Emcee in the log likelihood function evaluation.
 
         Parameters
         ----------

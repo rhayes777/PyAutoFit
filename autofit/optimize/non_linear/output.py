@@ -1,6 +1,4 @@
 import logging
-import os
-from configparser import NoOptionError
 
 from autofit import conf
 from autofit.mapper import model
@@ -39,13 +37,13 @@ class AbstractOutput:
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
+        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log likelihood), returned
         as a list of values."""
         raise NotImplementedError()
 
     @property
     def most_likely_instance(self) -> model.ModelInstance:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
+        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log likelihood), returned
         as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
 
@@ -286,8 +284,8 @@ class AbstractOutput:
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def likelihood_from_sample_index(self, sample_index) -> float:
-        """The likelihood of an individual sample of the non-linear search.
+    def log_likelihood_from_sample_index(self, sample_index) -> float:
+        """The log likelihood of an individual sample of the non-linear search.
 
         Parameters
         ----------
@@ -368,67 +366,6 @@ class AbstractOutput:
             sigma, sigma_formatter.text
         )
 
-    @property
-    def param_labels(self) -> [str]:
-        """A list of every parameter's label, used by *GetDist* for model estimation and visualization.
-
-        The parameter labels are determined using the label.ini and label_format.ini config files."""
-
-        paramnames_labels = []
-        prior_class_dict = self.model.prior_class_dict
-        prior_prior_model_dict = self.model.prior_prior_model_dict
-
-        for prior_name, prior in self.model.prior_tuples_ordered_by_id:
-            try:
-                param_string = conf.instance.label.label(prior_name)
-            except NoOptionError:
-                logger.warning(
-                    f"No label provided for {prior_name}. Using prior name instead."
-                )
-                param_string = prior_name
-            prior_model = prior_prior_model_dict[prior]
-            cls = prior_class_dict[prior]
-            cls_string = "{}{}".format(
-                conf.instance.label.subscript(cls), prior_model.component_number + 1
-            )
-            param_label = "{}_{{\\mathrm{{{}}}}}".format(param_string, cls_string)
-            paramnames_labels.append(param_label)
-
-        return paramnames_labels
-
-    def create_paramnames_file(self):
-        """Create the param_names file listing every parameter's label and Latex tag, which is used for *GetDist*
-        visualization.
-
-        The parameter labels are determined using the label.ini and label_format.ini config files."""
-        paramnames_names = self.model.param_names
-        paramnames_labels = self.param_labels
-
-        paramnames = []
-
-        for i in range(self.model.prior_count):
-            line = text_util.label_and_label_string(
-                label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
-            )
-            paramnames += [line + "\n"]
-
-        text_util.output_list_of_strings_to_file(
-            file=self.paths.file_param_names, list_of_strings=paramnames
-        )
-
-    def save_model_info(self):
-        """Save the model.info file, which summarizes every parameter and prior."""
-
-        try:
-            os.makedirs(self.paths.backup_path)
-        except FileExistsError:
-            pass
-
-        self.create_paramnames_file()
-
-        with open(self.paths.file_model_info, "w+") as f:
-            f.write(self.model.info)
-
     def latex_results_at_sigma(self, sigma, format_str="{:.2f}") -> [str]:
         """Return the results of the non-linear search at an input sigma value as a string that is formated for simple
         copy and pasting in a LaTex document.
@@ -497,7 +434,7 @@ class AbstractOutput:
 
     def output_results(self, during_analysis):
         """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
-        sigma confidence and information on the maximum likelihood.
+        sigma confidence and information on the maximum log likelihood.
 
         Parameters
         ----------
@@ -507,11 +444,11 @@ class AbstractOutput:
 
         results = []
 
-        if hasattr(self, "evidence"):
-            if self.evidence is not None:
+        if hasattr(self, "log_evidence"):
+            if self.log_evidence is not None:
                 results += text_util.label_and_value_string(
                     label="Bayesian Evidence ",
-                    value=self.evidence,
+                    value=self.log_evidence,
                     whitespace=90,
                     format_string="{:.8f}",
                 )

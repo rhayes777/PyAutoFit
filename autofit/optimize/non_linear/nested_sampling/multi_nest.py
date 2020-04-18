@@ -115,7 +115,7 @@ class MultiNest(NestedSampler):
 
     def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
         """
-        Fit a model using MultiNest and a function that returns a likelihood from instances of that model.
+        Fit a model using MultiNest and a function that returns a log likelihood from instances of that model.
 
         Parameters
         ----------
@@ -123,11 +123,11 @@ class MultiNest(NestedSampler):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         fitness_function
-            A function that fits this model to the data, returning the likelihood of the fit.
+            A function that fits this model to the data, returning the log likelihood of the fit.
 
         Returns
         -------
-        A result object comprising the best-fit model instance, likelihood and an *Output* class that enables analysis
+        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
         of the full chains used by the fit.
         """
         multinest_output = MultiNestOutput(model, self.paths)
@@ -172,17 +172,17 @@ class MultiNest(NestedSampler):
                     return fitness_function(model.instance_from_vector(cube))
                 except exc.FitException:
                     if not stagger_resampling_likelihood:
-                        likelihood = -np.inf
+                        log_likelihood = -np.inf
                     else:
                         if self.stagger_accepted_samples < 10:
                             self.stagger_accepted_samples += 1
                             self.resampling_likelihood += stagger_resampling_value
-                            likelihood = self.resampling_likelihood
+                            log_likelihood = self.resampling_likelihood
                         else:
-                            likelihood = (
+                            log_likelihood = (
                                 -1.0 * np.abs(self.resampling_likelihood) * 10.0
                             )
-                    return likelihood
+                    return log_likelihood
 
         self.run(
             Fitness().__call__,
@@ -214,7 +214,7 @@ class MultiNest(NestedSampler):
         multinest_output.output_results(during_analysis=False)
         return Result(
             instance=instance,
-            likelihood=multinest_output.max_log_posterior,
+            log_likelihood=multinest_output.max_log_posterior,
             output=multinest_output,
             previous_model=model,
             gaussian_tuples=multinest_output.gaussian_priors_at_sigma(self.sigma),
@@ -258,8 +258,8 @@ class MultiNestOutput(NestedSamplerOutput):
         converged for *GetDist* use.
 
         For *MultiNest*, during initial sampling one accepted live point typically has > 99% of the probabilty as its
-        likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
-        all live points have similar likelihood and sampling probabilities."""
+        log_likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
+        all live points have similar log_likelihood and sampling probabilities."""
         try:
             densities_1d = list(
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
@@ -319,8 +319,8 @@ class MultiNestOutput(NestedSamplerOutput):
             return max([point[-1] for point in self.phys_live_points])
 
     @property
-    def evidence(self) -> float:
-        """The Bayesian evidence estimated by the nested sampling algorithm.
+    def log_evidence(self) -> float:
+        """The Bayesian log evidence estimated by the nested sampling algorithm.
 
         For MultiNest, this is read from the "multinestsummary.txt" file."""
         try:
@@ -331,13 +331,13 @@ class MultiNestOutput(NestedSamplerOutput):
             return None
 
     @property
-    def max_likelihood_index(self) -> int:
-        """The index of the accepted sample with the highest likelihood, e.g. that of best-fit / most_likely model."""
+    def max_log_likelihood_index(self) -> int:
+        """The index of the accepted sample with the highest log likelihood, e.g. that of best-fit / most_likely model."""
         return int(np.argmax([point[-1] for point in self.phys_live_points]))
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
+        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log likelihood), returned
         as a list of values.
 
         The vector is read from the MulitNest file "multinestsummary.txt, which stores the parameters of the most
@@ -347,7 +347,7 @@ class MultiNestOutput(NestedSamplerOutput):
                 number_entries=self.model.prior_count, offset=56
             )
         except FileNotFoundError:
-            return self.phys_live_points[self.max_likelihood_index][0:-1]
+            return self.phys_live_points[self.max_log_likelihood_index][0:-1]
 
     @property
     def most_probable_vector(self) -> [float]:
@@ -427,11 +427,11 @@ class MultiNestOutput(NestedSamplerOutput):
         """
         return self.pdf.weights[sample_index]
 
-    def likelihood_from_sample_index(self, sample_index) -> float:
-        """The likelihood of an individual sample of the non-linear search.
+    def log_likelihood_from_sample_index(self, sample_index) -> float:
+        """The log likelihood of an individual sample of the non-linear search.
 
         NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \
-        -2.0*likelihood. This routine converts these back to likelihood.
+        -2.0*log_likelihood. This routine converts these back to log_likelihood.
 
         Parameters
         ----------

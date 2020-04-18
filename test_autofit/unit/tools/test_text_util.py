@@ -6,6 +6,8 @@ import pytest
 import autofit as af
 from autofit import conf
 
+from test_autofit.mock import MockClassNLOx4
+
 directory = os.path.dirname(os.path.realpath(__file__))
 
 text_path = "{}/files/text/".format(os.path.dirname(os.path.realpath(__file__)))
@@ -196,3 +198,17 @@ def test_string():
 def test_substring():
     assert af.text_util.format_string_for_label("einstein_radius") == "radius_value"
     assert af.text_util.format_string_for_label("mass_value_something") == "mass_value"
+
+
+def test_param_labels_labels():
+
+    model = af.PriorModel(MockClassNLOx4)
+
+    param_labels = af.text_util.param_labels_from_model(model=model)
+
+    assert param_labels == [
+        r"x4p0_{\mathrm{a1}}",
+        r"x4p1_{\mathrm{a1}}",
+        r"x4p2_{\mathrm{a1}}",
+        r"x4p3_{\mathrm{a1}}",
+    ]

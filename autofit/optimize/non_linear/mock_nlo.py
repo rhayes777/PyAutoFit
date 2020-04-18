@@ -12,7 +12,7 @@ class MockNLO(NonLinearOptimizer):
 
     def _fit(self, analysis, model):
         mock_output = AbstractOutput(model, self.paths)
-        mock_output.save_model_info()
+
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")
         if model.prior_count != len(model.unique_prior_paths):
@@ -33,7 +33,7 @@ class MockNLO(NonLinearOptimizer):
                 index = (index + 1) % model.prior_count
         return af.Result(
             instance=instance,
-            likelihood=fit,
+            log_likelihood=fit,
             previous_model=model,
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)

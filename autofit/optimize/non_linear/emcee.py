@@ -92,7 +92,7 @@ class Emcee(NonLinearOptimizer):
 
     def _simple_fit(self, model, fitness_function):
         """
-        Fit a model using emcee and a function that returns a likelihood from instances of that model.
+        Fit a model using emcee and a function that returns a log likelihood from instances of that model.
 
         Parameters
         ----------
@@ -100,11 +100,11 @@ class Emcee(NonLinearOptimizer):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         fitness_function
-            A function that fits this model to the data, returning the likelihood of the fit.
+            A function that fits this model to the data, returning the log likelihood of the fit.
 
         Returns
         -------
-        A result object comprising the best-fit model instance, likelihood and an *Output* class that enables analysis
+        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
         of the full chains used by the fit.
         """
         raise NotImplementedError()
@@ -134,12 +134,12 @@ class Emcee(NonLinearOptimizer):
             self.accepted_samples = 0
 
         def fit_instance(self, instance):
-            likelihood = self.analysis.fit(instance)
+            log_likelihood = self.analysis.fit(instance)
 
-            if likelihood > self.max_likelihood:
+            if log_likelihood > self.max_likelihood:
 
-                self.max_likelihood = likelihood
-                self.result = Result(instance, likelihood)
+                self.max_likelihood = log_likelihood
+                self.result = Result(instance, log_likelihood)
 
                 if self.should_visualize():
                     self.analysis.visualize(instance, during_analysis=True)
@@ -150,7 +150,7 @@ class Emcee(NonLinearOptimizer):
                 if self.should_output_model_results():
                     self.output_results(during_analysis=True)
 
-            return likelihood
+            return log_likelihood
 
         def __call__(self, params):
 
@@ -190,8 +190,6 @@ class Emcee(NonLinearOptimizer):
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
         )
-
-        output.save_model_info()
 
         try:
             emcee_state = emcee_sampler.get_last_sample()
@@ -241,7 +239,7 @@ class Emcee(NonLinearOptimizer):
         output.output_pdf_plots()
         result = Result(
             instance=instance,
-            likelihood=output.max_log_posterior,
+            log_likelihood=output.max_log_posterior,
             output=output,
             previous_model=model,
             gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),
@@ -387,7 +385,7 @@ class EmceeOutput(MCMCOutput):
     def log_likelihoods(self) -> [float]:
         """A list of log likelihood values of every sample of the Emcee chains.
 
-        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
         values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
         log_prior values."""
         params = self.backend.get_chain(flat=True)
@@ -398,9 +396,9 @@ class EmceeOutput(MCMCOutput):
 
     @property
     def max_log_likelihood_index(self) -> int:
-        """The index of the accepted sample with the highest likelihood.
+        """The index of the accepted sample with the highest log likelihood.
 
-        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
         values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
         log_prior values."""
         return int(np.argmax(self.log_likelihoods))
@@ -409,7 +407,7 @@ class EmceeOutput(MCMCOutput):
     def max_log_likelihood(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
 
-        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
         values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
         log_prior values."""
         return self.log_likelihoods[self.max_log_likelihood_index]
@@ -419,7 +417,7 @@ class EmceeOutput(MCMCOutput):
         """ The vector of parameters corresponding to the highest log likelihood sample, returned as a list of
         parameter values.
 
-        The likelihood is the value sampled via the likelihood function of a model and does not have the log_prior
+        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
         values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
         log_prior values."""
         return self.backend.get_chain(flat=True)[self.max_log_likelihood_index]
@@ -506,9 +504,9 @@ class EmceeOutput(MCMCOutput):
         return self.pdf.weights[sample_index]
 
     def log_likelihood_from_sample_index(self, sample_index) -> [float]:
-        """The likelihood of an individual sample of the non-linear search.
+        """The log likelihood of an individual sample of the non-linear search.
 
-        This is computed by subtract the log prior from the log posterior.
+        This is computed by subtracting the log prior from the log posterior.
 
         Parameters
         ----------

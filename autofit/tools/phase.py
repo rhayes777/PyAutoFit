@@ -1,4 +1,5 @@
 import os
+import logging
 import pickle
 from abc import ABC, abstractmethod
 from typing import Dict
@@ -6,13 +7,13 @@ from typing import Dict
 import dill
 
 from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
-import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.paths import Paths
 
+logger = logging.getLogger(__name__)
 
 class AbstractPhase:
     @convert_paths
@@ -38,9 +39,16 @@ class AbstractPhase:
         self.optimizer = non_linear_class(self.paths)
         self.model = model or ModelMapper()
 
+        self.save_model_info()
+
         self.pipeline_name = None
         self.pipeline_tag = None
         self.meta_dataset = None
+
+    def save_model_info(self):
+        """Save the model.info file, which summarizes every parameter and prior."""
+        with open(self.paths.file_model_info, "w+") as f:
+            f.write(self.model.info)
 
     @property
     def _default_metadata(self) -> Dict[str, str]:

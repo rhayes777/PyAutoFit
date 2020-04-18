@@ -2,7 +2,7 @@
 
 **PyAutoFit** is a Python-based probablistic programming language that allows Bayesian inference techniques to be straightforwardly integrated into scientific modeling software. **PyAutoFit** specializes in:
 
-- **Black box** models with complex and expensive likelihood functions. 
+- **Black box** models with complex and expensive log likelihood functions. 
 - Fitting **many different model parametrizations** to a data-set. 
 - Modeling **extremely large-datasets** with a homogenous fitting procedure. 
 - Automating complex model-fitting tasks via **transdimensional model-fitting pipelines**.
@@ -190,7 +190,7 @@ Althoguh somewhat trivial, this example illustrates how easily a model-fit can b
 
 The following features are planned for 2020:
 
-- **Bayesian Model Comparison** - Determine the most probable model via the Bayesian evidence.
+- **Bayesian Model Comparison** - Determine the most probable model via the Bayesian log evidence.
 - **Generalized Linear Models** - Fit for global trends to model fits to large data-sets.
 - **Hierarchical modeling** - Combine fits over multiple data-sets to perform hierarchical inference.
 - **Time series modelling** - Fit temporally varying models using fits which marginalize over time.

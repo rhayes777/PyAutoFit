@@ -28,13 +28,13 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
                 for key, value in self.instance.__dict__.items():
                     setattr(instance, key, value)
 
-                likelihood = analysis.fit(instance)
+                log_likelihood = analysis.fit(instance)
                 self.result = autofit.optimize.non_linear.non_linear.Result(
-                    instance, likelihood
+                    instance, log_likelihood
                 )
 
                 # Return Chi squared
-                return -2 * likelihood
+                return -2 * log_likelihood
 
         fitness_function = Fitness(
             model.instance_from_vector, model.instance_from_prior_medians

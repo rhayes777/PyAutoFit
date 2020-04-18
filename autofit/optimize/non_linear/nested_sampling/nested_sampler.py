@@ -16,12 +16,12 @@ class NestedSampler(NonLinearOptimizer):
         Abstract class of a nested sampling non-linear search (e.g. MultiNest, Dynesty).
 
         **PyAutoFit** allows a nested sampler to automatically terminate when the acceptance ratio falls below an input
-        threshold value. When this occurs, all samples are accepted using the current maximum likelihood value,
+        threshold value. When this occurs, all samples are accepted using the current maximum log likelihood value,
         irrespective of how well the model actually fits the data.
 
         This feature should be used for non-linear searches where the nested sampler gets 'stuck', for example because
-        the likelihood function is stochastic or varies rapidly over small scales in parameter space. The results of
-        chains using this feature are not realiable (given the likelihood is being manipulated to end the run), but
+        the log likelihood function is stochastic or varies rapidly over small scales in parameter space. The results of
+        chains using this feature are not realiable (given the log likelihood is being manipulated to end the run), but
         they are still valid results for linking priors to a new phase and non-linear search.
 
         Parameters
@@ -102,8 +102,6 @@ class NestedSampler(NonLinearOptimizer):
 
         output = self.output_from_model(model=model, paths=self.paths)
 
-        output.save_model_info()
-
         if not os.path.exists(self.paths.has_completed_path):
             fitness_function = NestedSampler.Fitness(
                 self.paths,
@@ -132,7 +130,7 @@ class NestedSampler(NonLinearOptimizer):
         output.output_pdf_plots()
         result = Result(
             instance=instance,
-            likelihood=output.max_log_posterior,
+            log_likelihood=output.max_log_posterior,
             output=output,
             previous_model=model,
             gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),
@@ -157,8 +155,8 @@ class NestedSamplerOutput(AbstractOutput):
         raise NotImplementedError()
 
     @property
-    def evidence(self) -> float:
-        """The Bayesian evidence estimated by the nested sampling algorithm."""
+    def log_evidence(self) -> float:
+        """The Bayesian log evidence estimated by the nested sampling algorithm."""
         raise NotImplementedError()
 
     def weight_from_sample_index(self, sample_index) -> float:

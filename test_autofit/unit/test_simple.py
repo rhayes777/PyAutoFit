@@ -29,4 +29,4 @@ def test_simple(optimizer):
     )
 
     assert result.instance.argument == pytest.approx(30, abs=1.0)
-    assert result.likelihood == pytest.approx(0, abs=1)
+    assert result.log_likelihood == pytest.approx(0, abs=1)

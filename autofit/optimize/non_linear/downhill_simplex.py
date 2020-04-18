@@ -56,14 +56,14 @@ class DownhillSimplex(NonLinearOptimizer):
         def __call__(self, vector):
             try:
                 instance = self.instance_from_vector(vector)
-                likelihood = self.fit_instance(instance)
+                log_likelihood = self.fit_instance(instance)
             except exc.FitException:
-                likelihood = -np.inf
-            return -2 * likelihood
+                log_likelihood = -np.inf
+            return -2 * log_likelihood
 
     def _fit(self, analysis, model):
         dhs_output = AbstractOutput(model, self.paths)
-        dhs_output.save_model_info()
+
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(

@@ -1,13 +1,9 @@
-import os
-import shutil
-from functools import wraps
-
 import pytest
 
 import autofit as af
 from autofit import Paths
 from autofit.optimize.non_linear.output import AbstractOutput
-from test_autofit.mock import MockClassNLOx4, MockClassNLOx5, MockClassNLOx6
+from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 

@@ -114,7 +114,7 @@ class TestEmceeOutput:
         # assert emcee_output.total_samples == 10
         # assert model == [1.0, 2.0, 3.0, 4.0]
         # assert weight == 0.1
-        # assert likelihood == -0.5 * 9999999.9
+        # assert log_likelihood == -0.5 * 9999999.9
 
     def test__autocorrelation_times(self, emcee_output):
 

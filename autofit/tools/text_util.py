@@ -1,7 +1,10 @@
 import configparser
+from configparser import NoOptionError
+import logging
 
 from autofit import conf
 
+logger = logging.getLogger(__name__)
 
 def format_string_for_label(label: str) -> str:
     """
@@ -78,3 +81,30 @@ def within_radius_label_value_and_unit_string(
     return label_value_and_unit_string(
         label=label, value=value, unit=unit_value, whitespace=whitespace
     )
+
+def param_labels_from_model(model) -> [str]:
+    """A list of every parameter's label, used by *GetDist* for model estimation and visualization.
+
+    The parameter labels are determined using the label.ini and label_format.ini config files."""
+
+    paramnames_labels = []
+    prior_class_dict = model.prior_class_dict
+    prior_prior_model_dict = model.prior_prior_model_dict
+
+    for prior_name, prior in model.prior_tuples_ordered_by_id:
+        try:
+            param_string = conf.instance.label.label(prior_name)
+        except NoOptionError:
+            logger.warning(
+                f"No label provided for {prior_name}. Using prior name instead."
+            )
+            param_string = prior_name
+        prior_model = prior_prior_model_dict[prior]
+        cls = prior_class_dict[prior]
+        cls_string = "{}{}".format(
+            conf.instance.label.subscript(cls), prior_model.component_number + 1
+        )
+        param_label = "{}_{{\\mathrm{{{}}}}}".format(param_string, cls_string)
+        paramnames_labels.append(param_label)
+
+    return paramnames_labels

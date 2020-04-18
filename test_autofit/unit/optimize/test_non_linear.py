@@ -43,7 +43,7 @@ def make_result():
     # noinspection PyTypeChecker
     return af.Result(
         instance=None,
-        likelihood=None,
+        log_likelihood=None,
         previous_model=mapper,
         gaussian_tuples=[(0, 0), (1, 0)]
     )
@@ -314,25 +314,8 @@ class TestLabels:
                    "prior_model_four",
                ] == optimizer.model.param_names
 
-    def test_properties(self, optimizer):
-        optimizer.model.prior_model = MockClassNLOx4
-
-        assert len(optimizer.param_labels) == 4
-        assert len(optimizer.model.param_names) == 4
-
     def test_label_config(self):
         assert af.conf.instance.label.label("one") == "x4p0"
         assert af.conf.instance.label.label("two") == "x4p1"
         assert af.conf.instance.label.label("three") == "x4p2"
         assert af.conf.instance.label.label("four") == "x4p3"
-
-    def test_labels(self, optimizer):
-        af.AbstractPriorModel._ids = itertools.count()
-        optimizer.model.prior_model = MockClassNLOx4
-
-        assert optimizer.param_labels == [
-            r"x4p0_{\mathrm{a1}}",
-            r"x4p1_{\mathrm{a1}}",
-            r"x4p2_{\mathrm{a1}}",
-            r"x4p3_{\mathrm{a1}}",
-        ]

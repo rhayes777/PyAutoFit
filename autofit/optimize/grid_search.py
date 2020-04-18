@@ -54,7 +54,7 @@ class GridSearchResult:
         for result in self.results:
             if (
                 best_result is None
-                or result.likelihood > best_result.likelihood
+                or result.log_likelihood > best_result.log_likelihood
             ):
                 best_result = result
         return best_result
@@ -89,7 +89,7 @@ class GridSearchResult:
             each entry being the figure of merit taken from the optimization performed at that point.
         """
         return np.reshape(
-            np.array([result.likelihood for result in self.results]),
+            np.array([result.log_likelihood for result in self.results]),
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
 
@@ -401,7 +401,7 @@ class Job:
         result = self.optimizer_instance.fit(self.analysis, self.model)
         result_list_row = [
             *[prior.lower_limit for prior in self.arguments.values()],
-            result.likelihood,
+            result.log_likelihood,
         ]
 
         return JobResult(result, result_list_row)

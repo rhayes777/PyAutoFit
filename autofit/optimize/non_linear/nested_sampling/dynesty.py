@@ -128,7 +128,7 @@ class AbstractDynesty(NestedSampler):
 
     def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
         """
-        Fit a model using Dynesty and a function that returns a likelihood from instances of that model.
+        Fit a model using Dynesty and a function that returns a log likelihood from instances of that model.
 
         Dynesty is not called once, but instead called multiple times every iterations_per_update, such that the
         sampler instance can be pickled during the model-fit. This allows runs to be terminated and resumed.
@@ -139,11 +139,11 @@ class AbstractDynesty(NestedSampler):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         fitness_function
-            A function that fits this model to the data, returning the likelihood of the fit.
+            A function that fits this model to the data, returning the log likelihood of the fit.
 
         Returns
         -------
-        A result object comprising the best-fit model instance, likelihood and an *Output* class that enables analysis
+        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
         of the full chains used by the fit.
         """
         dynesty_output = DynestyOutput(model=model, paths=self.paths)
@@ -200,7 +200,7 @@ class AbstractDynesty(NestedSampler):
         dynesty_output.output_results(during_analysis=False)
         return Result(
             instance=instance,
-            likelihood=dynesty_output.max_log_posterior,
+            log_likelihood=dynesty_output.max_log_posterior,
             output=dynesty_output,
             previous_model=model,
             gaussian_tuples=dynesty_output.gaussian_priors_at_sigma(self.sigma),
@@ -371,8 +371,8 @@ class DynestyOutput(NestedSamplerOutput):
         converged for *GetDist* use.
 
         For *Dynesty*, during initial sampling one accepted live point typically has > 99% of the probabilty as its
-        likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
-        all live points have similar likelihood and sampling probabilities."""
+        log_likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
+        all live points have similar log_likelihood and sampling probabilities."""
         try:
             densities_1d = list(
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
@@ -412,17 +412,31 @@ class DynestyOutput(NestedSamplerOutput):
         return self.total_accepted_samples / self.total_samples
 
     @property
-    def max_log_posterior(self) -> float:
+    def max_log_likelihood_index(self) -> int:
+        """The index of the accepted sample with the highest log likelihood, e.g. that of best-fit / most_likely model."""
+        return int(np.argmax(self.results.logl))
+
+    @property
+    def max_log_likelihood(self) -> float:
         """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
 
-        For Dynesty, this is computed from the pickled sampler's list of all likelihood values."""
+        For Dynesty, this is computed from the pickled sampler's list of all log likelihood values."""
         return np.max(self.results.logl)
 
     @property
-    def evidence(self) -> float:
-        """The Bayesian evidence estimated by the nested sampling algorithm.
+    def max_log_likelihood_vector(self) -> [float]:
+        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log likelihood), returned
+        as a list of values.
 
-        For Dynesty, this is computed from the pickled sample's list of all evidence estimates."""
+        The vector is read from the pickled sampler instance, by first locating the index corresponding to the highest
+        log_likelihood accepted sample."""
+        return self.results.samples[self.max_log_likelihood_index]
+
+    @property
+    def log_evidence(self) -> float:
+        """The Bayesian log evidence estimated by the nested sampling algorithm.
+
+        For Dynesty, this is computed from the pickled sample's list of all log evidence estimates."""
         return np.max(self.results.logz)
 
     @property
@@ -436,20 +450,6 @@ class DynestyOutput(NestedSamplerOutput):
             return self.pdf.getMeans()
         else:
             return list(np.mean(self.results.samples, axis=0))
-
-    @property
-    def max_likelihood_index(self) -> int:
-        """The index of the accepted sample with the highest likelihood, e.g. that of best-fit / most_likely model."""
-        return int(np.argmax(self.results.logl))
-
-    @property
-    def max_log_likelihood_vector(self) -> [float]:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log-likelihood), returned
-        as a list of values.
-
-        The vector is read from the pickled sampler instance, by first locating the index corresponding to the highest
-        likelihood accepted sample."""
-        return self.results.samples[self.max_likelihood_index]
 
     def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
@@ -511,8 +511,8 @@ class DynestyOutput(NestedSamplerOutput):
         """
         return self.results.logwt[sample_index]
 
-    def likelihood_from_sample_index(self, sample_index) -> float:
-        """The likelihood of an individual sample of the non-linear search.
+    def log_likelihood_from_sample_index(self, sample_index) -> float:
+        """The log likelihood of an individual sample of the non-linear search.
 
         Parameters
         ----------

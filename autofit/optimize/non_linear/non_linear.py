@@ -7,6 +7,7 @@ import numpy as np
 from autofit import conf
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
+from autofit.tools import text_util
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
@@ -69,6 +70,7 @@ class NonLinearOptimizer(ABC):
         A result comprising a score, the best fit instance and an updated prior model
         """
         optimizer = cls()
+
         result = optimizer._simple_fit(
             model,
             fitness_function
@@ -114,6 +116,9 @@ class NonLinearOptimizer(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
+
+        self.save_paramnames_file(model=model)
+
         result = self._fit(
             analysis,
             model
@@ -142,6 +147,27 @@ class NonLinearOptimizer(ABC):
             "general",
             attribute_name,
             attribute_type
+        )
+
+    def save_paramnames_file(self, model):
+        """Create the param_names file listing every parameter's label and Latex tag, which is used for *GetDist*
+        visualization.
+
+        The parameter labels are determined using the label.ini and label_format.ini config files."""
+
+        paramnames_names = model.param_names
+        paramnames_labels = text_util.param_labels_from_model(model=model)
+
+        paramnames = []
+
+        for i in range(model.prior_count):
+            line = text_util.label_and_label_string(
+                label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
+            )
+            paramnames += [line + "\n"]
+
+        text_util.output_list_of_strings_to_file(
+            file=self.paths.file_param_names, list_of_strings=paramnames
         )
 
     def __eq__(self, other):
@@ -180,12 +206,12 @@ class NonLinearOptimizer(ABC):
             )
 
         def fit_instance(self, instance):
-            likelihood = self.analysis.fit(instance)
+            log_likelihood = self.analysis.fit(instance)
 
-            if likelihood > self.max_likelihood:
+            if log_likelihood > self.max_likelihood:
 
-                self.max_likelihood = likelihood
-                self.result = Result(instance, likelihood)
+                self.max_likelihood = log_likelihood
+                self.result = Result(instance, log_likelihood)
 
                 if self.should_visualize():
                     self.analysis.visualize(instance, during_analysis=True)
@@ -196,7 +222,7 @@ class NonLinearOptimizer(ABC):
                 if self.should_output_model_results():
                     self.output_results(during_analysis=True)
 
-            return likelihood
+            return log_likelihood
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         name = "{}/{}".format(self.paths.phase_name, extension)
@@ -235,7 +261,7 @@ class Result:
     """
 
     def __init__(
-            self, instance, likelihood, output=None, previous_model=None, gaussian_tuples=None
+            self, instance, log_likelihood, output=None, previous_model=None, gaussian_tuples=None
     ):
         """
         The result of an optimization.
@@ -244,13 +270,13 @@ class Result:
         ----------
         instance: autofit.mapper.model.ModelInstance
             An instance object comprising the class instances that gave the optimal fit
-        likelihood: float
+        log_likelihood: float
             A value indicating the figure of merit given by the optimal fit
         previous_model
             The model mapper from the stage that produced this result
         """
         self.instance = instance
-        self.likelihood = likelihood
+        self.log_likelihood = log_likelihood
         self.output = output
         self.previous_model = previous_model
         self.gaussian_tuples = gaussian_tuples

@@ -71,7 +71,7 @@ class GridSearch(NonLinearOptimizer):
             """
             super().__init__(
                 instance=result.instance,
-                likelihood=result.likelihood,
+                log_likelihood=result.log_likelihood,
                 previous_model=previous_model,
                 gaussian_tuples=gaussian_tuples
             )
@@ -185,8 +185,6 @@ class GridSearch(NonLinearOptimizer):
 
     def _fit(self, analysis, model):
         gs_output = AbstractOutput(model, self.paths)
-
-        gs_output.save_model_info()
 
         checkpoint_count = 0
         best_fit = -np.inf
