@@ -4,7 +4,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit import Paths
-from autofit.optimize.non_linear.emcee import EmceeOutput
+from autofit.optimize.non_linear.emcee import EmceeSamples
 from test_autofit.mock import MockClassNLOx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -29,7 +29,7 @@ def test_emcee_output():
 
     mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-    return EmceeOutput(
+    return EmceeSamples(
         mapper,
         Paths(),
         auto_correlation_check_size=10,

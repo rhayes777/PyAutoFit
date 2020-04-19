@@ -6,11 +6,11 @@ import autofit as af
 # noinspection PyAbstractClass
 import autofit.mapper.prior_model.attribute_pair
 from autofit import Paths
-from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.tools.phase import Dataset
 
 
-class MockNonLinearOptimizer(AbstractOutput):
+class MockNonLinearOptimizer(AbstractSamples):
     def __init__(
             self,
             phase_name,

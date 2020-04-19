@@ -11,7 +11,7 @@ from autofit.optimize.non_linear.non_linear import (
     IntervalCounter,
 )
 from autofit.optimize.non_linear.non_linear import logger
-from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.paths import Paths
 
 
@@ -184,7 +184,7 @@ class GridSearch(NonLinearOptimizer):
         return int(self.checkpoint_array[4])
 
     def _fit(self, analysis, model):
-        gs_output = AbstractOutput(model, self.paths)
+        gs_output = AbstractSamples(model, self.paths)
 
         checkpoint_count = 0
         best_fit = -np.inf

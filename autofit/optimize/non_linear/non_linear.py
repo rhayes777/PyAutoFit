@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from autofit import conf
+from autofit.plot import samples_text
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
 from autofit.tools import text_util
@@ -179,13 +180,16 @@ class NonLinearOptimizer(ABC):
 
     class Fitness:
         def __init__(
-                self, paths, analysis, output_results=lambda during_analysis: None
+                self, paths, analysis, model, samples_from_model
         ):
-            self.output_results = output_results
+
             self.paths = paths
             self.result = None
             self.max_likelihood = -np.inf
             self.analysis = analysis
+
+            self.model = model
+            self.samples_from_model = samples_from_model
 
             self.log_interval = conf.instance.general.get("output", "log_interval", int)
             self.backup_interval = conf.instance.general.get(
@@ -220,9 +224,15 @@ class NonLinearOptimizer(ABC):
                     self.paths.backup()
 
                 if self.should_output_model_results():
-                    self.output_results(during_analysis=True)
+
+                    samples = self.samples_from_model(model=self.model, paths=self.paths)
+                    samples_text.output_results(samples=samples, during_analysis=True)
 
             return log_likelihood
+
+        @property
+        def samples(self):
+            return self.samples_from_model(model=self.model, paths=self.paths)
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         name = "{}/{}".format(self.paths.phase_name, extension)
@@ -243,7 +253,7 @@ class NonLinearOptimizer(ABC):
 
         return new_instance
 
-    def output_from_model(self, model, paths):
+    def samples_from_model(self, model, paths):
         raise NotImplementedError()
 
 

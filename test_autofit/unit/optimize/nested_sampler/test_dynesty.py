@@ -6,7 +6,7 @@ from autofit import Paths
 from autoconf import conf
 import autofit as af
 import numpy as np
-from autofit.optimize.non_linear.nested_sampling.dynesty import DynestyOutput
+from autofit.optimize.non_linear.nested_sampling.dynesty import DynestySamples
 from test_autofit.mock import MockClassNLOx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -31,7 +31,7 @@ def test_dynesty_output_converged():
 
     mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-    return DynestyOutput(mapper, Paths())
+    return DynestySamples(mapper, Paths())
 
 
 @pytest.fixture(name="dynesty_output_unconverged")
@@ -44,7 +44,7 @@ def test_dynesty_output_unconverged():
 
     mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-    return DynestyOutput(mapper, Paths())
+    return DynestySamples(mapper, Paths())
 
 
 class TestDynestyConfig:

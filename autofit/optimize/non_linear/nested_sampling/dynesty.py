@@ -8,9 +8,9 @@ from dynesty.dynesty import DynamicNestedSampler
 from multiprocessing.pool import Pool
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.optimize.non_linear import samples
 from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
     NestedSampler,
-    NestedSamplerOutput,
 )
 from autofit.optimize.non_linear.non_linear import Result
 
@@ -146,7 +146,6 @@ class AbstractDynesty(NestedSampler):
         A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
         of the full chains used by the fit.
         """
-        dynesty_output = DynestyOutput(model=model, paths=self.paths)
 
         if os.path.exists("{}/{}.pickle".format(self.paths.chains_path, "dynesty")):
 
@@ -196,21 +195,23 @@ class AbstractDynesty(NestedSampler):
 
         self.paths.backup()
 
-        instance = dynesty_output.most_likely_instance
-        dynesty_output.output_results(during_analysis=False)
+        samples = self.samples_from_model(model=model, paths=self.paths)
+
+        instance = samples.most_likely_instance
+        samples.output_results(during_analysis=False)
         return Result(
             instance=instance,
-            log_likelihood=dynesty_output.max_log_posterior,
-            output=dynesty_output,
+            log_likelihood=samples.max_log_posterior,
+            output=samples,
             previous_model=model,
-            gaussian_tuples=dynesty_output.gaussian_priors_at_sigma(self.sigma),
+            gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def output_from_model(self, model, paths):
+    def samples_from_model(self, model, paths):
         """Create this non-linear search's output class from the model and paths.
 
         This function is required by the aggregator, so it knows which output class to generate an instance of."""
-        return DynestyOutput(model=model, paths=paths)
+        return samples.NestedSamplerSamples(model=model, paths=paths)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
@@ -327,196 +328,3 @@ class DynestyDynamic(AbstractDynesty):
         )
 
 
-class DynestyOutput(NestedSamplerOutput):
-    @property
-    def sampler(self):
-        """The pickled instance of the *Dynesty* sampler, which provides access to all accept sample likelihoods,
-        weights, etc. of the non-linear search.
-
-        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        with open("{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "rb") as f:
-            return pickle.load(f)
-
-    @property
-    def results(self):
-        """Convenience method to the pickled sample's results."""
-        with open("{}/{}.pickle".format(self.paths.chains_path, "results"), "rb") as f:
-            return pickle.load(f)
-
-    @property
-    def pdf(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search chains.
-
-        *GetDist* can only be used when chains are converged enough to provide a smooth PDF and this convergence is
-        checked using the *pdf_converged* bool before *GetDist* is called.
-
-        https://github.com/cmbant/getdist
-        https://getdist.readthedocs.io/en/latest/
-
-        For *Dynesty*, chains are passed to *GetDist* using the pickled sapler instance, which contains the physical
-        model parameters of every accepted sample, their likelihoods and weights.
-        """
-        import getdist
-
-        return getdist.mcsamples.MCSamples(
-            samples=self.results.samples,
-            weights=self.results.logwt,
-            loglikes=self.results.logl,
-        )
-
-    @property
-    def pdf_converged(self) -> bool:
-        """ To analyse and visualize chains using *GetDist*, the analysis must be sufficiently converged to produce
-        smooth enough PDF for analysis. This property checks whether the non-linear search's chains are sufficiently
-        converged for *GetDist* use.
-
-        For *Dynesty*, during initial sampling one accepted live point typically has > 99% of the probabilty as its
-        log_likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
-        all live points have similar log_likelihood and sampling probabilities."""
-        try:
-            densities_1d = list(
-                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
-            )
-
-            if densities_1d == []:
-                return False
-
-            return True
-        except Exception:
-            return False
-
-    @property
-    def number_live_points(self) -> int:
-        """The number of live points used by the nested sampler."""
-        return int(np.sum(self.results.nlive))
-
-    @property
-    def total_samples(self) -> int:
-        """The total number of samples performed by the non-linear search.
-
-        For Dynesty, this includes all accepted and rejected samples, and is loaded from the sampler pickle.
-        """
-        return int(np.sum(self.results.ncall))
-
-    @property
-    def total_accepted_samples(self) -> int:
-        """The total number of accepted samples performed by the non-linear search.
-
-        For Dynesty, this is loaded from the pickled sampler.
-        """
-        return self.results.niter
-
-    @property
-    def acceptance_ratio(self) -> float:
-        """The ratio of accepted samples to total samples."""
-        return self.total_accepted_samples / self.total_samples
-
-    @property
-    def max_log_likelihood_index(self) -> int:
-        """The index of the accepted sample with the highest log likelihood, e.g. that of best-fit / most_likely model."""
-        return int(np.argmax(self.results.logl))
-
-    @property
-    def max_log_likelihood(self) -> float:
-        """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
-
-        For Dynesty, this is computed from the pickled sampler's list of all log likelihood values."""
-        return np.max(self.results.logl)
-
-    @property
-    def max_log_likelihood_vector(self) -> [float]:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log likelihood), returned
-        as a list of values.
-
-        The vector is read from the pickled sampler instance, by first locating the index corresponding to the highest
-        log_likelihood accepted sample."""
-        return self.results.samples[self.max_log_likelihood_index]
-
-    @property
-    def log_evidence(self) -> float:
-        """The Bayesian log evidence estimated by the nested sampling algorithm.
-
-        For Dynesty, this is computed from the pickled sample's list of all log evidence estimates."""
-        return np.max(self.results.logz)
-
-    @property
-    def most_probable_vector(self) -> [float]:
-        """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a list of values.
-
-        If the chains are sufficiently converged this is estimated by passing the accepted samples to *GetDist*, else
-        a crude estimate using the mean value of all accepted samples is used."""
-        if self.pdf_converged:
-            return self.pdf.getMeans()
-        else:
-            return list(np.mean(self.results.samples, axis=0))
-
-    def vector_at_sigma(self, sigma) -> [float]:
-        """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
-        (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
-
-        For example, if sigma is 1.0, the marginalized values of every parameter at 31.7% and 68.2% percentiles of each
-        PDF is returned.
-
-        This does not account for covariance between parameters. For example, if two parameters (x, y) are degenerate
-        whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
-        upper values. Thus, caution is advised when using the function to reperform a model-fits.
-
-        For *Dynesty*, this is estimated using *GetDist* if the chains have converged, by sampling the density
-        function at an input PDF %. If not converged, a crude estimate using the range of values of the current
-        physical live points is used.
-
-        Parameters
-        ----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
-        limit = math.erf(0.5 * sigma * math.sqrt(2))
-
-        if self.pdf_converged:
-            densities_1d = list(
-                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
-            )
-
-            return list(map(lambda p: p.getLimits(limit), densities_1d))
-
-        parameters_min = list(
-            np.min(self.results.samples[-self.number_live_points :], axis=0)
-        )
-        parameters_max = list(
-            np.max(self.results.samples[-self.number_live_points :], axis=0)
-        )
-
-        return [
-            (parameters_min[index], parameters_max[index])
-            for index in range(len(parameters_min))
-        ]
-
-    def vector_from_sample_index(self, sample_index) -> [float]:
-        """The model parameters of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        return self.results.samples[sample_index]
-
-    def weight_from_sample_index(self, sample_index) -> float:
-        """The weight of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        return self.results.logwt[sample_index]
-
-    def log_likelihood_from_sample_index(self, sample_index) -> float:
-        """The log likelihood of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        return self.results.logl[sample_index]

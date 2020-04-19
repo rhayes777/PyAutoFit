@@ -4,7 +4,7 @@ import pickle
 import dill
 
 import autofit.optimize.non_linear.non_linear
-from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.samples import AbstractSamples
 
 
 class PhaseOutput:
@@ -40,11 +40,11 @@ class PhaseOutput:
         return f"{self.directory}/pickles"
 
     @property
-    def output(self) -> AbstractOutput:
+    def output(self) -> AbstractSamples:
         """
         An object describing the output data from the nonlinear search performed in this phase
         """
-        return self.optimizer.output_from_model(
+        return self.optimizer.samples_from_model(
             model=self.model, paths=self.optimizer.paths
         )
 

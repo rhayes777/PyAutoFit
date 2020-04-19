@@ -9,8 +9,8 @@ from autofit.mapper.prior_model.attribute_pair import (
 
 dir(conf)
 from . import exc
-from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNestOutput
-from autofit.optimize.non_linear.nested_sampling.dynesty import DynestyOutput
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNestSamples
+from autofit.optimize.non_linear.nested_sampling.dynesty import DynestySamples
 from .aggregator import Aggregator, PhaseOutput
 from .mapper import *
 from .mapper import link

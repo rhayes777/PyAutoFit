@@ -4,7 +4,7 @@ import os
 from autofit import conf
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
@@ -67,13 +67,13 @@ class NestedSampler(NonLinearOptimizer):
             self,
             paths,
             analysis,
-            output,
+            model,
+            samples_from_model,
             terminate_at_acceptance_ratio,
             acceptance_ratio_threshold,
         ):
-            super().__init__(paths, analysis, output.output_results)
+            super().__init__(paths=paths, analysis=analysis, model=model, samples_from_model=samples_from_model)
             self.accepted_samples = 0
-            self.output = output
 
             self.model_results_output_interval = conf.instance.general.get(
                 "output", "model_results_output_interval", int
@@ -88,7 +88,7 @@ class NestedSampler(NonLinearOptimizer):
                 if os.path.isfile(self.paths.file_summary):
                     try:
                         if (
-                            self.output.acceptance_ratio
+                            self.samples.acceptance_ratio
                             < self.acceptance_ratio_threshold
                         ) or self.terminate_has_begun:
                             self.terminate_has_begun = True
@@ -100,15 +100,15 @@ class NestedSampler(NonLinearOptimizer):
 
     def _fit(self, analysis, model):
 
-        output = self.output_from_model(model=model, paths=self.paths)
-
         if not os.path.exists(self.paths.has_completed_path):
+
             fitness_function = NestedSampler.Fitness(
-                self.paths,
-                analysis,
-                output,
-                self.terminate_at_acceptance_ratio,
-                self.acceptance_ratio_threshold,
+                paths=self.paths,
+                analysis=analysis,
+                model=model,
+                samples_from_model=self.samples_from_model,
+                terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
+                acceptance_ratio_threshold=self.acceptance_ratio_threshold,
             )
 
             logger.info("Running Nested Sampler...")
@@ -124,95 +124,23 @@ class NestedSampler(NonLinearOptimizer):
         else:
             logger.warning(f"{self.paths.phase_name} has run previously - skipping")
 
-        instance = output.most_likely_instance
+        samples = self.samples_from_model(model=model, paths=self.paths)
+
+        instance = samples.max_log_likelihood_instance
         analysis.visualize(instance=instance, during_analysis=False)
-        output.output_results(during_analysis=False)
-        output.output_pdf_plots()
+        samples.output_results(during_analysis=False)
+        samples.output_pdf_plots()
         result = Result(
             instance=instance,
-            log_likelihood=output.max_log_posterior,
-            output=output,
+            log_likelihood=samples.max_log_posterior,
+            output=samples,
             previous_model=model,
-            gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),
+            gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
         self.paths.backup_zip_remove()
         return result
 
-    def output_from_model(self, model, paths):
-        return NestedSamplerOutput(model=model, paths=paths)
+    def samples_from_model(self, model, paths):
+        return NotImplementedError()
 
 
-class NestedSamplerOutput(AbstractOutput):
-    @property
-    def number_live_points(self) -> int:
-        """The number of live points used by the nested sampler."""
-        raise NotImplementedError()
-
-    @property
-    def total_accepted_samples(self) -> int:
-        """The total number of accepted samples performed by the non-linear search.
-        """
-        raise NotImplementedError()
-
-    @property
-    def log_evidence(self) -> float:
-        """The Bayesian log evidence estimated by the nested sampling algorithm."""
-        raise NotImplementedError()
-
-    def weight_from_sample_index(self, sample_index) -> float:
-        """The weight of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        raise NotImplementedError()
-
-    def output_pdf_plots(self):
-        """Output plots of the probability density functions of the non-linear seach.
-
-        This uses *GetDist* to plot:
-
-         - The marginalize 1D PDF of every parameter.
-         - The marginalized 2D PDF of every parameter pair.
-         - A Triangle plot of the 2D and 1D PDF's.
-         """
-        import getdist.plots
-        import matplotlib
-
-        backend = conf.instance.visualize_general.get("general", "backend", str)
-        if not backend in "default":
-            matplotlib.use(backend)
-        import matplotlib.pyplot as plt
-
-        pdf_plot = getdist.plots.GetDistPlotter()
-
-        plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
-
-        if plot_pdf_1d_params:
-
-            for param_name in self.model.param_names:
-                pdf_plot.plot_1d(roots=self.pdf, param=param_name)
-                pdf_plot.export(
-                    fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
-                )
-
-        plt.close()
-
-        plot_pdf_triangle = conf.instance.visualize_plots.get("pdf", "triangle", bool)
-
-        if plot_pdf_triangle:
-
-            try:
-                pdf_plot.triangle_plot(roots=self.pdf)
-                pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
-            except Exception as e:
-                print(type(e))
-                print(
-                    "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
-                    "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
-                    "parameter evidence_tolerance."
-                )
-
-        plt.close()

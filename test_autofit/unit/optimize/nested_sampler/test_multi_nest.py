@@ -7,7 +7,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit import Paths
-from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNestOutput
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNestSamples
 from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -265,13 +265,13 @@ class TestMulitNestConfig:
         fitness = af.MultiNest.Fitness(
             paths=multi_nest.paths,
             analysis=None,
-            output=MultiNestOutput(model=af.ModelMapper(), paths=multi_nest.paths),
+            output=MultiNestSamples(model=af.ModelMapper(), paths=multi_nest.paths),
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.0,
         )
 
         assert fitness.accepted_samples == 0
-        assert isinstance(fitness.output, MultiNestOutput)
+        assert isinstance(fitness.output, MultiNestSamples)
         assert fitness.model_results_output_interval == 100
         assert fitness.terminate_at_acceptance_ratio == False
         assert fitness.acceptance_ratio_threshold == 0.0
@@ -285,7 +285,7 @@ class TestMultiNestOutputConverged:
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
@@ -299,7 +299,7 @@ class TestMultiNestOutputConverged:
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
@@ -320,7 +320,7 @@ class TestMultiNestOutputConverged:
         af.conf.instance.output_path = multi_nest_summary_path + "/2_classes"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
 
         create_summary_10_parameters(path=multinest_output.paths.backup_path)
 
@@ -342,7 +342,7 @@ class TestMultiNestOutputConverged:
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
 
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
         create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
         multinest = af.MultiNest(paths=Paths())
@@ -371,7 +371,7 @@ class TestMultiNestOutputConverged:
         af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
         create_weighted_samples_4_parameters(path=multinest_output.paths.backup_path)
 
         multinest = af.MultiNest(paths=Paths())
@@ -405,7 +405,7 @@ class TestMultiNestOutputConverged:
         af.conf.instance.output_path = multi_nest_resume_path + "/2_classes"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
 
         create_resume(path=multinest_output.paths.backup_path)
 
@@ -428,7 +428,7 @@ class TestMultiNestOutputUnconverged:
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
@@ -441,7 +441,7 @@ class TestMultiNestOutputUnconverged:
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
@@ -453,7 +453,7 @@ class TestMultiNestOutputUnconverged:
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
 
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
@@ -465,7 +465,7 @@ class TestMultiNestOutputUnconverged:
         af.conf.instance.output_path = multi_nest_phys_live_path + "/1_class"
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        multinest_output = MultiNestOutput(model, Paths())
+        multinest_output = MultiNestSamples(model, Paths())
         create_phys_live_4_parameters(path=multinest_output.paths.backup_path)
 
         params = multinest_output.vector_at_sigma(sigma=3.0)

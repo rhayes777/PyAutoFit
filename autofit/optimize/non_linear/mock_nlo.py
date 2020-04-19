@@ -1,7 +1,7 @@
 import math
 
 import autofit as af
-from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Analysis
 
@@ -11,7 +11,7 @@ class MockNLO(NonLinearOptimizer):
         raise NotImplementedError()
 
     def _fit(self, analysis, model):
-        mock_output = AbstractOutput(model, self.paths)
+        mock_output = AbstractSamples(model, self.paths)
 
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")
@@ -41,7 +41,7 @@ class MockNLO(NonLinearOptimizer):
             ],
         )
 
-    def output_from_model(self, model, paths):
+    def samples_from_model(self, model, paths):
         return MockOutput()
 
     @property

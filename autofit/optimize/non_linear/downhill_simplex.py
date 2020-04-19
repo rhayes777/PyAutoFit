@@ -4,7 +4,7 @@ import scipy.optimize
 from autofit import exc
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import logger
-from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.paths import Paths
 
 
@@ -49,20 +49,18 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_vector):
-            super().__init__(paths, analysis)
-            self.instance_from_vector = instance_from_vector
+        def __init__(self, paths, analysis, model, samples_fom_model):
+            super().__init__(paths, analysis, model=model, samples_from_model=samples_fom_model)
 
         def __call__(self, vector):
             try:
-                instance = self.instance_from_vector(vector)
+                instance = self.model.instance_from_vector(vector)
                 log_likelihood = self.fit_instance(instance)
             except exc.FitException:
                 log_likelihood = -np.inf
             return -2 * log_likelihood
 
     def _fit(self, analysis, model):
-        dhs_output = AbstractOutput(model, self.paths)
 
         initial_vector = model.physical_values_from_prior_medians
 
