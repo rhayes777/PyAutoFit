@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import math
 
 from autofit import conf
 from autofit.mapper import model
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractSamples:
-    def __init__(self, model, parameters, log_likelihoods, log_priors, weights):
+    def __init__(self, model, parameters, log_likelihoods, log_priors, weights, unconverged_sample_size=100):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
         as files on your hard-disk) and Python.
 
@@ -27,11 +28,24 @@ class AbstractSamples:
         self.log_priors = log_priors
         self.weights = weights
         self.log_posteriors = list(map(lambda lh, prior : lh * prior, log_likelihoods, log_priors))
+        self._unconverged_sample_size = unconverged_sample_size
 
     @property
     def total_samples(self) -> int:
         """The total number of samples performed by the non-linear search."""
         return len(self.log_likelihoods)
+
+    @property
+    def unconverged_sample_size(self):
+        """If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
+        an alternative to GetDist.
+
+        These use a subset of samples spanning the range from the most recent sample to the valaue of the
+        unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
+         the size of the total number of samples"""
+        if self.total_samples > self._unconverged_sample_size:
+            return self._unconverged_sample_size
+        return self.total_samples
 
     @property
     def max_log_likelihood_index(self) -> int:
@@ -134,11 +148,36 @@ class AbstractSamples:
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
+        For *Dynesty*, this is estimated using *GetDist* if the chains have converged, by sampling the density
+        function at an input PDF %. If not converged, a crude estimate using the range of values of the current
+        physical live points is used.
+
         Parameters
         ----------
         sigma : float
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
-        raise NotImplementedError()
+        limit = math.erf(0.5 * sigma * math.sqrt(2))
+
+        if self.pdf_converged:
+            densities_1d = list(
+                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+            )
+
+            return list(map(lambda p: p.getLimits(limit), densities_1d))
+
+        print(self.parameters[-self.unconverged_sample_size :])
+
+        parameters_min = list(
+            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
+        )
+        parameters_max = list(
+            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
+        )
+
+        return [
+            (parameters_min[index], parameters_max[index])
+            for index in range(len(parameters_min))
+        ]
 
     def vector_at_upper_sigma(self, sigma) -> [float]:
         """The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
@@ -1158,46 +1197,6 @@ class DynestySamples(NestedSamplerSamples):
             return self.pdf.getMeans()
         else:
             return list(np.mean(self.results.samples, axis=0))
-
-    def vector_at_sigma(self, sigma) -> [float]:
-        """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
-        (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
-
-        For example, if sigma is 1.0, the marginalized values of every parameter at 31.7% and 68.2% percentiles of each
-        PDF is returned.
-
-        This does not account for covariance between parameters. For example, if two parameters (x, y) are degenerate
-        whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
-        upper values. Thus, caution is advised when using the function to reperform a model-fits.
-
-        For *Dynesty*, this is estimated using *GetDist* if the chains have converged, by sampling the density
-        function at an input PDF %. If not converged, a crude estimate using the range of values of the current
-        physical live points is used.
-
-        Parameters
-        ----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
-        limit = math.erf(0.5 * sigma * math.sqrt(2))
-
-        if self.pdf_converged:
-            densities_1d = list(
-                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
-            )
-
-            return list(map(lambda p: p.getLimits(limit), densities_1d))
-
-        parameters_min = list(
-            np.min(self.results.samples[-self.number_live_points :], axis=0)
-        )
-        parameters_max = list(
-            np.max(self.results.samples[-self.number_live_points :], axis=0)
-        )
-
-        return [
-            (parameters_min[index], parameters_max[index])
-            for index in range(len(parameters_min))
-        ]
 
     def vector_from_sample_index(self, sample_index) -> [float]:
         """The model parameters of an individual sample of the non-linear search.
