@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractSamples:
-    def __init__(self, model, parameters, log_likelihoods, log_priors):
+    def __init__(self, model, parameters, log_likelihoods, log_priors, weights):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
         as files on your hard-disk) and Python.
 
@@ -25,6 +25,7 @@ class AbstractSamples:
         self.parameters = parameters
         self.log_likelihoods = log_likelihoods
         self.log_priors = log_priors
+        self.weights = weights
         self.log_posteriors = list(map(lambda lh, prior : lh * prior, log_likelihoods, log_priors))
 
     @property
@@ -63,10 +64,58 @@ class AbstractSamples:
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     @property
+    def pdf_converged(self) -> bool:
+        """ To analyse and visualize chains using *GetDist*, the analysis must be sufficiently converged to produce
+        smooth enough PDF for analysis. This property checks whether the non-linear search's chains are sufficiently
+        converged for *GetDist* use.
+
+        For *Dynesty*, during initial sampling one accepted live point typically has > 99% of the probabilty as its
+        log_likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
+        all live points have similar log_likelihood and sampling probabilities."""
+        try:
+            densities_1d = list(
+                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+            )
+
+            if densities_1d == []:
+                return False
+
+            return True
+        except Exception:
+            return False
+
+    @property
+    def pdf(self):
+        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search chains.
+
+        *GetDist* can only be used when chains are converged enough to provide a smooth PDF and this convergence is
+        checked using the *pdf_converged* bool before *GetDist* is called.
+
+        https://github.com/cmbant/getdist
+        https://getdist.readthedocs.io/en/latest/
+
+        For *Dynesty*, chains are passed to *GetDist* using the pickled sapler instance, which contains the physical
+        model parameters of every accepted sample, their likelihoods and weights.
+        """
+        import getdist
+
+        return getdist.mcsamples.MCSamples(
+            samples=self.parameters,
+            weights=self.weights,
+            loglikes=self.log_likelihoods,
+        )
+
+    @property
     def most_probable_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a list of values."""
-        raise NotImplementedError()
+        as a list of values.
+
+        If the chains are sufficiently converged this is estimated by passing the accepted samples to *GetDist*, else
+        a crude estimate using the mean value of all accepted samples is used."""
+        if self.pdf_converged:
+            return self.pdf.getMeans()
+        else:
+            return list(np.mean(self.parameters, axis=0))
 
     @property
     def most_probable_instance(self) -> model.ModelInstance:
@@ -352,25 +401,6 @@ class AbstractSamples:
                 self.most_probable_vector,
             )
         )
-
-    @property
-    def pdf(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search chains.
-
-        *GetDist* can only be used when chains are converged enough to provide a smooth PDF and this convergence is
-        checked using the *pdf_converged* bool before *GetDist* is called.
-
-        https://github.com/cmbant/getdist
-        https://getdist.readthedocs.io/en/latest/
-        """
-        raise NotImplementedError()
-
-    @property
-    def pdf_converged(self):
-        """ To analyse and visualize chains using *GetDist*, the analysis must be sufficiently converged to produce
-        smooth enough PDF for analysis. This property checks whether the non-linear search's chains are sufficiently
-        converged for *GetDist* use."""
-        raise NotImplementedError()
 
     def output_pdf_plots(self):
         """Output plots of the probability density functions of the non-linear seach."""

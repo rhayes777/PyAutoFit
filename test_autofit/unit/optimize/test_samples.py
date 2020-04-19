@@ -12,12 +12,14 @@ class MockSamples(AbstractSamples):
     def __init__(
         self,
         model,
+        parameters, log_likelihoods, log_priors,
         most_probable_vector=None,
         vector_at_sigma=None,
         sample_vector=None,
     ):
 
-        super(MockSamples, self).__init__(model=model)
+        super(MockSamples, self).__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods,
+                                          log_priors=log_priors)
 
         self._most_probable_vector = most_probable_vector
         self._vector_at_sigma = vector_at_sigma
@@ -42,13 +44,13 @@ class TestSamples:
 
     def test__max_log_likelihood_vector_and_instance(self):
 
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
         
-        parameters = [[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-                      [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-                      [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-                      [21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0],
-                      [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]]
+        parameters = [[0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [21.0, 22.0, 23.0, 24.0],
+                      [0.0, 1.0, 2.0, 3.0]]
         
         log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
 
@@ -56,9 +58,11 @@ class TestSamples:
             model=model,            
             parameters=parameters,
             log_likelihoods=log_likelihoods,
+            log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
+            weights=[],
         )
 
-        assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0]
+        assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
 
         instance = samples.max_log_likelihood_instance
 
@@ -67,20 +71,15 @@ class TestSamples:
         assert instance.mock_class_1.three == 23.0
         assert instance.mock_class_1.four == 24.0
 
-        assert instance.mock_class_2.one == (25.0, -26.0)
-        assert instance.mock_class_2.two == (-27.0, 28.0)
-        assert instance.mock_class_2.three == 29.0
-        assert instance.mock_class_2.four == 30.0
-
     def test__log_priors_and_max_log_posterior_vector_and_instance(self):
 
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-        parameters = [[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-                      [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-                      [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-                      [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-                      [21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0]]
+        parameters = [[0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [21.0, 22.0, 23.0, 24.0]]
 
         log_likelihoods = [1.0, 2.0, 3.0, 0.0, 5.0]
 
@@ -91,11 +90,12 @@ class TestSamples:
             parameters=parameters,
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
+            weights=[]
         )
 
         assert samples.log_posteriors == [1.0, 4.0, 9.0, 0.0, 25.0]
 
-        assert samples.max_log_posterior_vector == [21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0]
+        assert samples.max_log_posterior_vector == [21.0, 22.0, 23.0, 24.0]
 
         instance = samples.max_log_posterior_instance
 
@@ -104,42 +104,35 @@ class TestSamples:
         assert instance.mock_class_1.three == 23.0
         assert instance.mock_class_1.four == 24.0
 
-        assert instance.mock_class_2.one == (25.0, -26.0)
-        assert instance.mock_class_2.two == (-27.0, 28.0)
-        assert instance.mock_class_2.three == 29.0
-        assert instance.mock_class_2.four == 30.0
+    def test__unconverged_pdf__most_probable_vector_and_instance(self):
 
-    def test__most_probable_instance(self):
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4, mock_class_2=MockClassNLOx6)
+        parameters = [[1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.1, 2.1, 3.1, 4.1]]
 
-        samples = MockSamples(
+
+        weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+        log_likelihoods = list(map(lambda weight : 10.0 * weight, weights))
+
+        samples = AbstractSamples(
             model=model,
-            most_probable_vector=[
-                1.0,
-                2.0,
-                3.0,
-                4.0,
-                -5.0,
-                -6.0,
-                -7.0,
-                -8.0,
-                9.0,
-                10.0,
-            ],
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights
         )
 
         most_probable = samples.most_probable_instance
 
-        assert most_probable.mock_class_1.one == 1.0
-        assert most_probable.mock_class_1.two == 2.0
-        assert most_probable.mock_class_1.three == 3.0
-        assert most_probable.mock_class_1.four == 4.0
-
-        assert most_probable.mock_class_2.one == (-5.0, -6.0)
-        assert most_probable.mock_class_2.two == (-7.0, -8.0)
-        assert most_probable.mock_class_2.three == 9.0
-        assert most_probable.mock_class_2.four == 10.0
+        assert most_probable.mock_class_1.one == pytest.approx(1.02, 1.0e-4)
+        assert most_probable.mock_class_1.two == pytest.approx(2.02, 1.0e-4)
+        assert most_probable.mock_class_1.three == pytest.approx(3.02, 1.0e-4)
+        assert most_probable.mock_class_1.four == pytest.approx(4.02, 1.0e-4)
 
     def test__vector_at_upper_and_lower_sigma(self,):
 
