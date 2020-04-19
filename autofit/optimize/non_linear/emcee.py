@@ -239,7 +239,7 @@ class Emcee(NonLinearOptimizer):
         result = Result(
             instance=instance,
             log_likelihood=samples.max_log_posterior,
-            output=samples,
+            samples=samples,
             previous_model=model,
             gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
