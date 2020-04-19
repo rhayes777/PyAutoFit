@@ -211,12 +211,25 @@ class TestSamples:
 
     def test__gaussian_priors(self):
 
+        parameters = [[1.0, 2.0, 3.0, 4.1],
+                      [1.0, 2.0, 3.0, 4.1],
+                      [1.0, 2.0, 3.0, 4.1],
+                      [0.88, 1.88, 2.88, 3.88],
+                      [1.12, 2.12, 3.12, 4.32]]
+
+        weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+        log_likelihoods = list(map(lambda weight : 10.0 * weight, weights))
+
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = MockSamples(
+        samples = AbstractSamples(
             model=model,
-            most_probable_vector=[1.0, 2.0, 3.0, 4.1],
-            vector_at_sigma=[(0.88, 1.12), (1.88, 2.12), (2.88, 3.12), (3.88, 4.12)],
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights
         )
+
 
         gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
 
