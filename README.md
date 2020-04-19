@@ -98,7 +98,7 @@ non_linear_outputs = aggregator.output
 # The results of all 100 non-linear searches are now available. The command below creates a list of instances of the 
 # best-fit model parameters of all 100 model fits (many other results are available, e.g. marginalized 1D parameter 
 # estimates, errors, Bayesian evidences, etc.).
-instances = [output.most_likely_instance for output in non_linear_outputs]
+instances = [output.max_log_likelihood_instance for output in non_linear_outputs]
 
 # These are instances of the 'model-components' defined using the PyAutoFit Python class format illustrated in figure 1.
 # For the Gaussian class, each instance in this list is an instance of this class and its parameters are accessible.

@@ -231,7 +231,7 @@ class Emcee(NonLinearOptimizer):
 
         samples = self.samples_from_model(model=model, paths=self.paths)
 
-        instance = samples.most_likely_instance
+        instance = samples.max_log_likelihood_instance
 
         analysis.visualize(instance=instance, during_analysis=False)
         samples.output_results(during_analysis=False)

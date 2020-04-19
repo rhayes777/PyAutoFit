@@ -1,3 +1,4 @@
+import numpy as np
 import logging
 
 from autofit import conf
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractSamples:
-    def __init__(self, model, paths):
+    def __init__(self, model, parameters, log_likelihoods, log_priors):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
         as files on your hard-disk) and Python.
 
@@ -19,33 +20,47 @@ class AbstractSamples:
         ----------
         model : af.ModelMapper
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
-            backups, etc."""
+        """
         self.model = model
-        self.paths = paths
+        self.parameters = parameters
+        self.log_likelihoods = log_likelihoods
+        self.log_priors = log_priors
+        self.log_posteriors = list(map(lambda lh, prior : lh * prior, log_likelihoods, log_priors))
 
     @property
     def total_samples(self) -> int:
         """The total number of samples performed by the non-linear search."""
-        raise NotImplementedError()
+        return len(self.log_likelihoods)
 
     @property
-    def max_log_posterior(self) -> float:
-        """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model."""
-        raise NotImplementedError()
+    def max_log_likelihood_index(self) -> int:
+        """The index of the sample with the highest log likelihood."""
+        return int(np.argmax(self.log_likelihoods))
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log likelihood), returned
-        as a list of values."""
-        raise NotImplementedError()
+        """ The parameters of the maximum log likelihood sample of the non-linear search returned as a list of values."""
+        return self.parameters[self.max_log_likelihood_index]
 
     @property
-    def most_likely_instance(self) -> model.ModelInstance:
-        """ The best-fit model sampled by the non-linear search (corresponding to the maximum log likelihood), returned
-        as a model instance."""
+    def max_log_likelihood_instance(self) -> model.ModelInstance:
+        """  The parameters of the maximum log likelihood sample of the non-linear search returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
+
+    @property
+    def max_log_posterior_index(self) -> int:
+        """The index of the sample with the highest log posterior."""
+        return int(np.argmax(self.log_posteriors))
+
+    @property
+    def max_log_posterior_vector(self) -> [float]:
+        """ The parameters of the maximum log posterior sample of the non-linear search returned as a list of values."""
+        return self.parameters[self.max_log_posterior_index]
+
+    @property
+    def max_log_posterior_instance(self) -> model.ModelInstance:
+        """  The parameters of the maximum log posterior sample of the non-linear search returned as a model instance."""
+        return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     @property
     def most_probable_vector(self) -> [float]:
@@ -382,19 +397,19 @@ class EmceeSamples(MCMCSamples):
         self.auto_correlation_required_length = auto_correlation_required_length
         self.auto_correlation_change_threshold = auto_correlation_change_threshold
 
-    @property
-    def backend(self) -> emcee.backends.HDFBackend:
-        """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
-
-        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
-            return emcee.backends.HDFBackend(
-                filename=self.paths.sym_path + "/emcee.hdf"
-            )
-        else:
-            raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path " + self.paths.path
-            )
+    # @property
+    # def backend(self) -> emcee.backends.HDFBackend:
+    #     """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+    #
+    #     The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
+    #     if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
+    #         return emcee.backends.HDFBackend(
+    #             filename=self.paths.sym_path + "/emcee.hdf"
+    #         )
+    #     else:
+    #         raise FileNotFoundError(
+    #             "The file emcee.hdf does not exist at the path " + self.paths.path
+    #         )
 
     @property
     def pdf(self):
@@ -443,36 +458,36 @@ class EmceeSamples(MCMCSamples):
         """
         return len(self.backend.get_log_prob())
 
-    @property
-    def samples_after_burn_in(self) -> [list]:
-        """The emcee samples with the initial burn-in samples removed.
-
-        The burn-in period is estimated using the auto-correlation times o the parameters."""
-
-        discard = int(3.0 * np.max(self.auto_correlation_times_of_parameters))
-        thin = int(np.max(self.auto_correlation_times_of_parameters) / 2.0)
-        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+    # @property
+    # def samples_after_burn_in(self) -> [list]:
+    #     """The emcee samples with the initial burn-in samples removed.
+    #
+    #     The burn-in period is estimated using the auto-correlation times o the parameters."""
+    #
+    #     discard = int(3.0 * np.max(self.auto_correlation_times_of_parameters))
+    #     thin = int(np.max(self.auto_correlation_times_of_parameters) / 2.0)
+    #     return self.backend.get_chain(discard=discard, thin=thin, flat=True)
 
     @property
     def auto_correlation_times_of_parameters(self) -> [float]:
         """Estimate the autocorrelation time of all parameters from the emcee backend results."""
         return self.backend.get_autocorr_time(tol=0)
 
-    @property
-    def previous_auto_correlation_times_of_parameters(self) -> [float]:
-        return emcee.autocorr.integrated_time(
-            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
-        )
+    # @property
+    # def previous_auto_correlation_times_of_parameters(self) -> [float]:
+    #     return emcee.autocorr.integrated_time(
+    #         x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
+    #     )
 
-    @property
-    def relative_auto_correlation_times(self) -> [float]:
-        return (
-            np.abs(
-                self.previous_auto_correlation_times_of_parameters
-                - self.auto_correlation_times_of_parameters
-            )
-            / self.auto_correlation_times_of_parameters
-        )
+    # @property
+    # def relative_auto_correlation_times(self) -> [float]:
+    #     return (
+    #         np.abs(
+    #             self.previous_auto_correlation_times_of_parameters
+    #             - self.auto_correlation_times_of_parameters
+    #         )
+    #         / self.auto_correlation_times_of_parameters
+    #     )
 
     @property
     def converged(self) -> bool:
@@ -656,7 +671,6 @@ class EmceeSamples(MCMCSamples):
     def output_pdf_plots(self):
 
         pass
-
 
 
 class NestedSamplerSamples(AbstractSamples):
@@ -1079,11 +1093,6 @@ class DynestySamples(NestedSamplerSamples):
     def acceptance_ratio(self) -> float:
         """The ratio of accepted samples to total samples."""
         return self.total_accepted_samples / self.total_samples
-
-    @property
-    def max_log_likelihood_index(self) -> int:
-        """The index of the accepted sample with the highest log likelihood, e.g. that of best-fit / most_likely model."""
-        return int(np.argmax(self.results.logl))
 
     @property
     def max_log_likelihood(self) -> float:

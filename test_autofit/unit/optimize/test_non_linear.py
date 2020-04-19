@@ -201,7 +201,7 @@ class TestMostProbableAndLikely:
             most_likely=[21.0, 22.0, 23.0, 24.0, 25.0, -26.0, -27.0, 28.0, 29.0, 30.0],
         )
 
-        most_likely = nlo.most_likely_instance
+        most_likely = nlo.max_log_likelihood_instance
 
         assert most_likely.mock_class_1.one == 21.0
         assert most_likely.mock_class_1.two == 22.0
@@ -224,7 +224,7 @@ class TestMostProbableAndLikely:
             most_likely=[9.0, -10.0, -11.0, 12.0, 10.0],
         )
 
-        most_likely = nlo.most_likely_instance
+        most_likely = nlo.max_log_likelihood_instance
 
         assert most_likely.mock_class.one == 9.0
         assert most_likely.mock_class.two == -10.0

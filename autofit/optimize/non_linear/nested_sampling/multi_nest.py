@@ -211,7 +211,7 @@ class MultiNest(NestedSampler):
 
         samples = self.samples_from_model(model=model, paths=self.paths)
 
-        instance = samples.most_likely_instance
+        instance = samples.max_log_likelihood_instance
         samples.output_results(during_analysis=False)
         return Result(
             instance=instance,
