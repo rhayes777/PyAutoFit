@@ -415,9 +415,7 @@ class AbstractSamples:
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        model_parameters = self.vector_from_sample_index(sample_index=sample_index)
-
-        return self.model.instance_from_vector(vector=model_parameters)
+        return self.model.instance_from_vector(vector=self.parameters[sample_index])
 
     def offset_vector_from_input_vector(self, input_vector) -> [float]:
         """ The values of an input_vector offset by the *most_probable_vector* (the PDF medians).

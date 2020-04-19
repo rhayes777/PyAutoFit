@@ -8,38 +8,6 @@ from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-class MockSamples(AbstractSamples):
-    def __init__(
-        self,
-        model,
-        parameters, log_likelihoods, log_priors,
-        most_probable_vector=None,
-        vector_at_sigma=None,
-        sample_vector=None,
-    ):
-
-        super(MockSamples, self).__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods,
-                                          log_priors=log_priors)
-
-        self._most_probable_vector = most_probable_vector
-        self._vector_at_sigma = vector_at_sigma
-        self._sample_vector = sample_vector
-
-    @property
-    def most_probable_vector(self):
-        return self._most_probable_vector
-
-    @property
-    def max_log_likelihood_vector(self):
-        return self._max_log_likelihood_vector
-
-    def vector_at_sigma(self, sigma):
-        return [(sigma * value[0], sigma * value[1]) for value in self._vector_at_sigma]
-
-    def vector_from_sample_index(self, sample_index):
-        return self._sample_vector[sample_index]
-
-
 class TestSamples:
 
     def test__max_log_likelihood_vector_and_instance(self):
@@ -142,7 +110,6 @@ class TestSamples:
                       [1.0, 2.0, 3.0, 4.0],
                       [1.1, 2.1, 3.1, 4.1]]
 
-
         weights = [0.2, 0.2, 0.2, 0.2, 0.2]
 
         log_likelihoods = list(map(lambda weight : 10.0 * weight, weights))
@@ -209,6 +176,88 @@ class TestSamples:
         assert instance.mock_class.three == pytest.approx(2.88, 1e-2)
         assert instance.mock_class.four == pytest.approx(3.88, 1e-2)
 
+    def test__unconverged_error_vector_and_instance_at_sigma(self):
+
+        parameters = [[1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [0.88, 1.88, 2.88, 3.88],
+                      [1.12, 2.12, 3.12, 4.12]]
+
+        weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+        log_likelihoods = list(map(lambda weight : 10.0 * weight, weights))
+
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        samples = AbstractSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights
+        )
+
+        errors = samples.error_vector_at_sigma(sigma=1.0)
+        assert errors == pytest.approx(
+            [1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2
+        )
+
+        errors_instance = samples.error_instance_at_sigma(sigma=1.0)
+        assert errors_instance.mock_class.one == pytest.approx(1.12 - 0.88, 1e-2)
+        assert errors_instance.mock_class.two == pytest.approx(2.12 - 1.88, 1e-2)
+        assert errors_instance.mock_class.three == pytest.approx(3.12 - 2.88, 1e-2)
+        assert errors_instance.mock_class.four == pytest.approx(4.12 - 3.88, 1e-2)
+
+        errors = samples.error_vector_at_sigma(sigma=2.0)
+        assert errors == pytest.approx(
+            [
+                 (1.12 - 0.88),
+                 (2.12 - 1.88),
+                 (3.12 - 2.88),
+                 (4.12 - 3.88),
+            ],
+            1e-2,
+        )
+
+    def test__unconverged_error_vector_and_insstance_at_upper_and_lower_sigma(self):
+
+        parameters = [[1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [0.98, 1.88, 2.88, 3.88],
+                      [1.02, 2.12, 3.12, 4.22]]
+
+        weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+        log_likelihoods = list(map(lambda weight : 10.0 * weight, weights))
+
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        samples = AbstractSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights
+        )
+
+        upper_errors = samples.error_vector_at_upper_sigma(sigma=1.0)
+        assert upper_errors == pytest.approx([0.02, 0.12, 0.12, 0.2], 1e-2)
+
+        errors_instance = samples.error_instance_at_upper_sigma(sigma=1.0)
+        assert errors_instance.mock_class.one == pytest.approx(0.02, 1e-2)
+        assert errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
+        assert errors_instance.mock_class.three == pytest.approx(0.12, 1e-2)
+        assert errors_instance.mock_class.four == pytest.approx(0.2, 1e-2)
+
+        lower_errors = samples.error_vector_at_lower_sigma(sigma=1.0)
+        assert lower_errors == pytest.approx([0.02, 0.12, 0.12, 0.14], 1e-2)
+
+        errors_instance = samples.error_instance_at_lower_sigma(sigma=1.0)
+        assert errors_instance.mock_class.one == pytest.approx(0.02, 1e-2)
+        assert errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
+        assert errors_instance.mock_class.three == pytest.approx(0.12, 1e-2)
+        assert errors_instance.mock_class.four == pytest.approx(0.14, 1e-2)
+
     def test__gaussian_priors(self):
 
         parameters = [[1.0, 2.0, 3.0, 4.1],
@@ -243,31 +292,32 @@ class TestSamples:
         assert gaussian_priors[2][1] == pytest.approx(0.12, 1e-2)
         assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
 
-    def test__offset_vector_from_input_vector(self):
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = MockSamples(
-            model=model, paths=Paths(), most_probable_vector=[1.0, -2.0, 3.0, 4.0]
-        )
-
-        offset_values = samples.offset_vector_from_input_vector(
-            input_vector=[1.0, 1.0, 2.0, 3.0]
-        )
-
-        assert offset_values == [0.0, -3.0, 1.0, 1.0]
-
     def test__instance_from_sample_index(self,):
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = MockSamples(
+
+        parameters = [[1.0, 2.0, 3.0, 4.0],
+                      [5.0, 6.0, 7.0, 8.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.1, 2.1, 3.1, 4.1]]
+
+        weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+        log_likelihoods = list(map(lambda weight : 10.0 * weight, weights))
+
+        samples = AbstractSamples(
             model=model,
-            sample_vector=[[1.0, -2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]],
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights
         )
 
         instance = samples.instance_from_sample_index(sample_index=0)
 
         assert instance.mock_class.one == 1.0
-        assert instance.mock_class.two == -2.0
+        assert instance.mock_class.two == 2.0
         assert instance.mock_class.three == 3.0
         assert instance.mock_class.four == 4.0
 
@@ -278,64 +328,30 @@ class TestSamples:
         assert instance.mock_class.three == 7.0
         assert instance.mock_class.four == 8.0
 
-    def test__error_vector_at_sigma(self):
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = MockSamples(
+    def test__offset_vector_from_input_vector(self):
+
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+
+        parameters = [[1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.1, 2.1, 3.1, 4.1]]
+
+        weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+        log_likelihoods = list(map(lambda weight : 10.0 * weight, weights))
+
+        samples = AbstractSamples(
             model=model,
-            vector_at_sigma=[(0.88, 1.12), (1.88, 2.12), (2.88, 3.12), (3.88, 4.12)],
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights
         )
 
-        errors = samples.error_vector_at_sigma(sigma=1.0)
-        assert errors == pytest.approx(
-            [1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2
+        offset_values = samples.offset_vector_from_input_vector(
+            input_vector=[1.0, 1.0, 2.0, 3.0]
         )
 
-        errors_instance = samples.error_instance_at_sigma(sigma=1.0)
-        assert errors_instance.mock_class.one == pytest.approx(1.12 - 0.88, 1e-2)
-        assert errors_instance.mock_class.two == pytest.approx(2.12 - 1.88, 1e-2)
-        assert errors_instance.mock_class.three == pytest.approx(3.12 - 2.88, 1e-2)
-        assert errors_instance.mock_class.four == pytest.approx(4.12 - 3.88, 1e-2)
-
-        errors = samples.error_vector_at_sigma(sigma=2.0)
-        assert errors == pytest.approx(
-            [
-                2.0 * (1.12 - 0.88),
-                2.0 * (2.12 - 1.88),
-                2.0 * (3.12 - 2.88),
-                2.0 * (4.12 - 3.88),
-            ],
-            1e-2,
-        )
-
-    def test__errors_at_upper_and_lower_sigma(self):
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = MockSamples(
-            model=model,
-            most_probable_vector=[1.1, 2.0, 3.0, 4.0],
-            vector_at_sigma=[(0.88, 1.12), (1.88, 2.12), (2.88, 3.12), (3.88, 4.12)],
-        )
-
-        upper_errors = samples.error_vector_at_upper_sigma(sigma=1.0)
-        assert upper_errors == pytest.approx([0.02, 0.12, 0.12, 0.12], 1e-2)
-
-        errors_instance = samples.error_instance_at_upper_sigma(sigma=1.0)
-        assert errors_instance.mock_class.one == pytest.approx(0.02, 1e-2)
-        assert errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.three == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.four == pytest.approx(0.12, 1e-2)
-
-        upper_errors = samples.error_vector_at_upper_sigma(sigma=2.0)
-        assert upper_errors == pytest.approx([1.14, 2.24, 3.24, 4.24], 1e-2)
-
-        lower_errors = samples.error_vector_at_lower_sigma(sigma=1.0)
-        assert lower_errors == pytest.approx([0.22, 0.12, 0.12, 0.12], 1e-2)
-
-        errors_instance = samples.error_instance_at_lower_sigma(sigma=1.0)
-        assert errors_instance.mock_class.one == pytest.approx(0.22, 1e-2)
-        assert errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.three == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.four == pytest.approx(0.12, 1e-2)
-
-        lower_errors = samples.error_vector_at_lower_sigma(sigma=0.5)
-        assert lower_errors == pytest.approx([0.66, 1.06, 1.56, 2.06], 1e-2)
+        assert offset_values == pytest.approx([0.02,  1.02, 1.02, 1.02], 1.0e-4)
