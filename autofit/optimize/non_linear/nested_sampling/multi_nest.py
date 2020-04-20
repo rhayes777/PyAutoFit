@@ -179,7 +179,7 @@ class MultiNest(NestedSampler):
                             log_likelihood = self.resampling_likelihood
                         else:
                             log_likelihood = (
-                                -1.0 * np.abs(self.resampling_likelihood) * 10.0
+                                    -1.0 * np.abs(self.resampling_likelihood) * 10.0
                             )
                     return log_likelihood
 
@@ -221,11 +221,137 @@ class MultiNest(NestedSampler):
             gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def samples_from_model(self, model, paths):
-        """Create this non-linear search's output class from the model and paths.
+    def samples_from_model(self, model: AbstractPriorModel, paths):
+        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
-        This function is required by the aggregator, so it knows which output class to generate an instance of."""
-        return samples.NestedSamplerSamples(model=model, paths=paths)
+        For MulitNest, this requires us to load:
+
+            - The parameter samples, log likelihood values and weights from the multinest.txt file.
+            - The total number of samples (e.g. accepted + rejected) from resume.dat.
+            - The log evidence of the model-fit from the multinestsummary.txt file (if this is not yet estimated a
+              value of -1.0e99 is used.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            backups, etc.
+
+            """
+
+        parameters = parameters_from_file_weighted_samples(file_weighted_samples=paths.file_weighted_samples,
+                                                           prior_count=model.prior_count)
+        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
+        log_likelihoods = log_likelihoods_from_file_weighted_samples(file_weighted_samples=paths.file_weighted_samples)
+        weights = weights_from_file_weighted_samples(file_weighted_samples=paths.file_weighted_samples)
+        total_samples = total_samples_from_file_resume(file_resume=paths.file_resume)
+        log_evidence = log_evidence_from_file_summary(file_summary=paths.file_summary, prior_count=model.prior_count)
+
+        return samples.NestedSamplerSamples(model=model, parameters=parameters, log_likelihoods=log_likelihoods,
+                                            log_priors=log_priors,
+                                            weights=weights, total_samples=total_samples, log_evidence=log_evidence,
+                                            number_live_points=self.n_live_points)
 
 
+def parameters_from_file_weighted_samples(file_weighted_samples, prior_count) -> [[float]]:
+    """Open the file "multinest.txt" and extract the parameter values of every accepted live point as a list
+    of lists."""
+    weighted_samples = open(file_weighted_samples)
 
+    total_samples = 0
+    for line in weighted_samples:
+        total_samples += 1
+
+    weighted_samples.seek(0)
+
+    parameters = []
+
+    for line in range(total_samples):
+        vector = []
+        weighted_samples.read(56)
+        for param in range(prior_count):
+            vector.append(float(weighted_samples.read(28)))
+        weighted_samples.readline()
+        parameters.append(vector)
+
+    weighted_samples.close()
+
+    return parameters
+
+
+def log_likelihoods_from_file_weighted_samples(file_weighted_samples) -> [float]:
+    """Open the file "multinest.txt" and extract the log likelihood values of every accepted live point as a list."""
+    weighted_samples = open(file_weighted_samples)
+
+    total_samples = 0
+    for line in weighted_samples:
+        total_samples += 1
+
+    weighted_samples.seek(0)
+
+    log_likelihoods = []
+
+    for line in range(total_samples):
+        weighted_samples.read(28)
+        log_likelihoods.append(-0.5 * float(weighted_samples.read(28)))
+        weighted_samples.readline()
+
+    weighted_samples.close()
+
+    return log_likelihoods
+
+
+def weights_from_file_weighted_samples(file_weighted_samples) -> [float]:
+    """Open the file "multinest.txt" and extract the weight values of every accepted live point as a list."""
+    weighted_samples = open(file_weighted_samples)
+
+    total_samples = 0
+    for line in weighted_samples:
+        total_samples += 1
+
+    weighted_samples.seek(0)
+
+    log_likelihoods = []
+
+    for line in range(total_samples):
+        weighted_samples.read(4)
+        log_likelihoods.append(float(weighted_samples.read(28)))
+        weighted_samples.readline()
+
+    weighted_samples.close()
+
+    return log_likelihoods
+
+
+def total_samples_from_file_resume(file_resume):
+    """Open the file "resume.dat" and extract the total number of samples of the MultiNest analysis
+    (e.g. accepted + rejected)."""
+    resume = open(file_resume)
+
+    resume.seek(1)
+    resume.read(19)
+    return int(resume.read(8))
+
+
+def log_evidence_from_file_summary(file_summary, prior_count):
+    """Open the file "multinestsummary.txt" and extract the log evidence of the Multinest analysis.
+
+    Early in the analysis this file may not yet have been created, in which case the log evidence estimate is
+    unavailable and (would be unreliable anyway). In this case, a large negative value is returned."""
+
+    try:
+        summary = open(file_summary)
+    except FileNotFoundError:
+        return -1.0e99
+
+    summary.read(2 + 112 * prior_count)
+    vector = []
+    for param in range(2):
+        vector.append(float(summary.read(28)))
+
+    summary.close()
+
+    return vector[0]
