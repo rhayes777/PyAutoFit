@@ -27,7 +27,7 @@ def run(module, test_name=None, non_linear_class=af.MultiNest, config_folder="co
         name=test_name,
         phase_folders=[module.test_type, test_name],
         non_linear_class=non_linear_class,
-    ).run(dataset=imaging)
+    ).run(datasets=imaging)
 
 
 def run_a_mock(module):

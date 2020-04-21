@@ -239,8 +239,7 @@ class MultiNest(NestedSampler):
         paths : af.Paths
             A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
             backups, etc.
-
-            """
+        """
 
         parameters = parameters_from_file_weighted_samples(file_weighted_samples=paths.file_weighted_samples,
                                                            prior_count=model.prior_count)

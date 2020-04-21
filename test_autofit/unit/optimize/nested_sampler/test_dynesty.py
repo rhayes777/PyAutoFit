@@ -6,7 +6,7 @@ from autofit import Paths
 from autoconf import conf
 import autofit as af
 import numpy as np
-from autofit.optimize.non_linear.nested_sampling.dynesty import DynestySamples
+import pickle
 from test_autofit.mock import MockClassNLOx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -21,35 +21,25 @@ def set_config_path():
     )
 
 
-@pytest.fixture(name="dynesty_output_converged")
-def test_dynesty_output_converged():
-    dynesty_output_path = "{}/files/dynesty/".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+class MockDynestyResults:
 
-    af.conf.instance.output_path = dynesty_output_path
-
-    mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
-
-    return DynestySamples(mapper, Paths())
+    def __init__(self, samples, logl, logwt, ncall, logz, nlive):
+        self.samples = samples
+        self.logl = logl
+        self.logwt = logwt
+        self.ncall = ncall
+        self.logz = logz
+        self.nlive = nlive
 
 
-@pytest.fixture(name="dynesty_output_unconverged")
-def test_dynesty_output_unconverged():
-    dynesty_output_path = "{}/files/dynesty_unconverged/".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+class MockDynestySampler:
 
-    af.conf.instance.output_path = dynesty_output_path
-
-    mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
-
-    return DynestySamples(mapper, Paths())
+    def __init__(self, results):
+        self.results = results
 
 
 class TestDynestyConfig:
     def test__loads_from_config_file_correct(self):
-
         dynesty = af.DynestyStatic()
 
         assert dynesty.iterations_per_update == 500
@@ -87,99 +77,37 @@ class TestDynestyConfig:
         assert dynesty.terminate_at_acceptance_ratio == False
         assert dynesty.acceptance_ratio_threshold == 3.0
 
+    def test__samples_from_model(self):
 
-class TestDynestyOutputConverged:
-    def test__max_log_likelihood_and_evidence__from_summary(
-        self, dynesty_output_converged
-    ):
-        assert dynesty_output_converged.max_log_likelihood == pytest.approx(
-            618.65239, 1.0e-4
-        )
-        assert dynesty_output_converged.max_log_likelihood_vector == pytest.approx(
-            [10.0221, 0.49940, 0.002401, 0.00133179], 1.0e-4
-        )
-        assert dynesty_output_converged.log_evidence == pytest.approx(592.45643, 1.0e-4)
+        # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
 
-    def test__most_probable_vector__from_chains(self, dynesty_output_converged):
+        results = MockDynestyResults(samples=[[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]],
+                                     logl=[1.0, 2.0, 3.0], logwt=[1.0, 2.0, 3.0], ncall=[5.0, 5.0],
+                                     logz=[10.0, 11.0, 12.0], nlive=3)
 
-        assert dynesty_output_converged.most_probable_vector == pytest.approx(
-            [10.011122, 0.4996056, 0.00232913, 0.00101658], 1.0e-4
-        )
+        sampler = MockDynestySampler(results=results)
 
-    def test__vector_at_sigma__from_weighted_samples(self, dynesty_output_converged):
+        paths = af.Paths()
 
-        params = dynesty_output_converged.vector_at_sigma(sigma=3.0)
+        with open(
+                f"{paths.chains_path}/dynesty.pickle", "wb"
+        ) as f:
+            pickle.dump(sampler, f)
 
-        assert params[0][0:2] == pytest.approx((9.599, 10.387), 1e-2)
-        assert params[1][0:2] == pytest.approx((0.485, 0.518), 1e-2)
-        assert params[2][0:2] == pytest.approx((-0.0180, 0.0255), 1e-2)
-        assert params[3][0:2] == pytest.approx((-0.0209, 0.0269), 1e-2)
+        dynesty = af.DynestyStatic(paths=paths)
 
-        params = dynesty_output_converged.vector_at_sigma(sigma=1.0)
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        assert params[0][0:2] == pytest.approx((9.971, 10.069), 1e-2)
-        assert params[1][0:2] == pytest.approx((0.497, 0.5014), 1e-2)
-        assert params[2][0:2] == pytest.approx((-0.000225, 0.00515), 1e-2)
-        assert params[3][0:2] == pytest.approx((-0.00204, 0.0042), 1e-2)
+        samples = dynesty.samples_from_model(model=model, paths=paths)
 
-    def test__samples__model_parameters_weight_and_likelihood_from_sample_index(
-        self, dynesty_output_converged
-    ):
-
-        # 629 is the most-likely model.
-
-        model = dynesty_output_converged.vector_from_sample_index(sample_index=100)
-        weight = dynesty_output_converged.weight_from_sample_index(sample_index=100)
-        log_likelihood = dynesty_output_converged.log_likelihood_from_sample_index(
-            sample_index=100
-        )
-
-        assert model == pytest.approx([11.84474, 5.13973, -0.045362, -0.093680], 1.0e-3)
-
-        assert weight == pytest.approx(-85780.18, 1.0e-2)
-        assert log_likelihood == pytest.approx(-85771.5, 1.0e-2)
-
-        model = dynesty_output_converged.vector_from_sample_index(sample_index=629)
-        weight = dynesty_output_converged.weight_from_sample_index(sample_index=629)
-        log_likelihood = dynesty_output_converged.log_likelihood_from_sample_index(
-            sample_index=629
-        )
-
-        assert model == pytest.approx([10.0221, 0.49940, 0.002401, 0.00133179], 1.0e-3)
-
-        assert weight == pytest.approx(585.809, 1.0e-2)
-        assert log_likelihood == pytest.approx(618.65, 1.0e-2)
-
-    def test__total_samples__accepted_samples__acceptance_ratio(
-        self, dynesty_output_converged
-    ):
-
-        assert dynesty_output_converged.total_accepted_samples == 610
-        assert dynesty_output_converged.total_samples == 2282
-
-
-class TestDynestyOutputUnconverged:
-    def test__most_probable_vector__from_chains(self, dynesty_output_unconverged):
-
-        assert dynesty_output_unconverged.most_probable_vector == pytest.approx(
-            [571.815, 10.8658, -0.0048052, 0.0257509], 1.0e-2
-        )
-
-    def test__vector_at_sigma__from_weighted_samples(self, dynesty_output_unconverged):
-
-        params = dynesty_output_unconverged.vector_at_sigma(sigma=3.0)
-
-        assert params[0][0:2] == pytest.approx((1.98047, 66.3346), 1e-2)
-        assert params[1][0:2] == pytest.approx((0.64778, 21.3195), 1e-2)
-        assert params[2][0:2] == pytest.approx((-0.21020, 0.19028), 1e-2)
-        assert params[3][0:2] == pytest.approx((-0.215614, 0.14256), 1e-2)
-
-        params = dynesty_output_unconverged.vector_at_sigma(sigma=1.0)
-
-        assert params[0][0:2] == pytest.approx((1.98047, 66.3346), 1e-2)
-        assert params[1][0:2] == pytest.approx((0.64778, 21.3195), 1e-2)
-        assert params[2][0:2] == pytest.approx((-0.21020, 0.19028), 1e-2)
-        assert params[3][0:2] == pytest.approx((-0.215614, 0.14256), 1e-2)
+        assert samples.parameters == [[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]
+        assert samples.log_likelihoods == [1.0, 2.0, 3.0]
+        assert samples.log_priors == [0.25, 0.25, 0.25]
+        assert samples.weights == [1.0, 2.0, 3.0]
+        assert samples.total_samples == 10
+        assert samples.log_evidence == 12.0
+        assert samples.number_live_points == 3
 
 
 class TestCopyWithNameExtension:
@@ -195,8 +123,8 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyStatic)
         assert copy.sigma is optimizer.sigma
         assert (
-            copy.terminate_at_acceptance_ratio
-            is optimizer.terminate_at_acceptance_ratio
+                copy.terminate_at_acceptance_ratio
+                is optimizer.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
 
@@ -222,8 +150,8 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyDynamic)
         assert copy.sigma is optimizer.sigma
         assert (
-            copy.terminate_at_acceptance_ratio
-            is optimizer.terminate_at_acceptance_ratio
+                copy.terminate_at_acceptance_ratio
+                is optimizer.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
 

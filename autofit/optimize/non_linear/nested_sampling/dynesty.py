@@ -149,46 +149,38 @@ class AbstractDynesty(NestedSampler):
 
         if os.path.exists("{}/{}.pickle".format(self.paths.chains_path, "dynesty")):
 
-            with open(
-                "{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "rb"
-            ) as f:
-                dynesty_sampler = pickle.load(f)
+            sampler = self.load_sampler
 
         else:
 
-            dynesty_sampler = self.sampler_fom_model_and_fitness(
+            sampler = self.sampler_fom_model_and_fitness(
                 model=model, fitness_function=fitness_function
             )
 
         # These hacks are necessary to be able to pickle the sampler.
 
-        dynesty_sampler.rstate = np.random
+        sampler.rstate = np.random
         pool = Pool(processes=1)
-        dynesty_sampler.pool = pool
-        dynesty_sampler.M = pool.map
+        sampler.pool = pool
+        sampler.M = pool.map
 
         dynesty_finished = False
 
         while dynesty_finished is False:
 
             try:
-                iterations_before_run = np.sum(dynesty_sampler.results.ncall)
+                iterations_before_run = np.sum(sampler.results.ncall)
             except AttributeError:
                 iterations_before_run = 0
 
-            dynesty_sampler.run_nested(maxcall=self.iterations_per_update)
+            sampler.run_nested(maxcall=self.iterations_per_update)
 
-            iterations_after_run = np.sum(dynesty_sampler.results.ncall)
+            iterations_after_run = np.sum(sampler.results.ncall)
 
             with open(
                 f"{self.paths.chains_path}/dynesty.pickle", "wb"
             ) as f:
-                pickle.dump(dynesty_sampler, f)
-
-            with open(
-                f"{self.paths.chains_path}/results.pickle", "wb"
-            ) as f:
-                pickle.dump(dynesty_sampler.results, f)
+                pickle.dump(sampler, f)
 
             if iterations_before_run == iterations_after_run:
                 dynesty_finished = True
@@ -201,20 +193,50 @@ class AbstractDynesty(NestedSampler):
         samples.output_results(during_analysis=False)
         return Result(
             instance=instance,
-            log_likelihood=samples.max_log_posterior,
+            log_likelihood=samples.max_log_lik,
             samples=samples,
             previous_model=model,
             gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def samples_from_model(self, model, paths):
-        """Create this non-linear search's output class from the model and paths.
-
-        This function is required by the aggregator, so it knows which output class to generate an instance of."""
-        return samples.NestedSamplerSamples(model=model, paths=paths)
+    @property
+    def load_sampler(self):
+        with open(
+                "{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "rb"
+            ) as f:
+                return pickle.load(f)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
+
+    def samples_from_model(self, model, paths):
+        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+
+        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            backups, etc.
+        """
+
+        sampler = self.load_sampler
+
+        parameters = sampler.results.samples
+        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
+        log_likelihoods = sampler.results.logl
+        weights = sampler.results.logwt
+        total_samples = int(np.sum(sampler.results.ncall))
+        log_evidence = np.max(sampler.results.logz)
+
+        return samples.NestedSamplerSamples(model=model, parameters=parameters, log_likelihoods=log_likelihoods,
+                                            log_priors=log_priors,
+                                            weights=weights, total_samples=total_samples, log_evidence=log_evidence,
+                                            number_live_points=sampler.results.nlive)
 
 
 class DynestyStatic(AbstractDynesty):
