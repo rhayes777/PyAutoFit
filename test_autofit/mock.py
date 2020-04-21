@@ -10,7 +10,7 @@ from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.tools.phase import Dataset
 
 
-class MockNonLinearOptimizer(AbstractSamples):
+class MockNonLinearOptimizer(object):
     def __init__(
             self,
             phase_name,

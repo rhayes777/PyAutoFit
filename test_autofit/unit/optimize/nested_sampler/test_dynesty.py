@@ -78,7 +78,6 @@ class TestDynestyConfig:
         assert dynesty.acceptance_ratio_threshold == 3.0
 
     def test__samples_from_model(self):
-
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
 
         results = MockDynestyResults(samples=[[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]],

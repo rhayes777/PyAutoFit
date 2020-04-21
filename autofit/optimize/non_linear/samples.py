@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 import math
+import emcee
 
 from autofit import conf
 from autofit.mapper import model
@@ -160,9 +161,6 @@ class AbstractSamples:
             )
 
             return list(map(lambda p: p.getLimits(limit), densities_1d))
-
-        print(self.pdf_converged)
-        sifsdfil
 
         parameters_min = list(
             np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
@@ -486,38 +484,37 @@ class AbstractSamples:
 
 
 class MCMCSamples(AbstractSamples):
-    pass
 
-
-class EmceeSamples(MCMCSamples):
     def __init__(
             self,
             model,
-            paths,
+            parameters, log_likelihoods, log_priors, weights,
+            auto_correlation_times,
             auto_correlation_check_size,
             auto_correlation_required_length,
-            auto_correlation_change_threshold,
+            auto_correlation_change_threshold, total_walkers, total_steps,
+            backend, unconverged_sample_size=100
     ):
+        """
+        Attributes
+        ----------
+        total_walkers : int
+            The total number of walkers used by this MCMC non-linear search.
+        total_steps : int
+            The total number of steps taken by each walker of this MCMC non-linear search (the total samples is equal
+            to the total steps * total walkers).
+        """
 
-        super(EmceeSamples, self).__init__(model=model, paths=paths)
+        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods, log_priors=log_priors, weights=weights,
+                         unconverged_sample_size=unconverged_sample_size)
 
+        self.total_walkers = total_walkers
+        self.total_steps = total_steps
+        self.auto_correlation_times = auto_correlation_times
         self.auto_correlation_check_size = auto_correlation_check_size
         self.auto_correlation_required_length = auto_correlation_required_length
         self.auto_correlation_change_threshold = auto_correlation_change_threshold
-
-    # @property
-    # def backend(self) -> emcee.backends.HDFBackend:
-    #     """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
-    #
-    #     The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-    #     if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
-    #         return emcee.backends.HDFBackend(
-    #             filename=self.paths.sym_path + "/emcee.hdf"
-    #         )
-    #     else:
-    #         raise FileNotFoundError(
-    #             "The file emcee.hdf does not exist at the path " + self.paths.path
-    #         )
+        self.backend = backend
 
     @property
     def pdf(self):
@@ -547,62 +544,37 @@ class EmceeSamples(MCMCSamples):
         return True
 
     @property
-    def total_samples(self) -> int:
-        """The total number of samples performed by the non-linear search.
+    def samples_after_burn_in(self) -> [list]:
+        """The emcee samples with the initial burn-in samples removed.
 
-        For Emcee, this includes all accepted and rejected proposed steps and is loaded from the results backend.
-        """
-        return len(self.backend.get_chain(flat=True))
+        The burn-in period is estimated using the auto-correlation times of the parameters."""
 
-    @property
-    def total_walkers(self) -> int:
-        """The total number of walkers used by this *Emcee* non-linear search.
-        """
-        return len(self.backend.get_chain()[0, :, 0])
+        discard = int(3.0 * np.max(self.auto_correlation_times))
+        thin = int(np.max(self.auto_correlation_times) / 2.0)
+        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
 
     @property
-    def total_steps(self) -> int:
-        """The total number of steps taken by each walk of this *Emcee* non-linear search.
-        """
-        return len(self.backend.get_log_prob())
-
-    # @property
-    # def samples_after_burn_in(self) -> [list]:
-    #     """The emcee samples with the initial burn-in samples removed.
-    #
-    #     The burn-in period is estimated using the auto-correlation times o the parameters."""
-    #
-    #     discard = int(3.0 * np.max(self.auto_correlation_times_of_parameters))
-    #     thin = int(np.max(self.auto_correlation_times_of_parameters) / 2.0)
-    #     return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+    def previous_auto_correlation_times(self) -> [float]:
+        return emcee.autocorr.integrated_time(
+            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
+        )
 
     @property
-    def auto_correlation_times_of_parameters(self) -> [float]:
-        """Estimate the autocorrelation time of all parameters from the emcee backend results."""
-        return self.backend.get_autocorr_time(tol=0)
-
-    # @property
-    # def previous_auto_correlation_times_of_parameters(self) -> [float]:
-    #     return emcee.autocorr.integrated_time(
-    #         x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
-    #     )
-
-    # @property
-    # def relative_auto_correlation_times(self) -> [float]:
-    #     return (
-    #         np.abs(
-    #             self.previous_auto_correlation_times_of_parameters
-    #             - self.auto_correlation_times_of_parameters
-    #         )
-    #         / self.auto_correlation_times_of_parameters
-    #     )
+    def relative_auto_correlation_times(self) -> [float]:
+        return (
+            np.abs(
+                self.previous_auto_correlation_times
+                - self.auto_correlation_times
+            )
+            / self.auto_correlation_times
+        )
 
     @property
     def converged(self) -> bool:
         """Whether the emcee chains have converged on a solution or if they are still in a burn-in period, based on the
         auto correlation times of parameters."""
         converged = np.all(
-            self.auto_correlation_times_of_parameters
+            self.auto_correlation_times
             * self.auto_correlation_required_length
             < self.total_samples
         )
@@ -615,69 +587,6 @@ class EmceeSamples(MCMCSamples):
             except IndexError:
                 return False
         return converged
-
-    @property
-    def log_likelihoods(self) -> [float]:
-        """A list of log likelihood values of every sample of the Emcee chains.
-
-        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
-        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
-        log_prior values."""
-        params = self.backend.get_chain(flat=True)
-        log_priors = [sum(self.model.log_priors_from_vector(vector=vector)) for vector in params]
-        log_posteriors = self.backend.get_log_prob(flat=True)
-
-        return list(map(lambda log_prior, log_posterior: log_posterior - log_prior, log_priors, log_posteriors))
-
-    @property
-    def max_log_likelihood_index(self) -> int:
-        """The index of the accepted sample with the highest log likelihood.
-
-        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
-        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
-        log_prior values."""
-        return int(np.argmax(self.log_likelihoods))
-
-    @property
-    def max_log_likelihood(self) -> float:
-        """The maximum log likelihood value of the non-linear search, corresponding to the best-fit model.
-
-        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
-        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
-        log_prior values."""
-        return self.log_likelihoods[self.max_log_likelihood_index]
-
-    @property
-    def max_log_likelihood_vector(self) -> [float]:
-        """ The vector of parameters corresponding to the highest log likelihood sample, returned as a list of
-        parameter values.
-
-        The log likelihood is the value sampled via the log likelihood function of a model and does not have the log_prior
-        values added to it. This is not directly sampled by Emcee and is thus computed by re-subtracting off all
-        log_prior values."""
-        return self.backend.get_chain(flat=True)[self.max_log_likelihood_index]
-
-    @property
-    def max_log_posterior_index(self) -> int:
-        """The index of the accepted sample with the highest posterior value.
-
-        This is directly extracted from the Emcee results backend."""
-        return int(np.argmax(self.backend.get_log_prob(flat=True)))
-
-    @property
-    def max_log_posterior(self) -> float:
-        """The maximum posterior value of a sample in the non-linear search.
-
-        For emcee, this is computed from the backend's list of all posterior values."""
-        return self.backend.get_log_prob(flat=True)[self.max_log_posterior_index]
-
-    @property
-    def max_log_posterior_vector(self) -> [float]:
-        """ The vector of parameters corresponding to the highest log-posterior sample, returned as a list of
-        parameter values.
-
-        The vector is read from the Emcee results backend, using the index of the highest posterior sample."""
-        return self.backend.get_chain(flat=True)[self.max_log_posterior_index]
 
     @property
     def most_probable_vector(self) -> [float]:
@@ -717,64 +626,6 @@ class EmceeSamples(MCMCSamples):
             tuple(np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit]))
             for i in range(self.model.prior_count)
         ]
-
-    def vector_from_sample_index(self, sample_index) -> [float]:
-        """The model parameters of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        return list(self.pdf.samples[sample_index])
-
-    def weight_from_sample_index(self, sample_index) -> [float]:
-        """The weight of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        return self.pdf.weights[sample_index]
-
-    def log_likelihood_from_sample_index(self, sample_index) -> [float]:
-        """The log likelihood of an individual sample of the non-linear search.
-
-        This is computed by subtracting the log prior from the log posterior.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        return self.log_posterior_from_sample_index(sample_index=sample_index) - \
-               self.log_prior_from_sample_index(sample_index=sample_index)
-
-    def log_prior_from_sample_index(self, sample_index) -> [float]:
-        """The sum of log priors of all parameters of an individual sample of the non-linear search.
-
-        This is computed using the physical values of each parameter and their prior.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        vector = self.vector_from_sample_index(sample_index=sample_index)
-        return sum(self.model.log_priors_from_vector(vector=vector))
-
-    def log_posterior_from_sample_index(self, sample_index) -> [float]:
-        """The log of the posterior of an individual sample of the non-linear search.
-
-        This is directly extracted from the Emcee samples.
-
-        Parameters
-        ----------
-        sample_index : int
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        return self.backend.get_log_prob(flat=True)[sample_index]
 
     def output_pdf_plots(self):
 

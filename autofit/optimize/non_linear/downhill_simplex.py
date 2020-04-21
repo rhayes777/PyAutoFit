@@ -65,7 +65,7 @@ class DownhillSimplex(NonLinearOptimizer):
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            self.paths, analysis, model.instance_from_vector
+            paths=self.paths, analysis=analysis, model=model, samples_fom_model=self.samples_from_model
         )
 
         logger.info("Running DownhillSimplex...")
@@ -81,3 +81,6 @@ class DownhillSimplex(NonLinearOptimizer):
         analysis.visualize(instance=res.instance, during_analysis=False)
         self.paths.backup_zip_remove()
         return res
+
+    def samples_from_model(self, model, paths):
+        pass

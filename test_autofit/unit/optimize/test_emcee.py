@@ -4,7 +4,6 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit import Paths
-from autofit.optimize.non_linear.emcee import EmceeSamples
 from test_autofit.mock import MockClassNLOx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -19,23 +18,15 @@ def set_config_path():
     )
 
 
-@pytest.fixture(name="emcee_output")
-def test_emcee_output():
-    emcee_output_path = "{}/files/emcee/".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+class MockDynestyResults:
 
-    af.conf.instance.output_path = emcee_output_path
-
-    mapper = af.ModelMapper(mock_class_1=MockClassNLOx4)
-
-    return EmceeSamples(
-        mapper,
-        Paths(),
-        auto_correlation_check_size=10,
-        auto_correlation_required_length=10,
-        auto_correlation_change_threshold=0.01,
-    )
+    def __init__(self, samples, logl, logwt, ncall, logz, nlive):
+        self.samples = samples
+        self.logl = logl
+        self.logwt = logwt
+        self.ncall = ncall
+        self.logz = logz
+        self.nlive = nlive
 
 
 class TestEmceeConfig:
@@ -50,83 +41,73 @@ class TestEmceeConfig:
         assert emcee.auto_correlation_required_length == 50
         assert emcee.auto_correlation_change_threshold == 0.01
 
+    def test__samples_from_model(self):
+
+        # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
+
+        emcee = af.Emcee(paths=Paths())
+
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+
+        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
+
+        assert samples.parameters[0] == pytest.approx([0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4)
+        assert samples.log_likelihoods[0] == pytest.approx(-17257775239.32677, 1.0e-4)
+        assert samples.log_priors[0] == pytest.approx(1.6102016075510708, 1.0e-4)
+        assert samples.weights[0] == pytest.approx(1.0, 1.0e-4)
+        assert samples.total_steps == 1000
+        assert samples.total_walkers == 10
+        assert samples.auto_correlation_times[0] == pytest.approx(31.98507, 1.0e-4)
 
 class TestEmceeOutput:
 
-    def test__max_log_likelihood(self, emcee_output):
+    def test__most_probable_parameters(self):
 
-        emcee_output.model.mock_class_1.one = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+        emcee = af.Emcee(paths=Paths())
 
-        assert emcee_output.max_log_likelihood_index == 9977
-        assert emcee_output.max_log_likelihood == pytest.approx(581.24209, 1.0e-4)
-        assert emcee_output.max_log_likelihood_vector == pytest.approx(
-            [0.003825, -0.00360509, 9.957799, 0.4940334], 1.0e-3
-        )
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-    def test__max_log_posterior(self, emcee_output):
+        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
 
-        assert emcee_output.max_log_posterior_index == 9977
-        assert emcee_output.max_log_posterior == pytest.approx(583.26625, 1.0e-4)
-        assert emcee_output.max_log_posterior_vector == pytest.approx(
-            [0.003825, -0.00360509, 9.957799, 0.4940334], 1.0e-3
-        )
-
-    def test__most_probable_parameters(sel, emcee_output):
-
-        assert emcee_output.most_probable_vector == pytest.approx(
+        assert samples.most_probable_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
         )
 
-    def test__vector_at_sigma__uses_output_files(self, emcee_output):
+    def test__vector_at_sigma__uses_output_files(self):
 
-        params = emcee_output.vector_at_sigma(sigma=3.0)
+        emcee = af.Emcee(paths=Paths())
+
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+
+        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
+
+        params = samples.vector_at_sigma(sigma=3.0)
 
         assert params[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
 
-        params = emcee_output.vector_at_sigma(sigma=1.0)
+        params = samples.vector_at_sigma(sigma=1.0)
 
         assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
-    def test__samples__total_steps_samples__model_parameters_weight_and_log_posterior_from_sample_index(
-        self, emcee_output
-    ):
+    def test__autocorrelation_times(self):
 
-        emcee_output.model.mock_class_1.one = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+        emcee = af.Emcee(paths=Paths())
 
-        model = emcee_output.vector_from_sample_index(sample_index=0)
-        weight = emcee_output.weight_from_sample_index(sample_index=0)
-        log_prior = emcee_output.log_prior_from_sample_index(sample_index=0)
-        log_posterior = emcee_output.log_posterior_from_sample_index(sample_index=0)
-        log_likelihood = emcee_output.log_likelihood_from_sample_index(sample_index=0)
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        assert emcee_output.total_walkers == 10
-        assert emcee_output.total_steps == 1000
-        assert emcee_output.total_samples == 10000
-        assert model == pytest.approx(
-            [0.0090338, -0.05790179, 10.192579, 0.480606], 1.0e-2
-        )
-        assert weight == 1.0
-        assert log_likelihood == pytest.approx(-17257775239 + 2.0807033, 1.0e-4)
-        assert log_prior == pytest.approx(2.0807033, 1.0e-4)
-        assert log_posterior == pytest.approx(-17257775239, 1.0e-4)
-
-        #
-        # assert emcee_output.total_samples == 10
-        # assert model == [1.0, 2.0, 3.0, 4.0]
-        # assert weight == 0.1
-        # assert log_likelihood == -0.5 * 9999999.9
-
-    def test__autocorrelation_times(self, emcee_output):
+        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
 
         assert (
-            emcee_output.previous_auto_correlation_times_of_parameters
-            == pytest.approx([31.92692, 36.54546, 73.33737, 67.52170], 1.0e-4)
+            samples.previous_auto_correlation_times
+            == pytest.approx([31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4)
         )
-        assert emcee_output.auto_correlation_times_of_parameters == pytest.approx(
+        assert samples.auto_correlation_times == pytest.approx(
             [31.98507, 36.51001, 73.47629, 67.67495], 1.0e-4
         )
-
-        assert emcee_output.converged == True
 
 
 class TestCopyWithNameExtension:

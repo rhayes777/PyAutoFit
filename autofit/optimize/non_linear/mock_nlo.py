@@ -11,7 +11,6 @@ class MockNLO(NonLinearOptimizer):
         raise NotImplementedError()
 
     def _fit(self, analysis, model):
-        mock_output = AbstractSamples(model, self.paths)
 
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")

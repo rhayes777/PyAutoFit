@@ -92,16 +92,15 @@ class GridSearch(NonLinearOptimizer):
             self,
             nlo,
             analysis,
-            instance_from_unit_vector,
+            model,
             save_results,
             prior_count,
             checkpoint_count=0,
             best_fit=-np.inf,
             best_cube=None,
         ):
-            super().__init__(nlo.paths, analysis)
+            super().__init__(paths=nlo.paths, analysis=analysis, model=model, samples_from_model=nlo.samples_from_model)
             self.nlo = nlo
-            self.instance_from_unit_vector = instance_from_unit_vector
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
             self.save_results = save_results
@@ -115,7 +114,7 @@ class GridSearch(NonLinearOptimizer):
 
             self.should_save_grid_results = IntervalCounter(grid_results_interval)
             if self.best_cube is not None:
-                self.fit_instance(self.instance_from_unit_vector(self.best_cube))
+                self.fit_instance(self.model.instance_from_unit_vector(self.best_cube))
 
         def __call__(self, cube):
             try:
@@ -123,7 +122,7 @@ class GridSearch(NonLinearOptimizer):
                 if self.total_calls <= self.checkpoint_count:
                     #  TODO: is there an issue here where grid_search will forget the previous best fit?
                     return -np.inf
-                instance = self.instance_from_unit_vector(cube)
+                instance = self.model.instance_from_unit_vector(cube)
                 fit = self.fit_instance(instance)
                 self.all_fits[cube] = fit
                 if fit > self.best_fit:
@@ -184,7 +183,6 @@ class GridSearch(NonLinearOptimizer):
         return int(self.checkpoint_array[4])
 
     def _fit(self, analysis, model):
-        gs_output = AbstractSamples(model, self.paths)
 
         checkpoint_count = 0
         best_fit = -np.inf
@@ -229,10 +227,10 @@ class GridSearch(NonLinearOptimizer):
 
         fitness_function = GridSearch.Fitness(
             self,
-            analysis,
-            model.instance_from_unit_vector,
-            save_results,
-            model.prior_count,
+            analysis=analysis,
+            model=model,
+            save_results=save_results,
+            prior_count=model.prior_count,
             checkpoint_count=checkpoint_count,
             best_fit=best_fit,
             best_cube=best_cube,

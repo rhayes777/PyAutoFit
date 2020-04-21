@@ -136,6 +136,9 @@ def make_grid_search():
 
 class TestGridSearch:
     def test_1d(self, grid_search, model):
+
+        print(model)
+
         model.one = Galaxy
 
         analysis = MockAnalysis()

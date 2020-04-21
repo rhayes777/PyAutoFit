@@ -148,7 +148,6 @@ class Emcee(NonLinearOptimizer):
                     self.paths.backup()
 
                 if self.should_output_model_results():
-
                     samples_text.output_results(samples=self.samples, during_analysis=True)
 
             return log_likelihood
@@ -206,11 +205,11 @@ class Emcee(NonLinearOptimizer):
         if self.nsteps - emcee_sampler.iteration > 0 and not previous_run_converged:
 
             for sample in emcee_sampler.sample(
-                initial_state=emcee_state,
-                iterations=self.nsteps - emcee_sampler.iteration,
-                progress=True,
-                skip_initial_state_check=True,
-                store=True,
+                    initial_state=emcee_state,
+                    iterations=self.nsteps - emcee_sampler.iteration,
+                    progress=True,
+                    skip_initial_state_check=True,
+                    store=True,
             ):
 
                 if emcee_sampler.iteration % self.auto_correlation_check_size:
@@ -246,10 +245,49 @@ class Emcee(NonLinearOptimizer):
         self.paths.backup_zip_remove()
         return result
 
+    @property
+    def backend(self) -> emcee.backends.HDFBackend:
+        """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+
+        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
+        if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
+            return emcee.backends.HDFBackend(
+                filename=self.paths.sym_path + "/emcee.hdf"
+            )
+        else:
+            raise FileNotFoundError(
+                "The file emcee.hdf does not exist at the path " + self.paths.path
+            )
+
     def samples_from_model(self, model, paths):
-        """Create this non-linear search's output class from the model and paths.
+        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
-        This function is required by the aggregator, so it knows which output class to generate an instance of."""
-        return samples.EmceeSamples(model=model, paths=paths)
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
 
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            backups, etc.
+        """
 
+        parameters = self.backend.get_chain(flat=True)
+        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
+        log_likelihoods = self.backend.get_log_prob(flat=True)
+        weights = len(log_likelihoods) * [1.0]
+        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
+        total_walkers = len(self.backend.get_chain()[0, :, 0])
+        total_steps = len(self.backend.get_log_prob())
+
+        return samples.MCMCSamples(
+            model=model, parameters=parameters, log_likelihoods=log_likelihoods,
+            log_priors=log_priors, weights=weights,
+            total_walkers=total_walkers, total_steps=total_steps,
+            auto_correlation_times=auto_correlation_time,
+            auto_correlation_check_size=self.auto_correlation_check_size,
+            auto_correlation_required_length=self.auto_correlation_required_length,
+            auto_correlation_change_threshold=self.auto_correlation_change_threshold,
+            backend=self.backend)
