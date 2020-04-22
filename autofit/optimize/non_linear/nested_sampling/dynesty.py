@@ -13,6 +13,7 @@ from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
     NestedSampler,
 )
 from autofit.optimize.non_linear.non_linear import Result
+from autofit.plot import samples_text
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class AbstractDynesty(NestedSampler):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
             backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
@@ -144,10 +145,10 @@ class AbstractDynesty(NestedSampler):
         Returns
         -------
         A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
-        of the full chains used by the fit.
+        of the full samples used by the fit.
         """
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.chains_path, "dynesty")):
+        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
 
             sampler = self.load_sampler
 
@@ -178,7 +179,7 @@ class AbstractDynesty(NestedSampler):
             iterations_after_run = np.sum(sampler.results.ncall)
 
             with open(
-                f"{self.paths.chains_path}/dynesty.pickle", "wb"
+                f"{self.paths.samples_path}/dynesty.pickle", "wb"
             ) as f:
                 pickle.dump(sampler, f)
 
@@ -187,29 +188,25 @@ class AbstractDynesty(NestedSampler):
 
         self.paths.backup()
 
-        samples = self.samples_from_model(model=model, paths=self.paths)
+        samples = self.samples_from_model(model=model)
 
-        instance = samples.max_log_likelihood_instance
-        samples.output_results(during_analysis=False)
+        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
         return Result(
-            instance=instance,
-            log_likelihood=samples.max_log_lik,
             samples=samples,
             previous_model=model,
-            gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
 
     @property
     def load_sampler(self):
         with open(
-                "{}/{}.pickle".format(self.paths.chains_path, "dynesty"), "rb"
+                "{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb"
             ) as f:
                 return pickle.load(f)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
 
-    def samples_from_model(self, model, paths):
+    def samples_from_model(self, model):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For Dynesty, all information that we need is available from the instance of the dynesty sampler.
@@ -220,7 +217,7 @@ class AbstractDynesty(NestedSampler):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
             backups, etc.
         """
 

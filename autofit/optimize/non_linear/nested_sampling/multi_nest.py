@@ -1,6 +1,4 @@
 import logging
-import math
-import os
 
 import numpy as np
 import pymultinest
@@ -12,7 +10,7 @@ from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
     NestedSampler,
 )
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.paths import Paths
+from autofit.plot import samples_text
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,7 @@ class MultiNest(NestedSampler):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
             backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
@@ -128,7 +126,7 @@ class MultiNest(NestedSampler):
         Returns
         -------
         A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
-        of the full chains used by the fit.
+        of the full samples used by the fit.
         """
 
         def prior(cube, ndim, nparams):
@@ -209,19 +207,16 @@ class MultiNest(NestedSampler):
         )
         self.paths.backup()
 
-        samples = self.samples_from_model(model=model, paths=self.paths)
+        samples = self.samples_from_model(model=model)
 
-        instance = samples.max_log_likelihood_instance
-        samples.output_results(during_analysis=False)
+        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
+
         return Result(
-            instance=instance,
-            log_likelihood=samples.max_log_posterior,
             samples=samples,
             previous_model=model,
-            gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
 
-    def samples_from_model(self, model: AbstractPriorModel, paths):
+    def samples_from_model(self, model: AbstractPriorModel):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
@@ -237,17 +232,17 @@ class MultiNest(NestedSampler):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
             backups, etc.
         """
 
-        parameters = parameters_from_file_weighted_samples(file_weighted_samples=paths.file_weighted_samples,
+        parameters = parameters_from_file_weighted_samples(file_weighted_samples=self.paths.file_weighted_samples,
                                                            prior_count=model.prior_count)
         log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
-        log_likelihoods = log_likelihoods_from_file_weighted_samples(file_weighted_samples=paths.file_weighted_samples)
-        weights = weights_from_file_weighted_samples(file_weighted_samples=paths.file_weighted_samples)
-        total_samples = total_samples_from_file_resume(file_resume=paths.file_resume)
-        log_evidence = log_evidence_from_file_summary(file_summary=paths.file_summary, prior_count=model.prior_count)
+        log_likelihoods = log_likelihoods_from_file_weighted_samples(file_weighted_samples=self.paths.file_weighted_samples)
+        weights = weights_from_file_weighted_samples(file_weighted_samples=self.paths.file_weighted_samples)
+        total_samples = total_samples_from_file_resume(file_resume=self.paths.file_resume)
+        log_evidence = log_evidence_from_file_summary(file_summary=self.paths.file_summary, prior_count=model.prior_count)
 
         return samples.NestedSamplerSamples(model=model, parameters=parameters, log_likelihoods=log_likelihoods,
                                             log_priors=log_priors,

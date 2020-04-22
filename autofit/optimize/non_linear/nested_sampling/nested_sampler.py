@@ -4,8 +4,8 @@ import os
 from autofit import conf
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.paths import Paths
+from autofit.plot import samples_text
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +21,13 @@ class NestedSampler(NonLinearOptimizer):
 
         This feature should be used for non-linear searches where the nested sampler gets 'stuck', for example because
         the log likelihood function is stochastic or varies rapidly over small scales in parameter space. The results of
-        chains using this feature are not realiable (given the log likelihood is being manipulated to end the run), but
+        samples using this feature are not realiable (given the log likelihood is being manipulated to end the run), but
         they are still valid results for linking priors to a new phase and non-linear search.
 
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
             backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
@@ -124,23 +124,19 @@ class NestedSampler(NonLinearOptimizer):
         else:
             logger.warning(f"{self.paths.phase_name} has run previously - skipping")
 
-        samples = self.samples_from_model(model=model, paths=self.paths)
+        samples = self.samples_from_model(model=model)
 
         instance = samples.max_log_likelihood_instance
         analysis.visualize(instance=instance, during_analysis=False)
-        samples.output_results(during_analysis=False)
-        samples.output_pdf_plots()
+        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
         result = Result(
-            instance=instance,
-            log_likelihood=samples.max_log_posterior,
             samples=samples,
             previous_model=model,
-            gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
         self.paths.backup_zip_remove()
         return result
 
-    def samples_from_model(self, model, paths):
-        return NotImplementedError()
+    def samples_from_model(self, model):
+        raise NotImplementedError()
 
 

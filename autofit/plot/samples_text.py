@@ -24,9 +24,9 @@ def results_from_sigma(samples, sigma) -> str:
     sigma_formatter = text_formatter.TextFormatter()
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
-        value = samples.format_str.format(samples.most_probable_vector[i])
-        upper_limit = samples.format_str.format(upper_limits[i])
-        lower_limit = samples.format_str.format(lower_limits[i])
+        value = format_str().format(samples.most_probable_vector[i])
+        upper_limit = format_str().format(upper_limits[i])
+        lower_limit = format_str().format(lower_limits[i])
         value = value + " (" + lower_limit + ", " + upper_limit + ")"
         sigma_formatter.add((prior_path, value))
 
@@ -73,7 +73,7 @@ def latex_results_at_sigma(samples, sigma, format_str="{:.2f}") -> [str]:
     return line
 
 
-def format_str(samples) -> str:
+def format_str() -> str:
     """The format string for the model.results file, describing to how many decimal points every parameter
     estimate is output in the model.results file.
     """
@@ -83,7 +83,7 @@ def format_str(samples) -> str:
     return "{:." + str(decimal_places) + "f}"
 
 
-def output_results(samples, during_analysis):
+def output_results(samples, file_results, during_analysis):
     """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
 
@@ -107,7 +107,7 @@ def output_results(samples, during_analysis):
 
     results += text_util.label_and_value_string(
         label="Maximum Likelihood ",
-        value=samples.max_log_posterior,
+        value=max(samples.log_likelihoods),
         whitespace=90,
         format_string="{:.8f}",
     )
@@ -119,22 +119,22 @@ def output_results(samples, during_analysis):
     formatter = text_formatter.TextFormatter()
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
-        formatter.add((prior_path, samples.format_str.format(most_likely[i])))
+        formatter.add((prior_path, format_str().format(most_likely[i])))
     results += [formatter.text + "\n"]
 
     if samples.pdf_converged:
 
-        results += samples.results_from_sigma(sigma=3.0)
+        results += results_from_sigma(samples=samples, sigma=3.0)
         results += ["\n"]
-        results += samples.results_from_sigma(sigma=1.0)
+        results += results_from_sigma(samples=samples, sigma=1.0)
 
     else:
 
         results += [
-            "\n WARNING: The chains have not converged enough to compute a PDF and model errors. \n "
+            "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
             "The model below over estimates errors. \n\n"
         ]
-        results += samples.results_from_sigma(sigma=1.0)
+        results += results_from_sigma(samples=samples, sigma=1.0)
 
     results += ["\n\ninstances\n"]
 
@@ -146,5 +146,5 @@ def output_results(samples, during_analysis):
     results += ["\n" + formatter.text]
 
     text_util.output_list_of_strings_to_file(
-        file=samples.paths.file_results, list_of_strings=results
+        file=file_results, list_of_strings=results
     )

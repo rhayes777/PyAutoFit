@@ -18,17 +18,6 @@ def set_config_path():
     )
 
 
-class MockDynestyResults:
-
-    def __init__(self, samples, logl, logwt, ncall, logz, nlive):
-        self.samples = samples
-        self.logl = logl
-        self.logwt = logwt
-        self.ncall = ncall
-        self.logz = logz
-        self.nlive = nlive
-
-
 class TestEmceeConfig:
     def test__loads_from_config_file_correct(self):
 
@@ -43,14 +32,12 @@ class TestEmceeConfig:
 
     def test__samples_from_model(self):
 
-        # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
-
         emcee = af.Emcee(paths=Paths())
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
+        samples = emcee.samples_from_model(model=model)
 
         assert samples.parameters[0] == pytest.approx([0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4)
         assert samples.log_likelihoods[0] == pytest.approx(-17257775239.32677, 1.0e-4)
@@ -69,7 +56,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
+        samples = emcee.samples_from_model(model=model)
 
         assert samples.most_probable_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
@@ -82,7 +69,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
+        samples = emcee.samples_from_model(model=model)
 
         params = samples.vector_at_sigma(sigma=3.0)
 
@@ -99,7 +86,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model, paths=emcee.paths)
+        samples = emcee.samples_from_model(model=model)
 
         assert (
             samples.previous_auto_correlation_times

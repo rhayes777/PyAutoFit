@@ -287,7 +287,7 @@ class TestMulitNest:
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = multi_nest.samples_from_model(model=model, paths=multi_nest.paths)
+        samples = multi_nest.samples_from_model(model=model)
 
         assert samples.parameters == [[1.1, 2.1, 3.1, 4.1], [0.9, 1.9, 2.9, 3.9], [1.0, 2.0, 3.0, 4.0],
                                       [1.0, 2.0, 3.0, 4.0],

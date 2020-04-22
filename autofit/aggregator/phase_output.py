@@ -45,7 +45,7 @@ class PhaseOutput:
         An object describing the output data from the nonlinear search performed in this phase
         """
         return self.optimizer.samples_from_model(
-            model=self.model, paths=self.optimizer.paths
+            model=self.model,
         )
 
     @property

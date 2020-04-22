@@ -225,14 +225,14 @@ class NonLinearOptimizer(ABC):
 
                 if self.should_output_model_results():
 
-                    samples = self.samples_from_model(model=self.model, paths=self.paths)
-                    samples_text.output_results(samples=samples, during_analysis=True)
+                    samples = self.samples_from_model(model=self.model)
+                    samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=True)
 
             return log_likelihood
 
         @property
         def samples(self):
-            return self.samples_from_model(model=self.model, paths=self.paths)
+            return self.samples_from_model(model=self.model)
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         name = "{}/{}".format(self.paths.phase_name, extension)
@@ -253,7 +253,7 @@ class NonLinearOptimizer(ABC):
 
         return new_instance
 
-    def samples_from_model(self, model, paths):
+    def samples_from_model(self, model):
         raise NotImplementedError()
 
 
@@ -270,8 +270,11 @@ class Result:
     @DynamicAttrs
     """
 
+    # TODO : instance, log_likelihood and gaussian tuples shoudl all be replaced for methods that come via samples.
+    # TODO : I can't currently delete them though, as it breaks GridSearch results.
+
     def __init__(
-            self, instance, log_likelihood, samples=None, previous_model=None, gaussian_tuples=None
+            self, instance=None, log_likelihood=None, previous_model=None, gaussian_tuples=None, samples=None
     ):
         """
         The result of an optimization.
@@ -285,24 +288,45 @@ class Result:
         previous_model
             The model mapper from the stage that produced this result
         """
-        self.instance = instance
-        self.log_likelihood = log_likelihood
-        self.samples = samples
+        self._instance = instance
+        self._log_likelihood = log_likelihood
         self.previous_model = previous_model
-        self.gaussian_tuples = gaussian_tuples
+        self._gaussian_tuples = gaussian_tuples
         self.__model = None
+        self.samples = samples
 
     @property
     def model(self):
         if self.__model is None:
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self.gaussian_tuples
+                self._gaussian_tuples
             )
         return self.__model
 
     @model.setter
     def model(self, model):
         self.__model = model
+
+    # TODO : We will ultimate get rid of the _likelihood and _instance variables, but I dont know how to do so without
+    # TODO : Breaking the GridSearch.
+
+    @property
+    def instance(self):
+        if self._instance is not None:
+            return self._instance
+        return self.samples.max_log_likelihood_instance
+
+    @property
+    def log_likelihood(self):
+        if self._log_likelihood is not None:
+            return self._log_likelihood
+        return max(self.samples.log_likelihoods)
+
+    @property
+    def gaussian_tuples(self):
+        if self._gaussian_tuples is not None:
+            return self._gaussian_tuples
+        return self.samples.gaussian_priors_at_sigma(sigma=3.0)
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
@@ -324,7 +348,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.gaussian_tuples, a=a
+            self._gaussian_tuples, a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -340,7 +364,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.gaussian_tuples, r=r
+            self._gaussian_tuples, r=r
         )
 
 

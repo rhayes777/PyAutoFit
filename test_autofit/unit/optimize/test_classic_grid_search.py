@@ -221,8 +221,8 @@ class TestGridSearch:
         result = grid_search.fit(analysis, model)
 
         assert len(analysis.instances) == 1
-        assert pytest.approx(result.instance.one.redshift) == 0.05
-        assert pytest.approx(result.instance.two.redshift) == 0.65
+        assert pytest.approx(result._instance.one.redshift) == 0.05
+        assert pytest.approx(result._instance.two.redshift) == 0.65
 
     def test_recover_midway(self, grid_search, model):
         string = "11\n0\n(0.0, 0.0)\n0.1\n2"
@@ -241,8 +241,8 @@ class TestGridSearch:
         result = grid_search.fit(analysis, model)
 
         assert len(analysis.instances) == 90
-        assert pytest.approx(result.instance.one.redshift) == 0.15
-        assert pytest.approx(result.instance.two.redshift) == 0.65
+        assert pytest.approx(result._instance.one.redshift) == 0.15
+        assert pytest.approx(result._instance.two.redshift) == 0.65
 
     def test_instances(self, grid_search, model):
         model.one = Galaxy

@@ -76,8 +76,8 @@ class AbstractSamples:
 
     @property
     def pdf_converged(self) -> bool:
-        """ To analyse and visualize chains using *GetDist*, the analysis must be sufficiently converged to produce
-        smooth enough PDF for analysis. This property checks whether the non-linear search's chains are sufficiently
+        """ To analyse and visualize samples using *GetDist*, the analysis must be sufficiently converged to produce
+        smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
         converged for *GetDist* use.
 
         For *Dynesty*, during initial sampling one accepted live point typically has > 99% of the probabilty as its
@@ -97,15 +97,15 @@ class AbstractSamples:
 
     @property
     def pdf(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search chains.
+        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search samples.
 
-        *GetDist* can only be used when chains are converged enough to provide a smooth PDF and this convergence is
+        *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
         checked using the *pdf_converged* bool before *GetDist* is called.
 
         https://github.com/cmbant/getdist
         https://getdist.readthedocs.io/en/latest/
 
-        For *Dynesty*, chains are passed to *GetDist* using the pickled sapler instance, which contains the physical
+        For *Dynesty*, samples are passed to *GetDist* using the pickled sapler instance, which contains the physical
         model parameters of every accepted sample, their likelihoods and weights.
         """
         import getdist
@@ -121,7 +121,7 @@ class AbstractSamples:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
 
-        If the chains are sufficiently converged this is estimated by passing the accepted samples to *GetDist*, else
+        If the samples are sufficiently converged this is estimated by passing the accepted samples to *GetDist*, else
         a crude estimate using the mean value of all accepted samples is used."""
         if self.pdf_converged:
             return self.pdf.getMeans()
@@ -145,7 +145,7 @@ class AbstractSamples:
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
-        For *Dynesty*, this is estimated using *GetDist* if the chains have converged, by sampling the density
+        For *Dynesty*, this is estimated using *GetDist* if the samples have converged, by sampling the density
         function at an input PDF %. If not converged, a crude estimate using the range of values of the current
         physical live points is used.
 
@@ -518,15 +518,15 @@ class MCMCSamples(AbstractSamples):
 
     @property
     def pdf(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search chains.
+        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search samples.
 
-        *GetDist* can only be used when chains are converged enough to provide a smooth PDF and this convergence is
+        *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
         checked using the *pdf_converged* bool before *GetDist* is called.
 
         https://github.com/cmbant/getdist
         https://getdist.readthedocs.io/en/latest/
 
-        For *emcee*, chains are passed to *GetDist* via the hdt backend. *GetDist* currently does not provide accurate
+        For *emcee*, samples are passed to *GetDist* via the hdt backend. *GetDist* currently does not provide accurate
         model sampling.
         """
         import getdist
@@ -535,11 +535,11 @@ class MCMCSamples(AbstractSamples):
 
     @property
     def pdf_converged(self):
-        """ To analyse and visualize chains using *GetDist*, the analysis must be sufficiently converged to produce
-        smooth enough PDF for analysis. This property checks whether the non-linear search's chains are sufficiently
+        """ To analyse and visualize samples using *GetDist*, the analysis must be sufficiently converged to produce
+        smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
         converged for *GetDist* use.
 
-        Emcee chains can be analysed by GetDist irrespective of how long the sampler has run, albeit low run times
+        Emcee samples can be analysed by GetDist irrespective of how long the sampler has run, albeit low run times
         will likely produce inaccurate results."""
         return True
 
@@ -571,7 +571,7 @@ class MCMCSamples(AbstractSamples):
 
     @property
     def converged(self) -> bool:
-        """Whether the emcee chains have converged on a solution or if they are still in a burn-in period, based on the
+        """Whether the emcee samples have converged on a solution or if they are still in a burn-in period, based on the
         auto correlation times of parameters."""
         converged = np.all(
             self.auto_correlation_times
@@ -611,7 +611,7 @@ class MCMCSamples(AbstractSamples):
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
-        For *Emcee*, if the chains have converged this is estimated by binning the samples after burn-in into a
+        For *Emcee*, if the samples have converged this is estimated by binning the samples after burn-in into a
         histogram and taking the parameter values at the input PDF %.
 
         Parameters

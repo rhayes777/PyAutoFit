@@ -70,8 +70,8 @@ class GridSearch(NonLinearOptimizer):
                 A model instance for each point in the grid search
             """
             super().__init__(
-                instance=result.instance,
-                log_likelihood=result.log_likelihood,
+                instance=result._instance,
+                log_likelihood=result._log_likelihood,
                 previous_model=previous_model,
                 gaussian_tuples=gaussian_tuples
             )

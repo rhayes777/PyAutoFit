@@ -89,7 +89,7 @@ class TestDynestyConfig:
         paths = af.Paths()
 
         with open(
-                f"{paths.chains_path}/dynesty.pickle", "wb"
+                f"{paths.samples_path}/dynesty.pickle", "wb"
         ) as f:
             pickle.dump(sampler, f)
 
@@ -98,7 +98,7 @@ class TestDynestyConfig:
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = dynesty.samples_from_model(model=model, paths=paths)
+        samples = dynesty.samples_from_model(model=model)
 
         assert samples.parameters == [[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]
         assert samples.log_likelihoods == [1.0, 2.0, 3.0]

@@ -40,7 +40,7 @@ class MockNLO(NonLinearOptimizer):
             ],
         )
 
-    def samples_from_model(self, model, paths):
+    def samples_from_model(self, model):
         return MockOutput()
 
     @property

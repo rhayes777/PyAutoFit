@@ -26,7 +26,7 @@ class Emcee(NonLinearOptimizer):
 
         https://emcee.readthedocs.io/en/stable/
 
-        **PyAutoFit** extends **emcee** by providing an option to check the auto-correlation length of the chains
+        **PyAutoFit** extends **emcee** by providing an option to check the auto-correlation length of the samples
         during the run and terminating sampling early if these meet a specified threshold. See this page
         (https://emcee.readthedocs.io/en/stable/tutorials/autocorr/#autocorr) for a description of how this is implemented.
 
@@ -36,7 +36,7 @@ class Emcee(NonLinearOptimizer):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
             backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
@@ -48,11 +48,11 @@ class Emcee(NonLinearOptimizer):
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
         check_auto_correlation : bool
-            Whether the auto-correlation lengths of the MCMC chains should be checked to determine the stopping
+            Whether the auto-correlation lengths of the MCMC samples should be checked to determine the stopping
             criteria. If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
             been performed. If *False* nstep samples will be taken.
         auto_correlation_check_size : int
-            The length of the chains used to check the auto-correlation lengths (from the latest sample backwards). For
+            The length of the samples used to check the auto-correlation lengths (from the latest sample backwards). For
             convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
             thus requires more samples to meet the auto-correlation threshold, taking longer to terminate sampling.
             However, shorter chains risk stopping sampling early due to noise.
@@ -148,7 +148,7 @@ class Emcee(NonLinearOptimizer):
                     self.paths.backup()
 
                 if self.should_output_model_results():
-                    samples_text.output_results(samples=self.samples, during_analysis=True)
+                    samples_text.output_results(samples=self.samples, file_results=self.paths.file_results, during_analysis=True)
 
             return log_likelihood
 
@@ -185,7 +185,7 @@ class Emcee(NonLinearOptimizer):
         try:
             emcee_state = emcee_sampler.get_last_sample()
 
-            samples = self.samples_from_model(model=model, paths=self.paths)
+            samples = self.samples_from_model(model=model)
 
             previous_run_converged = samples.converged
 
@@ -215,7 +215,7 @@ class Emcee(NonLinearOptimizer):
                 if emcee_sampler.iteration % self.auto_correlation_check_size:
                     continue
 
-                samples = self.samples_from_model(model=model, paths=self.paths)
+                samples = self.samples_from_model(model=model)
 
                 if samples.converged and self.check_auto_correlation:
                     break
@@ -228,19 +228,16 @@ class Emcee(NonLinearOptimizer):
 
         self.paths.backup()
 
-        samples = self.samples_from_model(model=model, paths=self.paths)
+        samples = self.samples_from_model(model=model)
 
         instance = samples.max_log_likelihood_instance
 
         analysis.visualize(instance=instance, during_analysis=False)
-        samples.output_results(during_analysis=False)
-        samples.output_pdf_plots()
+        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
+
         result = Result(
-            instance=instance,
-            log_likelihood=samples.max_log_posterior,
             samples=samples,
             previous_model=model,
-            gaussian_tuples=samples.gaussian_priors_at_sigma(self.sigma),
         )
         self.paths.backup_zip_remove()
         return result
@@ -251,6 +248,7 @@ class Emcee(NonLinearOptimizer):
 
         The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
         if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
+            print(self.paths.sym_path)
             return emcee.backends.HDFBackend(
                 filename=self.paths.sym_path + "/emcee.hdf"
             )
@@ -259,7 +257,7 @@ class Emcee(NonLinearOptimizer):
                 "The file emcee.hdf does not exist at the path " + self.paths.path
             )
 
-    def samples_from_model(self, model, paths):
+    def samples_from_model(self, model):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For Emcee, all quantities are extracted via the hdf5 backend of results.

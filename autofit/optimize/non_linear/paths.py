@@ -103,18 +103,18 @@ class Paths:
         return self.phase_path.split("/")
 
     @property
-    def chains_path(self) -> str:
+    def samples_path(self) -> str:
         """
-        The path to the chains folder.
+        The path to the samples folder.
         """
-        return f"{self.phase_output_path}/chains"
+        return f"{self.phase_output_path}/samples"
 
     @property
     def backup_path(self) -> str:
         """
-        The path to the backed up chains folder.
+        The path to the backed up samples folder.
         """
-        return f"{self.phase_output_path}/chains_backup"
+        return f"{self.phase_output_path}/samples_backup"
 
     @property
     def zip_path(self) -> str:
@@ -160,7 +160,7 @@ class Paths:
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}/{}/{}/chains".format(
+        return "{}/{}/{}/{}/{}/samples".format(
             conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
         )
 

@@ -75,12 +75,12 @@ class DownhillSimplex(NonLinearOptimizer):
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res.gaussian_tuples = [(mean, 0) for mean in output]
+        res._gaussian_tuples = [(mean, 0) for mean in output]
         res.previous_model = model
 
         analysis.visualize(instance=res.instance, during_analysis=False)
         self.paths.backup_zip_remove()
         return res
 
-    def samples_from_model(self, model, paths):
+    def samples_from_model(self, model):
         pass
