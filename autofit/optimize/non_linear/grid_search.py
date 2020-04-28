@@ -70,8 +70,9 @@ class GridSearch(NonLinearOptimizer):
                 A model instance for each point in the grid search
             """
             super().__init__(
-                instance=result._instance,
-                log_likelihood=result._log_likelihood,
+                samples=None,
+                instance=result.instance,
+                log_likelihood=result.log_likelihood,
                 previous_model=previous_model,
                 gaussian_tuples=gaussian_tuples
             )
@@ -99,7 +100,14 @@ class GridSearch(NonLinearOptimizer):
             best_fit=-np.inf,
             best_cube=None,
         ):
-            super().__init__(paths=nlo.paths, analysis=analysis, model=model, samples_from_model=nlo.samples_from_model)
+
+            super().__init__(
+                paths=nlo.paths,
+                analysis=analysis,
+                model=model,
+                samples_from_model=nlo.samples_from_model
+            )
+
             self.nlo = nlo
             self.total_calls = 0
             self.checkpoint_count = checkpoint_count
@@ -250,7 +258,7 @@ class GridSearch(NonLinearOptimizer):
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res = GridSearch.Result(
-            res, instances, model, [(mean, 0) for mean in fitness_function.best_cube]
+            result=res, instances=instances, previous_model=model, gaussian_tuples=[(mean, 0) for mean in fitness_function.best_cube]
         )
 
     #    analysis.visualize(instance=res.instance, during_analysis=False)

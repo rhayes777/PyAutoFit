@@ -12,23 +12,11 @@ from autofit.optimize.non_linear import samples
 from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
     NestedSampler,
 )
+from autofit.optimize.non_linear import non_linear as nl
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.plot import samples_text
+from autofit.text import samples_text
 
 logger = logging.getLogger(__name__)
-
-# Pickling does not work if its in the scope of the Dynesty class
-
-
-def prior(cube, model):
-
-    # YOU MAY REFACTOR THIS LINE
-
-    return model.vector_from_unit_vector(unit_vector=cube)
-
-
-def fitness(cube, model, fitness_function):
-    return fitness_function(model.instance_from_vector(cube))
 
 
 class AbstractDynesty(NestedSampler):
@@ -167,7 +155,7 @@ class AbstractDynesty(NestedSampler):
 
         dynesty_finished = False
 
-        while dynesty_finished is False:
+        while not dynesty_finished:
 
             try:
                 iterations_before_run = np.sum(sampler.results.ncall)
@@ -184,13 +172,19 @@ class AbstractDynesty(NestedSampler):
                 pickle.dump(sampler, f)
 
             if iterations_before_run == iterations_after_run:
+
                 dynesty_finished = True
 
         self.paths.backup()
 
         samples = self.samples_from_model(model=model)
 
-        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
+        samples_text.results_to_file(
+            samples=samples,
+            file_results=self.paths.file_results,
+            during_analysis=False
+        )
+
         return Result(
             samples=samples,
             previous_model=model,
@@ -230,10 +224,16 @@ class AbstractDynesty(NestedSampler):
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
 
-        return samples.NestedSamplerSamples(model=model, parameters=parameters, log_likelihoods=log_likelihoods,
-                                            log_priors=log_priors,
-                                            weights=weights, total_samples=total_samples, log_evidence=log_evidence,
-                                            number_live_points=sampler.results.nlive)
+        return samples.NestedSamplerSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            total_samples=total_samples,
+            log_evidence=log_evidence,
+            number_live_points=sampler.results.nlive
+        )
 
 
 class DynestyStatic(AbstractDynesty):
@@ -278,8 +278,8 @@ class DynestyStatic(AbstractDynesty):
         variables."""
 
         return StaticSampler(
-            loglikelihood=fitness,
-            prior_transform=prior,
+            loglikelihood=nl.NonLinearOptimizer.Fitness.fitness,
+            prior_transform=nl.NonLinearOptimizer.Fitness.prior,
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],

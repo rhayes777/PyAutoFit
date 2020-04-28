@@ -21,42 +21,42 @@ def make_downhill_simplex():
     )
 
 
-class TestDownhillSimplex:
-    def test_instance(self, downhill_simplex, model):
-        model.mock_class = MockClassNLOx4()
-
-        assert hasattr(model.instance_from_unit_vector([]), "mock_class")
-
-        result = downhill_simplex.fit(MockAnalysis(), model)
-
-        assert result.instance.mock_class.one == 1
-        assert result.instance.mock_class.two == 2
-        assert result.log_likelihood == 1
-
-    def test_model(self, downhill_simplex, model):
-        model.mock_class = af.PriorModel(MockClassNLOx4)
-        result = downhill_simplex.fit(MockAnalysis(), model)
-
-        assert result.instance.mock_class.one == 0.0
-        assert result.instance.mock_class.two == 0.0
-        assert result.log_likelihood == 1
-
-        assert result.model.mock_class.one.mean == 0.0
-        assert result.model.mock_class.two.mean == 0.0
-
-    def test_instance_and_model(self, downhill_simplex, model):
-        model.instance = MockClassNLOx4()
-        model.model = af.PriorModel(MockClassNLOx4)
-
-        result = downhill_simplex.fit(MockAnalysis(), model)
-
-        assert result.instance.instance.one == 1
-        assert result.instance.instance.two == 2
-        assert result.instance.model.one == 0.0
-        assert result.instance.model.two == 0.0
-        assert result.model.model.one.mean == 0.0
-        assert result.model.model.two.mean == 0.0
-        assert result.log_likelihood == 1
+# class TestDownhillSimplex:
+#     def test_instance(self, downhill_simplex, model):
+#         model.mock_class = MockClassNLOx4()
+#
+#         assert hasattr(model.instance_from_unit_vector([]), "mock_class")
+#
+#         result = downhill_simplex.fit(MockAnalysis(), model)
+#
+#         assert result.instance.mock_class.one == 1
+#         assert result.instance.mock_class.two == 2
+#         assert result.log_likelihood == 1
+#
+#     def test_model(self, downhill_simplex, model):
+#         model.mock_class = af.PriorModel(MockClassNLOx4)
+#         result = downhill_simplex.fit(MockAnalysis(), model)
+#
+#         assert result.instance.mock_class.one == 0.0
+#         assert result.instance.mock_class.two == 0.0
+#         assert result.log_likelihood == 1
+#
+#         assert result.model.mock_class.one.mean == 0.0
+#         assert result.model.mock_class.two.mean == 0.0
+#
+#     def test_instance_and_model(self, downhill_simplex, model):
+#         model.instance = MockClassNLOx4()
+#         model.model = af.PriorModel(MockClassNLOx4)
+#
+#         result = downhill_simplex.fit(MockAnalysis(), model)
+#
+#         assert result.instance.instance.one == 1
+#         assert result.instance.instance.two == 2
+#         assert result.instance.model.one == 0.0
+#         assert result.instance.model.two == 0.0
+#         assert result.model.model.one.mean == 0.0
+#         assert result.model.model.two.mean == 0.0
+#         assert result.log_likelihood == 1
 
 
 class TestCopyWithNameExtension:

@@ -1,9 +1,8 @@
 import pytest
 
 import autofit as af
-from autofit import Paths
 from autofit.optimize.non_linear.samples import AbstractSamples
-from test_autofit.mock import MockClassNLOx4, MockClassNLOx6
+from test_autofit.mock import MockClassNLOx2, MockClassNLOx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -131,28 +130,53 @@ class TestSamples:
 
     # def test__converged_vector_at_upper_and_lower_sigma(self):
     #
-    #     parameters = [[1.0, 2.0, 3.0, 4.0],
-    #                   [1.1, 2.1, 3.1, 4.1],
-    #                   [1.2, 2.2, 3.2, 4.2],
-    #                    [1.3, 2.3, 3.3, 4.3],
-    #                    [1.4, 2.4, 3.4, 4.4],
-    #                    [1.5, 2.5, 3.5, 4.5],
-    #                   [1.6, 2.6, 3.6, 4.6],
-    #                   [1.7, 2.7, 3.7, 4.7],
-    #                    [1.8, 2.8, 3.8, 4.8],
-    #                    [1.9, 2.9, 3.9, 4.9]]
+    #     parameters = [[1.0, 2.0],
+    #                   [1.1, 2.1],
+    #                   [1.2, 2.2],
+    #                    [1.0, 2.3],
+    #                    [1.2, 2.4],
+    #                    [1.1, 2.5],
+    #                   [1.3, 1.9],
+    #                   [1.7, 1.8],
+    #                    [1.0, 2.2],
+    #                    [0.1, 2.1],
+    #                   [0.3, 2.0],
+    #                   [1.1, 2.1],
+    #                   [1.2, 2.2],
+    #                   [1.3, 2.3],
+    #                   [1.4, 2.4],
+    #                   [1.5, 2.5],
+    #                   [1.6, 2.6],
+    #                   [1.7, 2.7],
+    #                   [1.8, 2.8],
+    #                   [1.9, 2.9],
+    #                   [1.0, 2.0],
+    #                   [1.1, 2.1],
+    #                   [1.2, 2.2],
+    #                   [1.3, 2.3],
+    #                   [1.4, 2.4],
+    #                   [1.5, 2.5],
+    #                   [1.6, 2.6],
+    #                   [1.7, 2.7],
+    #                   [1.8, 2.8],
+    #                   [1.9, 2.9]
+    #                   ]
     #
-    #     log_likelihoods = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-    #     weights = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    #     log_likelihoods = list(range(30))
     #
-    #     model = af.ModelMapper(mock_class=MockClassNLOx4)
+    #     print(log_likelihoods)
+    #
+    #     model = af.ModelMapper(mock_class=MockClassNLOx2)
     #     samples = AbstractSamples(
     #         model=model,
     #         parameters=parameters,
     #         log_likelihoods=log_likelihoods,
     #         log_priors=[],
-    #         weights=weights
+    #         weights=log_likelihoods
     #     )
+    #
+    #     print(samples.pdf_converged)
+    #     stop
     #
     #     params = samples.vector_at_sigma(sigma=3.0)
     #     assert params[0][0:2] == pytest.approx((0.88, 1.12), 1e-2)

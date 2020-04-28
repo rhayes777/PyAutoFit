@@ -10,7 +10,7 @@ from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
     NestedSampler,
 )
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.plot import samples_text
+from autofit.text import samples_text
 
 logger = logging.getLogger(__name__)
 
@@ -209,7 +209,11 @@ class MultiNest(NestedSampler):
 
         samples = self.samples_from_model(model=model)
 
-        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
+        samples_text.results_to_file(
+            samples=samples,
+            file_results=self.paths.file_results,
+            during_analysis=False
+        )
 
         return Result(
             samples=samples,
@@ -236,18 +240,38 @@ class MultiNest(NestedSampler):
             backups, etc.
         """
 
-        parameters = parameters_from_file_weighted_samples(file_weighted_samples=self.paths.file_weighted_samples,
-                                                           prior_count=model.prior_count)
-        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
-        log_likelihoods = log_likelihoods_from_file_weighted_samples(file_weighted_samples=self.paths.file_weighted_samples)
-        weights = weights_from_file_weighted_samples(file_weighted_samples=self.paths.file_weighted_samples)
-        total_samples = total_samples_from_file_resume(file_resume=self.paths.file_resume)
-        log_evidence = log_evidence_from_file_summary(file_summary=self.paths.file_summary, prior_count=model.prior_count)
+        parameters = parameters_from_file_weighted_samples(
+            file_weighted_samples=self.paths.file_weighted_samples,
+            prior_count=model.prior_count
+        )
 
-        return samples.NestedSamplerSamples(model=model, parameters=parameters, log_likelihoods=log_likelihoods,
-                                            log_priors=log_priors,
-                                            weights=weights, total_samples=total_samples, log_evidence=log_evidence,
-                                            number_live_points=self.n_live_points)
+        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
+
+        log_likelihoods = log_likelihoods_from_file_weighted_samples(
+            file_weighted_samples=self.paths.file_weighted_samples
+        )
+
+        weights = weights_from_file_weighted_samples(
+            file_weighted_samples=self.paths.file_weighted_samples
+        )
+
+        total_samples = total_samples_from_file_resume(file_resume=self.paths.file_resume)
+
+        log_evidence = log_evidence_from_file_summary(
+            file_summary=self.paths.file_summary,
+            prior_count=model.prior_count
+        )
+
+        return samples.NestedSamplerSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            total_samples=total_samples,
+            log_evidence=log_evidence,
+            number_live_points=self.n_live_points
+        )
 
 
 def parameters_from_file_weighted_samples(file_weighted_samples, prior_count) -> [[float]]:
@@ -312,7 +336,7 @@ def weights_from_file_weighted_samples(file_weighted_samples) -> [float]:
 
     for line in range(total_samples):
         weighted_samples.read(4)
-        log_likelihoods.append(float(weighted_samples.read(28)))
+        log_likelihoods.append(float(weighted_samples.read(24)))
         weighted_samples.readline()
 
     weighted_samples.close()
@@ -327,8 +351,9 @@ def total_samples_from_file_resume(file_resume):
 
     resume.seek(1)
     resume.read(19)
-    return int(resume.read(8))
-
+    total_samples = int(resume.read(8))
+    resume.close()
+    return total_samples
 
 def log_evidence_from_file_summary(file_summary, prior_count):
     """Open the file "multinestsummary.txt" and extract the log evidence of the Multinest analysis.
@@ -337,15 +362,11 @@ def log_evidence_from_file_summary(file_summary, prior_count):
     unavailable and (would be unreliable anyway). In this case, a large negative value is returned."""
 
     try:
-        summary = open(file_summary)
+
+        with open(file_summary) as summary:
+
+            summary.read(2 + 112 * prior_count)
+            return float(summary.read(28))
+
     except FileNotFoundError:
         return -1.0e99
-
-    summary.read(2 + 112 * prior_count)
-    vector = []
-    for param in range(2):
-        vector.append(float(summary.read(28)))
-
-    summary.close()
-
-    return vector[0]

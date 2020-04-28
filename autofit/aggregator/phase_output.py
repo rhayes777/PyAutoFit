@@ -40,9 +40,9 @@ class PhaseOutput:
         return f"{self.directory}/pickles"
 
     @property
-    def output(self) -> AbstractSamples:
+    def samples(self) -> AbstractSamples:
         """
-        An object describing the output data from the nonlinear search performed in this phase
+        An object describing the samples of the nonlinear search performed in this phase
         """
         return self.optimizer.samples_from_model(
             model=self.model,
@@ -72,6 +72,7 @@ class PhaseOutput:
 
         dataset.pickle, meta_dataset.pickle etc.
         """
+
         with open(
                 os.path.join(self.pickle_path, f"{item}.pickle"), "rb"
         ) as f:

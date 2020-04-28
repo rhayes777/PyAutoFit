@@ -7,7 +7,7 @@ import autofit as af
 from test_autofit.mock import MockClassGaussian
 import test_autofit.mock
 from autofit import exc
-from autofit.tools.text_formatter import TextFormatter
+from autofit.text import formatter as frm
 from test_autofit import mock
 from test_autofit.mock import GeometryProfile
 
@@ -49,7 +49,7 @@ class MockProfile:
 
 @pytest.fixture(name="formatter")
 def make_info_dict():
-    formatter = TextFormatter(line_length=20, indent=4)
+    formatter = frm.TextFormatter(line_length=20, indent=4)
     formatter.add((("one", "one"), 1))
     formatter.add((("one", "two"), 2))
     formatter.add((("one", "three", "four"), 4))

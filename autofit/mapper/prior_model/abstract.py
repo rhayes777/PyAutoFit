@@ -20,7 +20,7 @@ from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
-from autofit.tools.text_formatter import TextFormatter
+from autofit.text.formatter import TextFormatter
 
 
 def check_assertions(func):
@@ -413,7 +413,7 @@ class AbstractPriorModel(AbstractModel):
 
     def log_priors_from_vector(
             self,
-            vector,
+            vector : [float],
     ):
         """
         Compute the log priors of every parameter in a vector, using the Prior of every parameter.
@@ -422,10 +422,8 @@ class AbstractPriorModel(AbstractModel):
 
         Parameters
         ----------
-        vector: [float]
+        vector : [float]
             A vector of physical parameter values.
-        assert_priors_in_limits
-            If True it is checked that the physical values of priors are within set limits
 
         Returns
         -------

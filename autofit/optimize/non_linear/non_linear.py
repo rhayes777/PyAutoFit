@@ -5,10 +5,10 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from autofit import conf
-from autofit.plot import samples_text
+from autofit.optimize.non_linear import samples as samp
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
-from autofit.tools import text_util
+from autofit.text import formatter, samples_text
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
@@ -157,17 +157,17 @@ class NonLinearOptimizer(ABC):
         The parameter labels are determined using the label.ini and label_format.ini config files."""
 
         paramnames_names = model.param_names
-        paramnames_labels = text_util.param_labels_from_model(model=model)
+        paramnames_labels = formatter.param_labels_from_model(model=model)
 
         paramnames = []
 
         for i in range(model.prior_count):
-            line = text_util.label_and_label_string(
+            line = formatter.label_and_label_string(
                 label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
             )
-            paramnames += [line + "\n"]
+            paramnames += [f"{line}\n"]
 
-        text_util.output_list_of_strings_to_file(
+        formatter.output_list_of_strings_to_file(
             file=self.paths.file_param_names, list_of_strings=paramnames
         )
 
@@ -179,13 +179,30 @@ class NonLinearOptimizer(ABC):
         self.paths.restore()
 
     class Fitness:
+
+        @staticmethod
+        def prior(cube, model):
+
+            # NEVER EVER REFACTOR THIS LINE! Haha.
+
+            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+
+            for i in range(len(phys_cube)):
+                cube[i] = phys_cube[i]
+
+            return cube
+
+        @staticmethod
+        def fitness(cube, model, fitness_function):
+            return fitness_function(instance=model.instance_from_vector(cube))
+
         def __init__(
                 self, paths, analysis, model, samples_from_model
         ):
 
             self.paths = paths
-            self.result = None
-            self.max_likelihood = -np.inf
+            self.result = Result(samples=None)
+            self.log_likelihoods = [-np.inf]
             self.analysis = analysis
 
             self.model = model
@@ -210,12 +227,18 @@ class NonLinearOptimizer(ABC):
             )
 
         def fit_instance(self, instance):
+
             log_likelihood = self.analysis.fit(instance)
 
-            if log_likelihood > self.max_likelihood:
+            if log_likelihood > max(self.log_likelihoods):
 
-                self.max_likelihood = log_likelihood
-                self.result = Result(instance, log_likelihood)
+                try:
+                    samples = self.samples_from_model(model=self.model)
+                    self.result = Result(samples=samples)
+                except Exception:
+                    samples = None
+
+                self.log_likelihoods.append(log_likelihood)
 
                 if self.should_visualize():
                     self.analysis.visualize(instance, during_analysis=True)
@@ -224,9 +247,9 @@ class NonLinearOptimizer(ABC):
                     self.paths.backup()
 
                 if self.should_output_model_results():
-
-                    samples = self.samples_from_model(model=self.model)
-                    samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=True)
+                    if samples is not None:
+                        samples_text.results_to_file(samples=samples, file_results=self.paths.file_results,
+                                                     during_analysis=True)
 
             return log_likelihood
 
@@ -274,7 +297,7 @@ class Result:
     # TODO : I can't currently delete them though, as it breaks GridSearch results.
 
     def __init__(
-            self, instance=None, log_likelihood=None, previous_model=None, gaussian_tuples=None, samples=None
+            self, samples, previous_model=None, instance=None, log_likelihood=None, gaussian_tuples=None,
     ):
         """
         The result of an optimization.
@@ -288,45 +311,43 @@ class Result:
         previous_model
             The model mapper from the stage that produced this result
         """
-        self._instance = instance
-        self._log_likelihood = log_likelihood
-        self.previous_model = previous_model
-        self._gaussian_tuples = gaussian_tuples
-        self.__model = None
+
         self.samples = samples
+
+        self.previous_model = previous_model
+
+        self.__model = None
+
+        # TODO : I was hoping we could get rid of these once we used samples, but using them in property's seems to
+        # TODO : cause issues, so I ama keepingn them as attributes for now. In particular, log_likelihood is used
+        # TODO : by GridSearch result.
+
+        if isinstance(self.samples, samp.AbstractSamples):
+            self.instance = self.samples.max_log_likelihood_instance
+        else:
+            self.instance = instance
+
+        if isinstance(self.samples, samp.AbstractSamples):
+            self.log_likelihood = max(self.samples.log_likelihoods)
+        else:
+            self.log_likelihood = log_likelihood
+
+        if isinstance(self.samples, samp.AbstractSamples):
+            self.gaussian_tuples = self.samples.gaussian_priors_at_sigma(sigma=3.0)
+        else:
+            self.gaussian_tuples = gaussian_tuples
 
     @property
     def model(self):
         if self.__model is None:
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self._gaussian_tuples
+                self.gaussian_tuples
             )
         return self.__model
 
     @model.setter
     def model(self, model):
         self.__model = model
-
-    # TODO : We will ultimate get rid of the _likelihood and _instance variables, but I dont know how to do so without
-    # TODO : Breaking the GridSearch.
-
-    @property
-    def instance(self):
-        if self._instance is not None:
-            return self._instance
-        return self.samples.max_log_likelihood_instance
-
-    @property
-    def log_likelihood(self):
-        if self._log_likelihood is not None:
-            return self._log_likelihood
-        return max(self.samples.log_likelihoods)
-
-    @property
-    def gaussian_tuples(self):
-        if self._gaussian_tuples is not None:
-            return self._gaussian_tuples
-        return self.samples.gaussian_priors_at_sigma(sigma=3.0)
 
     def __str__(self):
         return "Analysis Result:\n{}".format(
@@ -348,7 +369,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self._gaussian_tuples, a=a
+            self.gaussian_tuples, a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -364,7 +385,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self._gaussian_tuples, r=r
+            self.gaussian_tuples, r=r
         )
 
 

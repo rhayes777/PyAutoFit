@@ -9,7 +9,7 @@ from autofit.mapper.prior_model.attribute_pair import (
 
 dir(conf)
 from . import exc
-from autofit.optimize.non_linear.samples import MCMCSamples, NestedSamplerSamples
+from autofit.optimize.non_linear.samples import AbstractSamples, MCMCSamples, NestedSamplerSamples
 from .aggregator import Aggregator, PhaseOutput
 from .mapper import *
 from .mapper import link
@@ -45,8 +45,9 @@ from autofit.optimize.non_linear.paths import Paths
 from autofit.optimize.non_linear.paths import make_path
 from autofit.optimize.non_linear.paths import convert_paths
 from .optimize.non_linear.non_linear import Result
+from .text import formatter, samples_text
 from .tools import *
-from .tools import path_util, text_util
+from .tools import path_util
 from .tools.phase import AbstractPhase
 from .tools.phase import Phase
 from .tools.phase import Dataset

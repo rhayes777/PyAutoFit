@@ -125,6 +125,15 @@ class AbstractPhase:
         with open("{}/info.pickle".format(self.paths.make_path()), "wb") as f:
             pickle.dump(info, f)
 
+    def save_grid_search_result(self, grid_search_result):
+        with open(
+                f"{self.paths.pickle_path}/grid_search_result.pickle",
+                "wb+"
+        ) as f:
+            pickle.dump(
+                grid_search_result, f
+            )
+
     def __str__(self):
         return self.optimizer.paths.phase_name
 
@@ -331,10 +340,13 @@ def as_grid_search(phase_class, parallel=False):
 
         # noinspection PyMethodMayBeStatic,PyUnusedLocal
         def make_result(self, result, analysis):
+
+            self.save_grid_search_result(grid_search_result=result)
+
             return result
 
         def run_analysis(self, analysis):
-            return self.optimizer.fit(analysis, self.model, self.grid_priors)
+            return self.optimizer.fit(analysis=analysis, model=self.model, grid_priors=self.grid_priors)
 
         @property
         def grid_priors(self):

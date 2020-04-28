@@ -223,7 +223,7 @@ class GridSearch:
         results = []
         lists = self.make_lists(grid_priors)
 
-        results_list = [
+        results_list = [["index"] +
             list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
         ]
 
@@ -234,12 +234,13 @@ class GridSearch:
             for number in range(self.number_of_cores - 1)
         ]
 
-        for values in lists:
+        for index, values in enumerate(lists):
             job = self.job_for_analysis_grid_priors_and_values(
                 copy.deepcopy(analysis),
                 model,
                 grid_priors,
-                values
+                values,
+                index
             )
             job_queue.put(job)
 
@@ -284,13 +285,13 @@ class GridSearch:
         results = []
         lists = self.make_lists(grid_priors)
 
-        results_list = [
-            list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
+        results_list = [["index"] +
+            list(map(model.name_for_prior, grid_priors)) + ["max_log_likelihood"]
         ]
 
-        for values in lists:
+        for index, values in enumerate(lists):
             job = self.job_for_analysis_grid_priors_and_values(
-                analysis, model, grid_priors, values
+                analysis, model, grid_priors, values, index
             )
 
             result = job.perform()
@@ -303,6 +304,7 @@ class GridSearch:
         return GridSearchResult(results, lists)
 
     def write_results(self, results_list):
+
         with open("{}/results".format(self.paths.phase_output_path), "w+") as f:
             f.write(
                 "\n".join(
@@ -321,7 +323,7 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-        self, analysis, model, grid_priors, values
+        self, analysis, model, grid_priors, values, index
     ):
         arguments = self.make_arguments(values, grid_priors)
         model_mapper = model.mapper_from_partial_prior_arguments(arguments)
@@ -341,7 +343,7 @@ class GridSearch:
         )
         optimizer_instance = self.optimizer_instance(name_path)
 
-        return Job(optimizer_instance, analysis, model_mapper, arguments)
+        return Job(optimizer_instance, analysis, model_mapper, arguments, index)
 
     def optimizer_instance(self, name_path):
 
@@ -379,7 +381,7 @@ class JobResult:
 
 
 class Job:
-    def __init__(self, optimizer_instance, analysis, model, arguments):
+    def __init__(self, optimizer_instance, analysis, model, arguments, index):
         """
         A job to be performed in parallel.
 
@@ -396,11 +398,11 @@ class Job:
         self.analysis = analysis
         self.model = model
         self.arguments = arguments
+        self.index = index
 
     def perform(self):
         result = self.optimizer_instance.fit(self.analysis, self.model)
-        result_list_row = [
-            *[prior.lower_limit for prior in self.arguments.values()],
+        result_list_row = [self.index, *[prior.lower_limit for prior in self.arguments.values()],
             result.log_likelihood,
         ]
 

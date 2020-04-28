@@ -49,8 +49,15 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
+
         def __init__(self, paths, analysis, model, samples_fom_model):
-            super().__init__(paths, analysis, model=model, samples_from_model=samples_fom_model)
+
+            super().__init__(
+                paths=paths,
+                analysis=analysis,
+                model=model,
+                samples_from_model=samples_fom_model
+            )
 
         def __call__(self, vector):
             try:
@@ -69,13 +76,13 @@ class DownhillSimplex(NonLinearOptimizer):
         )
 
         logger.info("Running DownhillSimplex...")
-        output = self.fmin(fitness_function, x0=initial_vector)
+        samples = self.fmin(fitness_function, x0=initial_vector)
         logger.info("DownhillSimplex complete")
 
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res._gaussian_tuples = [(mean, 0) for mean in output]
+        res.gaussian_tuples = [(mean, 0) for mean in samples]
         res.previous_model = model
 
         analysis.visualize(instance=res.instance, during_analysis=False)

@@ -92,13 +92,13 @@ output_path = "/path/to/gaussian_x100_fits/"
 aggregator = af.Aggregator(directory=str(output_path))
 
 # The aggregator can now load results from these fits. The command below loads results as instances of the
-# NonLinearOutput class which provides an interface to the non-linear search output of every phase's fit.
-non_linear_outputs = aggregator.output
+# Samples class which provides an interface to the non-linear search output of every phase's fit.
+samples = aggregator.samples
 
 # The results of all 100 non-linear searches are now available. The command below creates a list of instances of the 
 # best-fit model parameters of all 100 model fits (many other results are available, e.g. marginalized 1D parameter 
 # estimates, errors, Bayesian evidences, etc.).
-instances = [output.max_log_likelihood_instance for output in non_linear_outputs]
+instances = [output.max_log_likelihood_instance for samps in samples]
 
 # These are instances of the 'model-components' defined using the PyAutoFit Python class format illustrated in figure 1.
 # For the Gaussian class, each instance in this list is an instance of this class and its parameters are accessible.
@@ -116,7 +116,7 @@ fits = aggregator.fit
 # If the datasets are fitted with many different phases (e.g. with different models), the aggregator's filter tool can
 # be used to load results of a specific phase (and therefore model).
 phase_name = "phase_example"
-non_linear_outputs = aggregator.filter(phase=phase_name).output
+samples = aggregator.filter(phase=phase_name).samples
 ```
 
 If many different phases are used to perform different model-fits to a data-set, the aggregator provides tools to filter out results.

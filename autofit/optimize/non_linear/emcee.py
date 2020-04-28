@@ -6,7 +6,7 @@ import emcee
 import numpy as np
 
 from autofit import exc
-from autofit.plot import samples_text
+from autofit.text import samples_text
 from autofit.optimize.non_linear import samples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
@@ -134,12 +134,18 @@ class Emcee(NonLinearOptimizer):
             self.accepted_samples = 0
 
         def fit_instance(self, instance):
+
             log_likelihood = self.analysis.fit(instance)
 
-            if log_likelihood > self.max_likelihood:
+            if log_likelihood > max(self.log_likelihoods):
 
-                self.max_likelihood = log_likelihood
-                self.result = Result(instance, log_likelihood)
+                try:
+                    samples = self.samples_from_model(model=self.model)
+                    self.result = Result(samples=samples)
+                except Exception:
+                    samples = None
+
+                self.log_likelihoods.append(log_likelihood)
 
                 if self.should_visualize():
                     self.analysis.visualize(instance, during_analysis=True)
@@ -148,7 +154,12 @@ class Emcee(NonLinearOptimizer):
                     self.paths.backup()
 
                 if self.should_output_model_results():
-                    samples_text.output_results(samples=self.samples, file_results=self.paths.file_results, during_analysis=True)
+                    if samples is not None:
+                        samples_text.results_to_file(
+                            samples=self.samples,
+                            file_results=self.paths.file_results,
+                            during_analysis=True
+                        )
 
             return log_likelihood
 
@@ -171,8 +182,8 @@ class Emcee(NonLinearOptimizer):
         fitness_function = Emcee.Fitness(
             paths=self.paths,
             analysis=analysis,
-            instance_from_vector=model.instance_from_vector,
-            log_priors_from_vector=model.log_priors_from_vector,
+            model=model,
+            samples_from_model=self.samples_from_model
         )
 
         emcee_sampler = emcee.EnsembleSampler(
@@ -183,6 +194,7 @@ class Emcee(NonLinearOptimizer):
         )
 
         try:
+
             emcee_state = emcee_sampler.get_last_sample()
 
             samples = self.samples_from_model(model=model)
@@ -233,7 +245,7 @@ class Emcee(NonLinearOptimizer):
         instance = samples.max_log_likelihood_instance
 
         analysis.visualize(instance=instance, during_analysis=False)
-        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
+        samples_text.results_to_file(samples=samples, file_results=self.paths.file_results, during_analysis=False)
 
         result = Result(
             samples=samples,
@@ -248,7 +260,6 @@ class Emcee(NonLinearOptimizer):
 
         The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
         if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
-            print(self.paths.sym_path)
             return emcee.backends.HDFBackend(
                 filename=self.paths.sym_path + "/emcee.hdf"
             )
@@ -281,11 +292,16 @@ class Emcee(NonLinearOptimizer):
         total_steps = len(self.backend.get_log_prob())
 
         return samples.MCMCSamples(
-            model=model, parameters=parameters, log_likelihoods=log_likelihoods,
-            log_priors=log_priors, weights=weights,
-            total_walkers=total_walkers, total_steps=total_steps,
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            total_walkers=total_walkers,
+            total_steps=total_steps,
             auto_correlation_times=auto_correlation_time,
             auto_correlation_check_size=self.auto_correlation_check_size,
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
-            backend=self.backend)
+            backend=self.backend
+        )

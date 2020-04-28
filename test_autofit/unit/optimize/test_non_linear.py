@@ -1,18 +1,14 @@
-import itertools
 import os
 import shutil
 
 import pytest
 from autoconf import conf
 import autofit as af
-from autofit import ModelMapper, Paths
-from autofit.optimize.non_linear.samples import AbstractSamples
+from autofit import Paths
 from test_autofit.mock import (
+    MockSamples,
     GeometryProfile,
     MockClassNLOx4,
-    MockClassNLOx5,
-    MockNonLinearOptimizer,
-    MockClassNLOx6,
 )
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -42,10 +38,8 @@ def make_result():
     mapper.profile = GeometryProfile
     # noinspection PyTypeChecker
     return af.Result(
-        instance=None,
-        log_likelihood=None,
+        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
         previous_model=mapper,
-        gaussian_tuples=[(0, 0), (1, 0)]
     )
 
 

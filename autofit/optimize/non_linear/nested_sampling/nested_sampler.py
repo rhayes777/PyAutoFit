@@ -5,7 +5,7 @@ from autofit import conf
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
-from autofit.plot import samples_text
+from autofit.text import samples_text
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +84,7 @@ class NestedSampler(NonLinearOptimizer):
             self.terminate_has_begun = False
 
         def __call__(self, instance):
+
             if self.terminate_at_acceptance_ratio:
                 if os.path.isfile(self.paths.file_summary):
                     try:
@@ -92,7 +93,7 @@ class NestedSampler(NonLinearOptimizer):
                             < self.acceptance_ratio_threshold
                         ) or self.terminate_has_begun:
                             self.terminate_has_begun = True
-                            return self.max_likelihood
+                            return self.log_likelihoods
                     except ValueError:
                         pass
 
@@ -128,7 +129,7 @@ class NestedSampler(NonLinearOptimizer):
 
         instance = samples.max_log_likelihood_instance
         analysis.visualize(instance=instance, during_analysis=False)
-        samples_text.output_results(samples=samples, file_results=self.paths.file_results, during_analysis=False)
+        samples_text.results_to_file(samples=samples, file_results=self.paths.file_results, during_analysis=False)
         result = Result(
             samples=samples,
             previous_model=model,

@@ -5,7 +5,6 @@ import emcee
 
 from autofit import conf
 from autofit.mapper import model
-from autofit.tools import text_formatter, text_util
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ class AbstractSamples:
         self.log_likelihoods = log_likelihoods
         self.log_priors = log_priors
         self.weights = weights
-        self.log_posteriors = list(map(lambda lh, prior: lh * prior, log_likelihoods, log_priors))
+        self.log_posteriors = [lh * prior for lh, prior in zip(log_likelihoods, log_priors)]
         self._unconverged_sample_size = unconverged_sample_size
 
     @property
@@ -84,6 +83,7 @@ class AbstractSamples:
         log_likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
         all live points have similar log_likelihood and sampling probabilities."""
         try:
+
             densities_1d = list(
                 map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
             )
@@ -113,7 +113,6 @@ class AbstractSamples:
         return getdist.mcsamples.MCSamples(
             samples=self.parameters,
             weights=self.weights,
-            loglikes=self.log_likelihoods,
         )
 
     @property
@@ -473,7 +472,7 @@ class AbstractSamples:
                 pdf_plot.triangle_plot(roots=self.pdf)
                 pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
             except Exception as e:
-                print(type(e))
+                logger.exception(e)
                 print(
                     "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
                     "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
@@ -634,8 +633,18 @@ class MCMCSamples(AbstractSamples):
 
 class NestedSamplerSamples(AbstractSamples):
 
-    def __init__(self, model, parameters, log_likelihoods, log_priors, weights, number_live_points, log_evidence,
-                 total_samples, unconverged_sample_size=100):
+    def __init__(
+            self,
+            model,
+            parameters,
+            log_likelihoods,
+            log_priors,
+            weights,
+            number_live_points,
+            log_evidence,
+            total_samples,
+            unconverged_sample_size=100
+    ):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
         as files on your hard-disk) and Python.
 
@@ -654,8 +663,14 @@ class NestedSamplerSamples(AbstractSamples):
             The log of the Bayesian evidence estimated by the nested sampling algorithm.
         """
 
-        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods, log_priors=log_priors,
-                         weights=weights, unconverged_sample_size=unconverged_sample_size)
+        super().__init__(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            unconverged_sample_size=unconverged_sample_size
+        )
 
         self.number_live_points = number_live_points
         self.total_samples = total_samples
