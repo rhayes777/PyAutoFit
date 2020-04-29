@@ -1,0 +1,21 @@
+Maximum Likelihood                                                                        1.00000000
+
+Most Likely Model:
+
+mock_class
+    one                                                                                   1.000
+    two                                                                                   2.000
+
+ WARNING: The samples have not converged enough to compute a PDF and model errors. 
+ The model below over estimates errors. 
+
+
+
+Most probable model (1.0 sigma limits):
+
+mock_class
+    one                                                                                   1.100 (1.000, 1.200)
+    two                                                                                   2.100 (2.000, 2.200)
+
+instances
+
