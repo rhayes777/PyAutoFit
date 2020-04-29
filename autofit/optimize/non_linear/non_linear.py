@@ -355,7 +355,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.gaussian_tuples, a=a
+            self.samples.gaussian_tuples, a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -371,7 +371,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.gaussian_tuples, r=r
+            self.samples.gaussian_tuples, r=r
         )
 
 

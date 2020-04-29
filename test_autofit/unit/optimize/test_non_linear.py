@@ -2,17 +2,19 @@ import os
 import shutil
 
 import pytest
-from autoconf import conf
+
 import autofit as af
+from autoconf import conf
 from autofit import Paths
+from autofit.optimize.non_linear.mock_nlo import MockSamples
 from test_autofit.mock import (
     GeometryProfile,
     MockClassNLOx4,
 )
-from autofit.optimize.non_linear.mock_nlo import MockSamples
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
+
 
 @pytest.fixture(autouse=True)
 def set_config_path():
@@ -68,7 +70,7 @@ class TestResult:
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
             result.model.mapper_from_gaussian_tuples(
-                result.gaussian_tuples, a=2.0, r=1.0
+                result.samples.gaussian_tuples, a=2.0, r=1.0
             )
 
 
@@ -83,15 +85,6 @@ class TestCopyWithNameExtension:
 
         self.assert_non_linear_attributes_equal(copy)
         assert optimizer.paths.phase_tag == copy.paths.phase_tag
-
-    def test_grid_search(self):
-        optimizer = af.GridSearch(Paths("phase_name"), step_size=17, grid=lambda x: x)
-
-        copy = optimizer.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy)
-        assert isinstance(copy, af.GridSearch)
-        assert copy.step_size is optimizer.step_size
-        assert copy.grid is optimizer.grid
 
 
 @pytest.fixture(name="nlo_setup_path")
@@ -140,7 +133,6 @@ class TestDirectorySetup:
         af.MockNLO(Paths(phase_name=""))
 
         assert os.path.exists(nlo_setup_path + "1_class")
-
 
 
 class TestLabels:

@@ -35,13 +35,6 @@ class MultiNest(NestedSampler):
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
-        terminate_at_acceptance_ratio : bool
-            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *NestedSampler* for a full description of this feature).
-        acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *NestedSampler* for a full description of this feature).
-
         """
         super().__init__(paths=paths, sigma=sigma)
 
@@ -235,9 +228,6 @@ class MultiNest(NestedSampler):
         model
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
-        paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
         """
 
         parameters = parameters_from_file_weighted_samples(
@@ -354,6 +344,7 @@ def total_samples_from_file_resume(file_resume):
     total_samples = int(resume.read(8))
     resume.close()
     return total_samples
+
 
 def log_evidence_from_file_summary(file_summary, prior_count):
     """Open the file "multinestsummary.txt" and extract the log evidence of the Multinest analysis.

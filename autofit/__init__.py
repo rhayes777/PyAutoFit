@@ -34,7 +34,6 @@ from .optimize.grid_search import GridSearch as OptimizerGridSearch
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
 from .optimize.non_linear.nested_sampling.dynesty import DynestyStatic, DynestyDynamic
-from .optimize.non_linear.grid_search import GridSearch
 from .optimize.grid_search import GridSearchResult
 from .optimize.non_linear.nested_sampling.multi_nest import MultiNest
 from .optimize.non_linear.mock_nlo import MockNLO

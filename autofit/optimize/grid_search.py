@@ -6,12 +6,12 @@ from time import sleep
 import numpy as np
 
 from autofit import conf
-from autofit.optimize.non_linear.paths import Paths
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.optimize import optimizer
-from autofit.optimize.non_linear.downhill_simplex import DownhillSimplex
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
+from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +53,8 @@ class GridSearchResult:
         best_result = None
         for result in self.results:
             if (
-                best_result is None
-                or result.log_likelihood > best_result.log_likelihood
+                    best_result is None
+                    or result.log_likelihood > best_result.log_likelihood
             ):
                 best_result = result
         return best_result
@@ -97,7 +97,7 @@ class GridSearchResult:
 class GridSearch:
     # TODO: this should be using paths
     def __init__(
-        self, paths, number_of_steps=4, non_linear_class=DownhillSimplex, parallel=False
+            self, paths, number_of_steps=4, non_linear_class=MultiNest, parallel=False
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -156,16 +156,16 @@ class GridSearch:
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
             if (
-                float("-inf") == grid_prior.lower_limit
-                or float("inf") == grid_prior.upper_limit
+                    float("-inf") == grid_prior.lower_limit
+                    or float("inf") == grid_prior.upper_limit
             ):
                 raise exc.PriorException(
                     "Priors passed to the grid search must have definite limits"
                 )
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
             upper_limit = (
-                grid_prior.lower_limit
-                + (value + self.hyper_step_size) * grid_prior.width
+                    grid_prior.lower_limit
+                    + (value + self.hyper_step_size) * grid_prior.width
             )
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
@@ -224,8 +224,8 @@ class GridSearch:
         lists = self.make_lists(grid_priors)
 
         results_list = [["index"] +
-            list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
-        ]
+                        list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
+                        ]
 
         job_queue = multiprocessing.Queue()
 
@@ -286,8 +286,8 @@ class GridSearch:
         lists = self.make_lists(grid_priors)
 
         results_list = [["index"] +
-            list(map(model.name_for_prior, grid_priors)) + ["max_log_likelihood"]
-        ]
+                        list(map(model.name_for_prior, grid_priors)) + ["max_log_likelihood"]
+                        ]
 
         for index, values in enumerate(lists):
             job = self.job_for_analysis_grid_priors_and_values(
@@ -323,7 +323,7 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-        self, analysis, model, grid_priors, values, index
+            self, analysis, model, grid_priors, values, index
     ):
         arguments = self.make_arguments(values, grid_priors)
         model_mapper = model.mapper_from_partial_prior_arguments(arguments)
@@ -403,8 +403,8 @@ class Job:
     def perform(self):
         result = self.optimizer_instance.fit(self.analysis, self.model)
         result_list_row = [self.index, *[prior.lower_limit for prior in self.arguments.values()],
-            result.log_likelihood,
-        ]
+                           result.log_likelihood,
+                           ]
 
         return JobResult(result, result_list_row)
 
