@@ -40,8 +40,6 @@ class AbstractPhase:
         self.optimizer = non_linear_class(self.paths)
         self.model = model or ModelMapper()
 
-        self.save_model_info()
-
         self.pipeline_name = None
         self.pipeline_tag = None
         self.meta_dataset = None
@@ -277,8 +275,9 @@ class Phase(AbstractPhase):
         """
         self.save_metadata(dataset=dataset)
         self.save_dataset(dataset=dataset)
-        self.save_info(info=info)
+
         self.model = self.model.populate(results)
+        self.save_info(info=info)
 
         analysis = self.make_analysis(dataset=dataset)
 
