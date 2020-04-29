@@ -1,19 +1,20 @@
-import os
 import logging
+import os
 import pickle
 from abc import ABC, abstractmethod
 from typing import Dict
 
 import dill
 
-from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
 from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
+
 
 class AbstractPhase:
     @convert_paths
@@ -124,15 +125,6 @@ class AbstractPhase:
         """
         with open("{}/info.pickle".format(self.paths.make_path()), "wb") as f:
             pickle.dump(info, f)
-
-    def save_grid_search_result(self, grid_search_result):
-        with open(
-                f"{self.paths.pickle_path}/grid_search_result.pickle",
-                "wb+"
-        ) as f:
-            pickle.dump(
-                grid_search_result, f
-            )
 
     def __str__(self):
         return self.optimizer.paths.phase_name
@@ -338,9 +330,17 @@ def as_grid_search(phase_class, parallel=False):
                 parallel=parallel,
             )
 
+        def save_grid_search_result(self, grid_search_result):
+            with open(
+                    f"{self.paths.pickle_path}/grid_search_result.pickle",
+                    "wb+"
+            ) as f:
+                pickle.dump(
+                    grid_search_result, f
+                )
+
         # noinspection PyMethodMayBeStatic,PyUnusedLocal
         def make_result(self, result, analysis):
-
             self.save_grid_search_result(grid_search_result=result)
 
             return result
