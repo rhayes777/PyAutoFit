@@ -40,6 +40,14 @@ class GridSearchResult:
         """
         return getattr(self.best_result, item)
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__.update(
+            state
+        )
+
     @property
     def best_result(self):
         """

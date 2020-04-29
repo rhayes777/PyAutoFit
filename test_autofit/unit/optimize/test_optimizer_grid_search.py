@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 import pytest
 
@@ -16,6 +18,21 @@ def make_mapper():
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
     return af.OptimizerGridSearch(af.Paths(phase_name=""), number_of_steps=10, non_linear_class=Emcee)
+
+
+def test_unpickle_result():
+    result = af.GridSearchResult(
+        [af.Result(
+            samples=None
+        )],
+        lists=[[1]]
+    )
+    result = pickle.loads(
+        pickle.dumps(
+            result
+        )
+    )
+    assert result is not None
 
 
 class TestGridSearchablePriors:
