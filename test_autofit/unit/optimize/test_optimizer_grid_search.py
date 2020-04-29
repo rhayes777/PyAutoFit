@@ -25,7 +25,8 @@ def test_unpickle_result():
         [af.Result(
             samples=None
         )],
-        lists=[[1]]
+        lists=[[1]],
+        physical_lists=[[1]]
     )
     result = pickle.loads(
         pickle.dumps(
@@ -372,7 +373,8 @@ def make_grid_search_result():
     one = MockResult(1)
     two = MockResult(2)
 
-    return af.GridSearchResult([one, two], [[1], [2]])
+    # noinspection PyTypeChecker
+    return af.GridSearchResult([one, two], [[1], [2]], [[1], [2]])
 
 
 class TestGridSearchResult:
@@ -411,6 +413,8 @@ class TestMixin:
 
         assert isinstance(result, af.GridSearchResult)
         assert len(result.results) == 2
+        assert len(result.lists) == 2
+        assert len(result.physical_lists) == 2
 
         assert isinstance(
             result.best_result, af.Result

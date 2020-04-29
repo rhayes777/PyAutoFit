@@ -2,6 +2,7 @@ import copy
 import logging
 import multiprocessing
 from time import sleep
+from typing import List
 
 import numpy as np
 
@@ -11,24 +12,34 @@ from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.optimize import optimizer
 from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
+from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
 class GridSearchResult:
-    def __init__(self, results, lists):
+    def __init__(
+            self,
+            results: List[Result],
+            lists: List[List[float]],
+            physical_lists: List[List[float]]
+    ):
         """
         The result of a grid search.
 
         Parameters
         ----------
-        results: [non_linear.Result]
+        results
             The results of the non linear optimizations performed at each grid step
-        lists: [[float]]
+        lists
             A list of lists of values representing the lower bounds of the grid searched values at each step
+        physical_lists
+            A list of lists of values representing the lower physical bounds of the grid search values
+            at each step.
         """
         self.lists = lists
+        self.physical_lists = physical_lists
         self.results = results
         self.no_dimensions = len(self.lists[0])
         self.no_steps = len(self.lists)
@@ -142,6 +153,17 @@ class GridSearch:
         """
         return 1 / self.number_of_steps
 
+    def make_physical_lists(self, grid_priors) -> List[List[float]]:
+        lists = self.make_lists(grid_priors)
+        return [
+            [
+                prior.value_for(value)
+                for prior, value
+                in zip(grid_priors, l)
+            ]
+            for l in lists
+        ]
+
     def make_lists(self, grid_priors):
         """
         Produces a list of lists of floats, where each list of floats represents the values in each dimension for one
@@ -230,6 +252,9 @@ class GridSearch:
         grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
+        physical_lists = self.make_physical_lists(
+            grid_priors
+        )
 
         results_list = [["index"] +
                         list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
@@ -269,7 +294,7 @@ class GridSearch:
         for process in processes:
             process.join(timeout=1.0)
 
-        return GridSearchResult(results, lists)
+        return GridSearchResult(results, lists, physical_lists)
 
     def fit_sequential(self, analysis, model, grid_priors):
         """
@@ -292,6 +317,9 @@ class GridSearch:
         grid_priors = list(sorted(set(grid_priors), key=lambda prior: prior.id))
         results = []
         lists = self.make_lists(grid_priors)
+        physical_lists = self.make_physical_lists(
+            grid_priors
+        )
 
         results_list = [["index"] +
                         list(map(model.name_for_prior, grid_priors)) + ["max_log_likelihood"]
@@ -309,7 +337,7 @@ class GridSearch:
 
             self.write_results(results_list)
 
-        return GridSearchResult(results, lists)
+        return GridSearchResult(results, lists, physical_lists)
 
     def write_results(self, results_list):
 
