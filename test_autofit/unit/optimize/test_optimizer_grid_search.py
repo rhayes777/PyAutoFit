@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit import exc
+from autofit import exc, Emcee
 from test_autofit.unit.mapper.model.test_model_mapper import GeometryProfile
 
 
@@ -15,7 +15,7 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return af.OptimizerGridSearch(af.Paths(phase_name=""), number_of_steps=10)
+    return af.OptimizerGridSearch(af.Paths(phase_name=""), number_of_steps=10, non_linear_class=Emcee)
 
 
 class TestGridSearchablePriors:
