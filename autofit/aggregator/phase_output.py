@@ -72,11 +72,13 @@ class PhaseOutput:
 
         dataset.pickle, meta_dataset.pickle etc.
         """
-
-        with open(
-                os.path.join(self.pickle_path, f"{item}.pickle"), "rb"
-        ) as f:
-            return pickle.load(f)
+        try:
+            with open(
+                    os.path.join(self.pickle_path, f"{item}.pickle"), "rb"
+            ) as f:
+                return pickle.load(f)
+        except FileNotFoundError:
+            print(f"No {item} associated with {self.directory}")
 
     @property
     def header(self) -> str:

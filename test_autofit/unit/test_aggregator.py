@@ -102,6 +102,9 @@ class TestLoading:
         assert list(path_aggregator.values(
             "non_linear"
         ))[0]["name"] == "optimizer"
+        assert list(path_aggregator.values(
+            "nonsense"
+        ))[0] is None
 
 
 @pytest.fixture(
