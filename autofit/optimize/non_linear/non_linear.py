@@ -293,9 +293,6 @@ class Result:
     @DynamicAttrs
     """
 
-    # TODO : instance, log_likelihood and gaussian tuples shoudl all be replaced for methods that come via samples.
-    # TODO : I can't currently delete them though, as it breaks GridSearch results.
-
     def __init__(
             self, samples, previous_model=None
     ):
@@ -315,13 +312,15 @@ class Result:
 
         self.__model = None
 
+        self._instance = samples.max_log_likelihood_instance if samples is not None else None
+
     @property
     def log_likelihood(self):
         return max(self.samples.log_likelihoods)
 
     @property
-    def instance(self):
-        return self.samples.max_log_likelihood_instance
+    def max_log_likelihood_instance(self):
+        return self._instance
 
     @property
     def model(self):
