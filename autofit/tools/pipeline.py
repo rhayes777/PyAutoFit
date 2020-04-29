@@ -130,7 +130,7 @@ class Pipeline:
             if phase.pipeline_tag is None:
                 phase.pipeline_tag = self.pipeline_tag
 
-            with open(phase.paths.file_model_info, "w+") as f:
+            with open(phase.paths.file_model_promises, "w+") as f:
                 f.write(phase.model.info)
 
         phase_names = [phase.phase_name for phase in phases]

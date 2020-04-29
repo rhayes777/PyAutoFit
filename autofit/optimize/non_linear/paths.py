@@ -68,13 +68,13 @@ def convert_paths(func):
 
 class Paths:
     def __init__(
-        self,
-        phase_name="",
-        phase_tag=None,
-        phase_folders=tuple(),
-        phase_path=None,
-        non_linear_name=None,
-        remove_files=True,
+            self,
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple(),
+            phase_path=None,
+            non_linear_name=None,
+            remove_files=True,
     ):
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
@@ -167,6 +167,10 @@ class Paths:
     @property
     def file_param_names(self) -> str:
         return "{}/{}".format(self.path, self.non_linear_name + ".paramnames")
+
+    @property
+    def file_model_promises(self) -> str:
+        return "{}/{}".format(self.phase_output_path, "model.promises")
 
     @property
     def file_model_info(self) -> str:
@@ -285,7 +289,7 @@ class Paths:
                         f.write(
                             os.path.join(root, file),
                             os.path.join(
-                                root[len(self.phase_output_path) :].lstrip("/"), file
+                                root[len(self.phase_output_path):].lstrip("/"), file
                             ),
                         )
 
