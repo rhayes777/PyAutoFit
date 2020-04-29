@@ -319,6 +319,10 @@ class Result:
         return max(self.samples.log_likelihoods)
 
     @property
+    def instance(self):
+        return self._instance
+
+    @property
     def max_log_likelihood_instance(self):
         return self._instance
 
@@ -326,7 +330,7 @@ class Result:
     def model(self):
         if self.__model is None:
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self.samples.gaussian_tuples
+                self.samples.gaussian_priors_at_sigma(sigma=3.0)
             )
         return self.__model
 
@@ -354,7 +358,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_tuples, a=a
+            self.samples.gaussian_priors_at_sigma(sigma=3.0), a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -370,7 +374,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_tuples, r=r
+            self.samples.gaussian_priors_at_sigma(sigma=3.0), r=r
         )
 
 
