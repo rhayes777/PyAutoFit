@@ -6,26 +6,8 @@ import autofit as af
 # noinspection PyAbstractClass
 import autofit.mapper.prior_model.attribute_pair
 from autofit import Paths
-from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.tools.phase import Dataset
 
-
-class MockSamples(AbstractSamples):
-
-    def __init__(self, max_log_likelihood_instance=None, log_likelihoods=None, gaussian_tuples=None):
-
-        super().__init__(model=None, parameters=[], log_likelihoods=[], log_priors=[], weights=[])
-
-        self._max_log_likelihood_instance = max_log_likelihood_instance
-        self.log_likelihoods = log_likelihoods
-        self.gaussian_tuples = gaussian_tuples
-
-    @property
-    def max_log_likelihood_instance(self) -> int:
-        return self._max_log_likelihood_instance
-
-    def gaussian_priors_at_sigma(self, sigma=None):
-        return self.gaussian_tuples
 
 class MockNonLinearOptimizer(object):
     def __init__(

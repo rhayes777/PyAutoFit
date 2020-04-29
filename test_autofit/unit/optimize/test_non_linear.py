@@ -6,10 +6,10 @@ from autoconf import conf
 import autofit as af
 from autofit import Paths
 from test_autofit.mock import (
-    MockSamples,
     GeometryProfile,
     MockClassNLOx4,
 )
+from autofit.optimize.non_linear.mock_nlo import MockSamples
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")

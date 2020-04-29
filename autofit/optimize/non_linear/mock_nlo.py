@@ -1,7 +1,7 @@
 import math
 
 import autofit as af
-from autofit.optimize.non_linear.samples import AbstractSamples
+from autofit import AbstractSamples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Analysis
 
@@ -31,13 +31,15 @@ class MockNLO(NonLinearOptimizer):
                     raise e
                 index = (index + 1) % model.prior_count
         return af.Result(
-            instance=instance,
-            log_likelihood=fit,
             previous_model=model,
-            gaussian_tuples=[
-                (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
-                for prior in sorted(model.priors, key=lambda prior: prior.id)
-            ],
+            samples=MockSamples(
+                log_likelihoods=fit,
+                model=model,
+                gaussian_tuples=[
+                    (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
+                    for prior in sorted(model.priors, key=lambda prior: prior.id)
+                ],
+            ),
         )
 
     def samples_from_model(self, model):
@@ -61,3 +63,21 @@ class MockAnalysis(Analysis):
 
     def __init__(self, data):
         self.data = data
+
+
+class MockSamples(AbstractSamples):
+
+    def __init__(self, model=None, max_log_likelihood_instance=None, log_likelihoods=None, gaussian_tuples=None):
+
+        super().__init__(model=model, parameters=[], log_likelihoods=[], log_priors=[], weights=[])
+
+        self._max_log_likelihood_instance = max_log_likelihood_instance
+        self.log_likelihoods = log_likelihoods
+        self.gaussian_tuples = gaussian_tuples
+
+    @property
+    def max_log_likelihood_instance(self) -> int:
+        return self._max_log_likelihood_instance
+
+    def gaussian_priors_at_sigma(self, sigma=None):
+        return self.gaussian_tuples

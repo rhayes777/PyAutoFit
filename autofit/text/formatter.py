@@ -148,9 +148,8 @@ def param_labels_from_model(model) -> [str]:
             param_string = prior_name
         prior_model = prior_prior_model_dict[prior]
         cls = prior_class_dict[prior]
-        cls_string = "{}{}".format(
-            conf.instance.label.subscript(cls), prior_model.component_number + 1
-        )
+        cls_string = conf.instance.label.subscript(cls)
+
         param_label = "{}_{{\\mathrm{{{}}}}}".format(param_string, cls_string)
         paramnames_labels.append(param_label)
 

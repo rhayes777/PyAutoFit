@@ -208,8 +208,8 @@ def test_param_labels_labels():
     param_labels = formatter.param_labels_from_model(model=model)
 
     assert param_labels == [
-        r"x4p0_{\mathrm{a1}}",
-        r"x4p1_{\mathrm{a1}}",
-        r"x4p2_{\mathrm{a1}}",
-        r"x4p3_{\mathrm{a1}}",
+        r"x4p0_{\mathrm{a}}",
+        r"x4p1_{\mathrm{a}}",
+        r"x4p2_{\mathrm{a}}",
+        r"x4p3_{\mathrm{a}}",
     ]

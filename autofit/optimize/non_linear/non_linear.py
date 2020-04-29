@@ -297,16 +297,13 @@ class Result:
     # TODO : I can't currently delete them though, as it breaks GridSearch results.
 
     def __init__(
-            self, samples, previous_model=None, instance=None, log_likelihood=None, gaussian_tuples=None,
+            self, samples, previous_model=None
     ):
         """
         The result of an optimization.
 
         Parameters
         ----------
-        instance: autofit.mapper.model.ModelInstance
-            An instance object comprising the class instances that gave the optimal fit
-        log_likelihood: float
             A value indicating the figure of merit given by the optimal fit
         previous_model
             The model mapper from the stage that produced this result
@@ -318,30 +315,19 @@ class Result:
 
         self.__model = None
 
-        # TODO : I was hoping we could get rid of these once we used samples, but using them in property's seems to
-        # TODO : cause issues, so I ama keepingn them as attributes for now. In particular, log_likelihood is used
-        # TODO : by GridSearch result.
+    @property
+    def log_likelihood(self):
+        return max(self.samples.log_likelihoods)
 
-        if isinstance(self.samples, samp.AbstractSamples):
-            self.instance = self.samples.max_log_likelihood_instance
-        else:
-            self.instance = instance
-
-        if isinstance(self.samples, samp.AbstractSamples):
-            self.log_likelihood = max(self.samples.log_likelihoods)
-        else:
-            self.log_likelihood = log_likelihood
-
-        if isinstance(self.samples, samp.AbstractSamples):
-            self.gaussian_tuples = self.samples.gaussian_priors_at_sigma(sigma=3.0)
-        else:
-            self.gaussian_tuples = gaussian_tuples
+    @property
+    def instance(self):
+        return self.samples.max_log_likelihood_instance
 
     @property
     def model(self):
         if self.__model is None:
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self.gaussian_tuples
+                self.samples.gaussian_tuples
             )
         return self.__model
 

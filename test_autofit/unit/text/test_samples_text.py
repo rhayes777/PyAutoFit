@@ -46,8 +46,8 @@ def test__results_latex_from_sigma(samples):
 
     print(latex_results_at_sigma[0])
 
-    assert latex_results_at_sigma[0] == 'x4p0_{\\mathrm{a6}} = 1.10^{+1.20}_{-1.00} & '
-    assert latex_results_at_sigma[1] == 'x4p1_{\\mathrm{a6}} = 2.10^{+2.20}_{-2.00} & '
+    assert latex_results_at_sigma[0] == 'x4p0_{\\mathrm{a}} = 1.10^{+1.20}_{-1.00} & '
+    assert latex_results_at_sigma[1] == 'x4p1_{\\mathrm{a}} = 2.10^{+2.20}_{-2.00} & '
 
 
 def test__results_to_file(samples):

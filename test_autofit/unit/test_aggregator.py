@@ -101,7 +101,7 @@ class TestLoading:
         ))[0]["name"] == "model"
         assert list(path_aggregator.values(
             "non_linear"
-        ))[0]["name"] == "non_linear"
+        ))[0]["name"] == "optimizer"
 
 
 @pytest.fixture(
