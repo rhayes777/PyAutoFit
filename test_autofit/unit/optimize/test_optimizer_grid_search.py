@@ -25,8 +25,8 @@ def test_unpickle_result():
         [af.Result(
             samples=None
         )],
-        lists=[[1]],
-        physical_lists=[[1]]
+        lower_limit_lists=[[1]],
+        physical_lower_limits_lists=[[1]]
     )
     result = pickle.loads(
         pickle.dumps(
@@ -280,7 +280,7 @@ class TestGridNLOBehaviour:
         assert len(result.results) == 4
         assert result.no_dimensions == 2
         assert np.equal(
-            result.likelihood_merit_array, np.array([[1.0, 1.0], [1.0, 1.0]])
+            result.max_log_likelihood_values, np.array([[1.0, 1.0], [1.0, 1.0]])
         ).all()
 
         grid_search = af.OptimizerGridSearch(
@@ -296,7 +296,7 @@ class TestGridNLOBehaviour:
 
         assert len(result.results) == 100
         assert result.no_dimensions == 2
-        assert result.likelihood_merit_array.shape == (10, 10)
+        assert result.max_log_likelihood_values.shape == (10, 10)
 
     # def test_results_parallel(self, mapper, container):
     #     grid_search = af.OptimizerGridSearch(
@@ -391,6 +391,21 @@ class TestGridSearchResult:
     def test_all_models(self, grid_search_result):
         assert grid_search_result.all_models == [1, 2]
 
+    def test__result_derived_properties(self):
+
+        lower_limit_lists = [[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]]
+        physical_lower_limits_lists = [[-2.0, -3.0], [-2.0, 0.0], [0.0, -3.0], [0.0, 0.0]]
+
+        grid_search_result = af.GridSearchResult(
+            results=None,
+            physical_lower_limits_lists=physical_lower_limits_lists,
+            lower_limit_lists=lower_limit_lists
+        )
+
+        assert grid_search_result.shape == (2, 2)
+        assert grid_search_result.physical_step_sizes == [2.0, 3.0]
+        assert grid_search_result.physical_centres_lists == [[-1.0, -1.5], [-1.0, 1.5], [1.0, -1.5], [1.0, 1.5]]
+        assert grid_search_result.physical_upper_limit_lists == [[0.0, 0.0], [0.0, 3.0], [2.0, 0.0], [2.0, 3.0]]
 
 class TestMixin:
     def test_mixin(self, container):
@@ -414,8 +429,8 @@ class TestMixin:
 
         assert isinstance(result, af.GridSearchResult)
         assert len(result.results) == 2
-        assert len(result.lists) == 2
-        assert len(result.physical_lists) == 2
+        assert len(result.lower_limit_lists) == 2
+        assert len(result.physical_lower_limits_lists) == 2
 
         assert isinstance(
             result.best_result, af.Result

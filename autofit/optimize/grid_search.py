@@ -22,8 +22,8 @@ class GridSearchResult:
     def __init__(
             self,
             results: List[Result],
-            lists: List[List[float]],
-            physical_lists: List[List[float]]
+            lower_limit_lists: List[List[float]],
+            physical_lower_limits_lists: List[List[float]]
     ):
         """
         The result of a grid search.
@@ -32,17 +32,17 @@ class GridSearchResult:
         ----------
         results
             The results of the non linear optimizations performed at each grid step
-        lists
+        lower_limit_lists
             A list of lists of values representing the lower bounds of the grid searched values at each step
-        physical_lists
+        physical_lower_limits_lists
             A list of lists of values representing the lower physical bounds of the grid search values
             at each step.
         """
-        self.lists = lists
-        self.physical_lists = physical_lists
+        self.lower_limit_lists = lower_limit_lists
+        self.physical_lower_limits_lists = physical_lower_limits_lists
         self.results = results
-        self.no_dimensions = len(self.lists[0])
-        self.no_steps = len(self.lists)
+        self.no_dimensions = len(self.lower_limit_lists[0])
+        self.no_steps = len(self.lower_limit_lists)
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
 
     def __getattr__(self, item: str) -> object:
@@ -58,6 +58,10 @@ class GridSearchResult:
         self.__dict__.update(
             state
         )
+
+    @property
+    def shape(self):
+        return tuple([self.side_length for dim in range(self.no_dimensions)])
 
     @property
     def best_result(self):
@@ -99,7 +103,29 @@ class GridSearchResult:
         return [result.model for result in self.results]
 
     @property
-    def likelihood_merit_array(self):
+    def physical_step_sizes(self):
+
+        physical_step_sizes = []
+
+        for dim in range(self.no_dimensions):
+            values = [value[dim] for value in self.physical_lower_limits_lists]
+            diff = [abs(values[n] - values[n - 1]) for n in range(1, len(values))]
+            physical_step_sizes.append(np.max(diff))
+
+        return physical_step_sizes
+
+    @property
+    def physical_centres_lists(self):
+        return [[lower_limit[dim] + self.physical_step_sizes[dim] / 2 for dim in range(self.no_dimensions)] for
+                lower_limit in self.physical_lower_limits_lists]
+
+    @property
+    def physical_upper_limit_lists(self):
+        return [[lower_limit[dim] + self.physical_step_sizes[dim] for dim in range(self.no_dimensions)] for lower_limit
+                in self.physical_lower_limits_lists]
+
+    @property
+    def max_log_likelihood_values(self):
         """
         Returns
         -------
@@ -112,6 +138,19 @@ class GridSearchResult:
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
 
+    @property
+    def log_evidence_values(self):
+        """
+        Returns
+        -------
+        likelihood_merit_array: np.ndarray
+            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
+            each entry being the figure of merit taken from the optimization performed at that point.
+        """
+        return np.reshape(
+            np.array([result.samples.log_evidence for result in self.results]),
+            tuple(self.side_length for _ in range(self.no_dimensions)),
+        )
 
 class GridSearch:
     # TODO: this should be using paths
