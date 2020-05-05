@@ -6,17 +6,41 @@ import pymultinest
 from autofit import conf, exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.optimize.non_linear import samples
-from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
-    NestedSampler,
-)
-from autofit.optimize.non_linear.non_linear import Result
+from autofit.optimize.non_linear.nested_sampling import nested_sampler as ns
+from autofit.optimize.non_linear import non_linear as nl
 from autofit.text import samples_text
 
 logger = logging.getLogger(__name__)
 
 
-class MultiNest(NestedSampler):
-    def __init__(self, paths=None, sigma=3, run=pymultinest.run):
+class MultiNest(ns.NestedSampler):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        run=pymultinest.run,
+        n_live_points=None,
+        sampling_efficiency=None,
+        const_efficiency_mode=None,
+        evidence_tolerance=None,
+        multimodal=None,
+        importance_nested_sampling=None,
+        n_iter_before_update=None,
+        null_log_evidence=None,
+        max_modes=None,
+        mode_tolerance=None,
+        seed=None,
+        verbose=None,
+        resume=None,
+        context=None,
+        write_output=None,
+        log_zero=None,
+        max_iter=None,
+        init_MPI=None,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+        stagger_resampling_likelihood=None,
+    ):
         """
         Class to setup and run a MultiNest non-linear search.
 
@@ -36,37 +60,77 @@ class MultiNest(NestedSampler):
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
         """
-        super().__init__(paths=paths, sigma=sigma)
 
-        self.importance_nested_sampling = self.config(
-            "importance_nested_sampling", bool
+        super().__init__(
+            paths=paths,
+            sigma=sigma,
+            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold=acceptance_ratio_threshold,
         )
-        self.multimodal = self.config("multimodal", bool)
-        self.const_efficiency_mode = self.config("const_efficiency_mode", bool)
-        self.n_live_points = self.config("n_live_points", int)
-        self.evidence_tolerance = self.config("evidence_tolerance", float)
-        self.sampling_efficiency = self.config("sampling_efficiency", float)
-        self.n_iter_before_update = self.config("n_iter_before_update", int)
-        self.null_log_evidence = self.config("null_log_evidence", float)
-        self.max_modes = self.config("max_modes", int)
-        self.mode_tolerance = self.config("mode_tolerance", float)
-        self.seed = self.config("seed", int)
-        self.verbose = self.config("verbose", bool)
-        self.resume = self.config("resume", bool)
-        self.context = self.config("context", int)
-        self.write_output = self.config("write_output", bool)
-        self.log_zero = self.config("log_zero", float)
-        self.max_iter = self.config("max_iter", int)
-        self.init_MPI = self.config("init_MPI", bool)
 
-        multinest_config = conf.instance.non_linear.config_for(
-            "MultiNest"
+        self.n_live_points = (
+            self.config("n_live_points", int)
+            if n_live_points is None
+            else n_live_points
         )
-        self.terminate_at_acceptance_ratio = multinest_config.get(
-            "general", "terminate_at_acceptance_ratio", bool
+        self.sampling_efficiency = (
+            self.config("sampling_efficiency", float)
+            if sampling_efficiency is None
+            else sampling_efficiency
         )
-        self.acceptance_ratio_threshold = multinest_config.get(
-            "general", "acceptance_ratio_threshold", float
+        self.const_efficiency_mode = (
+            self.config("const_efficiency_mode", bool)
+            if const_efficiency_mode is None
+            else const_efficiency_mode
+        )
+        self.evidence_tolerance = (
+            self.config("evidence_tolerance", float)
+            if evidence_tolerance is None
+            else evidence_tolerance
+        )
+        self.multimodal = (
+            multimodal or self.config("multimodal", bool)
+            if multimodal is None
+            else multimodal
+        )
+        self.importance_nested_sampling = (
+            self.config("importance_nested_sampling", bool)
+            if importance_nested_sampling is None
+            else importance_nested_sampling
+        )
+        self.n_iter_before_update = (
+            self.config("n_iter_before_update", int)
+            if n_iter_before_update is None
+            else n_iter_before_update
+        )
+        self.null_log_evidence = (
+            self.config("null_log_evidence", float)
+            if null_log_evidence is None
+            else null_log_evidence
+        )
+        self.max_modes = (
+            self.config("max_modes", int) if max_modes is None else max_modes
+        )
+        self.mode_tolerance = (
+            self.config("mode_tolerance", float)
+            if mode_tolerance is None
+            else mode_tolerance
+        )
+        self.seed = self.config("seed", int) if seed is None else seed
+        self.verbose = self.config("verbose", bool) if verbose is None else verbose
+        self.resume = self.config("resume", bool) if resume is None else resume
+        self.context = self.config("context", int) if context is None else context
+        self.write_output = (
+            self.config("write_output", bool) if write_output is None else write_output
+        )
+        self.log_zero = self.config("log_zero", float) if log_zero is None else log_zero
+        self.max_iter = self.config("max_iter", int) if max_iter is None else max_iter
+        self.init_MPI = self.config("init_MPI", bool) if init_MPI is None else init_MPI
+
+        self.stagger_resampling_likelihood = (
+            self.config("stagger_resampling_likelihood", bool)
+            if stagger_resampling_likelihood is None
+            else stagger_resampling_likelihood
         )
 
         self.run = run
@@ -104,7 +168,70 @@ class MultiNest(NestedSampler):
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
 
-    def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
+    class Fitness(ns.NestedSampler.Fitness):
+        def __init__(
+            self,
+            paths,
+            analysis,
+            model,
+            samples_from_model,
+            stagger_resampling_likelihood,
+            terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold,
+        ):
+
+            super().__init__(
+                paths=paths,
+                analysis=analysis,
+                model=model,
+                samples_from_model=samples_from_model,
+                terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
+                acceptance_ratio_threshold=acceptance_ratio_threshold,
+            )
+
+            self.stagger_resampling_likelihood = stagger_resampling_likelihood
+            self.stagger_accepted_samples = 0
+            self.resampling_likelihood = -1.0e99
+
+        def __call__(self, params, *kwargs):
+
+            self.check_terminate_sampling()
+
+            try:
+
+                instance = self.model.instance_from_vector(vector=params)
+                return self.fit_instance(instance)
+
+            except exc.FitException:
+
+                return self.stagger_resampling_log_likelihood()
+
+        def stagger_resampling_log_likelihood(self):
+            """By default, when a fit raises an exception a log likelihood of -np.inf is returned, which leads the
+            sampler to discard the sample.
+
+            However, we found that this causes memory issues when running PyMultiNest. Therefore, we 'hack' a solution
+            by not returning -np.inf (which leads the sample to be discarded) but instead a large negative float which
+            is treated as a real sample (and does not lead too memory issues). The value returned is staggered to avoid
+            all initial samples returning the same log likelihood and the non-linear search terminating."""
+
+            if not self.stagger_resampling_likelihood:
+
+                return -np.inf
+
+            else:
+                if self.stagger_accepted_samples < 10:
+
+                    self.stagger_accepted_samples += 1
+                    self.resampling_likelihood += 1e90
+
+                    return self.resampling_likelihood
+
+                else:
+
+                    return -1.0 * np.abs(self.resampling_likelihood) * 10.0
+
+    def _fit(self, model: AbstractPriorModel, analysis) -> nl.Result:
         """
         Fit a model using MultiNest and a function that returns a log likelihood from instances of that model.
 
@@ -132,50 +259,12 @@ class MultiNest(NestedSampler):
 
             return cube
 
-        multinest = conf.instance.non_linear.config_for(
-            "MultiNest"
+        fitness_function = self.fitness_function_from_model_and_analysis(
+            model=model, analysis=analysis
         )
-        stagger_resampling_likelihood = multinest.get(
-            "general", "stagger_resampling_likelihood", bool
-        )
-        stagger_resampling_value = multinest.get(
-            "general", "stagger_resampling_value", float
-        )
-
-        class Fitness:
-            def __init__(self):
-                """
-                Fitness function that only handles resampling
-                """
-                self.stagger_accepted_samples = 0
-                self.resampling_likelihood = multinest.get(
-                    "general", "null_log_evidence", float
-                )
-
-            def __call__(self, cube, ndim, nparams, lnew):
-                """
-                This call converts a vector of physical values then determines a fit.
-
-                If an exception is thrown it handles resampling.
-                """
-                try:
-                    return fitness_function(model.instance_from_vector(cube))
-                except exc.FitException:
-                    if not stagger_resampling_likelihood:
-                        log_likelihood = -np.inf
-                    else:
-                        if self.stagger_accepted_samples < 10:
-                            self.stagger_accepted_samples += 1
-                            self.resampling_likelihood += stagger_resampling_value
-                            log_likelihood = self.resampling_likelihood
-                        else:
-                            log_likelihood = (
-                                    -1.0 * np.abs(self.resampling_likelihood) * 10.0
-                            )
-                    return log_likelihood
 
         self.run(
-            Fitness().__call__,
+            fitness_function,
             prior,
             model.prior_count,
             outputfiles_basename="{}/multinest".format(self.paths.path),
@@ -203,14 +292,21 @@ class MultiNest(NestedSampler):
         samples = self.samples_from_model(model=model)
 
         samples_text.results_to_file(
-            samples=samples,
-            file_results=self.paths.file_results,
-            during_analysis=False
+            samples=samples, file_results=self.paths.file_results, during_analysis=False
         )
 
-        return Result(
-            samples=samples,
-            previous_model=model,
+        return nl.Result(samples=samples, previous_model=model)
+
+    def fitness_function_from_model_and_analysis(self, model, analysis):
+
+        return MultiNest.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from_model,
+            stagger_resampling_likelihood=self.stagger_resampling_likelihood,
+            terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold=self.acceptance_ratio_threshold,
         )
 
     def samples_from_model(self, model: AbstractPriorModel):
@@ -232,10 +328,12 @@ class MultiNest(NestedSampler):
 
         parameters = parameters_from_file_weighted_samples(
             file_weighted_samples=self.paths.file_weighted_samples,
-            prior_count=model.prior_count
+            prior_count=model.prior_count,
         )
 
-        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
+        log_priors = [
+            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
 
         log_likelihoods = log_likelihoods_from_file_weighted_samples(
             file_weighted_samples=self.paths.file_weighted_samples
@@ -245,11 +343,12 @@ class MultiNest(NestedSampler):
             file_weighted_samples=self.paths.file_weighted_samples
         )
 
-        total_samples = total_samples_from_file_resume(file_resume=self.paths.file_resume)
+        total_samples = total_samples_from_file_resume(
+            file_resume=self.paths.file_resume
+        )
 
         log_evidence = log_evidence_from_file_summary(
-            file_summary=self.paths.file_summary,
-            prior_count=model.prior_count
+            file_summary=self.paths.file_summary, prior_count=model.prior_count
         )
 
         return samples.NestedSamplerSamples(
@@ -260,11 +359,13 @@ class MultiNest(NestedSampler):
             weights=weights,
             total_samples=total_samples,
             log_evidence=log_evidence,
-            number_live_points=self.n_live_points
+            number_live_points=self.n_live_points,
         )
 
 
-def parameters_from_file_weighted_samples(file_weighted_samples, prior_count) -> [[float]]:
+def parameters_from_file_weighted_samples(
+    file_weighted_samples, prior_count
+) -> [[float]]:
     """Open the file "multinest.txt" and extract the parameter values of every accepted live point as a list
     of lists."""
     weighted_samples = open(file_weighted_samples)

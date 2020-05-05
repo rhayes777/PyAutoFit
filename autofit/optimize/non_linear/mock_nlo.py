@@ -7,10 +7,10 @@ from autofit.optimize.non_linear.non_linear import Analysis
 
 
 class MockNLO(NonLinearOptimizer):
-    def _simple_fit(self, model, fitness_function):
+    def _fit(self, model, fitness_function):
         raise NotImplementedError()
 
-    def _fit(self, analysis, model):
+    def _full_fit(self, model, analysis):
 
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")
@@ -23,7 +23,7 @@ class MockNLO(NonLinearOptimizer):
         while True:
             try:
                 instance = model.instance_from_unit_vector(unit_vector)
-                fit = analysis.fit(instance)
+                fit = analysis.log_likelihood_function(instance)
                 break
             except af.exc.FitException as e:
                 unit_vector[index] += 0.1
@@ -55,7 +55,7 @@ class MockOutput(object):
 
 
 class MockAnalysis(Analysis):
-    def fit(self, instance):
+    def log_likelihood_function(self, instance):
         return 1.0
 
     def visualize(self, instance, during_analysis):

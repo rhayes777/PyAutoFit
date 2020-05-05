@@ -9,7 +9,7 @@ from autofit.optimize.non_linear.paths import Paths
 
 
 class DownhillSimplex(NonLinearOptimizer):
-    def _simple_fit(self, model, fitness_function):
+    def _fit(self, model, fitness_function):
         raise NotImplementedError()
 
     def __init__(
@@ -50,7 +50,7 @@ class DownhillSimplex(NonLinearOptimizer):
 
     class Fitness(NonLinearOptimizer.Fitness):
 
-        def __init__(self, paths, analysis, model, samples_fom_model):
+        def __init__(self, paths, model, analysis, samples_fom_model):
 
             super().__init__(
                 paths=paths,
@@ -67,12 +67,12 @@ class DownhillSimplex(NonLinearOptimizer):
                 log_likelihood = -np.inf
             return -2 * log_likelihood
 
-    def _fit(self, analysis, model):
+    def _full_fit(self, model, analysis):
 
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            paths=self.paths, analysis=analysis, model=model, samples_fom_model=self.samples_from_model
+            paths=self.paths, model=model, analysis=analysis, samples_fom_model=self.samples_from_model
         )
 
         logger.info("Running DownhillSimplex...")

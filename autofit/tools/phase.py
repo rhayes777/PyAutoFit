@@ -37,7 +37,7 @@ class AbstractPhase:
 
         self.paths = paths
 
-        self.optimizer = non_linear_class(self.paths)
+        self.optimizer = non_linear_class(paths=self.paths)
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
@@ -140,7 +140,7 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis):
-        return self.optimizer.fit(analysis=analysis, model=self.model)
+        return self.optimizer.full_fit(model=self.model, analysis=analysis)
 
     def customize_priors(self, results):
         """
@@ -345,7 +345,7 @@ def as_grid_search(phase_class, parallel=False):
             return result
 
         def run_analysis(self, analysis):
-            return self.optimizer.fit(analysis=analysis, model=self.model, grid_priors=self.grid_priors)
+            return self.optimizer.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
 
         @property
         def grid_priors(self):

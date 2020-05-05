@@ -112,16 +112,18 @@ class GridSearchResult:
             diff = [abs(values[n] - values[n - 1]) for n in range(1, len(values))]
             physical_step_sizes.append(np.max(diff))
 
-        return physical_step_sizes
+        return tuple(physical_step_sizes)
 
     @property
     def physical_centres_lists(self):
-        return [[lower_limit[dim] + self.physical_step_sizes[dim] / 2 for dim in range(self.no_dimensions)] for
-                lower_limit in self.physical_lower_limits_lists]
+        return [[lower_limit[dim] + self.physical_step_sizes[dim] / 2 for dim in range(self.no_dimensions)]
+                for lower_limit
+                in self.physical_lower_limits_lists]
 
     @property
-    def physical_upper_limit_lists(self):
-        return [[lower_limit[dim] + self.physical_step_sizes[dim] for dim in range(self.no_dimensions)] for lower_limit
+    def physical_upper_limits_lists(self):
+        return [[lower_limit[dim] + self.physical_step_sizes[dim] for dim in range(self.no_dimensions)]
+                for lower_limit
                 in self.physical_lower_limits_lists]
 
     @property
@@ -151,6 +153,7 @@ class GridSearchResult:
             np.array([result.samples.log_evidence for result in self.results]),
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
+
 
 class GridSearch:
     # TODO: this should be using paths
@@ -247,7 +250,7 @@ class GridSearch:
             arguments = self.make_arguments(values, grid_priors)
             yield model.mapper_from_partial_prior_arguments(arguments)
 
-    def fit(self, analysis, model, grid_priors):
+    def fit(self, model, analysis, grid_priors):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
         of this instance that are replaced by uniform priors for each step of the grid search.
@@ -266,11 +269,11 @@ class GridSearch:
             An object that comprises the results from each individual fit
         """
         if self.parallel:
-            return self.fit_parallel(analysis, model, grid_priors)
+            return self.fit_parallel(model=model, analysis=analysis, grid_priors=grid_priors)
         else:
-            return self.fit_sequential(analysis, model, grid_priors)
+            return self.fit_sequential(model=model, analysis=analysis, grid_priors=grid_priors)
 
-    def fit_parallel(self, analysis, model, grid_priors):
+    def fit_parallel(self, model, analysis, grid_priors):
         """
         Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
         different process.
@@ -308,11 +311,11 @@ class GridSearch:
 
         for index, values in enumerate(lists):
             job = self.job_for_analysis_grid_priors_and_values(
-                copy.deepcopy(analysis),
-                model,
-                grid_priors,
-                values,
-                index
+                analysis=copy.deepcopy(analysis),
+                model=model,
+                grid_priors=grid_priors,
+                values=values,
+                index=index
             )
             job_queue.put(job)
 
@@ -335,7 +338,7 @@ class GridSearch:
 
         return GridSearchResult(results, lists, physical_lists)
 
-    def fit_sequential(self, analysis, model, grid_priors):
+    def fit_sequential(self, model, analysis, grid_priors):
         """
         Perform the grid search sequentially, with all the optimisation for each grid square being performed on the
         same process.
@@ -366,7 +369,7 @@ class GridSearch:
 
         for index, values in enumerate(lists):
             job = self.job_for_analysis_grid_priors_and_values(
-                analysis, model, grid_priors, values, index
+                analysis=analysis, model=model, grid_priors=grid_priors, values=values, index=index
             )
 
             result = job.perform()
@@ -398,27 +401,33 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-            self, analysis, model, grid_priors, values, index
+            self, model, analysis, grid_priors, values, index
     ):
-        arguments = self.make_arguments(values, grid_priors)
-        model_mapper = model.mapper_from_partial_prior_arguments(arguments)
+        arguments = self.make_arguments(values=values, grid_priors=grid_priors)
+        model = model.mapper_from_partial_prior_arguments(arguments=arguments)
 
         labels = []
         for prior in sorted(arguments.values(), key=lambda pr: pr.id):
             labels.append(
                 "{}_{:.2f}_{:.2f}".format(
-                    model_mapper.name_for_prior(prior),
+                    model.name_for_prior(prior),
                     prior.lower_limit,
                     prior.upper_limit,
                 )
             )
 
-        name_path = "{}/{}/{}".format(
-            self.paths.phase_name, self.phase_tag_input, "_".join(labels)
+        name_path = "{}/{}/{}/{}".format(
+            self.paths.phase_name, self.phase_tag_input, self.paths.non_linear_name, "_".join(labels)
         )
-        optimizer_instance = self.optimizer_instance(name_path)
+        optimizer_instance = self.optimizer_instance(name_path=name_path)
 
-        return Job(optimizer_instance, analysis, model_mapper, arguments, index)
+        return Job(
+            optimizer_instance=optimizer_instance,
+            model=model,
+            analysis=analysis,
+            arguments=arguments,
+            index=index
+        )
 
     def optimizer_instance(self, name_path):
 
@@ -456,7 +465,7 @@ class JobResult:
 
 
 class Job:
-    def __init__(self, optimizer_instance, analysis, model, arguments, index):
+    def __init__(self, optimizer_instance, model, analysis, arguments, index):
         """
         A job to be performed in parallel.
 
@@ -476,7 +485,7 @@ class Job:
         self.index = index
 
     def perform(self):
-        result = self.optimizer_instance.fit(self.analysis, self.model)
+        result = self.optimizer_instance.full_fit(model=self.model, analysis=self.analysis)
         result_list_row = [self.index, *[prior.lower_limit for prior in self.arguments.values()],
                            result.log_likelihood,
                            ]

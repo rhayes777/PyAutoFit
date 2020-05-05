@@ -548,6 +548,7 @@ class MCMCSamples(AbstractSamples):
 
         The burn-in period is estimated using the auto-correlation times of the parameters."""
 
+
         discard = int(3.0 * np.max(self.auto_correlation_times))
         thin = int(np.max(self.auto_correlation_times) / 2.0)
         return self.backend.get_chain(discard=discard, thin=thin, flat=True)

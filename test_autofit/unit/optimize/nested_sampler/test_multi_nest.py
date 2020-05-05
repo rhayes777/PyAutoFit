@@ -141,8 +141,52 @@ def create_resume(path):
 
 
 class TestMulitNest:
+    def test__loads_from_config_file_if_not_input(self):
 
-    def test__loads_from_config_file_correct(self):
+        multi_nest = af.MultiNest(
+            n_live_points=40,
+            sampling_efficiency=0.5,
+            const_efficiency_mode=True,
+            evidence_tolerance=0.4,
+            importance_nested_sampling=False,
+            multimodal=False,
+            n_iter_before_update=90,
+            null_log_evidence=-1.0e80,
+            max_modes=50,
+            mode_tolerance=-1e88,
+            seed=0,
+            verbose=True,
+            resume=False,
+            context=1,
+            write_output=False,
+            log_zero=-1e90,
+            max_iter=1,
+            init_MPI=True,
+            terminate_at_acceptance_ratio=True,
+            acceptance_ratio_threshold=0.9,
+        )
+
+        assert multi_nest.n_live_points == 40
+        assert multi_nest.sampling_efficiency == 0.5
+        assert multi_nest.const_efficiency_mode == True
+        assert multi_nest.evidence_tolerance == 0.4
+        assert multi_nest.importance_nested_sampling == False
+        assert multi_nest.multimodal == False
+        assert multi_nest.n_iter_before_update == 90
+        assert multi_nest.null_log_evidence == -1e80
+        assert multi_nest.max_modes == 50
+        assert multi_nest.mode_tolerance == -1e88
+        assert multi_nest.seed == 0
+        assert multi_nest.verbose == True
+        assert multi_nest.resume == False
+        assert multi_nest.context == 1
+        assert multi_nest.write_output == False
+        assert multi_nest.log_zero == -1e90
+        assert multi_nest.max_iter == 1
+        assert multi_nest.init_MPI == True
+        assert multi_nest.terminate_at_acceptance_ratio == True
+        assert multi_nest.acceptance_ratio_threshold == 0.9
+
         multi_nest = af.MultiNest()
 
         assert multi_nest.importance_nested_sampling == True
@@ -175,9 +219,9 @@ class TestMulitNest:
             samples_from_model=multi_nest.samples_from_model,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.0,
+            stagger_resampling_likelihood=False,
         )
 
-        assert fitness.accepted_samples == 0
         assert fitness.model_results_output_interval == 100
         assert fitness.model == model
         assert fitness.terminate_at_acceptance_ratio == False
@@ -214,8 +258,8 @@ class TestMulitNest:
         assert copy.max_iter is optimizer.max_iter
         assert copy.init_MPI is optimizer.init_MPI
         assert (
-                copy.terminate_at_acceptance_ratio
-                is optimizer.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio
+            is optimizer.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
 
@@ -227,22 +271,34 @@ class TestMulitNest:
         create_weighted_samples_4_parameters(path=multi_nest.paths.backup_path)
 
         parameters = mn.parameters_from_file_weighted_samples(
-            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt", prior_count=4)
+            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt",
+            prior_count=4,
+        )
 
-        assert parameters == [[1.1, 2.1, 3.1, 4.1], [0.9, 1.9, 2.9, 3.9], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0],
-                              [1.0, 2.0, 3.0, 4.0],
-                              [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0],
-                              [1.0, 2.0, 3.0, 4.0]]
+        assert parameters == [
+            [1.1, 2.1, 3.1, 4.1],
+            [0.9, 1.9, 2.9, 3.9],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+        ]
 
         log_likelihoods = mn.log_likelihoods_from_file_weighted_samples(
-            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt")
+            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt"
+        )
 
         value = -0.5 * 9999999.9
 
         assert log_likelihoods == 10 * [value]
 
         weights = mn.weights_from_file_weighted_samples(
-            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt")
+            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt"
+        )
 
         assert weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
 
@@ -254,7 +310,8 @@ class TestMulitNest:
         create_resume(path=multi_nest.paths.backup_path)
 
         total_samples = mn.total_samples_from_file_resume(
-            file_resume=f"{multi_nest.paths.backup_path}/multinestresume.dat")
+            file_resume=f"{multi_nest.paths.backup_path}/multinestresume.dat"
+        )
 
         assert total_samples == 12345
 
@@ -264,18 +321,24 @@ class TestMulitNest:
         multi_nest = af.MultiNest()
 
         log_evidence = mn.log_evidence_from_file_summary(
-            file_summary=f"{multi_nest.paths.backup_path}/multinestsummary.txt", prior_count=4, )
+            file_summary=f"{multi_nest.paths.backup_path}/multinestsummary.txt",
+            prior_count=4,
+        )
 
         assert log_evidence == -1e99
 
         create_summary_4_parameters(path=multi_nest.paths.backup_path)
 
         log_evidence = mn.log_evidence_from_file_summary(
-            file_summary=f"{multi_nest.paths.backup_path}/multinestsummary.txt", prior_count=4)
+            file_summary=f"{multi_nest.paths.backup_path}/multinestsummary.txt",
+            prior_count=4,
+        )
 
         assert log_evidence == 0.02
 
-    def test__samples_from_model(self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path):
+    def test__samples_from_model(
+        self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
+    ):
         af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
 
         multi_nest = af.MultiNest()
@@ -289,21 +352,26 @@ class TestMulitNest:
 
         samples = multi_nest.samples_from_model(model=model)
 
-        assert samples.parameters == [[1.1, 2.1, 3.1, 4.1], [0.9, 1.9, 2.9, 3.9], [1.0, 2.0, 3.0, 4.0],
-                                      [1.0, 2.0, 3.0, 4.0],
-                                      [1.0, 2.0, 3.0, 4.0],
-                                      [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0],
-                                      [1.0, 2.0, 3.0, 4.0],
-                                      [1.0, 2.0, 3.0, 4.0]]
+        assert samples.parameters == [
+            [1.1, 2.1, 3.1, 4.1],
+            [0.9, 1.9, 2.9, 3.9],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+        ]
 
         value = -0.5 * 9999999.9
 
         assert samples.log_likelihoods == 10 * [value]
-        assert samples.log_priors == pytest.approx([0.243902, 0.256410, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
-                                                   1.0e-4)
+        assert samples.log_priors == pytest.approx(
+            [0.243902, 0.256410, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25], 1.0e-4
+        )
         assert samples.weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
         assert samples.total_samples == 12345
         assert samples.log_evidence == 0.02
         assert samples.number_live_points == 50
-
-

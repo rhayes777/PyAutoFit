@@ -16,7 +16,17 @@ logger = logging.getLogger(__name__)
 
 
 class Emcee(NonLinearOptimizer):
-    def __init__(self, paths=None, sigma=3):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        nwalkers=None,
+        nsteps=None,
+        check_auto_correlation=None,
+        auto_correlation_check_size=None,
+        auto_correlation_required_length=None,
+        auto_correlation_change_threshold=None,
+    ):
         """
         Class to setup and run an Emcee non-linear search.
 
@@ -72,26 +82,36 @@ class Emcee(NonLinearOptimizer):
         if paths is None:
             paths = Paths(non_linear_name=type(self).__name__.lower())
 
-        super().__init__(paths)
+        super().__init__(paths=paths)
 
         self.sigma = sigma
 
-        self.nwalkers = self.config("nwalkers", int)
-        self.nsteps = self.config("nsteps", int)
-        self.check_auto_correlation = self.config("check_auto_correlation", bool)
-        self.auto_correlation_check_size = self.config(
-            "auto_correlation_check_size", int
+        self.nwalkers = self.config("nwalkers", int) if nwalkers is None else nwalkers
+        self.nsteps = self.config("nsteps", int) if nsteps is None else nsteps
+        self.check_auto_correlation = (
+            self.config("check_auto_correlation", bool)
+            if check_auto_correlation is None
+            else check_auto_correlation
         )
-        self.auto_correlation_required_length = self.config(
-            "auto_correlation_required_length", int
+        self.auto_correlation_check_size = (
+            self.config("auto_correlation_check_size", int)
+            if auto_correlation_check_size is None
+            else auto_correlation_check_size
         )
-        self.auto_correlation_change_threshold = self.config(
-            "auto_correlation_change_threshold", float
+        self.auto_correlation_required_length = (
+            self.config("auto_correlation_required_length", int)
+            if auto_correlation_required_length is None
+            else auto_correlation_required_length
+        )
+        self.auto_correlation_change_threshold = (
+            self.config("auto_correlation_change_threshold", float)
+            if auto_correlation_change_threshold is None
+            else auto_correlation_change_threshold
         )
 
         logger.debug("Creating Emcee NLO")
 
-    def _simple_fit(self, model, fitness_function):
+    def _fit(self, model, analysis):
         """
         Fit a model using emcee and a function that returns a log likelihood from instances of that model.
 
@@ -108,7 +128,7 @@ class Emcee(NonLinearOptimizer):
         A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
         of the full chains used by the fit.
         """
-        raise NotImplementedError()
+        return self._full_fit(model=model, analysis=analysis)
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.
@@ -128,41 +148,6 @@ class Emcee(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, model, samples_from_model):
-            super().__init__(paths=paths, analysis=analysis, model=model, samples_from_model=samples_from_model)
-
-            self.accepted_samples = 0
-
-        def fit_instance(self, instance):
-
-            log_likelihood = self.analysis.fit(instance)
-
-            if log_likelihood > max(self.log_likelihoods):
-
-                try:
-                    samples = self.samples_from_model(model=self.model)
-                    self.result = Result(samples=samples)
-                except Exception:
-                    samples = None
-
-                self.log_likelihoods.append(log_likelihood)
-
-                if self.should_visualize():
-                    self.analysis.visualize(instance, during_analysis=True)
-
-                if self.should_backup():
-                    self.paths.backup()
-
-                if self.should_output_model_results():
-                    if samples is not None:
-                        samples_text.results_to_file(
-                            samples=self.samples,
-                            file_results=self.paths.file_results,
-                            during_analysis=True
-                        )
-
-            return log_likelihood
-
         def __call__(self, params):
 
             try:
@@ -177,13 +162,10 @@ class Emcee(NonLinearOptimizer):
 
             return log_likelihood + sum(log_priors)
 
-    def _fit(self, analysis, model):
+    def _full_fit(self, model, analysis):
 
-        fitness_function = Emcee.Fitness(
-            paths=self.paths,
-            analysis=analysis,
-            model=model,
-            samples_from_model=self.samples_from_model
+        fitness_function = self.fitness_function_from_model_and_analysis(
+            model=model, analysis=analysis
         )
 
         emcee_sampler = emcee.EnsembleSampler(
@@ -217,11 +199,11 @@ class Emcee(NonLinearOptimizer):
         if self.nsteps - emcee_sampler.iteration > 0 and not previous_run_converged:
 
             for sample in emcee_sampler.sample(
-                    initial_state=emcee_state,
-                    iterations=self.nsteps - emcee_sampler.iteration,
-                    progress=True,
-                    skip_initial_state_check=True,
-                    store=True,
+                initial_state=emcee_state,
+                iterations=self.nsteps - emcee_sampler.iteration,
+                progress=True,
+                skip_initial_state_check=True,
+                store=True,
             ):
 
                 if emcee_sampler.iteration % self.auto_correlation_check_size:
@@ -234,25 +216,21 @@ class Emcee(NonLinearOptimizer):
 
         logger.info("Emcee complete")
 
-        # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
-        # TODO: not located here. Do we need to rely just ono the optimizer foldeR? This is a good idea if we always
-        # TODO: have a valid sym-link( e.g. even for aggregator use).
-
         self.paths.backup()
 
         samples = self.samples_from_model(model=model)
 
-        instance = samples.max_log_likelihood_instance
-
-        analysis.visualize(instance=instance, during_analysis=False)
-        samples_text.results_to_file(samples=samples, file_results=self.paths.file_results, during_analysis=False)
-
-        result = Result(
-            samples=samples,
-            previous_model=model,
+        analysis.visualize(
+            instance=samples.max_log_likelihood_instance, during_analysis=False
         )
+
+        samples_text.results_to_file(
+            samples=samples, file_results=self.paths.file_results, during_analysis=False
+        )
+
         self.paths.backup_zip_remove()
-        return result
+
+        return Result(samples=samples, previous_model=model)
 
     @property
     def backend(self) -> emcee.backends.HDFBackend:
@@ -267,6 +245,15 @@ class Emcee(NonLinearOptimizer):
             raise FileNotFoundError(
                 "The file emcee.hdf does not exist at the path " + self.paths.path
             )
+
+    def fitness_function_from_model_and_analysis(self, model, analysis):
+
+        return Emcee.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from_model,
+        )
 
     def samples_from_model(self, model):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
@@ -284,7 +271,9 @@ class Emcee(NonLinearOptimizer):
         """
 
         parameters = self.backend.get_chain(flat=True)
-        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
+        log_priors = [
+            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
         log_likelihoods = self.backend.get_log_prob(flat=True)
         weights = len(log_likelihoods) * [1.0]
         auto_correlation_time = self.backend.get_autocorr_time(tol=0)
@@ -303,5 +292,5 @@ class Emcee(NonLinearOptimizer):
             auto_correlation_check_size=self.auto_correlation_check_size,
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
-            backend=self.backend
+            backend=self.backend,
         )

@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from autofit import conf
-from autofit.optimize.non_linear import samples as samp
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
 from autofit.text import formatter, samples_text
@@ -47,11 +46,11 @@ class NonLinearOptimizer(ABC):
         self.paths.restore()
 
     @classmethod
-    def simple_fit(
+    def fit(
             cls,
             model,
-            fitness_function,
-            remove_output=True
+            analysis,
+            remove_output=False
     ) -> "Result":
         """
         Fit a model, M with some function f that takes instances of the
@@ -72,9 +71,9 @@ class NonLinearOptimizer(ABC):
         """
         optimizer = cls()
 
-        result = optimizer._simple_fit(
-            model,
-            fitness_function
+        result = optimizer._fit(
+            model=model,
+            analysis=analysis,
         )
         if remove_output:
             shutil.rmtree(
@@ -83,17 +82,13 @@ class NonLinearOptimizer(ABC):
         return result
 
     @abstractmethod
-    def _simple_fit(self, model, fitness_function):
+    def _fit(self, model, analysis):
         pass
 
-    @abstractmethod
-    def _fit(self, analysis, model):
-        pass
-
-    def fit(
+    def full_fit(
             self,
+            model,
             analysis: "Analysis",
-            model
     ) -> "Result":
         """
         A model which represents possible instances with some dimensionality is fit.
@@ -120,12 +115,16 @@ class NonLinearOptimizer(ABC):
 
         self.save_paramnames_file(model=model)
 
-        result = self._fit(
-            analysis,
-            model
+        result = self._full_fit(
+            model=model,
+            analysis=analysis,
         )
         open(self.paths.has_completed_path, "w+").close()
         return result
+
+    @abstractmethod
+    def _full_fit(self, model, analysis):
+        pass
 
     def config(self, attribute_name, attribute_type=str):
         """
@@ -197,12 +196,11 @@ class NonLinearOptimizer(ABC):
             return fitness_function(instance=model.instance_from_vector(cube))
 
         def __init__(
-                self, paths, analysis, model, samples_from_model
+                self, paths, model, analysis, samples_from_model
         ):
 
             self.paths = paths
-            self.result = Result(samples=None)
-            self.log_likelihoods = [-np.inf]
+            self.max_log_likelihood = -np.inf
             self.analysis = analysis
 
             self.model = model
@@ -228,17 +226,11 @@ class NonLinearOptimizer(ABC):
 
         def fit_instance(self, instance):
 
-            log_likelihood = self.analysis.fit(instance)
+            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
-            if log_likelihood > max(self.log_likelihoods):
+            if log_likelihood > self.max_log_likelihood:
 
-                try:
-                    samples = self.samples_from_model(model=self.model)
-                    self.result = Result(samples=samples)
-                except Exception:
-                    samples = None
-
-                self.log_likelihoods.append(log_likelihood)
+                self.max_log_likelihood = log_likelihood
 
                 if self.should_visualize():
                     self.analysis.visualize(instance, during_analysis=True)
@@ -247,9 +239,22 @@ class NonLinearOptimizer(ABC):
                     self.paths.backup()
 
                 if self.should_output_model_results():
-                    if samples is not None:
-                        samples_text.results_to_file(samples=samples, file_results=self.paths.file_results,
-                                                     during_analysis=True)
+
+                    try:
+                        samples = self.samples_from_model(model=self.model)
+                    except Exception:
+                        samples = None
+
+                    try:
+
+                        samples_text.results_to_file(
+                            samples=samples,
+                            file_results=self.paths.file_results,
+                            during_analysis=True
+                        )
+
+                    except (AttributeError, ValueError):
+                        pass
 
             return log_likelihood
 
@@ -266,10 +271,11 @@ class NonLinearOptimizer(ABC):
             phase_tag = self.paths.phase_tag
 
         new_instance = self.__class__(
-            Paths(
+            paths=Paths(
                 phase_name=name,
                 phase_folders=self.paths.phase_folders,
                 phase_tag=phase_tag,
+                non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
             )
         )
@@ -281,11 +287,11 @@ class NonLinearOptimizer(ABC):
 
 
 class Analysis:
-    def fit(self, instance):
+    def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
     def visualize(self, instance, during_analysis):
-        raise NotImplementedError()
+        pass
 
 
 class Result:

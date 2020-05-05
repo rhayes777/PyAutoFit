@@ -7,9 +7,14 @@ class Class:
     def __init__(self, argument):
         self.argument = argument
 
+class Analysis:
 
-def fitness_function(instance: Class):
-    return -(instance.argument - 30) ** 2
+    def __init__(self):
+
+        pass
+
+    def log_likelihood_function(self, instance: Class):
+        return -(instance.argument - 30) ** 2
 
 
 @pytest.mark.parametrize(
@@ -23,9 +28,9 @@ def test_simple(optimizer):
         Class,
         argument=af.UniformPrior(10, 100)
     )
-    result = optimizer.simple_fit(
-        model,
-        fitness_function
+    result = optimizer.fit(
+        model=model,
+        analysis=Analysis()
     )
 
     assert result.instance.argument == pytest.approx(30, abs=1.0)

@@ -21,6 +21,22 @@ def set_config_path():
 class TestEmceeConfig:
     def test__loads_from_config_file_correct(self):
 
+        emcee = af.Emcee(
+            nwalkers=51,
+            nsteps=2001,
+            check_auto_correlation=False,
+            auto_correlation_check_size=101,
+            auto_correlation_required_length=51,
+            auto_correlation_change_threshold=0.02,
+        )
+
+        assert emcee.nwalkers == 51
+        assert emcee.nsteps == 2001
+        assert emcee.check_auto_correlation == False
+        assert emcee.auto_correlation_check_size == 101
+        assert emcee.auto_correlation_required_length == 51
+        assert emcee.auto_correlation_change_threshold == 0.02
+
         emcee = af.Emcee()
 
         assert emcee.nwalkers == 50
@@ -39,7 +55,9 @@ class TestEmceeConfig:
 
         samples = emcee.samples_from_model(model=model)
 
-        assert samples.parameters[0] == pytest.approx([0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4)
+        assert samples.parameters[0] == pytest.approx(
+            [0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4
+        )
         assert samples.log_likelihoods[0] == pytest.approx(-17257775239.32677, 1.0e-4)
         assert samples.log_priors[0] == pytest.approx(1.6102016075510708, 1.0e-4)
         assert samples.weights[0] == pytest.approx(1.0, 1.0e-4)
@@ -47,8 +65,8 @@ class TestEmceeConfig:
         assert samples.total_walkers == 10
         assert samples.auto_correlation_times[0] == pytest.approx(31.98507, 1.0e-4)
 
-class TestEmceeOutput:
 
+class TestEmceeOutput:
     def test__most_probable_parameters(self):
 
         emcee = af.Emcee(paths=Paths())
@@ -88,9 +106,8 @@ class TestEmceeOutput:
 
         samples = emcee.samples_from_model(model=model)
 
-        assert (
-            samples.previous_auto_correlation_times
-            == pytest.approx([31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4)
+        assert samples.previous_auto_correlation_times == pytest.approx(
+            [31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4
         )
         assert samples.auto_correlation_times == pytest.approx(
             [31.98507, 36.51001, 73.47629, 67.67495], 1.0e-4

@@ -1,7 +1,6 @@
 import logging
-import math
 import os
-import pickle, pickle
+import pickle
 import numpy as np
 from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
@@ -9,9 +8,7 @@ from multiprocessing.pool import Pool
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.optimize.non_linear import samples
-from autofit.optimize.non_linear.nested_sampling.nested_sampler import (
-    NestedSampler,
-)
+from autofit.optimize.non_linear.nested_sampling.nested_sampler import NestedSampler
 from autofit.optimize.non_linear import non_linear as nl
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.text import samples_text
@@ -19,8 +16,28 @@ from autofit.text import samples_text
 logger = logging.getLogger(__name__)
 
 
+
 class AbstractDynesty(NestedSampler):
-    def __init__(self, paths=None, sigma=3):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        iterations_per_update=None,
+        bound=None,
+        sample=None,
+        bootstrap=None,
+        enlarge=None,
+        update_interval=None,
+        vol_dec=None,
+        vol_check=None,
+        walks=None,
+        facc=None,
+        slices=None,
+        fmove=None,
+        max_move=None,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+    ):
         """
         Class to setup and run a Dynesty non-linear search.
 
@@ -63,15 +80,30 @@ class AbstractDynesty(NestedSampler):
             pickle).
         """
 
-        super().__init__(paths=paths, sigma=sigma)
+        super().__init__(
+            paths=paths,
+            sigma=sigma,
+            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold=acceptance_ratio_threshold,
+        )
 
-        self.iterations_per_update = self.config("iterations_per_update", int)
-        self.bound = self.config("bound", str)
-        self.sample = self.config("sample", str)
-        self.bootstrap = self.config("bootstrap", int)
-        self.enlarge = self.config("enlarge", float)
+        self.iterations_per_update = (
+            self.config("iterations_per_update", int)
+            if iterations_per_update is None
+            else iterations_per_update
+        )
+        self.bound = self.config("bound", str) if bound is None else bound
+        self.sample = self.config("sample", str) if sample is None else sample
+        self.bootstrap = (
+            self.config("bootstrap", int) if bootstrap is None else bootstrap
+        )
+        self.enlarge = self.config("enlarge", float) if enlarge is None else enlarge
 
-        self.update_interval = self.config("update_interval", float)
+        self.update_interval = (
+            self.config("update_interval", float)
+            if update_interval is None
+            else update_interval
+        )
 
         if self.update_interval < 0.0:
             self.update_interval = None
@@ -82,13 +114,15 @@ class AbstractDynesty(NestedSampler):
             else:
                 self.enlarge = 1.25
 
-        self.vol_dec = self.config("vol_dec", float)
-        self.vol_check = self.config("vol_check", float)
-        self.walks = self.config("walks", int)
-        self.facc = self.config("facc", float)
-        self.slices = self.config("slices", int)
-        self.fmove = self.config("fmove", float)
-        self.max_move = self.config("max_move", int)
+        self.vol_dec = self.config("vol_dec", float) if vol_dec is None else vol_dec
+        self.vol_check = (
+            self.config("vol_check", float) if vol_check is None else vol_check
+        )
+        self.walks = self.config("walks", int) if walks is None else walks
+        self.facc = self.config("facc", float) if facc is None else facc
+        self.slices = self.config("slices", int) if slices is None else slices
+        self.fmove = self.config("fmove", float) if fmove is None else fmove
+        self.max_move = self.config("max_move", int) if max_move is None else max_move
 
         logger.debug("Creating DynestyStatic NLO")
 
@@ -115,7 +149,7 @@ class AbstractDynesty(NestedSampler):
 
         return copy
 
-    def _simple_fit(self, model: AbstractPriorModel, fitness_function) -> Result:
+    def _fit(self, model: AbstractPriorModel, analysis) -> Result:
         """
         Fit a model using Dynesty and a function that returns a log likelihood from instances of that model.
 
@@ -136,11 +170,20 @@ class AbstractDynesty(NestedSampler):
         of the full samples used by the fit.
         """
 
+        fitness_function = self.fitness_function_from_model_and_analysis(
+            model=model, analysis=analysis
+        )
+
         if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
 
             sampler = self.load_sampler
 
         else:
+
+            try:
+                os.makedirs(self.paths.samples_path)
+            except FileExistsError:
+                pass
 
             sampler = self.sampler_fom_model_and_fitness(
                 model=model, fitness_function=fitness_function
@@ -149,9 +192,12 @@ class AbstractDynesty(NestedSampler):
         # These hacks are necessary to be able to pickle the sampler.
 
         sampler.rstate = np.random
-        pool = Pool(processes=1)
-        sampler.pool = pool
-        sampler.M = pool.map
+        sampler.pool = None
+        sampler.M = map
+
+    #    pool = Pool(processes=1)
+    #    sampler.pool = None
+    #    sampler.M = pool.map
 
         dynesty_finished = False
 
@@ -166,9 +212,7 @@ class AbstractDynesty(NestedSampler):
 
             iterations_after_run = np.sum(sampler.results.ncall)
 
-            with open(
-                f"{self.paths.samples_path}/dynesty.pickle", "wb"
-            ) as f:
+            with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
                 pickle.dump(sampler, f)
 
             if iterations_before_run == iterations_after_run:
@@ -180,22 +224,15 @@ class AbstractDynesty(NestedSampler):
         samples = self.samples_from_model(model=model)
 
         samples_text.results_to_file(
-            samples=samples,
-            file_results=self.paths.file_results,
-            during_analysis=False
+            samples=samples, file_results=self.paths.file_results, during_analysis=False
         )
 
-        return Result(
-            samples=samples,
-            previous_model=model,
-        )
+        return Result(samples=samples, previous_model=model)
 
     @property
     def load_sampler(self):
-        with open(
-                "{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb"
-            ) as f:
-                return pickle.load(f)
+        with open("{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb") as f:
+            return pickle.load(f)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
@@ -218,7 +255,9 @@ class AbstractDynesty(NestedSampler):
         sampler = self.load_sampler
 
         parameters = sampler.results.samples
-        log_priors = [sum(model.log_priors_from_vector(vector=vector)) for vector in parameters]
+        log_priors = [
+            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
         log_likelihoods = sampler.results.logl
         weights = sampler.results.logwt
         total_samples = int(np.sum(sampler.results.ncall))
@@ -232,12 +271,32 @@ class AbstractDynesty(NestedSampler):
             weights=weights,
             total_samples=total_samples,
             log_evidence=log_evidence,
-            number_live_points=sampler.results.nlive
+            number_live_points=sampler.results.nlive,
         )
 
 
 class DynestyStatic(AbstractDynesty):
-    def __init__(self, paths=None, sigma=3):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        iterations_per_update=None,
+        n_live_points=None,
+        bound=None,
+        sample=None,
+        bootstrap=None,
+        enlarge=None,
+        update_interval=None,
+        vol_dec=None,
+        vol_check=None,
+        walks=None,
+        facc=None,
+        slices=None,
+        fmove=None,
+        max_move=None,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+    ):
         """
         Class to setup and run a Dynesty non-linear search, using the static Dynesty nested sampler described at this
         webpage:
@@ -256,9 +315,31 @@ class DynestyStatic(AbstractDynesty):
             pickle).
         """
 
-        super().__init__(paths=paths, sigma=sigma)
+        super().__init__(
+            paths=paths,
+            sigma=sigma,
+            iterations_per_update=iterations_per_update,
+            bound=bound,
+            sample=sample,
+            bootstrap=bootstrap,
+            enlarge=enlarge,
+            update_interval=update_interval,
+            vol_dec=vol_dec,
+            vol_check=vol_check,
+            walks=walks,
+            facc=facc,
+            slices=slices,
+            fmove=fmove,
+            max_move=max_move,
+            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold=acceptance_ratio_threshold,
+        )
 
-        self.n_live_points = self.config("n_live_points", int)
+        self.n_live_points = (
+            self.config("n_live_points", int)
+            if n_live_points is None
+            else n_live_points
+        )
 
         logger.debug("Creating DynestyStatic NLO")
 
@@ -278,7 +359,7 @@ class DynestyStatic(AbstractDynesty):
         variables."""
 
         return StaticSampler(
-            loglikelihood=nl.NonLinearOptimizer.Fitness.fitness,
+            loglikelihood=fitness_function,
             prior_transform=nl.NonLinearOptimizer.Fitness.prior,
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
@@ -300,7 +381,26 @@ class DynestyStatic(AbstractDynesty):
 
 
 class DynestyDynamic(AbstractDynesty):
-    def __init__(self, paths=None, sigma=3):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        iterations_per_update=None,
+        bound=None,
+        sample=None,
+        bootstrap=None,
+        enlarge=None,
+        update_interval=None,
+        vol_dec=None,
+        vol_check=None,
+        walks=None,
+        facc=None,
+        slices=None,
+        fmove=None,
+        max_move=None,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+    ):
         """
         Class to setup and run a Dynesty non-linear search, using the dynamic Dynesty nested sampler described at this
         webpage:
@@ -319,7 +419,25 @@ class DynestyDynamic(AbstractDynesty):
             pickle).
         """
 
-        super().__init__(paths=paths, sigma=sigma)
+        super().__init__(
+            paths=paths,
+            sigma=sigma,
+            iterations_per_update=iterations_per_update,
+            bound=bound,
+            sample=sample,
+            bootstrap=bootstrap,
+            enlarge=enlarge,
+            update_interval=update_interval,
+            vol_dec=vol_dec,
+            vol_check=vol_check,
+            walks=walks,
+            facc=facc,
+            slices=slices,
+            fmove=fmove,
+            max_move=max_move,
+            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold=acceptance_ratio_threshold,
+        )
 
         logger.debug("Creating DynestyDynamic NLO")
 
@@ -345,5 +463,3 @@ class DynestyDynamic(AbstractDynesty):
             fmove=self.fmove,
             max_move=self.max_move,
         )
-
-

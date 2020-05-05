@@ -271,6 +271,9 @@ class Paths:
         """
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
+
+        self.restore_old_to_new()
+
         if os.path.exists(self.zip_path):
             with zipfile.ZipFile(self.zip_path, "r") as f:
                 f.extractall(self.phase_output_path)
@@ -280,6 +283,68 @@ class Paths:
         if os.path.exists(self.backup_path):
             for file in glob.glob(self.backup_path + "/*"):
                 shutil.copy(file, self.path)
+
+    # TODO : DElete at some point in the future...
+
+    def restore_old_to_new(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+
+        old_path = "/".join(
+            filter(
+                len,
+                [
+                    conf.instance.output_path,
+                    self.phase_path,
+                    self.phase_name,
+                    self.phase_tag,
+                ],
+            )
+        )
+
+        old_zip_path = old_path + ".zip"
+
+        if os.path.exists(old_zip_path):
+            with zipfile.ZipFile(old_zip_path, "r") as f:
+                f.extractall(self.phase_output_path)
+
+            if os.path.exists(self.phase_output_path + "/optimizer_backup"):
+                os.rename(self.phase_output_path + "/optimizer_backup", self.phase_output_path + "/samples_backup")
+
+            if os.path.exists(old_path + "/image"):
+                shutil.rmtree(old_path + "/image")
+
+            if os.path.exists(old_path + "/optimizer_backup"):
+                shutil.rmtree(old_path + "/optimizer_backup")
+
+            file_list = glob.glob(old_path + "/*.pickle")
+            [os.remove(file) for file in file_list]
+
+            file_list = glob.glob(old_path + "/*.results")
+            [os.remove(file) for file in file_list]
+
+            file_list = glob.glob(old_path + "/*.info")
+            [os.remove(file) for file in file_list]
+
+            if os.path.exists(old_path + "/metadata"):
+                os.remove(old_path + "/metadata")
+
+            if os.path.exists(old_path + "/output.log"):
+                os.remove(old_path + "/output.log")
+
+            os.remove(old_zip_path)
+
+        else:
+            return
+
+        if os.path.exists(self.backup_path):
+            for file in glob.glob(self.backup_path + "/*"):
+                shutil.copy(file, self.path)
+
+        file_list = glob.glob(self.phase_output_path + "/*.pickle")
+        if len(file_list) > 0:
+            [os.remove(file) for file in file_list]
 
     def zip(self):
         try:

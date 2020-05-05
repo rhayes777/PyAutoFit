@@ -5,7 +5,6 @@ import pytest
 from autofit import Paths
 from autoconf import conf
 import autofit as af
-import numpy as np
 import pickle
 from test_autofit.mock import MockClassNLOx4
 
@@ -22,7 +21,6 @@ def set_config_path():
 
 
 class MockDynestyResults:
-
     def __init__(self, samples, logl, logwt, ncall, logz, nlive):
         self.samples = samples
         self.logl = logl
@@ -33,13 +31,49 @@ class MockDynestyResults:
 
 
 class MockDynestySampler:
-
     def __init__(self, results):
         self.results = results
 
 
 class TestDynestyConfig:
-    def test__loads_from_config_file_correct(self):
+    def test__loads_from_config_file_if_not_input(self):
+
+        dynesty = af.DynestyStatic(
+            iterations_per_update=501,
+            n_live_points=151,
+            bound="ellipse",
+            sample="manual",
+            update_interval=True,
+            bootstrap=1.0,
+            enlarge=2.0,
+            vol_dec=2.1,
+            vol_check=2.2,
+            walks=26,
+            facc=0.6,
+            slices=6,
+            fmove=0.8,
+            max_move=101,
+            terminate_at_acceptance_ratio=False,
+            acceptance_ratio_threshold=0.5,
+        )
+
+        assert dynesty.iterations_per_update == 501
+        assert dynesty.n_live_points == 151
+        assert dynesty.bound == "ellipse"
+        assert dynesty.sample == "manual"
+        assert dynesty.update_interval == True
+        assert dynesty.bootstrap == 1.0
+        assert dynesty.enlarge == 2.0
+        assert dynesty.vol_dec == 2.1
+        assert dynesty.vol_check == 2.2
+        assert dynesty.walks == 26
+        assert dynesty.facc == 0.6
+        assert dynesty.slices == 6
+        assert dynesty.fmove == 0.8
+        assert dynesty.max_move == 101
+        assert dynesty.terminate_at_acceptance_ratio == False
+        assert dynesty.acceptance_ratio_threshold == 0.5
+
         dynesty = af.DynestyStatic()
 
         assert dynesty.iterations_per_update == 500
@@ -59,6 +93,40 @@ class TestDynestyConfig:
         assert dynesty.terminate_at_acceptance_ratio == True
         assert dynesty.acceptance_ratio_threshold == 2.0
 
+        dynesty = af.DynestyDynamic(
+            iterations_per_update=501,
+            bound="ellipse",
+            sample="manual",
+            update_interval=True,
+            bootstrap=1.0,
+            enlarge=2.0,
+            vol_dec=2.1,
+            vol_check=2.2,
+            walks=26,
+            facc=0.6,
+            slices=6,
+            fmove=0.8,
+            max_move=101,
+            terminate_at_acceptance_ratio=False,
+            acceptance_ratio_threshold=0.5,
+        )
+
+        assert dynesty.iterations_per_update == 501
+        assert dynesty.bound == "ellipse"
+        assert dynesty.sample == "manual"
+        assert dynesty.update_interval == True
+        assert dynesty.bootstrap == 1.0
+        assert dynesty.enlarge == 2.0
+        assert dynesty.vol_dec == 2.1
+        assert dynesty.vol_check == 2.2
+        assert dynesty.walks == 26
+        assert dynesty.facc == 0.6
+        assert dynesty.slices == 6
+        assert dynesty.fmove == 0.8
+        assert dynesty.max_move == 101
+        assert dynesty.terminate_at_acceptance_ratio == False
+        assert dynesty.acceptance_ratio_threshold == 0.5
+
         dynesty = af.DynestyDynamic()
 
         assert dynesty.iterations_per_update == 501
@@ -74,23 +142,26 @@ class TestDynestyConfig:
         assert dynesty.slices == 6
         assert dynesty.fmove == 0.8
         assert dynesty.max_move == 101
-        assert dynesty.terminate_at_acceptance_ratio == False
-        assert dynesty.acceptance_ratio_threshold == 3.0
+        assert dynesty.terminate_at_acceptance_ratio == True
+        assert dynesty.acceptance_ratio_threshold == 2.0
 
     def test__samples_from_model(self):
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
 
-        results = MockDynestyResults(samples=[[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]],
-                                     logl=[1.0, 2.0, 3.0], logwt=[1.0, 2.0, 3.0], ncall=[5.0, 5.0],
-                                     logz=[10.0, 11.0, 12.0], nlive=3)
+        results = MockDynestyResults(
+            samples=[[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]],
+            logl=[1.0, 2.0, 3.0],
+            logwt=[1.0, 2.0, 3.0],
+            ncall=[5.0, 5.0],
+            logz=[10.0, 11.0, 12.0],
+            nlive=3,
+        )
 
         sampler = MockDynestySampler(results=results)
 
         paths = af.Paths()
 
-        with open(
-                f"{paths.samples_path}/dynesty.pickle", "wb"
-        ) as f:
+        with open(f"{paths.samples_path}/dynesty.pickle", "wb") as f:
             pickle.dump(sampler, f)
 
         dynesty = af.DynestyStatic(paths=paths)
@@ -100,7 +171,11 @@ class TestDynestyConfig:
 
         samples = dynesty.samples_from_model(model=model)
 
-        assert samples.parameters == [[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]
+        assert samples.parameters == [
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+        ]
         assert samples.log_likelihoods == [1.0, 2.0, 3.0]
         assert samples.log_priors == [0.25, 0.25, 0.25]
         assert samples.weights == [1.0, 2.0, 3.0]
@@ -122,8 +197,8 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyStatic)
         assert copy.sigma is optimizer.sigma
         assert (
-                copy.terminate_at_acceptance_ratio
-                is optimizer.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio
+            is optimizer.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
 
@@ -149,8 +224,8 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyDynamic)
         assert copy.sigma is optimizer.sigma
         assert (
-                copy.terminate_at_acceptance_ratio
-                is optimizer.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio
+            is optimizer.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
 

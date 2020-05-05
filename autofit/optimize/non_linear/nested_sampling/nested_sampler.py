@@ -1,17 +1,26 @@
 import logging
 import os
+import numpy as np
 
 from autofit import conf
-from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
+from autofit.optimize.non_linear import non_linear as nl
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
 from autofit.text import samples_text
 
+from autofit import exc
+
 logger = logging.getLogger(__name__)
 
 
-class NestedSampler(NonLinearOptimizer):
-    def __init__(self, paths=None, sigma=3):
+class NestedSampler(nl.NonLinearOptimizer):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+    ):
         """
         Abstract class of a nested sampling non-linear search (e.g. MultiNest, Dynesty).
 
@@ -46,11 +55,18 @@ class NestedSampler(NonLinearOptimizer):
 
         self.sigma = sigma
 
-        self.terminate_at_acceptance_ratio = self.config(
-            "terminate_at_acceptance_ratio", bool
+        sampler = conf.instance.non_linear.config_for("NestedSampler")
+
+        self.terminate_at_acceptance_ratio = (
+            sampler.get("general", "terminate_at_acceptance_ratio", bool)
+            if terminate_at_acceptance_ratio is None
+            else terminate_at_acceptance_ratio
         )
-        self.acceptance_ratio_threshold = self.config(
-            "acceptance_ratio_threshold", float
+
+        self.acceptance_ratio_threshold = (
+            sampler.get("general", "acceptance_ratio_threshold", float)
+            if acceptance_ratio_threshold is None
+            else acceptance_ratio_threshold
         )
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
@@ -62,7 +78,7 @@ class NestedSampler(NonLinearOptimizer):
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
 
-    class Fitness(NonLinearOptimizer.Fitness):
+    class Fitness(nl.NonLinearOptimizer.Fitness):
         def __init__(
             self,
             paths,
@@ -72,48 +88,71 @@ class NestedSampler(NonLinearOptimizer):
             terminate_at_acceptance_ratio,
             acceptance_ratio_threshold,
         ):
-            super().__init__(paths=paths, analysis=analysis, model=model, samples_from_model=samples_from_model)
-            self.accepted_samples = 0
 
-            self.model_results_output_interval = conf.instance.general.get(
-                "output", "model_results_output_interval", int
+            super().__init__(
+                paths=paths,
+                analysis=analysis,
+                model=model,
+                samples_from_model=samples_from_model,
             )
+
             self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
             self.acceptance_ratio_threshold = acceptance_ratio_threshold
 
-            self.terminate_has_begun = False
+            self.should_check_terminate = nl.IntervalCounter(1000)
 
-        def __call__(self, instance):
+        def __call__(self, params, *kwargs):
+
+            self.check_terminate_sampling()
+
+            try:
+
+                instance = self.model.instance_from_vector(vector=params)
+                return self.fit_instance(instance)
+
+            except exc.FitException:
+
+                return -np.inf
+
+        def check_terminate_sampling(self):
+            """Automatically terminate nested sampling when the sampler's acceptance ratio falls below a specified
+            value. This termimation is performed by returning all log likelihoods as the currently value of the maximum
+            log likelihood sample. This will lead to unreliable probability density functions and error estimates.
+
+            The reason to use this function is for stochastic likelihood functions the sampler can determine the
+            highest log likelihood models in parameter space but get 'stuck', unable to terminate as it cannot get all
+            live points to within a small likelihood range of one another. Without this feature on the sampler will not
+            end and suffer an extremely low acceptance rate.
+
+            This check is performed every 1000 samples."""
 
             if self.terminate_at_acceptance_ratio:
-                if os.path.isfile(self.paths.file_summary):
-                    try:
-                        if (
-                            self.samples.acceptance_ratio
-                            < self.acceptance_ratio_threshold
-                        ) or self.terminate_has_begun:
-                            self.terminate_has_begun = True
-                            return self.log_likelihoods
-                    except ValueError:
-                        pass
 
-            return self.fit_instance(instance)
+                try:
+                    samples = self.samples_from_model(model=self.model)
+                except Exception:
+                    samples = None
 
-    def _fit(self, analysis, model):
+                try:
+
+                    if (
+                        samples.acceptance_ratio < self.acceptance_ratio_threshold
+                    ) or self.terminate_has_begun:
+
+                        self.terminate_has_begun = True
+
+                        return self.max_log_likelihood
+
+                except ValueError:
+
+                    pass
+
+    def _full_fit(self, model, analysis):
 
         if not os.path.exists(self.paths.has_completed_path):
 
-            fitness_function = NestedSampler.Fitness(
-                paths=self.paths,
-                analysis=analysis,
-                model=model,
-                samples_from_model=self.samples_from_model,
-                terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
-                acceptance_ratio_threshold=self.acceptance_ratio_threshold,
-            )
-
             logger.info("Running Nested Sampler...")
-            self._simple_fit(model, fitness_function.__call__)
+            self._fit(model=model, analysis=analysis)
             logger.info("Nested Sampler complete")
 
             # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
@@ -129,15 +168,23 @@ class NestedSampler(NonLinearOptimizer):
 
         instance = samples.max_log_likelihood_instance
         analysis.visualize(instance=instance, during_analysis=False)
-        samples_text.results_to_file(samples=samples, file_results=self.paths.file_results, during_analysis=False)
-        result = Result(
-            samples=samples,
-            previous_model=model,
+        samples_text.results_to_file(
+            samples=samples, file_results=self.paths.file_results, during_analysis=False
         )
+        result = Result(samples=samples, previous_model=model)
         self.paths.backup_zip_remove()
         return result
 
+    def fitness_function_from_model_and_analysis(self, model, analysis):
+
+        return NestedSampler.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from_model,
+            terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold=self.acceptance_ratio_threshold,
+        )
+
     def samples_from_model(self, model):
         raise NotImplementedError()
-
-

@@ -13,10 +13,10 @@ directory = os.path.dirname(os.path.realpath(__file__))
 
 
 class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
-    def _simple_fit(self, model, fitness_function):
+    def _fit(self, model, fitness_function):
         raise NotImplementedError()
 
-    def _fit(self, analysis, model):
+    def _full_fit(self, model, analysis):
         class Fitness:
             def __init__(self, instance_from_vector, instance):
                 self.result = None
@@ -28,7 +28,7 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
                 for key, value in self.instance.__dict__.items():
                     setattr(instance, key, value)
 
-                log_likelihood = analysis.fit(instance)
+                log_likelihood = analysis.log_likelihood_function(instance)
                 self.result = autofit.optimize.non_linear.non_linear.Result(
                     instance, log_likelihood
                 )
