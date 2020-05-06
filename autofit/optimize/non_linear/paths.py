@@ -76,6 +76,7 @@ class Paths:
             non_linear_name=None,
             remove_files=True,
     ):
+
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
