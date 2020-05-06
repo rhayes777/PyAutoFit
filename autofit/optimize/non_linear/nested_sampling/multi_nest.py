@@ -69,66 +69,66 @@ class MultiNest(ns.NestedSampler):
         )
 
         self.n_live_points = (
-            self.config("n_live_points", int)
+            self.config("search", "n_live_points", int)
             if n_live_points is None
             else n_live_points
         )
         self.sampling_efficiency = (
-            self.config("sampling_efficiency", float)
+            self.config("search", "sampling_efficiency", float)
             if sampling_efficiency is None
             else sampling_efficiency
         )
         self.const_efficiency_mode = (
-            self.config("const_efficiency_mode", bool)
+            self.config("search", "const_efficiency_mode", bool)
             if const_efficiency_mode is None
             else const_efficiency_mode
         )
         self.evidence_tolerance = (
-            self.config("evidence_tolerance", float)
+            self.config("search", "evidence_tolerance", float)
             if evidence_tolerance is None
             else evidence_tolerance
         )
         self.multimodal = (
-            multimodal or self.config("multimodal", bool)
+            multimodal or self.config("search", "multimodal", bool)
             if multimodal is None
             else multimodal
         )
         self.importance_nested_sampling = (
-            self.config("importance_nested_sampling", bool)
+            self.config("search", "importance_nested_sampling", bool)
             if importance_nested_sampling is None
             else importance_nested_sampling
         )
+        self.max_modes = (
+            self.config("search", "max_modes", int) if max_modes is None else max_modes
+        )
+        self.mode_tolerance = (
+            self.config("search", "mode_tolerance", float)
+            if mode_tolerance is None
+            else mode_tolerance
+        )
+        self.max_iter = self.config("search", "max_iter", int) if max_iter is None else max_iter
         self.n_iter_before_update = (
-            self.config("n_iter_before_update", int)
+            self.config("settings", "n_iter_before_update", int)
             if n_iter_before_update is None
             else n_iter_before_update
         )
         self.null_log_evidence = (
-            self.config("null_log_evidence", float)
+            self.config("settings", "null_log_evidence", float)
             if null_log_evidence is None
             else null_log_evidence
         )
-        self.max_modes = (
-            self.config("max_modes", int) if max_modes is None else max_modes
-        )
-        self.mode_tolerance = (
-            self.config("mode_tolerance", float)
-            if mode_tolerance is None
-            else mode_tolerance
-        )
-        self.seed = self.config("seed", int) if seed is None else seed
-        self.verbose = self.config("verbose", bool) if verbose is None else verbose
-        self.resume = self.config("resume", bool) if resume is None else resume
-        self.context = self.config("context", int) if context is None else context
+        self.seed = self.config("settings", "seed", int) if seed is None else seed
+        self.verbose = self.config("settings", "verbose", bool) if verbose is None else verbose
+        self.resume = self.config("settings", "resume", bool) if resume is None else resume
+        self.context = self.config("settings", "context", int) if context is None else context
         self.write_output = (
-            self.config("write_output", bool) if write_output is None else write_output
+            self.config("settings", "write_output", bool) if write_output is None else write_output
         )
-        self.log_zero = self.config("log_zero", float) if log_zero is None else log_zero
-        self.max_iter = self.config("max_iter", int) if max_iter is None else max_iter
-        self.init_MPI = self.config("init_MPI", bool) if init_MPI is None else init_MPI
+        self.log_zero = self.config("settings", "log_zero", float) if log_zero is None else log_zero
+        self.init_MPI = self.config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
 
         self.stagger_resampling_likelihood = (
-            self.config("stagger_resampling_likelihood", bool)
+            self.config("settings", "stagger_resampling_likelihood", bool)
             if stagger_resampling_likelihood is None
             else stagger_resampling_likelihood
         )

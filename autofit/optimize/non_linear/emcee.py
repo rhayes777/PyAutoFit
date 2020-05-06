@@ -5,6 +5,7 @@ import os
 import emcee
 import numpy as np
 
+from autofit import conf
 from autofit import exc
 from autofit.text import samples_text
 from autofit.optimize.non_linear import samples
@@ -23,7 +24,9 @@ class Emcee(NonLinearOptimizer):
         nwalkers=None,
         nsteps=None,
         initialize_method=None,
-        check_auto_correlation=None,
+        initialize_ball_lower_limit=None,
+        initialize_ball_upper_limit=None,
+        auto_correlation_check_for_convergence=None,
         auto_correlation_check_size=None,
         auto_correlation_required_length=None,
         auto_correlation_change_threshold=None,
@@ -58,7 +61,7 @@ class Emcee(NonLinearOptimizer):
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
-        check_auto_correlation : bool
+        auto_correlation_check_for_convergence : bool
             Whether the auto-correlation lengths of the MCMC samples should be checked to determine the stopping
             criteria. If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
             been performed. If *False* nstep samples will be taken.
@@ -87,30 +90,42 @@ class Emcee(NonLinearOptimizer):
 
         self.sigma = sigma
 
-        self.nwalkers = self.config("nwalkers", int) if nwalkers is None else nwalkers
-        self.nsteps = self.config("nsteps", int) if nsteps is None else nsteps
-        self.check_auto_correlation = (
-            self.config("check_auto_correlation", bool)
-            if check_auto_correlation is None
-            else check_auto_correlation
-        )
+        self.nwalkers = self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
+        self.nsteps = self.config("search", "nsteps", int) if nsteps is None else nsteps
+
         self.initialize_method = (
-            self.config("initialize_method", str)
+            self.config("initialize", "method", str)
             if initialize_method is None
             else initialize_method
         )
+        self.initialize_ball_lower_limit = (
+            self.config("initialize", "ball_lower_limit", float)
+            if initialize_ball_lower_limit is None
+            else initialize_ball_lower_limit
+        )
+        self.initialize_ball_upper_limit = (
+            self.config("initialize", "ball_upper_limit", float)
+            if initialize_ball_upper_limit is None
+            else initialize_ball_upper_limit
+        )
+
+        self.auto_correlation_check_for_convergence = (
+            self.config("auto_correlation", "check_for_convergence", bool)
+            if auto_correlation_check_for_convergence is None
+            else auto_correlation_check_for_convergence
+        )
         self.auto_correlation_check_size = (
-            self.config("auto_correlation_check_size", int)
+            self.config("auto_correlation", "check_size", int)
             if auto_correlation_check_size is None
             else auto_correlation_check_size
         )
         self.auto_correlation_required_length = (
-            self.config("auto_correlation_required_length", int)
+            self.config("auto_correlation", "required_length", int)
             if auto_correlation_required_length is None
             else auto_correlation_required_length
         )
         self.auto_correlation_change_threshold = (
-            self.config("auto_correlation_change_threshold", float)
+            self.config("auto_correlation", "change_threshold", float)
             if auto_correlation_change_threshold is None
             else auto_correlation_change_threshold
         )
@@ -146,7 +161,7 @@ class Emcee(NonLinearOptimizer):
         copy.sigma = self.sigma
         copy.nwalkers = self.nwalkers
         copy.nsteps = self.nsteps
-        copy.check_auto_correlation = self.check_auto_correlation
+        copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
         copy.auto_correlation_check_size = self.auto_correlation_check_size
         copy.auto_correlation_required_length = self.auto_correlation_required_length
         copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
@@ -197,7 +212,10 @@ class Emcee(NonLinearOptimizer):
 
                 for walker_index in range(emcee_sampler.nwalkers):
                     emcee_state[walker_index, :] = np.asarray(
-                        model.random_vector_from_priors
+                        model.random_vector_from_priors_within_limits(
+                            lower_limit=self.initialize_ball_lower_limit,
+                            upper_limit=self.initialize_ball_upper_limit
+                        )
                     )
 
             elif self.initialize_method in "prior":
@@ -226,7 +244,7 @@ class Emcee(NonLinearOptimizer):
 
                 samples = self.samples_from_model(model=model)
 
-                if samples.converged and self.check_auto_correlation:
+                if samples.converged and self.auto_correlation_check_for_convergence:
                     break
 
         logger.info("Emcee complete")

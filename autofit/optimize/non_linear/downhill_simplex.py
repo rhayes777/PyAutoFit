@@ -21,14 +21,14 @@ class DownhillSimplex(NonLinearOptimizer):
             paths = Paths(non_linear_name=type(self).__name__.lower())
         super().__init__(paths)
 
-        self.xtol = self.config("xtol", float)
-        self.ftol = self.config("ftol", float)
-        self.maxiter = self.config("maxiter", int)
-        self.maxfun = self.config("maxfun", int)
+        self.xtol = self.config("search", "xtol", float)
+        self.ftol = self.config("search", "ftol", float)
+        self.maxiter = self.config("search", "maxiter", int)
+        self.maxfun = self.config("search", "maxfun", int)
 
-        self.full_output = self.config("full_output", int)
-        self.disp = self.config("disp", int)
-        self.retall = self.config("retall", int)
+        self.full_output = self.config("search", "full_output", int)
+        self.disp = self.config("search", "disp", int)
+        self.retall = self.config("search", "retall", int)
 
         self.fmin = fmin
 

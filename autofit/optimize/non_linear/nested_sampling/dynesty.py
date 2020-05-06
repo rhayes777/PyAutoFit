@@ -87,20 +87,15 @@ class AbstractDynesty(NestedSampler):
             acceptance_ratio_threshold=acceptance_ratio_threshold,
         )
 
-        self.iterations_per_update = (
-            self.config("iterations_per_update", int)
-            if iterations_per_update is None
-            else iterations_per_update
-        )
-        self.bound = self.config("bound", str) if bound is None else bound
-        self.sample = self.config("sample", str) if sample is None else sample
+        self.bound = self.config("search", "bound", str) if bound is None else bound
+        self.sample = self.config("search", "sample", str) if sample is None else sample
         self.bootstrap = (
-            self.config("bootstrap", int) if bootstrap is None else bootstrap
+            self.config("search", "bootstrap", int) if bootstrap is None else bootstrap
         )
-        self.enlarge = self.config("enlarge", float) if enlarge is None else enlarge
+        self.enlarge = self.config("search", "enlarge", float) if enlarge is None else enlarge
 
         self.update_interval = (
-            self.config("update_interval", float)
+            self.config("search", "update_interval", float)
             if update_interval is None
             else update_interval
         )
@@ -114,15 +109,21 @@ class AbstractDynesty(NestedSampler):
             else:
                 self.enlarge = 1.25
 
-        self.vol_dec = self.config("vol_dec", float) if vol_dec is None else vol_dec
+        self.vol_dec = self.config("search", "vol_dec", float) if vol_dec is None else vol_dec
         self.vol_check = (
-            self.config("vol_check", float) if vol_check is None else vol_check
+            self.config("search", "vol_check", float) if vol_check is None else vol_check
         )
-        self.walks = self.config("walks", int) if walks is None else walks
-        self.facc = self.config("facc", float) if facc is None else facc
-        self.slices = self.config("slices", int) if slices is None else slices
-        self.fmove = self.config("fmove", float) if fmove is None else fmove
-        self.max_move = self.config("max_move", int) if max_move is None else max_move
+        self.walks = self.config("search", "walks", int) if walks is None else walks
+        self.facc = self.config("search", "facc", float) if facc is None else facc
+        self.slices = self.config("search", "slices", int) if slices is None else slices
+        self.fmove = self.config("search", "fmove", float) if fmove is None else fmove
+        self.max_move = self.config("search", "max_move", int) if max_move is None else max_move
+
+        self.iterations_per_update = (
+            self.config("settings", "iterations_per_update", int)
+            if iterations_per_update is None
+            else iterations_per_update
+        )
 
         logger.debug("Creating DynestyStatic NLO")
 
@@ -336,7 +337,7 @@ class DynestyStatic(AbstractDynesty):
         )
 
         self.n_live_points = (
-            self.config("n_live_points", int)
+            self.config("search", "n_live_points", int)
             if n_live_points is None
             else n_live_points
         )

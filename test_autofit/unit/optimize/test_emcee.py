@@ -25,7 +25,9 @@ class TestEmceeConfig:
             nwalkers=51,
             nsteps=2001,
             initialize_method="ball",
-            check_auto_correlation=False,
+            initialize_ball_lower_limit=0.2,
+            initialize_ball_upper_limit=0.8,
+            auto_correlation_check_for_convergence=False,
             auto_correlation_check_size=101,
             auto_correlation_required_length=51,
             auto_correlation_change_threshold=0.02,
@@ -34,7 +36,9 @@ class TestEmceeConfig:
         assert emcee.nwalkers == 51
         assert emcee.nsteps == 2001
         assert emcee.initialize_method == "ball"
-        assert emcee.check_auto_correlation == False
+        assert emcee.initialize_ball_lower_limit == 0.2
+        assert emcee.initialize_ball_upper_limit == 0.8
+        assert emcee.auto_correlation_check_for_convergence == False
         assert emcee.auto_correlation_check_size == 101
         assert emcee.auto_correlation_required_length == 51
         assert emcee.auto_correlation_change_threshold == 0.02
@@ -44,7 +48,9 @@ class TestEmceeConfig:
         assert emcee.nwalkers == 50
         assert emcee.nsteps == 2000
         assert emcee.initialize_method == "prior"
-        assert emcee.check_auto_correlation == True
+        assert emcee.initialize_ball_lower_limit == 0.49
+        assert emcee.initialize_ball_upper_limit == 0.51
+        assert emcee.auto_correlation_check_for_convergence == True
         assert emcee.auto_correlation_check_size == 100
         assert emcee.auto_correlation_required_length == 50
         assert emcee.auto_correlation_change_threshold == 0.01
@@ -131,7 +137,7 @@ class TestCopyWithNameExtension:
         assert copy.sigma is optimizer.sigma
         assert copy.nwalkers is optimizer.nwalkers
         assert copy.nsteps is optimizer.nsteps
-        assert copy.check_auto_correlation is optimizer.check_auto_correlation
+        assert copy.auto_correlation_check_for_convergence is optimizer.auto_correlation_check_for_convergence
         assert copy.auto_correlation_check_size is optimizer.auto_correlation_check_size
         assert (
             copy.auto_correlation_required_length

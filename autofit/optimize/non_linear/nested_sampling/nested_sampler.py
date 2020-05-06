@@ -58,13 +58,13 @@ class NestedSampler(nl.NonLinearOptimizer):
         sampler = conf.instance.non_linear.config_for("NestedSampler")
 
         self.terminate_at_acceptance_ratio = (
-            sampler.get("general", "terminate_at_acceptance_ratio", bool)
+            sampler.get("settings", "terminate_at_acceptance_ratio", bool)
             if terminate_at_acceptance_ratio is None
             else terminate_at_acceptance_ratio
         )
 
         self.acceptance_ratio_threshold = (
-            sampler.get("general", "acceptance_ratio_threshold", float)
+            sampler.get("settings", "acceptance_ratio_threshold", float)
             if acceptance_ratio_threshold is None
             else acceptance_ratio_threshold
         )

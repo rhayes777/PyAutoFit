@@ -126,7 +126,7 @@ class NonLinearOptimizer(ABC):
     def _full_fit(self, model, analysis):
         pass
 
-    def config(self, attribute_name, attribute_type=str):
+    def config(self, section, attribute_name, attribute_type=str):
         """
         Get a config field from this optimizer's section in non_linear.ini by a key and value type.
 
@@ -144,7 +144,7 @@ class NonLinearOptimizer(ABC):
         """
         return conf.instance.non_linear.config_for(
             self.__class__.__name__).get(
-            "general",
+            section,
             attribute_name,
             attribute_type
         )
