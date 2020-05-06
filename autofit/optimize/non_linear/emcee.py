@@ -22,6 +22,7 @@ class Emcee(NonLinearOptimizer):
         sigma=3,
         nwalkers=None,
         nsteps=None,
+        initialize_method=None,
         check_auto_correlation=None,
         auto_correlation_check_size=None,
         auto_correlation_required_length=None,
@@ -92,6 +93,11 @@ class Emcee(NonLinearOptimizer):
             self.config("check_auto_correlation", bool)
             if check_auto_correlation is None
             else check_auto_correlation
+        )
+        self.initialize_method = (
+            self.config("initialize_method", str)
+            if initialize_method is None
+            else initialize_method
         )
         self.auto_correlation_check_size = (
             self.config("auto_correlation_check_size", int)
@@ -187,10 +193,19 @@ class Emcee(NonLinearOptimizer):
 
             emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, emcee_sampler.ndim))
 
-            for walker_index in range(emcee_sampler.nwalkers):
-                emcee_state[walker_index, :] = np.asarray(
-                    model.random_vector_from_priors
-                )
+            if self.initialize_method in "ball":
+
+                for walker_index in range(emcee_sampler.nwalkers):
+                    emcee_state[walker_index, :] = np.asarray(
+                        model.random_vector_from_priors
+                    )
+
+            elif self.initialize_method in "prior":
+
+                for walker_index in range(emcee_sampler.nwalkers):
+                    emcee_state[walker_index, :] = np.asarray(
+                        model.random_vector_from_priors
+                    )
 
             previous_run_converged = False
 

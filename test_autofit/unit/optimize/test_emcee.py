@@ -24,6 +24,7 @@ class TestEmceeConfig:
         emcee = af.Emcee(
             nwalkers=51,
             nsteps=2001,
+            initialize_method="ball",
             check_auto_correlation=False,
             auto_correlation_check_size=101,
             auto_correlation_required_length=51,
@@ -32,6 +33,7 @@ class TestEmceeConfig:
 
         assert emcee.nwalkers == 51
         assert emcee.nsteps == 2001
+        assert emcee.initialize_method == "ball"
         assert emcee.check_auto_correlation == False
         assert emcee.auto_correlation_check_size == 101
         assert emcee.auto_correlation_required_length == 51
@@ -41,6 +43,7 @@ class TestEmceeConfig:
 
         assert emcee.nwalkers == 50
         assert emcee.nsteps == 2000
+        assert emcee.initialize_method == "prior"
         assert emcee.check_auto_correlation == True
         assert emcee.auto_correlation_check_size == 100
         assert emcee.auto_correlation_required_length == 50

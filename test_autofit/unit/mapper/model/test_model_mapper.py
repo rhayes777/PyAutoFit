@@ -527,7 +527,26 @@ class TestModelInstancesRealClasses:
 
         assert log_priors == [0.125, 0.2]
 
-    def test_random_vector_from_prior_medians(self):
+    def test_random_vector_from_prior_within_limits(self):
+
+        np.random.seed(1)
+
+        mapper = af.ModelMapper()
+        mapper.mock_class = af.PriorModel(MockClassMM)
+
+        vector = mapper.random_vector_from_priors_within_limits(lower_limit=0.499999, upper_limit=0.500001)
+
+        assert vector == pytest.approx([0.5, 0.5], 1.0e-4)
+
+        vector = mapper.random_vector_from_priors_within_limits(lower_limit=0.899999, upper_limit=0.900001)
+
+        assert vector == pytest.approx([0.9, 0.9], 1.0e-4)
+
+        vector = mapper.random_vector_from_priors_within_limits(lower_limit=0.2, upper_limit=0.3)
+
+        assert vector == pytest.approx([0.21467, 0.209233], 1.0e-4)
+
+    def test_random_vector_from_prior(self):
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(MockClassMM)
 
