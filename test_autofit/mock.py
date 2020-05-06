@@ -6,11 +6,10 @@ import autofit as af
 # noinspection PyAbstractClass
 import autofit.mapper.prior_model.attribute_pair
 from autofit import Paths
-from autofit.optimize.non_linear.output import AbstractOutput
 from autofit.tools.phase import Dataset
 
 
-class MockNonLinearOptimizer(AbstractOutput):
+class MockNonLinearOptimizer(object):
     def __init__(
             self,
             phase_name,
@@ -18,7 +17,7 @@ class MockNonLinearOptimizer(AbstractOutput):
             phase_folders=tuple(),
             most_probable=None,
             model_mapper=None,
-            most_likely=None,
+            max_log_likelihood=None,
             model_upper_params=None,
             model_lower_params=None,
     ):
@@ -30,7 +29,7 @@ class MockNonLinearOptimizer(AbstractOutput):
         )
 
         self.most_probable = most_probable
-        self.most_likely = most_likely
+        self.max_log_likelihood = max_log_likelihood
         self.model_upper_params = model_upper_params
         self.model_lower_params = model_lower_params
 
@@ -54,7 +53,7 @@ class MockNonLinearOptimizer(AbstractOutput):
         return self.most_probable
 
     @property
-    def most_likely_vector(self):
+    def max_log_likelihood_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
         file which nlo from a \ multinest lens.
@@ -63,13 +62,19 @@ class MockNonLinearOptimizer(AbstractOutput):
         of entries and the most likely model in the second half of entries. The
         offset parameter is used to start at the desiredaf.
         """
-        return self.most_likely
+        return self.max_log_likelihood
 
     def vector_at_upper_sigma(self, sigma):
         return self.model_upper_params
 
     def vector_at_lower_sigma(self, sigma):
         return self.model_lower_params
+
+
+class MockClassNLOx2:
+    def __init__(self, one=1, two=2):
+        self.one = one
+        self.two = two
 
 
 class MockClassNLOx4:

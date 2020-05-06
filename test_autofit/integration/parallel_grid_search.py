@@ -19,7 +19,7 @@ except FileNotFoundError:
 
 
 class Analysis(af.Analysis):
-    def fit(self, instance):
+    def log_likelihood_function(self, instance):
         return -(instance.profile.centre[0] ** 2 + instance.profile.centre[1] ** 2)
 
     def visualize(self, instance, **kwargs):

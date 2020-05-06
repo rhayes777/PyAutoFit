@@ -306,6 +306,18 @@ class GaussianPrior(Prior):
         """
         return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
 
+    def log_prior_from_value(self, value):
+        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        posterior as log_prior + log_likelihood.
+
+        This is used by Emcee in the log likelihood function evaluation.
+
+        Parameters
+        ----------
+        value : float
+            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+        return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
+
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
@@ -346,6 +358,22 @@ class UniformPrior(Prior):
         """
         return self.lower_limit + unit * (self.upper_limit - self.lower_limit)
 
+    def log_prior_from_value(self, value):
+        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        posterior as log_prior + log_likelihood.
+
+        This is used by Emcee in the log likelihood function evaluation.
+
+        NOTE: For a UniformPrior this is always zero, provided the value is between the lower and upper limit. Given
+        this is check for when the instance is made (in the *instance_from_vector* function), we thus can simply return
+        zero in this function.
+
+        Parameters
+        ----------
+        value : float
+            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+        return 0.0
+
     @property
     def mean(self):
         return self.lower_limit + (self.upper_limit - self.lower_limit) / 2
@@ -385,6 +413,19 @@ class LogUniformPrior(UniformPrior):
                 np.log10(self.lower_limit)
                 + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
+
+    def log_prior_from_value(self, value):
+        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        posterior as log_prior + log_likelihood.
+
+        This is used by Emcee in the log likelihood function evaluation.
+
+        Parameters
+        ----------
+        value : float
+            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+        return 1.0 / value
+
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""

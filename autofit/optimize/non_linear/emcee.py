@@ -5,107 +5,188 @@ import os
 import emcee
 import numpy as np
 
-from autofit import conf, exc
+from autofit import conf
+from autofit import exc
+from autofit.text import samples_text
+from autofit.optimize.non_linear import samples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.optimize.non_linear.output import MCMCOutput
+from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
 class Emcee(NonLinearOptimizer):
-    def __init__(self, paths, sigma=3):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        nwalkers=None,
+        nsteps=None,
+        initialize_method=None,
+        initialize_ball_lower_limit=None,
+        initialize_ball_upper_limit=None,
+        auto_correlation_check_for_convergence=None,
+        auto_correlation_check_size=None,
+        auto_correlation_required_length=None,
+        auto_correlation_change_threshold=None,
+    ):
         """
-        Class to setup and run a MultiNest lens and output the MultiNest nlo.
+        Class to setup and run an Emcee non-linear search.
 
-        This interfaces with an input model_mapper, which is used for setting up the \
-        individual model instances that are passed to each iteration of MultiNest.
+        For a full description of Emcee, checkout its Github and readthedocs webpages:
+
+        https://github.com/dfm/emcee
+
+        https://emcee.readthedocs.io/en/stable/
+
+        **PyAutoFit** extends **emcee** by providing an option to check the auto-correlation length of the samples
+        during the run and terminating sampling early if these meet a specified threshold. See this page
+        (https://emcee.readthedocs.io/en/stable/tutorials/autocorr/#autocorr) for a description of how this is implemented.
+
+        If you use *emcee* as part of a published work, please cite the package following the instructions under the
+        *Attribution* section of the GitHub page.
+
+        Parameters
+        ----------
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
+            backups, etc.
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+
+        Attributes
+        ----------
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        auto_correlation_check_for_convergence : bool
+            Whether the auto-correlation lengths of the MCMC samples should be checked to determine the stopping
+            criteria. If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
+            been performed. If *False* nstep samples will be taken.
+        auto_correlation_check_size : int
+            The length of the samples used to check the auto-correlation lengths (from the latest sample backwards). For
+            convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
+            thus requires more samples to meet the auto-correlation threshold, taking longer to terminate sampling.
+            However, shorter chains risk stopping sampling early due to noise.
+        auto_correlation_required_length : int
+            The length an auto_correlation chain must be for it to be evaluated whether its change threshold is
+            sufficiently small to terminate sampling early.
+        auto_correlation_change_threshold : float
+            The threshold value by which if the change in auto_correlations is below sampling will be terminated early,
+            as it has been determined as converged.
+
+        All remaining attributes are emcee parameters and described at the emcee API webpage:
+
+        https://emcee.readthedocs.io/en/stable/
+
         """
 
-        super().__init__(paths)
+        if paths is None:
+            paths = Paths(non_linear_name=type(self).__name__.lower())
+
+        super().__init__(paths=paths)
 
         self.sigma = sigma
 
-        self.nwalkers = conf.instance.non_linear.get("Emcee", "nwalkers", int)
-        self.nsteps = conf.instance.non_linear.get("Emcee", "nsteps", int)
-        self.check_auto_correlation = conf.instance.non_linear.get(
-            "Emcee", "check_auto_correlation", bool
+        self.nwalkers = self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
+        self.nsteps = self.config("search", "nsteps", int) if nsteps is None else nsteps
+
+        self.initialize_method = (
+            self.config("initialize", "method", str)
+            if initialize_method is None
+            else initialize_method
         )
-        self.auto_correlation_check_size = conf.instance.non_linear.get(
-            "Emcee", "auto_correlation_check_size", int
+        self.initialize_ball_lower_limit = (
+            self.config("initialize", "ball_lower_limit", float)
+            if initialize_ball_lower_limit is None
+            else initialize_ball_lower_limit
         )
-        self.auto_correlation_required_length = conf.instance.non_linear.get(
-            "Emcee", "auto_correlation_required_length", int
+        self.initialize_ball_upper_limit = (
+            self.config("initialize", "ball_upper_limit", float)
+            if initialize_ball_upper_limit is None
+            else initialize_ball_upper_limit
         )
-        self.auto_correlation_change_threshold = conf.instance.non_linear.get(
-            "Emcee", "auto_correlation_change_threshold", float
+
+        self.auto_correlation_check_for_convergence = (
+            self.config("auto_correlation", "check_for_convergence", bool)
+            if auto_correlation_check_for_convergence is None
+            else auto_correlation_check_for_convergence
+        )
+        self.auto_correlation_check_size = (
+            self.config("auto_correlation", "check_size", int)
+            if auto_correlation_check_size is None
+            else auto_correlation_check_size
+        )
+        self.auto_correlation_required_length = (
+            self.config("auto_correlation", "required_length", int)
+            if auto_correlation_required_length is None
+            else auto_correlation_required_length
+        )
+        self.auto_correlation_change_threshold = (
+            self.config("auto_correlation", "change_threshold", float)
+            if auto_correlation_change_threshold is None
+            else auto_correlation_change_threshold
         )
 
         logger.debug("Creating Emcee NLO")
 
-    def _simple_fit(self, model, fitness_function):
-        raise NotImplementedError()
+    def _fit(self, model, analysis):
+        """
+        Fit a model using emcee and a function that returns a log likelihood from instances of that model.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        fitness_function
+            A function that fits this model to the data, returning the log likelihood of the fit.
+
+        Returns
+        -------
+        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
+        of the full chains used by the fit.
+        """
+        return self._full_fit(model=model, analysis=analysis)
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        """Copy this instance of the emcee non-linear search with all associated attributes.
+
+        This is used to set up the non-linear search on phase extensions."""
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
         copy.sigma = self.sigma
+        copy.nwalkers = self.nwalkers
+        copy.nsteps = self.nsteps
+        copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
+        copy.auto_correlation_check_size = self.auto_correlation_check_size
+        copy.auto_correlation_required_length = self.auto_correlation_required_length
+        copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
+
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_vector, output_results):
-            super().__init__(paths, analysis, output_results)
-            self.instance_from_vector = instance_from_vector
-            self.accepted_samples = 0
-
-        def fit_instance(self, instance):
-            likelihood = self.analysis.fit(instance)
-
-            if likelihood > self.max_likelihood:
-
-                self.max_likelihood = likelihood
-                self.result = Result(instance, likelihood)
-
-                if self.should_visualize():
-                    self.analysis.visualize(instance, during_analysis=True)
-
-                if self.should_backup():
-                    self.paths.backup()
-
-                if self.should_output_model_results():
-                    self.output_results(during_analysis=True)
-
-            return likelihood
-
         def __call__(self, params):
 
             try:
 
-                instance = self.instance_from_vector(params)
-                likelihood = self.fit_instance(instance)
+                instance = self.model.instance_from_vector(vector=params)
+                log_likelihood = self.fit_instance(instance)
+                log_priors = self.model.log_priors_from_vector(vector=params)
 
             except exc.FitException:
 
-                likelihood = -np.inf
+                return -np.inf
 
-            return likelihood
+            return log_likelihood + sum(log_priors)
 
-    def _fit(self, analysis, model):
+    def _full_fit(self, model, analysis):
 
-        output = EmceeOutput(
-            model=model,
-            paths=self.paths,
-            auto_correlation_check_size=self.auto_correlation_check_size,
-            auto_correlation_required_length=self.auto_correlation_required_length,
-            auto_correlation_change_threshold=self.auto_correlation_change_threshold,
-        )
-
-        fitness_function = Emcee.Fitness(
-            paths=self.paths,
-            analysis=analysis,
-            instance_from_vector=model.instance_from_vector,
-            output_results=output.output_results,
+        fitness_function = self.fitness_function_from_model_and_analysis(
+            model=model, analysis=analysis
         )
 
         emcee_sampler = emcee.EnsembleSampler(
@@ -115,26 +196,40 @@ class Emcee(NonLinearOptimizer):
             backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
         )
 
-        output.save_model_info()
-
         try:
+
             emcee_state = emcee_sampler.get_last_sample()
-            previuos_run_converged = output.converged
+
+            samples = self.samples_from_model(model=model)
+
+            previous_run_converged = samples.converged
 
         except AttributeError:
 
             emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, emcee_sampler.ndim))
 
-            for walker_index in range(emcee_sampler.nwalkers):
-                emcee_state[walker_index, :] = np.asarray(
-                    model.random_vector_from_priors
-                )
+            if self.initialize_method in "ball":
 
-            previuos_run_converged = False
+                for walker_index in range(emcee_sampler.nwalkers):
+                    emcee_state[walker_index, :] = np.asarray(
+                        model.random_vector_from_priors_within_limits(
+                            lower_limit=self.initialize_ball_lower_limit,
+                            upper_limit=self.initialize_ball_upper_limit
+                        )
+                    )
+
+            elif self.initialize_method in "prior":
+
+                for walker_index in range(emcee_sampler.nwalkers):
+                    emcee_state[walker_index, :] = np.asarray(
+                        model.random_vector_from_priors
+                    )
+
+            previous_run_converged = False
 
         logger.info("Running Emcee Sampling...")
 
-        if self.nsteps - emcee_sampler.iteration > 0 and not previuos_run_converged:
+        if self.nsteps - emcee_sampler.iteration > 0 and not previous_run_converged:
 
             for sample in emcee_sampler.sample(
                 initial_state=emcee_state,
@@ -147,54 +242,34 @@ class Emcee(NonLinearOptimizer):
                 if emcee_sampler.iteration % self.auto_correlation_check_size:
                     continue
 
-                if output.converged and self.check_auto_correlation:
+                samples = self.samples_from_model(model=model)
+
+                if samples.converged and self.auto_correlation_check_for_convergence:
                     break
 
         logger.info("Emcee complete")
 
-        # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
-        # TODO: not located here. Do we need to rely just ono the optimizer foldeR? This is a good idea if we always
-        # TODO: have a valid sym-link( e.g. even for aggregator use).
-
         self.paths.backup()
 
-        instance = output.most_likely_instance
+        samples = self.samples_from_model(model=model)
 
-        analysis.visualize(instance=instance, during_analysis=False)
-        output.output_results(during_analysis=False)
-        output.output_pdf_plots()
-        result = Result(
-            instance=instance,
-            likelihood=output.maximum_log_likelihood,
-            output=output,
-            previous_model=model,
-            gaussian_tuples=output.gaussian_priors_at_sigma(self.sigma),
+        analysis.visualize(
+            instance=samples.max_log_likelihood_instance, during_analysis=False
         )
+
+        samples_text.results_to_file(
+            samples=samples, file_results=self.paths.file_results, during_analysis=False
+        )
+
         self.paths.backup_zip_remove()
-        return result
 
-    def output_from_model(self, model, paths):
-        return EmceeOutput(model=model, paths=paths)
-
-
-class EmceeOutput(MCMCOutput):
-    def __init__(
-        self,
-        model,
-        paths,
-        auto_correlation_check_size,
-        auto_correlation_required_length,
-        auto_correlation_change_threshold,
-    ):
-
-        super(EmceeOutput, self).__init__(model=model, paths=paths)
-
-        self.auto_correlation_check_size = auto_correlation_check_size
-        self.auto_correlation_required_length = auto_correlation_required_length
-        self.auto_correlation_change_threshold = auto_correlation_change_threshold
+        return Result(samples=samples, previous_model=model)
 
     @property
-    def backend(self):
+    def backend(self) -> emcee.backends.HDFBackend:
+        """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+
+        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
         if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
             return emcee.backends.HDFBackend(
                 filename=self.paths.sym_path + "/emcee.hdf"
@@ -204,151 +279,51 @@ class EmceeOutput(MCMCOutput):
                 "The file emcee.hdf does not exist at the path " + self.paths.path
             )
 
-    @property
-    def pdf(self):
-        import getdist
+    def fitness_function_from_model_and_analysis(self, model, analysis):
 
-        return getdist.mcsamples.MCSamples(samples=self.samples_after_burn_in)
-
-    @property
-    def pdf_converged(self):
-        return True
-
-    @property
-    def samples_after_burn_in(self):
-
-        discard = int(3.0 * np.max(self.auto_correlation_times_of_parameters))
-        thin = int(np.max(self.auto_correlation_times_of_parameters) / 2.0)
-        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
-
-    @property
-    def auto_correlation_times_of_parameters(self):
-        return self.backend.get_autocorr_time(tol=0)
-
-    @property
-    def previous_auto_correlation_times_of_parameters(self):
-        return emcee.autocorr.integrated_time(
-            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
+        return Emcee.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from_model,
         )
 
-    @property
-    def relative_auto_correlation_times(self):
-        return (
-            np.abs(
-                self.previous_auto_correlation_times_of_parameters
-                - self.auto_correlation_times_of_parameters
-            )
-            / self.auto_correlation_times_of_parameters
-        )
+    def samples_from_model(self, model):
+        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
-    @property
-    def converged(self):
-        converged = np.all(
-            self.auto_correlation_times_of_parameters
-            * self.auto_correlation_required_length
-            < self.total_samples
-        )
-        if converged:
-            try:
-                converged &= np.all(
-                    self.relative_auto_correlation_times
-                    < self.auto_correlation_change_threshold
-                )
-            except IndexError:
-                return False
-        return converged
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
 
-    @property
-    def total_samples(self):
-        return len(self.backend.get_chain(flat=True))
-
-    @property
-    def total_walkers(self):
-        return len(self.backend.get_chain()[0, :, 0])
-
-    @property
-    def total_steps(self):
-        return len(self.backend.get_log_prob())
-
-    @property
-    def most_likely_index(self):
-        return np.argmax(self.backend.get_log_prob(flat=True))
-
-    @property
-    def most_probable_vector(self):
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            backups, etc.
         """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lens.
 
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
-
-        """
-        samples = self.samples_after_burn_in
-        return [
-            float(np.percentile(samples[:, i], [50]))
-            for i in range(self.model.prior_count)
+        parameters = self.backend.get_chain(flat=True)
+        log_priors = [
+            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
+        log_likelihoods = self.backend.get_log_prob(flat=True)
+        weights = len(log_likelihoods) * [1.0]
+        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
+        total_walkers = len(self.backend.get_chain()[0, :, 0])
+        total_steps = len(self.backend.get_log_prob())
 
-    @property
-    def most_likely_vector(self):
-        """
-        Read the most probable or most likely model values from the 'obj_summary.txt' file which nlo from a \
-        multinest lens.
-
-        This file stores the parameters of the most probable model in the first half of entries and the most likely
-        model in the second half of entries. The offset parameter is used to start at the desired model.
-        """
-        return self.backend.get_chain(flat=True)[self.most_likely_index]
-
-    @property
-    def maximum_log_likelihood(self):
-        return self.backend.get_log_prob(flat=True)[self.most_likely_index]
-
-    def vector_at_sigma(self, sigma):
-
-        limit = math.erf(0.5 * sigma * math.sqrt(2))
-
-        samples = self.samples_after_burn_in
-
-        return [
-            tuple(np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit]))
-            for i in range(self.model.prior_count)
-        ]
-
-    def vector_from_sample_index(self, sample_index):
-        """From a sample return the model parameters.
-
-        Parameters
-        -----------
-        sample_index : int
-            The sample index of the weighted sample to return.
-        """
-        return list(self.pdf.samples[sample_index])
-
-    def weight_from_sample_index(self, sample_index):
-        """From a sample return the sample weight.
-
-        Parameters
-        -----------
-        sample_index : int
-            The sample index of the weighted sample to return.
-        """
-        return self.pdf.weights[sample_index]
-
-    def likelihood_from_sample_index(self, sample_index):
-        """From a sample return the likelihood.
-
-        NOTE: GetDist reads the log likelihood from the weighted_sample.txt file (column 2), which are defined as \
-        -2.0*likelihood. This routine converts these back to likelihood.
-
-        Parameters
-        -----------
-        sample_index : int
-            The sample index of the weighted sample to return.
-        """
-        return self.backend.get_log_prob(flat=True)[sample_index]
-
-    def output_pdf_plots(self):
-
-        pass
+        return samples.MCMCSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            total_walkers=total_walkers,
+            total_steps=total_steps,
+            auto_correlation_times=auto_correlation_time,
+            auto_correlation_check_size=self.auto_correlation_check_size,
+            auto_correlation_required_length=self.auto_correlation_required_length,
+            auto_correlation_change_threshold=self.auto_correlation_change_threshold,
+            backend=self.backend,
+        )

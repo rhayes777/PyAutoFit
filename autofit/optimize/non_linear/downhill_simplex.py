@@ -4,12 +4,12 @@ import scipy.optimize
 from autofit import exc
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import logger
-from autofit.optimize.non_linear.output import AbstractOutput
+from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.paths import Paths
 
 
 class DownhillSimplex(NonLinearOptimizer):
-    def _simple_fit(self, model, fitness_function):
+    def _fit(self, model, fitness_function):
         raise NotImplementedError()
 
     def __init__(
@@ -18,17 +18,17 @@ class DownhillSimplex(NonLinearOptimizer):
             fmin=scipy.optimize.fmin
     ):
         if paths is None:
-            paths = Paths()
+            paths = Paths(non_linear_name=type(self).__name__.lower())
         super().__init__(paths)
 
-        self.xtol = self.config("xtol", float)
-        self.ftol = self.config("ftol", float)
-        self.maxiter = self.config("maxiter", int)
-        self.maxfun = self.config("maxfun", int)
+        self.xtol = self.config("search", "xtol", float)
+        self.ftol = self.config("search", "ftol", float)
+        self.maxiter = self.config("search", "maxiter", int)
+        self.maxfun = self.config("search", "maxfun", int)
 
-        self.full_output = self.config("full_output", int)
-        self.disp = self.config("disp", int)
-        self.retall = self.config("retall", int)
+        self.full_output = self.config("search", "full_output", int)
+        self.disp = self.config("search", "disp", int)
+        self.retall = self.config("search", "retall", int)
 
         self.fmin = fmin
 
@@ -49,37 +49,45 @@ class DownhillSimplex(NonLinearOptimizer):
         return copy
 
     class Fitness(NonLinearOptimizer.Fitness):
-        def __init__(self, paths, analysis, instance_from_vector):
-            super().__init__(paths, analysis)
-            self.instance_from_vector = instance_from_vector
+
+        def __init__(self, paths, model, analysis, samples_fom_model):
+
+            super().__init__(
+                paths=paths,
+                analysis=analysis,
+                model=model,
+                samples_from_model=samples_fom_model
+            )
 
         def __call__(self, vector):
             try:
-                instance = self.instance_from_vector(vector)
-                likelihood = self.fit_instance(instance)
+                instance = self.model.instance_from_vector(vector)
+                log_likelihood = self.fit_instance(instance)
             except exc.FitException:
-                likelihood = -np.inf
-            return -2 * likelihood
+                log_likelihood = -np.inf
+            return -2 * log_likelihood
 
-    def _fit(self, analysis, model):
-        dhs_output = AbstractOutput(model, self.paths)
-        dhs_output.save_model_info()
+    def _full_fit(self, model, analysis):
+
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            self.paths, analysis, model.instance_from_vector
+            paths=self.paths, model=model, analysis=analysis, samples_fom_model=self.samples_from_model
         )
 
         logger.info("Running DownhillSimplex...")
-        output = self.fmin(fitness_function, x0=initial_vector)
+        samples = self.fmin(fitness_function, x0=initial_vector)
         logger.info("DownhillSimplex complete")
 
         res = fitness_function.result
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
-        res.gaussian_tuples = [(mean, 0) for mean in output]
+        res.gaussian_tuples = [(mean, 0) for mean in samples]
         res.previous_model = model
 
         analysis.visualize(instance=res.instance, during_analysis=False)
         self.paths.backup_zip_remove()
         return res
+
+    def samples_from_model(self, model):
+        pass

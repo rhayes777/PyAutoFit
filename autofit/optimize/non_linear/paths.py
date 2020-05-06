@@ -45,6 +45,11 @@ def convert_paths(func):
 
         remove_files = conf.instance.general.get("output", "remove_files", bool)
 
+        # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
+        # TODO : nicely though.
+
+        non_linear_name = kwargs["non_linear_class"].__name__.lower() if "non_linear_class" in kwargs else ""
+
         func(
             self,
             paths=Paths(
@@ -52,6 +57,7 @@ def convert_paths(func):
                 phase_tag=kwargs.pop("phase_tag", None),
                 phase_folders=kwargs.pop("phase_folders", tuple()),
                 phase_path=kwargs.pop("phase_path", None),
+                non_linear_name=non_linear_name,
                 remove_files=remove_files,
             ),
             **kwargs,
@@ -62,18 +68,21 @@ def convert_paths(func):
 
 class Paths:
     def __init__(
-        self,
-        phase_name="",
-        phase_tag=None,
-        phase_folders=tuple(),
-        phase_path=None,
-        remove_files=True,
+            self,
+            phase_name="",
+            phase_tag=None,
+            phase_folders=tuple(),
+            phase_path=None,
+            non_linear_name=None,
+            remove_files=True,
     ):
+
         if not isinstance(phase_name, str):
             raise ValueError("Phase name must be a string")
         self.phase_path = phase_path or "/".join(phase_folders)
         self.phase_name = phase_name
         self.phase_tag = phase_tag or ""
+        self.non_linear_name = non_linear_name or ""
         self.remove_files = remove_files
 
     @property
@@ -86,6 +95,7 @@ class Paths:
                 self.phase_path == other.phase_path,
                 self.phase_name == other.phase_name,
                 self.phase_tag == other.phase_tag,
+                self.non_linear_name == other.non_linear_name,
             ]
         )
 
@@ -94,11 +104,18 @@ class Paths:
         return self.phase_path.split("/")
 
     @property
+    def samples_path(self) -> str:
+        """
+        The path to the samples folder.
+        """
+        return f"{self.phase_output_path}/samples"
+
+    @property
     def backup_path(self) -> str:
         """
-        The path to the backed up optimizer folder.
+        The path to the backed up samples folder.
         """
-        return f"{self.phase_output_path}/optimizer_backup"
+        return f"{self.phase_output_path}/samples_backup"
 
     @property
     def zip_path(self) -> str:
@@ -118,6 +135,7 @@ class Paths:
                     self.phase_path,
                     self.phase_name,
                     self.phase_tag,
+                    self.non_linear_name,
                 ],
             )
         )
@@ -143,13 +161,17 @@ class Paths:
 
     @property
     def sym_path(self) -> str:
-        return "{}/{}/{}/{}/optimizer".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        return "{}/{}/{}/{}/{}/samples".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
         )
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.path, "multinest.paramnames")
+        return "{}/{}".format(self.path, self.non_linear_name + ".paramnames")
+
+    @property
+    def file_model_promises(self) -> str:
+        return "{}/{}".format(self.phase_output_path, "model.promises")
 
     @property
     def file_model_info(self) -> str:
@@ -171,27 +193,33 @@ class Paths:
         """
         return "{}pdf/".format(self.image_path)
 
-    def make_optimizer_pickle_path(self) -> str:
+    @property
+    @make_path
+    def pickle_path(self) -> str:
+        return f"{self.make_path()}/pickles"
+
+    def make_non_linear_pickle_path(self) -> str:
         """
         Create the path at which the optimizer pickle should be saved
         """
-        return "{}/optimizer.pickle".format(self.make_path())
+        return f"{self.pickle_path}/non_linear.pickle"
 
     def make_model_pickle_path(self):
         """
         Create the path at which the model pickle should be saved
         """
-        return "{}/model.pickle".format(self.make_path())
+        return f"{self.pickle_path}/model.pickle"
 
     @make_path
     def make_path(self) -> str:
         """
-        Create the path to the folder at which the metadata and optimizer pickle should
-        be saved
+        Create the path to the folder at which the metadata should be saved
         """
-        return "{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag
+        return "{}/{}/{}/{}/{}/".format(
+            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
         )
+
+    # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
 
     @property
     def file_summary(self) -> str:
@@ -244,6 +272,9 @@ class Paths:
         """
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
+
+        self.restore_old_to_new()
+
         if os.path.exists(self.zip_path):
             with zipfile.ZipFile(self.zip_path, "r") as f:
                 f.extractall(self.phase_output_path)
@@ -254,6 +285,68 @@ class Paths:
             for file in glob.glob(self.backup_path + "/*"):
                 shutil.copy(file, self.path)
 
+    # TODO : DElete at some point in the future...
+
+    def restore_old_to_new(self):
+        """
+        Copy files from the backup folder to the sym-linked optimizer folder.
+        """
+
+        old_path = "/".join(
+            filter(
+                len,
+                [
+                    conf.instance.output_path,
+                    self.phase_path,
+                    self.phase_name,
+                    self.phase_tag,
+                ],
+            )
+        )
+
+        old_zip_path = old_path + ".zip"
+
+        if os.path.exists(old_zip_path):
+            with zipfile.ZipFile(old_zip_path, "r") as f:
+                f.extractall(self.phase_output_path)
+
+            if os.path.exists(self.phase_output_path + "/optimizer_backup"):
+                os.rename(self.phase_output_path + "/optimizer_backup", self.phase_output_path + "/samples_backup")
+
+            if os.path.exists(old_path + "/image"):
+                shutil.rmtree(old_path + "/image")
+
+            if os.path.exists(old_path + "/optimizer_backup"):
+                shutil.rmtree(old_path + "/optimizer_backup")
+
+            file_list = glob.glob(old_path + "/*.pickle")
+            [os.remove(file) for file in file_list]
+
+            file_list = glob.glob(old_path + "/*.results")
+            [os.remove(file) for file in file_list]
+
+            file_list = glob.glob(old_path + "/*.info")
+            [os.remove(file) for file in file_list]
+
+            if os.path.exists(old_path + "/metadata"):
+                os.remove(old_path + "/metadata")
+
+            if os.path.exists(old_path + "/output.log"):
+                os.remove(old_path + "/output.log")
+
+            os.remove(old_zip_path)
+
+        else:
+            return
+
+        if os.path.exists(self.backup_path):
+            for file in glob.glob(self.backup_path + "/*"):
+                shutil.copy(file, self.path)
+
+        file_list = glob.glob(self.phase_output_path + "/*.pickle")
+        if len(file_list) > 0:
+            [os.remove(file) for file in file_list]
+
     def zip(self):
         try:
             with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
@@ -262,7 +355,7 @@ class Paths:
                         f.write(
                             os.path.join(root, file),
                             os.path.join(
-                                root[len(self.phase_output_path) :].lstrip("/"), file
+                                root[len(self.phase_output_path):].lstrip("/"), file
                             ),
                         )
 

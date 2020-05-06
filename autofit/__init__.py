@@ -9,7 +9,7 @@ from autofit.mapper.prior_model.attribute_pair import (
 
 dir(conf)
 from . import exc
-from autofit.optimize.non_linear.multi_nest import MultiNestOutput
+from autofit.optimize.non_linear.samples import AbstractSamples, MCMCSamples, NestedSamplerSamples
 from .aggregator import Aggregator, PhaseOutput
 from .mapper import *
 from .mapper import link
@@ -33,21 +33,20 @@ from .mapper.prior_model.util import PriorModelNameValue
 from .optimize.grid_search import GridSearch as OptimizerGridSearch
 from .optimize import *
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
-from .optimize.non_linear.downhill_simplex import DownhillSimplex
-from .optimize.non_linear.grid_search import GridSearch
+from .optimize.non_linear.nested_sampling.dynesty import DynestyStatic, DynestyDynamic
 from .optimize.grid_search import GridSearchResult
-from .optimize.non_linear.multi_nest import MultiNest
+from .optimize.non_linear.nested_sampling.multi_nest import MultiNest
 from .optimize.non_linear.mock_nlo import MockNLO
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.emcee import Emcee
-from .optimize.non_linear.nuts import NUTS
 from autofit.optimize.non_linear.paths import Paths
 from autofit.optimize.non_linear.paths import make_path
 from autofit.optimize.non_linear.paths import convert_paths
 from .optimize.non_linear.non_linear import Result
+from .text import formatter, samples_text
 from .tools import *
-from .tools import path_util, text_util
+from .tools import path_util
 from .tools.phase import AbstractPhase
 from .tools.phase import Phase
 from .tools.phase import Dataset
@@ -59,4 +58,4 @@ from autofit.mapper.prior import AbstractPromise
 from autofit.mapper.prior import last
 from .mapper.prior import *
 
-__version__ = '0.56.0'
+__version__ = '0.57.0'

@@ -7,6 +7,7 @@ import numpy as np
 from autofit import conf
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
+from autofit.text import formatter, samples_text
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
@@ -45,11 +46,11 @@ class NonLinearOptimizer(ABC):
         self.paths.restore()
 
     @classmethod
-    def simple_fit(
+    def fit(
             cls,
             model,
-            fitness_function,
-            remove_output=True
+            analysis,
+            remove_output=False
     ) -> "Result":
         """
         Fit a model, M with some function f that takes instances of the
@@ -69,9 +70,10 @@ class NonLinearOptimizer(ABC):
         A result comprising a score, the best fit instance and an updated prior model
         """
         optimizer = cls()
-        result = optimizer._simple_fit(
-            model,
-            fitness_function
+
+        result = optimizer._fit(
+            model=model,
+            analysis=analysis,
         )
         if remove_output:
             shutil.rmtree(
@@ -80,17 +82,13 @@ class NonLinearOptimizer(ABC):
         return result
 
     @abstractmethod
-    def _simple_fit(self, model, fitness_function):
+    def _fit(self, model, analysis):
         pass
 
-    @abstractmethod
-    def _fit(self, analysis, model):
-        pass
-
-    def fit(
+    def full_fit(
             self,
+            model,
             analysis: "Analysis",
-            model
     ) -> "Result":
         """
         A model which represents possible instances with some dimensionality is fit.
@@ -114,14 +112,21 @@ class NonLinearOptimizer(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
-        result = self._fit(
-            analysis,
-            model
+
+        self.save_paramnames_file(model=model)
+
+        result = self._full_fit(
+            model=model,
+            analysis=analysis,
         )
         open(self.paths.has_completed_path, "w+").close()
         return result
 
-    def config(self, attribute_name, attribute_type=str):
+    @abstractmethod
+    def _full_fit(self, model, analysis):
+        pass
+
+    def config(self, section, attribute_name, attribute_type=str):
         """
         Get a config field from this optimizer's section in non_linear.ini by a key and value type.
 
@@ -137,8 +142,32 @@ class NonLinearOptimizer(ABC):
         attribute
             An attribute for the key with the specified type.
         """
-        return conf.instance.non_linear.get(
-            self.__class__.__name__, attribute_name, attribute_type
+        return conf.instance.non_linear.config_for(
+            self.__class__.__name__).get(
+            section,
+            attribute_name,
+            attribute_type
+        )
+
+    def save_paramnames_file(self, model):
+        """Create the param_names file listing every parameter's label and Latex tag, which is used for *GetDist*
+        visualization.
+
+        The parameter labels are determined using the label.ini and label_format.ini config files."""
+
+        paramnames_names = model.param_names
+        paramnames_labels = formatter.param_labels_from_model(model=model)
+
+        paramnames = []
+
+        for i in range(model.prior_count):
+            line = formatter.label_and_label_string(
+                label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
+            )
+            paramnames += [f"{line}\n"]
+
+        formatter.output_list_of_strings_to_file(
+            file=self.paths.file_param_names, list_of_strings=paramnames
         )
 
     def __eq__(self, other):
@@ -149,14 +178,33 @@ class NonLinearOptimizer(ABC):
         self.paths.restore()
 
     class Fitness:
+
+        @staticmethod
+        def prior(cube, model):
+
+            # NEVER EVER REFACTOR THIS LINE! Haha.
+
+            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+
+            for i in range(len(phys_cube)):
+                cube[i] = phys_cube[i]
+
+            return cube
+
+        @staticmethod
+        def fitness(cube, model, fitness_function):
+            return fitness_function(instance=model.instance_from_vector(cube))
+
         def __init__(
-                self, paths, analysis, output_results=lambda during_analysis: None
+                self, paths, model, analysis, samples_from_model
         ):
-            self.output_results = output_results
+
             self.paths = paths
-            self.result = None
-            self.max_likelihood = -np.inf
+            self.max_log_likelihood = -np.inf
             self.analysis = analysis
+
+            self.model = model
+            self.samples_from_model = samples_from_model
 
             self.log_interval = conf.instance.general.get("output", "log_interval", int)
             self.backup_interval = conf.instance.general.get(
@@ -177,12 +225,12 @@ class NonLinearOptimizer(ABC):
             )
 
         def fit_instance(self, instance):
-            likelihood = self.analysis.fit(instance)
 
-            if likelihood > self.max_likelihood:
+            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
-                self.max_likelihood = likelihood
-                self.result = Result(instance, likelihood)
+            if log_likelihood > self.max_log_likelihood:
+
+                self.max_log_likelihood = log_likelihood
 
                 if self.should_visualize():
                     self.analysis.visualize(instance, during_analysis=True)
@@ -191,9 +239,28 @@ class NonLinearOptimizer(ABC):
                     self.paths.backup()
 
                 if self.should_output_model_results():
-                    self.output_results(during_analysis=True)
 
-            return likelihood
+                    try:
+                        samples = self.samples_from_model(model=self.model)
+                    except Exception:
+                        samples = None
+
+                    try:
+
+                        samples_text.results_to_file(
+                            samples=samples,
+                            file_results=self.paths.file_results,
+                            during_analysis=True
+                        )
+
+                    except (AttributeError, ValueError):
+                        pass
+
+            return log_likelihood
+
+        @property
+        def samples(self):
+            return self.samples_from_model(model=self.model)
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         name = "{}/{}".format(self.paths.phase_name, extension)
@@ -204,26 +271,27 @@ class NonLinearOptimizer(ABC):
             phase_tag = self.paths.phase_tag
 
         new_instance = self.__class__(
-            Paths(
+            paths=Paths(
                 phase_name=name,
                 phase_folders=self.paths.phase_folders,
                 phase_tag=phase_tag,
+                non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
             )
         )
 
         return new_instance
 
-    def output_from_model(self, model, paths):
+    def samples_from_model(self, model):
         raise NotImplementedError()
 
 
 class Analysis:
-    def fit(self, instance):
+    def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
     def visualize(self, instance, during_analysis):
-        raise NotImplementedError()
+        pass
 
 
 class Result:
@@ -232,32 +300,43 @@ class Result:
     """
 
     def __init__(
-            self, instance, likelihood, output=None, previous_model=None, gaussian_tuples=None
+            self, samples, previous_model=None
     ):
         """
         The result of an optimization.
 
         Parameters
         ----------
-        instance: autofit.mapper.model.ModelInstance
-            An instance object comprising the class instances that gave the optimal fit
-        likelihood: float
             A value indicating the figure of merit given by the optimal fit
         previous_model
             The model mapper from the stage that produced this result
         """
-        self.instance = instance
-        self.likelihood = likelihood
-        self.output = output
+
+        self.samples = samples
+
         self.previous_model = previous_model
-        self.gaussian_tuples = gaussian_tuples
+
         self.__model = None
+
+        self._instance = samples.max_log_likelihood_instance if samples is not None else None
+
+    @property
+    def log_likelihood(self):
+        return max(self.samples.log_likelihoods)
+
+    @property
+    def instance(self):
+        return self._instance
+
+    @property
+    def max_log_likelihood_instance(self):
+        return self._instance
 
     @property
     def model(self):
         if self.__model is None:
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self.gaussian_tuples
+                self.samples.gaussian_priors_at_sigma(sigma=3.0)
             )
         return self.__model
 
@@ -285,7 +364,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.gaussian_tuples, a=a
+            self.samples.gaussian_priors_at_sigma(sigma=3.0), a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -301,7 +380,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.gaussian_tuples, r=r
+            self.samples.gaussian_priors_at_sigma(sigma=3.0), r=r
         )
 
 

@@ -1,3 +1,4 @@
+import logging
 import os
 import pickle
 from abc import ABC, abstractmethod
@@ -5,13 +6,14 @@ from typing import Dict
 
 import dill
 
-import autofit.optimize.non_linear.multi_nest
-import autofit.optimize.non_linear.non_linear
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
+from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
 from autofit.optimize.non_linear.paths import Paths
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractPhase:
@@ -20,7 +22,7 @@ class AbstractPhase:
             self,
             paths: Paths,
             *,
-            non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            non_linear_class=MultiNest,
             model=None,
     ):
         """
@@ -35,12 +37,17 @@ class AbstractPhase:
 
         self.paths = paths
 
-        self.optimizer = non_linear_class(self.paths)
+        self.optimizer = non_linear_class(paths=self.paths)
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
         self.pipeline_tag = None
         self.meta_dataset = None
+
+    def save_model_info(self):
+        """Save the model.info file, which summarizes every parameter and prior."""
+        with open(self.paths.file_model_info, "w+") as f:
+            f.write(self.model.info)
 
     @property
     def _default_metadata(self) -> Dict[str, str]:
@@ -53,6 +60,7 @@ class AbstractPhase:
             "phase_tag": self.paths.phase_tag,
             "pipeline": self.pipeline_name,
             "pipeline_tag": self.pipeline_tag,
+            "non_linear_search": type(self.optimizer).__name__.lower(),
         }
 
     def make_metadata_text(self, dataset_name):
@@ -81,19 +89,19 @@ class AbstractPhase:
         """
         Save the dataset associated with the phase
         """
-        with open("{}/dataset.pickle".format(self.paths.make_path()), "wb") as f:
+        with open(f"{self.paths.pickle_path}/dataset.pickle", "wb") as f:
             pickle.dump(dataset, f)
 
     def save_mask(self, mask):
         """
         Save the mask associated with the phase
         """
-        with open("{}/mask.pickle".format(self.paths.make_path()), "wb") as f:
+        with open(f"{self.paths.pickle_path}/mask.pickle", "wb") as f:
             dill.dump(mask, f)
 
     def save_meta_dataset(self, meta_dataset):
         with open(
-                f"{self.paths.phase_output_path}/meta_dataset.pickle",
+                f"{self.paths.pickle_path}/meta_dataset.pickle",
                 "wb+"
         ) as f:
             pickle.dump(
@@ -102,7 +110,7 @@ class AbstractPhase:
 
     def save_phase_attributes(self, phase_attributes):
         with open(
-                f"{self.paths.phase_output_path}/phase_attributes.pickle",
+                f"{self.paths.pickle_path}/phase_attributes.pickle",
                 "wb+"
         ) as f:
             pickle.dump(
@@ -132,7 +140,7 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis):
-        return self.optimizer.fit(analysis=analysis, model=self.model)
+        return self.optimizer.full_fit(model=self.model, analysis=analysis)
 
     def customize_priors(self, results):
         """
@@ -160,7 +168,7 @@ class AbstractPhase:
         """
         Save the optimizer associated with the phase as a pickle
         """
-        with open(self.paths.make_optimizer_pickle_path(), "w+b") as f:
+        with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.optimizer))
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self.model))
@@ -174,7 +182,7 @@ class AbstractPhase:
         -------
         exc.PipelineException
         """
-        path = self.paths.make_optimizer_pickle_path()
+        path = self.paths.make_non_linear_pickle_path()
         if os.path.exists(path):
             with open(path, "r+b") as f:
                 loaded_optimizer = pickle.loads(f.read())
@@ -237,7 +245,7 @@ class Phase(AbstractPhase):
             paths,
             *,
             analysis_class,
-            non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+            non_linear_class=MultiNest,
             model=None,
     ):
         super().__init__(paths, non_linear_class=non_linear_class, model=model)
@@ -267,8 +275,9 @@ class Phase(AbstractPhase):
         """
         self.save_metadata(dataset=dataset)
         self.save_dataset(dataset=dataset)
-        self.save_info(info=info)
+
         self.model = self.model.populate(results)
+        self.save_info(info=info)
 
         analysis = self.make_analysis(dataset=dataset)
 
@@ -309,7 +318,7 @@ def as_grid_search(phase_class, parallel=False):
                 paths,
                 *,
                 number_of_steps=4,
-                non_linear_class=autofit.optimize.non_linear.multi_nest.MultiNest,
+                non_linear_class=MultiNest,
                 **kwargs,
         ):
             super().__init__(paths, non_linear_class=non_linear_class, **kwargs)
@@ -320,12 +329,23 @@ def as_grid_search(phase_class, parallel=False):
                 parallel=parallel,
             )
 
+        def save_grid_search_result(self, grid_search_result):
+            with open(
+                    f"{self.paths.pickle_path}/grid_search_result.pickle",
+                    "wb+"
+            ) as f:
+                pickle.dump(
+                    grid_search_result, f
+                )
+
         # noinspection PyMethodMayBeStatic,PyUnusedLocal
         def make_result(self, result, analysis):
+            self.save_grid_search_result(grid_search_result=result)
+
             return result
 
         def run_analysis(self, analysis):
-            return self.optimizer.fit(analysis, self.model, self.grid_priors)
+            return self.optimizer.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
 
         @property
         def grid_priors(self):

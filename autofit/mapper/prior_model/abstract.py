@@ -20,7 +20,7 @@ from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
-from autofit.tools.text_formatter import TextFormatter
+from autofit.text.formatter import TextFormatter
 
 
 def check_assertions(func):
@@ -118,7 +118,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         unit_vector: [float]
-            A vector of physical parameter values.
+            A unit hypercube vector that is mapped to an instance of physical values via the priors.
 
         Returns
         -------
@@ -199,9 +199,13 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    @property
-    def random_vector_from_priors(self):
-        """
+    def random_vector_from_priors_within_limits(self, lower_limit, upper_limit):
+        """ Generate a random vector of physical values by drawing uniform random values between an input lower and
+        upper limit and using the model priors to map them from unit values to physical values.
+
+        This is used for MCMC initialization, whereby the starting points of a walker(s) is confined to a restricted
+        range of prior space. In particular, it is used for generate the "ball" initialization of Emcee.
+
         Returns
         -------
         physical_values: [float]
@@ -212,7 +216,7 @@ class AbstractPriorModel(AbstractModel):
         while True:
 
             vector = self.vector_from_unit_vector(
-                list(np.random.random(self.prior_count))
+                list(np.random.uniform(low=lower_limit, high=upper_limit, size=self.prior_count))
             )
 
             try:
@@ -220,6 +224,18 @@ class AbstractPriorModel(AbstractModel):
                 return vector
             except exc.PriorLimitException:
                 pass
+
+    @property
+    def random_vector_from_priors(self):
+        """ Generate a random vector of physical values by drawing uniform random values between 0 and 1 and using
+        the model priors to map them from unit values to physical values.
+
+        Returns
+        -------
+        physical_values: [float]
+            A list of physical values constructed by taking random values from each prior.
+        """
+        return self.random_vector_from_priors_within_limits(lower_limit=0.0, upper_limit=1.0)
 
     @property
     def physical_values_from_prior_medians(self):
@@ -247,7 +263,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         vector: [float]
-            A unit hypercube vector
+            A vector of physical parameter values that is mapped to an instance.
         assert_priors_in_limits
             If True it is checked that the physical values of priors are within set limits
 
@@ -410,6 +426,35 @@ class AbstractPriorModel(AbstractModel):
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * len(self.prior_tuples)
         )
+
+    def log_priors_from_vector(
+            self,
+            vector : [float],
+    ):
+        """
+        Compute the log priors of every parameter in a vector, using the Prior of every parameter.
+
+        The log prior values are used by Emcee to map the log likelihood to the poserior of the model.
+
+        Parameters
+        ----------
+        vector : [float]
+            A vector of physical parameter values.
+
+        Returns
+        -------
+        log_priors : []
+            An list of the log prior value of every parameter.
+
+        """
+        return list(
+            map(
+                lambda prior_tuple, value : prior_tuple.prior.log_prior_from_value(value=value),
+                self.prior_tuples_ordered_by_id,
+                vector,
+            )
+        )
+
 
     def random_instance(self):
         """
