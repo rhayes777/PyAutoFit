@@ -58,4 +58,4 @@ from autofit.mapper.prior import AbstractPromise
 from autofit.mapper.prior import last
 from .mapper.prior import *
 
-__version__ = '0.57.0'
+__version__ = '0.57.1'
