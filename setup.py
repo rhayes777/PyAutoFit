@@ -16,6 +16,9 @@ this_dir = abspath(dirname(__file__))
 with open(join(this_dir, "README.rst"), encoding="utf-8") as file:
     long_description = file.read()
 
+with open(join(this_dir, "requirements.txt")) as f:
+    requirements = f.read().split("\n")
+
 setup(
     name="autofit",
     version=version(),
@@ -43,14 +46,7 @@ setup(
     ],
     keywords="cli",
     packages=find_packages(exclude=["docs"]),
-    install_requires=[
-        "GetDist",
-        "scipy",
-        "numpy",
-        "pymultinest",
-        "matplotlib",
-        "typing_inspect==0.4.0",
-    ],
+    install_requires=requirements,
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
 )
