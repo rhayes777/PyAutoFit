@@ -22,7 +22,6 @@ class AbstractDynesty(NestedSampler):
         self,
         paths=None,
         sigma=3,
-        iterations_per_update=None,
         bound=None,
         sample=None,
         bootstrap=None,
@@ -37,6 +36,7 @@ class AbstractDynesty(NestedSampler):
         max_move=None,
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
+        iterations_per_update=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search.

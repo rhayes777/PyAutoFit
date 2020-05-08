@@ -1,8 +1,8 @@
+from abc import ABC, abstractmethod
 import logging
 import shutil
-from abc import ABC, abstractmethod
-
 import numpy as np
+import multiprocessing as mp
 
 from autofit import conf
 from autofit.mapper import model_mapper as mm
@@ -229,6 +229,8 @@ class NonLinearOptimizer(ABC):
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
             if log_likelihood > self.max_log_likelihood:
+
+                print(mp.current_process()._identity[0])
 
                 self.max_log_likelihood = log_likelihood
 

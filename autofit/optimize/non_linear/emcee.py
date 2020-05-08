@@ -1,11 +1,9 @@
 import logging
-import math
 import os
-
 import emcee
 import numpy as np
+import multiprocessing as mp
 
-from autofit import conf
 from autofit import exc
 from autofit.text import samples_text
 from autofit.optimize.non_linear import samples
@@ -161,6 +159,9 @@ class Emcee(NonLinearOptimizer):
         copy.sigma = self.sigma
         copy.nwalkers = self.nwalkers
         copy.nsteps = self.nsteps
+        copy.initialize_method = self.initialize_method
+        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
+        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
         copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
         copy.auto_correlation_check_size = self.auto_correlation_check_size
         copy.auto_correlation_required_length = self.auto_correlation_required_length
@@ -194,6 +195,7 @@ class Emcee(NonLinearOptimizer):
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
+            pool=mp.Pool(processes=2)
         )
 
         try:

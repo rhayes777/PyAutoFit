@@ -137,6 +137,9 @@ class TestCopyWithNameExtension:
         assert copy.sigma is optimizer.sigma
         assert copy.nwalkers is optimizer.nwalkers
         assert copy.nsteps is optimizer.nsteps
+        assert copy.initialize_method is optimizer.initialize_method
+        assert copy.initialize_ball_lower_limit is optimizer.initialize_ball_lower_limit
+        assert copy.initialize_ball_upper_limit is optimizer.initialize_ball_upper_limit
         assert copy.auto_correlation_check_for_convergence is optimizer.auto_correlation_check_for_convergence
         assert copy.auto_correlation_check_size is optimizer.auto_correlation_check_size
         assert (
