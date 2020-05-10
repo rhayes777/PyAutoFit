@@ -232,13 +232,12 @@ class TestMulitNest:
         assert copy.paths.phase_name == "phase_name/one"
 
     def test__copy_with_name_extension(self):
-        optimizer = af.MultiNest(Paths("phase_name"), sigma=2.0, run=lambda x: x)
+        optimizer = af.MultiNest(Paths("phase_name"), sigma=2.0)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.MultiNest)
         assert copy.sigma is optimizer.sigma
-        assert copy.run is optimizer.run
         assert copy.importance_nested_sampling is optimizer.importance_nested_sampling
         assert copy.multimodal is optimizer.multimodal
         assert copy.const_efficiency_mode is optimizer.const_efficiency_mode
