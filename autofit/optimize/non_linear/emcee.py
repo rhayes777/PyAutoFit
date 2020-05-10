@@ -1,11 +1,9 @@
 import logging
-import math
 import os
-
 import emcee
 import numpy as np
+import multiprocessing as mp
 
-from autofit import conf
 from autofit import exc
 from autofit.text import samples_text
 from autofit.optimize.non_linear import samples
@@ -30,6 +28,7 @@ class Emcee(NonLinearOptimizer):
         auto_correlation_check_size=None,
         auto_correlation_required_length=None,
         auto_correlation_change_threshold=None,
+        number_of_cores=None,
     ):
         """
         Class to setup and run an Emcee non-linear search.
@@ -40,11 +39,17 @@ class Emcee(NonLinearOptimizer):
 
         https://emcee.readthedocs.io/en/stable/
 
-        **PyAutoFit** extends **emcee** by providing an option to check the auto-correlation length of the samples
-        during the run and terminating sampling early if these meet a specified threshold. See this page
-        (https://emcee.readthedocs.io/en/stable/tutorials/autocorr/#autocorr) for a description of how this is implemented.
+        Extensions:
 
-        If you use *emcee* as part of a published work, please cite the package following the instructions under the
+        **PyAutoFit** provides the option to check the auto-correlation length of the samples during the run and
+        terminating sampling early if these meet a specified threshold. See this page
+        (https://emcee.readthedocs.io/en/stable/tutorials/autocorr/#autocorr) for a description.
+
+        **PyAutoFit** also provides different options for walker initialization, with the default 'ball' method
+        starting all walkers close to one another in parameter space, as recommended in the Emcee documentation
+        (https://emcee.readthedocs.io/en/stable/user/faq/).
+
+        If you use *Emcee* as part of a published work, please cite the package following the instructions under the
         *Attribution* section of the GitHub page.
 
         Parameters
@@ -65,6 +70,20 @@ class Emcee(NonLinearOptimizer):
             Whether the auto-correlation lengths of the MCMC samples should be checked to determine the stopping
             criteria. If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
             been performed. If *False* nstep samples will be taken.
+        initialize_method : str
+            The method used to generate where walkers are initialized in parameter space, with options:
+            ball (default):
+                Walkers are initialized by randomly drawing unit values from a uniform distribution between the
+                initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
+                small, such that all walkers begin close to one another.
+            prior:
+                Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
+                thus being fully distributed over the prior.
+        initialize_ball_upper_limit : float
+            The lower limit of the uniform distribution unit values are drawn from when initializing walkers using the
+            ball method.
+            The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
+            ball method.
         auto_correlation_check_size : int
             The length of the samples used to check the auto-correlation lengths (from the latest sample backwards). For
             convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
@@ -76,10 +95,19 @@ class Emcee(NonLinearOptimizer):
         auto_correlation_change_threshold : float
             The threshold value by which if the change in auto_correlations is below sampling will be terminated early,
             as it has been determined as converged.
+        number_of_cores : int
+            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
+            pool instance is not created and the job runs in serial.
 
         All remaining attributes are emcee parameters and described at the emcee API webpage:
 
         https://emcee.readthedocs.io/en/stable/
+
+        Attributes
+        ----------
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
 
         """
 
@@ -130,6 +158,12 @@ class Emcee(NonLinearOptimizer):
             else auto_correlation_change_threshold
         )
 
+        self.number_of_cores = (
+            self.config("parallel", "number_of_cores", int)
+            if number_of_cores is None
+            else number_of_cores
+        )
+
         logger.debug("Creating Emcee NLO")
 
     def _fit(self, model, analysis):
@@ -161,10 +195,14 @@ class Emcee(NonLinearOptimizer):
         copy.sigma = self.sigma
         copy.nwalkers = self.nwalkers
         copy.nsteps = self.nsteps
+        copy.initialize_method = self.initialize_method
+        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
+        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
         copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
         copy.auto_correlation_check_size = self.auto_correlation_check_size
         copy.auto_correlation_required_length = self.auto_correlation_required_length
         copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
+        copy.number_of_cores = self.number_of_cores
 
         return copy
 
@@ -185,8 +223,10 @@ class Emcee(NonLinearOptimizer):
 
     def _full_fit(self, model, analysis):
 
+        pool, pool_ids = self.make_pool()
+
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+            model=model, analysis=analysis, pool_ids=pool_ids,
         )
 
         emcee_sampler = emcee.EnsembleSampler(
@@ -194,6 +234,7 @@ class Emcee(NonLinearOptimizer):
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
+            pool=pool,
         )
 
         try:
@@ -279,13 +320,14 @@ class Emcee(NonLinearOptimizer):
                 "The file emcee.hdf does not exist at the path " + self.paths.path
             )
 
-    def fitness_function_from_model_and_analysis(self, model, analysis):
+    def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
 
         return Emcee.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from_model,
+            pool_ids=pool_ids,
         )
 
     def samples_from_model(self, model):
