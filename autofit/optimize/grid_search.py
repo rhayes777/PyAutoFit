@@ -11,7 +11,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.optimize import optimizer
-from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
+from autofit.optimize.non_linear.emcee import Emcee
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
 
@@ -158,7 +158,7 @@ class GridSearchResult:
 class GridSearch:
     # TODO: this should be using paths
     def __init__(
-            self, paths, number_of_steps=4, non_linear_class=MultiNest, parallel=False
+            self, paths, number_of_steps=4, non_linear_class=Emcee, parallel=False
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on

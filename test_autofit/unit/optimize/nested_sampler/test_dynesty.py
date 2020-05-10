@@ -55,6 +55,7 @@ class TestDynestyConfig:
             max_move=101,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.5,
+            number_of_cores=2,
         )
 
         assert dynesty.iterations_per_update == 501
@@ -73,6 +74,7 @@ class TestDynestyConfig:
         assert dynesty.max_move == 101
         assert dynesty.terminate_at_acceptance_ratio == False
         assert dynesty.acceptance_ratio_threshold == 0.5
+        assert dynesty.number_of_cores == 2
 
         dynesty = af.DynestyStatic()
 
@@ -92,6 +94,7 @@ class TestDynestyConfig:
         assert dynesty.max_move == 100
         assert dynesty.terminate_at_acceptance_ratio == True
         assert dynesty.acceptance_ratio_threshold == 2.0
+        assert dynesty.number_of_cores == 1
 
         dynesty = af.DynestyDynamic(
             iterations_per_update=501,
@@ -109,6 +112,7 @@ class TestDynestyConfig:
             max_move=101,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.5,
+            number_of_cores=3
         )
 
         assert dynesty.iterations_per_update == 501
@@ -126,6 +130,7 @@ class TestDynestyConfig:
         assert dynesty.max_move == 101
         assert dynesty.terminate_at_acceptance_ratio == False
         assert dynesty.acceptance_ratio_threshold == 0.5
+        assert dynesty.number_of_cores == 3
 
         dynesty = af.DynestyDynamic()
 
@@ -144,6 +149,7 @@ class TestDynestyConfig:
         assert dynesty.max_move == 101
         assert dynesty.terminate_at_acceptance_ratio == True
         assert dynesty.acceptance_ratio_threshold == 2.0
+        assert dynesty.number_of_cores == 4
 
     def test__samples_from_model(self):
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
@@ -216,6 +222,7 @@ class TestCopyWithNameExtension:
         assert copy.slices == optimizer.slices
         assert copy.fmove == optimizer.fmove
         assert copy.max_move == optimizer.max_move
+        assert copy.number_of_cores == optimizer.number_of_cores
 
         optimizer = af.DynestyDynamic(Paths("phase_name"), sigma=2.0)
 
@@ -242,3 +249,4 @@ class TestCopyWithNameExtension:
         assert copy.slices == optimizer.slices
         assert copy.fmove == optimizer.fmove
         assert copy.max_move == optimizer.max_move
+        assert copy.number_of_cores == optimizer.number_of_cores

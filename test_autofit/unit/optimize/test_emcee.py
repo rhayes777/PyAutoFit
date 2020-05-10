@@ -31,6 +31,7 @@ class TestEmceeConfig:
             auto_correlation_check_size=101,
             auto_correlation_required_length=51,
             auto_correlation_change_threshold=0.02,
+            number_of_cores=2,
         )
 
         assert emcee.nwalkers == 51
@@ -42,6 +43,7 @@ class TestEmceeConfig:
         assert emcee.auto_correlation_check_size == 101
         assert emcee.auto_correlation_required_length == 51
         assert emcee.auto_correlation_change_threshold == 0.02
+        assert emcee.number_of_cores == 2
 
         emcee = af.Emcee()
 
@@ -54,6 +56,7 @@ class TestEmceeConfig:
         assert emcee.auto_correlation_check_size == 100
         assert emcee.auto_correlation_required_length == 50
         assert emcee.auto_correlation_change_threshold == 0.01
+        assert emcee.number_of_cores == 1
 
     def test__samples_from_model(self):
 
@@ -137,6 +140,9 @@ class TestCopyWithNameExtension:
         assert copy.sigma is optimizer.sigma
         assert copy.nwalkers is optimizer.nwalkers
         assert copy.nsteps is optimizer.nsteps
+        assert copy.initialize_method is optimizer.initialize_method
+        assert copy.initialize_ball_lower_limit is optimizer.initialize_ball_lower_limit
+        assert copy.initialize_ball_upper_limit is optimizer.initialize_ball_upper_limit
         assert copy.auto_correlation_check_for_convergence is optimizer.auto_correlation_check_for_convergence
         assert copy.auto_correlation_check_size is optimizer.auto_correlation_check_size
         assert (
@@ -146,4 +152,8 @@ class TestCopyWithNameExtension:
         assert (
             copy.auto_correlation_change_threshold
             is optimizer.auto_correlation_change_threshold
+        )
+        assert (
+            copy.number_of_cores
+            is optimizer.number_of_cores
         )

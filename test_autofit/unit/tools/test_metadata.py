@@ -17,7 +17,7 @@ def test_metadata_dictionary(phase):
     phase.pipeline_name = "pipeline_name"
     phase.pipeline_tag = "pipeline_tag"
     assert phase._default_metadata == {
-        "non_linear_search": "multinest",
+        "non_linear_search": "emcee",
         "phase": "phase_name",
         "phase_tag": "phase_tag",
         "pipeline": "pipeline_name",
@@ -35,5 +35,5 @@ def test_datset_name_in_metadata_text(phase):
 phase_tag=phase_tag
 pipeline=
 pipeline_tag=
-non_linear_search=multinest
+non_linear_search=emcee
 dataset_name=data"""

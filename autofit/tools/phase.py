@@ -10,7 +10,7 @@ from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
-from autofit.optimize.non_linear.nested_sampling.multi_nest import MultiNest
+from autofit.optimize.non_linear.emcee import Emcee
 from autofit.optimize.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ class AbstractPhase:
             self,
             paths: Paths,
             *,
-            non_linear_class=MultiNest,
+            non_linear_class=Emcee,
             model=None,
     ):
         """
@@ -245,7 +245,7 @@ class Phase(AbstractPhase):
             paths,
             *,
             analysis_class,
-            non_linear_class=MultiNest,
+            non_linear_class=Emcee,
             model=None,
     ):
         super().__init__(paths, non_linear_class=non_linear_class, model=model)
@@ -318,7 +318,7 @@ def as_grid_search(phase_class, parallel=False):
                 paths,
                 *,
                 number_of_steps=4,
-                non_linear_class=MultiNest,
+                non_linear_class=Emcee,
                 **kwargs,
         ):
             super().__init__(paths, non_linear_class=non_linear_class, **kwargs)

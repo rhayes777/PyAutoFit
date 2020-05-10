@@ -1,9 +1,8 @@
 import logging
 
 import numpy as np
-import pymultinest
 
-from autofit import conf, exc
+from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.optimize.non_linear import samples
 from autofit.optimize.non_linear.nested_sampling import nested_sampler as ns
@@ -18,7 +17,6 @@ class MultiNest(ns.NestedSampler):
         self,
         paths=None,
         sigma=3,
-        run=pymultinest.run,
         n_live_points=None,
         sampling_efficiency=None,
         const_efficiency_mode=None,
@@ -133,8 +131,6 @@ class MultiNest(ns.NestedSampler):
             else stagger_resampling_likelihood
         )
 
-        self.run = run
-
         logger.debug("Creating MultiNest NLO")
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
@@ -145,7 +141,6 @@ class MultiNest(ns.NestedSampler):
             extension=extension, remove_phase_tag=remove_phase_tag
         )
         copy.sigma = self.sigma
-        copy.run = self.run
         copy.importance_nested_sampling = self.importance_nested_sampling
         copy.multimodal = self.multimodal
         copy.const_efficiency_mode = self.const_efficiency_mode
@@ -263,7 +258,9 @@ class MultiNest(ns.NestedSampler):
             model=model, analysis=analysis
         )
 
-        self.run(
+        import pymultinest
+
+        pymultinest.run(
             fitness_function,
             prior,
             model.prior_count,

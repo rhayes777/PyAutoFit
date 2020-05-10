@@ -22,7 +22,6 @@ class AbstractDynesty(NestedSampler):
         self,
         paths=None,
         sigma=3,
-        iterations_per_update=None,
         bound=None,
         sample=None,
         bootstrap=None,
@@ -37,6 +36,8 @@ class AbstractDynesty(NestedSampler):
         max_move=None,
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
+        iterations_per_update=None,
+        number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search.
@@ -69,6 +70,9 @@ class AbstractDynesty(NestedSampler):
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
             *True* (see *NestedSampler* for a full description of this feature).
+        number_of_cores : int
+            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
+            pool instance is not created and the job runs in serial.
 
         Attributes
         ----------
@@ -125,6 +129,12 @@ class AbstractDynesty(NestedSampler):
             else iterations_per_update
         )
 
+        self.number_of_cores = (
+            self.config("parallel", "number_of_cores", int)
+            if number_of_cores is None
+            else number_of_cores
+        )
+
         logger.debug("Creating DynestyStatic NLO")
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
@@ -147,6 +157,7 @@ class AbstractDynesty(NestedSampler):
         copy.slices = self.slices
         copy.fmove = self.fmove
         copy.max_move = self.max_move
+        copy.number_of_cores = self.number_of_cores
 
         return copy
 
@@ -171,6 +182,8 @@ class AbstractDynesty(NestedSampler):
         of the full samples used by the fit.
         """
 
+        pool, pool_ids = self.make_pool()
+
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis
         )
@@ -193,12 +206,12 @@ class AbstractDynesty(NestedSampler):
         # These hacks are necessary to be able to pickle the sampler.
 
         sampler.rstate = np.random
-        sampler.pool = None
-        sampler.M = map
+        sampler.pool = pool
 
-    #    pool = Pool(processes=1)
-    #    sampler.pool = None
-    #    sampler.M = pool.map
+        if self.number_of_cores == 1:
+            sampler.M = map
+        else:
+            sampler.M = pool.map
 
         dynesty_finished = False
 
@@ -281,7 +294,6 @@ class DynestyStatic(AbstractDynesty):
         self,
         paths=None,
         sigma=3,
-        iterations_per_update=None,
         n_live_points=None,
         bound=None,
         sample=None,
@@ -297,6 +309,8 @@ class DynestyStatic(AbstractDynesty):
         max_move=None,
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
+        iterations_per_update=None,
+        number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search, using the static Dynesty nested sampler described at this
@@ -334,6 +348,7 @@ class DynestyStatic(AbstractDynesty):
             max_move=max_move,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
+            number_of_cores=number_of_cores,
         )
 
         self.n_live_points = (
@@ -401,6 +416,7 @@ class DynestyDynamic(AbstractDynesty):
         max_move=None,
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
+        number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search, using the dynamic Dynesty nested sampler described at this
@@ -438,6 +454,7 @@ class DynestyDynamic(AbstractDynesty):
             max_move=max_move,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
+            number_of_cores=number_of_cores,
         )
 
         logger.debug("Creating DynestyDynamic NLO")
@@ -446,8 +463,8 @@ class DynestyDynamic(AbstractDynesty):
         """Get the dynamic Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
         return DynamicNestedSampler(
-            loglikelihood=fitness,
-            prior_transform=prior,
+            loglikelihood=fitness_function,
+            prior_transform=nl.NonLinearOptimizer.Fitness.prior,
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],

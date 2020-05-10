@@ -1,8 +1,9 @@
+from abc import ABC, abstractmethod
 import logging
 import shutil
-from abc import ABC, abstractmethod
-
 import numpy as np
+import multiprocessing as mp
+from time import sleep
 
 from autofit import conf
 from autofit.mapper import model_mapper as mm
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 class NonLinearOptimizer(ABC):
     @convert_paths
-    def __init__(self, paths=None):
+    def __init__(self, paths=None, number_of_cores=1):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
@@ -25,6 +26,8 @@ class NonLinearOptimizer(ABC):
         ------------
 
         """
+
+
 
         if paths is None:
             paths = Paths()
@@ -44,6 +47,8 @@ class NonLinearOptimizer(ABC):
             ]
 
         self.paths.restore()
+
+        self.number_of_cores = number_of_cores
 
     @classmethod
     def fit(
@@ -69,6 +74,7 @@ class NonLinearOptimizer(ABC):
         -------
         A result comprising a score, the best fit instance and an updated prior model
         """
+
         optimizer = cls()
 
         result = optimizer._fit(
@@ -196,7 +202,7 @@ class NonLinearOptimizer(ABC):
             return fitness_function(instance=model.instance_from_vector(cube))
 
         def __init__(
-                self, paths, model, analysis, samples_from_model
+                self, paths, model, analysis, samples_from_model, pool_ids=None,
         ):
 
             self.paths = paths
@@ -224,11 +230,17 @@ class NonLinearOptimizer(ABC):
                 self.model_results_output_interval
             )
 
+            self.pool_ids = pool_ids
+
         def fit_instance(self, instance):
 
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
             if log_likelihood > self.max_log_likelihood:
+
+                if self.pool_ids is not None:
+                    if mp.current_process().pid != min(self.pool_ids):
+                        return log_likelihood
 
                 self.max_log_likelihood = log_likelihood
 
@@ -277,7 +289,7 @@ class NonLinearOptimizer(ABC):
                 phase_tag=phase_tag,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
-            )
+            ),
         )
 
         return new_instance
@@ -285,6 +297,32 @@ class NonLinearOptimizer(ABC):
     def samples_from_model(self, model):
         raise NotImplementedError()
 
+    def make_pool(self):
+        """Make the pool instance used to parallelize a non-linear search alongside a set of unique ids for every
+        process in the pool. If the specified number of cores is 1, a pool instance is not made and None is returned.
+
+        The pool cannot be set as an attribute of the class itself because this prevents pickling, thus it is generated
+        via this function before calling the non-linear search.
+
+        The pool instance is also set up with a list of unique pool ids, which are used during model-fitting to
+        identify a 'master core' (the one whose id value is lowest) which handles model result output, visualization,
+        etc."""
+
+        if self.number_of_cores == 1:
+
+            return None, None
+
+        else:
+
+            manager = mp.Manager()
+            idQueue = manager.Queue()
+
+            [idQueue.put(i) for i in range(self.number_of_cores)]
+
+            pool = mp.Pool(processes=self.number_of_cores, initializer=init, initargs=(idQueue,))
+            ids = pool.map(f, range(self.number_of_cores))
+
+            return pool, [id[1] for id in ids]
 
 class Analysis:
     def log_likelihood_function(self, instance):
@@ -394,3 +432,14 @@ class IntervalCounter:
             return False
         self.count += 1
         return self.count % self.interval == 0
+
+
+def init(queue):
+    global idx
+    idx = queue.get()
+
+def f(x):
+    global idx
+    process = mp.current_process()
+    sleep(1)
+    return (idx, process.pid, x * x)
