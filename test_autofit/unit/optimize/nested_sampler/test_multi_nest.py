@@ -4,7 +4,7 @@ from functools import wraps
 
 import pytest
 
-from autoconf import conf
+from autofit import conf
 import autofit as af
 from autofit import Paths
 from autofit.optimize.non_linear.nested_sampling import multi_nest as mn

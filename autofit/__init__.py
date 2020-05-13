@@ -1,13 +1,11 @@
-from autoconf import conf
-from autofit.mapper.model import path_instances_of_class
-from autofit.mapper.prior_model.attribute_pair import (
+from .mapper.model import path_instances_of_class
+from .mapper.prior_model.attribute_pair import (
     cast_collection,
     AttributeNameValue,
     PriorNameValue,
     InstanceNameValue,
 )
 
-dir(conf)
 from . import exc
 from .optimize.non_linear.samples import AbstractSamples, MCMCSamples, NestedSamplerSamples
 from .aggregator import Aggregator, PhaseOutput
