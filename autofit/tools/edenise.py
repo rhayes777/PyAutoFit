@@ -125,3 +125,5 @@ def edenise(
                         )
                     )
                     f.truncate()
+
+    open(f"{target_directory}/{name}/__init__.py", "w+").close()
