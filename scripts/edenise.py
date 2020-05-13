@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
-from os import path
+from sys import argv
+
 from autofit.tools import edenise
 
 
 def main():
-    root_directory = f"{path.dirname(path.realpath(__file__))}/.."
-
-    name = "autofit"
-    prefix = "af"
-    edenise.edenise(
-        root_directory,
-        name,
-        prefix
-    )
+    try:
+        root_directory, name, prefix = argv[1:]
+        edenise.edenise(
+            root_directory,
+            name,
+            prefix
+        )
+    except ValueError:
+        print("Usage: ./edenise.py root_directory project_name import_prefix")
+        print("e.g.: ./edenise.py /path/to/autofit autofit af")
+        exit(1)
 
 
 if __name__ == "__main__":
