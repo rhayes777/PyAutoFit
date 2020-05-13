@@ -4,12 +4,12 @@ import numpy as np
 import pytest
 
 import autofit as af
-from test_autofit.mock import MockClassGaussian
 import test_autofit.mock
 from autofit import exc
 from autofit.text import formatter as frm
 from test_autofit import mock
 from test_autofit.mock import GeometryProfile
+from test_autofit.mock import MockClassGaussian
 
 dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -108,7 +108,7 @@ class TestGenerateModelInfo:
 
     def test_with_promise(self):
         mm = af.ModelMapper()
-        mm.promise = af.Promise(
+        mm.promise = af.prior.Promise(
             af.Phase(
                 phase_name="phase",
                 analysis_class=None
@@ -528,7 +528,6 @@ class TestModelInstancesRealClasses:
         assert log_priors == [0.125, 0.2]
 
     def test_random_vector_from_prior_within_limits(self):
-
         np.random.seed(1)
 
         mapper = af.ModelMapper()
@@ -864,7 +863,7 @@ def make_promise_mapper():
     mapper = af.ModelMapper()
     mapper.galaxy = af.PriorModel(
         mock.Galaxy,
-        redshift=af.Promise(
+        redshift=af.prior.Promise(
             None,
             None,
             is_instance=False,

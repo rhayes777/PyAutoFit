@@ -174,7 +174,7 @@ class TestCase:
         assert model.prior_count == 0
 
     def test_model_promise(self, model_promise, phase):
-        assert isinstance(model_promise, af.Promise)
+        assert isinstance(model_promise, af.prior.Promise)
         assert model_promise.path == ("one", "redshift")
         assert model_promise.is_instance is False
         assert model_promise._phase is phase
@@ -190,7 +190,7 @@ class TestCase:
         assert result is None
 
     def test_instance_promise(self, instance_promise, phase):
-        assert isinstance(instance_promise, af.Promise)
+        assert isinstance(instance_promise, af.prior.Promise)
         assert instance_promise.path == ("one", "redshift")
         assert instance_promise.is_instance is True
         assert instance_promise._phase is phase
@@ -239,13 +239,13 @@ class TestCase:
     def test_embedded_results(self, phase, collection):
         hyper_result = phase.result.hyper_result
 
-        assert isinstance(hyper_result, af.PromiseResult)
+        assert isinstance(hyper_result, af.prior.PromiseResult)
 
         model_promise = hyper_result.model
         instance_promise = hyper_result.instance
 
-        assert isinstance(model_promise.hyper_galaxy, af.Promise)
-        assert isinstance(instance_promise.hyper_galaxy, af.Promise)
+        assert isinstance(model_promise.hyper_galaxy, af.prior.Promise)
+        assert isinstance(instance_promise.hyper_galaxy, af.prior.Promise)
 
         model = model_promise.populate(collection)
         instance = instance_promise.populate(collection)
