@@ -31,8 +31,8 @@ class Test:
         assert line.source == "ModelInstance"
 
     def test_target(self, as_line, line):
-        assert as_line.import_target == "mapper.model.ModelInstance"
-        assert line.import_target == "mapper.model.ModelInstance"
+        assert as_line._target == "mapper.model.ModelInstance"
+        assert line._target == "mapper.model.ModelInstance"
 
     def test_hash(self, as_line, line):
         assert hash(as_line) == hash(line)
@@ -42,7 +42,7 @@ class Test:
             "from .tools.phase_property import PhaseProperty"
         )
         assert line.source == "PhaseProperty"
-        assert line.import_target == "tools.phase_property.PhaseProperty"
+        assert line._target == "tools.phase_property.PhaseProperty"
 
     def test_replace(self, as_line, line):
         converter = Converter(
@@ -52,4 +52,4 @@ class Test:
         )
         assert converter.convert(
             "import autofit as af\n\naf.ModelInstance\naf.Instance"
-        ) == "from autofit.mapper.model import ModelInstance\n\nModelInstance\nModelInstance"
+        ) == "from autofit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"

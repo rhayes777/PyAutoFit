@@ -114,11 +114,11 @@ class Converter:
                 line.id,
                 line.target
             )
-        import_string = "".join(
+        import_string = "\n".join(
             f"from {self.name}.{line.import_target} import {line.target}"
             for line in matched_lines
         )
-        return f"{import_string}{string}"
+        return f"{import_string}\n{string}"
 
 
 def edenise(
