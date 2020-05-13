@@ -1,11 +1,17 @@
+#!/usr/bin/env python
+
 import re
-from pathlib import Path
+import shutil
+from os import path, walk
 
 import pytest
 
 
 class Line:
     def __init__(self, string):
+        if "*" in string:
+            print("Please ensure no imports in the __init__ contain a *")
+            exit(1)
         self.string = string
 
     @property
@@ -54,12 +60,9 @@ class Converter:
         return Converter(prefix, lines)
 
     def convert(self, string):
-        print(string)
         for line in self.lines:
             source = f"{self.prefix}.{line.source}"
             target = f"{self.prefix}.{line.target}"
-            print(source)
-            print(target)
             string = string.replace(
                 source,
                 target
@@ -106,15 +109,40 @@ class Test:
         assert converter.convert(
             "af.ModelInstance\naf.Instance"
         ) == "af.mapper.model.ModelInstance\naf.mapper.model.ModelInstance"
-             
+
 
 def main():
-    root_directory = Path(__file__).parent.parent
+    root_directory = f"{path.dirname(path.realpath(__file__))}/.."
+
+    name = "autofit"
+    prefix = "af"
+
+    target_directory = f"{root_directory}/../{name}_eden"
+
+    print(f"Creating {target_directory}...")
+    shutil.copytree(
+        root_directory,
+        target_directory,
+        symlinks=True
+    )
 
     converter = Converter.from_prefix_and_source_directory(
-        prefix="af",
-        source_directory=root_directory / "autofit"
+        prefix=prefix,
+        source_directory=f"{root_directory}/{name}"
     )
+
+    for root, _, files in walk(f"{target_directory}/test_{name}"):
+        for file in files:
+            if file.endswith(".py"):
+                with open(f"{root}/{file}", "r+") as f:
+                    string = f.read()
+                    f.seek(0)
+                    f.write(
+                        converter.convert(
+                            string
+                        )
+                    )
+                    f.truncate()
 
 
 if __name__ == "__main__":
