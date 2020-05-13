@@ -164,7 +164,7 @@
                 }
             },
             "grid": {
-                "type": "deferred"
+                "type": "Deferred"
             }
         }
     }
