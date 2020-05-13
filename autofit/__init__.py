@@ -9,7 +9,7 @@ from autofit.mapper.prior_model.attribute_pair import (
 
 dir(conf)
 from . import exc
-from autofit.optimize.non_linear.samples import AbstractSamples, MCMCSamples, NestedSamplerSamples
+from .optimize.non_linear.samples import AbstractSamples, MCMCSamples, NestedSamplerSamples
 from .aggregator import Aggregator, PhaseOutput
 from .mapper import *
 from .mapper import link
@@ -24,8 +24,8 @@ from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel as Collection
-from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior.deferred import DeferredInstance
+from .mapper.prior.deferred import DeferredArgument
+from .mapper.prior.deferred import DeferredInstance
 from .mapper.prior_model.dimension_type import DimensionType, map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.prior_model import PriorModel as Model
@@ -40,9 +40,9 @@ from .optimize.non_linear.mock_nlo import MockNLO
 from .optimize.non_linear.non_linear import Analysis
 from .optimize.non_linear.non_linear import NonLinearOptimizer
 from .optimize.non_linear.emcee import Emcee
-from autofit.optimize.non_linear.paths import Paths
-from autofit.optimize.non_linear.paths import make_path
-from autofit.optimize.non_linear.paths import convert_paths
+from .optimize.non_linear.paths import Paths
+from .optimize.non_linear.paths import make_path
+from .optimize.non_linear.paths import convert_paths
 from .optimize.non_linear.non_linear import Result
 from .text import formatter, samples_text
 from .tools import *
@@ -54,8 +54,8 @@ from .tools.phase import as_grid_search
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
-from autofit.mapper.prior import AbstractPromise
-from autofit.mapper.prior import last
+from .mapper.prior import AbstractPromise
+from .mapper.prior import last
 from .mapper.prior import *
 
 __version__ = '0.58.0'
