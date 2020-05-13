@@ -18,7 +18,6 @@ from .mapper.model import ModelInstance as Instance
 from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
-from .mapper.prior_model import *
 from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel
