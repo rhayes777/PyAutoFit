@@ -1,7 +1,7 @@
+import re
 from pathlib import Path
 
 import pytest
-import re
 
 
 class Line:
@@ -14,7 +14,10 @@ class Line:
 
     @property
     def source(self):
-        return re.match(".* as (.+)", self.string).group(1)
+        match = re.match(".* as (.+)", self.string)
+        if match is not None:
+            return match.group(1)
+        return re.match(".* import (.+)", self.string).group(1)
 
     @property
     def target(self):
@@ -48,9 +51,9 @@ class Test:
 
     def test_source(self, as_line):
         assert as_line.source == "Instance"
-        # assert Line(
-        #     "from .mapper.model import ModelInstance"
-        # ).source == "ModelInstance"
+        assert Line(
+            "from .mapper.model import ModelInstance"
+        ).source == "ModelInstance"
 
 
 if __name__ == "__main__":
