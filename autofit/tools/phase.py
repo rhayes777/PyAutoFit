@@ -6,7 +6,8 @@ from typing import Dict
 
 import dill
 
-from autofit import conf, ModelMapper, convert_paths
+from autoconf import conf
+from autofit import ModelMapper, convert_paths
 from autofit import exc
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search

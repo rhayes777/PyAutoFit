@@ -1,5 +1,6 @@
 import pickle
 
+import os
 import numpy as np
 import pytest
 
@@ -184,6 +185,7 @@ class MockAnalysis(af.Analysis):
 
     def log(self, instance):
         pass
+
 
 class MockClassContainer:
     def __init__(self):
@@ -412,13 +414,10 @@ class TestGridSearchResult:
             lower_limit_lists=lower_limit_lists
         )
 
-        print(grid_search_result)
-
         assert grid_search_result.shape == (2, 2)
         assert grid_search_result.physical_step_sizes == (2.0, 3.0)
         assert grid_search_result.physical_centres_lists == [[-1.0, -1.5], [-1.0, 1.5], [1.0, -1.5], [1.0, 1.5]]
         assert grid_search_result.physical_upper_limits_lists == [[0.0, 0.0], [0.0, 3.0], [2.0, 0.0], [2.0, 3.0]]
-
 
 class TestMixin:
     def test_mixin(self, container):

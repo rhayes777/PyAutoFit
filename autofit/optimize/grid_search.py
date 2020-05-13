@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 
-from autofit import conf
+from autoconf import conf
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
@@ -107,10 +107,19 @@ class GridSearchResult:
 
         physical_step_sizes = []
 
+        # TODO : Make this work for all dimensions in a less ugly way.
+
         for dim in range(self.no_dimensions):
+
             values = [value[dim] for value in self.physical_lower_limits_lists]
             diff = [abs(values[n] - values[n - 1]) for n in range(1, len(values))]
-            physical_step_sizes.append(np.max(diff))
+
+            if dim == 0:
+                physical_step_sizes.append(np.max(diff))
+            elif dim == 1:
+                physical_step_sizes.append(np.min(diff))
+            else:
+                raise exc.GridSearchException("This feature does not support > 2 dimensions")
 
         return tuple(physical_step_sizes)
 

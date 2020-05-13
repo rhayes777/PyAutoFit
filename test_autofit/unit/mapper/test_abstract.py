@@ -4,6 +4,7 @@ from test_autofit import mock
 
 class TestCase:
     def test_transfer_tuples(self):
+
         model = af.ModelMapper()
         instance = af.ModelInstance()
 

@@ -3,7 +3,7 @@ import logging
 import math
 import emcee
 
-from autofit import conf
+from autoconf import conf
 from autofit.mapper import model
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,7 @@ from autofit.mapper.prior_model.attribute_pair import (
 )
 
 dir(conf)
-from . import exc
+from autofit import exc
 from autofit.optimize.non_linear.samples import AbstractSamples, MCMCSamples, NestedSamplerSamples
 from .aggregator import Aggregator, PhaseOutput
 from .mapper import *

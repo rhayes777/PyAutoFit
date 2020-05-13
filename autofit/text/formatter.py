@@ -2,7 +2,7 @@ import configparser
 from configparser import NoOptionError
 import logging
 
-from autofit import conf
+from autoconf import conf
 
 logger = logging.getLogger(__name__)
 

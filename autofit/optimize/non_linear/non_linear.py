@@ -5,7 +5,7 @@ import numpy as np
 import multiprocessing as mp
 from time import sleep
 
-from autofit import conf
+from autoconf import conf
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
 from autofit.text import formatter, samples_text
@@ -323,6 +323,7 @@ class NonLinearOptimizer(ABC):
             ids = pool.map(f, range(self.number_of_cores))
 
             return pool, [id[1] for id in ids]
+
 
 class Analysis:
     def log_likelihood_function(self, instance):

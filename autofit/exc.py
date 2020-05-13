@@ -40,3 +40,7 @@ class DeferredInstanceException(Exception):
 
 class AggregatorException(Exception):
     pass
+
+
+class GridSearchException(Exception):
+    pass

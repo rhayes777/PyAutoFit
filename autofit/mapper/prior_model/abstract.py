@@ -7,11 +7,15 @@ from typing import Tuple, Optional
 
 import numpy as np
 
-import autofit.mapper.model
-import autofit.mapper.model_mapper
-import autofit.mapper.prior_model.collection
-from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
+from autofit.mapper.prior_model.attribute_pair import (
+    cast_collection,
+    PriorNameValue,
+    InstanceNameValue,
+)
+from autofit.mapper import model
+from autofit.mapper import model_mapper
+from autofit.mapper.prior_model import collection
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
@@ -100,7 +104,7 @@ class AbstractPriorModel(AbstractModel):
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
             obj = object.__new__(
-                autofit.mapper.prior_model.collection.CollectionPriorModel
+                collection.CollectionPriorModel
             )
             obj.__init__(t)
         else:
@@ -122,7 +126,7 @@ class AbstractPriorModel(AbstractModel):
 
         Returns
         -------
-        model_instance : autofit.mapper.model.ModelInstance
+        model_instance : model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         Raises
@@ -159,7 +163,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_promise_tuples(self):
-        from autofit import AbstractPromise
+        from autofit.mapper.prior.promise import AbstractPromise
 
         return {
             prior_tuple[1]: prior_tuple
@@ -269,7 +273,7 @@ class AbstractPriorModel(AbstractModel):
 
         Returns
         -------
-        model_instance : autofit.mapper.model.ModelInstance
+        model_instance : model.ModelInstance
             An object containing reconstructed model_mapper instances
 
         """
@@ -483,14 +487,14 @@ class AbstractPriorModel(AbstractModel):
         """
 
         if isinstance(instance, list):
-            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+            result = collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(item, model_classes=model_classes)
                     for item in instance
                 ]
             )
-        elif isinstance(instance, autofit.mapper.model.ModelInstance):
-            result = autofit.mapper.model_mapper.ModelMapper()
+        elif isinstance(instance, model.ModelInstance):
+            result = model_mapper.ModelMapper()
             for key, value in instance.dict.items():
                 setattr(
                     result,
@@ -500,7 +504,7 @@ class AbstractPriorModel(AbstractModel):
                     ),
                 )
         elif isinstance(instance, dict):
-            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+            result = collection.CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
                         value, model_classes=model_classes

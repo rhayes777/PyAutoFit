@@ -5,7 +5,7 @@ import shutil
 import zipfile
 from functools import wraps
 
-from autofit import conf
+from autoconf import conf
 from autofit.mapper import link
 
 logger = logging.getLogger(__name__)

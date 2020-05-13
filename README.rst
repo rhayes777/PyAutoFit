@@ -13,7 +13,7 @@ API Overview
 ============
 
 **PyAutoFit** interfaces with Python classes and non-linear sampling packages such as
-[PyMultiNest](http://johannesbuchner.github.io/pymultinest-tutorial/install.html). Lets take a one-dimensional
+`PyMultiNest <http://johannesbuchner.github.io/pymultinest-tutorial/install.html>`_. Lets take a one-dimensional
 Gaussian as our moodel:
 
 .. code-block:: python
@@ -22,16 +22,16 @@ Gaussian as our moodel:
 
         def __init__(
             self,
-            centre = 0.0,    # <- PyAutoFit recognises these constructor arguments are the model
-            intensity = 0.1, # <- parameters of the Gaussian.
+            centre = 0.0,    # <- PyAutoFit recognises these constructor arguments are
+            intensity = 0.1, # <- the model parameters of the Gaussian.
             sigma = 0.01,
         ):
             self.centre = centre
             self.intensity = intensity
             self.sigma = sigma
 
-    # An instance of the Gaussian class will be available to PyAutoFit, meaning methods which help us fit the model to
-    # data are accessible.
+    # An instance of the Gaussian class will be available to PyAutoFit, meaning
+    #  the method below which allows us to fit the model to data are accessible.
 
     def line_from_xvalues(self, xvalues):
 
@@ -59,16 +59,16 @@ fit it with the model:
 
         def log_likelihood_function(self, instance):
 
-            # The 'instance' that comes into this method is an instance of the Gaussian class above, with the parameters
-            # set to values chosen by the non-linear search.
+            # The 'instance' that comes into this method is an instance of the Gaussian class
+            # above, with the parameters set to (random) values chosen by the non-linear search.
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
             print("Intensity = ", instance.intensity)
             print("Sigma = ", instance.sigma)
 
-            # Below, we fit the data with the Gaussian instance, using its "line_from_xvalues" function to create the
-            # model data.
+            # We fit the data with the Gaussian instance, using its
+            # "line_from_xvalues" function to create the model data.
 
             xvalues = np.arange(self.data.shape[0])
 
@@ -94,7 +94,7 @@ We can now fit data to the model using a non-linear search of our choice.
 
     result = multi_nest.fit(model=model, analysis=analysis)
 
-The result object contains informationon the model-fit, for example the parameter samples, best-fit model and
+The result object contains information on the model-fit, for example the parameter samples, best-fit model and
 marginalized probability density functions.
 
 Features
@@ -141,43 +141,44 @@ Aggregation
 For fits to large data-sets **PyAutoFit** provides tools to manipulate the vast library of results output. 
 
 Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. Every **PyAutoFit** output contains
-metadata meaning that we can immediately load it via the **aggregator** into a Python script or Jupyter notebook:
+metadata allowing us to load it via the **aggregator** into a Python script or Jupyter notebook:
 
 .. code-block:: python
 
-    # Lets pretend we've used a Phase object to fit 100 different datasets with the same model. The results of
-    # these 100 fits are in a structured output format in this folder.
+    # Lets pretend we fitted 100 different datasets with the same model
+    # and the results of these 100 fits are in the output folder:
     output_path = "/path/to/gaussian_x100_fits/"
 
-    # To create an instance of the aggregator, we pass it the output path above. The aggregator will detect that
-    # 100 fits using a specific phase have been performed and that their results are in this folder.
+    # We create an instance of the aggregatorby passing it the output path above.
+    # The aggregator detects that 100 unique fits have been performed.
     agg = af.Aggregator(directory=str(output_path))
 
-    # The aggregator can now load results from these fits. The command below loads results as instances of the
-    # Samples class, which provides the non-linear seach parameter samples, log-likelihood values, etc.
+    # To load the result of every fit we call the aggregator's values method. This
+    # creates 100 instances of the Samples class, providing parameter samples,
+    # log-likelihood, weights, etc or every fit.
     samples = agg.values("samples")
 
-    # The results of all 100 non-linear searches are now available. The command below creates a list of
-    # instances of the best-fit model parameters of all 100 model fits (many other results are available, e.g.
-    # marginalized 1D parameter estimates, errors, Bayesian evidences, etc.).
-    instances = [output.max_log_likelihood_instance for samps in samples]
+    # This list of Samples provides detailed information on every fit. Lets create
+    # 100 instances of the Gaussian class using each fit's maximum log-likelihood
+    # model.(many results are available, e.g. marginalized 1D parameter estimates,
+    # errors, Bayesian evidences, etc.).
+    instances = [samps.max_log_likelihood_instance for samps in samples]
 
-    # These are instances of the 'model-components' defined using the PyAutoFit Python class format illustrated
-    # in figure 1. For the Gaussian class, each instance in this list is an instance of this class and its parameters
-    # are accessible.
-    print("Instance Parameters \n")
+    # These are instance of the 'model-components' defined using the Python class
+    # format illustrated above.
+    print("First Gaussian Instance Parameters \n")
     print("centre = ", instances[0].centre)
     print("intensity = ", instances[0].intensity)
     print("sigma = ", instances[0].sigma)
 
-    # The aggregator can be customized to interface with model-specific aspects of a project like the data and
-    # fitting procedure. Below, the aggregator has been set up to provide instances of all 100 datasets.
+    # The aggregator interfaces with many aspects of a model fit. Below, the aggregator
+    # loads instances of all 100 datasets.
     datasets = agg.values("dataset")
 
-    # If the datasets are fitted with many different phases (e.g. with different models), the aggregator's filter
-    # tool can be used to load results of a specific phase (and therefore model).
-    phase_name = "phase_example"
-    samples = agg.filter(agg.phase == phase_name).values("samples")
+    # If fits using many different models were performed, the aggregator's filter
+    # tool can be used to load results of a specific model.
+    dataset_name = "gaussian_dataset_0"
+    samples = agg.filter(agg.dataset == dataset_name).values("samples")
 
 Phases
 ------
@@ -188,21 +189,22 @@ the software project with a clean and intuitive interface for model-fitting whil
 that comes with performming model fitting, including:
 
 - Outputting results in a structured path format.
-- Providing on-the-fly model output and visusalization.
+- Providing on-the-fly model output and visualization.
 - Augmenting and customizing the dataset used to fit the model.
 - Building and fitting complex models composed of many model components.
+- Advanced aggregator tools for filtering and analysing model-fit results.
 
-Below is an example of how straight forward the Gaussian model fit above is to perform once a phase module has been
-written for it:
+Below is an example of how the *Phase* API allows the Gaussian model fit to be performed using just 2 lines of Python:
 
 .. code-block:: python
 
-    # To perform the fit we set up a phase, which takes as input the model and non-linear search. It sets up the
-    # Analysis class 'behind the scenes', and uses its name to structure the results output to hard disk.
+    # Set up a phase, which takes a name, the model and a non-linear search.
+    # The phase creates Analysis class 'behind the scenes', as well as taking
+    # care of results output, visualization, etc.
 
-    phase = af.Phase(model=af.Gaussian, phase_name="phase_example", non_linear_class=af.MultiNest)
+    phase = af.Phase(phase_name="phase_example", model=af.Gaussian, non_linear_class=af.MultiNest)
 
-    # To perform a model fit, we simply pass the phase's 'run' method a dataset to the phase..
+    # To perform a model fit, we simply run the phase with a dataset.
 
     result = phase.run(dataset=dataset)
 
@@ -272,7 +274,8 @@ breaks the the analysis down into 3 phases:
             phase_name="phase_2__right_gaussian",
             phase_folders=phase_folders,
             gaussians=af.CollectionPriorModel(
-                gaussian_0=phase1.result.instance.gaussians.gaussian_0, # <- Use the Gaussian fitted in phase 1
+                # Use the Gaussian fitted in phase 1:
+                gaussian_0=phase1.result.instance.gaussians.gaussian_0,
                 gaussian_1=Gaussian,
             ),
             non_linear_class=af.MultiNest,
@@ -285,15 +288,17 @@ breaks the the analysis down into 3 phases:
             phase_name="phase_3__both_gaussian",
             phase_folders=phase_folders,
             gaussians=af.CollectionPriorModel(
-                gaussian_0=phase1.result.model.gaussians.gaussian_0, # <- use phase 1 Gaussian results.
-                gaussian_1=phase2.result.model.gaussians.gaussian_1, # <- use phase 2 Gaussian results.
+                # use phase 1 Gaussian results as priors.
+                gaussian_0=phase1.result.model.gaussians.gaussian_0,
+                # use phase 2 Gaussian results as priors.
+                gaussian_1=phase2.result.model.gaussians.gaussian_1,
             ),
             non_linear_class=af.MultiNest,
         )
 
         return toy.Pipeline(pipeline_name, phase1, phase2, phase3)
 
-[PyAutoLens](https://github.com/Jammy2211/PyAutoLens) shows a real-use case of transdimensional modeling, fitting
+`PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_ shows a real-use case of transdimensional modeling, fitting
 galaxy-scale strong gravitational lenses. In this example pipeline, a 5-phase **PyAutoFit** pipeline breaks-down the
 fit of 5 diferent models composed of over 10 unique model components and 10-30 free parameters.
 
@@ -313,10 +318,10 @@ Slack
 =====
 
 We're building a **PyAutoFit** community on Slack, so you should contact us on our
-[Slack channel](https://pyautofit.slack.com/) before getting started. Here, I will give you the latest updates on the
+`Slack channel <https://pyautofit.slack.com/>`_ before getting started. Here, I will give you the latest updates on the
 software & discuss how best to use **PyAutoFit** for your science case.
 
-Unfortunately, Slack is invitation-only, so first send me an [email](https://github.com/Jammy2211) requesting an invite.
+Unfortunately, Slack is invitation-only, so first send me an `email <https://github.com/Jammy2211>`_ requesting an invite.
 
 
 Documentation & Installation
@@ -329,7 +334,7 @@ Support & Discussion
 ====================
 
 If you're having difficulty with installation, model fitting, or just want a chat, feel free to message us on our
-[Slack channel](https://pyautofit.slack.com/).
+`Slack channel <https://pyautofit.slack.com/>`_.
 
 Contributing
 ============
@@ -341,6 +346,6 @@ Credits
 
 **Developers:**
 
-[Richard Hayes](https://github.com/rhayes777) - Lead developer
+`Richard Hayes <https://github.com/rhayes777>`_ - Lead developer
 
-[James Nightingale](https://github.com/Jammy2211) - Lead developer
+`James Nightingale <https://github.com/Jammy2211>`_ - Lead developer

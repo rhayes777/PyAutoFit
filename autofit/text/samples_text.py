@@ -1,6 +1,6 @@
 import logging
 
-from autofit import conf
+from autoconf import conf
 from autofit.text import formatter as frm
 
 logger = logging.getLogger(__name__)

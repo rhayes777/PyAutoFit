@@ -2,7 +2,7 @@ import logging
 import os
 import numpy as np
 
-from autofit import conf
+from autoconf import conf
 from autofit.optimize.non_linear import non_linear as nl
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
