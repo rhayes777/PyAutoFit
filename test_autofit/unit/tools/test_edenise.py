@@ -34,6 +34,13 @@ class Test:
         assert as_line.target == "mapper.model.ModelInstance"
         assert line.target == "mapper.model.ModelInstance"
 
+    def test_phase_property_line(self):
+        line = Line(
+            "from .tools.phase_property import PhaseProperty"
+        )
+        assert line.source == "PhaseProperty"
+        assert line.target == "tools.phase_property.PhaseProperty"
+
     def test_replace(self, as_line, line):
         converter = Converter(
             "af",

@@ -1,6 +1,7 @@
 import re
 import shutil
 from os import walk
+from uuid import uuid1
 
 
 class Line:
@@ -9,12 +10,22 @@ class Line:
             print("Please ensure no imports in the __init__ contain a *")
             exit(1)
         self.string = string.replace("\n", "")
+        self.id = str(uuid1())
 
     def __str__(self):
         return f"{self.source} -> {self.target}"
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self}>"
+
+    def __len__(self):
+        return len(self.source)
+
+    def __lt__(self, other):
+        return len(self) < len(other)
+
+    def __gt__(self, other):
+        return len(self) > len(other)
 
     @property
     def is_import(self):
@@ -46,10 +57,13 @@ class Line:
 class Converter:
     def __init__(self, prefix, lines):
         self.prefix = prefix
-        self.lines = list(filter(
-            lambda line: line.is_import,
-            lines
-        ))
+        self.lines = sorted(
+            filter(
+                lambda line: line.is_import,
+                lines
+            ),
+            reverse=True
+        )
 
     @classmethod
     def from_prefix_and_source_directory(
@@ -67,9 +81,14 @@ class Converter:
     def convert(self, string):
         for line in self.lines:
             source = f"{self.prefix}.{line.source}"
-            target = f"{self.prefix}.{line.target}"
             string = string.replace(
                 source,
+                line.id
+            )
+        for line in self.lines:
+            target = f"{self.prefix}.{line.target}"
+            string = string.replace(
+                line.id,
                 target
             )
         return string
