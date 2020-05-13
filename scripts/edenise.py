@@ -14,14 +14,23 @@ class Line:
 
     @property
     def source(self):
-        match = re.match(".* as (.+)", self.string)
+        match = re.match("from .* as (.+)", self.string)
         if match is not None:
             return match.group(1)
-        return re.match(".* import (.+)", self.string).group(1)
+        return re.match("from .* import (.+)", self.string).group(1)
 
     @property
     def target(self):
-        pass
+        return self.string.replace(
+            f" as {self.source}",
+            ""
+        ).replace(
+            "from ",
+            ""
+        ).replace(
+            " import ",
+            "."
+        )
 
 
 class Converter:
@@ -44,16 +53,27 @@ def make_as_line():
     )
 
 
+@pytest.fixture(
+    name="line"
+)
+def make_line():
+    return Line(
+        "from .mapper.model import ModelInstance"
+    )
+
+
 class Test:
     def test_line_is_import(self, as_line):
         assert as_line.is_import
         assert not Line(".mapper.model").is_import
 
-    def test_source(self, as_line):
+    def test_source(self, as_line, line):
         assert as_line.source == "Instance"
-        assert Line(
-            "from .mapper.model import ModelInstance"
-        ).source == "ModelInstance"
+        assert line.source == "ModelInstance"
+
+    def test_target(self, as_line, line):
+        assert as_line.target == ".mapper.model.ModelInstance"
+        assert line.target == ".mapper.model.ModelInstance"
 
 
 if __name__ == "__main__":
