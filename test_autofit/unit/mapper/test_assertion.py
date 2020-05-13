@@ -119,29 +119,29 @@ def make_model(collection):
 class TestPromiseAssertion:
     def test_less_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio < promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanAssertion)
+        assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
 
         assertion = promise.populate(collection)
-        assert isinstance(assertion, af.GreaterThanLessThanAssertion)
+        assert isinstance(assertion, af.prior.GreaterThanLessThanAssertion)
 
     def test_greater_than(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanAssertion)
+        assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
 
     def test_greater_than_equal(self, promise_model, collection, model):
         promise = promise_model.axis_ratio >= promise_model.phi
-        assert isinstance(promise, af.GreaterThanLessThanEqualAssertion)
+        assert isinstance(promise, af.prior.GreaterThanLessThanEqualAssertion)
 
     def test_integer_promise_assertion(self, promise_model, collection, model):
         promise = promise_model.axis_ratio > 1.0
-        assert isinstance(promise, af.GreaterThanLessThanAssertion)
+        assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
 
     def test_compound_assertion(self, promise_model, collection, model):
         promise = (1.0 < promise_model.axis_ratio) < 1.0
-        assert isinstance(promise, af.CompoundAssertion)
+        assert isinstance(promise, af.prior.CompoundAssertion)
 
         assertion = promise.populate(collection)
-        assert isinstance(assertion, af.CompoundAssertion)
+        assert isinstance(assertion, af.prior.CompoundAssertion)
 
 
 class TestModel:

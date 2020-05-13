@@ -4,7 +4,7 @@ import shutil
 import pytest
 
 import autofit as af
-from autoconf import conf
+from autofit import conf
 from autofit import Paths
 from autofit.optimize.non_linear.mock_nlo import MockSamples
 from test_autofit.mock import (
