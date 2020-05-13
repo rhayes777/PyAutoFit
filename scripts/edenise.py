@@ -30,18 +30,41 @@ class Line:
         ).replace(
             " import ",
             "."
+        ).lstrip(
+            "."
         )
 
 
 class Converter:
-    def __init__(self, source_directory):
-        self.source_directory = source_directory
-        with open(self._init_directory) as f:
-            lines = map(Line, f.readlines())
+    def __init__(self, prefix, lines):
+        self.prefix = prefix
+        self.lines = lines
 
-    @property
-    def _init_directory(self):
-        return f"{self.source_directory}/__init__.py"
+    @classmethod
+    def from_prefix_and_source_directory(
+            cls,
+            prefix,
+            source_directory
+    ):
+        source_directory = source_directory
+        with open(
+                f"{source_directory}/__init__.py"
+        ) as f:
+            lines = map(Line, f.readlines())
+        return Converter(prefix, lines)
+
+    def convert(self, string):
+        print(string)
+        for line in self.lines:
+            source = f"{self.prefix}.{line.source}"
+            target = f"{self.prefix}.{line.target}"
+            print(source)
+            print(target)
+            string = string.replace(
+                source,
+                target
+            )
+        return string
 
 
 @pytest.fixture(
@@ -72,13 +95,27 @@ class Test:
         assert line.source == "ModelInstance"
 
     def test_target(self, as_line, line):
-        assert as_line.target == ".mapper.model.ModelInstance"
-        assert line.target == ".mapper.model.ModelInstance"
+        assert as_line.target == "mapper.model.ModelInstance"
+        assert line.target == "mapper.model.ModelInstance"
+
+    def test_replace(self, as_line, line):
+        converter = Converter(
+            "af",
+            [as_line, line]
+        )
+        assert converter.convert(
+            "af.ModelInstance\naf.Instance"
+        ) == "af.mapper.model.ModelInstance\naf.mapper.model.ModelInstance"
+             
+
+def main():
+    root_directory = Path(__file__).parent.parent
+
+    converter = Converter.from_prefix_and_source_directory(
+        prefix="af",
+        source_directory=root_directory / "autofit"
+    )
 
 
 if __name__ == "__main__":
-    root_directory = Path(__file__).parent.parent
-
-    converter = Converter(
-        source_directory=root_directory / "autofit"
-    )
+    main()
