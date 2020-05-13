@@ -9,6 +9,9 @@ class Line:
         if "*" in string:
             print("Please ensure no imports in the __init__ contain a *")
             exit(1)
+        if "," in string:
+            print("Comma separated imports not allowed")
+            exit(1)
         self.string = string.replace("\n", "")
         self.id = str(uuid1())
 
@@ -47,9 +50,12 @@ class Line:
 
     @property
     def import_target(self):
-        return ".".join(
+        target = ".".join(
             self._target.split(".")[:-1]
         )
+        if len(target) > 0:
+            return f".{target}"
+        return target
 
     def __hash__(self):
         return hash(self._target)
@@ -114,8 +120,9 @@ class Converter:
                 line.id,
                 line.target
             )
+
         import_string = "\n".join(
-            f"from {self.name}.{line.import_target} import {line.target}"
+            f"from {self.name}{line.import_target} import {line.target}"
             for line in matched_lines
         )
         return f"{import_string}\n{string}"
