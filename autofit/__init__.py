@@ -1,3 +1,4 @@
+from . import conf
 from . import exc
 from .aggregator import Aggregator
 from .aggregator import PhaseOutput

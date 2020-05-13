@@ -46,10 +46,10 @@ class Test:
 
     def test_replace(self, as_line, line):
         converter = Converter(
-            "autofit",
-            "af",
+            "testfit",
+            "tf",
             [as_line, line]
         )
         assert converter.convert(
-            "import autofit as af\n\naf.ModelInstance\naf.Instance"
-        ) == "from autofit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"
+            "import testfit as tf\n\ntf.ModelInstance\ntf.Instance"
+        ) == "from testfit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"
