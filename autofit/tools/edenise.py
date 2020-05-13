@@ -13,7 +13,7 @@ class Line:
         self.id = str(uuid1())
 
     def __str__(self):
-        return f"{self.source} -> {self.target}"
+        return f"{self.source} -> {self.import_target}"
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self}>"
@@ -26,6 +26,9 @@ class Line:
 
     def __gt__(self, other):
         return len(self) > len(other)
+
+    def __eq__(self, other):
+        return self._target == other._target
 
     @property
     def is_import(self):
@@ -40,6 +43,19 @@ class Line:
 
     @property
     def target(self):
+        return self._target.split(".")[-1]
+
+    @property
+    def import_target(self):
+        return ".".join(
+            self._target.split(".")[:-1]
+        )
+
+    def __hash__(self):
+        return hash(self._target)
+
+    @property
+    def _target(self):
         return self.string.replace(
             f" as {self.source}",
             ""
@@ -55,7 +71,8 @@ class Line:
 
 
 class Converter:
-    def __init__(self, prefix, lines):
+    def __init__(self, name, prefix, lines):
+        self.name = name
         self.prefix = prefix
         self.lines = sorted(
             filter(
@@ -68,6 +85,7 @@ class Converter:
     @classmethod
     def from_prefix_and_source_directory(
             cls,
+            name,
             prefix,
             source_directory
     ):
@@ -76,22 +94,31 @@ class Converter:
                 f"{source_directory}/__init__.py"
         ) as f:
             lines = map(Line, f.readlines())
-        return Converter(prefix, lines)
+        return Converter(name, prefix, lines)
 
     def convert(self, string):
+        matched_lines = set()
+        string = string.replace(f"import {self.name} as {self.prefix}", "")
         for line in self.lines:
             source = f"{self.prefix}.{line.source}"
-            string = string.replace(
-                source,
-                line.id
-            )
+            if source in string:
+                matched_lines.add(
+                    line
+                )
+                string = string.replace(
+                    source,
+                    line.id
+                )
         for line in self.lines:
-            target = f"{self.prefix}.{line.target}"
             string = string.replace(
                 line.id,
-                target
+                line.target
             )
-        return string
+        import_string = "".join(
+            f"from {self.name}.{line.import_target} import {line.target}"
+            for line in matched_lines
+        )
+        return f"{import_string}{string}"
 
 
 def edenise(
@@ -109,6 +136,7 @@ def edenise(
     )
 
     converter = Converter.from_prefix_and_source_directory(
+        name=name,
         prefix=prefix,
         source_directory=f"{root_directory}/{name}"
     )

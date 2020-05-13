@@ -21,8 +21,7 @@ def main(
             config.get("eden", "prefix")
         )
     except ValueError:
-        print("Usage: ./edenise.py root_directory project_name import_prefix")
-        print("e.g.: ./edenise.py /path/to/autofit autofit af")
+        print("Usage: ./edenise.py root_directory")
         exit(1)
 
 
