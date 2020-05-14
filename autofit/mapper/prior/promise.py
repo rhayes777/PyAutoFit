@@ -126,6 +126,9 @@ class PromiseResult(AbstractPromiseResult):
         self._phase = phase
         self.assert_exists = assert_exists
 
+    def __getstate__(self):
+        return {}
+
     @property
     def model(self):
         """
@@ -309,6 +312,9 @@ class Promise(AbstractPromise):
 
     def __str__(self):
         return f"{self._phase.phase_name}.{super().__str__()}"
+
+    def __getstate__(self):
+        return {}
 
     def __getattr__(self, item):
         if item in (
