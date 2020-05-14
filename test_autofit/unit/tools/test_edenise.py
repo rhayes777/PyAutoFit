@@ -31,21 +31,25 @@ class Test:
         assert line.source == "ModelInstance"
 
     def test_target(self, as_line, line):
-        assert as_line.target == "mapper.model.ModelInstance"
-        assert line.target == "mapper.model.ModelInstance"
+        assert as_line._target == "mapper.model.ModelInstance"
+        assert line._target == "mapper.model.ModelInstance"
+
+    def test_hash(self, as_line, line):
+        assert hash(as_line) == hash(line)
 
     def test_phase_property_line(self):
         line = Line(
             "from .tools.phase_property import PhaseProperty"
         )
         assert line.source == "PhaseProperty"
-        assert line.target == "tools.phase_property.PhaseProperty"
+        assert line._target == "tools.phase_property.PhaseProperty"
 
     def test_replace(self, as_line, line):
         converter = Converter(
-            "af",
+            "testfit",
+            "tf",
             [as_line, line]
         )
         assert converter.convert(
-            "af.ModelInstance\naf.Instance"
-        ) == "af.mapper.model.ModelInstance\naf.mapper.model.ModelInstance"
+            "import testfit as tf\n\ntf.ModelInstance\ntf.Instance"
+        ) == "from testfit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"

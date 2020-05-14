@@ -7,21 +7,17 @@ from typing import Tuple, Optional
 
 import numpy as np
 
+import autofit.mapper.model
+import autofit.mapper.model_mapper
+import autofit.mapper.prior_model.collection
 from autofit import exc
-from autofit.mapper.prior_model.attribute_pair import (
-    cast_collection,
-    PriorNameValue,
-    InstanceNameValue,
-)
-from autofit.mapper import model
-from autofit.mapper import model_mapper
-from autofit.mapper.prior_model import collection
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
+from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text.formatter import TextFormatter
@@ -61,7 +57,6 @@ class AbstractPriorModel(AbstractModel):
     Abstract model that maps a set of priors to a particular class. Must be
     overridden by any prior model so that the model mapper recognises its prior \
     model attributes.
-
     @DynamicAttrs
     """
 
@@ -74,7 +69,6 @@ class AbstractPriorModel(AbstractModel):
         Assert that some relationship holds between physical values associated with
         priors at the point an instance is created. If this fails a FitException is
         raised causing the model to be re-sampled.
-
         Parameters
         ----------
         assertion
@@ -104,7 +98,7 @@ class AbstractPriorModel(AbstractModel):
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
             obj = object.__new__(
-                collection.CollectionPriorModel
+                autofit.mapper.prior_model.collection.CollectionPriorModel
             )
             obj.__init__(t)
         else:
@@ -115,20 +109,16 @@ class AbstractPriorModel(AbstractModel):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
         to every PriorModel attributed to this instance.
-
         This method takes as input a unit vector of parameter values, converting each to
         physical values via their priors.
-
         Parameters
         ----------
         unit_vector: [float]
             A unit hypercube vector that is mapped to an instance of physical values via the priors.
-
         Returns
         -------
-        model_instance : model.ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
-
         Raises
         ------
         exc.FitException
@@ -163,7 +153,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_promise_tuples(self):
-        from autofit.mapper.prior.promise import AbstractPromise
+        from autofit import AbstractPromise
 
         return {
             prior_tuple[1]: prior_tuple
@@ -189,7 +179,6 @@ class AbstractPriorModel(AbstractModel):
         ----------
         unit_vector: [float]
             A unit hypercube vector
-
         Returns
         -------
         values: [float]
@@ -206,10 +195,8 @@ class AbstractPriorModel(AbstractModel):
     def random_vector_from_priors_within_limits(self, lower_limit, upper_limit):
         """ Generate a random vector of physical values by drawing uniform random values between an input lower and
         upper limit and using the model priors to map them from unit values to physical values.
-
         This is used for MCMC initialization, whereby the starting points of a walker(s) is confined to a restricted
         range of prior space. In particular, it is used for generate the "ball" initialization of Emcee.
-
         Returns
         -------
         physical_values: [float]
@@ -233,7 +220,6 @@ class AbstractPriorModel(AbstractModel):
     def random_vector_from_priors(self):
         """ Generate a random vector of physical values by drawing uniform random values between 0 and 1 and using
         the model priors to map them from unit values to physical values.
-
         Returns
         -------
         physical_values: [float]
@@ -260,22 +246,18 @@ class AbstractPriorModel(AbstractModel):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
         to every PriorModel attributed to this instance.
-
         This method takes as input a physical vector of parameter values, thus omitting
         the use of priors.
-
         Parameters
         ----------
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
         assert_priors_in_limits
             If True it is checked that the physical values of priors are within set limits
-
         Returns
         -------
-        model_instance : model.ModelInstance
+        model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
-
         """
         arguments = dict(
             map(
@@ -294,12 +276,10 @@ class AbstractPriorModel(AbstractModel):
         """
         Creates a new model mapper from a dictionary mapping_matrix existing priors to
         new priors, keeping existing priors where no mapping is provided.
-
         Parameters
         ----------
         arguments: {Prior: Prior}
             A dictionary mapping_matrix priors to priors
-
         Returns
         -------
         model_mapper: ModelMapper
@@ -312,12 +292,10 @@ class AbstractPriorModel(AbstractModel):
         """
         Creates a new model mapper from a dictionary mapping_matrix existing priors to
         new priors.
-
         Parameters
         ----------
         arguments: {Prior: Prior}
             A dictionary mapping_matrix priors to priors
-
         Returns
         -------
         model_mapper: ModelMapper
@@ -348,11 +326,8 @@ class AbstractPriorModel(AbstractModel):
         of gaussian priors. The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
-
         If a is not None then all priors are created with an absolute width of a.
-
         If r is not None then all priors are created with a relative width of r.
-
         Parameters
         ----------
         no_limits
@@ -363,7 +338,6 @@ class AbstractPriorModel(AbstractModel):
             The absolute width to be assigned to gaussian priors
         tuples
             A list of tuples each containing the mean and width of a prior
-
         Returns
         -------
         mapper: ModelMapper
@@ -420,12 +394,10 @@ class AbstractPriorModel(AbstractModel):
     def instance_from_prior_medians(self):
         """
         Creates a list of physical values from the median values of the priors.
-
         Returns
         -------
         physical_values : [float]
             A list of physical values
-
         """
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * len(self.prior_tuples)
@@ -437,19 +409,15 @@ class AbstractPriorModel(AbstractModel):
     ):
         """
         Compute the log priors of every parameter in a vector, using the Prior of every parameter.
-
         The log prior values are used by Emcee to map the log likelihood to the poserior of the model.
-
         Parameters
         ----------
         vector : [float]
             A vector of physical parameter values.
-
         Returns
         -------
         log_priors : []
             An list of the log prior value of every parameter.
-
         """
         return list(
             map(
@@ -472,13 +440,11 @@ class AbstractPriorModel(AbstractModel):
     def from_instance(instance, model_classes=tuple()):
         """
         Recursively create an prior object model from an object model.
-
         Parameters
         ----------
         model_classes
         instance
             A dictionary, list, class instance or model instance
-
         Returns
         -------
         abstract_prior_model
@@ -486,14 +452,14 @@ class AbstractPriorModel(AbstractModel):
         """
 
         if isinstance(instance, list):
-            result = collection.CollectionPriorModel(
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(item, model_classes=model_classes)
                     for item in instance
                 ]
             )
-        elif isinstance(instance, model.ModelInstance):
-            result = model_mapper.ModelMapper()
+        elif isinstance(instance, autofit.mapper.model.ModelInstance):
+            result = autofit.mapper.model_mapper.ModelMapper()
             for key, value in instance.dict.items():
                 setattr(
                     result,
@@ -503,7 +469,7 @@ class AbstractPriorModel(AbstractModel):
                     ),
                 )
         elif isinstance(instance, dict):
-            result = collection.CollectionPriorModel(
+            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
                         value, model_classes=model_classes
@@ -625,7 +591,6 @@ class AbstractPriorModel(AbstractModel):
     ):
         """
         Create an instance of the model for a set of arguments
-
         Parameters
         ----------
         assert_priors_in_limits
@@ -633,7 +598,6 @@ class AbstractPriorModel(AbstractModel):
             within their limits
         arguments: {Prior: float}
             Dictionary mapping_matrix priors to attribute analysis_path and value pairs
-
         Returns
         -------
             An instance of the class
@@ -703,7 +667,6 @@ class AbstractPriorModel(AbstractModel):
         """
         Recursively overwrite priors in the mapper with instance values from the
         instance except where the containing class is the descendant of a listed class.
-
         Parameters
         ----------
         excluded_classes
@@ -723,14 +686,11 @@ class AbstractPriorModel(AbstractModel):
     def path_for_prior(self, prior: Prior) -> Optional[Tuple[str]]:
         """
         Find a path that points at the given tuple.
-
         Returns the first path or None if no path is found.
-
         Parameters
         ----------
         prior
             A prior representing what's known about some dimension of the model.
-
         Returns
         -------
         A path, a series of attributes that point to one location of the prior.
@@ -770,7 +730,6 @@ class AbstractPriorModel(AbstractModel):
         """
         Use the priors that make up the model_mapper to generate information on each
         parameter of the overall model.
-
         This information is extracted from each priors *model_info* property.
         """
         from autofit.mapper.prior import AbstractPromise
@@ -787,7 +746,6 @@ class AbstractPriorModel(AbstractModel):
     def param_names(self):
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *GetDist* visualization.
-
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
 
@@ -801,7 +759,6 @@ def transfer_classes(instance, mapper, model_classes=None):
     """
     Recursively overwrite priors in the mapper with instance values from the
     instance except where the containing class is the descendant of a listed class.
-
     Parameters
     ----------
     model_classes
