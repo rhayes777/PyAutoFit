@@ -5,7 +5,7 @@ import pytest
 
 import autofit as af
 from autofit.text import formatter
-from autofit import conf
+from autoconf import conf
 
 from test_autofit.mock import MockClassNLOx4
 

@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from autofit import conf
+from autoconf import conf
 import autofit as af
 from autofit import Paths
 from test_autofit.mock import MockClassNLOx4

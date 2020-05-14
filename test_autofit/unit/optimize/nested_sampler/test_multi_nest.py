@@ -4,7 +4,7 @@ from functools import wraps
 
 import pytest
 
-from autofit import conf
+from autoconf import conf
 import autofit as af
 from autofit import Paths
 from autofit.optimize.non_linear.nested_sampling import multi_nest as mn
@@ -263,7 +263,7 @@ class TestMulitNest:
         assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
 
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):
-        af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
+        conf.instance.output_path = multi_nest_samples_path + "/1_class"
 
         multi_nest = af.MultiNest()
 
@@ -302,7 +302,7 @@ class TestMulitNest:
         assert weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
 
     def test__read_total_samples_from_file_resume(self, multi_nest_resume_path):
-        af.conf.instance.output_path = multi_nest_resume_path + "/1_class"
+        conf.instance.output_path = multi_nest_resume_path + "/1_class"
 
         multi_nest = af.MultiNest()
 
@@ -315,7 +315,7 @@ class TestMulitNest:
         assert total_samples == 12345
 
     def test__log_evidence_from_file_summary(self, multi_nest_summary_path):
-        af.conf.instance.output_path = multi_nest_summary_path + "/1_class"
+        conf.instance.output_path = multi_nest_summary_path + "/1_class"
 
         multi_nest = af.MultiNest()
 
@@ -338,7 +338,7 @@ class TestMulitNest:
     def test__samples_from_model(
         self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
     ):
-        af.conf.instance.output_path = multi_nest_samples_path + "/1_class"
+        conf.instance.output_path = multi_nest_samples_path + "/1_class"
 
         multi_nest = af.MultiNest()
 

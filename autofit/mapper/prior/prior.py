@@ -7,7 +7,7 @@ from typing import Union, Tuple
 import numpy as np
 from scipy.special import erfcinv
 
-from autofit import conf
+from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.arithmetic import ArithmeticMixin

@@ -3,7 +3,7 @@ import os
 import pytest
 
 from autofit import Paths
-from autofit import conf
+from autoconf import conf
 import autofit as af
 import pickle
 from test_autofit.mock import MockClassNLOx4

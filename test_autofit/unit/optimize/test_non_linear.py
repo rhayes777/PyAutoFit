@@ -4,7 +4,7 @@ import shutil
 import pytest
 
 import autofit as af
-from autofit import conf
+from autoconf import conf
 from autofit import Paths
 from autofit.optimize.non_linear.mock_nlo import MockSamples
 from test_autofit.mock import (
@@ -129,7 +129,7 @@ def test_nlo_wrong_info():
 
 class TestDirectorySetup:
     def test__1_class__correct_directory(self, nlo_setup_path):
-        af.conf.instance.output_path = nlo_setup_path + "1_class"
+        conf.instance.output_path = nlo_setup_path + "1_class"
         af.MockNLO(Paths(phase_name=""))
 
         assert os.path.exists(nlo_setup_path + "1_class")
@@ -146,7 +146,7 @@ class TestLabels:
                ] == model.param_names
 
     def test_label_config(self):
-        assert af.conf.instance.label.label("one") == "x4p0"
-        assert af.conf.instance.label.label("two") == "x4p1"
-        assert af.conf.instance.label.label("three") == "x4p2"
-        assert af.conf.instance.label.label("four") == "x4p3"
+        assert conf.instance.label.label("one") == "x4p0"
+        assert conf.instance.label.label("two") == "x4p1"
+        assert conf.instance.label.label("three") == "x4p2"
+        assert conf.instance.label.label("four") == "x4p3"

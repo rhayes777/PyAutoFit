@@ -4,7 +4,6 @@ import pytest
 
 import autofit as af
 from autofit import Paths
-from test_autofit.mock import MockClassNLOx4, MockAnalysis
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 

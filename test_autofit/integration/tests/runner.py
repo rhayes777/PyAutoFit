@@ -10,7 +10,7 @@ def run(module, test_name=None, non_linear_class=af.MultiNest, config_folder="co
     test_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
     output_path = test_path + "output/"
     config_path = test_path + config_folder
-    af.conf.instance = af.conf.Config(config_path=config_path, output_path=output_path)
+    conf.instance = conf.Config(config_path=config_path, output_path=output_path)
     integration_util.reset_paths(test_name=test_name, output_path=output_path)
 
     dataset_path = af.path_util.make_and_return_path_from_path_and_folder_names(
