@@ -433,7 +433,7 @@ class AbstractPriorModel(AbstractModel):
 
     def log_priors_from_vector(
             self,
-            vector : [float],
+            vector: [float],
     ):
         """
         Compute the log priors of every parameter in a vector, using the Prior of every parameter.
@@ -453,12 +453,11 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, value : prior_tuple.prior.log_prior_from_value(value=value),
+                lambda prior_tuple, value: prior_tuple.prior.log_prior_from_value(value=value),
                 self.prior_tuples_ordered_by_id,
                 vector,
             )
         )
-
 
     def random_instance(self):
         """

@@ -1,6 +1,5 @@
 import pickle
 
-import os
 import numpy as np
 import pytest
 
@@ -142,69 +141,6 @@ class TestGridSearchablePriors:
             )
 
 
-init_args = []
-fit_args = []
-fit_instances = []
-
-
-class MockSamples:
-    def __init__(self, log_likelihoods):
-        self.log_likelihoods = log_likelihoods
-        self.max_log_likelihood_instance = af.ModelInstance()
-
-
-class MockOptimizer(af.NonLinearOptimizer):
-    def __init__(self, paths):
-        super().__init__(paths)
-        init_args.append(paths.phase_name)
-
-    def _fit(self, model, fitness_function):
-        raise NotImplementedError()
-
-    def _full_fit(self, model, analysis):
-        fit_args.append(analysis)
-        # noinspection PyTypeChecker
-        return af.Result(
-            MockSamples(
-                [1.0]
-            ),
-            analysis.log_likelihood_function(None)
-        )
-
-
-class MockAnalysis(af.Analysis):
-
-    prior_count = 2
-
-    def log_likelihood_function(self, instance):
-        fit_instances.append(instance)
-        return 1
-
-    def visualize(self, instance, during_analysis):
-        pass
-
-    def log(self, instance):
-        pass
-
-
-class MockClassContainer:
-    def __init__(self):
-        self.init_args = init_args
-        self.fit_args = fit_args
-        self.fit_instances = fit_instances
-
-        self.MockOptimizer = MockOptimizer
-        self.MockAnalysis = MockAnalysis
-
-
-@pytest.fixture(name="container")
-def make_mock_class_container():
-    init_args.clear()
-    fit_args.clear()
-    fit_instances.clear()
-    return MockClassContainer()
-
-
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05(container):
     return af.OptimizerGridSearch(
@@ -216,7 +152,6 @@ def make_grid_search_05(container):
 
 class TestGridNLOBehaviour:
     def test_calls(self, grid_search_05, container, mapper):
-
         result = grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
@@ -228,7 +163,6 @@ class TestGridNLOBehaviour:
         assert len(result.results) == 2
 
     def test_names_1d(self, grid_search_05, container, mapper):
-
         grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
@@ -247,7 +181,7 @@ class TestGridNLOBehaviour:
             paths=af.Paths(phase_name="sample_name"),
         )
 
-        grid_search.fit(model=mapper, analysis=container.MockAnalysis(),grid_priors=[mapper.profile.centre_0])
+        grid_search.fit(model=mapper, analysis=container.MockAnalysis(), grid_priors=[mapper.profile.centre_0])
 
         assert len(container.init_args) == 3
         assert container.init_args[0] == "sample_name///profile_centre_0_0.00_0.33"
@@ -404,7 +338,6 @@ class TestGridSearchResult:
         assert grid_search_result.all_models == [1, 2]
 
     def test__result_derived_properties(self):
-
         lower_limit_lists = [[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]]
         physical_lower_limits_lists = [[-2.0, -3.0], [-2.0, 0.0], [0.0, -3.0], [0.0, 0.0]]
 
@@ -414,42 +347,9 @@ class TestGridSearchResult:
             lower_limit_lists=lower_limit_lists
         )
 
+        print(grid_search_result)
+
         assert grid_search_result.shape == (2, 2)
         assert grid_search_result.physical_step_sizes == (2.0, 3.0)
         assert grid_search_result.physical_centres_lists == [[-1.0, -1.5], [-1.0, 1.5], [1.0, -1.5], [1.0, 1.5]]
         assert grid_search_result.physical_upper_limits_lists == [[0.0, 0.0], [0.0, 3.0], [2.0, 0.0], [2.0, 3.0]]
-
-class TestMixin:
-    def test_mixin(self, container):
-        class MyPhase(af.as_grid_search(af.AbstractPhase)):
-            @property
-            def grid_priors(self):
-                return [self.model.profile.centre_0]
-
-            def run(self):
-                analysis = container.MockAnalysis()
-                return self.make_result(self.run_analysis(analysis), analysis)
-
-        my_phase = MyPhase(
-            af.Paths(phase_name="", phase_folders=tuple()),
-            number_of_steps=2,
-            non_linear_class=container.MockOptimizer,
-        )
-        my_phase.model.profile = GeometryProfile
-
-        result = my_phase.run()
-
-        assert isinstance(result, af.GridSearchResult)
-        assert len(result.results) == 2
-        assert len(result.lower_limit_lists) == 2
-        assert len(result.physical_lower_limits_lists) == 2
-
-        assert isinstance(
-            result.best_result, af.Result
-        )
-
-    def test_parallel_flag(self):
-        my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
-            af.Paths(phase_name="phase name")
-        )
-        assert my_phase.optimizer.parallel

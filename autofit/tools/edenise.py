@@ -99,7 +99,7 @@ def edenise(
         name,
         prefix
 ):
-    target_directory = f"{root_directory}/../{name}_eden"
+    target_directory = f"{root_directory}/../eden/{name}_eden"
 
     print(f"Creating {target_directory}...")
     shutil.copytree(

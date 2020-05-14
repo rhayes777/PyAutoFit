@@ -18,8 +18,8 @@ def run(module, test_name=None, non_linear_class=af.MultiNest, config_folder="co
     )
 
     imaging = aa.Imaging.from_fits(
-        image_path=dataset_path + "/image.fits",
-        noise_map_path=dataset_path + "/noise_map.fits",
+        image_path=f"{dataset_path}/image.fits",
+        noise_map_path=f"{dataset_path}/noise_map.fits",
         pixel_scales=0.1,
     )
 
