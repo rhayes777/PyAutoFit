@@ -11,6 +11,18 @@ def make_model_promise(phase):
     return phase.result.model.one.redshift
 
 
+@pytest.fixture(name="grid_search_promise")
+def make_grid_search_promise(phase):
+    grid_search_phase = af.as_grid_search(
+        af.AbstractPhase
+    )(
+        phase_name="phase_name",
+        phase_tag="phase_tag"
+    )
+    grid_search_phase.model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
+    return grid_search_phase.result.model.one.redshift
+
+
 @pytest.fixture(name="instance_promise")
 def make_instance_promise(phase):
     return phase.result.instance.one.redshift
@@ -135,6 +147,24 @@ class TestIndexLast:
         with pytest.raises(IndexError):
             _ = af.last[1]
 
+    def test_grid_search_populate(self):
+        collection = af.ResultsCollection()
+        galaxy_model_1 = af.PriorModel(mock.Galaxy)
+        collection.add(
+            "phase one", af.GridSearchResult(
+                [
+                    mock.Result(
+                        model=af.ModelMapper(galaxy=galaxy_model_1)
+                    )
+                ],
+                [[1]],
+                [[1]]
+            )
+        )
+
+        result = af.last.model.galaxy.populate(collection)
+        assert result is galaxy_model_1
+
     def test_populate(self):
         collection = af.ResultsCollection()
         galaxy_model_1 = af.PriorModel(mock.Galaxy)
@@ -178,6 +208,12 @@ class TestCase:
         assert model_promise.path == ("one", "redshift")
         assert model_promise.is_instance is False
         assert model_promise._phase is phase
+
+    def test_grid_search_promise(self, grid_search_promise, phase):
+        assert isinstance(grid_search_promise, af.prior.Promise)
+        assert grid_search_promise.path == ("one", "redshift")
+        assert grid_search_promise.is_instance is False
+        assert grid_search_promise._phase is not phase
 
     def test_optional(self, collection, phase):
         promise = phase.result.model.optional.heart
