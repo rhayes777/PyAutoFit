@@ -8,7 +8,7 @@ import dill
 
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
-from autofit.mapper.prior.promise import PromiseResult
+from autofit.mapper.prior.promise import PromiseResult, AbstractPromise
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.emcee import Emcee
 from autofit.optimize.non_linear.paths import Paths
@@ -105,7 +105,7 @@ class AbstractPhase:
                 "wb+"
         ) as f:
             pickle.dump(
-                meta_dataset, f
+                break_promises(meta_dataset), f
             )
 
     def save_phase_attributes(self, phase_attributes):
@@ -355,3 +355,44 @@ def as_grid_search(phase_class, parallel=False):
             )
 
     return GridSearchExtension
+
+
+def break_promises(
+        obj
+):
+    """
+    metadata is flakier than Rich Taylor
+
+    Remove promises recursively.
+
+    Parameters
+    ----------
+    obj
+        Some object
+
+    Returns
+    -------
+    That object, sans promises
+    """
+    if isinstance(obj, AbstractPromise):
+        return None
+    if isinstance(
+            obj, list
+    ):
+        return [
+            break_promises(item)
+            for item in obj
+        ]
+    if isinstance(
+            obj, dict
+    ):
+        return {
+            key: break_promises(value)
+            for key, value
+            in obj.items()
+        }
+    try:
+        obj.__dict__ = break_promises(obj.__dict__)
+    except AttributeError:
+        pass
+    return obj
