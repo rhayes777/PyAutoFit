@@ -2,7 +2,6 @@ import logging
 import os
 import pickle
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from typing import Dict
 
 import dill
