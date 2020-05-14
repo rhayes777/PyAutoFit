@@ -1,4 +1,4 @@
-from autofit import AttributeNameValue
+from autofit.mapper.prior_model.attribute_pair import AttributeNameValue
 
 
 class PriorModelNameValue(AttributeNameValue):
