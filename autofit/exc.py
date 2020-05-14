@@ -36,3 +36,7 @@ class DeferredInstanceException(Exception):
     """
 
     pass
+
+
+class AggregatorException(Exception):
+    pass

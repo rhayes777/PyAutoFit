@@ -1,7 +1,7 @@
 import math
 
 import autofit as af
-from autofit import AbstractSamples
+from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Analysis
 

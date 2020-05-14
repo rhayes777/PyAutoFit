@@ -10,7 +10,6 @@ import numpy as np
 import autofit.mapper.model
 import autofit.mapper.model_mapper
 import autofit.mapper.prior_model.collection
-from autofit import cast_collection, PriorNameValue, InstanceNameValue
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior.deferred import DeferredArgument
@@ -18,6 +17,7 @@ from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
+from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text.formatter import TextFormatter
@@ -429,7 +429,7 @@ class AbstractPriorModel(AbstractModel):
 
     def log_priors_from_vector(
             self,
-            vector : [float],
+            vector: [float],
     ):
         """
         Compute the log priors of every parameter in a vector, using the Prior of every parameter.
@@ -449,12 +449,11 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, value : prior_tuple.prior.log_prior_from_value(value=value),
+                lambda prior_tuple, value: prior_tuple.prior.log_prior_from_value(value=value),
                 self.prior_tuples_ordered_by_id,
                 vector,
             )
         )
-
 
     def random_instance(self):
         """
