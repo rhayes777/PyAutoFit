@@ -8,7 +8,7 @@ import dill
 
 from autofit import conf, ModelMapper, convert_paths
 from autofit import exc
-from autofit.mapper.prior.promise import PromiseResult
+from autofit.mapper.prior.promise import PromiseResult, AbstractPromise
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.emcee import Emcee
 from autofit.optimize.non_linear.paths import Paths
@@ -374,6 +374,8 @@ def break_promises(
     -------
     That object, sans promises
     """
+    if isinstance(obj, AbstractPromise):
+        return None
     if isinstance(
             obj, list
     ):
@@ -392,4 +394,5 @@ def break_promises(
     try:
         obj.__dict__ = break_promises(obj.__dict__)
     except AttributeError:
-        return obj
+        pass
+    return obj
