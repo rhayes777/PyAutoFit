@@ -7,7 +7,8 @@ from typing import Dict
 import dill
 
 from autoconf import conf
-from autofit import ModelMapper, convert_paths
+from autofit.mapper.model_mapper import ModelMapper
+from autofit.optimize.non_linear.paths import convert_paths
 from autofit import exc
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
@@ -127,7 +128,7 @@ class AbstractPhase:
         """
         Save the dataset associated with the phase
         """
-        with open("{}/info.pickle".format(self.paths.make_path()), "wb") as f:
+        with open("{}/info.pickle".format(self.paths.pickle_path), "wb") as f:
             pickle.dump(info, f)
 
     def __str__(self):

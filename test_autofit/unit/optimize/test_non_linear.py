@@ -5,7 +5,6 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from autofit import Paths
 from autofit.optimize.non_linear.mock_nlo import MockSamples
 from test_autofit.mock import (
     GeometryProfile,
@@ -80,7 +79,7 @@ class TestCopyWithNameExtension:
         assert copy.paths.phase_name == "phase_name/one"
 
     def test_copy_with_name_extension(self):
-        optimizer = af.MockNLO(Paths("phase_name", phase_tag="tag"))
+        optimizer = af.MockNLO(af.Paths("phase_name", phase_tag="tag"))
         copy = optimizer.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy)
@@ -130,7 +129,7 @@ def test_nlo_wrong_info():
 class TestDirectorySetup:
     def test__1_class__correct_directory(self, nlo_setup_path):
         conf.instance.output_path = nlo_setup_path + "1_class"
-        af.MockNLO(Paths(phase_name=""))
+        af.MockNLO(af.Paths(phase_name=""))
 
         assert os.path.exists(nlo_setup_path + "1_class")
 
@@ -143,7 +142,7 @@ class TestLabels:
                    "two",
                    "three",
                    "four",
-               ] == model.param_names
+               ] == model.parameter_names
 
     def test_label_config(self):
         assert conf.instance.label.label("one") == "x4p0"

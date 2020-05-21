@@ -7,9 +7,9 @@ from typing import Tuple, Optional
 
 import numpy as np
 
-import autofit.mapper.model
-import autofit.mapper.model_mapper
-import autofit.mapper.prior_model.collection
+from autofit.mapper import model
+from autofit.mapper import model_mapper
+from autofit.mapper.prior_model import collection
 from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior.deferred import DeferredArgument
@@ -20,6 +20,7 @@ from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
+from autofit.text import model_text
 from autofit.text.formatter import TextFormatter
 
 
@@ -98,7 +99,7 @@ class AbstractPriorModel(AbstractModel):
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
             obj = object.__new__(
-                autofit.mapper.prior_model.collection.CollectionPriorModel
+                collection.CollectionPriorModel
             )
             obj.__init__(t)
         else:
@@ -153,7 +154,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_promise_tuples(self):
-        from autofit import AbstractPromise
+        from autofit.mapper.prior.promise import AbstractPromise
 
         return {
             prior_tuple[1]: prior_tuple
@@ -452,14 +453,14 @@ class AbstractPriorModel(AbstractModel):
         """
 
         if isinstance(instance, list):
-            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+            result = collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(item, model_classes=model_classes)
                     for item in instance
                 ]
             )
-        elif isinstance(instance, autofit.mapper.model.ModelInstance):
-            result = autofit.mapper.model_mapper.ModelMapper()
+        elif isinstance(instance, model.ModelInstance):
+            result = model_mapper.ModelMapper()
             for key, value in instance.dict.items():
                 setattr(
                     result,
@@ -469,7 +470,7 @@ class AbstractPriorModel(AbstractModel):
                     ),
                 )
         elif isinstance(instance, dict):
-            result = autofit.mapper.prior_model.collection.CollectionPriorModel(
+            result = collection.CollectionPriorModel(
                 {
                     key: AbstractPriorModel.from_instance(
                         value, model_classes=model_classes
@@ -743,16 +744,12 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
-    def param_names(self):
+    def parameter_names(self) -> [str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *GetDist* visualization.
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
-
-        return [
-            self.name_for_prior(prior)
-            for prior in sorted(self.priors, key=lambda prior: prior.id)
-        ]
+        return model_text.parameter_names_from_model(model=self)
 
 
 def transfer_classes(instance, mapper, model_classes=None):

@@ -4,8 +4,8 @@ import typing
 
 import autofit as af
 # noinspection PyAbstractClass
-import autofit.mapper.prior_model.attribute_pair
-from autofit import Paths
+from autofit.mapper.prior_model import attribute_pair
+from autofit.optimize.non_linear.paths import Paths
 from autofit.tools.phase import Dataset
 
 
@@ -117,6 +117,17 @@ class MockAnalysis:
         self.visualize_instance = instance
 
 
+class MockClassMM:
+    def __init__(self, one, two):
+        self.one = one
+        self.two = two
+
+class MockProfile:
+    def __init__(self, centre=(0.0, 0.0), intensity=0.1):
+        self.centre = centre
+        self.intensity = intensity
+
+
 class Circle:
     def __init__(self, radius):
         self.radius = radius
@@ -222,8 +233,8 @@ class GalaxyModel(af.AbstractPriorModel):
         return []
 
     @property
-    @autofit.mapper.prior_model.attribute_pair.cast_collection(
-        autofit.mapper.prior_model.attribute_pair.PriorNameValue
+    @attribute_pair.cast_collection(
+        attribute_pair.PriorNameValue
     )
     def unique_prior_tuples(self):
         return (
@@ -234,7 +245,7 @@ class GalaxyModel(af.AbstractPriorModel):
         )
 
     @property
-    @autofit.mapper.prior_model.attribute_pair.cast_collection(af.PriorModelNameValue)
+    @attribute_pair.cast_collection(af.PriorModelNameValue)
     def flat_prior_model_tuples(self):
         return [
             item

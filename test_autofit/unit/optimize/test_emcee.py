@@ -3,7 +3,6 @@ import pytest
 
 from autoconf import conf
 import autofit as af
-from autofit import Paths
 from test_autofit.mock import MockClassNLOx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -60,7 +59,7 @@ class TestEmceeConfig:
 
     def test__samples_from_model(self):
 
-        emcee = af.Emcee(paths=Paths())
+        emcee = af.Emcee(paths=af.Paths())
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -81,7 +80,7 @@ class TestEmceeConfig:
 class TestEmceeOutput:
     def test__most_probable_parameters(self):
 
-        emcee = af.Emcee(paths=Paths())
+        emcee = af.Emcee(paths=af.Paths())
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -94,7 +93,7 @@ class TestEmceeOutput:
 
     def test__vector_at_sigma__uses_output_files(self):
 
-        emcee = af.Emcee(paths=Paths())
+        emcee = af.Emcee(paths=af.Paths())
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -111,7 +110,7 @@ class TestEmceeOutput:
 
     def test__autocorrelation_times(self):
 
-        emcee = af.Emcee(paths=Paths())
+        emcee = af.Emcee(paths=af.Paths())
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -132,7 +131,7 @@ class TestCopyWithNameExtension:
         assert copy.paths.phase_name == "phase_name/one"
 
     def test_emcee(self):
-        optimizer = af.Emcee(Paths("phase_name"), sigma=2.0)
+        optimizer = af.Emcee(af.Paths("phase_name"), sigma=2.0)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

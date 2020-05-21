@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit import DeferredArgument
+from autofit.mapper.prior.deferred import DeferredArgument
 
 
 @pytest.fixture(name="uniform_dict")

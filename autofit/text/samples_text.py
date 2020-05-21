@@ -1,7 +1,7 @@
 import logging
 
 from autoconf import conf
-from autofit.text import formatter as frm
+from autofit.text import formatter as frm, model_text
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> 
         The formatting of the parameter string, e.g. how many decimal points to which the parameter is written.
     """
 
-    labels = frm.param_labels_from_model(model=samples.model)
+    labels = model_text.parameter_labels_from_model(model=samples.model)
     most_probables = samples.most_probable_vector
     uppers = samples.vector_at_upper_sigma(sigma=sigma)
     lowers = samples.vector_at_lower_sigma(sigma=sigma)

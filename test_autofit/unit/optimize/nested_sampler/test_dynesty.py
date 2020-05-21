@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-from autofit import Paths
 from autoconf import conf
 import autofit as af
 import pickle
@@ -196,7 +195,7 @@ class TestCopyWithNameExtension:
         assert copy.paths.phase_name == "phase_name/one"
 
     def test_dynesty(self):
-        optimizer = af.DynestyStatic(Paths("phase_name"), sigma=2.0)
+        optimizer = af.DynestyStatic(af.Paths("phase_name"), sigma=2.0)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
@@ -224,7 +223,7 @@ class TestCopyWithNameExtension:
         assert copy.max_move == optimizer.max_move
         assert copy.number_of_cores == optimizer.number_of_cores
 
-        optimizer = af.DynestyDynamic(Paths("phase_name"), sigma=2.0)
+        optimizer = af.DynestyDynamic(af.Paths("phase_name"), sigma=2.0)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

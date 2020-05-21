@@ -20,7 +20,7 @@ def make_samples(model):
                   [1.2, 2.2],
                   ]
 
-    log_likelihoods = [1.0, 1.0]
+    log_likelihoods = [1.0, 0.0]
 
     return af.AbstractSamples(
         model=model,

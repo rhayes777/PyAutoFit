@@ -5,6 +5,7 @@ import emcee
 
 from autoconf import conf
 from autofit.mapper import model
+from autofit.text import model_text
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,14 @@ class AbstractSamples:
         self.weights = weights
         self.log_posteriors = [lh * prior for lh, prior in zip(log_likelihoods, log_priors)]
         self._unconverged_sample_size = unconverged_sample_size
+
+    @property
+    def parameter_names(self):
+        return model_text.parameter_names_from_model(model=self.model)
+
+    @property
+    def parameter_labels(self):
+        return model_text.parameter_labels_from_model(model=self.model)
 
     @property
     def unconverged_sample_size(self):
@@ -111,8 +120,10 @@ class AbstractSamples:
         import getdist
 
         return getdist.mcsamples.MCSamples(
-            samples=self.parameters,
-            weights=self.weights,
+            samples=np.asarray(self.parameters),
+            weights=np.asarray(self.weights),
+            names=self.parameter_names,
+            labels=self.parameter_labels,
         )
 
     @property
@@ -456,7 +467,7 @@ class AbstractSamples:
 
         if plot_pdf_1d_params:
 
-            for param_name in self.model.param_names:
+            for param_name in self.model.parameter_names:
                 pdf_plot.plot_1d(roots=self.pdf, param=param_name)
                 pdf_plot.export(
                     fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)

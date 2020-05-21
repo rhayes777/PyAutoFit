@@ -8,7 +8,7 @@ from time import sleep
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
-from autofit.text import formatter, samples_text
+from autofit.text import formatter, samples_text, model_text
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
@@ -26,8 +26,6 @@ class NonLinearOptimizer(ABC):
         ------------
 
         """
-
-
 
         if paths is None:
             paths = Paths()
@@ -119,7 +117,7 @@ class NonLinearOptimizer(ABC):
         produced by this fit.
         """
 
-        self.save_paramnames_file(model=model)
+        self.save_parameter_names_file(model=model)
 
         result = self._full_fit(
             model=model,
@@ -155,25 +153,25 @@ class NonLinearOptimizer(ABC):
             attribute_type
         )
 
-    def save_paramnames_file(self, model):
+    def save_parameter_names_file(self, model):
         """Create the param_names file listing every parameter's label and Latex tag, which is used for *GetDist*
         visualization.
 
         The parameter labels are determined using the label.ini and label_format.ini config files."""
 
-        paramnames_names = model.param_names
-        paramnames_labels = formatter.param_labels_from_model(model=model)
+        paramnames_names = model_text.parameter_names_from_model(model=model)
+        paramnames_labels = model_text.parameter_labels_from_model(model=model)
 
-        paramnames = []
+        parameter_name_and_label = []
 
         for i in range(model.prior_count):
             line = formatter.label_and_label_string(
                 label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
             )
-            paramnames += [f"{line}\n"]
+            parameter_name_and_label += [f"{line}\n"]
 
         formatter.output_list_of_strings_to_file(
-            file=self.paths.file_param_names, list_of_strings=paramnames
+            file=self.paths.file_param_names, list_of_strings=parameter_name_and_label
         )
 
     def __eq__(self, other):

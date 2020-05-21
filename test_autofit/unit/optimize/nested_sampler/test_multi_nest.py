@@ -6,7 +6,6 @@ import pytest
 
 from autoconf import conf
 import autofit as af
-from autofit import Paths
 from autofit.optimize.non_linear.nested_sampling import multi_nest as mn
 from test_autofit.mock import MockClassNLOx4
 
@@ -232,7 +231,7 @@ class TestMulitNest:
         assert copy.paths.phase_name == "phase_name/one"
 
     def test__copy_with_name_extension(self):
-        optimizer = af.MultiNest(Paths("phase_name"), sigma=2.0)
+        optimizer = af.MultiNest(af.Paths("phase_name"), sigma=2.0)
 
         copy = optimizer.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

@@ -1,9 +1,10 @@
 import math
 
-import autofit as af
+from autofit import exc
 from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Analysis
+from autofit.optimize.non_linear.non_linear import Result
 
 
 class MockNLO(NonLinearOptimizer):
@@ -25,12 +26,12 @@ class MockNLO(NonLinearOptimizer):
                 instance = model.instance_from_unit_vector(unit_vector)
                 fit = analysis.log_likelihood_function(instance)
                 break
-            except af.exc.FitException as e:
+            except exc.FitException as e:
                 unit_vector[index] += 0.1
                 if unit_vector[index] >= 1:
                     raise e
                 index = (index + 1) % model.prior_count
-        return af.Result(
+        return Result(
             previous_model=model,
             samples=MockSamples(
                 log_likelihoods=fit,

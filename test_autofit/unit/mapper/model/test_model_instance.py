@@ -2,8 +2,6 @@ import pytest
 
 import autofit as af
 from test_autofit import mock
-from test_autofit.unit.mapper.model.test_model_mapper import MockClassMM, MockProfile
-
 
 @pytest.fixture(name="galaxy_1")
 def make_galaxy_1():
@@ -31,6 +29,18 @@ def make_instance(galaxy_1, galaxy_2):
     instance.sub.sub = sub_2
 
     return instance
+
+
+class MockClassMM:
+    def __init__(self, one, two):
+        self.one = one
+        self.two = two
+
+
+class MockProfile:
+    def __init__(self, centre=(0.0, 0.0), intensity=0.1):
+        self.centre = centre
+        self.intensity = intensity
 
 
 class TestModelInstance:

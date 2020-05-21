@@ -1,7 +1,7 @@
 PyAutoFit
 =========
 
-**PyAutoFit** is a Python-based probablistic programming language that allows Bayesian inference techniques to be
+**PyAutoFit** is a Python-based probablistic programming language that allows complex model fitting techniques to be
 straightforwardly integrated into scientific modeling software. **PyAutoFit** specializes in:
 
 - **Black box** models with complex and expensive log likelihood functions. 
@@ -12,41 +12,44 @@ straightforwardly integrated into scientific modeling software. **PyAutoFit** sp
 API Overview
 ============
 
-**PyAutoFit** interfaces with Python classes and non-linear sampling packages such as
-`PyMultiNest <http://johannesbuchner.github.io/pymultinest-tutorial/install.html>`_. Lets take a one-dimensional
-Gaussian as our moodel:
+To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
+noisy 1D data of a Gaussian's line profile. Here's an example of the data (blue) and the model we'll fit (orange):
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/toy_model_fit.png
+  :width: 400
+  :alt: Alternative text
+
+We define our model, a 1D Gaussian, by writing a Python class using the format below.
 
 .. code-block:: python
 
     class Gaussian:
 
         def __init__(
-            self,
-            centre = 0.0,    # <- PyAutoFit recognises these constructor arguments are
-            intensity = 0.1, # <- the model parameters of the Gaussian.
-            sigma = 0.01,
+            self,            # <- PyAutoFit recognises these
+            centre = 0.0,    # <- constructor arguments are
+            intensity = 0.1, # <- the model parameters of .
+            sigma = 0.01,    # <- the Gaussian.
         ):
             self.centre = centre
             self.intensity = intensity
             self.sigma = sigma
 
-    # An instance of the Gaussian class will be available to PyAutoFit, meaning
-    #  the method below which allows us to fit the model to data are accessible.
+    # An instance of the Gaussian class will be available during model fitting.
+    # This method will be used to fit the model to data and compute a likelihood.
 
     def line_from_xvalues(self, xvalues):
 
-        transformed_xvalues = np.subtract(xvalues, self.centre)
+        transformed_xvalues = xvalues - self.centre
 
-        return np.multiply(
-            np.divide(self.intensity, self.sigma * np.sqrt(2.0 * np.pi)),
-            np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
-        )
+        return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
+                np.exp(-0.5 * transformed_xvalues / self.sigma)
 
-**PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters could be fitted for
-by a non-linear search.
+**PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
+a non-linear search like `emcee <https://github.com/dfm/emcee>`_..
 
-To fit this Gaussian to some data we create an Analysis object, which gives **PyAutoFit** the data and tells it how to
-fit it with the model:
+To fit this Gaussian to the data we create an Analysis object, which gives **PyAutoFit** the data and a likelihood
+function describing how to fit the data with the model:
 
 .. code-block:: python
 
@@ -87,12 +90,9 @@ We can now fit data to the model using a non-linear search of our choice.
 
     analysis = a.Analysis(data=data, noise_map=noise_map)
 
-    multi_nest = af.MultiNest(
-        n_live_points=50,
-        sampling_efficiency=0.5
-        )
+    emcee = af.Emcee(nwalkers=50, nsteps=2000)
 
-    result = multi_nest.fit(model=model, analysis=analysis)
+    result = emcee.fit(model=model, analysis=analysis)
 
 The result object contains information on the model-fit, for example the parameter samples, best-fit model and
 marginalized probability density functions.
@@ -104,43 +104,36 @@ Model Customization
 -------------------
 
 It is straight forward to parameterize, customize and fit models made from multiple components. Below, we extend the
-example above to include a second Gaussian and an Expoenntial profile, with user-specified priors and a centre aligned
-with the first Gaussian:
+example above to include a second Gaussian, with user-specified priors and a centre aligned with the first Gaussian:
 
 .. code-block:: python
 
-    # The model can be setup with multiple classes and before passing it to a phase and
-    # we can customize the model parameters.
-
+    # Using a CollectionPriorModel object the model can be composed of multiple model classes.
     model = af.CollectionPriorModel(
-        gaussian_0=Gaussian, gaussian_1=Gaussian, exponential=Exponential
+        gaussian_0=m.Gaussian, gaussian_1=m.Gaussian,
     )
 
-    # This aligns the centres of the Gaussian and Exponential, reducing the number of free parameters by 1.
-    model.gaussian_0.centre = model.exponential.centre
+    # This aligns the centres of the two Gaussian model components, reducing the number
+    # of free parameters by 1.
+    model.gaussian_0.centre = model.gaussian_1.centre
 
-    # This fixes the Gaussian's sigma value to 0.5, reducing the number of free parameters by 1.
+    # This fixes the second Gaussian's sigma value to 0.5, reducing the number of
+    # free parameters by 1.
     model.gaussian_1.sigma = 0.5
 
     # We can customize the priors on any model parameter.
     model.gaussian_0.intensity = af.LogUniformPrior(lower_limit=1e-6, upper_limit=1e6)
-    model.exponential.rate = af.GaussianPrior(mean=0.1, sigma=0.05)
+    model.gaussian_0.sigma = af.GaussianPrior(mean=10.0, sigma=5.0)
 
-    # We can make assertions on parameters which remove regions of parameter space where these are not valid
-    model.add_assertion(model.exponential.intensity > 0.5)
-
-    analysis = a.Analysis(data=data, noise_map=noise_map)
-
-    multi_nest = af.MultiNest()
-
-    result = multi_nest.fit(model=model, analysis=analysis)
+    # We can make assertions on parameters which remove regions of parameter space.
+    model.add_assertion(model.gaussian_1.sigma > 5.0)
 
 Aggregation
 -----------
 
 For fits to large data-sets **PyAutoFit** provides tools to manipulate the vast library of results output. 
 
-Lets pretend we performed the Gaussian fit above to 100 indepedent data-sets. Every **PyAutoFit** output contains
+Lets pretend we performed the Gaussian fit above to 100 different data-sets. Every **PyAutoFit** output contains
 metadata allowing us to load it via the **aggregator** into a Python script or Jupyter notebook:
 
 .. code-block:: python
@@ -149,7 +142,7 @@ metadata allowing us to load it via the **aggregator** into a Python script or J
     # and the results of these 100 fits are in the output folder:
     output_path = "/path/to/gaussian_x100_fits/"
 
-    # We create an instance of the aggregatorby passing it the output path above.
+    # We create an instance of the aggregator by passing it the output path above.
     # The aggregator detects that 100 unique fits have been performed.
     agg = af.Aggregator(directory=str(output_path))
 
@@ -160,9 +153,9 @@ metadata allowing us to load it via the **aggregator** into a Python script or J
 
     # This list of Samples provides detailed information on every fit. Lets create
     # 100 instances of the Gaussian class using each fit's maximum log-likelihood
-    # model.(many results are available, e.g. marginalized 1D parameter estimates,
+    # model. (many results are available, e.g. marginalized 1D parameter estimates,
     # errors, Bayesian evidences, etc.).
-    instances = [samps.max_log_likelihood_instance for samps in samples]
+    instances = [samps.max_log_likelihood_instance for samps in agg.values("samples")]
 
     # These are instance of the 'model-components' defined using the Python class
     # format illustrated above.
@@ -185,8 +178,8 @@ Phases
 
 For long-term software development projects, users can write a **PyAutoFit** *phase* module, which contain all
 information about the model-fitting process, e.g. the data, model and analysis. This allows **PyAutoFit** to provide
-the software project with a clean and intuitive interface for model-fitting whilst taking care of the 'heavy lifting'
-that comes with performming model fitting, including:
+the software with a clean and intuitive interface for model-fitting whilst taking care of the 'heavy lifting' that
+comes with performming model fitting, including:
 
 - Outputting results in a structured path format.
 - Providing on-the-fly model output and visualization.
@@ -202,7 +195,7 @@ Below is an example of how the *Phase* API allows the Gaussian model fit to be p
     # The phase creates Analysis class 'behind the scenes', as well as taking
     # care of results output, visualization, etc.
 
-    phase = af.Phase(phase_name="phase_example", model=af.Gaussian, non_linear_class=af.MultiNest)
+    phase = af.Phase(phase_name="phase_example", model=Gaussian, non_linear_class=af.Emcee)
 
     # To perform a model fit, we simply run the phase with a dataset.
 
