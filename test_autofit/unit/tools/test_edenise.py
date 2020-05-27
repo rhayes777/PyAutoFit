@@ -53,3 +53,16 @@ class Test:
         assert converter.convert(
             "import testfit as tf\n\ntf.ModelInstance\ntf.Instance"
         ) == "from testfit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"
+
+    def test_replace_dotted(self):
+        line = Line(
+            "from .mapper import model"
+        )
+        converter = Converter(
+            "testfit",
+            "tf",
+            [line]
+        )
+        assert converter.convert(
+            "import testfit as tf\n\ntf.model.ModelInstance"
+        ) == "from testfit.mapper import model\n\n\nmodel.ModelInstance"
