@@ -15,6 +15,17 @@ class Line:
         self.string = string.replace("\n", "")
         self.id = str(uuid1())
 
+    @property
+    def sources(self):
+        return (
+            self.source,
+            self.joint_source
+        )
+
+    @property
+    def joint_source(self):
+        return f"{self.import_target[1:]}.{self.source}"
+
     def __str__(self):
         return f"{self.source} -> {self.import_target}"
 
@@ -106,15 +117,16 @@ class Converter:
         matched_lines = set()
         string = string.replace(f"import {self.name} as {self.prefix}", "")
         for line in self.lines:
-            source = f"{self.prefix}.{line.source}"
-            if source in string:
-                matched_lines.add(
-                    line
-                )
-                string = string.replace(
-                    source,
-                    line.id
-                )
+            for line_source in line.sources:
+                source = f"{self.prefix}.{line_source}"
+                if source in string:
+                    matched_lines.add(
+                        line
+                    )
+                    string = string.replace(
+                        source,
+                        line.id
+                    )
         for line in self.lines:
             string = string.replace(
                 line.id,

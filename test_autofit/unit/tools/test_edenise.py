@@ -56,13 +56,14 @@ class Test:
 
     def test_replace_dotted(self):
         line = Line(
-            "from .mapper import model"
+            "from .text import formatter"
         )
+        assert line.joint_source == "text.formatter"
         converter = Converter(
             "testfit",
             "tf",
             [line]
         )
         assert converter.convert(
-            "import testfit as tf\n\ntf.model.ModelInstance"
-        ) == "from testfit.mapper import model\n\n\nmodel.ModelInstance"
+            "import testfit as tf\n\ntf.text.formatter.label_and_label_string"
+        ) == "from testfit.text import formatter\n\n\nformatter.label_and_label_string"
