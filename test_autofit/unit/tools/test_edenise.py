@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from autofit.tools.edenise import Line, Converter
@@ -67,3 +69,18 @@ class Test:
         assert converter.convert(
             "import testfit as tf\n\ntf.text.formatter.label_and_label_string"
         ) == "from testfit.text import formatter\n\n\nformatter.label_and_label_string"
+
+
+def test_convert_formatter():
+    unit_test_directory = Path(__file__).parent.parent
+    test_path = unit_test_directory / "text/test_model_text.py"
+    with open(test_path) as f:
+        string = f.read()
+    converter = Converter.from_prefix_and_source_directory(
+        "autofit",
+        "af",
+        unit_test_directory.parent.parent / "autofit"
+    )
+    result = converter.convert(string)
+    print(result)
+    assert "from autofit" in result

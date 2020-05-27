@@ -49,6 +49,7 @@ from .optimize.non_linear.paths import make_path
 from .optimize.non_linear.samples import AbstractSamples
 from .optimize.non_linear.samples import MCMCSamples
 from .optimize.non_linear.samples import NestedSamplerSamples
+from .text import Model
 from .text import formatter
 from .text import samples_text
 from .tools import path_util
