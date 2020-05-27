@@ -16,7 +16,7 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
     def _fit(self, model, fitness_function):
         raise NotImplementedError()
 
-    def _full_fit(self, model, analysis):
+    def _fit(self, model, analysis):
         class Fitness:
             def __init__(self, instance_from_vector, instance):
                 self.result = None
@@ -46,7 +46,7 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
 
 @pytest.fixture(name="phase")
 def make_phase():
-    return MyPhase(Paths(phase_name=""), non_linear_class=NLO)
+    return MyPhase(Paths(name=""), non_linear_class=NLO)
 
 
 class MyPhase(af.AbstractPhase):
@@ -55,7 +55,7 @@ class MyPhase(af.AbstractPhase):
 
 @pytest.fixture(name="list_phase")
 def make_list_phase():
-    return MyPhase(Paths(phase_name=""), non_linear_class=NLO)
+    return MyPhase(Paths(name=""), non_linear_class=NLO)
 
 
 class TestPhasePropertyList:

@@ -189,7 +189,7 @@ class GridSearch:
         ).get(
             "general", "number_of_cores", int
         )
-        self.phase_tag_input = paths.phase_tag
+        self.phase_tag_input = paths.tag
 
         self.number_of_steps = number_of_steps
         self.non_linear_class = non_linear_class
@@ -392,7 +392,7 @@ class GridSearch:
 
     def write_results(self, results_list):
 
-        with open("{}/results".format(self.paths.phase_output_path), "w+") as f:
+        with open("{}/results".format(self.paths.output_path), "w+") as f:
             f.write(
                 "\n".join(
                     map(
@@ -426,7 +426,7 @@ class GridSearch:
             )
 
         name_path = "{}/{}/{}/{}".format(
-            self.paths.phase_name, self.phase_tag_input, self.paths.non_linear_name, "_".join(labels)
+            self.paths.name, self.phase_tag_input, self.paths.non_linear_name, "_".join(labels)
         )
         optimizer_instance = self.optimizer_instance(name_path=name_path)
 
@@ -442,9 +442,9 @@ class GridSearch:
 
         optimizer_instance = self.non_linear_class(
             Paths(
-                phase_name=name_path,
-                phase_tag=self.paths.phase_tag,
-                phase_folders=self.paths.phase_folders,
+                name=name_path,
+                tag=self.paths.tag,
+                folders=self.paths.folders,
                 remove_files=self.paths.remove_files,
             )
         )
@@ -494,7 +494,7 @@ class Job:
         self.index = index
 
     def perform(self):
-        result = self.optimizer_instance.full_fit(model=self.model, analysis=self.analysis)
+        result = self.optimizer_instance.fit(model=self.model, analysis=self.analysis)
         result_list_row = [self.index, *[prior.lower_limit for prior in self.arguments.values()],
                            result.log_likelihood,
                            ]

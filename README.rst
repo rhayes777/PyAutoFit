@@ -192,7 +192,7 @@ Below is an example of how the *Phase* API allows the Gaussian model fit to be p
 .. code-block:: python
 
     # Set up a phase, which takes a name, the model and a non-linear search.
-    # The phase creates Analysis class 'behind the scenes', as well as taking
+    # The phase contains Analysis class 'behind the scenes', as well as taking
     # care of results output, visualization, etc.
 
     phase = af.Phase(phase_name="phase_example", model=Gaussian, non_linear_class=af.Emcee)

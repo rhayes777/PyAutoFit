@@ -234,13 +234,12 @@ class Prior(ModelObject, ABC, ArithmeticMixin):
     @classmethod
     def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
         """
-        Create a prior from a JSON representation
+        Create a prior from a JSON representation.
 
         Parameters
         ----------
-        prior_dict
-            A dictionary representation of a prior including a type (e.g. Uniform)
-            and all constructor arguments.
+        prior_dict : dict
+            A dictionary representation of a prior including a type (e.g. Uniform) and all constructor arguments.
 
         Returns
         -------

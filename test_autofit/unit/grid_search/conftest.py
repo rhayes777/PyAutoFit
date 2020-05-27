@@ -16,12 +16,12 @@ class MockSamples:
 class MockOptimizer(af.NonLinearOptimizer):
     def __init__(self, paths):
         super().__init__(paths)
-        init_args.append(paths.phase_name)
+        init_args.append(paths.name)
 
     def _fit(self, model, fitness_function):
         raise NotImplementedError()
 
-    def _full_fit(self, model, analysis):
+    def _fit(self, model, analysis):
         fit_args.append(analysis)
         # noinspection PyTypeChecker
         return af.Result(

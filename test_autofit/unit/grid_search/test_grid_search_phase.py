@@ -14,7 +14,7 @@ class TestMixin:
                 return self.make_result(self.run_analysis(analysis), analysis)
 
         my_phase = MyPhase(
-            af.Paths(phase_name="", phase_folders=tuple()),
+            af.Paths(name="", folders=tuple()),
             number_of_steps=2,
             non_linear_class=container.MockOptimizer,
         )
@@ -33,6 +33,6 @@ class TestMixin:
 
     def test_parallel_flag(self):
         my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
-            af.Paths(phase_name="phase name")
+            af.Paths(name="phase name")
         )
         assert my_phase.optimizer.parallel

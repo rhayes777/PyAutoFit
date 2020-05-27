@@ -24,7 +24,7 @@ class MockNonLinearOptimizer(object):
         super(MockNonLinearOptimizer, self).__init__(
             model_mapper or af.ModelMapper(),
             Paths(
-                phase_name=phase_name, phase_tag=phase_tag, phase_folders=phase_folders
+                name=phase_name, tag=phase_tag, folders=phase_folders
             ),
         )
 

@@ -16,7 +16,7 @@ def make_downhill_simplex():
 
     return af.DownhillSimplex(
         fmin=fmin,
-        paths=Paths(phase_name="name", phase_folders=("folders",), phase_tag="tag"),
+        paths=Paths(name="name", folders=("folders",), tag="tag"),
     )
 
 
@@ -61,7 +61,7 @@ def make_downhill_simplex():
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy, optimizer):
-        assert copy.paths.phase_name == "phase_name/one"
+        assert copy.paths.name == "phase_name/one"
 
     def test_downhill_simplex(self):
         optimizer = af.DownhillSimplex(Paths("phase_name"), fmin=lambda x: x)

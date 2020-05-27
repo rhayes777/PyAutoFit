@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 import logging
-import shutil
+import pickle
 import numpy as np
 import multiprocessing as mp
 from time import sleep
+from typing import Dict
 
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
@@ -34,7 +35,7 @@ class NonLinearOptimizer(ABC):
         self.paths = paths
 
         if not len(log_file) == 0:
-            log_path = "{}/{}".format(self.paths.phase_output_path, log_file)
+            log_path = "{}/{}".format(self.paths.output_path, log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
             # noinspection PyProtectedMember
@@ -48,53 +49,15 @@ class NonLinearOptimizer(ABC):
 
         self.number_of_cores = number_of_cores
 
-    @classmethod
     def fit(
-            cls,
-            model,
-            analysis,
-            remove_output=False
-    ) -> "Result":
-        """
-        Fit a model, M with some function f that takes instances of the
-        class represented by model M and gives a score for their fitness
-
-        Parameters
-        ----------
-        model
-            A model that can be instantiated
-        fitness_function
-            A function that takes an instance of the model and scores it
-        remove_output
-            If True then output files are removed after the fit
-
-        Returns
-        -------
-        A result comprising a score, the best fit instance and an updated prior model
-        """
-
-        optimizer = cls()
-
-        result = optimizer._fit(
-            model=model,
-            analysis=analysis,
-        )
-        if remove_output:
-            shutil.rmtree(
-                optimizer.paths.phase_output_path
-            )
-        return result
-
-    @abstractmethod
-    def _fit(self, model, analysis):
-        pass
-
-    def full_fit(
             self,
             model,
             analysis: "Analysis",
+            info=None,
     ) -> "Result":
-        """
+        """ Fit a model, M with some function f that takes instances of the
+        class represented by model M and gives a score for their fitness.
+
         A model which represents possible instances with some dimensionality is fit.
 
         The analysis provides two functions. One visualises an instance of a model and the
@@ -103,12 +66,14 @@ class NonLinearOptimizer(ABC):
 
         Parameters
         ----------
-        analysis
-            An object that encapsulates some data and implements a fit function
-        model
+        analysis : af.Analysis
+            An object that encapsulates the data and a log likelihood function.
+        model : ModelMapper
             An object that represents possible instances of some model with a
             given dimensionality which is the number of free dimensions of the
             model.
+        info : dict
+            Optional dictionary containing information about the fit that can be loaded by the aggregator.
 
         Returns
         -------
@@ -117,9 +82,14 @@ class NonLinearOptimizer(ABC):
         produced by this fit.
         """
 
+        self.save_model_info(model=model)
         self.save_parameter_names_file(model=model)
+        self.save_metadata()
+        self.save_info(info=info)
+        self.save_optimizer()
+        self.save_model(model=model)
 
-        result = self._full_fit(
+        result = self._fit(
             model=model,
             analysis=analysis,
         )
@@ -127,7 +97,7 @@ class NonLinearOptimizer(ABC):
         return result
 
     @abstractmethod
-    def _full_fit(self, model, analysis):
+    def _fit(self, model, analysis):
         pass
 
     def config(self, section, attribute_name, attribute_type=str):
@@ -153,6 +123,11 @@ class NonLinearOptimizer(ABC):
             attribute_type
         )
 
+    def save_model_info(self, model):
+        """Save the model.info file, which summarizes every parameter and prior."""
+        with open(self.paths.file_model_info, "w+") as f:
+            f.write(model.info)
+
     def save_parameter_names_file(self, model):
         """Create the param_names file listing every parameter's label and Latex tag, which is used for *GetDist*
         visualization.
@@ -173,6 +148,58 @@ class NonLinearOptimizer(ABC):
         formatter.output_list_of_strings_to_file(
             file=self.paths.file_param_names, list_of_strings=parameter_name_and_label
         )
+
+    def save_info(self, info):
+        """
+        Save the dataset associated with the phase
+        """
+        with open("{}/info.pickle".format(self.paths.pickle_path), "wb") as f:
+            pickle.dump(info, f)
+
+    @property
+    def _default_metadata(self) -> Dict[str, str]:
+        """
+        A dictionary of metadata describing this phase, including the pipeline
+        that it's embedded in.
+        """
+        return {
+            "name": self.paths.name,
+            "tag": self.paths.tag,
+            "non_linear_search": type(self).__name__.lower(),
+        }
+
+    def make_metadata_text(self):
+        return "\n".join(
+            f"{key}={value or ''}"
+            for key, value
+            in {
+                **self._default_metadata,
+            }.items()
+        )
+
+    def save_metadata(self):
+        """
+        Save metadata associated with the phase, such as the name of the pipeline, the
+        name of the phase and the name of the dataset being fit
+        """
+        with open("{}/metadata".format(self.paths.make_path()), "a") as f:
+            f.write(
+                self.make_metadata_text()
+            )
+
+    def save_optimizer(self):
+        """
+        Save the optimizer associated with the phase as a pickle
+        """
+        with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(self))
+
+    def save_model(self, model):
+        """
+        Save the optimizer associated with the phase as a pickle
+        """
+        with open(self.paths.make_model_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(model))
 
     def __eq__(self, other):
         return isinstance(other, NonLinearOptimizer) and self.__dict__ == other.__dict__
@@ -273,18 +300,18 @@ class NonLinearOptimizer(ABC):
             return self.samples_from_model(model=self.model)
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        name = "{}/{}".format(self.paths.phase_name, extension)
+        name = "{}/{}".format(self.paths.name, extension)
 
         if remove_phase_tag:
             phase_tag = ""
         else:
-            phase_tag = self.paths.phase_tag
+            phase_tag = self.paths.tag
 
         new_instance = self.__class__(
             paths=Paths(
-                phase_name=name,
-                phase_folders=self.paths.phase_folders,
-                phase_tag=phase_tag,
+                name=name,
+                folders=self.paths.folders,
+                tag=phase_tag,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
             ),

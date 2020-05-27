@@ -53,10 +53,10 @@ def convert_paths(func):
         func(
             self,
             paths=Paths(
-                phase_name=first_arg,
-                phase_tag=kwargs.pop("phase_tag", None),
-                phase_folders=kwargs.pop("phase_folders", tuple()),
-                phase_path=kwargs.pop("phase_path", None),
+                name=first_arg,
+                tag=kwargs.pop("phase_tag", None),
+                folders=kwargs.pop("phase_folders", tuple()),
+                path_prefix=kwargs.pop("phase_path", None),
                 non_linear_name=non_linear_name,
                 remove_files=remove_files,
             ),
@@ -69,19 +69,61 @@ def convert_paths(func):
 class Paths:
     def __init__(
             self,
-            phase_name="",
-            phase_tag=None,
-            phase_folders=tuple(),
-            phase_path=None,
+            name="",
+            tag=None,
+            folders=tuple(),
+            path_prefix=None,
             non_linear_name=None,
-            remove_files=True,
+            remove_files=False,
     ):
+        """Manages the path structure for non-linear search output, for analyses both not using and using the phase
+        API. Use via non-linear searches requires manual input of paths, whereas the phase API manages this using the
+        phase attributes.
 
-        if not isinstance(phase_name, str):
-            raise ValueError("Phase name must be a string")
-        self.phase_path = phase_path or "/".join(phase_folders)
-        self.phase_name = phase_name
-        self.phase_tag = phase_tag or ""
+        The output path within which the *Paths* objects path structure is contained is set via PyAutoConf, using the
+        command:
+
+        from autoconf import conf
+        conf.instance = conf.Config(output_path="path/to/output")
+
+        If we assume all the input strings above are used with the following example names:
+
+        name = "name"
+        tag = "tag"
+        folders = ["folder_0", "folder_1"]
+        non_linear_name = "emcee"
+
+        The output path of the non-linear search results will be:
+
+        /path/to/output/folder_0/folder_1/name/tag/emcee
+
+        The folders variable can be omitted for a path_prefix variable, whereby identical behaviour to above can be
+        achieved by inputing path_prefix="/folder_0/folder_1/".
+
+        Parameters
+        ----------
+        name : str
+            The name of the non-linear search, which is used as a folder name after the 'folders' list. For phases this
+            name is the phase_name.
+        tag : str
+            A tag for the non-linear search, typically used for instances where the same data is fitted with the same
+            model but with slight variants. For phases this is the phase_tag.
+        folders : [str, str]
+            Prefixed folders that appears after the output_path but beflore the name variable.
+        path_prefix : str
+            A prefixed path that appears after the output_path but beflore the name variable (this superseeds the
+            folders variable if both are input.
+        non_linear_name : str
+            The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
+        remove_files : bool
+            If *True*, all output results except their backup .zip files are removed. If *False* they are not removed.
+        """
+
+        if not isinstance(name, str):
+            raise ValueError("Name must be a string")
+        self.path_prefix = path_prefix or "/".join(folders)
+        self.name = name
+        self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
         self.remove_files = remove_files
 
@@ -92,38 +134,38 @@ class Paths:
     def __eq__(self, other):
         return isinstance(other, Paths) and all(
             [
-                self.phase_path == other.phase_path,
-                self.phase_name == other.phase_name,
-                self.phase_tag == other.phase_tag,
+                self.path_prefix == other.path_prefix,
+                self.name == other.name,
+                self.tag == other.tag,
                 self.non_linear_name == other.non_linear_name,
             ]
         )
 
     @property
-    def phase_folders(self):
-        return self.phase_path.split("/")
+    def folders(self):
+        return self.path_prefix.split("/")
 
     @property
     def samples_path(self) -> str:
         """
         The path to the samples folder.
         """
-        return f"{self.phase_output_path}/samples"
+        return f"{self.output_path}/samples"
 
     @property
     def backup_path(self) -> str:
         """
         The path to the backed up samples folder.
         """
-        return f"{self.phase_output_path}/samples_backup"
+        return f"{self.output_path}/samples_backup"
 
     @property
     def zip_path(self) -> str:
-        return f"{self.phase_output_path}.zip"
+        return f"{self.output_path}.zip"
 
     @property
     @make_path
-    def phase_output_path(self) -> str:
+    def output_path(self) -> str:
         """
         The path to the output information for a phase.
         """
@@ -132,9 +174,9 @@ class Paths:
                 len,
                 [
                     conf.instance.output_path,
-                    self.phase_path,
-                    self.phase_name,
-                    self.phase_tag,
+                    self.path_prefix,
+                    self.name,
+                    self.tag,
                     self.non_linear_name,
                 ],
             )
@@ -145,24 +187,24 @@ class Paths:
         """
         A file indicating that a multinest search has been completed previously
         """
-        return f"{self.phase_output_path}/.completed"
+        return f"{self.output_path}/.completed"
 
     @property
     def execution_time_path(self) -> str:
         """
         The path to the output information for a phase.
         """
-        return "{}/execution_time".format(self.phase_name_folder)
+        return "{}/execution_time".format(self.name_folder)
 
     @property
     @make_path
-    def phase_name_folder(self):
-        return "/".join((conf.instance.output_path, self.phase_path, self.phase_name))
+    def name_folder(self):
+        return "/".join((conf.instance.output_path, self.path_prefix, self.name))
 
     @property
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/{}/samples".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
+            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_name
         )
 
     @property
@@ -171,11 +213,11 @@ class Paths:
 
     @property
     def file_model_promises(self) -> str:
-        return "{}/{}".format(self.phase_output_path, "model.promises")
+        return "{}/{}".format(self.output_path, "model.promises")
 
     @property
     def file_model_info(self) -> str:
-        return "{}/{}".format(self.phase_output_path, "model.info")
+        return "{}/{}".format(self.output_path, "model.info")
 
     @property
     @make_path
@@ -183,7 +225,7 @@ class Paths:
         """
         The path to the directory in which images are stored.
         """
-        return "{}/image/".format(self.phase_output_path)
+        return "{}/image/".format(self.output_path)
 
     @property
     @make_path
@@ -216,7 +258,7 @@ class Paths:
         Create the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.phase_path, self.phase_name, self.phase_tag, self.non_linear_name
+            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_name
         )
 
     # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
@@ -239,7 +281,7 @@ class Paths:
 
     @property
     def file_results(self):
-        return "{}/{}".format(self.phase_output_path, "model.results")
+        return "{}/{}".format(self.output_path, "model.results")
 
     def backup(self):
         """
@@ -273,11 +315,9 @@ class Paths:
         Copy files from the backup folder to the sym-linked optimizer folder.
         """
 
-        self.restore_old_to_new()
-
         if os.path.exists(self.zip_path):
             with zipfile.ZipFile(self.zip_path, "r") as f:
-                f.extractall(self.phase_output_path)
+                f.extractall(self.output_path)
 
             os.remove(self.zip_path)
 
@@ -285,82 +325,20 @@ class Paths:
             for file in glob.glob(self.backup_path + "/*"):
                 shutil.copy(file, self.path)
 
-    # TODO : DElete at some point in the future...
-
-    def restore_old_to_new(self):
-        """
-        Copy files from the backup folder to the sym-linked optimizer folder.
-        """
-
-        old_path = "/".join(
-            filter(
-                len,
-                [
-                    conf.instance.output_path,
-                    self.phase_path,
-                    self.phase_name,
-                    self.phase_tag,
-                ],
-            )
-        )
-
-        old_zip_path = old_path + ".zip"
-
-        if os.path.exists(old_zip_path):
-            with zipfile.ZipFile(old_zip_path, "r") as f:
-                f.extractall(self.phase_output_path)
-
-            if os.path.exists(self.phase_output_path + "/optimizer_backup"):
-                os.rename(self.phase_output_path + "/optimizer_backup", self.phase_output_path + "/samples_backup")
-
-            if os.path.exists(old_path + "/image"):
-                shutil.rmtree(old_path + "/image")
-
-            if os.path.exists(old_path + "/optimizer_backup"):
-                shutil.rmtree(old_path + "/optimizer_backup")
-
-            file_list = glob.glob(old_path + "/*.pickle")
-            [os.remove(file) for file in file_list]
-
-            file_list = glob.glob(old_path + "/*.results")
-            [os.remove(file) for file in file_list]
-
-            file_list = glob.glob(old_path + "/*.info")
-            [os.remove(file) for file in file_list]
-
-            if os.path.exists(old_path + "/metadata"):
-                os.remove(old_path + "/metadata")
-
-            if os.path.exists(old_path + "/output.log"):
-                os.remove(old_path + "/output.log")
-
-            os.remove(old_zip_path)
-
-        else:
-            return
-
-        if os.path.exists(self.backup_path):
-            for file in glob.glob(self.backup_path + "/*"):
-                shutil.copy(file, self.path)
-
-        file_list = glob.glob(self.phase_output_path + "/*.pickle")
-        if len(file_list) > 0:
-            [os.remove(file) for file in file_list]
-
     def zip(self):
         try:
             with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
-                for root, dirs, files in os.walk(self.phase_output_path):
+                for root, dirs, files in os.walk(self.output_path):
                     for file in files:
                         f.write(
                             os.path.join(root, file),
                             os.path.join(
-                                root[len(self.phase_output_path):].lstrip("/"), file
+                                root[len(self.output_path):].lstrip("/"), file
                             ),
                         )
 
             if self.remove_files:
-                shutil.rmtree(self.phase_output_path)
+                shutil.rmtree(self.output_path)
 
         except FileNotFoundError:
             pass

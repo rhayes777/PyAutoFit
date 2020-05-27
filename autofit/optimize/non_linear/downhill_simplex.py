@@ -4,13 +4,10 @@ import scipy.optimize
 from autofit import exc
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import logger
-from autofit.optimize.non_linear.samples import AbstractSamples
 from autofit.optimize.non_linear.paths import Paths
 
 
 class DownhillSimplex(NonLinearOptimizer):
-    def _fit(self, model, fitness_function):
-        raise NotImplementedError()
 
     def __init__(
             self,
@@ -67,7 +64,7 @@ class DownhillSimplex(NonLinearOptimizer):
                 log_likelihood = -np.inf
             return -2 * log_likelihood
 
-    def _full_fit(self, model, analysis):
+    def _fit(self, model, analysis):
 
         initial_vector = model.physical_values_from_prior_medians
 

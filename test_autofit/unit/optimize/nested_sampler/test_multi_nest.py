@@ -228,7 +228,7 @@ class TestMulitNest:
 
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.phase_name == "phase_name/one"
+        assert copy.paths.name == "phase_name/one"
 
     def test__copy_with_name_extension(self):
         optimizer = af.MultiNest(af.Paths("phase_name"), sigma=2.0)

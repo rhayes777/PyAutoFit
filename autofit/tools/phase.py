@@ -1,15 +1,12 @@
 import logging
-import os
 import pickle
 from abc import ABC, abstractmethod
 from typing import Dict
 
 import dill
 
-from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.optimize.non_linear.paths import convert_paths
-from autofit import exc
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.optimize import grid_search
 from autofit.optimize.non_linear.emcee import Emcee
@@ -58,11 +55,10 @@ class AbstractPhase:
         that it's embedded in.
         """
         return {
-            "phase": self.paths.phase_name,
-            "phase_tag": self.paths.phase_tag,
+            "phase": self.paths.name,
+            "phase_tag": self.paths.tag,
             "pipeline": self.pipeline_name,
             "pipeline_tag": self.pipeline_tag,
-            "non_linear_search": type(self.optimizer).__name__.lower(),
         }
 
     def make_metadata_text(self, dataset_name):
@@ -124,18 +120,11 @@ class AbstractPhase:
                 phase_attributes, f
             )
 
-    def save_info(self, info):
-        """
-        Save the dataset associated with the phase
-        """
-        with open("{}/info.pickle".format(self.paths.pickle_path), "wb") as f:
-            pickle.dump(info, f)
-
     def __str__(self):
-        return self.optimizer.paths.phase_name
+        return self.optimizer.paths.name
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self.optimizer.paths.phase_name}>"
+        return f"<{self.__class__.__name__} {self.optimizer.paths.name}>"
 
     @property
     def result(self) -> PromiseResult:
@@ -146,8 +135,8 @@ class AbstractPhase:
         """
         return PromiseResult(self)
 
-    def run_analysis(self, analysis):
-        return self.optimizer.full_fit(model=self.model, analysis=analysis)
+    def run_analysis(self, analysis, info=None):
+        return self.optimizer.fit(model=self.model, analysis=analysis, info=info)
 
     def customize_priors(self, results):
         """
@@ -169,50 +158,7 @@ class AbstractPhase:
 
     @property
     def phase_name(self):
-        return self.paths.phase_name
-
-    def save_optimizer_for_phase(self):
-        """
-        Save the optimizer associated with the phase as a pickle
-        """
-        with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(self.optimizer))
-        with open(self.paths.make_model_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(self.model))
-
-    def assert_optimizer_pickle_matches_for_phase(self):
-        """
-        Assert that the previously saved optimizer is equal to the phase's optimizer if
-        a saved optimizer is found.
-
-        Raises
-        -------
-        exc.PipelineException
-        """
-        path = self.paths.make_non_linear_pickle_path()
-        if os.path.exists(path):
-            with open(path, "r+b") as f:
-                loaded_optimizer = pickle.loads(f.read())
-                if self.optimizer != loaded_optimizer:
-                    raise exc.PipelineException(
-                        f"Can't restart phase at path {path} because settings don't "
-                        f"match. Did you change the optimizer settings?"
-                    )
-
-        path = self.paths.make_model_pickle_path()
-        if os.path.exists(path):
-            with open(path, "r+b") as f:
-                loaded_model = pickle.loads(f.read())
-                if self.model != loaded_model:
-                    raise exc.PipelineException(
-                        f"Can't restart phase at path {path} because settings don't "
-                        f"match. Did you change the model?"
-                    )
-
-    def assert_and_save_pickle(self):
-        if conf.instance.general.get("output", "assert_pickle_matches", bool):
-            self.assert_optimizer_pickle_matches_for_phase()
-        self.save_optimizer_for_phase()
+        return self.paths.name
 
 
 class Dataset(ABC):
@@ -284,14 +230,12 @@ class Phase(AbstractPhase):
         self.save_dataset(dataset=dataset)
 
         self.model = self.model.populate(results)
-        self.save_info(info=info)
 
         analysis = self.make_analysis(dataset=dataset)
 
         self.customize_priors(results)
-        self.assert_and_save_pickle()
 
-        result = self.run_analysis(analysis)
+        result = self.run_analysis(analysis=analysis, info=info)
 
         return self.make_result(result=result, analysis=None)
 

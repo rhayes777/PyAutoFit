@@ -192,7 +192,7 @@ class TestDynestyConfig:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.phase_name == "phase_name/one"
+        assert copy.paths.name == "phase_name/one"
 
     def test_dynesty(self):
         optimizer = af.DynestyStatic(af.Paths("phase_name"), sigma=2.0)

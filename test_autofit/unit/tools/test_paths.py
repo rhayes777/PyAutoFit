@@ -23,17 +23,18 @@ class PatchPaths(af.Paths):
 
     @property
     @af.make_path
-    def phase_output_path(self) -> str:
+    def output_path(self) -> str:
         return f"{directory}/phase_output_path"
 
 
 @pytest.fixture(name="paths")
 def make_paths():
-    paths = PatchPaths()
+    paths = PatchPaths(remove_files=True)
     return paths
 
 
 def test_backup_zip_remove(paths):
+
     os.mkdir(paths.sym_path)
     os.mkdir(paths.path)
 
@@ -59,9 +60,9 @@ def test_restore(paths):
 
     paths.restore()
 
-    assert os.path.exists(paths.phase_output_path)
+    assert os.path.exists(paths.output_path)
     assert os.path.exists(paths.backup_path)
     assert not os.path.exists(paths.zip_path)
 
     os.rmdir(paths.backup_path)
-    os.rmdir(paths.phase_output_path)
+    os.rmdir(paths.output_path)

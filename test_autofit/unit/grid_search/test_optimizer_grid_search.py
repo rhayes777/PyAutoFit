@@ -17,7 +17,7 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return af.OptimizerGridSearch(af.Paths(phase_name=""), number_of_steps=10, non_linear_class=DownhillSimplex)
+    return af.OptimizerGridSearch(af.Paths(name=""), number_of_steps=10, non_linear_class=DownhillSimplex)
 
 
 def test_unpickle_result():
@@ -57,7 +57,7 @@ class TestGridSearchablePriors:
         assert mappers[-1].profile.centre_1.upper_limit == 1.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = af.OptimizerGridSearch(af.Paths(phase_name=""), number_of_steps=10)
+        grid_search = af.OptimizerGridSearch(af.Paths(name=""), number_of_steps=10)
 
         mappers = list(
             grid_search.model_mappers(mapper, grid_priors=[mapper.profile.centre_0])
@@ -146,7 +146,7 @@ def make_grid_search_05(container):
     return af.OptimizerGridSearch(
         non_linear_class=container.MockOptimizer,
         number_of_steps=2,
-        paths=af.Paths(phase_name="sample_name"),
+        paths=af.Paths(name="sample_name"),
     )
 
 
@@ -178,7 +178,7 @@ class TestGridNLOBehaviour:
         grid_search = af.OptimizerGridSearch(
             non_linear_class=container.MockOptimizer,
             number_of_steps=3,
-            paths=af.Paths(phase_name="sample_name"),
+            paths=af.Paths(name="sample_name"),
         )
 
         grid_search.fit(model=mapper, analysis=container.MockAnalysis(), grid_priors=[mapper.profile.centre_0])
@@ -232,7 +232,7 @@ class TestGridNLOBehaviour:
         grid_search = af.OptimizerGridSearch(
             non_linear_class=container.MockOptimizer,
             number_of_steps=10,
-            paths=af.Paths(phase_name="sample_name"),
+            paths=af.Paths(name="sample_name"),
         )
         result = grid_search.fit(
             model=mapper,
@@ -292,7 +292,7 @@ class TestGridNLOBehaviour:
 
     def test_passes_attributes(self):
         grid_search = af.OptimizerGridSearch(
-            af.Paths(phase_name=""),
+            af.Paths(name=""),
             number_of_steps=10,
             non_linear_class=af.MultiNest,
         )
@@ -306,7 +306,7 @@ class TestGridNLOBehaviour:
         assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
         assert grid_search.paths.path != optimizer.paths.path
         assert grid_search.paths.backup_path != optimizer.paths.backup_path
-        assert grid_search.paths.phase_output_path != optimizer.paths.phase_output_path
+        assert grid_search.paths.output_path != optimizer.paths.output_path
 
 
 class MockResult:

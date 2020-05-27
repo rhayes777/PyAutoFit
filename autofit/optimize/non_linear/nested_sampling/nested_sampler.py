@@ -147,7 +147,7 @@ class NestedSampler(nl.NonLinearOptimizer):
 
                     pass
 
-    def _full_fit(self, model, analysis):
+    def _fit(self, model, analysis):
 
         if not os.path.exists(self.paths.has_completed_path):
 
@@ -162,7 +162,7 @@ class NestedSampler(nl.NonLinearOptimizer):
             self.paths.backup()
             open(self.paths.has_completed_path, "w+").close()
         else:
-            logger.warning(f"{self.paths.phase_name} has run previously - skipping")
+            logger.warning(f"{self.paths.name} has run previously - skipping")
 
         samples = self.samples_from_model(model=model)
 

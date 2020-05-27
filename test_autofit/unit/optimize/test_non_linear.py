@@ -76,14 +76,14 @@ class TestResult:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.phase_name == "phase_name/one"
+        assert copy.paths.name == "phase_name/one"
 
     def test_copy_with_name_extension(self):
-        optimizer = af.MockNLO(af.Paths("phase_name", phase_tag="tag"))
+        optimizer = af.MockNLO(af.Paths("phase_name", tag="tag"))
         copy = optimizer.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy)
-        assert optimizer.paths.phase_tag == copy.paths.phase_tag
+        assert optimizer.paths.tag == copy.paths.tag
 
 
 @pytest.fixture(name="nlo_setup_path")
@@ -129,7 +129,7 @@ def test_nlo_wrong_info():
 class TestDirectorySetup:
     def test__1_class__correct_directory(self, nlo_setup_path):
         conf.instance.output_path = nlo_setup_path + "1_class"
-        af.MockNLO(af.Paths(phase_name=""))
+        af.MockNLO(af.Paths(name=""))
 
         assert os.path.exists(nlo_setup_path + "1_class")
 

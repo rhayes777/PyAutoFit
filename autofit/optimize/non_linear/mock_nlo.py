@@ -8,10 +8,8 @@ from autofit.optimize.non_linear.non_linear import Result
 
 
 class MockNLO(NonLinearOptimizer):
-    def _fit(self, model, fitness_function):
-        raise NotImplementedError()
 
-    def _full_fit(self, model, analysis):
+    def _fit(self, model, analysis):
 
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")

@@ -64,13 +64,9 @@ class TestPipeline:
         except FileExistsError:
             pass
 
-        phase.save_optimizer_for_phase()
-        phase.assert_optimizer_pickle_matches_for_phase()
+
 
         phase.model.profile.centre_0 = af.UniformPrior()
-
-        with pytest.raises(af.exc.PipelineException):
-            phase.assert_optimizer_pickle_matches_for_phase()
 
     def test_name_composition(self):
         first = af.Pipeline("first")
@@ -78,16 +74,6 @@ class TestPipeline:
 
         assert (first + second).pipeline_name == "first + second"
 
-    def test_assert_and_save_pickle(self):
-        phase = af.AbstractPhase(phase_name="name")
-
-        phase.assert_and_save_pickle()
-        phase.assert_and_save_pickle()
-
-        phase.model.galaxy = Galaxy
-
-        with pytest.raises(af.exc.PipelineException):
-            phase.assert_and_save_pickle()
 
 
 # noinspection PyUnresolvedReferences

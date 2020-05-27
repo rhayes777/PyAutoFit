@@ -30,8 +30,7 @@ class Emcee(NonLinearOptimizer):
         auto_correlation_change_threshold=None,
         number_of_cores=None,
     ):
-        """
-        Class to setup and run an Emcee non-linear search.
+        """ Class to setup and run an Emcee non-linear search.
 
         For a full description of Emcee, checkout its Github and readthedocs webpages:
 
@@ -60,16 +59,11 @@ class Emcee(NonLinearOptimizer):
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
-
-        Attributes
-        ----------
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
-        auto_correlation_check_for_convergence : bool
-            Whether the auto-correlation lengths of the MCMC samples should be checked to determine the stopping
-            criteria. If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
-            been performed. If *False* nstep samples will be taken.
+        nwalkers : int
+            The number of walkers in the ensemble used to sample parameter space.
+        nsteps : int
+            The number of steps that must be taken by every walker. The non-linear search will thus run for nwalkers *
+            nsteps iterations.
         initialize_method : str
             The method used to generate where walkers are initialized in parameter space, with options:
             ball (default):
@@ -78,23 +72,27 @@ class Emcee(NonLinearOptimizer):
                 small, such that all walkers begin close to one another.
             prior:
                 Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
-                thus being fully distributed over the prior.
-        initialize_ball_upper_limit : float
+                thus being distributed over the prior.
+        initialize_ball_lower_limit : float
             The lower limit of the uniform distribution unit values are drawn from when initializing walkers using the
             ball method.
+        initialize_ball_upper_limit : float
             The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
             ball method.
+        auto_correlation_check_for_convergence : bool
+            Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
+            If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
+            been performed. If *False* nstep samples will be taken.
         auto_correlation_check_size : int
-            The length of the samples used to check the auto-correlation lengths (from the latest sample backwards). For
-            convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
-            thus requires more samples to meet the auto-correlation threshold, taking longer to terminate sampling.
+            The length of the samples used to check the auto-correlation lengths (from the latest sample backwards).
+            For convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
+            thus requires more samples meet the auto-correlation threshold, taking longer to terminate sampling.
             However, shorter chains risk stopping sampling early due to noise.
         auto_correlation_required_length : int
-            The length an auto_correlation chain must be for it to be evaluated whether its change threshold is
+            The length an auto_correlation chain must be for it to be used to evaluate whether its change threshold is
             sufficiently small to terminate sampling early.
         auto_correlation_change_threshold : float
-            The threshold value by which if the change in auto_correlations is below sampling will be terminated early,
-            as it has been determined as converged.
+            The threshold value by which if the change in auto_correlations is below sampling will be terminated early.
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
@@ -102,13 +100,6 @@ class Emcee(NonLinearOptimizer):
         All remaining attributes are emcee parameters and described at the emcee API webpage:
 
         https://emcee.readthedocs.io/en/stable/
-
-        Attributes
-        ----------
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
-
         """
 
         if paths is None:
@@ -166,25 +157,6 @@ class Emcee(NonLinearOptimizer):
 
         logger.debug("Creating Emcee NLO")
 
-    def _fit(self, model, analysis):
-        """
-        Fit a model using emcee and a function that returns a log likelihood from instances of that model.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        fitness_function
-            A function that fits this model to the data, returning the log likelihood of the fit.
-
-        Returns
-        -------
-        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
-        of the full chains used by the fit.
-        """
-        return self._full_fit(model=model, analysis=analysis)
-
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.
 
@@ -221,8 +193,23 @@ class Emcee(NonLinearOptimizer):
 
             return log_likelihood + sum(log_priors)
 
-    def _full_fit(self, model, analysis):
+    def _fit(self, model, analysis):
+        """
+        Fit a model using emcee and a function that returns a log likelihood from instances of that model.
 
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        fitness_function
+            A function that fits this model to the data, returning the log likelihood of the fit.
+
+        Returns
+        -------
+        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
+        of the full chains used by the fit.
+        """
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
