@@ -156,3 +156,13 @@ class TestFactorGraph:
             [[0, 0, 2],
              [3, 3, 5]]
         )).all()
+
+    def test_jacobian(self, x):
+        factor = fg.factor(
+            lambda p: 1 * p
+        )(x)
+
+        assert factor.jacobian(
+            'x',
+            x=2
+        ).log_value['x'] == pytest.approx(1)
