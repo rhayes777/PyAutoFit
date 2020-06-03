@@ -157,12 +157,16 @@ class TestFactorGraph:
              [3, 3, 5]]
         )).all()
 
-    def test_jacobian(self, x):
+    @pytest.mark.parametrize(
+        "coefficient",
+        [1, 2, 3, 4, 5]
+    )
+    def test_jacobian(self, x, coefficient):
         factor = fg.factor(
-            lambda p: 1 * p
+            lambda p: coefficient * p
         )(x)
 
         assert factor.jacobian(
             'x',
             x=2
-        ).log_value['x'] == pytest.approx(1)
+        ).log_value['x'] == pytest.approx(coefficient)
