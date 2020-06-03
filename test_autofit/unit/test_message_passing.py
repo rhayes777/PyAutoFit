@@ -12,11 +12,22 @@ def log_phi(x):
     return -x ** 2 / 2 - 0.5 * np.log(2 * np.pi)
 
 
+def plus_two(x):
+    return x + 2
+
+
 @pytest.fixture(
     name="x"
 )
 def make_x():
     return fg.Variable("x")
+
+
+@pytest.fixture(
+    name="y"
+)
+def make_y():
+    return fg.Variable('y')
 
 
 @pytest.fixture(
@@ -46,6 +57,26 @@ def make_compound(
     return sigmoid * phi
 
 
+@pytest.fixture(
+    name="plus"
+)
+def make_plus(x):
+    return fg.factor(plus_two)(x)
+
+
+@pytest.fixture(
+    name="flat_compound"
+)
+def make_flat_compound(
+        plus,
+        y,
+        sigmoid
+):
+    g = plus == y
+    phi = fg.factor(log_phi)(y)
+    return phi * g * sigmoid
+
+
 class TestFactorGraph:
     def test_names(
             self,
@@ -68,3 +99,21 @@ class TestFactorGraph:
         assert sigmoid(x).log_value == -0.006715348489118068
         assert phi(x).log_value == -13.418938533204672
         assert compound(x).log_value == -13.42565388169379
+
+    def test_deterministic_variable_name(
+            self,
+            flat_compound
+    ):
+        assert str(flat_compound) == "(Factor(log_phi)(y) * (Factor(plus_two)(x) == (y)) * Factor(log_sigmoid)(x))"
+
+    def test_deterministic_variable_value(
+            self,
+            flat_compound
+    ):
+        x = 3
+        value = flat_compound(x=x)
+
+        assert value.log_value == -13.467525884778414
+        assert value.deterministic_values == {
+            "y": 5
+        }
