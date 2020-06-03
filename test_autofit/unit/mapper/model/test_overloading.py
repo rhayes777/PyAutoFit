@@ -5,7 +5,7 @@ from test_autofit import mock
 
 
 def test_constructor():
-    prior_model = af.Model(mock.Circle)
+    prior_model = af.PriorModel(mock.Circle)
 
     assert prior_model.prior_count == 1
 
@@ -16,7 +16,7 @@ def test_constructor():
 
 
 def test_alternative():
-    prior_model = af.Model(mock.Circle.with_circumference)
+    prior_model = af.PriorModel(mock.Circle.with_circumference)
 
     assert prior_model.prior_count == 1
 
