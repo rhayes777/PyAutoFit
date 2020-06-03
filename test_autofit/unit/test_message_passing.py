@@ -56,3 +56,15 @@ class TestFactorGraph:
         assert sigmoid.name == "log_sigmoid"
         assert phi.name == "log_phi"
         assert compound.name == "log_sigmoid.log_phi"
+
+    def test_argument(
+            self,
+            sigmoid,
+            phi,
+            compound
+    ):
+        x = 5
+
+        assert sigmoid(x).log_value == -0.006715348489118068
+        assert phi(x).log_value == -13.418938533204672
+        assert compound(x).log_value == -13.42565388169379
