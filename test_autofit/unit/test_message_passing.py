@@ -1,3 +1,5 @@
+from operator import sub
+
 import numpy as np
 import pytest
 
@@ -132,3 +134,25 @@ class TestFactorGraph:
         assert value.deterministic_values == {
             "y": 5
         }
+
+    def test_plates(self):
+        obs = fg.Plate(name='obs')
+        dims = fg.Plate(name='dims')
+
+        x = fg.Variable('x', obs, dims)
+        y = fg.Variable('y', dims)
+
+        subtract = fg.factor(sub)(x, y)
+
+        x = np.array(
+            [[1, 2, 3],
+             [4, 5, 6]]
+        )
+        y = np.array([1, 2, 1])
+
+        value = subtract(x, y).log_value
+
+        assert (value == np.array(
+            [[0, 0, 2],
+             [3, 3, 5]]
+        )).all()

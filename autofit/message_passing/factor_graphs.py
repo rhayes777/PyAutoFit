@@ -16,8 +16,12 @@ _plate_ids = count()
 
 
 class Plate:
-    def __init__(self, index=slice(None), id_: Optional[int] = None,
-                 name: Optional[str] = None):
+    def __init__(
+            self,
+            index=slice(None),
+            id_: Optional[int] = None,
+            name: Optional[str] = None
+    ):
         self.index = index
         self.id = next(_plate_ids) if id_ is None else id_
         self.name = f"plate_{self.id}" if name is None else name
