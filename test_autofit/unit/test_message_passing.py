@@ -100,6 +100,21 @@ class TestFactorGraph:
         assert phi(x).log_value == -13.418938533204672
         assert compound(x).log_value == -13.42565388169379
 
+    def test_broadcast(
+            self,
+            compound
+    ):
+        length = 2 ** 10
+        array = np.linspace(-5, 5, length)
+        result = compound(array)
+        log_value = result.log_value
+
+        assert isinstance(
+            result.log_value,
+            np.ndarray
+        )
+        assert log_value.shape == (length,)
+
     def test_deterministic_variable_name(
             self,
             flat_compound
