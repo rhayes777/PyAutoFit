@@ -263,6 +263,10 @@ class NonLinearOptimizer(ABC):
 
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
+            if self.analysis.log_likelihood_cap is not None:
+                if log_likelihood > self.analysis.log_likelihood_cap:
+                    log_likelihood = self.analysis.log_likelihood_cap
+
             if log_likelihood > self.max_log_likelihood:
 
                 if self.pool_ids is not None:
