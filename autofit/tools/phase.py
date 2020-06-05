@@ -5,6 +5,7 @@ from typing import Dict
 
 import dill
 
+from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.optimize.non_linear.paths import convert_paths
 from autofit.mapper.prior.promise import PromiseResult
@@ -306,3 +307,29 @@ def as_grid_search(phase_class, parallel=False):
             )
 
     return GridSearchExtension
+
+
+class AbstractPhaseSettings:
+
+    def __init__(self, log_likelihood_cap=None):
+
+        self.log_likelihood_cap = log_likelihood_cap
+
+    @property
+    def log_likelihood_cap_tag(self):
+        """Generate a bin up tag, to customize phase names based on the resolutioon the image is binned up by for faster \
+        run times.
+
+        This changes the phase settings folder is tagged as follows:
+
+        bin_up_factor = 1 -> settings
+        bin_up_factor = 2 -> settings_bin_up_factor_2
+        bin_up_factor = 2 -> settings_bin_up_factor_2
+        """
+        if self.log_likelihood_cap is None:
+            return ""
+        return (
+            "__"
+            + conf.instance.tag.get("phase", "log_likelihood_cap", str)
+            + "_{0:.1f}".format(self.log_likelihood_cap)
+        )

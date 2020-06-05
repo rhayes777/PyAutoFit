@@ -9,7 +9,9 @@ from typing import Dict
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
 from autofit.optimize.non_linear.paths import Paths, convert_paths
-from autofit.text import formatter, samples_text, model_text
+from autofit.text import formatter
+from autofit.text import samples_text
+from autofit.text import model_text
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
@@ -351,6 +353,11 @@ class NonLinearOptimizer(ABC):
 
 
 class Analysis:
+
+    def __init__(self, log_likelihood_cap=None):
+
+        self.log_likelihood_cap = log_likelihood_cap
+
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 

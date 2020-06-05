@@ -93,7 +93,7 @@ class TestAssertion:
 
     # noinspection PyUnresolvedReferences
     def test_annotation(self):
-        model = af.Model(mock.DistanceClass)
+        model = af.PriorModel(mock.DistanceClass)
         assertion = model.first < model.second
 
         assert assertion.instance_for_arguments({

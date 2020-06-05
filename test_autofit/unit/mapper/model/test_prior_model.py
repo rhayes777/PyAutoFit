@@ -367,7 +367,7 @@ class TestPriorModelArguments:
         deferred_instance = tracer.instance_for_arguments({lens_galaxy.redshift: 0.5})
         instance = deferred_instance(grid=None)
 
-        assert instance.lens_galaxy.redshift == 0.5
+        assert instance.galaxy.redshift == 0.5
         assert instance.source_galaxy is source_galaxy
 
     def test_no_passing(self):

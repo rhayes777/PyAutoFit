@@ -57,6 +57,7 @@ from .tools.phase import AbstractPhase
 from .tools.phase import Dataset
 from .tools.phase import Phase
 from .tools.phase import as_grid_search
+from .tools.phase import AbstractPhaseSettings
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection

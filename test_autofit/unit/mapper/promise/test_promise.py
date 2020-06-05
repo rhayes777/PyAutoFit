@@ -162,7 +162,7 @@ class TestIndexLast:
             )
         )
 
-        result = af.last.model.galaxy.populate(collection)
+        result = af.last.model.light.populate(collection)
         assert result is galaxy_model_1
 
     def test_populate(self):
@@ -177,10 +177,10 @@ class TestIndexLast:
 
         collection.add("phase two", mock.Result(model=model_2, instance=None))
 
-        result = af.last.model.galaxy.populate(collection)
+        result = af.last.model.light.populate(collection)
         assert result is galaxy_model_2
 
-        result = af.last[-1].model.galaxy.populate(collection)
+        result = af.last[-1].model.light.populate(collection)
         assert result is galaxy_model_1
 
     def test_results_collection_duplicates(self):
