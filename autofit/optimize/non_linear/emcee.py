@@ -39,13 +39,13 @@ class Emcee(NonLinearOptimizer):
 
         Extensions:
 
-        **PyAutoFit** provides the option to check the auto-correlation length of the samples during the run and
-        terminating sampling early if these meet a specified threshold. See this page
-        (https://emcee.readthedocs.io/en/stable/tutorials/autocorr/#autocorr) for a description.
+        - Provides the option to check the auto-correlation length of the samples during the run and terminating
+          sampling early if these meet a specified threshold. See this page
+          (https://emcee.readthedocs.io/en/stable/tutorials/autocorr/#autocorr) for a description.
 
-        **PyAutoFit** also provides different options for walker initialization, with the default 'ball' method
-        starting all walkers close to one another in parameter space, as recommended in the Emcee documentation
-        (https://emcee.readthedocs.io/en/stable/user/faq/).
+        - Provides different options for walker initialization, with the default 'ball' method starting all walkers
+          close to one another in parameter space, as recommended in the Emcee documentation
+          (https://emcee.readthedocs.io/en/stable/user/faq/).
 
         If you use *Emcee* as part of a published work, please cite the package following the instructions under the
         *Attribution* section of the GitHub page.
@@ -222,24 +222,7 @@ class Emcee(NonLinearOptimizer):
 
         except AttributeError:
 
-            emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, emcee_sampler.ndim))
-
-            if self.initialize_method in "ball":
-
-                for walker_index in range(emcee_sampler.nwalkers):
-                    emcee_state[walker_index, :] = np.asarray(
-                        model.random_vector_from_priors_within_limits(
-                            lower_limit=self.initialize_ball_lower_limit,
-                            upper_limit=self.initialize_ball_upper_limit
-                        )
-                    )
-
-            elif self.initialize_method in "prior":
-
-                for walker_index in range(emcee_sampler.nwalkers):
-                    emcee_state[walker_index, :] = np.asarray(
-                        model.random_vector_from_priors
-                    )
+            emcee_state = self.initial_points_from_model(number_of_points=emcee_sampler.nwalkers, model=model)
 
             previous_run_converged = False
 

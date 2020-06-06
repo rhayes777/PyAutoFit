@@ -1,3 +1,4 @@
+import configparser
 from abc import ABC, abstractmethod
 import logging
 import pickle
@@ -72,21 +73,41 @@ class NonLinearOptimizer(ABC):
 
         self.paths.restore()
 
-        self.initialize_method = (
-            self.config("initialize", "method", str)
-            if initialize_method is None
-            else initialize_method
-        )
-        self.initialize_ball_lower_limit = (
-            self.config("initialize", "ball_lower_limit", float)
-            if initialize_ball_lower_limit is None
-            else initialize_ball_lower_limit
-        )
-        self.initialize_ball_upper_limit = (
-            self.config("initialize", "ball_upper_limit", float)
-            if initialize_ball_upper_limit is None
-            else initialize_ball_upper_limit
-        )
+        try:
+
+            self.initialize_method = (
+                self.config("initialize", "method", str)
+                if initialize_method is None
+                else initialize_method
+            )
+
+        except configparser.NoSectionError:
+
+            self.initialize_method = None
+
+        try:
+
+            self.initialize_ball_lower_limit = (
+                self.config("initialize", "ball_lower_limit", float)
+                if initialize_ball_lower_limit is None
+                else initialize_ball_lower_limit
+            )
+
+        except configparser.NoSectionError:
+
+            self.initialize_ball_lower_limit = None
+
+        try:
+
+            self.initialize_ball_upper_limit = (
+                self.config("initialize", "ball_upper_limit", float)
+                if initialize_ball_upper_limit is None
+                else initialize_ball_upper_limit
+            )
+
+        except configparser.NoSectionError:
+
+            self.initialize_ball_upper_limit = None
 
         self.number_of_cores = number_of_cores
 
@@ -441,6 +462,7 @@ class NonLinearOptimizer(ABC):
             ids = pool.map(f, range(self.number_of_cores))
 
             return pool, [id[1] for id in ids]
+
 
 
 class Analysis:

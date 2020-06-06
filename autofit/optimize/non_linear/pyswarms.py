@@ -2,6 +2,7 @@ import logging
 import os
 import pyswarms
 import numpy as np
+import pickle
 
 from autofit import exc
 from autofit.text import samples_text
@@ -27,6 +28,7 @@ class PySwarmsGlobal(NonLinearOptimizer):
         initialize_method=None,
         initialize_ball_lower_limit=None,
         initialize_ball_upper_limit=None,
+        iterations_per_update=None,
         number_of_cores=None,
     ):
         """ Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
@@ -55,6 +57,17 @@ class PySwarmsGlobal(NonLinearOptimizer):
         given two choices: (1) to follow its personal best or (2) follow the swarm’s global best position. Overall,
         this dictates if the swarm is explorative or exploitative in nature. In addition, a parameter w controls
         the inertia of the swarm’s movement.
+
+        Extensions:
+
+        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by outputting the
+          necessary results (e.g. the points of the particles) during the model-fit after an input number of iterations.
+
+        - Different options for particle intialization, with the default 'prior' method starting all particles over the
+        priors defined by each parameter.
+
+        If you use *PySwarms* as part of a published work, please cite the package following the instructions under the
+        *Attribution* section of the GitHub page.
 
         Parameters
         ----------
@@ -113,12 +126,18 @@ class PySwarmsGlobal(NonLinearOptimizer):
         self.sigma = sigma
 
         self.n_particles = self.config("search", "n_particles", int) if n_particles is None else n_particles
-        self.iters = self.config("search", "iter", int) if iters is None else iters
+        self.iters = self.config("search", "iters", int) if iters is None else iters
 
         self.cognitive = self.config("search", "cognitive", float) if cognitive is None else cognitive
         self.social = self.config("search", "social", float) if social is None else social
         self.inertia = self.config("search", "inertia", float) if inertia is None else inertia
         self.ftol = self.config("search", "ftol", float) if ftol is None else ftol
+
+        self.iterations_per_update = (
+            self.config("settings", "iterations_per_update", int)
+            if iterations_per_update is None
+            else iterations_per_update
+        )
 
         self.number_of_cores = (
             self.config("parallel", "number_of_cores", int)
@@ -145,6 +164,7 @@ class PySwarmsGlobal(NonLinearOptimizer):
         copy.initialize_method = self.initialize_method
         copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
         copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.iterations_per_upddate = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
 
         return copy
@@ -153,6 +173,10 @@ class PySwarmsGlobal(NonLinearOptimizer):
         def __call__(self, params):
 
             log_likelihoods = []
+
+            print()
+            print(params)
+            print()
 
             for params_of_particle in params:
 
@@ -190,32 +214,64 @@ class PySwarmsGlobal(NonLinearOptimizer):
             model=model, analysis=analysis, pool_ids=pool_ids,
         )
 
-        pso = pyswarms.global_best.GlobalBestPSO(
-            n_particles=self.n_particles,
-            dimensions=model.prior_count,
-            options={'c1' : self.cognitive, 'c2' : self.social, 'w' : self.inertia},
-            ftol=self.ftol,
-            init_pos=init_pos,
-        )
+        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "points")):
 
-        # try:
-        #
-        #     None
-        #     # TODO : Something to do with checking for pevious results.
-        #
-        # except AttributeError:
+            init_pos = self.load_initial_points
+            total_iterations = self.load_total_iterations
+
+        else:
+
+            init_pos = self.initial_points_from_model(number_of_points=self.n_particles, model=model)
+            total_iterations = 0
+
+        finished = False
 
         logger.info("Running PySwarmsGlobal Optimizer...")
 
-        result = pso.optimize(objective_func=fitness_function.__call__, iters=self.iters, n_processes=self.number_of_cores)
+        while not finished:
 
-        max_log_likelihood = -0.5*result[0]
-        max_log_likelihood_vector = result[1]
+            pso = pyswarms.global_best.GlobalBestPSO(
+                n_particles=self.n_particles,
+                dimensions=model.prior_count,
+                options={'c1' : self.cognitive, 'c2' : self.social, 'w' : self.inertia},
+                ftol=self.ftol,
+                init_pos=init_pos,
+            )
 
-        print(fitness_function.lol)
-        print(max_log_likelihood)
-        print(max_log_likelihood_vector)
-        stop
+            iterations_remaining = self.iters - total_iterations
+
+            if self.iterations_per_update > iterations_remaining:
+                iterations = iterations_remaining
+            else:
+                iterations = self.iterations_per_update
+
+            if iterations > 0:
+
+                result = pso.optimize(
+                    objective_func=fitness_function.__call__,
+                    iters=iterations,
+                    n_processes=self.number_of_cores
+                )
+
+                total_iterations += iterations
+
+                with open(f"{self.paths.samples_path}/total_iterations.pickle", "wb") as f:
+                    pickle.dump(total_iterations, f)
+
+                with open(f"{self.paths.samples_path}/points.pickle", "wb") as f:
+                    pickle.dump(pso.pos_history[-1], f)
+
+                with open(f"{self.paths.samples_path}/max_log_likelihood.pickle", "wb") as f:
+                    pickle.dump(-0.5*result[0], f)
+
+                with open(f"{self.paths.samples_path}/max_log_likelihood_vector.pickle", "wb") as f:
+                    pickle.dump(-0.5*result[1], f)
+
+            if total_iterations >= self.iters:
+                finished = True
+
+        max_log_likelihood = self.load_max_log_likelihood
+        max_log_likelihood_vector = self.load_max_log_likelihood_vector
 
         logger.info("PySwarmsGlobal complete")
 
@@ -234,6 +290,26 @@ class PySwarmsGlobal(NonLinearOptimizer):
         self.paths.backup_zip_remove()
 
         return Result(samples=samples, previous_model=model)
+
+    @property
+    def load_total_iterations(self):
+        with open("{}/{}.pickle".format(self.paths.samples_path, "total_iterations"), "rb") as f:
+            return pickle.load(f)
+
+    @property
+    def load_initial_points(self):
+        with open("{}/{}.pickle".format(self.paths.samples_path, "points"), "rb") as f:
+            return pickle.load(f)
+
+    @property
+    def load_max_log_likelihood(self):
+        with open("{}/{}.pickle".format(self.paths.samples_path, "max_log_likelihood"), "rb") as f:
+            return pickle.load(f)
+
+    @property
+    def load_max_log_likelihood_vector(self):
+        with open("{}/{}.pickle".format(self.paths.samples_path, "max_log_likelihood_vector"), "rb") as f:
+            return pickle.load(f)
 
     def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
 

@@ -4,7 +4,6 @@ import pickle
 import numpy as np
 from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
-from multiprocessing.pool import Pool
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.optimize.non_linear import samples
@@ -48,8 +47,10 @@ class AbstractDynesty(NestedSampler):
 
         https://dynesty.readthedocs.io/en/latest/index.html
 
-        **PyAutoFit** extends Dynesty by allowing runs to be terminated and resumed from that point. This is achieved
-        by pickling the sampler instance during the model-fit after an input number of iterations.
+        Extensions:
+
+        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by pickling the
+          sampler instance during the model-fit after an input number of iterations.
 
         Attributes unique to **PyAutoFit** are described below, all remaining attributes are DyNesty parameters are
         described at the Dynesty API webpage:
@@ -260,9 +261,9 @@ class AbstractDynesty(NestedSampler):
         else:
             sampler.M = pool.map
 
-        dynesty_finished = False
+        finished = False
 
-        while not dynesty_finished:
+        while not finished:
 
             try:
                 iterations_before_run = np.sum(sampler.results.ncall)
@@ -278,7 +279,7 @@ class AbstractDynesty(NestedSampler):
 
             if iterations_before_run == iterations_after_run:
 
-                dynesty_finished = True
+                finished = True
 
         self.paths.backup()
 

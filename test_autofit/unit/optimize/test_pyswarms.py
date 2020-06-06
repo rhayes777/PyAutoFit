@@ -29,6 +29,7 @@ class TestPySwarmsGlobalConfig:
             initialize_method="ball",
             initialize_ball_lower_limit=0.2,
             initialize_ball_upper_limit=0.8,
+            iterations_per_update=10,
             number_of_cores=2,
         )
 
@@ -40,6 +41,7 @@ class TestPySwarmsGlobalConfig:
         assert pso.initialize_method == "ball"
         assert pso.initialize_ball_lower_limit == 0.2
         assert pso.initialize_ball_upper_limit == 0.8
+        assert pso.iterations_per_update == 10
         assert pso.number_of_cores == 2
 
         pso = af.PySwarmsGlobal()
@@ -52,6 +54,7 @@ class TestPySwarmsGlobalConfig:
         assert pso.initialize_method == "prior"
         assert pso.initialize_ball_lower_limit == 0.49
         assert pso.initialize_ball_upper_limit == 0.51
+        assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
 
     def test__samples_from_model(self):
@@ -143,6 +146,7 @@ class TestCopyWithNameExtension:
         assert copy.initialize_method is optimizer.initialize_method
         assert copy.initialize_ball_lower_limit is optimizer.initialize_ball_lower_limit
         assert copy.initialize_ball_upper_limit is optimizer.initialize_ball_upper_limit
+        assert copy.iterations_per_update is optimizer.iterations_per_update
         assert (
             copy.number_of_cores
             is optimizer.number_of_cores
