@@ -10,13 +10,12 @@ from autofit.text import model_text
 logger = logging.getLogger(__name__)
 
 
-class AbstractSamples:
-    def __init__(self, model, parameters, log_likelihoods, log_priors, weights, unconverged_sample_size=100):
-        """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
-        as files on your hard-disk) and Python.
+class OptimizerSamples:
 
-        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
-        individual sample by the non-linear search and return information on the likelihoods, errors, etc.
+    def __init__(self, model, parameters, log_likelihoods):
+        """The *Samples* of a non-linear search, specifically the samples of an optimizer which only provides
+        information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
+        not provide information on parameter errors.
 
         Parameters
         ----------
@@ -27,10 +26,6 @@ class AbstractSamples:
         self.total_samples = len(log_likelihoods)
         self.parameters = parameters
         self.log_likelihoods = log_likelihoods
-        self.log_priors = log_priors
-        self.weights = weights
-        self.log_posteriors = [lh * prior for lh, prior in zip(log_likelihoods, log_priors)]
-        self._unconverged_sample_size = unconverged_sample_size
 
     @property
     def parameter_names(self):
@@ -39,18 +34,6 @@ class AbstractSamples:
     @property
     def parameter_labels(self):
         return model_text.parameter_labels_from_model(model=self.model)
-
-    @property
-    def unconverged_sample_size(self):
-        """If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
-        an alternative to GetDist.
-
-        These use a subset of samples spanning the range from the most recent sample to the valaue of the
-        unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
-         the size of the total number of samples"""
-        if self.total_samples > self._unconverged_sample_size:
-            return self._unconverged_sample_size
-        return self.total_samples
 
     @property
     def max_log_likelihood_index(self) -> int:
@@ -66,6 +49,62 @@ class AbstractSamples:
     def max_log_likelihood_instance(self) -> model.ModelInstance:
         """  The parameters of the maximum log likelihood sample of the non-linear search returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
+
+    def gaussian_priors_at_sigma(self, sigma) -> [list]:
+        """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
+        same (or similar) parameters in a subsequent phase, where:
+
+         - The mean is given by maximum log likelihood model values.
+         - Their errors are omitted, as this information is not available from an optimizer. When these priors are
+           used to link to another phase, it will thus automatically use the prior config values.
+
+        Parameters
+        -----------
+        sigma : float
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
+            PDF).
+        """
+        return list(map(lambda vector : (vector, 0.0), self.max_log_likelihood_vector))
+
+    def instance_from_sample_index(self, sample_index) -> model.ModelInstance:
+        """The parameters of an individual saple of the non-linear search, returned as a model instance.
+
+        Parameters
+        -----------
+        sample_index : int
+            The sample index of the weighted sample to return.
+        """
+        return self.model.instance_from_vector(vector=self.parameters[sample_index])
+
+class PosteriorSamples(OptimizerSamples):
+    def __init__(self, model, parameters, log_likelihoods, log_priors, weights, unconverged_sample_size=100):
+        """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
+        posterior of parameter space and thus does provide information on parameter errors.
+
+        Parameters
+        ----------
+        model : af.ModelMapper
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        """
+
+        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods)
+
+        self.log_priors = log_priors
+        self.weights = weights
+        self.log_posteriors = [lh * prior for lh, prior in zip(log_likelihoods, log_priors)]
+        self._unconverged_sample_size = unconverged_sample_size
+
+    @property
+    def unconverged_sample_size(self):
+        """If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
+        an alternative to GetDist.
+
+        These use a subset of samples spanning the range from the most recent sample to the valaue of the
+        unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
+         the size of the total number of samples"""
+        if self.total_samples > self._unconverged_sample_size:
+            return self._unconverged_sample_size
+        return self.total_samples
 
     @property
     def max_log_posterior_index(self) -> int:
@@ -412,16 +451,6 @@ class AbstractSamples:
         """
         raise NotImplementedError()
 
-    def instance_from_sample_index(self, sample_index) -> model.ModelInstance:
-        """The parameters of an individual saple of the non-linear search, returned as a model instance.
-
-        Parameters
-        -----------
-        sample_index : int
-            The sample index of the weighted sample to return.
-        """
-        return self.model.instance_from_vector(vector=self.parameters[sample_index])
-
     def offset_vector_from_input_vector(self, input_vector) -> [float]:
         """ The values of an input_vector offset by the *most_probable_vector* (the PDF medians).
 
@@ -493,17 +522,23 @@ class AbstractSamples:
         plt.close()
 
 
-class MCMCSamples(AbstractSamples):
+class MCMCSamples(PosteriorSamples):
 
     def __init__(
             self,
             model,
-            parameters, log_likelihoods, log_priors, weights,
+            parameters,
+            log_likelihoods,
+            log_priors,
+            weights,
             auto_correlation_times,
             auto_correlation_check_size,
             auto_correlation_required_length,
-            auto_correlation_change_threshold, total_walkers, total_steps,
-            backend, unconverged_sample_size=100
+            auto_correlation_change_threshold,
+            total_walkers,
+            total_steps,
+            backend,
+            unconverged_sample_size=100
     ):
         """
         Attributes
@@ -642,7 +677,7 @@ class MCMCSamples(AbstractSamples):
         pass
 
 
-class NestedSamplerSamples(AbstractSamples):
+class NestedSamplerSamples(PosteriorSamples):
 
     def __init__(
             self,

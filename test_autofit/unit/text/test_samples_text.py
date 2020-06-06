@@ -22,7 +22,7 @@ def make_samples(model):
 
     log_likelihoods = [1.0, 0.0]
 
-    return af.AbstractSamples(
+    return af.PosteriorSamples(
         model=model,
         parameters=parameters,
         log_likelihoods=log_likelihoods,

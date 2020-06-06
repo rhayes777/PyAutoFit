@@ -47,7 +47,7 @@ from .optimize.non_linear.non_linear import Result
 from .optimize.non_linear.paths import Paths
 from .optimize.non_linear.paths import convert_paths
 from .optimize.non_linear.paths import make_path
-from .optimize.non_linear.samples import AbstractSamples
+from .optimize.non_linear.samples import PosteriorSamples
 from .optimize.non_linear.samples import MCMCSamples
 from .optimize.non_linear.samples import NestedSamplerSamples
 from .text import Model

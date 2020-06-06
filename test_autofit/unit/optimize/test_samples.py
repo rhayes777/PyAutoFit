@@ -1,13 +1,13 @@
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear.samples import AbstractSamples
+from autofit.optimize.non_linear.samples import OptimizerSamples, PosteriorSamples
 from test_autofit.mock import MockClassNLOx2, MockClassNLOx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-class TestSamples:
+class TestOptimizerSamples:
 
     def test__parameter_names_and_labels(self):
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
@@ -20,12 +20,10 @@ class TestSamples:
 
         log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
 
-        samples = AbstractSamples(
+        samples = OptimizerSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
-            log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weights=[],
         )
 
         assert samples.parameter_names == [
@@ -43,6 +41,7 @@ class TestSamples:
         ]
 
     def test__max_log_likelihood_vector_and_instance(self):
+
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
         parameters = [[0.0, 1.0, 2.0, 3.0],
@@ -53,12 +52,10 @@ class TestSamples:
 
         log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
 
-        samples = AbstractSamples(
+        samples = OptimizerSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
-            log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weights=[],
         )
 
         assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
@@ -69,6 +66,67 @@ class TestSamples:
         assert instance.mock_class_1.two == 22.0
         assert instance.mock_class_1.three == 23.0
         assert instance.mock_class_1.four == 24.0
+
+    def test__gaussian_priors(self):
+        parameters = [[1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.1],
+                      [1.0, 2.0, 3.0, 4.1],
+                      [0.88, 1.88, 2.88, 3.88],
+                      [1.12, 2.12, 3.12, 4.32]]
+
+        log_likelihoods = [10.0, 0.0, 0.0, 0.0, 0.0]
+
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        samples = OptimizerSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+        )
+
+        gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
+
+        assert gaussian_priors[0][0] == 1.0
+        assert gaussian_priors[1][0] == 2.0
+        assert gaussian_priors[2][0] == 3.0
+        assert gaussian_priors[3][0] == 4.0
+
+        assert gaussian_priors[0][1] == 0.0
+        assert gaussian_priors[1][1] == 0.0
+        assert gaussian_priors[2][1] == 0.0
+        assert gaussian_priors[3][1] == 0.0
+
+    def test__instance_from_sample_index(self):
+        model = af.ModelMapper(mock_class=MockClassNLOx4)
+
+        parameters = [[1.0, 2.0, 3.0, 4.0],
+                      [5.0, 6.0, 7.0, 8.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.0, 2.0, 3.0, 4.0],
+                      [1.1, 2.1, 3.1, 4.1]]
+
+        log_likelihoods = [0.0, 0.0, 0.0, 0.0, 0.0]
+
+        samples = OptimizerSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+        )
+
+        instance = samples.instance_from_sample_index(sample_index=0)
+
+        assert instance.mock_class.one == 1.0
+        assert instance.mock_class.two == 2.0
+        assert instance.mock_class.three == 3.0
+        assert instance.mock_class.four == 4.0
+
+        instance = samples.instance_from_sample_index(sample_index=1)
+
+        assert instance.mock_class.one == 5.0
+        assert instance.mock_class.two == 6.0
+        assert instance.mock_class.three == 7.0
+        assert instance.mock_class.four == 8.0
+
+class TestPosteriorSamples:
 
     def test__log_priors_and_max_log_posterior_vector_and_instance(self):
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
@@ -83,7 +141,7 @@ class TestSamples:
 
         log_priors = [1.0, 2.0, 3.0, 10.0, 5.0]
 
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -118,7 +176,7 @@ class TestSamples:
         log_likelihoods = list(range(10))
 
         model = af.ModelMapper(mock_class=MockClassNLOx2)
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -156,7 +214,7 @@ class TestSamples:
         weights = 10 * [0.1]
 
         model = af.ModelMapper(mock_class=MockClassNLOx2)
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -176,7 +234,7 @@ class TestSamples:
 
         log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
 
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=[[]],
             log_likelihoods=log_likelihoods,
@@ -189,7 +247,7 @@ class TestSamples:
 
         assert samples.unconverged_sample_size == 2
 
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=[[]],
             log_likelihoods=log_likelihoods,
@@ -213,7 +271,7 @@ class TestSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -242,7 +300,7 @@ class TestSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -290,7 +348,7 @@ class TestSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -334,7 +392,7 @@ class TestSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -374,7 +432,7 @@ class TestSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -396,41 +454,6 @@ class TestSamples:
         assert gaussian_priors[2][1] == pytest.approx(0.12, 1e-2)
         assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
 
-    def test__instance_from_sample_index(self):
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-
-        parameters = [[1.0, 2.0, 3.0, 4.0],
-                      [5.0, 6.0, 7.0, 8.0],
-                      [1.0, 2.0, 3.0, 4.0],
-                      [1.0, 2.0, 3.0, 4.0],
-                      [1.1, 2.1, 3.1, 4.1]]
-
-        weights = [0.2, 0.2, 0.2, 0.2, 0.2]
-
-        log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
-
-        samples = AbstractSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights
-        )
-
-        instance = samples.instance_from_sample_index(sample_index=0)
-
-        assert instance.mock_class.one == 1.0
-        assert instance.mock_class.two == 2.0
-        assert instance.mock_class.three == 3.0
-        assert instance.mock_class.four == 4.0
-
-        instance = samples.instance_from_sample_index(sample_index=1)
-
-        assert instance.mock_class.one == 5.0
-        assert instance.mock_class.two == 6.0
-        assert instance.mock_class.three == 7.0
-        assert instance.mock_class.four == 8.0
-
     def test__offset_vector_from_input_vector(self):
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
@@ -444,7 +467,7 @@ class TestSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        samples = AbstractSamples(
+        samples = PosteriorSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,

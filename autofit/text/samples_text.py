@@ -110,30 +110,31 @@ def results_to_file(samples, file_results, during_analysis):
     )
     results += ["\n\n"]
 
-    results += ["Most Likely Model:\n\n"]
-    max_log_likelihood = samples.max_log_likelihood_vector
+    results += ["Maximum Log Likelihood Model:\n\n"]
 
     formatter = frm.TextFormatter()
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
-        formatter.add((prior_path, format_str().format(max_log_likelihood[i])))
+        formatter.add((prior_path, format_str().format(samples.max_log_likelihood_vector[i])))
     results += [formatter.text + "\n"]
 
-    if samples.pdf_converged:
+    if hasattr(samples, "weights"):
 
-        results += results_at_sigma_from_samples(samples=samples, sigma=3.0)
-        results += ["\n"]
-        results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
+        if samples.pdf_converged:
 
-    else:
+            results += results_at_sigma_from_samples(samples=samples, sigma=3.0)
+            results += ["\n"]
+            results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
 
-        results += [
-            "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
-            "The model below over estimates errors. \n\n"
-        ]
-        results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
+        else:
 
-    results += ["\n\ninstances\n"]
+            results += [
+                "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
+                "The model below over estimates errors. \n\n"
+            ]
+            results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
+
+        results += ["\n\ninstances\n"]
 
     formatter = frm.TextFormatter()
 

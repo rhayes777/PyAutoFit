@@ -174,10 +174,6 @@ class PySwarmsGlobal(NonLinearOptimizer):
 
             log_likelihoods = []
 
-            print()
-            print(params)
-            print()
-
             for params_of_particle in params:
 
                 try:
@@ -265,13 +261,10 @@ class PySwarmsGlobal(NonLinearOptimizer):
                     pickle.dump(-0.5*result[0], f)
 
                 with open(f"{self.paths.samples_path}/max_log_likelihood_vector.pickle", "wb") as f:
-                    pickle.dump(-0.5*result[1], f)
+                    pickle.dump(result[1], f)
 
             if total_iterations >= self.iters:
                 finished = True
-
-        max_log_likelihood = self.load_max_log_likelihood
-        max_log_likelihood_vector = self.load_max_log_likelihood_vector
 
         logger.info("PySwarmsGlobal complete")
 
@@ -335,12 +328,8 @@ class PySwarmsGlobal(NonLinearOptimizer):
             A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
             backups, etc.
         """
-
-        max_log_likelihood = None
-        parameters = None
-
-        return samples.MCMCSamples(
+        return samples.OptimizerSamples(
             model=model,
-            parameters=parameters,
-            max_log_likelihood=max_log_likelihood,
+            parameters=[list(self.load_max_log_likelihood_vector)],
+            log_likelihoods=[self.load_max_log_likelihood]
         )

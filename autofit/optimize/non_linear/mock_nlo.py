@@ -1,7 +1,7 @@
 import math
 
 from autofit import exc
-from autofit.optimize.non_linear.samples import AbstractSamples
+from autofit.optimize.non_linear.samples import PosteriorSamples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Analysis
 from autofit.optimize.non_linear.non_linear import Result
@@ -64,7 +64,7 @@ class MockAnalysis(Analysis):
         self.data = data
 
 
-class MockSamples(AbstractSamples):
+class MockSamples(PosteriorSamples):
 
     def __init__(self, model=None, max_log_likelihood_instance=None, log_likelihoods=None, gaussian_tuples=None):
 
