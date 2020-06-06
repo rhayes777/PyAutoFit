@@ -103,7 +103,12 @@ class PySwarmsGlobal(NonLinearOptimizer):
         if paths is None:
             paths = Paths(non_linear_name=type(self).__name__.lower())
 
-        super().__init__(paths=paths)
+        super().__init__(
+            paths=paths,
+            initialize_method=initialize_method,
+            initialize_ball_lower_limit=initialize_ball_lower_limit,
+            initialize_ball_upper_limit=initialize_ball_upper_limit
+        )
 
         self.sigma = sigma
 
@@ -114,22 +119,6 @@ class PySwarmsGlobal(NonLinearOptimizer):
         self.social = self.config("search", "social", float) if social is None else social
         self.inertia = self.config("search", "inertia", float) if inertia is None else inertia
         self.ftol = self.config("search", "ftol", float) if ftol is None else ftol
-
-        self.initialize_method = (
-            self.config("initialize", "method", str)
-            if initialize_method is None
-            else initialize_method
-        )
-        self.initialize_ball_lower_limit = (
-            self.config("initialize", "ball_lower_limit", float)
-            if initialize_ball_lower_limit is None
-            else initialize_ball_lower_limit
-        )
-        self.initialize_ball_upper_limit = (
-            self.config("initialize", "ball_upper_limit", float)
-            if initialize_ball_upper_limit is None
-            else initialize_ball_upper_limit
-        )
 
         self.number_of_cores = (
             self.config("parallel", "number_of_cores", int)
@@ -200,31 +189,6 @@ class PySwarmsGlobal(NonLinearOptimizer):
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis, pool_ids=pool_ids,
         )
-
-        init_pos = np.zeros(shape=(self.n_particles, model.prior_count))
-
-        if self.initialize_method in "ball":
-
-            for particle_index in range(self.n_particles):
-
-                init_pos[particle_index, :] = np.asarray(
-                    model.random_vector_from_priors_within_limits(
-                        lower_limit=self.initialize_ball_lower_limit,
-                        upper_limit=self.initialize_ball_upper_limit
-                    )
-                )
-
-        elif self.initialize_method in "prior":
-
-            for particle_index in range(self.n_particles):
-
-                init_pos[particle_index, :] = np.asarray(
-                    model.random_vector_from_priors
-                )
-
-        else:
-
-            init_pos = None
 
         pso = pyswarms.global_best.GlobalBestPSO(
             n_particles=self.n_particles,

@@ -104,28 +104,17 @@ class Emcee(NonLinearOptimizer):
         if paths is None:
             paths = Paths(non_linear_name=type(self).__name__.lower())
 
-        super().__init__(paths=paths)
+        super().__init__(
+            paths=paths,
+            initialize_method=initialize_method,
+            initialize_ball_lower_limit=initialize_ball_lower_limit,
+            initialize_ball_upper_limit=initialize_ball_upper_limit
+        )
 
         self.sigma = sigma
 
         self.nwalkers = self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
         self.nsteps = self.config("search", "nsteps", int) if nsteps is None else nsteps
-
-        self.initialize_method = (
-            self.config("initialize", "method", str)
-            if initialize_method is None
-            else initialize_method
-        )
-        self.initialize_ball_lower_limit = (
-            self.config("initialize", "ball_lower_limit", float)
-            if initialize_ball_lower_limit is None
-            else initialize_ball_lower_limit
-        )
-        self.initialize_ball_upper_limit = (
-            self.config("initialize", "ball_upper_limit", float)
-            if initialize_ball_upper_limit is None
-            else initialize_ball_upper_limit
-        )
 
         self.auto_correlation_check_for_convergence = (
             self.config("auto_correlation", "check_for_convergence", bool)

@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 class NonLinearOptimizer(ABC):
     @convert_paths
-    def __init__(self, paths=None, number_of_cores=1):
+    def __init__(self, paths=None,         initialize_method=None,
+        initialize_ball_lower_limit=None,
+        initialize_ball_upper_limit=None,
+                 number_of_cores=1):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
@@ -27,7 +30,27 @@ class NonLinearOptimizer(ABC):
 
         Parameters
         ------------
-
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
+            backups, etc.
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        initialize_method : str
+            The method used to generate where walkers are initialized in parameter space, with options:
+            ball (default):
+                Walkers are initialized by randomly drawing unit values from a uniform distribution between the
+                initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
+                small, such that all walkers begin close to one another.
+            prior:
+                Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
+                thus being distributed over the prior.
+        initialize_ball_lower_limit : float
+            The lower limit of the uniform distribution unit values are drawn from when initializing walkers using the
+            ball method.
+        initialize_ball_upper_limit : float
+            The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
+            ball method.
         """
 
         if paths is None:
@@ -48,6 +71,22 @@ class NonLinearOptimizer(ABC):
             ]
 
         self.paths.restore()
+
+        self.initialize_method = (
+            self.config("initialize", "method", str)
+            if initialize_method is None
+            else initialize_method
+        )
+        self.initialize_ball_lower_limit = (
+            self.config("initialize", "ball_lower_limit", float)
+            if initialize_ball_lower_limit is None
+            else initialize_ball_lower_limit
+        )
+        self.initialize_ball_upper_limit = (
+            self.config("initialize", "ball_upper_limit", float)
+            if initialize_ball_upper_limit is None
+            else initialize_ball_upper_limit
+        )
 
         self.number_of_cores = number_of_cores
 
@@ -101,6 +140,26 @@ class NonLinearOptimizer(ABC):
     @abstractmethod
     def _fit(self, model, analysis):
         pass
+
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        name = "{}/{}".format(self.paths.name, extension)
+
+        if remove_phase_tag:
+            phase_tag = ""
+        else:
+            phase_tag = self.paths.tag
+
+        new_instance = self.__class__(
+            paths=Paths(
+                name=name,
+                folders=self.paths.folders,
+                tag=phase_tag,
+                non_linear_name=self.paths.non_linear_name,
+                remove_files=self.paths.remove_files,
+            ),
+        )
+
+        return new_instance
 
     def config(self, section, attribute_name, attribute_type=str):
         """
@@ -305,25 +364,53 @@ class NonLinearOptimizer(ABC):
         def samples(self):
             return self.samples_from_model(model=self.model)
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        name = "{}/{}".format(self.paths.name, extension)
+    def initial_points_from_model(self, number_of_points, model):
+        """Generate the initial points of the non-linear search, based on the initialize_method. The following methods
+        can be used:
 
-        if remove_phase_tag:
-            phase_tag = ""
+        ball (default):
+            Walkers are initialized by randomly drawing unit values from a uniform distribution between the
+            initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
+            small, such that all walkers begin close to one another.
+        prior:
+            Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
+            thus being distributed over the prior.
+
+        Parameters
+        ----------
+        number_of_points : int
+            The number of points in non-linear paramemter space which initial points are created for.
+        model : ModelMapper
+            An object that represents possible instances of some model with a given dimensionality which is the number
+            of free dimensions of the model.
+        """
+        
+        init_pos = np.zeros(shape=(number_of_points, model.prior_count))
+
+        if self.initialize_method in "ball":
+
+            for particle_index in range(number_of_points):
+
+                init_pos[particle_index, :] = np.asarray(
+                    model.random_vector_from_priors_within_limits(
+                        lower_limit=self.initialize_ball_lower_limit,
+                        upper_limit=self.initialize_ball_upper_limit
+                    )
+                )
+
+        elif self.initialize_method in "prior":
+
+            for particle_index in range(number_of_points):
+
+                init_pos[particle_index, :] = np.asarray(
+                    model.random_vector_from_priors
+                )
+
         else:
-            phase_tag = self.paths.tag
 
-        new_instance = self.__class__(
-            paths=Paths(
-                name=name,
-                folders=self.paths.folders,
-                tag=phase_tag,
-                non_linear_name=self.paths.non_linear_name,
-                remove_files=self.paths.remove_files,
-            ),
-        )
+            init_pos = None
 
-        return new_instance
+        return init_pos
 
     def samples_from_model(self, model):
         raise NotImplementedError()
