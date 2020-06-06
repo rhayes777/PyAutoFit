@@ -2,7 +2,6 @@ import logging
 import os
 import emcee
 import numpy as np
-import multiprocessing as mp
 
 from autofit import exc
 from autofit.text import samples_text

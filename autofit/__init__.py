@@ -35,6 +35,7 @@ from .mapper.prior_model.util import PriorModelNameValue
 from .optimize.grid_search import GridSearch as OptimizerGridSearch
 from .optimize.grid_search import GridSearchResult
 from .optimize.non_linear.downhill_simplex import DownhillSimplex
+from .optimize.non_linear.pyswarms import PySwarmsGlobal
 from .optimize.non_linear.emcee import Emcee
 from .optimize.non_linear.mock_nlo import MockNLO
 from .optimize.non_linear.nested_sampling.dynesty import DynestyDynamic
