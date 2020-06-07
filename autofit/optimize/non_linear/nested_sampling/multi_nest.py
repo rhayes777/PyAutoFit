@@ -119,13 +119,6 @@ class MultiNest(ns.NestedSampler):
             *True* (see *NestedSampler* for a full description of this feature).
         """
 
-        super().__init__(
-            paths=paths,
-            sigma=sigma,
-            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=acceptance_ratio_threshold,
-        )
-
         self.n_live_points = (
             self.config("search", "n_live_points", int)
             if n_live_points is None
@@ -191,7 +184,37 @@ class MultiNest(ns.NestedSampler):
             else stagger_resampling_likelihood
         )
 
+        super().__init__(
+            paths=paths,
+            sigma=sigma,
+            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold=acceptance_ratio_threshold,
+        )
+
         logger.debug("Creating MultiNest NLO")
+
+    @property
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
+
+        name_tag = self.config("tag", "name", str)
+        n_live_points_tag = self.config("tag", "n_live_points", str) + "_" + str(self.n_live_points)
+        sampling_efficiency_tag = self.config("tag", "sampling_efficiency", str) + "_" + str(self.sampling_efficiency)
+        if self.const_efficiency_mode:
+            const_efficiency_mode_tag = "_" + self.config("tag", "const_efficiency_mode", str)
+        else:
+            const_efficiency_mode_tag = ""
+        if self.multimodal:
+            multimodal_tag = "_" + self.config("tag", "multimodal", str)
+        else:
+            multimodal_tag = ""
+        if self.importance_nested_sampling:
+            importance_nested_sampling_tag = "_" + self.config("tag", "importance_nested_sampling", str)
+        else:
+            importance_nested_sampling_tag = ""
+
+        return f"{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the multinest non-linear search with all associated attributes.
@@ -288,20 +311,21 @@ class MultiNest(ns.NestedSampler):
 
     def _fit(self, model: AbstractPriorModel, analysis) -> nl.Result:
         """
-        Fit a model using MultiNest and a function that returns a log likelihood from instances of that model.
+        Fit a model using MultiNest and the Analysis class which contains the data and returns the log likelihood from
+        instances of the model, which the non-linear search seeks to maximize.
 
         Parameters
         ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        fitness_function
-            A function that fits this model to the data, returning the log likelihood of the fit.
+        model : ModelMapper
+            The model which generates instances for different points in parameter space.
+        analysis : Analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the non-linear search maximizes.
 
         Returns
         -------
-        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
-        of the full samples used by the fit.
+        A result object comprising the Samples object that includes the maximum log likelihood instance and full
+        set of accepted ssamples of the fit.
         """
 
         def prior(cube, ndim, nparams):

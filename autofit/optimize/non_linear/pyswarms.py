@@ -116,13 +116,6 @@ class PySwarmsGlobal(NonLinearOptimizer):
         if paths is None:
             paths = Paths(non_linear_name=type(self).__name__.lower())
 
-        super().__init__(
-            paths=paths,
-            initialize_method=initialize_method,
-            initialize_ball_lower_limit=initialize_ball_lower_limit,
-            initialize_ball_upper_limit=initialize_ball_upper_limit
-        )
-
         self.sigma = sigma
 
         self.n_particles = self.config("search", "n_particles", int) if n_particles is None else n_particles
@@ -139,13 +132,33 @@ class PySwarmsGlobal(NonLinearOptimizer):
             else iterations_per_update
         )
 
+        super().__init__(
+            paths=paths,
+            initialize_method=initialize_method,
+            initialize_ball_lower_limit=initialize_ball_lower_limit,
+            initialize_ball_upper_limit=initialize_ball_upper_limit
+        )
+
         self.number_of_cores = (
             self.config("parallel", "number_of_cores", int)
             if number_of_cores is None
             else number_of_cores
         )
 
-        logger.debug("Creating Emcee NLO")
+        logger.debug("Creating PySwarms NLO")
+
+    @property
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
+
+        name_tag = self.config("tag", "name", str)
+        n_particles_tag = self.config("tag", "n_particles", str) + "_" + str(self.n_particles)
+        cognitive_tag = self.config("tag", "cognitive", str) + "_" + str(self.cognitive)
+        social_tag = self.config("tag", "social", str) + "_" + str(self.social)
+        inertia_tag = self.config("tag", "inertia", str) + "_" + str(self.inertia)
+
+        return f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.
@@ -183,26 +196,27 @@ class PySwarmsGlobal(NonLinearOptimizer):
 
                 except exc.FitException:
 
-                    log_likelihoods.append(-np.inf)
+                    log_likelihoods.append(np.inf)
 
             return np.asarray(log_likelihoods)
 
     def _fit(self, model, analysis):
         """
-        Fit a model using emcee and a function that returns a log likelihood from instances of that model.
+        Fit a model using PySwarms and the Analysis class which contains the data and returns the log likelihood from
+        instances of the model, which the non-linear search seeks to maximize.
 
         Parameters
         ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        fitness_function
-            A function that fits this model to the data, returning the log likelihood of the fit.
+        model : ModelMapper
+            The model which generates instances for different points in parameter space.
+        analysis : Analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the non-linear search maximizes.
 
         Returns
         -------
-        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
-        of the full chains used by the fit.
+        A result object comprising the Samples object that inclues the maximum log likelihood instance and full
+        chains used by the fit.
         """
         pool, pool_ids = self.make_pool()
 
@@ -212,7 +226,7 @@ class PySwarmsGlobal(NonLinearOptimizer):
 
         if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "points")):
 
-            init_pos = self.load_initial_points
+            init_pos = self.load_points[-1]
             total_iterations = self.load_total_iterations
 
         else:
@@ -220,15 +234,23 @@ class PySwarmsGlobal(NonLinearOptimizer):
             init_pos = self.initial_points_from_model(number_of_points=self.n_particles, model=model)
             total_iterations = 0
 
-        finished = False
+        lower_bounds = []
+        upper_bounds = []
+
+        for key, value in model.prior_class_dict.items():
+            lower_bounds.append(key.lower_limit)
+            upper_bounds.append(key.upper_limit)
+
+        bounds = (np.asarray(lower_bounds), np.asarray(upper_bounds))
 
         logger.info("Running PySwarmsGlobal Optimizer...")
 
-        while not finished:
+        while total_iterations < self.iters:
 
             pso = pyswarms.global_best.GlobalBestPSO(
                 n_particles=self.n_particles,
                 dimensions=model.prior_count,
+                bounds=bounds,
                 options={'c1' : self.cognitive, 'c2' : self.social, 'w' : self.inertia},
                 ftol=self.ftol,
                 init_pos=init_pos,
@@ -243,7 +265,7 @@ class PySwarmsGlobal(NonLinearOptimizer):
 
             if iterations > 0:
 
-                result = pso.optimize(
+                pso.optimize(
                     objective_func=fitness_function.__call__,
                     iters=iterations,
                     n_processes=self.number_of_cores
@@ -255,16 +277,10 @@ class PySwarmsGlobal(NonLinearOptimizer):
                     pickle.dump(total_iterations, f)
 
                 with open(f"{self.paths.samples_path}/points.pickle", "wb") as f:
-                    pickle.dump(pso.pos_history[-1], f)
+                    pickle.dump(pso.pos_history, f)
 
-                with open(f"{self.paths.samples_path}/max_log_likelihood.pickle", "wb") as f:
-                    pickle.dump(-0.5*result[0], f)
-
-                with open(f"{self.paths.samples_path}/max_log_likelihood_vector.pickle", "wb") as f:
-                    pickle.dump(result[1], f)
-
-            if total_iterations >= self.iters:
-                finished = True
+                with open(f"{self.paths.samples_path}/log_likelihoods.pickle", "wb") as f:
+                    pickle.dump([-0.5*cost for cost in pso.cost_history], f)
 
         logger.info("PySwarmsGlobal complete")
 
@@ -290,18 +306,13 @@ class PySwarmsGlobal(NonLinearOptimizer):
             return pickle.load(f)
 
     @property
-    def load_initial_points(self):
+    def load_points(self):
         with open("{}/{}.pickle".format(self.paths.samples_path, "points"), "rb") as f:
             return pickle.load(f)
 
     @property
-    def load_max_log_likelihood(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "max_log_likelihood"), "rb") as f:
-            return pickle.load(f)
-
-    @property
-    def load_max_log_likelihood_vector(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "max_log_likelihood_vector"), "rb") as f:
+    def load_log_likelihoods(self):
+        with open("{}/{}.pickle".format(self.paths.samples_path, "log_likelihoods"), "rb") as f:
             return pickle.load(f)
 
     def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
@@ -315,21 +326,18 @@ class PySwarmsGlobal(NonLinearOptimizer):
         )
 
     def samples_from_model(self, model):
-        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+        """Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
 
-        For Emcee, all quantities are extracted via the hdf5 backend of results.
+        For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
 
         Parameters
         ----------
         model
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
-        paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
-            backups, etc.
         """
         return samples.OptimizerSamples(
             model=model,
-            parameters=[list(self.load_max_log_likelihood_vector)],
-            log_likelihoods=[self.load_max_log_likelihood]
+            parameters=[params.tolist()[0] for params in self.load_points],
+            log_likelihoods=self.load_log_likelihoods
         )

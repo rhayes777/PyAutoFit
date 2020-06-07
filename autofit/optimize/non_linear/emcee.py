@@ -104,13 +104,6 @@ class Emcee(NonLinearOptimizer):
         if paths is None:
             paths = Paths(non_linear_name=type(self).__name__.lower())
 
-        super().__init__(
-            paths=paths,
-            initialize_method=initialize_method,
-            initialize_ball_lower_limit=initialize_ball_lower_limit,
-            initialize_ball_upper_limit=initialize_ball_upper_limit
-        )
-
         self.sigma = sigma
 
         self.nwalkers = self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
@@ -137,6 +130,13 @@ class Emcee(NonLinearOptimizer):
             else auto_correlation_change_threshold
         )
 
+        super().__init__(
+            paths=paths,
+            initialize_method=initialize_method,
+            initialize_ball_lower_limit=initialize_ball_lower_limit,
+            initialize_ball_upper_limit=initialize_ball_upper_limit
+        )
+
         self.number_of_cores = (
             self.config("parallel", "number_of_cores", int)
             if number_of_cores is None
@@ -144,6 +144,16 @@ class Emcee(NonLinearOptimizer):
         )
 
         logger.debug("Creating Emcee NLO")
+
+    @property
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
+
+        name_tag = self.config("tag", "name", str)
+        nwalkers_tag = self.config("tag", "nwalkers", str) + "_" + str(self.nwalkers)
+
+        return f"{name_tag}__{nwalkers_tag}"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.
@@ -183,20 +193,21 @@ class Emcee(NonLinearOptimizer):
 
     def _fit(self, model, analysis):
         """
-        Fit a model using emcee and a function that returns a log likelihood from instances of that model.
+        Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
+        instances of the model, which the non-linear search seeks to maximize.
 
         Parameters
         ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        fitness_function
-            A function that fits this model to the data, returning the log likelihood of the fit.
+        model : ModelMapper
+            The model which generates instances for different points in parameter space.
+        analysis : Analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the non-linear search maximizes.
 
         Returns
         -------
-        A result object comprising the best-fit model instance, log_likelihood and an *Output* class that enables analysis
-        of the full chains used by the fit.
+        A result object comprising the Samples object that inclues the maximum log likelihood instance and full
+        chains used by the fit.
         """
         pool, pool_ids = self.make_pool()
 

@@ -57,6 +57,12 @@ class NonLinearOptimizer(ABC):
         if paths is None:
             paths = Paths()
 
+        if paths.non_linear_name is "":
+            paths.non_linear_name = self.config("tag", "name", str)
+
+        if paths.non_linear_tag is "":
+            paths.non_linear_tag = self.tag
+
         log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
         self.paths = paths
 
@@ -110,6 +116,11 @@ class NonLinearOptimizer(ABC):
             self.initialize_ball_upper_limit = None
 
         self.number_of_cores = number_of_cores
+
+    @property
+    def tag(self):
+        """Tag the output folder of the non-linear search, based on the non linear search settings"""
+        raise NotImplementedError
 
     def fit(
             self,

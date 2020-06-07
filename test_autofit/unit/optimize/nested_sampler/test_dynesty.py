@@ -150,6 +150,19 @@ class TestDynestyConfig:
         assert dynesty.acceptance_ratio_threshold == 2.0
         assert dynesty.number_of_cores == 4
 
+    def test__tag(self):
+
+        dynesty = af.DynestyStatic(
+            n_live_points=40,
+        )
+
+        assert dynesty.tag == "dynesty_static__nlive_40"
+
+        dynesty = af.DynestyDynamic(
+        )
+
+        assert dynesty.tag == "dynesty_dynamic"
+
     def test__samples_from_model(self):
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
 

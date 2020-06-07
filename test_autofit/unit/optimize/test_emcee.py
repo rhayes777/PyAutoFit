@@ -57,6 +57,14 @@ class TestEmceeConfig:
         assert emcee.auto_correlation_change_threshold == 0.01
         assert emcee.number_of_cores == 1
 
+    def test__tag(self):
+
+        emcee = af.Emcee(
+            nwalkers=11
+        )
+
+        assert emcee.tag == "emcee__nwalkers_11"
+
     def test__samples_from_model(self):
 
         emcee = af.Emcee(paths=af.Paths())

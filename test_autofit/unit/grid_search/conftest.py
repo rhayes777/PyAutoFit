@@ -18,6 +18,10 @@ class MockOptimizer(af.NonLinearOptimizer):
         super().__init__(paths)
         init_args.append(paths.name)
 
+    @property
+    def tag(self):
+        return ""
+
     def _fit(self, model, fitness_function):
         raise NotImplementedError()
 

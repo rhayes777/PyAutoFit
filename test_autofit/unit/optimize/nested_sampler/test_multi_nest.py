@@ -226,6 +226,28 @@ class TestMulitNest:
         assert fitness.terminate_at_acceptance_ratio == False
         assert fitness.acceptance_ratio_threshold == 0.0
 
+    def test__tag(self):
+
+        multi_nest = af.MultiNest(
+            n_live_points=40,
+            sampling_efficiency=0.5,
+            const_efficiency_mode=False,
+            multimodal=False,
+            importance_nested_sampling=False,
+        )
+
+        assert multi_nest.tag == "multinest__nlive_40_eff_0.5"
+
+        multi_nest = af.MultiNest(
+            n_live_points=41,
+            sampling_efficiency=0.6,
+            const_efficiency_mode=True,
+            multimodal=True,
+            importance_nested_sampling=True,
+        )
+
+        assert multi_nest.tag == "multinest__nlive_41_eff_0.6_const_mm_is"
+
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
         assert copy.paths.name == "phase_name/one"

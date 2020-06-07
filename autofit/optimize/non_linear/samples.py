@@ -76,6 +76,7 @@ class OptimizerSamples:
         """
         return self.model.instance_from_vector(vector=self.parameters[sample_index])
 
+
 class PosteriorSamples(OptimizerSamples):
     def __init__(self, model, parameters, log_likelihoods, log_priors, weights, unconverged_sample_size=100):
         """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the

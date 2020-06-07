@@ -10,6 +10,11 @@ directory = os.path.dirname(os.path.realpath(__file__))
 
 
 class NLO(non_linear.NonLinearOptimizer):
+
+    @property
+    def tag(self):
+        return"nlo"
+
     def _fit(self, model, fitness_function):
         raise NotImplementedError()
 

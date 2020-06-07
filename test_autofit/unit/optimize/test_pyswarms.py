@@ -57,6 +57,18 @@ class TestPySwarmsGlobalConfig:
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
 
+    def test__tag(self):
+
+        pso = af.PySwarmsGlobal(
+            n_particles=51,
+            iters=2001,
+            cognitive=0.4,
+            social=0.5,
+            inertia=0.6,
+        )
+
+        assert pso.tag == "pyswarms__particles_51_c_0.4_s_0.5_i_0.6"
+
     def test__samples_from_model(self):
 
         pyswarms = af.PySwarmsGlobal(paths=af.Paths())
@@ -67,63 +79,9 @@ class TestPySwarmsGlobalConfig:
         samples = pyswarms.samples_from_model(model=model)
 
         assert samples.parameters[0] == pytest.approx(
-            [0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4
+            [50.1254, 1.04626, 10.09456], 1.0e-4
         )
-        assert samples.log_likelihoods[0] == pytest.approx(-17257775239.32677, 1.0e-4)
-        assert samples.log_priors[0] == pytest.approx(1.6102016075510708, 1.0e-4)
-        assert samples.weights[0] == pytest.approx(1.0, 1.0e-4)
-        assert samples.total_steps == 1000
-        assert samples.total_walkers == 10
-        assert samples.auto_correlation_times[0] == pytest.approx(31.98507, 1.0e-4)
-
-
-class TestPySwarmsGlobalOutput:
-    def test__most_probable_parameters(self):
-
-        pyswarms = af.PySwarmsGlobal(paths=af.Paths())
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
-
-        samples = pyswarms.samples_from_model(model=model)
-
-        assert samples.most_probable_vector == pytest.approx(
-            [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
-        )
-
-    def test__vector_at_sigma__uses_output_files(self):
-
-        pyswarms = af.PySwarmsGlobal(paths=af.Paths())
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
-
-        samples = pyswarms.samples_from_model(model=model)
-
-        params = samples.vector_at_sigma(sigma=3.0)
-
-        assert params[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
-
-        params = samples.vector_at_sigma(sigma=1.0)
-
-        assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
-
-    def test__autocorrelation_times(self):
-
-        pyswarms = af.PySwarmsGlobal(paths=af.Paths())
-
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
-        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
-
-        samples = pyswarms.samples_from_model(model=model)
-
-        assert samples.previous_auto_correlation_times == pytest.approx(
-            [31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4
-        )
-        assert samples.auto_correlation_times == pytest.approx(
-            [31.98507, 36.51001, 73.47629, 67.67495], 1.0e-4
-        )
-
+        assert samples.log_likelihoods[0] == pytest.approx(-5070.73298, 1.0e-4)
 
 class TestCopyWithNameExtension:
     @staticmethod

@@ -48,7 +48,16 @@ def convert_paths(func):
         # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
         # TODO : nicely though.
 
-        non_linear_name = kwargs["non_linear_class"].__name__.lower() if "non_linear_class" in kwargs else ""
+        if "non_linear_class" in kwargs:
+
+            non_linear_instance = kwargs["non_linear_class"]()
+            non_linear_name = non_linear_instance.config("tag", "name", str)
+            non_linear_tag = non_linear_instance.tag
+
+        else:
+
+            non_linear_name = None
+            non_linear_tag = None
 
         func(
             self,
@@ -58,6 +67,7 @@ def convert_paths(func):
                 folders=kwargs.pop("phase_folders", tuple()),
                 path_prefix=kwargs.pop("phase_path", None),
                 non_linear_name=non_linear_name,
+                non_linear_tag=non_linear_tag,
                 remove_files=remove_files,
             ),
             **kwargs,
@@ -74,6 +84,7 @@ class Paths:
             folders=tuple(),
             path_prefix=None,
             non_linear_name=None,
+            non_linear_tag=None,
             remove_files=False,
     ):
         """Manages the path structure for non-linear search output, for analyses both not using and using the phase
@@ -125,6 +136,7 @@ class Paths:
         self.name = name
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
+        self.non_linear_tag = non_linear_tag or ""
         self.remove_files = remove_files
 
     @property
@@ -177,7 +189,7 @@ class Paths:
                     self.path_prefix,
                     self.name,
                     self.tag,
-                    self.non_linear_name,
+                    self.non_linear_tag,
                 ],
             )
         )
@@ -204,12 +216,12 @@ class Paths:
     @property
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/{}/samples".format(
-            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_name
+            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_tag
         )
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.path, self.non_linear_name + ".paramnames")
+        return "{}/{}".format(self.path, self.non_linear_tag + ".paramnames")
 
     @property
     def file_model_promises(self) -> str:
@@ -258,7 +270,7 @@ class Paths:
         Create the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_name
+            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_tag
         )
 
     # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
