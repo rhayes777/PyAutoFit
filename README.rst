@@ -267,7 +267,7 @@ breaks the the analysis down into 3 phases:
             phase_name="phase_2__right_gaussian",
             phase_folders=phase_folders,
             gaussians=af.CollectionPriorModel(
-                # Use the Gaussian fitted in phase 1:
+                # Use the Gaussian fitted in Phase 1:
                 gaussian_0=phase1.result.instance.gaussians.gaussian_0,
                 gaussian_1=Gaussian,
             ),

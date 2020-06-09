@@ -5,8 +5,7 @@ import numpy as np
 import pickle
 
 from autofit import exc
-from autofit.text import samples_text
-from autofit.optimize.non_linear import samples
+from autofit.optimize.non_linear.samples import OptimizerSamples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
@@ -126,17 +125,12 @@ class PySwarmsGlobal(NonLinearOptimizer):
         self.inertia = self.config("search", "inertia", float) if inertia is None else inertia
         self.ftol = self.config("search", "ftol", float) if ftol is None else ftol
 
-        self.iterations_per_update = (
-            self.config("settings", "iterations_per_update", int)
-            if iterations_per_update is None
-            else iterations_per_update
-        )
-
         super().__init__(
             paths=paths,
             initialize_method=initialize_method,
             initialize_ball_lower_limit=initialize_ball_lower_limit,
-            initialize_ball_upper_limit=initialize_ball_upper_limit
+            initialize_ball_upper_limit=initialize_ball_upper_limit,
+            iterations_per_update=iterations_per_update,
         )
 
         self.number_of_cores = (
@@ -177,7 +171,7 @@ class PySwarmsGlobal(NonLinearOptimizer):
         copy.initialize_method = self.initialize_method
         copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
         copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
-        copy.iterations_per_upddate = self.iterations_per_update
+        copy.iterations_per_update = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
 
         return copy
@@ -282,21 +276,11 @@ class PySwarmsGlobal(NonLinearOptimizer):
                 with open(f"{self.paths.samples_path}/log_likelihoods.pickle", "wb") as f:
                     pickle.dump([-0.5*cost for cost in pso.cost_history], f)
 
+                samples = self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
         logger.info("PySwarmsGlobal complete")
 
-        self.paths.backup()
-
-        samples = self.samples_from_model(model=model)
-
-        analysis.visualize(
-            instance=samples.max_log_likelihood_instance, during_analysis=False
-        )
-
-        samples_text.results_to_file(
-            samples=samples, file_results=self.paths.file_results, during_analysis=False
-        )
-
-        self.paths.backup_zip_remove()
+        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         return Result(samples=samples, previous_model=model)
 
@@ -336,7 +320,7 @@ class PySwarmsGlobal(NonLinearOptimizer):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
-        return samples.OptimizerSamples(
+        return OptimizerSamples(
             model=model,
             parameters=[params.tolist()[0] for params in self.load_points],
             log_likelihoods=self.load_log_likelihoods

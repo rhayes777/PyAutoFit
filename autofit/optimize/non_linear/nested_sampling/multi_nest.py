@@ -4,10 +4,9 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.optimize.non_linear import samples
+from autofit.optimize.non_linear.samples import NestedSamplerSamples
 from autofit.optimize.non_linear.nested_sampling import nested_sampler as ns
 from autofit.optimize.non_linear import non_linear as nl
-from autofit.text import samples_text
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +19,9 @@ class MultiNest(ns.NestedSampler):
         n_live_points=None,
         sampling_efficiency=None,
         const_efficiency_mode=None,
-        evidence_tolerance=None,
         multimodal=None,
         importance_nested_sampling=None,
+        evidence_tolerance=None,
         max_modes=None,
         mode_tolerance=None,
         max_iter=None,
@@ -71,15 +70,15 @@ class MultiNest(ns.NestedSampler):
             out parameter-space accurately it reduce the acceptance rate. Constant efficiency mode forces MultiNest to
             maintain the sampling efficiency acceptance rate. This can dramatically reduce run-times but increases the
             risk of missing the global maximum log likelihood solution.
-        evidence_tolerance : float
-            MultiNest will stop sampling when it estimates that continuing sampling will not increase the log evidence
-            more than the evidence_tolerance value. Thus, the higher the evidence_tolerance the sooner MultiNest will
-            stop running. Higher tolerances provide more accurate parameter errors.
         multimodal : bool
             Whether MultiNest uses multi-modal sampling, whereby the parameter space search will 'split' into
             multiple modes if it detects there are multiple peaks in log_likelihood space.
         importance_nested_sampling : bool
             Importance nested sampling mode uses information from the rejected points to improve the non-linear search.
+        evidence_tolerance : float
+            MultiNest will stop sampling when it estimates that continuing sampling will not increase the log evidence
+            more than the evidence_tolerance value. Thus, the higher the evidence_tolerance the sooner MultiNest will
+            stop running. Higher tolerances provide more accurate parameter errors.
         max_modes : int
             If multimodal sampling is True, the maximum number of models MultiNest can split into.
         mode_tolerance : float
@@ -368,13 +367,8 @@ class MultiNest(ns.NestedSampler):
             max_iter=self.max_iter,
             init_MPI=self.init_MPI,
         )
-        self.paths.backup()
 
-        samples = self.samples_from_model(model=model)
-
-        samples_text.results_to_file(
-            samples=samples, file_results=self.paths.file_results, during_analysis=False
-        )
+        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         return nl.Result(samples=samples, previous_model=model)
 
@@ -432,7 +426,7 @@ class MultiNest(ns.NestedSampler):
             file_summary=self.paths.file_summary, prior_count=model.prior_count
         )
 
-        return samples.NestedSamplerSamples(
+        return NestedSamplerSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,

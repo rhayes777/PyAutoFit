@@ -18,6 +18,7 @@ class NestedSampler(nl.NonLinearOptimizer):
         self,
         paths=None,
         sigma=3,
+        iterations_per_update=None,
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
     ):
@@ -49,9 +50,9 @@ class NestedSampler(nl.NonLinearOptimizer):
         """
 
         if paths is None:
-            paths = Paths(non_linear_name=type(self).__name__.lower())
+            paths = Paths()
 
-        super().__init__(paths)
+        super().__init__(paths=paths, iterations_per_update=iterations_per_update)
 
         self.sigma = sigma
 

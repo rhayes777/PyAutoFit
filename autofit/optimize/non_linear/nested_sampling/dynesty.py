@@ -1,42 +1,46 @@
 import logging
 import os
+import sys
 import pickle
 import numpy as np
 from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.optimize.non_linear import samples
+from autofit.optimize.non_linear.samples import NestedSamplerSamples
 from autofit.optimize.non_linear.nested_sampling.nested_sampler import NestedSampler
 from autofit.optimize.non_linear import non_linear as nl
 from autofit.optimize.non_linear.non_linear import Result
-from autofit.text import samples_text
 
 logger = logging.getLogger(__name__)
 
 
-
 class AbstractDynesty(NestedSampler):
     def __init__(
-        self,
-        paths=None,
-        sigma=3,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        facc=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            sigma=3,
+            sampling_efficiency=None,
+            evidence_tolerance=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search.
@@ -65,6 +69,15 @@ class AbstractDynesty(NestedSampler):
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        sampling_efficiency : float
+            The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
+            [1. / walks, 1.].
+        evidence_threshold : float
+            This is called dlogz in the Dynesty API. Iteration will stop when the estimated contribution of the 
+            remaining prior volume to the total evidence falls below this threshold. Explicitly, the stopping 
+            criterion is ln(z + z_est) - ln(z) < dlogz, where z is the current evidence from all saved samples and 
+            z_est is the estimated contribution from the remaining volume. If add_live is True, the default is 
+            1e-3 * (nlive - 1) + 0.01. Otherwise, the default is 0.01.
         bound : str
             Method used to approximately bound the prior using the current set of live points. Conditions the sampling
             methods used to propose new live points. Choices are no bound ('none'), a single bounding ellipsoid
@@ -105,9 +118,6 @@ class AbstractDynesty(NestedSampler):
             Default behavior is to target a roughly constant change in prior volume, with 1.5 for 'unif', 0.15 * walks
             for 'rwalk' and 'rstagger', 0.9 * ndim * slices for 'slice', 2.0 * slices for 'rslice', and 25.0 * slices
             for 'hslice'.
-        facc : float
-            The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
-            [1. / walks, 1.].
         slices : int
             For the 'slice', 'rslice', and 'hslice' sampling options, the number of times to execute a “slice update”
             before proposing a new live point. Default is 5. Note that 'slice' cycles through all dimensions when
@@ -118,6 +128,18 @@ class AbstractDynesty(NestedSampler):
         max_move : int
             The maximum number of timesteps allowed for 'hslice' per proposal forwards and backwards in time.
             Default is 100.
+        maxiter : int
+            Maximum number of iterations. Iteration may stop earlier if the termination condition is reached. Default
+            is sys.maxsize (no limit).
+        maxcall : int
+            Maximum number of likelihood evaluations. Iteration may stop earlier if termination condition is reached.
+            Default is sys.maxsize (no limit).
+        logl_max : float
+            Iteration will stop when the sampled ln(likelihood) exceeds the threshold set by logl_max. Default is no
+            bound (np.inf).
+        n_effective ; int
+            Minimum number of effective posterior samples. If the estimated “effective sample size” (ESS) exceeds 
+            this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
             If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *NestedSampler* for a full description of this feature).
@@ -131,6 +153,11 @@ class AbstractDynesty(NestedSampler):
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
         """
+
+        self.evidence_tolerance = evidence_tolerance
+
+        self.sampling_efficiency = self.config("search", "sampling_efficiency",
+                                               float) if sampling_efficiency is None else sampling_efficiency
 
         self.bound = self.config("search", "bound", str) if bound is None else bound
         self.sample = self.config("search", "sample", str) if sample is None else sample
@@ -159,22 +186,27 @@ class AbstractDynesty(NestedSampler):
             self.config("search", "vol_check", float) if vol_check is None else vol_check
         )
         self.walks = self.config("search", "walks", int) if walks is None else walks
-        self.facc = self.config("search", "facc", float) if facc is None else facc
         self.slices = self.config("search", "slices", int) if slices is None else slices
         self.fmove = self.config("search", "fmove", float) if fmove is None else fmove
         self.max_move = self.config("search", "max_move", int) if max_move is None else max_move
 
-        self.iterations_per_update = (
-            self.config("settings", "iterations_per_update", int)
-            if iterations_per_update is None
-            else iterations_per_update
-        )
+        self.maxiter = self.config("search", "maxiter", int) if maxiter is None else maxiter
+        if self.maxiter <= 0:
+            self.maxiter = sys.maxsize
+        self.maxcall = self.config("search", "maxcall", int) if maxcall is None else maxcall
+        if self.maxcall <= 0:
+            self.maxcall = sys.maxsize
+        self.logl_max = self.config("search", "logl_max", float) if logl_max is None else logl_max
+        self.n_effective = self.config("search", "n_effective", int) if n_effective is None else n_effective
+        if self.n_effective <= 0:
+            self.n_effective = np.inf
 
         super().__init__(
             paths=paths,
             sigma=sigma,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
+            iterations_per_update=iterations_per_update,
         )
 
         self.number_of_cores = (
@@ -201,10 +233,14 @@ class AbstractDynesty(NestedSampler):
         copy.vol_dec = self.vol_dec
         copy.vol_check = self.vol_check
         copy.walks = self.walks
-        copy.facc = self.facc
+        copy.sampling_efficiency = self.sampling_efficiency
         copy.slices = self.slices
         copy.fmove = self.fmove
         copy.max_move = self.max_move
+        copy.initialize_method = self.initialize_method
+        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
+        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.iterations_per_update = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
 
         return copy
@@ -268,24 +304,24 @@ class AbstractDynesty(NestedSampler):
             except AttributeError:
                 iterations_before_run = 0
 
-            sampler.run_nested(maxcall=self.iterations_per_update)
-
-            iterations_after_run = np.sum(sampler.results.ncall)
+            sampler.run_nested(
+                maxcall=self.iterations_per_update,
+                dlogz=self.evidence_tolerance,
+                logl_max=self.logl_max,
+                n_effective=self.n_effective
+            )
 
             with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
                 pickle.dump(sampler, f)
 
-            if iterations_before_run == iterations_after_run:
+            self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
+            iterations_after_run = np.sum(sampler.results.ncall)
+
+            if iterations_before_run == iterations_after_run:
                 finished = True
 
-        self.paths.backup()
-
-        samples = self.samples_from_model(model=model)
-
-        samples_text.results_to_file(
-            samples=samples, file_results=self.paths.file_results, during_analysis=False
-        )
+        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         return Result(samples=samples, previous_model=model)
 
@@ -323,7 +359,7 @@ class AbstractDynesty(NestedSampler):
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
 
-        return samples.NestedSamplerSamples(
+        return NestedSamplerSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -337,26 +373,31 @@ class AbstractDynesty(NestedSampler):
 
 class DynestyStatic(AbstractDynesty):
     def __init__(
-        self,
-        paths=None,
-        sigma=3,
-        n_live_points=None,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        facc=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            sigma=3,
+            n_live_points=None,
+            sampling_efficiency=None,
+            evidence_tolerance=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search, specifically the sampled which uses a static number of
@@ -424,7 +465,7 @@ class DynestyStatic(AbstractDynesty):
             Default behavior is to target a roughly constant change in prior volume, with 1.5 for 'unif', 0.15 * walks
             for 'rwalk' and 'rstagger', 0.9 * ndim * slices for 'slice', 2.0 * slices for 'rslice', and 25.0 * slices
             for 'hslice'.
-        facc : float
+        sampling_efficiency : float
             The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
             [1. / walks, 1.].
         slices : int
@@ -457,10 +498,16 @@ class DynestyStatic(AbstractDynesty):
             else n_live_points
         )
 
+        evidence_tolerance = self.config("search", "evidence_tolerance",
+                                              float) if evidence_tolerance is None else evidence_tolerance
+
+        if evidence_tolerance <= 0.0:
+            evidence_tolerance = 1e-3 * (self.n_live_points - 1) + 0.01
+
         super().__init__(
             paths=paths,
             sigma=sigma,
-            iterations_per_update=iterations_per_update,
+            evidence_tolerance=evidence_tolerance,
             bound=bound,
             sample=sample,
             bootstrap=bootstrap,
@@ -469,10 +516,15 @@ class DynestyStatic(AbstractDynesty):
             vol_dec=vol_dec,
             vol_check=vol_check,
             walks=walks,
-            facc=facc,
+            sampling_efficiency=sampling_efficiency,
             slices=slices,
             fmove=fmove,
             max_move=max_move,
+            maxiter=maxiter,
+            maxcall=maxcall,
+            logl_max=logl_max,
+            n_effective=n_effective,
+            iterations_per_update=iterations_per_update,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             number_of_cores=number_of_cores,
@@ -487,8 +539,9 @@ class DynestyStatic(AbstractDynesty):
 
         name_tag = self.config("tag", "name", str)
         n_live_points_tag = self.config("tag", "n_live_points", str) + "_" + str(self.n_live_points)
+        sampling_efficiency_tag = self.config("tag", "sampling_efficiency", str) + "_" + str(self.sampling_efficiency)
 
-        return f"{name_tag}__{n_live_points_tag}"
+        return f"{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty non-linear search with all associated attributes.
@@ -520,7 +573,7 @@ class DynestyStatic(AbstractDynesty):
             vol_dec=self.vol_dec,
             vol_check=self.vol_check,
             walks=self.walks,
-            facc=self.facc,
+            facc=self.sampling_efficiency,
             slices=self.slices,
             fmove=self.fmove,
             max_move=self.max_move,
@@ -529,25 +582,30 @@ class DynestyStatic(AbstractDynesty):
 
 class DynestyDynamic(AbstractDynesty):
     def __init__(
-        self,
-        paths=None,
-        sigma=3,
-        iterations_per_update=None,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        facc=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            sigma=3,
+            sampling_efficiency=None,
+            evidence_tolerance=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search, using the dynamic Dynesty nested sampler described at this
@@ -567,10 +625,13 @@ class DynestyDynamic(AbstractDynesty):
             pickle).
         """
 
+        evidence_tolerance = self.config("search", "evidence_tolerance",
+                                              float) if evidence_tolerance is None else evidence_tolerance
+
         super().__init__(
             paths=paths,
+            evidence_tolerance=evidence_tolerance,
             sigma=sigma,
-            iterations_per_update=iterations_per_update,
             bound=bound,
             sample=sample,
             bootstrap=bootstrap,
@@ -579,12 +640,17 @@ class DynestyDynamic(AbstractDynesty):
             vol_dec=vol_dec,
             vol_check=vol_check,
             walks=walks,
-            facc=facc,
+            sampling_efficiency=sampling_efficiency,
             slices=slices,
             fmove=fmove,
             max_move=max_move,
+            maxiter=maxiter,
+            maxcall=maxcall,
+            logl_max=logl_max,
+            n_effective=n_effective,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
+            iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
         )
 
@@ -596,8 +662,9 @@ class DynestyDynamic(AbstractDynesty):
         parameters defining the search strategy."""
 
         name_tag = self.config("tag", "name", str)
+        sampling_efficiency_tag = self.config("tag", "sampling_efficiency", str) + "_" + str(self.sampling_efficiency)
 
-        return f"{name_tag}"
+        return f"{name_tag}__{sampling_efficiency_tag}"
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         """Get the dynamic Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
@@ -616,7 +683,7 @@ class DynestyDynamic(AbstractDynesty):
             vol_dec=self.vol_dec,
             vol_check=self.vol_check,
             walks=self.walks,
-            facc=self.facc,
+            facc=self.sampling_efficiency,
             slices=self.slices,
             fmove=self.fmove,
             max_move=self.max_move,

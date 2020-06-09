@@ -1,10 +1,11 @@
 import os
-
+import sys
 import pytest
 
 from autoconf import conf
 import autofit as af
 import pickle
+import numpy as np
 from test_autofit.mock import MockClassNLOx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -38,8 +39,9 @@ class TestDynestyConfig:
     def test__loads_from_config_file_if_not_input(self):
 
         dynesty = af.DynestyStatic(
-            iterations_per_update=501,
             n_live_points=151,
+            sampling_efficiency=0.6,
+            evidence_tolerance=0.1,
             bound="ellipse",
             sample="manual",
             update_interval=True,
@@ -48,10 +50,14 @@ class TestDynestyConfig:
             vol_dec=2.1,
             vol_check=2.2,
             walks=26,
-            facc=0.6,
             slices=6,
             fmove=0.8,
             max_move=101,
+            maxiter=2,
+            maxcall=3,
+            logl_max=1.0,
+            n_effective=4,
+            iterations_per_update=501,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.5,
             number_of_cores=2,
@@ -59,6 +65,8 @@ class TestDynestyConfig:
 
         assert dynesty.iterations_per_update == 501
         assert dynesty.n_live_points == 151
+        assert dynesty.sampling_efficiency == 0.6
+        assert dynesty.evidence_tolerance == 0.1
         assert dynesty.bound == "ellipse"
         assert dynesty.sample == "manual"
         assert dynesty.update_interval == True
@@ -67,10 +75,13 @@ class TestDynestyConfig:
         assert dynesty.vol_dec == 2.1
         assert dynesty.vol_check == 2.2
         assert dynesty.walks == 26
-        assert dynesty.facc == 0.6
         assert dynesty.slices == 6
         assert dynesty.fmove == 0.8
         assert dynesty.max_move == 101
+        assert dynesty.maxiter == 2
+        assert dynesty.maxcall == 3
+        assert dynesty.logl_max == 1.0
+        assert dynesty.n_effective == 4
         assert dynesty.terminate_at_acceptance_ratio == False
         assert dynesty.acceptance_ratio_threshold == 0.5
         assert dynesty.number_of_cores == 2
@@ -79,6 +90,7 @@ class TestDynestyConfig:
 
         assert dynesty.iterations_per_update == 500
         assert dynesty.n_live_points == 150
+        assert dynesty.evidence_tolerance == 0.159
         assert dynesty.bound == "multi"
         assert dynesty.sample == "auto"
         assert dynesty.update_interval == None
@@ -87,16 +99,22 @@ class TestDynestyConfig:
         assert dynesty.vol_dec == 0.5
         assert dynesty.vol_check == 2.0
         assert dynesty.walks == 25
-        assert dynesty.facc == 0.5
+        assert dynesty.sampling_efficiency == 0.5
         assert dynesty.slices == 5
         assert dynesty.fmove == 0.9
         assert dynesty.max_move == 100
+        assert dynesty.maxiter == sys.maxsize
+        assert dynesty.maxcall == sys.maxsize
+        assert dynesty.logl_max == np.inf
+        assert dynesty.n_effective == np.inf
         assert dynesty.terminate_at_acceptance_ratio == True
         assert dynesty.acceptance_ratio_threshold == 2.0
         assert dynesty.number_of_cores == 1
 
         dynesty = af.DynestyDynamic(
             iterations_per_update=501,
+            sampling_efficiency=0.6,
+            evidence_tolerance=0.2,
             bound="ellipse",
             sample="manual",
             update_interval=True,
@@ -105,16 +123,21 @@ class TestDynestyConfig:
             vol_dec=2.1,
             vol_check=2.2,
             walks=26,
-            facc=0.6,
             slices=6,
             fmove=0.8,
             max_move=101,
+            maxiter=2,
+            maxcall=3,
+            logl_max=1.0,
+            n_effective=4,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.5,
             number_of_cores=3
         )
 
         assert dynesty.iterations_per_update == 501
+        assert dynesty.sampling_efficiency == 0.6
+        assert dynesty.evidence_tolerance == 0.2
         assert dynesty.bound == "ellipse"
         assert dynesty.sample == "manual"
         assert dynesty.update_interval == True
@@ -123,10 +146,13 @@ class TestDynestyConfig:
         assert dynesty.vol_dec == 2.1
         assert dynesty.vol_check == 2.2
         assert dynesty.walks == 26
-        assert dynesty.facc == 0.6
         assert dynesty.slices == 6
         assert dynesty.fmove == 0.8
         assert dynesty.max_move == 101
+        assert dynesty.maxiter == 2
+        assert dynesty.maxcall == 3
+        assert dynesty.logl_max == 1.0
+        assert dynesty.n_effective == 4
         assert dynesty.terminate_at_acceptance_ratio == False
         assert dynesty.acceptance_ratio_threshold == 0.5
         assert dynesty.number_of_cores == 3
@@ -134,6 +160,7 @@ class TestDynestyConfig:
         dynesty = af.DynestyDynamic()
 
         assert dynesty.iterations_per_update == 501
+        assert dynesty.sampling_efficiency == 0.6
         assert dynesty.bound == "balls"
         assert dynesty.sample == "rwalk"
         assert dynesty.update_interval == 2.0
@@ -142,10 +169,13 @@ class TestDynestyConfig:
         assert dynesty.vol_dec == 0.4
         assert dynesty.vol_check == 3.0
         assert dynesty.walks == 26
-        assert dynesty.facc == 0.6
         assert dynesty.slices == 6
         assert dynesty.fmove == 0.8
         assert dynesty.max_move == 101
+        assert dynesty.maxiter == sys.maxsize
+        assert dynesty.maxcall == sys.maxsize
+        assert dynesty.logl_max == np.inf
+        assert dynesty.n_effective == np.inf
         assert dynesty.terminate_at_acceptance_ratio == True
         assert dynesty.acceptance_ratio_threshold == 2.0
         assert dynesty.number_of_cores == 4
@@ -154,14 +184,15 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyStatic(
             n_live_points=40,
+            sampling_efficiency=0.5,
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_40"
+        assert dynesty.tag == "dynesty_static__nlive_40_eff_0.5"
 
-        dynesty = af.DynestyDynamic(
+        dynesty = af.DynestyDynamic(sampling_efficiency=0.7
         )
 
-        assert dynesty.tag == "dynesty_dynamic"
+        assert dynesty.tag == "dynesty_dynamic__eff_0.7"
 
     def test__samples_from_model(self):
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
@@ -230,7 +261,7 @@ class TestCopyWithNameExtension:
         assert copy.vol_dec == optimizer.vol_dec
         assert copy.vol_check == optimizer.vol_check
         assert copy.walks == optimizer.walks
-        assert copy.facc == optimizer.facc
+        assert copy.sampling_efficiency == optimizer.sampling_efficiency
         assert copy.slices == optimizer.slices
         assert copy.fmove == optimizer.fmove
         assert copy.max_move == optimizer.max_move
@@ -257,7 +288,7 @@ class TestCopyWithNameExtension:
         assert copy.vol_dec == optimizer.vol_dec
         assert copy.vol_check == optimizer.vol_check
         assert copy.walks == optimizer.walks
-        assert copy.facc == optimizer.facc
+        assert copy.sampling_efficiency == optimizer.sampling_efficiency
         assert copy.slices == optimizer.slices
         assert copy.fmove == optimizer.fmove
         assert copy.max_move == optimizer.max_move

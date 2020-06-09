@@ -130,10 +130,8 @@ class Paths:
             If *True*, all output results except their backup .zip files are removed. If *False* they are not removed.
         """
 
-        if not isinstance(name, str):
-            raise ValueError("Name must be a string")
         self.path_prefix = path_prefix or "/".join(folders)
-        self.name = name
+        self.name = name or ""
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
         self.non_linear_tag = non_linear_tag or ""

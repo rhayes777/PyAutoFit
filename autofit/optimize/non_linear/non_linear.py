@@ -6,6 +6,7 @@ import numpy as np
 import multiprocessing as mp
 from time import sleep
 from typing import Dict
+from copy import copy
 
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
@@ -20,10 +21,15 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 class NonLinearOptimizer(ABC):
     @convert_paths
-    def __init__(self, paths=None,         initialize_method=None,
-        initialize_ball_lower_limit=None,
-        initialize_ball_upper_limit=None,
-                 number_of_cores=1):
+    def __init__(
+            self,
+            paths=None,
+            initialize_method=None,
+            initialize_ball_lower_limit=None,
+            initialize_ball_upper_limit=None,
+            iterations_per_update=None,
+            number_of_cores=1
+    ):
         """Abstract base class for non-linear optimizers.
 
         This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
@@ -114,6 +120,30 @@ class NonLinearOptimizer(ABC):
         except configparser.NoSectionError:
 
             self.initialize_ball_upper_limit = None
+
+        self.iterations_per_update = (
+            self.config("updates", "iterations_per_update", int)
+            if iterations_per_update is None
+            else iterations_per_update
+        )
+
+        self.log_every_update = self.config("updates", "log_every_update", int)
+        self.backup_every_update = self.config(
+            "updates", "backup_every_update", int
+        )
+        self.visualize_every_update = self.config(
+            "updates", "visualize_every_update", int
+        )
+        self.model_results_every_update = self.config(
+            "updates", "model_results_every_update", int
+        )
+
+        self.should_log = IntervalCounter(self.log_every_update)
+        self.should_backup = IntervalCounter(self.backup_every_update)
+        self.should_visualize = IntervalCounter(self.visualize_every_update)
+        self.should_output_model_results = IntervalCounter(
+            self.model_results_every_update
+        )
 
         self.number_of_cores = number_of_cores
 
@@ -215,6 +245,50 @@ class NonLinearOptimizer(ABC):
             attribute_name,
             attribute_type
         )
+
+    def perform_update(self, model, analysis, during_analysis):
+        """Perform an update of the non-linear search results, which occurs every *iterations_per_update* of the
+        non-linear search. The update performs the following tasks:
+
+        1) Visualize the maximum log likelihood model.
+        2) Backup the samples.
+        3) Output the model results to the model.reults file.
+
+        These task are performed every n updates, set by the relevent *task_every_update* variable, for example
+        *visualize_every_update* and *backup_every_update*.
+
+        Parameters
+        ----------
+        model : ModelMapper
+            The model which generates instances for different points in parameter space.
+        analysis : Analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the non-linear search maximizes.
+        during_analysis : bool
+            If the update is during a non-linear search, in which case tasks are only performed after a certain number
+             of updates and only a subset of visualization may be performed.
+        """
+
+        if self.should_backup() or not during_analysis:
+            self.paths.backup()
+
+        samples = self.samples_from_model(model=model)
+
+        if self.should_visualize() or not during_analysis:
+            analysis.visualize(samples.max_log_likelihood_instance, during_analysis=during_analysis)
+
+        if self.should_output_model_results() or not during_analysis:
+
+            samples_text.results_to_file(
+                samples=samples,
+                file_results=self.paths.file_results,
+                during_analysis=during_analysis
+            )
+
+        if not during_analysis:
+            self.paths.backup_zip_remove()
+
+        return samples
 
     def save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
@@ -330,24 +404,6 @@ class NonLinearOptimizer(ABC):
             self.model = model
             self.samples_from_model = samples_from_model
 
-            self.log_interval = conf.instance.general.get("output", "log_interval", int)
-            self.backup_interval = conf.instance.general.get(
-                "output", "backup_interval", int
-            )
-            self.visualize_interval = conf.instance.visualize_general.get(
-                "general", "visualize_interval", int
-            )
-            self.model_results_output_interval = conf.instance.general.get(
-                "output", "model_results_output_interval", int
-            )
-
-            self.should_log = IntervalCounter(self.log_interval)
-            self.should_backup = IntervalCounter(self.backup_interval)
-            self.should_visualize = IntervalCounter(self.visualize_interval)
-            self.should_output_model_results = IntervalCounter(
-                self.model_results_output_interval
-            )
-
             self.pool_ids = pool_ids
 
         def fit_instance(self, instance):
@@ -365,30 +421,6 @@ class NonLinearOptimizer(ABC):
                         return log_likelihood
 
                 self.max_log_likelihood = log_likelihood
-
-                if self.should_visualize():
-                    self.analysis.visualize(instance, during_analysis=True)
-
-                if self.should_backup():
-                    self.paths.backup()
-
-                if self.should_output_model_results():
-
-                    try:
-                        samples = self.samples_from_model(model=self.model)
-                    except Exception:
-                        samples = None
-
-                    try:
-
-                        samples_text.results_to_file(
-                            samples=samples,
-                            file_results=self.paths.file_results,
-                            during_analysis=True
-                        )
-
-                    except (AttributeError, ValueError):
-                        pass
 
             return log_likelihood
 
@@ -473,7 +505,6 @@ class NonLinearOptimizer(ABC):
             ids = pool.map(f, range(self.number_of_cores))
 
             return pool, [id[1] for id in ids]
-
 
 
 class Analysis:

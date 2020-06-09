@@ -4,8 +4,7 @@ import emcee
 import numpy as np
 
 from autofit import exc
-from autofit.text import samples_text
-from autofit.optimize.non_linear import samples
+from autofit.optimize.non_linear.samples import MCMCSamples
 from autofit.optimize.non_linear.non_linear import NonLinearOptimizer
 from autofit.optimize.non_linear.non_linear import Result
 from autofit.optimize.non_linear.paths import Paths
@@ -27,6 +26,7 @@ class Emcee(NonLinearOptimizer):
         auto_correlation_check_size=None,
         auto_correlation_required_length=None,
         auto_correlation_change_threshold=None,
+        iterations_per_update=None,
         number_of_cores=None,
     ):
         """ Class to setup and run an Emcee non-linear search.
@@ -102,7 +102,7 @@ class Emcee(NonLinearOptimizer):
         """
 
         if paths is None:
-            paths = Paths(non_linear_name=type(self).__name__.lower())
+            paths = Paths()
 
         self.sigma = sigma
 
@@ -134,7 +134,8 @@ class Emcee(NonLinearOptimizer):
             paths=paths,
             initialize_method=initialize_method,
             initialize_ball_lower_limit=initialize_ball_lower_limit,
-            initialize_ball_upper_limit=initialize_ball_upper_limit
+            initialize_ball_upper_limit=initialize_ball_upper_limit,
+            iterations_per_update=iterations_per_update,
         )
 
         self.number_of_cores = (
@@ -165,13 +166,14 @@ class Emcee(NonLinearOptimizer):
         copy.sigma = self.sigma
         copy.nwalkers = self.nwalkers
         copy.nsteps = self.nsteps
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
         copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
         copy.auto_correlation_check_size = self.auto_correlation_check_size
         copy.auto_correlation_required_length = self.auto_correlation_required_length
         copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
+        copy.initialize_method = self.initialize_method
+        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
+        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.iterations_per_update = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
 
         return copy
@@ -252,26 +254,14 @@ class Emcee(NonLinearOptimizer):
                 if emcee_sampler.iteration % self.auto_correlation_check_size:
                     continue
 
-                samples = self.samples_from_model(model=model)
+                samples = self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
                 if samples.converged and self.auto_correlation_check_for_convergence:
                     break
 
         logger.info("Emcee complete")
 
-        self.paths.backup()
-
-        samples = self.samples_from_model(model=model)
-
-        analysis.visualize(
-            instance=samples.max_log_likelihood_instance, during_analysis=False
-        )
-
-        samples_text.results_to_file(
-            samples=samples, file_results=self.paths.file_results, during_analysis=False
-        )
-
-        self.paths.backup_zip_remove()
+        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         return Result(samples=samples, previous_model=model)
 
@@ -324,7 +314,7 @@ class Emcee(NonLinearOptimizer):
         total_walkers = len(self.backend.get_chain()[0, :, 0])
         total_steps = len(self.backend.get_log_prob())
 
-        return samples.MCMCSamples(
+        return MCMCSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,

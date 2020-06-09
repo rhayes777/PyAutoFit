@@ -296,7 +296,7 @@ def as_grid_search(phase_class, parallel=False):
 
             return result
 
-        def run_analysis(self, analysis):
+        def run_analysis(self, analysis, **kwargs):
             return self.optimizer.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
 
         @property

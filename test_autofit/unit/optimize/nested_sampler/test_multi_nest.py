@@ -221,7 +221,6 @@ class TestMulitNest:
             stagger_resampling_likelihood=False,
         )
 
-        assert fitness.model_results_output_interval == 100
         assert fitness.model == model
         assert fitness.terminate_at_acceptance_ratio == False
         assert fitness.acceptance_ratio_threshold == 0.0
