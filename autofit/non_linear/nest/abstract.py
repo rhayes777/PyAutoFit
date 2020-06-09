@@ -22,6 +22,7 @@ class AbstractNest(NonLinearSearch):
         iterations_per_update=None,
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
+        stagger_resampling_likelihood=None,
     ):
         """
         Abstract class of a nested sampling non-linear search (e.g. MultiNest, Dynesty).
@@ -69,6 +70,13 @@ class AbstractNest(NonLinearSearch):
             else acceptance_ratio_threshold
         )
 
+        self.stagger_resampling_likelihood = (
+            self.config("settings", "stagger_resampling_likelihood", bool)
+            if stagger_resampling_likelihood is None
+            else stagger_resampling_likelihood
+        )
+
+
     @property
     def config_type(self):
         return conf.instance.nest
@@ -80,6 +88,7 @@ class AbstractNest(NonLinearSearch):
         copy.sigma = self.sigma
         copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
+        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
         return copy
 
     class Fitness(NonLinearSearch.Fitness):
@@ -89,6 +98,7 @@ class AbstractNest(NonLinearSearch):
             analysis,
             model,
             samples_from_model,
+            stagger_resampling_likelihood,
             terminate_at_acceptance_ratio,
             acceptance_ratio_threshold,
         ):
@@ -99,6 +109,10 @@ class AbstractNest(NonLinearSearch):
                 model=model,
                 samples_from_model=samples_from_model,
             )
+
+            self.stagger_resampling_likelihood = stagger_resampling_likelihood
+            self.stagger_accepted_samples = 0
+            self.resampling_likelihood = -1.0e99
 
             self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
             self.acceptance_ratio_threshold = acceptance_ratio_threshold
@@ -116,7 +130,32 @@ class AbstractNest(NonLinearSearch):
 
             except exc.FitException:
 
+                return self.stagger_resampling_log_likelihood()
+
+        def stagger_resampling_log_likelihood(self):
+            """By default, when a fit raises an exception a log likelihood of -np.inf is returned, which leads the
+            sampler to discard the sample.
+
+            However, we found that this causes memory issues when running PyMultiNest. Therefore, we 'hack' a solution
+            by not returning -np.inf (which leads the sample to be discarded) but instead a large negative float which
+            is treated as a real sample (and does not lead too memory issues). The value returned is staggered to avoid
+            all initial samples returning the same log likelihood and the non-linear search terminating."""
+
+            if not self.stagger_resampling_likelihood:
+
                 return -np.inf
+
+            else:
+                if self.stagger_accepted_samples < 10:
+
+                    self.stagger_accepted_samples += 1
+                    self.resampling_likelihood += 1e90
+
+                    return self.resampling_likelihood
+
+                else:
+
+                    return -1.0 * np.abs(self.resampling_likelihood) * 10.0
 
         def check_terminate_sampling(self):
             """Automatically terminate nested sampling when the sampler's acceptance ratio falls below a specified
@@ -186,6 +225,7 @@ class AbstractNest(NonLinearSearch):
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from_model,
+            stagger_resampling_likelihood=self.stagger_resampling_likelihood,
             terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=self.acceptance_ratio_threshold,
         )

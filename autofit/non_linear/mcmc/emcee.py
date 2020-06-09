@@ -186,12 +186,11 @@ class Emcee(AbstractMCMC):
                 instance = self.model.instance_from_vector(vector=params)
                 log_likelihood = self.fit_instance(instance)
                 log_priors = self.model.log_priors_from_vector(vector=params)
+                return log_likelihood + sum(log_priors)
 
             except exc.FitException:
 
                 return -np.inf
-
-            return log_likelihood + sum(log_priors)
 
     def _fit(self, model, analysis):
         """

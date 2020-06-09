@@ -177,17 +177,12 @@ class MultiNest(ns.AbstractNest):
         self.log_zero = self.config("settings", "log_zero", float) if log_zero is None else log_zero
         self.init_MPI = self.config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
 
-        self.stagger_resampling_likelihood = (
-            self.config("settings", "stagger_resampling_likelihood", bool)
-            if stagger_resampling_likelihood is None
-            else stagger_resampling_likelihood
-        )
-
         super().__init__(
             paths=paths,
             sigma=sigma,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
+            stagger_resampling_likelihood=stagger_resampling_likelihood,
         )
 
         logger.debug("Creating MultiNest NLO")
@@ -243,70 +238,8 @@ class MultiNest(ns.AbstractNest):
         copy.init_MPI = self.init_MPI
         copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
+        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
         return copy
-
-    class Fitness(ns.AbstractNest.Fitness):
-        def __init__(
-            self,
-            paths,
-            analysis,
-            model,
-            samples_from_model,
-            stagger_resampling_likelihood,
-            terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold,
-        ):
-
-            super().__init__(
-                paths=paths,
-                analysis=analysis,
-                model=model,
-                samples_from_model=samples_from_model,
-                terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-                acceptance_ratio_threshold=acceptance_ratio_threshold,
-            )
-
-            self.stagger_resampling_likelihood = stagger_resampling_likelihood
-            self.stagger_accepted_samples = 0
-            self.resampling_likelihood = -1.0e99
-
-        def __call__(self, params, *kwargs):
-
-            self.check_terminate_sampling()
-
-            try:
-
-                instance = self.model.instance_from_vector(vector=params)
-                return self.fit_instance(instance)
-
-            except exc.FitException:
-
-                return self.stagger_resampling_log_likelihood()
-
-        def stagger_resampling_log_likelihood(self):
-            """By default, when a fit raises an exception a log likelihood of -np.inf is returned, which leads the
-            sampler to discard the sample.
-
-            However, we found that this causes memory issues when running PyMultiNest. Therefore, we 'hack' a solution
-            by not returning -np.inf (which leads the sample to be discarded) but instead a large negative float which
-            is treated as a real sample (and does not lead too memory issues). The value returned is staggered to avoid
-            all initial samples returning the same log likelihood and the non-linear search terminating."""
-
-            if not self.stagger_resampling_likelihood:
-
-                return -np.inf
-
-            else:
-                if self.stagger_accepted_samples < 10:
-
-                    self.stagger_accepted_samples += 1
-                    self.resampling_likelihood += 1e90
-
-                    return self.resampling_likelihood
-
-                else:
-
-                    return -1.0 * np.abs(self.resampling_likelihood) * 10.0
 
     def _fit(self, model: AbstractPriorModel, analysis) -> nl.Result:
         """
@@ -371,18 +304,6 @@ class MultiNest(ns.AbstractNest):
         samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         return nl.Result(samples=samples, previous_model=model)
-
-    def fitness_function_from_model_and_analysis(self, model, analysis):
-
-        return MultiNest.Fitness(
-            paths=self.paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=self.samples_from_model,
-            stagger_resampling_likelihood=self.stagger_resampling_likelihood,
-            terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=self.acceptance_ratio_threshold,
-        )
 
     def samples_from_model(self, model: AbstractPriorModel):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.

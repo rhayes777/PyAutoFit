@@ -497,8 +497,8 @@ class DynestyStatic(AbstractDynesty):
             else n_live_points
         )
 
-        evidence_tolerance = self.config("search", "evidence_tolerance",
-                                              float) if evidence_tolerance is None else evidence_tolerance
+        evidence_tolerance = self.config(
+            "search", "evidence_tolerance", float) if evidence_tolerance is None else evidence_tolerance
 
         if evidence_tolerance <= 0.0:
             evidence_tolerance = 1e-3 * (self.n_live_points - 1) + 0.01
@@ -550,6 +550,9 @@ class DynestyStatic(AbstractDynesty):
             extension=extension, remove_phase_tag=remove_phase_tag
         )
         copy.n_live_points = self.n_live_points
+        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
+        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
+        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
 
         return copy
 
