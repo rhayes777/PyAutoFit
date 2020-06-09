@@ -9,31 +9,31 @@ class TestPathDecorator:
         assert paths.folders == ["phase_folders"]
 
     def test_with_arguments(self):
-        optimizer = af.MockNLO(
+        search = af.MockNLO(
             phase_name="phase_name",
             phase_tag="phase_tag",
             phase_folders=("phase_folders",),
         )
-        self.assert_paths_as_expected(optimizer.paths)
+        self.assert_paths_as_expected(search.paths)
 
     def test_positional(self):
-        optimizer = af.MockNLO("phase_name")
-        paths = optimizer.paths
+        search = af.MockNLO("phase_name")
+        paths = search.paths
 
         assert paths.name == "phase_name"
 
     def test_paths_argument(self):
-        optimizer = af.MockNLO(
+        search = af.MockNLO(
             paths=af.Paths(
                 name="phase_name",
                 tag="phase_tag",
                 folders=("phase_folders",),
             )
         )
-        self.assert_paths_as_expected(optimizer.paths)
+        self.assert_paths_as_expected(search.paths)
 
     def test_combination_argument(self):
-        optimizer = af.MockNLO(
+        search = af.MockNLO(
             "other",
             paths=af.Paths(
                 name="phase_name",
@@ -41,4 +41,4 @@ class TestPathDecorator:
                 folders=("phase_folders",),
             ),
         )
-        self.assert_paths_as_expected(optimizer.paths)
+        self.assert_paths_as_expected(search.paths)

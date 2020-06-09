@@ -30,10 +30,10 @@ class NonLinearSearch(ABC):
             iterations_per_update=None,
             number_of_cores=1
     ):
-        """Abstract base class for non-linear optimizers.
+        """Abstract base class for non-linear searches.
 
-        This class sets up the file structure for the non-linear optimizer nlo, which are standardized across \
-        all non-linear optimizers.
+        This class sets up the file structure for the non-linear search, which are standardized across all non-linear
+        searches.
 
         Parameters
         ------------
@@ -164,7 +164,7 @@ class NonLinearSearch(ABC):
         A model which represents possible instances with some dimensionality is fit.
 
         The analysis provides two functions. One visualises an instance of a model and the
-        other scores an instance based on how well it fits some data. The optimizer
+        other scores an instance based on how well it fits some data. The search
         produces instances of the model by picking points in an N dimensional space.
 
         Parameters
@@ -189,7 +189,7 @@ class NonLinearSearch(ABC):
         self.save_parameter_names_file(model=model)
         self.save_metadata()
         self.save_info(info=info)
-        self.save_optimizer()
+        self.save_search()
         self.save_model(model=model)
 
         result = self._fit(
@@ -223,9 +223,13 @@ class NonLinearSearch(ABC):
 
         return new_instance
 
+    @property
+    def config_type(self):
+        raise NotImplementedError()
+
     def config(self, section, attribute_name, attribute_type=str):
         """
-        Get a config field from this optimizer's section in non_linear.ini by a key and value type.
+        Get a config field from this search's section in non_linear.ini by a key and value type.
 
         Parameters
         ----------
@@ -239,7 +243,7 @@ class NonLinearSearch(ABC):
         attribute
             An attribute for the key with the specified type.
         """
-        return conf.instance.non_linear.config_for(
+        return self.config_type.config_for(
             self.__class__.__name__).get(
             section,
             attribute_name,
@@ -354,16 +358,16 @@ class NonLinearSearch(ABC):
                 self.make_metadata_text()
             )
 
-    def save_optimizer(self):
+    def save_search(self):
         """
-        Save the optimizer associated with the phase as a pickle
+        Save the seawrch associated with the phase as a pickle
         """
         with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self))
 
     def save_model(self, model):
         """
-        Save the optimizer associated with the phase as a pickle
+        Save the model associated with the phase as a pickle
         """
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(model))

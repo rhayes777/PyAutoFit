@@ -245,7 +245,7 @@ breaks the the analysis down into 3 phases:
 
 1) Fit only the left Gaussian.
 2) Fit only the right Gaussian, using the model of the left Gaussian from phase 1 to reduce blending.
-3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the non-linear optimizer
+3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the non-linear search
    searches parameter space.
 
 .. code-block:: python

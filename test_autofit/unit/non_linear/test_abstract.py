@@ -145,11 +145,11 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test_copy_with_name_extension(self):
-        optimizer = af.MockNLO(af.Paths("phase_name", tag="tag"))
-        copy = optimizer.copy_with_name_extension("one")
+        search = af.MockNLO(af.Paths("phase_name", tag="tag"))
+        copy = search.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy)
-        assert optimizer.paths.tag == copy.paths.tag
+        assert search.paths.tag == copy.paths.tag
 
 
 @pytest.fixture(name="nlo_setup_path")

@@ -1,5 +1,6 @@
 import math
 
+from autoconf import conf
 from autofit import exc
 from autofit.non_linear.samples import PosteriorSamples
 from autofit.non_linear.abstract import NonLinearSearch
@@ -40,6 +41,10 @@ class MockNLO(NonLinearSearch):
                 ],
             ),
         )
+
+    @property
+    def config_type(self):
+        return conf.instance.mock
 
     @property
     def tag(self):

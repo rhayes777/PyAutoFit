@@ -239,57 +239,57 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test_dynesty(self):
-        optimizer = af.DynestyStatic(af.Paths("phase_name"), sigma=2.0)
+        search = af.DynestyStatic(af.Paths("phase_name"), sigma=2.0)
 
-        copy = optimizer.copy_with_name_extension("one")
+        copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.DynestyStatic)
-        assert copy.sigma is optimizer.sigma
+        assert copy.sigma is search.sigma
         assert (
             copy.terminate_at_acceptance_ratio
-            is optimizer.terminate_at_acceptance_ratio
+            is search.terminate_at_acceptance_ratio
         )
-        assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
+        assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
-        assert copy.iterations_per_update is optimizer.iterations_per_update
-        assert copy.n_live_points == optimizer.n_live_points
-        assert copy.bound == optimizer.bound
-        assert copy.sample == optimizer.sample
-        assert copy.update_interval == optimizer.update_interval
-        assert copy.bootstrap == optimizer.bootstrap
-        assert copy.enlarge == optimizer.enlarge
-        assert copy.vol_dec == optimizer.vol_dec
-        assert copy.vol_check == optimizer.vol_check
-        assert copy.walks == optimizer.walks
-        assert copy.sampling_efficiency == optimizer.sampling_efficiency
-        assert copy.slices == optimizer.slices
-        assert copy.fmove == optimizer.fmove
-        assert copy.max_move == optimizer.max_move
-        assert copy.number_of_cores == optimizer.number_of_cores
+        assert copy.iterations_per_update is search.iterations_per_update
+        assert copy.n_live_points == search.n_live_points
+        assert copy.bound == search.bound
+        assert copy.sample == search.sample
+        assert copy.update_interval == search.update_interval
+        assert copy.bootstrap == search.bootstrap
+        assert copy.enlarge == search.enlarge
+        assert copy.vol_dec == search.vol_dec
+        assert copy.vol_check == search.vol_check
+        assert copy.walks == search.walks
+        assert copy.sampling_efficiency == search.sampling_efficiency
+        assert copy.slices == search.slices
+        assert copy.fmove == search.fmove
+        assert copy.max_move == search.max_move
+        assert copy.number_of_cores == search.number_of_cores
 
-        optimizer = af.DynestyDynamic(af.Paths("phase_name"), sigma=2.0)
+        search = af.DynestyDynamic(af.Paths("phase_name"), sigma=2.0)
 
-        copy = optimizer.copy_with_name_extension("one")
+        copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.DynestyDynamic)
-        assert copy.sigma is optimizer.sigma
+        assert copy.sigma is search.sigma
         assert (
             copy.terminate_at_acceptance_ratio
-            is optimizer.terminate_at_acceptance_ratio
+            is search.terminate_at_acceptance_ratio
         )
-        assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
+        assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
-        assert copy.iterations_per_update is optimizer.iterations_per_update
-        assert copy.bound == optimizer.bound
-        assert copy.sample == optimizer.sample
-        assert copy.update_interval == optimizer.update_interval
-        assert copy.bootstrap == optimizer.bootstrap
-        assert copy.enlarge == optimizer.enlarge
-        assert copy.vol_dec == optimizer.vol_dec
-        assert copy.vol_check == optimizer.vol_check
-        assert copy.walks == optimizer.walks
-        assert copy.sampling_efficiency == optimizer.sampling_efficiency
-        assert copy.slices == optimizer.slices
-        assert copy.fmove == optimizer.fmove
-        assert copy.max_move == optimizer.max_move
-        assert copy.number_of_cores == optimizer.number_of_cores
+        assert copy.iterations_per_update is search.iterations_per_update
+        assert copy.bound == search.bound
+        assert copy.sample == search.sample
+        assert copy.update_interval == search.update_interval
+        assert copy.bootstrap == search.bootstrap
+        assert copy.enlarge == search.enlarge
+        assert copy.vol_dec == search.vol_dec
+        assert copy.vol_check == search.vol_check
+        assert copy.walks == search.walks
+        assert copy.sampling_efficiency == search.sampling_efficiency
+        assert copy.slices == search.slices
+        assert copy.fmove == search.fmove
+        assert copy.max_move == search.max_move
+        assert copy.number_of_cores == search.number_of_cores

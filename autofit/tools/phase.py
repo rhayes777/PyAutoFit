@@ -26,18 +26,18 @@ class AbstractPhase:
             model=None,
     ):
         """
-        A phase in an lens pipeline. Uses the set non_linear optimizer to try to
+        A phase in an lens pipeline. Uses the set non_linear search to try to
         fit_normal models and image passed to it.
 
         Parameters
         ----------
         non_linear_class: class
-            The class of a non_linear optimizer
+            The class of a non_linear search
         """
 
         self.paths = paths
 
-        self.optimizer = non_linear_class(paths=self.paths)
+        self.search = non_linear_class(paths=self.paths)
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
@@ -122,10 +122,10 @@ class AbstractPhase:
             )
 
     def __str__(self):
-        return self.optimizer.paths.name
+        return self.search.paths.name
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self.optimizer.paths.name}>"
+        return f"<{self.__class__.__name__} {self.search.paths.name}>"
 
     @property
     def result(self) -> PromiseResult:
@@ -137,7 +137,7 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis, info=None):
-        return self.optimizer.fit(model=self.model, analysis=analysis, info=info)
+        return self.search.fit(model=self.model, analysis=analysis, info=info)
 
     def customize_priors(self, results):
         """
@@ -274,7 +274,7 @@ def as_grid_search(phase_class, parallel=False):
                 **kwargs,
         ):
             super().__init__(paths, non_linear_class=non_linear_class, **kwargs)
-            self.optimizer = grid_search.GridSearch(
+            self.search = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,
                 non_linear_class=non_linear_class,
@@ -297,7 +297,7 @@ def as_grid_search(phase_class, parallel=False):
             return result
 
         def run_analysis(self, analysis, **kwargs):
-            return self.optimizer.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
+            return self.search.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
 
         @property
         def grid_priors(self):

@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from autoconf import conf
 import autofit as af
 from autofit.non_linear import abstract
 from test_autofit.mock import Galaxy, GalaxyModel
@@ -10,6 +11,10 @@ directory = os.path.dirname(os.path.realpath(__file__))
 
 
 class NLO(abstract.NonLinearSearch):
+
+    @property
+    def config_type(self):
+        return conf.instance.mock
 
     @property
     def tag(self):

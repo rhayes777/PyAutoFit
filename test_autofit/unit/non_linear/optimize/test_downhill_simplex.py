@@ -60,20 +60,20 @@ def make_downhill_simplex():
 
 class TestCopyWithNameExtension:
     @staticmethod
-    def assert_non_linear_attributes_equal(copy, optimizer):
+    def assert_non_linear_attributes_equal(copy, search):
         assert copy.paths.name == "phase_name/one"
 
     def test_downhill_simplex(self):
-        optimizer = af.DownhillSimplex(Paths("phase_name"), fmin=lambda x: x)
+        search = af.DownhillSimplex(Paths("phase_name"), fmin=lambda x: x)
 
-        copy = optimizer.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy, optimizer)
+        copy = search.copy_with_name_extension("one")
+        self.assert_non_linear_attributes_equal(copy, search)
         assert isinstance(copy, af.DownhillSimplex)
-        assert copy.fmin is optimizer.fmin
-        assert copy.xtol is optimizer.xtol
-        assert copy.ftol is optimizer.ftol
-        assert copy.maxiter is optimizer.maxiter
-        assert copy.maxfun is optimizer.maxfun
-        assert copy.full_output is optimizer.full_output
-        assert copy.disp is optimizer.disp
-        assert copy.retall is optimizer.retall
+        assert copy.fmin is search.fmin
+        assert copy.xtol is search.xtol
+        assert copy.ftol is search.ftol
+        assert copy.maxiter is search.maxiter
+        assert copy.maxfun is search.maxfun
+        assert copy.full_output is search.full_output
+        assert copy.disp is search.disp
+        assert copy.retall is search.retall

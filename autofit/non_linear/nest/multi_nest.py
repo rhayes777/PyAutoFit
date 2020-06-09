@@ -11,7 +11,7 @@ from autofit.non_linear import abstract as nl
 logger = logging.getLogger(__name__)
 
 
-class MultiNest(ns.NestedSampler):
+class MultiNest(ns.AbstractNest):
     def __init__(
         self,
         paths=None,
@@ -245,7 +245,7 @@ class MultiNest(ns.NestedSampler):
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
 
-    class Fitness(ns.NestedSampler.Fitness):
+    class Fitness(ns.AbstractNest.Fitness):
         def __init__(
             self,
             paths,

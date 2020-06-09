@@ -89,23 +89,23 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test__pyswarms(self):
-        optimizer = af.PySwarmsGlobal(af.Paths("phase_name"), sigma=2.0)
+        search = af.PySwarmsGlobal(af.Paths("phase_name"), sigma=2.0)
 
-        copy = optimizer.copy_with_name_extension("one")
+        copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.PySwarmsGlobal)
-        assert copy.sigma is optimizer.sigma
-        assert copy.n_particles is optimizer.n_particles
-        assert copy.iters is optimizer.iters
-        assert copy.cognitive == optimizer.cognitive
-        assert copy.social == optimizer.social
-        assert copy.inertia == optimizer.inertia
-        assert copy.ftol is optimizer.ftol
-        assert copy.initialize_method is optimizer.initialize_method
-        assert copy.initialize_ball_lower_limit is optimizer.initialize_ball_lower_limit
-        assert copy.initialize_ball_upper_limit is optimizer.initialize_ball_upper_limit
-        assert copy.iterations_per_update is optimizer.iterations_per_update
+        assert copy.sigma is search.sigma
+        assert copy.n_particles is search.n_particles
+        assert copy.iters is search.iters
+        assert copy.cognitive == search.cognitive
+        assert copy.social == search.social
+        assert copy.inertia == search.inertia
+        assert copy.ftol is search.ftol
+        assert copy.initialize_method is search.initialize_method
+        assert copy.initialize_ball_lower_limit is search.initialize_ball_lower_limit
+        assert copy.initialize_ball_upper_limit is search.initialize_ball_upper_limit
+        assert copy.iterations_per_update is search.iterations_per_update
         assert (
             copy.number_of_cores
-            is optimizer.number_of_cores
+            is search.number_of_cores
         )

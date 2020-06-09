@@ -8,14 +8,13 @@ from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestedSamplerSamples
-from autofit.non_linear.nest.abstract import NestedSampler
-from autofit.non_linear import abstract as nl
+from autofit.non_linear.nest.abstract import AbstractNest
 from autofit.non_linear.abstract import Result
 
 logger = logging.getLogger(__name__)
 
 
-class AbstractDynesty(NestedSampler):
+class AbstractDynesty(AbstractNest):
     def __init__(
             self,
             paths=None,
@@ -560,7 +559,7 @@ class DynestyStatic(AbstractDynesty):
 
         return StaticSampler(
             loglikelihood=fitness_function,
-            prior_transform=nl.NonLinearSearch.Fitness.prior,
+            prior_transform=AbstractNest.Fitness.prior,
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],
@@ -671,7 +670,7 @@ class DynestyDynamic(AbstractDynesty):
         variables."""
         return DynamicNestedSampler(
             loglikelihood=fitness_function,
-            prior_transform=nl.NonLinearSearch.Fitness.prior,
+            prior_transform=AbstractNest.Fitness.prior,
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],

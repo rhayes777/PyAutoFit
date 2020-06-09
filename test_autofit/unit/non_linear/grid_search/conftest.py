@@ -1,5 +1,6 @@
 import pytest
 
+from autoconf import conf
 import autofit as af
 
 init_args = []
@@ -17,6 +18,10 @@ class MockOptimizer(af.NonLinearSearch):
     def __init__(self, paths):
         super().__init__(paths)
         init_args.append(paths.name)
+
+    @property
+    def config_type(self):
+        return conf.instance.mock
 
     @property
     def tag(self):

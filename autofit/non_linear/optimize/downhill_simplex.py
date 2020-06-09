@@ -2,20 +2,22 @@ import numpy as np
 import scipy.optimize
 
 from autofit import exc
-from autofit.non_linear.abstract import NonLinearSearch
+from autofit.non_linear.optimize.abstract import AbstractOptimizer
 from autofit.non_linear.abstract import logger
 from autofit.non_linear.paths import Paths
 
 
-class DownhillSimplex(NonLinearSearch):
+class DownhillSimplex(AbstractOptimizer):
 
     def __init__(
             self,
             paths=None,
             fmin=scipy.optimize.fmin
     ):
+
         if paths is None:
-            paths = Paths(non_linear_name=type(self).__name__.lower())
+            paths = Paths()
+
         super().__init__(paths)
 
         self.xtol = self.config("search", "xtol", float)
@@ -49,7 +51,7 @@ class DownhillSimplex(NonLinearSearch):
         copy.retall = self.retall
         return copy
 
-    class Fitness(NonLinearSearch.Fitness):
+    class Fitness(AbstractOptimizer.Fitness):
 
         def __init__(self, paths, model, analysis, samples_fom_model):
 

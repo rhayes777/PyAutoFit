@@ -4,15 +4,15 @@ import emcee
 import numpy as np
 
 from autofit import exc
+from autofit.non_linear.mcmc.abstract import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
-from autofit.non_linear.abstract import NonLinearSearch
 from autofit.non_linear.abstract import Result
 from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
-class Emcee(NonLinearSearch):
+class Emcee(AbstractMCMC):
     def __init__(
         self,
         paths=None,
@@ -178,7 +178,7 @@ class Emcee(NonLinearSearch):
 
         return copy
 
-    class Fitness(NonLinearSearch.Fitness):
+    class Fitness(AbstractMCMC.Fitness):
         def __call__(self, params):
 
             try:

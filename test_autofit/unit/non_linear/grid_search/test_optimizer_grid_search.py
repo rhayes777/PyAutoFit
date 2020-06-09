@@ -300,13 +300,13 @@ class TestGridNLOBehaviour:
         grid_search.n_live_points = 20
         grid_search.sampling_efficiency = 0.3
 
-        optimizer = grid_search.optimizer_instance("name_path")
+        search = grid_search.search_instance("name_path")
 
-        assert optimizer.n_live_points is grid_search.n_live_points
-        assert optimizer.sampling_efficiency is grid_search.sampling_efficiency
-        assert grid_search.paths.path != optimizer.paths.path
-        assert grid_search.paths.backup_path != optimizer.paths.backup_path
-        assert grid_search.paths.output_path != optimizer.paths.output_path
+        assert search.n_live_points is grid_search.n_live_points
+        assert search.sampling_efficiency is grid_search.sampling_efficiency
+        assert grid_search.paths.path != search.paths.path
+        assert grid_search.paths.backup_path != search.paths.backup_path
+        assert grid_search.paths.output_path != search.paths.output_path
 
 
 class MockResult:

@@ -252,7 +252,7 @@ class Paths:
 
     def make_non_linear_pickle_path(self) -> str:
         """
-        Create the path at which the optimizer pickle should be saved
+        Create the path at which the search pickle should be saved
         """
         return f"{self.pickle_path}/non_linear.pickle"
 
@@ -295,7 +295,7 @@ class Paths:
 
     def backup(self):
         """
-        Copy files from the sym-linked optimizer folder to the backup folder in the workspace.
+        Copy files from the sym-linked search folder to the backup folder in the workspace.
         """
         try:
             shutil.rmtree(self.backup_path)
@@ -309,7 +309,7 @@ class Paths:
 
     def backup_zip_remove(self):
         """
-        Copy files from the sym linked optimizer folder then remove the sym linked folder.
+        Copy files from the sym linked search folder then remove the sym linked folder.
         """
         self.backup()
         self.zip()
@@ -322,7 +322,7 @@ class Paths:
 
     def restore(self):
         """
-        Copy files from the backup folder to the sym-linked optimizer folder.
+        Copy files from the backup folder to the sym-linked search folder.
         """
 
         if os.path.exists(self.zip_path):

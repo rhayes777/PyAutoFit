@@ -139,28 +139,28 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test_emcee(self):
-        optimizer = af.Emcee(af.Paths("phase_name"), sigma=2.0)
+        search = af.Emcee(af.Paths("phase_name"), sigma=2.0)
 
-        copy = optimizer.copy_with_name_extension("one")
+        copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.Emcee)
-        assert copy.sigma is optimizer.sigma
-        assert copy.nwalkers is optimizer.nwalkers
-        assert copy.nsteps is optimizer.nsteps
-        assert copy.initialize_method is optimizer.initialize_method
-        assert copy.initialize_ball_lower_limit is optimizer.initialize_ball_lower_limit
-        assert copy.initialize_ball_upper_limit is optimizer.initialize_ball_upper_limit
-        assert copy.auto_correlation_check_for_convergence is optimizer.auto_correlation_check_for_convergence
-        assert copy.auto_correlation_check_size is optimizer.auto_correlation_check_size
+        assert copy.sigma is search.sigma
+        assert copy.nwalkers is search.nwalkers
+        assert copy.nsteps is search.nsteps
+        assert copy.initialize_method is search.initialize_method
+        assert copy.initialize_ball_lower_limit is search.initialize_ball_lower_limit
+        assert copy.initialize_ball_upper_limit is search.initialize_ball_upper_limit
+        assert copy.auto_correlation_check_for_convergence is search.auto_correlation_check_for_convergence
+        assert copy.auto_correlation_check_size is search.auto_correlation_check_size
         assert (
             copy.auto_correlation_required_length
-            is optimizer.auto_correlation_required_length
+            is search.auto_correlation_required_length
         )
         assert (
             copy.auto_correlation_change_threshold
-            is optimizer.auto_correlation_change_threshold
+            is search.auto_correlation_change_threshold
         )
         assert (
             copy.number_of_cores
-            is optimizer.number_of_cores
+            is search.number_of_cores
         )

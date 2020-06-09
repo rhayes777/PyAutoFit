@@ -252,35 +252,35 @@ class TestMulitNest:
         assert copy.paths.name == "phase_name/one"
 
     def test__copy_with_name_extension(self):
-        optimizer = af.MultiNest(af.Paths("phase_name"), sigma=2.0)
+        search = af.MultiNest(af.Paths("phase_name"), sigma=2.0)
 
-        copy = optimizer.copy_with_name_extension("one")
+        copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.MultiNest)
-        assert copy.sigma is optimizer.sigma
-        assert copy.importance_nested_sampling is optimizer.importance_nested_sampling
-        assert copy.multimodal is optimizer.multimodal
-        assert copy.const_efficiency_mode is optimizer.const_efficiency_mode
-        assert copy.n_live_points is optimizer.n_live_points
-        assert copy.evidence_tolerance is optimizer.evidence_tolerance
-        assert copy.sampling_efficiency is optimizer.sampling_efficiency
-        assert copy.n_iter_before_update is optimizer.n_iter_before_update
-        assert copy.null_log_evidence is optimizer.null_log_evidence
-        assert copy.max_modes is optimizer.max_modes
-        assert copy.mode_tolerance is optimizer.mode_tolerance
-        assert copy.seed is optimizer.seed
-        assert copy.verbose is optimizer.verbose
-        assert copy.resume is optimizer.resume
-        assert copy.context is optimizer.context
-        assert copy.write_output is optimizer.write_output
-        assert copy.log_zero is optimizer.log_zero
-        assert copy.max_iter is optimizer.max_iter
-        assert copy.init_MPI is optimizer.init_MPI
+        assert copy.sigma is search.sigma
+        assert copy.importance_nested_sampling is search.importance_nested_sampling
+        assert copy.multimodal is search.multimodal
+        assert copy.const_efficiency_mode is search.const_efficiency_mode
+        assert copy.n_live_points is search.n_live_points
+        assert copy.evidence_tolerance is search.evidence_tolerance
+        assert copy.sampling_efficiency is search.sampling_efficiency
+        assert copy.n_iter_before_update is search.n_iter_before_update
+        assert copy.null_log_evidence is search.null_log_evidence
+        assert copy.max_modes is search.max_modes
+        assert copy.mode_tolerance is search.mode_tolerance
+        assert copy.seed is search.seed
+        assert copy.verbose is search.verbose
+        assert copy.resume is search.resume
+        assert copy.context is search.context
+        assert copy.write_output is search.write_output
+        assert copy.log_zero is search.log_zero
+        assert copy.max_iter is search.max_iter
+        assert copy.init_MPI is search.init_MPI
         assert (
             copy.terminate_at_acceptance_ratio
-            is optimizer.terminate_at_acceptance_ratio
+            is search.terminate_at_acceptance_ratio
         )
-        assert copy.acceptance_ratio_threshold is optimizer.acceptance_ratio_threshold
+        assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):
         conf.instance.output_path = multi_nest_samples_path + "/1_class"

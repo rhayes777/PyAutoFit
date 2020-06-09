@@ -3,7 +3,8 @@ import os
 import numpy as np
 
 from autoconf import conf
-from autofit.non_linear import abstract as nl
+from autofit.non_linear.abstract import NonLinearSearch
+from autofit.non_linear.abstract import IntervalCounter
 from autofit.non_linear.abstract import Result
 from autofit.non_linear.paths import Paths
 from autofit.text import samples_text
@@ -13,7 +14,7 @@ from autofit import exc
 logger = logging.getLogger(__name__)
 
 
-class NestedSampler(nl.NonLinearSearch):
+class AbstractNest(NonLinearSearch):
     def __init__(
         self,
         paths=None,
@@ -56,19 +57,21 @@ class NestedSampler(nl.NonLinearSearch):
 
         self.sigma = sigma
 
-        sampler = conf.instance.non_linear.config_for("NestedSampler")
-
         self.terminate_at_acceptance_ratio = (
-            sampler.get("settings", "terminate_at_acceptance_ratio", bool)
+            self.config("settings", "terminate_at_acceptance_ratio", bool)
             if terminate_at_acceptance_ratio is None
             else terminate_at_acceptance_ratio
         )
 
         self.acceptance_ratio_threshold = (
-            sampler.get("settings", "acceptance_ratio_threshold", float)
+            self.config("settings", "acceptance_ratio_threshold", float)
             if acceptance_ratio_threshold is None
             else acceptance_ratio_threshold
         )
+
+    @property
+    def config_type(self):
+        return conf.instance.nest
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(
@@ -79,7 +82,7 @@ class NestedSampler(nl.NonLinearSearch):
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         return copy
 
-    class Fitness(nl.NonLinearSearch.Fitness):
+    class Fitness(NonLinearSearch.Fitness):
         def __init__(
             self,
             paths,
@@ -100,7 +103,7 @@ class NestedSampler(nl.NonLinearSearch):
             self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
             self.acceptance_ratio_threshold = acceptance_ratio_threshold
 
-            self.should_check_terminate = nl.IntervalCounter(1000)
+            self.should_check_terminate = IntervalCounter(1000)
 
         def __call__(self, params, *kwargs):
 
@@ -157,7 +160,7 @@ class NestedSampler(nl.NonLinearSearch):
             logger.info("Nested Sampler complete")
 
             # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
-            # TODO: not located here. Do we need to rely just ono the optimizer foldeR? This is a good idea if we always
+            # TODO: not located here. Do we need to rely just ono the search foldeR? This is a good idea if we always
             # TODO: have a valid sym-link( e.g. even for aggregator use).
 
             self.paths.backup()
@@ -178,7 +181,7 @@ class NestedSampler(nl.NonLinearSearch):
 
     def fitness_function_from_model_and_analysis(self, model, analysis):
 
-        return NestedSampler.Fitness(
+        return AbstractNest.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,

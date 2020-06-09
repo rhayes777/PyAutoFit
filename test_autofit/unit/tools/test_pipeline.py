@@ -38,9 +38,9 @@ class MockPhase(af.AbstractPhase):
         pass
 
     @af.convert_paths
-    def __init__(self, paths, optimizer=None):
+    def __init__(self, paths, search=None):
         super().__init__(paths)
-        self.optimizer = optimizer or af.MockNLO(paths=paths)
+        self.search = search or af.MockNLO(paths=paths)
 
     def save_metadata(self, *args, **kwargs):
         pass
@@ -52,10 +52,10 @@ class TestPipeline:
         with pytest.raises(af.exc.PipelineException):
             af.Pipeline("name", MockPhase(af.Paths("one")), MockPhase(af.Paths("one")))
 
-    def test_optimizer_assertion(self, model):
+    def test_search_assertion(self, model):
         paths = af.Paths("Phase Name")
-        optimizer = af.MockNLO(paths)
-        phase = MockPhase(phase_name="Phase_Name", optimizer=optimizer)
+        search = af.MockNLO(paths)
+        phase = MockPhase(phase_name="Phase_Name", search=search)
         phase.model.profile = GeometryProfile
 
         try:

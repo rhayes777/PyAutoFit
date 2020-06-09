@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class OptimizerSamples:
 
     def __init__(self, model, parameters, log_likelihoods):
-        """The *Samples* of a non-linear search, specifically the samples of an optimizer which only provides
+        """The *Samples* of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
 
@@ -55,7 +55,7 @@ class OptimizerSamples:
         same (or similar) parameters in a subsequent phase, where:
 
          - The mean is given by maximum log likelihood model values.
-         - Their errors are omitted, as this information is not available from an optimizer. When these priors are
+         - Their errors are omitted, as this information is not available from an search. When these priors are
            used to link to another phase, it will thus automatically use the prior config values.
 
         Parameters

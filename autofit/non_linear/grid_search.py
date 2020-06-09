@@ -178,7 +178,7 @@ class GridSearch:
         number_of_steps: int
             The number of steps to go in each direction
         non_linear_class: class
-            The class of the optimizer that is run at each step
+            The class of the search that is run at each step
         """
         self.paths = paths
 
@@ -427,19 +427,19 @@ class GridSearch:
         name_path = "{}/{}/{}/{}".format(
             self.paths.name, self.phase_tag_input, self.paths.non_linear_name, "_".join(labels)
         )
-        optimizer_instance = self.optimizer_instance(name_path=name_path)
+        search_instance = self.search_instance(name_path=name_path)
 
         return Job(
-            optimizer_instance=optimizer_instance,
+            search_instance=search_instance,
             model=model,
             analysis=analysis,
             arguments=arguments,
             index=index
         )
 
-    def optimizer_instance(self, name_path):
+    def search_instance(self, name_path):
 
-        optimizer_instance = self.non_linear_class(
+        search_instance = self.non_linear_class(
             Paths(
                 name=name_path,
                 tag=self.paths.tag,
@@ -450,10 +450,10 @@ class GridSearch:
         for key, value in self.__dict__.items():
             if key not in ("model", "instance", "paths"):
                 try:
-                    setattr(optimizer_instance, key, value)
+                    setattr(search_instance, key, value)
                 except AttributeError:
                     pass
-        return optimizer_instance
+        return search_instance
 
 
 class JobResult:
@@ -473,27 +473,27 @@ class JobResult:
 
 
 class Job:
-    def __init__(self, optimizer_instance, model, analysis, arguments, index):
+    def __init__(self, search_instance, model, analysis, arguments, index):
         """
         A job to be performed in parallel.
 
         Parameters
         ----------
-        optimizer_instance
+        search_instance
             An instance of an optimiser
         analysis
             An analysis
         arguments
             The grid search arguments
         """
-        self.optimizer_instance = optimizer_instance
+        self.search_instance = search_instance
         self.analysis = analysis
         self.model = model
         self.arguments = arguments
         self.index = index
 
     def perform(self):
-        result = self.optimizer_instance.fit(model=self.model, analysis=self.analysis)
+        result = self.search_instance.fit(model=self.model, analysis=self.analysis)
         result_list_row = [self.index, *[prior.lower_limit for prior in self.arguments.values()],
                            result.log_likelihood,
                            ]

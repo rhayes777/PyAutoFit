@@ -35,4 +35,4 @@ class TestMixin:
         my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
             af.Paths(name="phase name")
         )
-        assert my_phase.optimizer.parallel
+        assert my_phase.search.parallel

@@ -5,15 +5,15 @@ import numpy as np
 import pickle
 
 from autofit import exc
+from autofit.non_linear.optimize.abstract import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples
-from autofit.non_linear.abstract import NonLinearSearch
 from autofit.non_linear.abstract import Result
 from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
-class PySwarmsGlobal(NonLinearSearch):
+class PySwarmsGlobal(AbstractOptimizer):
     def __init__(
         self,
         paths=None,
@@ -176,7 +176,7 @@ class PySwarmsGlobal(NonLinearSearch):
 
         return copy
 
-    class Fitness(NonLinearSearch.Fitness):
+    class Fitness(AbstractOptimizer.Fitness):
         def __call__(self, params):
 
             log_likelihoods = []
