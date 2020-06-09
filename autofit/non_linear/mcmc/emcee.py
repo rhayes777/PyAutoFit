@@ -231,33 +231,47 @@ class Emcee(NonLinearSearch):
 
             samples = self.samples_from_model(model=model)
 
-            previous_run_converged = samples.converged
+            total_iterations = emcee_sampler.iteration
+
+            if samples.converged:
+                iterations_remaining = 0
+            else:
+                iterations_remaining = self.nsteps - total_iterations
 
         except AttributeError:
 
             emcee_state = self.initial_points_from_model(number_of_points=emcee_sampler.nwalkers, model=model)
 
-            previous_run_converged = False
+            total_iterations = 0
+            iterations_remaining = self.nsteps
 
         logger.info("Running Emcee Sampling...")
 
-        if self.nsteps - emcee_sampler.iteration > 0 and not previous_run_converged:
+        while iterations_remaining > 0:
+
+            if self.iterations_per_update > iterations_remaining:
+                iterations = iterations_remaining
+            else:
+                iterations = self.iterations_per_update
 
             for sample in emcee_sampler.sample(
                 initial_state=emcee_state,
-                iterations=self.nsteps - emcee_sampler.iteration,
+                iterations=iterations,
                 progress=True,
                 skip_initial_state_check=True,
                 store=True,
             ):
 
-                if emcee_sampler.iteration % self.auto_correlation_check_size:
-                    continue
+                pass
 
-                samples = self.perform_update(model=model, analysis=analysis, during_analysis=True)
+            total_iterations += iterations
+            iterations_remaining = self.nsteps - total_iterations
 
+            samples = self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+            if emcee_sampler.iteration % self.auto_correlation_check_size:
                 if samples.converged and self.auto_correlation_check_for_convergence:
-                    break
+                    iterations_remaining = 0
 
         logger.info("Emcee complete")
 

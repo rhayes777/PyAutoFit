@@ -175,8 +175,7 @@ class PosteriorSamples(OptimizerSamples):
         a crude estimate using the mean value of all accepted samples is used."""
         if self.pdf_converged:
             return self.pdf.getMeans()
-        else:
-            return list(np.mean(self.parameters, axis=0))
+        return list(np.mean(self.parameters, axis=0))
 
     @property
     def most_probable_instance(self) -> model.ModelInstance:
@@ -588,7 +587,11 @@ class MCMCSamples(PosteriorSamples):
 
         Emcee samples can be analysed by GetDist irrespective of how long the sampler has run, albeit low run times
         will likely produce inaccurate results."""
-        return True
+        try:
+            self.samples_after_burn_in
+            return True
+        except ValueError:
+            return False
 
     @property
     def samples_after_burn_in(self) -> [list]:
@@ -640,11 +643,13 @@ class MCMCSamples(PosteriorSamples):
         as a list of values.
 
         This is computed by binning all sampls after burn-in into a histogram and take its median (e.g. 50%) value. """
-        samples = self.samples_after_burn_in
-        return [
-            float(np.percentile(samples[:, i], [50]))
-            for i in range(self.model.prior_count)
-        ]
+        if self.pdf_converged:
+            return [
+                float(np.percentile(self.samples_after_burn_in[:, i], [50]))
+                for i in range(self.model.prior_count)
+            ]
+
+        return list(np.mean(self.parameters, axis=0))
 
     def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
@@ -666,16 +671,26 @@ class MCMCSamples(PosteriorSamples):
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
         limit = math.erf(0.5 * sigma * math.sqrt(2))
 
-        samples = self.samples_after_burn_in
+        if self.pdf_converged:
+
+            samples = self.samples_after_burn_in
+
+            return [
+                tuple(np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit]))
+                for i in range(self.model.prior_count)
+            ]
+
+        parameters_min = list(
+            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
+        )
+        parameters_max = list(
+            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
+        )
 
         return [
-            tuple(np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit]))
-            for i in range(self.model.prior_count)
+            (parameters_min[index], parameters_max[index])
+            for index in range(len(parameters_min))
         ]
-
-    def output_pdf_plots(self):
-
-        pass
 
 
 class NestedSamplerSamples(PosteriorSamples):
