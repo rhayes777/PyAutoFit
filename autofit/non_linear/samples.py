@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class OptimizerSamples:
 
-    def __init__(self, model, parameters, log_likelihoods):
+    def __init__(self, model, parameters, log_likelihoods, log_priors):
         """The *Samples* of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
@@ -26,6 +26,8 @@ class OptimizerSamples:
         self.total_samples = len(log_likelihoods)
         self.parameters = parameters
         self.log_likelihoods = log_likelihoods
+        self.log_priors = log_priors
+        self.log_posteriors = [lh + prior for lh, prior in zip(log_likelihoods, log_priors)]
 
     @property
     def parameter_names(self):
@@ -49,6 +51,21 @@ class OptimizerSamples:
     def max_log_likelihood_instance(self) -> model.ModelInstance:
         """  The parameters of the maximum log likelihood sample of the non-linear search returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
+
+    @property
+    def max_log_posterior_index(self) -> int:
+        """The index of the sample with the highest log posterior."""
+        return int(np.argmax(self.log_posteriors))
+
+    @property
+    def max_log_posterior_vector(self) -> [float]:
+        """ The parameters of the maximum log posterior sample of the non-linear search returned as a list of values."""
+        return self.parameters[self.max_log_posterior_index]
+
+    @property
+    def max_log_posterior_instance(self) -> model.ModelInstance:
+        """  The parameters of the maximum log posterior sample of the non-linear search returned as a model instance."""
+        return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
         """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
@@ -77,7 +94,7 @@ class OptimizerSamples:
         return self.model.instance_from_vector(vector=self.parameters[sample_index])
 
 
-class PosteriorSamples(OptimizerSamples):
+class PDFSamples(OptimizerSamples):
     def __init__(self, model, parameters, log_likelihoods, log_priors, weights, unconverged_sample_size=100):
         """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
@@ -88,11 +105,9 @@ class PosteriorSamples(OptimizerSamples):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods)
+        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods, log_priors=log_priors)
 
-        self.log_priors = log_priors
         self.weights = weights
-        self.log_posteriors = [lh * prior for lh, prior in zip(log_likelihoods, log_priors)]
         self._unconverged_sample_size = unconverged_sample_size
 
     @property
@@ -106,21 +121,6 @@ class PosteriorSamples(OptimizerSamples):
         if self.total_samples > self._unconverged_sample_size:
             return self._unconverged_sample_size
         return self.total_samples
-
-    @property
-    def max_log_posterior_index(self) -> int:
-        """The index of the sample with the highest log posterior."""
-        return int(np.argmax(self.log_posteriors))
-
-    @property
-    def max_log_posterior_vector(self) -> [float]:
-        """ The parameters of the maximum log posterior sample of the non-linear search returned as a list of values."""
-        return self.parameters[self.max_log_posterior_index]
-
-    @property
-    def max_log_posterior_instance(self) -> model.ModelInstance:
-        """  The parameters of the maximum log posterior sample of the non-linear search returned as a model instance."""
-        return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     @property
     def pdf_converged(self) -> bool:
@@ -167,7 +167,7 @@ class PosteriorSamples(OptimizerSamples):
         )
 
     @property
-    def most_probable_vector(self) -> [float]:
+    def median_pdf_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
 
@@ -178,10 +178,10 @@ class PosteriorSamples(OptimizerSamples):
         return list(np.mean(self.parameters, axis=0))
 
     @property
-    def most_probable_instance(self) -> model.ModelInstance:
+    def median_pdf_instance(self) -> model.ModelInstance:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a model instance."""
-        return self.model.instance_from_vector(vector=self.most_probable_vector)
+        return self.model.instance_from_vector(vector=self.median_pdf_vector)
 
     def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
@@ -328,9 +328,9 @@ class PosteriorSamples(OptimizerSamples):
         uppers = self.vector_at_upper_sigma(sigma=sigma)
         return list(
             map(
-                lambda upper, most_probable: upper - most_probable,
+                lambda upper, median_pdf: upper - median_pdf,
                 uppers,
-                self.most_probable_vector,
+                self.median_pdf_vector,
             )
         )
 
@@ -349,9 +349,9 @@ class PosteriorSamples(OptimizerSamples):
         lowers = self.vector_at_lower_sigma(sigma=sigma)
         return list(
             map(
-                lambda lower, most_probable: most_probable - lower,
+                lambda lower, median_pdf: median_pdf - lower,
                 lowers,
-                self.most_probable_vector,
+                self.median_pdf_vector,
             )
         )
 
@@ -405,7 +405,7 @@ class PosteriorSamples(OptimizerSamples):
         """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
-         - The mean is given by their most-probable values (using *most_probable_vector*).
+         - The mean is given by their most-probable values (using *median_pdf_vector*).
          - Their errors are computed at an input sigma value (using *errors_at_sigma*).
 
         Parameters
@@ -415,7 +415,7 @@ class PosteriorSamples(OptimizerSamples):
             PDF).
         """
 
-        means = self.most_probable_vector
+        means = self.median_pdf_vector
         uppers = self.vector_at_upper_sigma(sigma=sigma)
         lowers = self.vector_at_lower_sigma(sigma=sigma)
 
@@ -452,7 +452,7 @@ class PosteriorSamples(OptimizerSamples):
         raise NotImplementedError()
 
     def offset_vector_from_input_vector(self, input_vector) -> [float]:
-        """ The values of an input_vector offset by the *most_probable_vector* (the PDF medians).
+        """ The values of an input_vector offset by the *median_pdf_vector* (the PDF medians).
 
         If the 'true' values of a model are known and input as the *input_vector*, this function returns the results
         of the non-linear search as values offset from the 'true' model. For example, a value 0.0 means the non-linear
@@ -467,9 +467,9 @@ class PosteriorSamples(OptimizerSamples):
         """
         return list(
             map(
-                lambda input, most_probable: most_probable - input,
+                lambda input, median_pdf: median_pdf - input,
                 input_vector,
-                self.most_probable_vector,
+                self.median_pdf_vector,
             )
         )
 
@@ -522,7 +522,7 @@ class PosteriorSamples(OptimizerSamples):
         plt.close()
 
 
-class MCMCSamples(PosteriorSamples):
+class MCMCSamples(PDFSamples):
 
     def __init__(
             self,
@@ -638,7 +638,7 @@ class MCMCSamples(PosteriorSamples):
         return converged
 
     @property
-    def most_probable_vector(self) -> [float]:
+    def median_pdf_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
 
@@ -693,7 +693,7 @@ class MCMCSamples(PosteriorSamples):
         ]
 
 
-class NestedSamplerSamples(PosteriorSamples):
+class NestSamples(PDFSamples):
 
     def __init__(
             self,

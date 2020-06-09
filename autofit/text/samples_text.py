@@ -21,7 +21,7 @@ def results_at_sigma_from_samples(samples, sigma) -> str:
     sigma_formatter = frm.TextFormatter()
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
-        value = format_str().format(samples.most_probable_vector[i])
+        value = format_str().format(samples.median_pdf_vector[i])
         upper_limit = format_str().format(upper_limits[i])
         lower_limit = format_str().format(lower_limits[i])
         value = f"{value} ({lower_limit}, {upper_limit})"
@@ -45,21 +45,21 @@ def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> 
     """
 
     labels = model_text.parameter_labels_from_model(model=samples.model)
-    most_probables = samples.most_probable_vector
+    median_pdfs = samples.median_pdf_vector
     uppers = samples.vector_at_upper_sigma(sigma=sigma)
     lowers = samples.vector_at_lower_sigma(sigma=sigma)
 
     line = []
 
     for i in range(len(labels)):
-        most_probable = format_str.format(most_probables[i])
+        median_pdf = format_str.format(median_pdfs[i])
         upper = format_str.format(uppers[i])
         lower = format_str.format(lowers[i])
 
         line += [
             labels[i]
             + " = "
-            + most_probable
+            + median_pdf
             + "^{+"
             + upper
             + "}_{-"

@@ -179,20 +179,21 @@ class PySwarmsGlobal(AbstractOptimizer):
     class Fitness(AbstractOptimizer.Fitness):
         def __call__(self, params):
 
-            log_likelihoods = []
+            log_posteriors = []
 
             for params_of_particle in params:
 
                 try:
 
                     instance = self.model.instance_from_vector(vector=list(params_of_particle))
-                    log_likelihoods.append(-2.0*self.fit_instance(instance))
+                    log_priors = self.model.log_priors_from_vector(vector=params)
+                    log_posteriors.append(-2.0*(self.fit_instance(instance) + sum(log_priors)))
 
                 except exc.FitException:
 
-                    log_likelihoods.append(np.inf)
+                    log_posteriors.append(np.inf)
 
-            return np.asarray(log_likelihoods)
+            return np.asarray(log_posteriors)
 
     def _fit(self, model, analysis):
         """
@@ -273,10 +274,10 @@ class PySwarmsGlobal(AbstractOptimizer):
                 with open(f"{self.paths.samples_path}/points.pickle", "wb") as f:
                     pickle.dump(pso.pos_history, f)
 
-                with open(f"{self.paths.samples_path}/log_likelihoods.pickle", "wb") as f:
+                with open(f"{self.paths.samples_path}/log_posteriors.pickle", "wb") as f:
                     pickle.dump([-0.5*cost for cost in pso.cost_history], f)
 
-                samples = self.perform_update(model=model, analysis=analysis, during_analysis=True)
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         logger.info("PySwarmsGlobal complete")
 
@@ -295,8 +296,8 @@ class PySwarmsGlobal(AbstractOptimizer):
             return pickle.load(f)
 
     @property
-    def load_log_likelihoods(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "log_likelihoods"), "rb") as f:
+    def load_log_posteriors(self):
+        with open("{}/{}.pickle".format(self.paths.samples_path, "log_posteriors"), "rb") as f:
             return pickle.load(f)
 
     def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
@@ -320,8 +321,17 @@ class PySwarmsGlobal(AbstractOptimizer):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
+
+        parameters = [params.tolist()[0] for params in self.load_points]
+        log_priors = [
+            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
+        log_posteriors = self.load_log_posteriors
+        log_likelihoods = [lp - prior for lp, prior in zip(log_posteriors, log_priors)]
+
         return OptimizerSamples(
             model=model,
             parameters=[params.tolist()[0] for params in self.load_points],
-            log_likelihoods=self.load_log_likelihoods
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
         )

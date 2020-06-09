@@ -15,7 +15,7 @@ class MockNonLinearSearch(object):
             phase_name,
             phase_tag=None,
             phase_folders=tuple(),
-            most_probable=None,
+            median_pdf=None,
             model_mapper=None,
             max_log_likelihood=None,
             model_upper_params=None,
@@ -28,7 +28,7 @@ class MockNonLinearSearch(object):
             ),
         )
 
-        self.most_probable = most_probable
+        self.median_pdf = median_pdf
         self.max_log_likelihood = max_log_likelihood
         self.model_upper_params = model_upper_params
         self.model_lower_params = model_lower_params
@@ -40,7 +40,7 @@ class MockNonLinearSearch(object):
         raise NotImplementedError()
 
     @property
-    def most_probable_vector(self):
+    def median_pdf_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
         file which nlo from a multinest lens.
@@ -50,7 +50,7 @@ class MockNonLinearSearch(object):
         offset parameter is used to start at the desiredaf.
 
         """
-        return self.most_probable
+        return self.median_pdf
 
     @property
     def max_log_likelihood_vector(self):

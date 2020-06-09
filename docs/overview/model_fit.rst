@@ -140,7 +140,7 @@ search's parameter samples, the maximum likelihood model, marginalized parameter
 
     print(result.samples.parameters)
     print(result.samples.max_log_likelihood_vector)
-    print(result.samples.most_probable_vector)
+    print(result.samples.median_pdf_vector)
     print(result.samples.error_vector_at_sigma)
 
 It can even return *instances* of the *Gaussian* class using the values of the model results:

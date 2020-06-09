@@ -45,9 +45,9 @@ from .non_linear.nest.multi_nest import MultiNest
 from .non_linear.paths import Paths
 from .non_linear.paths import convert_paths
 from .non_linear.paths import make_path
-from .non_linear.samples import PosteriorSamples
+from .non_linear.samples import PDFSamples
 from .non_linear.samples import MCMCSamples
-from .non_linear.samples import NestedSamplerSamples
+from .non_linear.samples import NestSamples
 from .non_linear.grid_search import GridSearch as OptimizerGridSearch
 from .non_linear.grid_search import GridSearchResult
 from .text import Model

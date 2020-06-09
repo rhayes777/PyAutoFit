@@ -4,7 +4,7 @@ import pickle
 import dill
 
 from autofit.non_linear import abstract
-from autofit.non_linear.samples import PosteriorSamples
+from autofit.non_linear.samples import PDFSamples
 
 
 class PhaseOutput:
@@ -40,7 +40,7 @@ class PhaseOutput:
         return f"{self.directory}/pickles"
 
     @property
-    def samples(self) -> PosteriorSamples:
+    def samples(self) -> PDFSamples:
         """
         An object describing the samples of the nonlinear search performed in this phase
         """

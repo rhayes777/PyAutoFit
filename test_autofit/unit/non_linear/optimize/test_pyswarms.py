@@ -74,14 +74,20 @@ class TestPySwarmsGlobalConfig:
         pyswarms = af.PySwarmsGlobal(paths=af.Paths())
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+        model.mock_class.one = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
+        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
+        model.mock_class.three = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
+        model.mock_class.four = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
 
         samples = pyswarms.samples_from_model(model=model)
 
         assert samples.parameters[0] == pytest.approx(
             [50.1254, 1.04626, 10.09456], 1.0e-4
         )
-        assert samples.log_likelihoods[0] == pytest.approx(-5070.73298, 1.0e-4)
+
+        assert samples.log_likelihoods[0] == pytest.approx(-5071.80777, 1.0e-4)
+        assert samples.log_posteriors[0] == pytest.approx(-5070.73298, 1.0e-4)
+
 
 class TestCopyWithNameExtension:
     @staticmethod

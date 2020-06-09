@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.non_linear.samples import OptimizerSamples, PosteriorSamples
+from autofit.non_linear.samples import OptimizerSamples, PDFSamples
 from test_autofit.mock import MockClassNLOx2, MockClassNLOx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -18,12 +18,11 @@ class TestOptimizerSamples:
                       [21.0, 22.0, 23.0, 24.0],
                       [0.0, 1.0, 2.0, 3.0]]
 
-        log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
-
         samples = OptimizerSamples(
             model=model,
             parameters=parameters,
-            log_likelihoods=log_likelihoods,
+            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0]
         )
 
         assert samples.parameter_names == [
@@ -50,17 +49,43 @@ class TestOptimizerSamples:
                       [21.0, 22.0, 23.0, 24.0],
                       [0.0, 1.0, 2.0, 3.0]]
 
-        log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
-
         samples = OptimizerSamples(
             model=model,
             parameters=parameters,
-            log_likelihoods=log_likelihoods,
+            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0]
         )
 
         assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
 
         instance = samples.max_log_likelihood_instance
+
+        assert instance.mock_class_1.one == 21.0
+        assert instance.mock_class_1.two == 22.0
+        assert instance.mock_class_1.three == 23.0
+        assert instance.mock_class_1.four == 24.0
+
+    def test__log_priors_and_max_log_posterior_vector_and_instance(self):
+        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+
+        parameters = [[0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [0.0, 1.0, 2.0, 3.0],
+                      [21.0, 22.0, 23.0, 24.0]]
+
+        samples = OptimizerSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=[1.0, 2.0, 3.0, 0.0, 5.0],
+            log_priors=[1.0, 2.0, 3.0, 10.0, 6.0]
+        )
+
+        assert samples.log_posteriors == [2.0, 4.0, 6.0, 10.0, 11.0]
+
+        assert samples.max_log_posterior_vector == [21.0, 22.0, 23.0, 24.0]
+
+        instance = samples.max_log_posterior_instance
 
         assert instance.mock_class_1.one == 21.0
         assert instance.mock_class_1.two == 22.0
@@ -74,13 +99,12 @@ class TestOptimizerSamples:
                       [0.88, 1.88, 2.88, 3.88],
                       [1.12, 2.12, 3.12, 4.32]]
 
-        log_likelihoods = [10.0, 0.0, 0.0, 0.0, 0.0]
-
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         samples = OptimizerSamples(
             model=model,
             parameters=parameters,
-            log_likelihoods=log_likelihoods,
+            log_likelihoods=[10.0, 0.0, 0.0, 0.0, 0.0],
+            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0]
         )
 
         gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
@@ -104,12 +128,11 @@ class TestOptimizerSamples:
                       [1.0, 2.0, 3.0, 4.0],
                       [1.1, 2.1, 3.1, 4.1]]
 
-        log_likelihoods = [0.0, 0.0, 0.0, 0.0, 0.0]
-
         samples = OptimizerSamples(
             model=model,
             parameters=parameters,
-            log_likelihoods=log_likelihoods,
+            log_likelihoods=[0.0, 0.0, 0.0, 0.0, 0.0],
+            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0]
         )
 
         instance = samples.instance_from_sample_index(sample_index=0)
@@ -126,41 +149,10 @@ class TestOptimizerSamples:
         assert instance.mock_class.three == 7.0
         assert instance.mock_class.four == 8.0
 
-class TestPosteriorSamples:
 
-    def test__log_priors_and_max_log_posterior_vector_and_instance(self):
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+class TestPDFSamples:
 
-        parameters = [[0.0, 1.0, 2.0, 3.0],
-                      [0.0, 1.0, 2.0, 3.0],
-                      [0.0, 1.0, 2.0, 3.0],
-                      [0.0, 1.0, 2.0, 3.0],
-                      [21.0, 22.0, 23.0, 24.0]]
-
-        log_likelihoods = [1.0, 2.0, 3.0, 0.0, 5.0]
-
-        log_priors = [1.0, 2.0, 3.0, 10.0, 5.0]
-
-        samples = PosteriorSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=[]
-        )
-
-        assert samples.log_posteriors == [1.0, 4.0, 9.0, 0.0, 25.0]
-
-        assert samples.max_log_posterior_vector == [21.0, 22.0, 23.0, 24.0]
-
-        instance = samples.max_log_posterior_instance
-
-        assert instance.mock_class_1.one == 21.0
-        assert instance.mock_class_1.two == 22.0
-        assert instance.mock_class_1.three == 23.0
-        assert instance.mock_class_1.four == 24.0
-
-    def test__converged_vector__most_probable_vector_and_instance(self):
+    def test__converged_vector__median_pdf_vector_and_instance(self):
         parameters = [[1.0, 2.0],
                       [1.0, 2.0],
                       [1.0, 2.0],
@@ -176,7 +168,7 @@ class TestPosteriorSamples:
         log_likelihoods = list(range(10))
 
         model = af.ModelMapper(mock_class=MockClassNLOx2)
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -214,7 +206,7 @@ class TestPosteriorSamples:
         weights = 10 * [0.1]
 
         model = af.ModelMapper(mock_class=MockClassNLOx2)
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -224,17 +216,17 @@ class TestPosteriorSamples:
 
     #    assert samples.pdf_converged == True
 
-        most_probable = samples.most_probable_instance
+        median_pdf = samples.median_pdf_instance
 
-        assert most_probable.mock_class.one == pytest.approx(0.1, 1.0e-4)
-        assert most_probable.mock_class.two == pytest.approx(0.4, 1.0e-4)
+        assert median_pdf.mock_class.one == pytest.approx(0.1, 1.0e-4)
+        assert median_pdf.mock_class.two == pytest.approx(0.4, 1.0e-4)
 
     def test__unconverged_sample_size__uses_value_unless_fewer_samples(self):
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
         log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
 
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=[[]],
             log_likelihoods=log_likelihoods,
@@ -247,7 +239,7 @@ class TestPosteriorSamples:
 
         assert samples.unconverged_sample_size == 2
 
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=[[]],
             log_likelihoods=log_likelihoods,
@@ -258,7 +250,7 @@ class TestPosteriorSamples:
 
         assert samples.unconverged_sample_size == 5
 
-    def test__unconverged_pdf__most_probable_vector_and_instance(self):
+    def test__unconverged_pdf__median_pdf_vector_and_instance(self):
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
         parameters = [[1.0, 2.0, 3.0, 4.0],
@@ -271,7 +263,7 @@ class TestPosteriorSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -281,12 +273,12 @@ class TestPosteriorSamples:
 
         assert samples.pdf_converged == False
 
-        most_probable = samples.most_probable_instance
+        median_pdf = samples.median_pdf_instance
 
-        assert most_probable.mock_class_1.one == pytest.approx(1.02, 1.0e-4)
-        assert most_probable.mock_class_1.two == pytest.approx(2.02, 1.0e-4)
-        assert most_probable.mock_class_1.three == pytest.approx(3.02, 1.0e-4)
-        assert most_probable.mock_class_1.four == pytest.approx(4.02, 1.0e-4)
+        assert median_pdf.mock_class_1.one == pytest.approx(1.02, 1.0e-4)
+        assert median_pdf.mock_class_1.two == pytest.approx(2.02, 1.0e-4)
+        assert median_pdf.mock_class_1.three == pytest.approx(3.02, 1.0e-4)
+        assert median_pdf.mock_class_1.four == pytest.approx(4.02, 1.0e-4)
 
     def test__unconverged_vector_at_upper_and_lower_sigma(self):
         parameters = [[1.0, 2.0, 3.0, 4.0],
@@ -300,7 +292,7 @@ class TestPosteriorSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -348,7 +340,7 @@ class TestPosteriorSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -392,7 +384,7 @@ class TestPosteriorSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -432,7 +424,7 @@ class TestPosteriorSamples:
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -467,7 +459,7 @@ class TestPosteriorSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        samples = PosteriorSamples(
+        samples = PDFSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -482,12 +474,12 @@ class TestPosteriorSamples:
         assert offset_values == pytest.approx([0.02, 1.02, 1.02, 1.02], 1.0e-4)
 
 
-class TestNestedSamplerSamples:
+class TestNestSamples:
 
     def test__acceptance_ratio_is_correct(self):
         model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-        samples = af.NestedSamplerSamples(
+        samples = af.NestSamples(
             model=model,
             parameters=[[]],
             log_likelihoods=[1.0, 2.0, 3.0, 4.0, 5.0],

@@ -2,7 +2,7 @@ import math
 
 from autoconf import conf
 from autofit import exc
-from autofit.non_linear.samples import PosteriorSamples
+from autofit.non_linear.samples import PDFSamples
 from autofit.non_linear.abstract import NonLinearSearch
 from autofit.non_linear.abstract import Analysis
 from autofit.non_linear.abstract import Result
@@ -73,7 +73,7 @@ class MockAnalysis(Analysis):
         self.data = data
 
 
-class MockSamples(PosteriorSamples):
+class MockSamples(PDFSamples):
 
     def __init__(self, model=None, max_log_likelihood_instance=None, log_likelihoods=None, gaussian_tuples=None):
 

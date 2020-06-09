@@ -7,7 +7,7 @@ from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import NestedSamplerSamples
+from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest.abstract import AbstractNest
 from autofit.non_linear.abstract import Result
 
@@ -141,10 +141,10 @@ class AbstractDynesty(AbstractNest):
             this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
             If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *NestedSampler* for a full description of this feature).
+            threshold value (see *Nest* for a full description of this feature).
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *NestedSampler* for a full description of this feature).
+            *True* (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
@@ -358,7 +358,7 @@ class AbstractDynesty(AbstractNest):
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
 
-        return NestedSamplerSamples(
+        return NestSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -479,10 +479,10 @@ class DynestyStatic(AbstractDynesty):
             Default is 100.
         terminate_at_acceptance_ratio : bool
             If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *NestedSampler* for a full description of this feature).
+            threshold value (see *Nest* for a full description of this feature).
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *NestedSampler* for a full description of this feature).
+            *True* (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).

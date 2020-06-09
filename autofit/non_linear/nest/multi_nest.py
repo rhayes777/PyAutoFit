@@ -4,7 +4,7 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import NestedSamplerSamples
+from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest import abstract as ns
 from autofit.non_linear import abstract as nl
 
@@ -112,10 +112,10 @@ class MultiNest(ns.AbstractNest):
             MPI not supported by PyAutoFit for MultiNest.
         terminate_at_acceptance_ratio : bool
             If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *NestedSampler* for a full description of this feature).
+            threshold value (see *Nest* for a full description of this feature).
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *NestedSampler* for a full description of this feature).
+            *True* (see *Nest* for a full description of this feature).
         """
 
         self.n_live_points = (
@@ -347,7 +347,7 @@ class MultiNest(ns.AbstractNest):
             file_summary=self.paths.file_summary, prior_count=model.prior_count
         )
 
-        return NestedSamplerSamples(
+        return NestSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,

@@ -86,7 +86,7 @@ class TestEmceeConfig:
 
 
 class TestEmceeOutput:
-    def test__most_probable_parameters(self):
+    def test__median_pdf_parameters(self):
 
         emcee = af.Emcee(paths=af.Paths())
 
@@ -95,7 +95,7 @@ class TestEmceeOutput:
 
         samples = emcee.samples_from_model(model=model)
 
-        assert samples.most_probable_vector == pytest.approx(
+        assert samples.median_pdf_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
         )
 

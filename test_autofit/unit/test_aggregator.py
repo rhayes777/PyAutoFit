@@ -18,7 +18,7 @@ class MockPhaseOutput:
         self.dataset = dataset
 
     @property
-    def most_probable_instance(self):
+    def median_pdf_instance(self):
         return MostProbableInstance(
             self.phase
         )
