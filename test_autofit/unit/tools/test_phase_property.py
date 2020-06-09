@@ -3,20 +3,17 @@ import os
 import pytest
 
 import autofit as af
-from autofit.optimize.non_linear import non_linear
+from autofit.non_linear import abstract
 from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
 
-class NLO(non_linear.NonLinearOptimizer):
+class NLO(abstract.NonLinearSearch):
 
     @property
     def tag(self):
         return"nlo"
-
-    def _fit(self, model, fitness_function):
-        raise NotImplementedError()
 
     def _fit(self, model, analysis):
         class Fitness:
@@ -31,7 +28,7 @@ class NLO(non_linear.NonLinearOptimizer):
                     setattr(instance, key, value)
 
                 log_likelihood = analysis.log_likelihood_function(instance)
-                self.result = non_linear.Result(
+                self.result = abstract.Result(
                     instance, log_likelihood
                 )
 

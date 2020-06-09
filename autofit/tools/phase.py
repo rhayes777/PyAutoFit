@@ -7,11 +7,11 @@ import dill
 
 from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
-from autofit.optimize.non_linear.paths import convert_paths
+from autofit.non_linear.paths import convert_paths
 from autofit.mapper.prior.promise import PromiseResult
-from autofit.optimize import grid_search
-from autofit.optimize.non_linear.emcee import Emcee
-from autofit.optimize.non_linear.paths import Paths
+from autofit.non_linear import grid_search
+from autofit.non_linear.mcmc.emcee import Emcee
+from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 

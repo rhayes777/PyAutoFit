@@ -3,8 +3,8 @@ import pickle
 
 import dill
 
-import autofit.optimize.non_linear.non_linear
-from autofit.optimize.non_linear.samples import PosteriorSamples
+from autofit.non_linear import abstract
+from autofit.non_linear.samples import PosteriorSamples
 
 
 class PhaseOutput:
@@ -88,7 +88,7 @@ class PhaseOutput:
         return "/".join((self.pipeline, self.phase, self.dataset_name))
 
     @property
-    def optimizer(self) -> autofit.optimize.non_linear.non_linear.NonLinearOptimizer:
+    def optimizer(self) -> abstract.NonLinearSearch:
         """
         The optimizer object that was used in this phase
         """

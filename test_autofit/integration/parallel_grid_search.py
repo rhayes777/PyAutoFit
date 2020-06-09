@@ -4,7 +4,7 @@ from os import path
 
 import test
 import autofit as af
-from autofit.optimize.grid_search import GridSearch
+from autofit.non_linear.grid_search import GridSearch
 
 logger = logging.getLogger(__name__)
 

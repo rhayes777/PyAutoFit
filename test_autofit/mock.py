@@ -5,11 +5,11 @@ import typing
 import autofit as af
 # noinspection PyAbstractClass
 from autofit.mapper.prior_model import attribute_pair
-from autofit.optimize.non_linear.paths import Paths
+from autofit.non_linear.paths import Paths
 from autofit.tools.phase import Dataset
 
 
-class MockNonLinearOptimizer(object):
+class MockNonLinearSearch(object):
     def __init__(
             self,
             phase_name,
@@ -21,7 +21,7 @@ class MockNonLinearOptimizer(object):
             model_upper_params=None,
             model_lower_params=None,
     ):
-        super(MockNonLinearOptimizer, self).__init__(
+        super(MockNonLinearSearch, self).__init__(
             model_mapper or af.ModelMapper(),
             Paths(
                 name=phase_name, tag=phase_tag, folders=phase_folders

@@ -1,5 +1,5 @@
 import autofit as af
-from autofit.optimize.non_linear.mock_nlo import MockNLO, MockAnalysis
+from autofit.non_linear.mock.mock_nlo import MockNLO, MockAnalysis
 from test_autofit import mock
 
 
