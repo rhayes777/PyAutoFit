@@ -45,7 +45,13 @@ def make_probit_approx(
 def test_approximations(
         probit_approx
 ):
-    assert isinstance(
-        probit_approx,
-        mp.FactorApproximation
+    opt_probit = mp.OptFactor.from_approx(probit_approx)
+    result = opt_probit.maximise(x=0.)
+
+    probit_model = mp.NormalMessage.from_mode(
+        result.mode['x'],
+        covariance=result.inv_hessian['x']
     )
+
+    assert probit_model.mu == pytest.approx(0.506, rel=0.1)
+    assert probit_model.sigma == pytest.approx(0.814, rel=0.1)
