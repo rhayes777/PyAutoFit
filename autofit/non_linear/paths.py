@@ -52,12 +52,16 @@ def convert_paths(func):
 
             non_linear_instance = kwargs["non_linear_class"]()
             non_linear_name = non_linear_instance.config("tag", "name", str)
-            non_linear_tag = non_linear_instance.tag
+
+            def non_linear_tag_function():
+                return non_linear_instance.tag
 
         else:
 
             non_linear_name = None
-            non_linear_tag = None
+
+            def non_linear_tag_function():
+                return ""
 
         func(
             self,
@@ -67,7 +71,7 @@ def convert_paths(func):
                 folders=kwargs.pop("phase_folders", tuple()),
                 path_prefix=kwargs.pop("phase_path", None),
                 non_linear_name=non_linear_name,
-                non_linear_tag=non_linear_tag,
+                non_linear_tag_function=non_linear_tag_function,
                 remove_files=remove_files,
             ),
             **kwargs,
@@ -84,7 +88,7 @@ class Paths:
             folders=tuple(),
             path_prefix=None,
             non_linear_name=None,
-            non_linear_tag=None,
+            non_linear_tag_function=lambda: "",
             remove_files=False,
     ):
         """Manages the path structure for non-linear search output, for analyses both not using and using the phase
@@ -134,8 +138,26 @@ class Paths:
         self.name = name or ""
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
-        self.non_linear_tag = non_linear_tag or ""
+        self.non_linear_tag_function = non_linear_tag_function
         self.remove_files = remove_files
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["non_linear_tag"] = state.pop("non_linear_tag_function")()
+        return state
+
+    def __setstate__(self, state):
+        non_linear_tag = state.pop(
+            "non_linear_tag"
+        )
+        self.non_linear_tag_function = lambda: non_linear_tag
+        self.__dict__.update(
+            state
+        )
+
+    @property
+    def non_linear_tag(self):
+        return self.non_linear_tag_function()
 
     @property
     def path(self):
@@ -212,6 +234,7 @@ class Paths:
         return "/".join((conf.instance.output_path, self.path_prefix, self.name))
 
     @property
+    @make_path
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/{}/samples".format(
             conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_tag

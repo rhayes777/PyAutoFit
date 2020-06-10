@@ -8,6 +8,15 @@ import autofit as af
 directory = path.dirname(path.realpath(__file__))
 
 
+def test_dynamic(phase):
+    paths = phase.paths
+    non_linear_tag = paths.non_linear_tag
+
+    phase.search.nwalkers += 1
+
+    assert paths.non_linear_tag != non_linear_tag
+
+
 class PatchPaths(af.Paths):
     @property
     def path(self):
@@ -34,7 +43,6 @@ def make_paths():
 
 
 def test_backup_zip_remove(paths):
-
     os.mkdir(paths.sym_path)
     os.mkdir(paths.path)
 
