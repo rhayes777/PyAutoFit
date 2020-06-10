@@ -68,6 +68,7 @@ class TestEmceeConfig:
     def test__samples_from_model(self):
 
         emcee = af.Emcee(paths=af.Paths())
+        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
