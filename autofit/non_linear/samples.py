@@ -44,13 +44,19 @@ class OptimizerSamples:
         return self.model.parameter_names
 
     @property
-    def _headers(self):
+    def _headers(self) -> List[str]:
+        """
+        Headers for the samples table
+        """
         return self.parameter_names + [
             "log_posterior", "log_likelihood", "log_prior"
         ]
 
     @property
-    def _rows(self):
+    def _rows(self) -> List[List[float]]:
+        """
+        Rows in the samples table
+        """
         for index, row in enumerate(self.parameters):
             yield row + [
                 self.log_posteriors[index],
@@ -58,7 +64,15 @@ class OptimizerSamples:
                 self.log_priors[index]
             ]
 
-    def write_table(self, filename):
+    def write_table(self, filename: str):
+        """
+        Write a table of parameters, posteriors, priors and likelihoods
+
+        Parameters
+        ----------
+        filename
+            Where the table is to be written
+        """
         with open(filename, "w+") as f:
             writer = csv.writer(f)
             writer.writerow(
