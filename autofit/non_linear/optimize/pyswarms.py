@@ -277,6 +277,10 @@ class PySwarmsGlobal(AbstractOptimizer):
                 with open(f"{self.paths.samples_path}/log_posteriors.pickle", "wb") as f:
                     pickle.dump([-0.5*cost for cost in pso.cost_history], f)
 
+                self.samples_from_model(model).write_table(
+                    f"{self.paths.samples_path}/samples.csv"
+                )
+
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         logger.info("PySwarmsGlobal complete")
