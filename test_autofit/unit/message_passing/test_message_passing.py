@@ -30,7 +30,8 @@ def test_probit(x):
         integrate.trapz(x ** i * tilted_distribution, x) for i in range(3))
 
     phi_numerical = mp.NormalMessage.from_sufficient_statistics(
-        [ni_1 / ni_0, ni_2 / ni_0])
+        [ni_1 / ni_0, ni_2 / ni_0]
+    )
 
     assert phi_numerical.mu == pytest.approx(-0.253, rel=0.01)
     assert phi_numerical.sigma == pytest.approx(0.462, rel=0.01)
