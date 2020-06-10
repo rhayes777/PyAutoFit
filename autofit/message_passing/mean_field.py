@@ -177,7 +177,7 @@ class MeanFieldApproximation:
     @classmethod
     def from_kws(cls, factor_graph: FactorGraph,
                  factor_evidence: Optional[Dict[FactorNode, float]] = None,
-                 **kws: Dict[str, Type[AbstractMessage]],
+                 **kws
                  ) -> "MeanFieldApproximation":
         return cls.from_approx_dists(
             factor_graph=factor_graph, approx_dists=kws,
