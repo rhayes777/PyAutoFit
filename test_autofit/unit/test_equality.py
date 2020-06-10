@@ -3,9 +3,8 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-from autofit import Paths
-from test_autofit.unit.mapper.model.test_model_mapper import GeometryProfile
 from test_autofit.mock import GalaxyModel
+from test_autofit.unit.mapper.model.test_model_mapper import GeometryProfile
 
 
 @pytest.fixture(name="prior_model")
@@ -65,13 +64,3 @@ class TestCase:
         model_instance.profile.centre = (1.0, 2.0)
 
         assert model_instance != model_instance_copy
-
-    def test_multinest_equality(self):
-        nlo = af.MultiNest(Paths("phase name"))
-        nlo_copy = deepcopy(nlo)
-
-        assert nlo == nlo_copy
-
-        nlo.n_live_points += 1
-
-        assert nlo != nlo_copy
