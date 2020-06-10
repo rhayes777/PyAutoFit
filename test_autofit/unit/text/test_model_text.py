@@ -1,5 +1,3 @@
-import pytest
-
 import autofit as af
 from test_autofit import mock
 from test_autofit.mock import MockClassNLOx4
@@ -14,7 +12,7 @@ def test__parameter_names_from_text():
         ]
     )
 
-    parameter_names = af.text.Model.parameter_names_from_model(model=model)
+    parameter_names = model.parameter_names
 
     assert parameter_names == [
         "ls_0_one",
@@ -25,8 +23,8 @@ def test__parameter_names_from_text():
         "ls_1_three",
     ]
 
-def test__parameter_labels_from_text():
 
+def test__parameter_labels_from_text():
     model = af.PriorModel(MockClassNLOx4)
 
     parameter_labels = af.text.Model.parameter_labels_from_model(model=model)

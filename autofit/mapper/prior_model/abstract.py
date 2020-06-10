@@ -7,20 +7,19 @@ from typing import Tuple, Optional
 
 import numpy as np
 
+from autofit import exc
 from autofit.mapper import model
 from autofit.mapper import model_mapper
-from autofit.mapper.prior_model import collection
-from autofit import exc
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
+from autofit.mapper.prior_model import collection
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
-from autofit.text import model_text
 from autofit.text.formatter import TextFormatter
 
 
@@ -749,7 +748,13 @@ class AbstractPriorModel(AbstractModel):
         for *GetDist* visualization.
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
-        return model_text.parameter_names_from_model(model=self)
+        return [
+            self.name_for_prior(
+                prior
+            )
+            for _, prior
+            in self.prior_tuples_ordered_by_id
+        ]
 
 
 def transfer_classes(instance, mapper, model_classes=None):
