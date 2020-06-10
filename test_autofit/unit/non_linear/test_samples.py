@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import autofit as af
@@ -7,29 +9,63 @@ from test_autofit.mock import MockClassNLOx2, MockClassNLOx4
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-class TestOptimizerSamples:
+@pytest.fixture(
+    name="samples"
+)
+def make_samples():
+    model = af.ModelMapper(mock_class_1=MockClassNLOx4)
 
-    def test__parameter_names_and_labels(self):
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+    parameters = [[0.0, 1.0, 2.0, 3.0],
+                  [0.0, 1.0, 2.0, 3.0],
+                  [0.0, 1.0, 2.0, 3.0],
+                  [21.0, 22.0, 23.0, 24.0],
+                  [0.0, 1.0, 2.0, 3.0]]
 
-        parameters = [[0.0, 1.0, 2.0, 3.0],
-                      [0.0, 1.0, 2.0, 3.0],
-                      [0.0, 1.0, 2.0, 3.0],
-                      [21.0, 22.0, 23.0, 24.0],
-                      [0.0, 1.0, 2.0, 3.0]]
+    return OptimizerSamples(
+        model=model,
+        parameters=parameters,
+        log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
+        log_priors=[0.0, 0.0, 0.0, 0.0, 0.0]
+    )
 
-        samples = OptimizerSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
-            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0]
+
+class TestSamplesTable:
+    def test_headers(self, samples):
+        assert samples._headers == [
+            "mock_class_1_one",
+            "mock_class_1_two",
+            "mock_class_1_three",
+            "mock_class_1_four",
+            "log_posterior",
+            "log_likelihood",
+            "log_prior"
+        ]
+
+    def test_rows(self, samples):
+        rows = list(samples._rows)
+        assert rows == [[0.0, 1.0, 2.0, 3.0, 1.0, 1.0, 0.0],
+                        [0.0, 1.0, 2.0, 3.0, 2.0, 2.0, 0.0],
+                        [0.0, 1.0, 2.0, 3.0, 3.0, 3.0, 0.0],
+                        [21.0, 22.0, 23.0, 24.0, 10.0, 10.0, 0.0],
+                        [0.0, 1.0, 2.0, 3.0, 5.0, 5.0, 0.0]]
+
+    def test_write_table(self, samples):
+        filename = "table.csv"
+        samples.write_table(
+            filename
         )
 
+        assert os.path.exists(filename)
+        os.remove(filename)
+
+
+class TestOptimizerSamples:
+    def test__parameter_names_and_labels(self, samples):
         assert samples.parameter_names == [
-            r"mock_class_1_one",
-            r"mock_class_1_two",
-            r"mock_class_1_three",
-            r"mock_class_1_four",
+            "mock_class_1_one",
+            "mock_class_1_two",
+            "mock_class_1_three",
+            "mock_class_1_four",
         ]
 
         assert samples.parameter_labels == [
@@ -39,23 +75,7 @@ class TestOptimizerSamples:
             r"x4p3_{\mathrm{a}}",
         ]
 
-    def test__max_log_likelihood_vector_and_instance(self):
-
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
-
-        parameters = [[0.0, 1.0, 2.0, 3.0],
-                      [0.0, 1.0, 2.0, 3.0],
-                      [0.0, 1.0, 2.0, 3.0],
-                      [21.0, 22.0, 23.0, 24.0],
-                      [0.0, 1.0, 2.0, 3.0]]
-
-        samples = OptimizerSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
-            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0]
-        )
-
+    def test__max_log_likelihood_vector_and_instance(self, samples):
         assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
 
         instance = samples.max_log_likelihood_instance
@@ -176,7 +196,7 @@ class TestPDFSamples:
             weights=log_likelihoods
         )
 
-  #      assert samples.pdf_converged == True
+        #      assert samples.pdf_converged == True
 
         errors = samples.vector_at_sigma(sigma=3.0)
 
@@ -214,7 +234,7 @@ class TestPDFSamples:
             weights=weights
         )
 
-    #    assert samples.pdf_converged == True
+        #    assert samples.pdf_converged == True
 
         median_pdf = samples.median_pdf_instance
 

@@ -1,3 +1,4 @@
+import csv
 import logging
 import math
 from typing import List
@@ -41,6 +42,32 @@ class OptimizerSamples:
     @property
     def parameter_names(self):
         return self.model.parameter_names
+
+    @property
+    def _headers(self):
+        return self.parameter_names + [
+            "log_posterior", "log_likelihood", "log_prior"
+        ]
+
+    @property
+    def _rows(self):
+        for index, row in enumerate(self.parameters):
+            yield row + [
+                self.log_posteriors[index],
+                self.log_likelihoods[index],
+                self.log_priors[index]
+            ]
+
+    def write_table(self, filename):
+        with open(filename, "w+") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                self._headers
+            )
+            for row in self._rows:
+                writer.writerow(
+                    row
+                )
 
     @property
     def parameter_labels(self):
