@@ -2,7 +2,7 @@ import os
 import autoarray as aa
 import autofit as af
 from test_autofit.integration import integration_util
-from autofit.optimize.non_linear.mock_nlo import MockNLO
+from autofit.non_linear.mock.mock_nlo import MockNLO
 
 
 def run(module, test_name=None, non_linear_class=af.MultiNest, config_folder="config"):

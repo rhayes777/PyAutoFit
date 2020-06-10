@@ -66,7 +66,7 @@ class TestCase:
         assert model_mapper.prior_count == 14
 
         prior = tracer_prior_model.source_galaxy.light_profiles.light.axis_ratio
-        tracer_prior_model.lens_galaxy.mass_profiles.mass.axis_ratio = prior
+        tracer_prior_model.galaxy.mass_profiles.mass.axis_ratio = prior
 
         assert model_mapper.prior_count == 13
 

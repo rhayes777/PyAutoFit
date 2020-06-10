@@ -2,19 +2,23 @@ import os
 
 import pytest
 
+from autoconf import conf
 import autofit as af
-import autofit.mapper.prior_model.abstract
-import autofit.mapper.prior_model.prior_model
-import autofit.optimize.non_linear.non_linear
-from autofit import Paths
+from autofit.non_linear import abstract
 from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
 
-class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
-    def _fit(self, model, fitness_function):
-        raise NotImplementedError()
+class NLO(abstract.NonLinearSearch):
+
+    @property
+    def config_type(self):
+        return conf.instance.mock
+
+    @property
+    def tag(self):
+        return"nlo"
 
     def _fit(self, model, analysis):
         class Fitness:
@@ -29,7 +33,7 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
                     setattr(instance, key, value)
 
                 log_likelihood = analysis.log_likelihood_function(instance)
-                self.result = autofit.optimize.non_linear.non_linear.Result(
+                self.result = abstract.Result(
                     instance, log_likelihood
                 )
 
@@ -46,7 +50,7 @@ class NLO(autofit.optimize.non_linear.non_linear.NonLinearOptimizer):
 
 @pytest.fixture(name="phase")
 def make_phase():
-    return MyPhase(Paths(name=""), non_linear_class=NLO)
+    return MyPhase(af.Paths(name=""), non_linear_class=NLO)
 
 
 class MyPhase(af.AbstractPhase):
@@ -55,7 +59,7 @@ class MyPhase(af.AbstractPhase):
 
 @pytest.fixture(name="list_phase")
 def make_list_phase():
-    return MyPhase(Paths(name=""), non_linear_class=NLO)
+    return MyPhase(af.Paths(name=""), non_linear_class=NLO)
 
 
 class TestPhasePropertyList:

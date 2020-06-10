@@ -5,12 +5,13 @@ from typing import Dict
 
 import dill
 
+from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
-from autofit.optimize.non_linear.paths import convert_paths
+from autofit.non_linear.paths import convert_paths
 from autofit.mapper.prior.promise import PromiseResult
-from autofit.optimize import grid_search
-from autofit.optimize.non_linear.emcee import Emcee
-from autofit.optimize.non_linear.paths import Paths
+from autofit.non_linear import grid_search
+from autofit.non_linear.mcmc.emcee import Emcee
+from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
@@ -25,18 +26,18 @@ class AbstractPhase:
             model=None,
     ):
         """
-        A phase in an lens pipeline. Uses the set non_linear optimizer to try to
+        A phase in an lens pipeline. Uses the set non_linear search to try to
         fit_normal models and image passed to it.
 
         Parameters
         ----------
         non_linear_class: class
-            The class of a non_linear optimizer
+            The class of a non_linear search
         """
 
         self.paths = paths
 
-        self.optimizer = non_linear_class(paths=self.paths)
+        self.search = non_linear_class(paths=self.paths)
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
@@ -121,10 +122,10 @@ class AbstractPhase:
             )
 
     def __str__(self):
-        return self.optimizer.paths.name
+        return self.search.paths.name
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self.optimizer.paths.name}>"
+        return f"<{self.__class__.__name__} {self.search.paths.name}>"
 
     @property
     def result(self) -> PromiseResult:
@@ -136,7 +137,7 @@ class AbstractPhase:
         return PromiseResult(self)
 
     def run_analysis(self, analysis, info=None):
-        return self.optimizer.fit(model=self.model, analysis=analysis, info=info)
+        return self.search.fit(model=self.model, analysis=analysis, info=info)
 
     def customize_priors(self, results):
         """
@@ -273,7 +274,7 @@ def as_grid_search(phase_class, parallel=False):
                 **kwargs,
         ):
             super().__init__(paths, non_linear_class=non_linear_class, **kwargs)
-            self.optimizer = grid_search.GridSearch(
+            self.search = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,
                 non_linear_class=non_linear_class,
@@ -295,8 +296,8 @@ def as_grid_search(phase_class, parallel=False):
 
             return result
 
-        def run_analysis(self, analysis):
-            return self.optimizer.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
+        def run_analysis(self, analysis, **kwargs):
+            return self.search.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
 
         @property
         def grid_priors(self):
@@ -306,3 +307,29 @@ def as_grid_search(phase_class, parallel=False):
             )
 
     return GridSearchExtension
+
+
+class AbstractPhaseSettings:
+
+    def __init__(self, log_likelihood_cap=None):
+
+        self.log_likelihood_cap = log_likelihood_cap
+
+    @property
+    def log_likelihood_cap_tag(self):
+        """Generate a bin up tag, to customize phase names based on the resolutioon the image is binned up by for faster \
+        run times.
+
+        This changes the phase settings folder is tagged as follows:
+
+        bin_up_factor = 1 -> settings
+        bin_up_factor = 2 -> settings_bin_up_factor_2
+        bin_up_factor = 2 -> settings_bin_up_factor_2
+        """
+        if self.log_likelihood_cap is None:
+            return ""
+        return (
+            "__"
+            + conf.instance.tag.get("phase", "log_likelihood_cap", str)
+            + "_{0:.1f}".format(self.log_likelihood_cap)
+        )

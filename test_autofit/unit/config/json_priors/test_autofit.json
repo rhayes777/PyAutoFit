@@ -164,7 +164,11 @@
                 }
             },
             "grid": {
-                "type": "Deferred"
+                "type": "Deferred",
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
             }
         }
     }

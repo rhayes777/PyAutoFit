@@ -3,8 +3,8 @@ import pickle
 
 import dill
 
-import autofit.optimize.non_linear.non_linear
-from autofit.optimize.non_linear.samples import AbstractSamples
+from autofit.non_linear import abstract
+from autofit.non_linear.samples import PDFSamples
 
 
 class PhaseOutput:
@@ -22,7 +22,7 @@ class PhaseOutput:
             The directory of the phase
         """
         self.directory = directory
-        self.__optimizer = None
+        self.__search = None
         self.__model = None
         self.file_path = os.path.join(directory, "metadata")
         with open(self.file_path) as f:
@@ -40,11 +40,11 @@ class PhaseOutput:
         return f"{self.directory}/pickles"
 
     @property
-    def samples(self) -> AbstractSamples:
+    def samples(self) -> PDFSamples:
         """
         An object describing the samples of the nonlinear search performed in this phase
         """
-        return self.optimizer.samples_from_model(
+        return self.search.samples_from_model(
             model=self.model,
         )
 
@@ -88,14 +88,14 @@ class PhaseOutput:
         return "/".join((self.pipeline, self.phase, self.dataset_name))
 
     @property
-    def optimizer(self) -> autofit.optimize.non_linear.non_linear.NonLinearOptimizer:
+    def search(self) -> abstract.NonLinearSearch:
         """
-        The optimizer object that was used in this phase
+        The search object that was used in this phase
         """
-        if self.__optimizer is None:
+        if self.__search is None:
             with open(os.path.join(self.pickle_path, "non_linear.pickle"), "r+b") as f:
-                self.__optimizer = pickle.loads(f.read())
-        return self.__optimizer
+                self.__search = pickle.loads(f.read())
+        return self.__search
 
     @property
     def model(self):

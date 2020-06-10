@@ -245,7 +245,7 @@ breaks the the analysis down into 3 phases:
 
 1) Fit only the left Gaussian.
 2) Fit only the right Gaussian, using the model of the left Gaussian from phase 1 to reduce blending.
-3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the non-linear optimizer
+3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the non-linear search
    searches parameter space.
 
 .. code-block:: python
@@ -267,7 +267,7 @@ breaks the the analysis down into 3 phases:
             phase_name="phase_2__right_gaussian",
             phase_folders=phase_folders,
             gaussians=af.CollectionPriorModel(
-                # Use the Gaussian fitted in phase 1:
+                # Use the Gaussian fitted in Phase 1:
                 gaussian_0=phase1.result.instance.gaussians.gaussian_0,
                 gaussian_1=Gaussian,
             ),

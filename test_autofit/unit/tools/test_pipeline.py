@@ -3,7 +3,6 @@ import os
 import pytest
 
 import autofit as af
-from autofit import Paths
 from test_autofit.mock import GeometryProfile, Galaxy
 
 
@@ -39,9 +38,9 @@ class MockPhase(af.AbstractPhase):
         pass
 
     @af.convert_paths
-    def __init__(self, paths, optimizer=None):
+    def __init__(self, paths, search=None):
         super().__init__(paths)
-        self.optimizer = optimizer or af.MockNLO(paths=paths)
+        self.search = search or af.MockNLO(paths=paths)
 
     def save_metadata(self, *args, **kwargs):
         pass
@@ -49,14 +48,14 @@ class MockPhase(af.AbstractPhase):
 
 class TestPipeline:
     def test_unique_phases(self):
-        af.Pipeline("name", MockPhase(Paths("one")), MockPhase(Paths("two")))
+        af.Pipeline("name", MockPhase(af.Paths("one")), MockPhase(af.Paths("two")))
         with pytest.raises(af.exc.PipelineException):
-            af.Pipeline("name", MockPhase(Paths("one")), MockPhase(Paths("one")))
+            af.Pipeline("name", MockPhase(af.Paths("one")), MockPhase(af.Paths("one")))
 
-    def test_optimizer_assertion(self, model):
-        paths = Paths("Phase Name")
-        optimizer = af.MockNLO(paths)
-        phase = MockPhase(phase_name="Phase_Name", optimizer=optimizer)
+    def test_search_assertion(self, model):
+        paths = af.Paths("Phase Name")
+        search = af.MockNLO(paths)
+        phase = MockPhase(phase_name="Phase_Name", search=search)
         phase.model.profile = GeometryProfile
 
         try:
@@ -79,16 +78,16 @@ class TestPipeline:
 # noinspection PyUnresolvedReferences
 class TestPhasePipelineName:
     def test_name_stamping(self):
-        one = MockPhase(Paths("one"))
-        two = MockPhase(Paths("two"))
+        one = MockPhase(af.Paths("one"))
+        two = MockPhase(af.Paths("two"))
         af.Pipeline("name", one, two)
 
         assert one.pipeline_name == "name"
         assert two.pipeline_name == "name"
 
     def test_no_restamping(self):
-        one = MockPhase(Paths("one"))
-        two = MockPhase(Paths("two"))
+        one = MockPhase(af.Paths("one"))
+        two = MockPhase(af.Paths("two"))
         pipeline_one = af.Pipeline("one", one)
         pipeline_two = af.Pipeline("two", two)
 

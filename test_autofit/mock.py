@@ -5,30 +5,30 @@ import typing
 import autofit as af
 # noinspection PyAbstractClass
 from autofit.mapper.prior_model import attribute_pair
-from autofit.optimize.non_linear.paths import Paths
+from autofit.non_linear.paths import Paths
 from autofit.tools.phase import Dataset
 
 
-class MockNonLinearOptimizer(object):
+class MockNonLinearSearch(object):
     def __init__(
             self,
             phase_name,
             phase_tag=None,
             phase_folders=tuple(),
-            most_probable=None,
+            median_pdf=None,
             model_mapper=None,
             max_log_likelihood=None,
             model_upper_params=None,
             model_lower_params=None,
     ):
-        super(MockNonLinearOptimizer, self).__init__(
+        super(MockNonLinearSearch, self).__init__(
             model_mapper or af.ModelMapper(),
             Paths(
                 name=phase_name, tag=phase_tag, folders=phase_folders
             ),
         )
 
-        self.most_probable = most_probable
+        self.median_pdf = median_pdf
         self.max_log_likelihood = max_log_likelihood
         self.model_upper_params = model_upper_params
         self.model_lower_params = model_lower_params
@@ -40,7 +40,7 @@ class MockNonLinearOptimizer(object):
         raise NotImplementedError()
 
     @property
-    def most_probable_vector(self):
+    def median_pdf_vector(self):
         """
         Read the most probable or most likely model values from the 'obj_summary.txt'
         file which nlo from a multinest lens.
@@ -50,7 +50,7 @@ class MockNonLinearOptimizer(object):
         offset parameter is used to start at the desiredaf.
 
         """
-        return self.most_probable
+        return self.median_pdf
 
     @property
     def max_log_likelihood_vector(self):

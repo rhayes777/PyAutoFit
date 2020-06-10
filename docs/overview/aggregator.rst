@@ -88,7 +88,7 @@ that methods that return parameter estimates or errors use the combined fit. Thi
 
     samples = samples[0] + samples[1] + samples[2]
 
-    samples.most_probable_instance
+    samples.median_pdf_instance
 
 If a subset of *model-fits* are incomplete or still running, the user can tell the *aggregator* to load only the
 results of completed fits:

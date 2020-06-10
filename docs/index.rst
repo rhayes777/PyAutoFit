@@ -1,16 +1,19 @@
 .. include:: ../README.rst
 
 .. toctree::
-   :caption: Getting Started:
+   :caption: General:
    :maxdepth: 1
    :hidden:
 
-   installation
-   workspace
-   howtofit
+   general/intro
+   general/installation
+   general/workspace
+   general/howtofit
+   general/software
+   general/credits
 
 .. toctree::
-   :caption: API Overview:
+   :caption: Overview:
    :maxdepth: 1
    :hidden:
 
@@ -23,18 +26,8 @@
    overview/phase
 
 .. toctree::
-   :caption: API Source:
+   :caption: API Documentation:
    :maxdepth: 1
    :hidden:
 
-   source/non_linear_searches
-   source/priors
-   source/aggregator
-
-.. toctree::
-   :caption: Getting Involved:
-   :maxdepth: 1
-   :hidden:
-
-   software
-   credits
+   api/api

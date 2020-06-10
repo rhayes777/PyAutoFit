@@ -46,14 +46,14 @@ have removed the burn-in phase):
 
     samples = result.samples.samples_after_burn_in
 
-    most_probable_vector = [float(np.percentile(samples[:, i], [50])) for i in range(model.prior_count)]
+    median_pdf_vector = [float(np.percentile(samples[:, i], [50])) for i in range(model.prior_count)]
 
 The most probable vector is readily available from the *Samples* object for you convenience (and if a nested sampling
 *non-linear search* is used, it will use an appropriate method to estimate the parameters):
 
 .. code-block:: bash
 
-    most_probable_vector = samples.most_probable_vector
+    median_pdf_vector = samples.median_pdf_vector
 
 The samples contain many useful vectors, including the samples with the highest likelihood and posterior values:
 
@@ -115,7 +115,7 @@ All methods above are available as an instance:
 
 .. code-block:: bash
 
-    most_probable_instance = samples.most_probable_instance
+    median_pdf_instance = samples.median_pdf_instance
     instance_at_upper_sigma = samples.instance_at_upper_sigma
     instance_at_lower_sigma = samples.instance_at_lower_sigma
     error_instance_at_upper_sigma = samples.error_instance_at_upper_sigma

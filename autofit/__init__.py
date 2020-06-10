@@ -32,23 +32,24 @@ from .mapper.prior_model.dimension_type import map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.prior_model import PriorModel as Model
 from .mapper.prior_model.util import PriorModelNameValue
-from .optimize.grid_search import GridSearch as OptimizerGridSearch
-from .optimize.grid_search import GridSearchResult
-from .optimize.non_linear.downhill_simplex import DownhillSimplex
-from .optimize.non_linear.emcee import Emcee
-from .optimize.non_linear.mock_nlo import MockNLO
-from .optimize.non_linear.nested_sampling.dynesty import DynestyDynamic
-from .optimize.non_linear.nested_sampling.dynesty import DynestyStatic
-from .optimize.non_linear.nested_sampling.multi_nest import MultiNest
-from .optimize.non_linear.non_linear import Analysis
-from .optimize.non_linear.non_linear import NonLinearOptimizer
-from .optimize.non_linear.non_linear import Result
-from .optimize.non_linear.paths import Paths
-from .optimize.non_linear.paths import convert_paths
-from .optimize.non_linear.paths import make_path
-from .optimize.non_linear.samples import AbstractSamples
-from .optimize.non_linear.samples import MCMCSamples
-from .optimize.non_linear.samples import NestedSamplerSamples
+from .non_linear.abstract import Analysis
+from .non_linear.abstract import NonLinearSearch
+from .non_linear.abstract import Result
+from .non_linear.optimize.downhill_simplex import DownhillSimplex
+from .non_linear.optimize.pyswarms import PySwarmsGlobal
+from .non_linear.mcmc.emcee import Emcee
+from .non_linear.mock.mock_nlo import MockNLO
+from .non_linear.nest.dynesty import DynestyDynamic
+from .non_linear.nest.dynesty import DynestyStatic
+from .non_linear.nest.multi_nest import MultiNest
+from .non_linear.paths import Paths
+from .non_linear.paths import convert_paths
+from .non_linear.paths import make_path
+from .non_linear.samples import PDFSamples
+from .non_linear.samples import MCMCSamples
+from .non_linear.samples import NestSamples
+from .non_linear.grid_search import GridSearch as NonLinearSearchGridSearch
+from .non_linear.grid_search import GridSearchResult
 from .text import Model
 from .text import formatter
 from .text import samples_text
@@ -57,6 +58,7 @@ from .tools.phase import AbstractPhase
 from .tools.phase import Dataset
 from .tools.phase import Phase
 from .tools.phase import as_grid_search
+from .tools.phase import AbstractPhaseSettings
 from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
