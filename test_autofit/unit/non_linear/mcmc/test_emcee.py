@@ -90,6 +90,7 @@ class TestEmceeOutput:
     def test__median_pdf_parameters(self):
 
         emcee = af.Emcee(paths=af.Paths())
+        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -103,6 +104,7 @@ class TestEmceeOutput:
     def test__vector_at_sigma__uses_output_files(self):
 
         emcee = af.Emcee(paths=af.Paths())
+        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -120,6 +122,7 @@ class TestEmceeOutput:
     def test__autocorrelation_times(self):
 
         emcee = af.Emcee(paths=af.Paths())
+        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=MockClassNLOx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
