@@ -67,3 +67,23 @@ def test_importance_sampling(
     mean = np.exp(log_weights).mean()
 
     assert mean == pytest.approx(0.318, rel=0.1)
+
+
+def test_laplace_method(phi_factor, q_cavity):
+    phi_approx = mp.FactorApproximation(
+        factor=phi_factor,
+        cavity_dist={'x': q_cavity},
+        deterministic_dist={},
+        factor_dist={},
+        model_dist={'x': q_cavity})
+
+    opt_phi = mp.OptFactor.from_approx(phi_approx)
+    result = opt_phi.maximise(x=0.)
+
+    q_phi_laplace = mp.NormalMessage.from_mode(
+        result.mode['x'],
+        covariance=result.inv_hessian['x']
+    )
+
+    assert q_phi_laplace.mu == pytest.approx(-0.258, rel=0.01)
+    assert q_phi_laplace.sigma == pytest.approx(0.462, rel=0.01)
