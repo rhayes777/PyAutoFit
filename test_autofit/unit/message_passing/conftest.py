@@ -1,4 +1,5 @@
 import pytest
+from scipy import stats
 
 from autofit import message_passing as mp
 
@@ -8,3 +9,15 @@ from autofit import message_passing as mp
 )
 def make_x():
     return mp.Variable("x")
+
+
+@pytest.fixture(
+    name="probit_factor"
+)
+def make_probit_factor(x):
+    return mp.factor(
+        stats.norm(
+            loc=0.,
+            scale=1.
+        ).logcdf
+    )(x)
