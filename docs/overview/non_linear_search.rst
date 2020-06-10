@@ -1,7 +1,7 @@
 .. _api:
 
-Nonlinear Search
-----------------
+Non-linear Searches
+-------------------
 
 **PyAutoFit** currently supports three non-linear search algorithms, *emcee*, *Dynesty* and *PyMultiNest* (*PyMultiNest*
 requires users to manually install it and is omitted from this example).

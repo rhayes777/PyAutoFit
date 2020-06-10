@@ -5,11 +5,11 @@
    :maxdepth: 1
    :hidden:
 
-   general/intro
    general/installation
    general/workspace
    general/howtofit
    general/software
+   general/future
    general/credits
 
 .. toctree::

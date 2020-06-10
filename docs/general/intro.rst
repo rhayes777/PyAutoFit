@@ -1,6 +1,0 @@
-.. _intro:
-
-Introduction
-------------
-
-Hi

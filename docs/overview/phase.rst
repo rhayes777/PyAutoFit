@@ -1,7 +1,7 @@
 .. _api:
 
-Phase
------
+Phase API
+---------
 
 Following the previous API examples, you are now ready to adopt **PyAutoFit** for your model-fitting problem. We
 recommend that you have a go writing your own *model component* and *analysis* classes and perform a *non-linear

@@ -1,7 +1,7 @@
 .. _api:
 
-Model Fit
----------
+Fitting a Model
+---------------
 
 To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian line profile to noisy data
 of a 1D Gaussian. Example data (blue), including the model-fit we'll perform (orange), are shown below.
