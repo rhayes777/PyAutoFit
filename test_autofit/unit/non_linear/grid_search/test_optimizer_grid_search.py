@@ -17,7 +17,7 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return af.OptimizerGridSearch(af.Paths(name=""), number_of_steps=10, non_linear_class=DownhillSimplex)
+    return af.NonLinearSearchGridSearch(af.Paths(name=""), number_of_steps=10, non_linear_class=DownhillSimplex)
 
 
 def test_unpickle_result():
@@ -57,7 +57,7 @@ class TestGridSearchablePriors:
         assert mappers[-1].profile.centre_1.upper_limit == 1.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = af.OptimizerGridSearch(af.Paths(name=""), number_of_steps=10)
+        grid_search = af.NonLinearSearchGridSearch(af.Paths(name=""), number_of_steps=10)
 
         mappers = list(
             grid_search.model_mappers(mapper, grid_priors=[mapper.profile.centre_0])
@@ -143,7 +143,7 @@ class TestGridSearchablePriors:
 
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05(container):
-    return af.OptimizerGridSearch(
+    return af.NonLinearSearchGridSearch(
         non_linear_class=container.MockOptimizer,
         number_of_steps=2,
         paths=af.Paths(name="sample_name"),
@@ -175,7 +175,7 @@ class TestGridNLOBehaviour:
         assert container.init_args[1] == "sample_name///profile_centre_0_0.50_1.00"
 
     def test_round_names(self, container, mapper):
-        grid_search = af.OptimizerGridSearch(
+        grid_search = af.NonLinearSearchGridSearch(
             non_linear_class=container.MockOptimizer,
             number_of_steps=3,
             paths=af.Paths(name="sample_name"),
@@ -229,7 +229,7 @@ class TestGridNLOBehaviour:
             result.max_log_likelihood_values, np.array([[1.0, 1.0], [1.0, 1.0]])
         ).all()
 
-        grid_search = af.OptimizerGridSearch(
+        grid_search = af.NonLinearSearchGridSearch(
             non_linear_class=container.MockOptimizer,
             number_of_steps=10,
             paths=af.Paths(name="sample_name"),
@@ -245,7 +245,7 @@ class TestGridNLOBehaviour:
         assert result.max_log_likelihood_values.shape == (10, 10)
 
     # def test_results_parallel(self, mapper, container):
-    #     grid_search = af.OptimizerGridSearch(
+    #     grid_search = af.NonLinearSearchGridSearch(
     #         non_linear_class=container.MockOptimizer,
     #         number_of_steps=10,
     #         paths=af.Paths(phase_name="sample_name"),
@@ -291,7 +291,7 @@ class TestGridNLOBehaviour:
     #         assert instance.profile.centre[1] == 2
 
     def test_passes_attributes(self):
-        grid_search = af.OptimizerGridSearch(
+        grid_search = af.NonLinearSearchGridSearch(
             af.Paths(name=""),
             number_of_steps=10,
             non_linear_class=af.MultiNest,
