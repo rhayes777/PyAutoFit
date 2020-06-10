@@ -220,7 +220,7 @@ class Emcee(AbstractMCMC):
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
+            backend=emcee.backends.HDFBackend(filename=self.paths.sym_path + "/emcee.hdf"),
             pool=pool,
         )
 

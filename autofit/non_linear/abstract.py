@@ -278,6 +278,8 @@ class NonLinearSearch(ABC):
 
         samples = self.samples_from_model(model=model)
 
+        samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
+
         if self.should_visualize() or not during_analysis:
             analysis.visualize(samples.max_log_likelihood_instance, during_analysis=during_analysis)
 

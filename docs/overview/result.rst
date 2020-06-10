@@ -1,7 +1,7 @@
 .. _api:
 
-Result
-------
+Results & Samples
+-----------------
 
 A *non-linear search*'s fit function returns a *Result* object:
 

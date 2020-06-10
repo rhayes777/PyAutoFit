@@ -1,7 +1,7 @@
 .. _api:
 
-Model Fit Complex
------------------
+Complex Modeling
+----------------
 
 To illustrate advanced *model fitting* with **PyAutoFit**, we extend our problem of fitting a 1D Gaussian line profile
 fitting data containing a signal from multiple line profiles, specifically a 1D *Gaussian* and 1D *Exponential* profile.
