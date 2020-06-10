@@ -1,19 +1,19 @@
 import configparser
-from abc import ABC, abstractmethod
 import logging
-import pickle
-import numpy as np
 import multiprocessing as mp
+import pickle
+from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
-from copy import copy
+
+import numpy as np
 
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.text import formatter
-from autofit.text import samples_text
 from autofit.text import model_text
+from autofit.text import samples_text
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
@@ -67,7 +67,7 @@ class NonLinearSearch(ABC):
             paths.non_linear_name = self.config("tag", "name", str)
 
         if paths.non_linear_tag is "":
-            paths.non_linear_tag = self.tag
+            paths.non_linear_tag_function = lambda: self.tag
 
         log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
         self.paths = paths
@@ -452,7 +452,7 @@ class NonLinearSearch(ABC):
             An object that represents possible instances of some model with a given dimensionality which is the number
             of free dimensions of the model.
         """
-        
+
         init_pos = np.zeros(shape=(number_of_points, model.prior_count))
 
         if self.initialize_method in "ball":
@@ -514,7 +514,6 @@ class NonLinearSearch(ABC):
 class Analysis:
 
     def __init__(self, log_likelihood_cap=None):
-
         self.log_likelihood_cap = log_likelihood_cap
 
     def log_likelihood_function(self, instance):
@@ -629,6 +628,7 @@ class IntervalCounter:
 def init(queue):
     global idx
     idx = queue.get()
+
 
 def f(x):
     global idx
