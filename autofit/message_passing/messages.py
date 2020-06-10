@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from itertools import chain
 from functools import wraps, reduce
+from itertools import chain
 from operator import and_
-
 from typing import (
     NamedTuple, Dict, Tuple, Optional, Union, Iterator
 )
@@ -12,7 +11,7 @@ import numpy as np
 from scipy import stats, special
 from scipy.special import logsumexp
 
-from autofit.message_passing.utils import invpsilog, hyp2f1_a1, prod, piecewise, softmin, softmax
+from autofit.message_passing.utils import invpsilog, hyp2f1_a1, softmin, softmax
 
 MAX_REPR_SIZE = 10
 
@@ -324,6 +323,12 @@ class AbstractMessage(ABC):
         new_params = other * natural
         log_norm = other * self.log_norm
         return self.from_natural_parameters(new_params, log_norm=log_norm)
+
+    def __getattr__(self, item):
+        return getattr(
+            self.parameters,
+            item
+        )
 
     def __repr__(self):
         params = self.parameters
@@ -1513,4 +1518,3 @@ def map_dists(dists: Dict[str, AbstractMessage],
             yield v, getattr(dist, _call)(values[v])
 
 # Message = Union[AbstractMessage, AbstractMessageBeliefMixin]
-

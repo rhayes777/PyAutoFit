@@ -1,5 +1,6 @@
 import numpy as np
-from scipy import stats
+import pytest
+from scipy import stats, integrate
 
 from autofit import message_passing as mp
 
@@ -24,3 +25,12 @@ def test_probit(x):
     tilted_distribution = phi * q
 
     assert tilted_distribution.shape == (2 ** 10,)
+
+    ni_0, ni_1, ni_2 = (
+        integrate.trapz(x ** i * tilted_distribution, x) for i in range(3))
+
+    phi_numerical = mp.NormalMessage.from_sufficient_statistics(
+        [ni_1 / ni_0, ni_2 / ni_0])
+
+    assert phi_numerical.mu == pytest.approx(-0.253, rel=0.01)
+    assert phi_numerical.sigma == pytest.approx(0.462, rel=0.01)
