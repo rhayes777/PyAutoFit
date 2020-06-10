@@ -1,10 +1,14 @@
-import numpy as np
+import csv
 import logging
 import math
+from typing import List
+
 import emcee
+import numpy as np
 
 from autoconf import conf
-from autofit.mapper import model
+from autofit.mapper.model import ModelInstance
+from autofit.mapper.model_mapper import ModelMapper
 from autofit.text import model_text
 
 logger = logging.getLogger(__name__)
@@ -12,7 +16,13 @@ logger = logging.getLogger(__name__)
 
 class OptimizerSamples:
 
-    def __init__(self, model, parameters, log_likelihoods, log_priors):
+    def __init__(
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float]
+    ):
         """The *Samples* of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
@@ -31,7 +41,47 @@ class OptimizerSamples:
 
     @property
     def parameter_names(self):
-        return model_text.parameter_names_from_model(model=self.model)
+        return self.model.parameter_names
+
+    @property
+    def _headers(self) -> List[str]:
+        """
+        Headers for the samples table
+        """
+        return self.parameter_names + [
+            "log_posterior", "log_likelihood", "log_prior"
+        ]
+
+    @property
+    def _rows(self) -> List[List[float]]:
+        """
+        Rows in the samples table
+        """
+        for index, row in enumerate(self.parameters):
+            yield row + [
+                self.log_posteriors[index],
+                self.log_likelihoods[index],
+                self.log_priors[index]
+            ]
+
+    def write_table(self, filename: str):
+        """
+        Write a table of parameters, posteriors, priors and likelihoods
+
+        Parameters
+        ----------
+        filename
+            Where the table is to be written
+        """
+        with open(filename, "w+") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                self._headers
+            )
+            for row in self._rows:
+                writer.writerow(
+                    row
+                )
 
     @property
     def parameter_labels(self):
@@ -48,7 +98,7 @@ class OptimizerSamples:
         return self.parameters[self.max_log_likelihood_index]
 
     @property
-    def max_log_likelihood_instance(self) -> model.ModelInstance:
+    def max_log_likelihood_instance(self) -> ModelInstance:
         """  The parameters of the maximum log likelihood sample of the non-linear search returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
 
@@ -63,7 +113,7 @@ class OptimizerSamples:
         return self.parameters[self.max_log_posterior_index]
 
     @property
-    def max_log_posterior_instance(self) -> model.ModelInstance:
+    def max_log_posterior_instance(self) -> ModelInstance:
         """  The parameters of the maximum log posterior sample of the non-linear search returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
@@ -81,9 +131,9 @@ class OptimizerSamples:
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
             PDF).
         """
-        return list(map(lambda vector : (vector, 0.0), self.max_log_likelihood_vector))
+        return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood_vector))
 
-    def instance_from_sample_index(self, sample_index) -> model.ModelInstance:
+    def instance_from_sample_index(self, sample_index) -> ModelInstance:
         """The parameters of an individual saple of the non-linear search, returned as a model instance.
 
         Parameters
@@ -178,7 +228,7 @@ class PDFSamples(OptimizerSamples):
         return list(np.mean(self.parameters, axis=0))
 
     @property
-    def median_pdf_instance(self) -> model.ModelInstance:
+    def median_pdf_instance(self) -> ModelInstance:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a model instance."""
         return self.model.instance_from_vector(vector=self.median_pdf_vector)
@@ -251,7 +301,7 @@ class PDFSamples(OptimizerSamples):
         """
         return list(map(lambda param: param[0], self.vector_at_sigma(sigma)))
 
-    def instance_at_sigma(self, sigma) -> model.ModelInstance:
+    def instance_at_sigma(self, sigma) -> ModelInstance:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper values estimated from the PDF.
 
@@ -265,7 +315,7 @@ class PDFSamples(OptimizerSamples):
             vector=self.vector_at_sigma(sigma=sigma), assert_priors_in_limits=False
         )
 
-    def instance_at_upper_sigma(self, sigma) -> model.ModelInstance:
+    def instance_at_upper_sigma(self, sigma) -> ModelInstance:
         """The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -282,7 +332,7 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def instance_at_lower_sigma(self, sigma) -> model.ModelInstance:
+    def instance_at_lower_sigma(self, sigma) -> ModelInstance:
         """The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -355,7 +405,7 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
-    def error_instance_at_sigma(self, sigma) -> model.ModelInstance:
+    def error_instance_at_sigma(self, sigma) -> ModelInstance:
         """ The error of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper errors.
 
@@ -369,7 +419,7 @@ class PDFSamples(OptimizerSamples):
             vector=self.error_vector_at_sigma(sigma=sigma)
         )
 
-    def error_instance_at_upper_sigma(self, sigma) -> model.ModelInstance:
+    def error_instance_at_upper_sigma(self, sigma) -> ModelInstance:
         """The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -385,7 +435,7 @@ class PDFSamples(OptimizerSamples):
             vector=self.error_vector_at_upper_sigma(sigma=sigma)
         )
 
-    def error_instance_at_lower_sigma(self, sigma) -> model.ModelInstance:
+    def error_instance_at_lower_sigma(self, sigma) -> ModelInstance:
         """The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
@@ -550,7 +600,8 @@ class MCMCSamples(PDFSamples):
             to the total steps * total walkers).
         """
 
-        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods, log_priors=log_priors, weights=weights,
+        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods, log_priors=log_priors,
+                         weights=weights,
                          unconverged_sample_size=unconverged_sample_size)
 
         self.total_walkers = total_walkers
@@ -611,11 +662,11 @@ class MCMCSamples(PDFSamples):
     @property
     def relative_auto_correlation_times(self) -> [float]:
         return (
-            np.abs(
-                self.previous_auto_correlation_times
-                - self.auto_correlation_times
-            )
-            / self.auto_correlation_times
+                np.abs(
+                    self.previous_auto_correlation_times
+                    - self.auto_correlation_times
+                )
+                / self.auto_correlation_times
         )
 
     @property
@@ -748,4 +799,3 @@ class NestSamples(PDFSamples):
     def acceptance_ratio(self) -> float:
         """The ratio of accepted samples to total samples."""
         return self.total_accepted_samples / self.total_samples
-

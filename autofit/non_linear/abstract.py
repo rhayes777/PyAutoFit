@@ -305,7 +305,7 @@ class NonLinearSearch(ABC):
 
         The parameter labels are determined using the label.ini and label_format.ini config files."""
 
-        paramnames_names = model_text.parameter_names_from_model(model=model)
+        paramnames_names = model.parameter_names
         paramnames_labels = model_text.parameter_labels_from_model(model=model)
 
         parameter_name_and_label = []
