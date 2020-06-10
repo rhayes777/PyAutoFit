@@ -220,7 +220,7 @@ class Emcee(AbstractMCMC):
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.paths.sym_path + "/emcee.hdf"),
+            backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
             pool=pool,
         )
 
@@ -283,9 +283,9 @@ class Emcee(AbstractMCMC):
         """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
 
         The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
+        if os.path.isfile(self.paths.path + "/emcee.hdf"):
             return emcee.backends.HDFBackend(
-                filename=self.paths.sym_path + "/emcee.hdf"
+                filename=self.paths.path + "/emcee.hdf"
             )
         else:
             raise FileNotFoundError(
@@ -317,11 +317,11 @@ class Emcee(AbstractMCMC):
             backups, etc.
         """
 
-        parameters = self.backend.get_chain(flat=True)
+        parameters = self.backend.get_chain(flat=True).tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
-        log_likelihoods = self.backend.get_log_prob(flat=True)
+        log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
         weights = len(log_likelihoods) * [1.0]
         auto_correlation_time = self.backend.get_autocorr_time(tol=0)
         total_walkers = len(self.backend.get_chain()[0, :, 0])

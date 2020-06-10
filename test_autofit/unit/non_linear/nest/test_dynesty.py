@@ -198,7 +198,7 @@ class TestDynestyConfig:
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
 
         results = MockDynestyResults(
-            samples=[[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]],
+            samples=np.array([[1.0, 2.0, 3.0, 5.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]),
             logl=[1.0, 2.0, 3.0],
             logwt=[1.0, 2.0, 3.0],
             ncall=[5.0, 5.0],
@@ -220,13 +220,20 @@ class TestDynestyConfig:
 
         samples = dynesty.samples_from_model(model=model)
 
+        assert isinstance(samples.parameters, list)
+        assert isinstance(samples.parameters[0], list)
+        assert isinstance(samples.log_likelihoods, list)
+        assert isinstance(samples.log_priors, list)
+        assert isinstance(samples.log_posteriors, list)
+        assert isinstance(samples.weights, list)
+
         assert samples.parameters == [
-            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 5.0],
             [1.0, 2.0, 3.0, 4.0],
             [1.0, 2.0, 3.0, 4.0],
         ]
         assert samples.log_likelihoods == [1.0, 2.0, 3.0]
-        assert samples.log_priors == [0.25, 0.25, 0.25]
+        assert samples.log_priors == [0.2, 0.25, 0.25]
         assert samples.weights == [1.0, 2.0, 3.0]
         assert samples.total_samples == 10
         assert samples.log_evidence == 12.0

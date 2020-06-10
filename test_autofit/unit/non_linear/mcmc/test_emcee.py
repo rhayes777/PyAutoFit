@@ -75,6 +75,13 @@ class TestEmceeConfig:
 
         samples = emcee.samples_from_model(model=model)
 
+        assert isinstance(samples.parameters, list)
+        assert isinstance(samples.parameters[0], list)
+        assert isinstance(samples.log_likelihoods, list)
+        assert isinstance(samples.log_priors, list)
+        assert isinstance(samples.log_posteriors, list)
+        assert isinstance(samples.weights, list)
+
         assert samples.parameters[0] == pytest.approx(
             [0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4
         )

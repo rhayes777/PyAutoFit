@@ -269,14 +269,14 @@ class AbstractDynesty(AbstractNest):
             model=model, analysis=analysis
         )
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
+        if os.path.exists("{}/{}.pickle".format(self.paths.path, "dynesty")):
 
             sampler = self.load_sampler
 
         else:
 
             try:
-                os.makedirs(self.paths.samples_path)
+                os.makedirs(self.paths.path)
             except FileExistsError:
                 pass
 
@@ -310,7 +310,7 @@ class AbstractDynesty(AbstractNest):
                 n_effective=self.n_effective
             )
 
-            with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
+            with open(f"{self.paths.path}/dynesty.pickle", "wb") as f:
                 pickle.dump(sampler, f)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
@@ -326,7 +326,7 @@ class AbstractDynesty(AbstractNest):
 
     @property
     def load_sampler(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb") as f:
+        with open("{}/{}.pickle".format(self.paths.path, "dynesty"), "rb") as f:
             return pickle.load(f)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
@@ -348,13 +348,13 @@ class AbstractDynesty(AbstractNest):
         """
 
         sampler = self.load_sampler
-
-        parameters = sampler.results.samples
+        parameters = sampler.results.samples.tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
-        log_likelihoods = sampler.results.logl
-        weights = sampler.results.logwt
+        log_likelihoods = list(sampler.results.logl)
+        weights = list(sampler.results.logwt)
+
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
 

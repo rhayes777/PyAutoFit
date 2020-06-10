@@ -81,6 +81,12 @@ class TestPySwarmsGlobalConfig:
 
         samples = pyswarms.samples_from_model(model=model)
 
+        assert isinstance(samples.parameters, list)
+        assert isinstance(samples.parameters[0], list)
+        assert isinstance(samples.log_likelihoods, list)
+        assert isinstance(samples.log_priors, list)
+        assert isinstance(samples.log_posteriors, list)
+
         assert samples.parameters[0] == pytest.approx(
             [50.1254, 1.04626, 10.09456], 1.0e-4
         )

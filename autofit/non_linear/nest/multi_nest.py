@@ -301,6 +301,8 @@ class MultiNest(ns.AbstractNest):
             init_MPI=self.init_MPI,
         )
 
+        stop
+
         samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         return nl.Result(samples=samples, previous_model=model)
