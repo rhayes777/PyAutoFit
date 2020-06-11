@@ -50,7 +50,7 @@ class NLO(abstract.NonLinearSearch):
 
 @pytest.fixture(name="phase")
 def make_phase():
-    return MyPhase(af.Paths(name=""), non_linear_class=NLO)
+    return MyPhase(af.Paths(name=""), search=NLO)
 
 
 class MyPhase(af.AbstractPhase):
@@ -59,7 +59,7 @@ class MyPhase(af.AbstractPhase):
 
 @pytest.fixture(name="list_phase")
 def make_list_phase():
-    return MyPhase(af.Paths(name=""), non_linear_class=NLO)
+    return MyPhase(af.Paths(name=""), search=NLO)
 
 
 class TestPhasePropertyList:

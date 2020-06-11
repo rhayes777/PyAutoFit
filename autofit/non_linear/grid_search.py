@@ -166,7 +166,7 @@ class GridSearchResult:
 class GridSearch:
     # TODO: this should be using paths
     def __init__(
-            self, paths, number_of_steps=4, non_linear_class=Emcee, parallel=False
+            self, paths, search, number_of_steps=4, parallel=False
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -177,7 +177,7 @@ class GridSearch:
         ----------
         number_of_steps: int
             The number of steps to go in each direction
-        non_linear_class: class
+        search: class
             The class of the search that is run at each step
         """
         self.paths = paths
@@ -191,7 +191,7 @@ class GridSearch:
         self.phase_tag_input = paths.tag
 
         self.number_of_steps = number_of_steps
-        self.non_linear_class = non_linear_class
+        self.search = search
 
     @property
     def hyper_step_size(self):
@@ -439,14 +439,17 @@ class GridSearch:
 
     def search_instance(self, name_path):
 
-        search_instance = self.non_linear_class(
-            Paths(
+        paths = Paths(
                 name=name_path,
                 tag=self.paths.tag,
                 folders=self.paths.folders,
                 remove_files=self.paths.remove_files,
             )
-        )
+
+        search_instance = copy.copy(self.search)
+
+        search_instance.paths = paths
+
         for key, value in self.__dict__.items():
             if key not in ("model", "instance", "paths"):
                 try:

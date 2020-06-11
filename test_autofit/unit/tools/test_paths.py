@@ -12,7 +12,7 @@ def test_dynamic(phase):
     paths = phase.paths
     non_linear_tag = paths.non_linear_tag
 
-    phase.search.nwalkers += 1
+    phase.search.n_live_points += 1
 
     assert paths.non_linear_tag != non_linear_tag
 

@@ -11,8 +11,8 @@ test_path = "{}/files/path/".format(
 
 class TestMakeAndReturnPath:
     def test__1_directory_input__makes_directory__returns_path(self):
-        path = af.path_util.make_and_return_path_from_path_and_folder_names(
-            path=test_path, folder_names=["test1"]
+        path = af.util.create_path(
+            path=test_path, folders=["test1"]
         )
 
         assert path == test_path + "test1/"
@@ -23,8 +23,8 @@ class TestMakeAndReturnPath:
     def test__multiple_directories_input__makes_directory_structure__returns_full_path(
         self
     ):
-        path = af.path_util.make_and_return_path_from_path_and_folder_names(
-            path=test_path, folder_names=["test1", "test2", "test3"]
+        path = af.util.create_path(
+            path=test_path, folders=["test1", "test2", "test3"]
         )
 
         assert path == test_path + "test1/test2/test3/"

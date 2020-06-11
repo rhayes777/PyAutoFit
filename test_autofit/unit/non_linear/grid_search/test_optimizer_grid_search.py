@@ -17,7 +17,7 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return af.NonLinearSearchGridSearch(af.Paths(name=""), number_of_steps=10, non_linear_class=DownhillSimplex)
+    return af.NonLinearSearchGridSearch(af.Paths(name=""), number_of_steps=10, search=DownhillSimplex)
 
 
 def test_unpickle_result():
@@ -144,7 +144,7 @@ class TestGridSearchablePriors:
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05(container):
     return af.NonLinearSearchGridSearch(
-        non_linear_class=container.MockOptimizer,
+        search=container.MockOptimizer(),
         number_of_steps=2,
         paths=af.Paths(name="sample_name"),
     )
@@ -176,7 +176,7 @@ class TestGridNLOBehaviour:
 
     def test_round_names(self, container, mapper):
         grid_search = af.NonLinearSearchGridSearch(
-            non_linear_class=container.MockOptimizer,
+            search=container.MockOptimizer,
             number_of_steps=3,
             paths=af.Paths(name="sample_name"),
         )
@@ -230,7 +230,7 @@ class TestGridNLOBehaviour:
         ).all()
 
         grid_search = af.NonLinearSearchGridSearch(
-            non_linear_class=container.MockOptimizer,
+            search=container.MockOptimizer,
             number_of_steps=10,
             paths=af.Paths(name="sample_name"),
         )
@@ -246,7 +246,7 @@ class TestGridNLOBehaviour:
 
     # def test_results_parallel(self, mapper, container):
     #     grid_search = af.NonLinearSearchGridSearch(
-    #         non_linear_class=container.MockOptimizer,
+    #         search=container.MockOptimizer,
     #         number_of_steps=10,
     #         paths=af.Paths(phase_name="sample_name"),
     #         parallel=True,
@@ -294,7 +294,7 @@ class TestGridNLOBehaviour:
         grid_search = af.NonLinearSearchGridSearch(
             af.Paths(name=""),
             number_of_steps=10,
-            non_linear_class=af.MultiNest,
+            search=af.DynestyStatic(),
         )
 
         grid_search.n_live_points = 20

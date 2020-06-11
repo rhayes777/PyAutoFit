@@ -1,7 +1,5 @@
-import os
 
-
-def make_and_return_path_from_path_and_folder_names(path, folder_names):
+def create_path(path, folders):
     """ For a given path, create a directory structure composed of a set of folders and return the path to the \
     inner-most folder.
 
@@ -14,7 +12,7 @@ def make_and_return_path_from_path_and_folder_names(path, folder_names):
     ----------
     path : str
         The path where the directories are created.
-    folder_names : [str]
+    folders : [str]
         The names of the folders which are created in the path directory.
 
     Returns
@@ -27,9 +25,9 @@ def make_and_return_path_from_path_and_folder_names(path, folder_names):
     path = '/path/to/folders'
     path = make_and_return_path(path=path, folder_names=['folder1', 'folder2'].
     """
-    for folder_name in folder_names:
+    for folder in folders:
 
-        path = os.path.join(path, folder_name)
+        path = os.path.join(path, folder)
 
         try:
             os.makedirs(path)
@@ -37,3 +35,17 @@ def make_and_return_path_from_path_and_folder_names(path, folder_names):
             pass
 
     return f"{path}/"
+
+
+from contextlib import contextmanager
+import sys, os
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout

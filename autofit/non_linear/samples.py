@@ -10,6 +10,7 @@ from autoconf import conf
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.text import model_text
+from autofit.tools import util
 
 logger = logging.getLogger(__name__)
 
@@ -209,12 +210,13 @@ class PDFSamples(OptimizerSamples):
         """
         import getdist
 
-        return getdist.mcsamples.MCSamples(
-            samples=np.asarray(self.parameters),
-            weights=np.asarray(self.weights),
-            names=self.parameter_names,
-            labels=self.parameter_labels,
-        )
+        with util.suppress_stdout():
+            return getdist.mcsamples.MCSamples(
+                samples=np.asarray(self.parameters),
+                weights=np.asarray(self.weights),
+                names=self.parameter_names,
+                labels=self.parameter_labels,
+            )
 
     @property
     def median_pdf_vector(self) -> [float]:
@@ -628,7 +630,8 @@ class MCMCSamples(PDFSamples):
         """
         import getdist
 
-        return getdist.mcsamples.MCSamples(samples=self.samples_after_burn_in)
+        with util.suppress_stdout():
+            return getdist.mcsamples.MCSamples(samples=self.samples_after_burn_in)
 
     @property
     def pdf_converged(self):

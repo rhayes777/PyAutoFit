@@ -8,7 +8,7 @@ from autofit.non_linear.abstract import Analysis
 from autofit.non_linear.abstract import Result
 
 
-class MockNLO(NonLinearSearch):
+class MockSearch(NonLinearSearch):
 
     def _fit(self, model, analysis):
 
@@ -56,6 +56,7 @@ class MockNLO(NonLinearSearch):
     @property
     def name(self):
         return "mock_nlo"
+
 
 class MockOutput(object):
     def __init__(self):

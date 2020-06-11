@@ -38,9 +38,8 @@ class MockPhase(af.AbstractPhase):
         pass
 
     @af.convert_paths
-    def __init__(self, paths, search=None):
-        super().__init__(paths)
-        self.search = search or af.MockNLO(paths=paths)
+    def __init__(self, paths, search):
+        super().__init__(paths=paths, search=search)
 
     def save_metadata(self, *args, **kwargs):
         pass
@@ -48,13 +47,17 @@ class MockPhase(af.AbstractPhase):
 
 class TestPipeline:
     def test_unique_phases(self):
-        af.Pipeline("name", MockPhase(af.Paths("one")), MockPhase(af.Paths("two")))
+
+        phase_1 = MockPhase(paths=af.Paths(name="one"), search=af.MockSearch())
+        phase_2 = MockPhase(paths=af.Paths(name="two"), search=af.MockSearch())
+
+        af.Pipeline("name", phase_1, phase_2)
         with pytest.raises(af.exc.PipelineException):
             af.Pipeline("name", MockPhase(af.Paths("one")), MockPhase(af.Paths("one")))
 
     def test_search_assertion(self, model):
         paths = af.Paths("Phase Name")
-        search = af.MockNLO(paths)
+        search = af.MockSearch(paths)
         phase = MockPhase(phase_name="Phase_Name", search=search)
         phase.model.profile = GeometryProfile
 

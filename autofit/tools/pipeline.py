@@ -134,6 +134,7 @@ class Pipeline:
                 f.write(phase.model.info)
 
         phase_names = [phase.phase_name for phase in phases]
+
         if len(set(phase_names)) < len(phase_names):
             raise exc.PipelineException(
                 "Cannot create pipelines with duplicate phase names. ({})".format(

@@ -10,7 +10,7 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.paths import convert_paths
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.non_linear import grid_search
-from autofit.non_linear.mcmc.emcee import Emcee
+from autofit.non_linear.nest.dynesty import DynestyStatic
 from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ class AbstractPhase:
             self,
             paths: Paths,
             *,
-            non_linear_class=Emcee,
+            search,
             model=None,
     ):
         """
@@ -31,18 +31,20 @@ class AbstractPhase:
 
         Parameters
         ----------
-        non_linear_class: class
+        search: class
             The class of a non_linear search
         """
 
-        self.paths = paths
-
-        self.search = non_linear_class(paths=self.paths)
+        self.search = search
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
         self.pipeline_tag = None
         self.meta_dataset = None
+
+    @property
+    def paths(self):
+        return self.search.paths
 
     def save_model_info(self):
         """Save the model.info file, which summarizes every parameter and prior."""
@@ -199,10 +201,10 @@ class Phase(AbstractPhase):
             paths,
             *,
             analysis_class,
-            non_linear_class=Emcee,
+            search,
             model=None,
     ):
-        super().__init__(paths, non_linear_class=non_linear_class, model=model)
+        super().__init__(paths, search=search, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
@@ -269,15 +271,15 @@ def as_grid_search(phase_class, parallel=False):
                 self,
                 paths,
                 *,
+                search,
                 number_of_steps=4,
-                non_linear_class=Emcee,
                 **kwargs,
         ):
-            super().__init__(paths, non_linear_class=non_linear_class, **kwargs)
+            super().__init__(paths, search=search, **kwargs)
             self.search = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,
-                non_linear_class=non_linear_class,
+                search=search,
                 parallel=parallel,
             )
 

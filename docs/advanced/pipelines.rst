@@ -35,7 +35,7 @@ breaks the the analysis down into 3 phases:
         phase1 = af.Phase(
             phase_name="phase_1__left_gaussian",
             gaussians=af.CollectionPriorModel(gaussian_0=Gaussian),
-            non_linear_class=af.MultiNest,
+            search=af.DynestyStatic(),
         )
 
         # In phase 2, we will fit the Gaussian on the right, where the best-fit Gaussian
@@ -49,7 +49,7 @@ breaks the the analysis down into 3 phases:
                 gaussian_0=phase1.result.instance.gaussians.gaussian_0,
                 gaussian_1=Gaussian,
             ),
-            non_linear_class=af.MultiNest,
+            search=af.DynestyStatic(),
         )
 
         # In phase 3, we fit both Gaussians, using the results of phases 1 and 2 to
@@ -64,7 +64,7 @@ breaks the the analysis down into 3 phases:
                 # use phase 2 Gaussian results as priors.
                 gaussian_1=phase2.result.model.gaussians.gaussian_1,
             ),
-            non_linear_class=af.MultiNest,
+            search=af.DynestyStatic(),
         )
 
         return toy.Pipeline(pipeline_name, phase1, phase2, phase3)

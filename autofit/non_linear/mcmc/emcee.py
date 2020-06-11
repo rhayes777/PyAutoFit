@@ -151,10 +151,10 @@ class Emcee(AbstractMCMC):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config("tag", "name", str)
-        nwalkers_tag = self.config("tag", "nwalkers", str) + "_" + str(self.nwalkers)
+        name_tag = self.config('tag', 'name')
+        nwalkers_tag = f"{self.config('tag', 'nwalkers')}_{self.nwalkers}"
 
-        return f"{name_tag}__{nwalkers_tag}"
+        return f'{name_tag}__{nwalkers_tag}'
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.

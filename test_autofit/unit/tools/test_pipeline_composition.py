@@ -1,9 +1,18 @@
+from autofit.non_linear.mock.mock_nlo import MockSearch, MockAnalysis
+
+from os import path
 import autofit as af
-from autofit.non_linear.mock.mock_nlo import MockNLO, MockAnalysis
+from autoconf import conf
 from test_autofit import mock
 
 
-def make_pipeline_1(name, phase_folders, non_linear_class):
+directory = path.dirname(path.realpath(__file__))
+
+conf.instance = conf.Config(
+    config_path=path.join(directory, "../config"),
+)
+
+def make_pipeline_1(name, phase_folders, search):
     phase = af.Phase(
         phase_name="phase_1",
         phase_folders=phase_folders,
@@ -11,13 +20,13 @@ def make_pipeline_1(name, phase_folders, non_linear_class):
             mock.Galaxy,
             redshift=af.GaussianPrior(10.0, 1.0)
         ),
-        non_linear_class=non_linear_class,
+        search=search,
         analysis_class=MockAnalysis,
     )
     return af.Pipeline(f"{name}_1", phase)
 
 
-def make_pipeline_2(name, phase_folders, non_linear_class):
+def make_pipeline_2(name, phase_folders, search):
     phase = af.Phase(
         phase_name="phase_2",
         phase_folders=phase_folders,
@@ -25,7 +34,7 @@ def make_pipeline_2(name, phase_folders, non_linear_class):
             mock.Galaxy,
             redshift=af.last.model.redshift
         ),
-        non_linear_class=non_linear_class,
+        search=search,
         analysis_class=MockAnalysis,
     )
     return af.Pipeline(f"{name}_2", phase)
@@ -34,16 +43,16 @@ def make_pipeline_2(name, phase_folders, non_linear_class):
 def make_pipeline(
         name,
         phase_folders=tuple(),
-        non_linear_class=MockNLO
+        search=MockSearch()
 ):
     return make_pipeline_1(
         name,
         phase_folders,
-        non_linear_class
+        search
     ) + make_pipeline_2(
         name,
         phase_folders,
-        non_linear_class
+        search
     )
 
 

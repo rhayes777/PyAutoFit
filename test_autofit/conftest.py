@@ -33,7 +33,7 @@ def model():
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase(phase_name="phase name")
+    phase = af.AbstractPhase(phase_name="phase name", search=af.DynestyStatic())
     phase.model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
     return phase
 

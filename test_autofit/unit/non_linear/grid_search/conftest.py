@@ -15,8 +15,8 @@ class MockSamples:
 
 
 class MockOptimizer(af.NonLinearSearch):
-    def __init__(self, paths):
-        super().__init__(paths)
+    def __init__(self, paths=af.Paths()):
+        super().__init__(paths=paths)
         init_args.append(paths.name)
 
     @property
@@ -26,9 +26,6 @@ class MockOptimizer(af.NonLinearSearch):
     @property
     def tag(self):
         return ""
-
-    def _fit(self, model, fitness_function):
-        raise NotImplementedError()
 
     def _fit(self, model, analysis):
         fit_args.append(analysis)

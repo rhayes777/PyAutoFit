@@ -193,8 +193,10 @@ class AbstractDynesty(AbstractNest):
         if self.maxiter <= 0:
             self.maxiter = sys.maxsize
         self.maxcall = self.config("search", "maxcall", int) if maxcall is None else maxcall
+        self.no_limit = False
         if self.maxcall <= 0:
             self.maxcall = sys.maxsize
+            self.no_limit = True
         self.logl_max = self.config("search", "logl_max", float) if logl_max is None else logl_max
         self.n_effective = self.config("search", "n_effective", int) if n_effective is None else n_effective
         if self.n_effective <= 0:
@@ -269,14 +271,14 @@ class AbstractDynesty(AbstractNest):
             model=model, analysis=analysis
         )
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.path, "dynesty")):
+        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
 
             sampler = self.load_sampler
 
         else:
 
             try:
-                os.makedirs(self.paths.path)
+                os.makedirs(self.paths.samples_path)
             except FileExistsError:
                 pass
 
@@ -299,25 +301,32 @@ class AbstractDynesty(AbstractNest):
         while not finished:
 
             try:
-                iterations_before_run = np.sum(sampler.results.ncall)
+                total_iterations = np.sum(sampler.results.ncall)
             except AttributeError:
-                iterations_before_run = 0
+                total_iterations = 0
 
-            sampler.run_nested(
-                maxcall=self.iterations_per_update,
-                dlogz=self.evidence_tolerance,
-                logl_max=self.logl_max,
-                n_effective=self.n_effective
-            )
+            if not self.no_limit:
+                iterations = self.maxcall - total_iterations
+            else:
+                iterations = self.iterations_per_update
 
-            with open(f"{self.paths.path}/dynesty.pickle", "wb") as f:
+            if iterations > 0:
+
+                sampler.run_nested(
+                    maxcall=iterations,
+                    dlogz=self.evidence_tolerance,
+                    logl_max=self.logl_max,
+                    n_effective=self.n_effective
+                )
+
+            with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
                 pickle.dump(sampler, f)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
             iterations_after_run = np.sum(sampler.results.ncall)
 
-            if iterations_before_run == iterations_after_run:
+            if total_iterations == iterations_after_run or total_iterations == self.maxcall:
                 finished = True
 
         samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
@@ -326,7 +335,7 @@ class AbstractDynesty(AbstractNest):
 
     @property
     def load_sampler(self):
-        with open("{}/{}.pickle".format(self.paths.path, "dynesty"), "rb") as f:
+        with open("{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb") as f:
             return pickle.load(f)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
@@ -536,11 +545,11 @@ class DynestyStatic(AbstractDynesty):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config("tag", "name", str)
-        n_live_points_tag = self.config("tag", "n_live_points", str) + "_" + str(self.n_live_points)
-        sampling_efficiency_tag = self.config("tag", "sampling_efficiency", str) + "_" + str(self.sampling_efficiency)
+        name_tag = self.config('tag', 'name', str)
+        n_live_points_tag = f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
+        sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
 
-        return f"{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}"
+        return f'{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}'
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty non-linear search with all associated attributes.
@@ -663,8 +672,8 @@ class DynestyDynamic(AbstractDynesty):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config("tag", "name", str)
-        sampling_efficiency_tag = self.config("tag", "sampling_efficiency", str) + "_" + str(self.sampling_efficiency)
+        name_tag = self.config('tag', 'name', str)
+        sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
 
         return f"{name_tag}__{sampling_efficiency_tag}"
 

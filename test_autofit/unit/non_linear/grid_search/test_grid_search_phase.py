@@ -16,7 +16,7 @@ class TestMixin:
         my_phase = MyPhase(
             af.Paths(name="", folders=tuple()),
             number_of_steps=2,
-            non_linear_class=container.MockOptimizer,
+            search=container.MockOptimizer,
         )
         my_phase.model.profile = GeometryProfile
 

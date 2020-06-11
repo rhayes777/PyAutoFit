@@ -147,10 +147,10 @@ class PySwarmsGlobal(AbstractOptimizer):
         parameters defining the search strategy."""
 
         name_tag = self.config("tag", "name", str)
-        n_particles_tag = self.config("tag", "n_particles", str) + "_" + str(self.n_particles)
-        cognitive_tag = self.config("tag", "cognitive", str) + "_" + str(self.cognitive)
-        social_tag = self.config("tag", "social", str) + "_" + str(self.social)
-        inertia_tag = self.config("tag", "inertia", str) + "_" + str(self.inertia)
+        n_particles_tag = f"{self.config('tag', 'n_particles')}_{self.n_particles}"
+        cognitive_tag = f"{self.config('tag', 'cognitive')}_{self.cognitive}"
+        social_tag = f"{self.config('tag', 'social')}_{self.social}"
+        inertia_tag =f"{self.config('tag', 'inertia')}_{self.inertia}"
 
         return f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
 

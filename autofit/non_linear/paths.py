@@ -48,32 +48,37 @@ def convert_paths(func):
         # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
         # TODO : nicely though.
 
-        if "non_linear_class" in kwargs:
+        if "search" in kwargs:
 
-            non_linear_instance = kwargs["non_linear_class"]()
-            non_linear_name = non_linear_instance.config("tag", "name", str)
+            search = kwargs["search"]
+            search_name = search.config("tag", "name", str)
 
             def non_linear_tag_function():
-                return non_linear_instance.tag
+                return search.tag
 
         else:
 
-            non_linear_name = None
+            search_name = None
 
             def non_linear_tag_function():
                 return ""
 
+        paths = Paths(
+            name=first_arg,
+            tag=kwargs.pop("phase_tag", None),
+            folders=kwargs.pop("phase_folders", tuple()),
+            path_prefix=kwargs.pop("phase_path", None),
+            non_linear_name=search_name,
+            non_linear_tag_function=non_linear_tag_function,
+            remove_files=remove_files,
+        )
+
+        if "search" in kwargs:
+            kwargs["search"].paths = paths
+
         func(
             self,
-            paths=Paths(
-                name=first_arg,
-                tag=kwargs.pop("phase_tag", None),
-                folders=kwargs.pop("phase_folders", tuple()),
-                path_prefix=kwargs.pop("phase_path", None),
-                non_linear_name=non_linear_name,
-                non_linear_tag_function=non_linear_tag_function,
-                remove_files=remove_files,
-            ),
+            paths=paths,
             **kwargs,
         )
 

@@ -192,19 +192,19 @@ class MultiNest(ns.AbstractNest):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config("tag", "name", str)
-        n_live_points_tag = self.config("tag", "n_live_points", str) + "_" + str(self.n_live_points)
-        sampling_efficiency_tag = self.config("tag", "sampling_efficiency", str) + "_" + str(self.sampling_efficiency)
+        name_tag = self.config('tag', 'name')
+        n_live_points_tag = f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
+        sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
         if self.const_efficiency_mode:
-            const_efficiency_mode_tag = "_" + self.config("tag", "const_efficiency_mode", str)
+            const_efficiency_mode_tag = f"_{self.config('tag', 'const_efficiency_mode')}"
         else:
-            const_efficiency_mode_tag = ""
+            const_efficiency_mode_tag = ''
         if self.multimodal:
-            multimodal_tag = "_" + self.config("tag", "multimodal", str)
+            multimodal_tag = f"_{self.config('tag', 'multimodal')}"
         else:
-            multimodal_tag = ""
+            multimodal_tag = ''
         if self.importance_nested_sampling:
-            importance_nested_sampling_tag = "_" + self.config("tag", "importance_nested_sampling", str)
+            importance_nested_sampling_tag = f"_{self.config('tag', 'importance_nested_sampling')}"
         else:
             importance_nested_sampling_tag = ""
 
@@ -300,8 +300,6 @@ class MultiNest(ns.AbstractNest):
             max_iter=self.max_iter,
             init_MPI=self.init_MPI,
         )
-
-        stop
 
         samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
