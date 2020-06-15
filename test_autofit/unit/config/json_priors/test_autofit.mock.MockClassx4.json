@@ -1,0 +1,54 @@
+{
+    "one": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+            "type": "Absolute",
+            "value": 0.2
+        },
+        "gaussian_limits": {
+            "lower": "-inf",
+            "upper": "inf"
+        }
+    },
+    "two": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+            "type": "Absolute",
+            "value": 0.2
+        },
+        "gaussian_limits": {
+            "lower": "-inf",
+            "upper": "inf"
+        }
+    },
+    "three": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+            "type": "Absolute",
+            "value": 0.2
+        },
+        "gaussian_limits": {
+            "lower": "-inf",
+            "upper": "inf"
+        }
+    },
+    "four": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+            "type": "Absolute",
+            "value": 0.2
+        },
+        "gaussian_limits": {
+            "lower": "-inf",
+            "upper": "inf"
+        }
+    }
+}
