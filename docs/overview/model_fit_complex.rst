@@ -200,7 +200,7 @@ the **PyAutoFit** *Analysis* class for our modeling example:
 
 Lets consider exactly what is happening in the *Analysis* class above:
 
- - The data the model is fitted too is passed into the constructor of the *Analysis* class. Above, only the
+- The data the model is fitted too is passed into the constructor of the *Analysis* class. Above, only the
    data and noise-map are input, but the constructor can be easily extended to add other data components.
 
 - The log likelihood function receives an *instance* of the model, which in this example is an instance of the

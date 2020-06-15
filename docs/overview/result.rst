@@ -5,15 +5,15 @@ Results & Samples
 
 A *non-linear search*'s fit function returns a *Result* object:
 
- .. code-block:: bash
+.. code-block:: bash
 
-    analysis = a.Analysis(data=data, noise_map=noise_map)
+   analysis = a.Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee(
-        number_of_cores=4
-    )
+   emcee = af.Emcee(
+       number_of_cores=4
+   )
 
-    result = emcee.fit(model=model, analysis=analysis)
+   result = emcee.fit(model=model, analysis=analysis)
 
 Here, we'll look in detail at what information is contained in the result. The result contains the model we used to fit
 the data:

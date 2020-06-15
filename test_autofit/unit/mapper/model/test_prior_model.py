@@ -141,22 +141,22 @@ class TestFromInstance:
         assert prior_model.simple.one == 1.0
 
     def test_dimension_types(self):
-        instance = mock.DistanceClass(mock.Distance(1.0), mock.Distance(2.0))
+        instance = mock.MockDistanceClass(mock.MockDistance(1.0), mock.MockDistance(2.0))
         result = af.AbstractPriorModel.from_instance(
-            instance, model_classes=(mock.DistanceClass,)
+            instance, model_classes=(mock.MockDistanceClass,)
         )
         assert isinstance(result.first, af.PriorModel)
 
         new_instance = result.instance_from_unit_vector([0.1, 0.2])
-        assert isinstance(new_instance, mock.DistanceClass)
-        assert isinstance(new_instance.first, mock.Distance)
+        assert isinstance(new_instance, mock.MockDistanceClass)
+        assert isinstance(new_instance.first, mock.MockDistance)
         assert new_instance.first == 0.1
 
 
 class TestSum:
     def test_add_prior_models(self):
-        profile_1 = af.PriorModel(mock.EllipticalLP)
-        profile_2 = af.PriorModel(mock.EllipticalLP)
+        profile_1 = af.PriorModel(mock.EllipticalProfile)
+        profile_2 = af.PriorModel(mock.EllipticalProfile)
 
         profile_1.axis_ratio = 1.0
         profile_2.phi = 0.0
@@ -164,12 +164,12 @@ class TestSum:
         result = profile_1 + profile_2
 
         assert isinstance(result, af.PriorModel)
-        assert result.cls == mock.EllipticalLP
+        assert result.cls == mock.EllipticalProfile
         assert isinstance(result.axis_ratio, af.Prior)
         assert isinstance(result.phi, af.Prior)
 
     def test_fail_for_mismatch(self):
-        profile_1 = af.PriorModel(mock.EllipticalLP)
+        profile_1 = af.PriorModel(mock.EllipticalProfile)
         profile_2 = af.PriorModel(mock.EllipticalMassProfile)
 
         with pytest.raises(TypeError):
@@ -178,12 +178,12 @@ class TestSum:
     def test_add_children(self):
         galaxy_1 = af.PriorModel(
             mock.Galaxy,
-            light_profiles=af.CollectionPriorModel(light_1=mock.EllipticalLP),
+            light_profiles=af.CollectionPriorModel(light_1=mock.EllipticalProfile),
             mass_profiles=af.CollectionPriorModel(mass_1=mock.EllipticalMassProfile),
         )
         galaxy_2 = af.PriorModel(
             mock.Galaxy,
-            light_profiles=af.CollectionPriorModel(light_2=mock.EllipticalLP),
+            light_profiles=af.CollectionPriorModel(light_2=mock.EllipticalProfile),
             mass_profiles=af.CollectionPriorModel(mass_2=mock.EllipticalMassProfile),
         )
 
@@ -198,12 +198,12 @@ class TestSum:
     def test_prior_model_override(self):
         galaxy_1 = af.PriorModel(
             mock.Galaxy,
-            light_profiles=af.CollectionPriorModel(light=mock.EllipticalLP()),
+            light_profiles=af.CollectionPriorModel(light=mock.EllipticalProfile()),
             mass_profiles=af.CollectionPriorModel(mass=mock.EllipticalMassProfile),
         )
         galaxy_2 = af.PriorModel(
             mock.Galaxy,
-            light_profiles=af.CollectionPriorModel(light=mock.EllipticalLP),
+            light_profiles=af.CollectionPriorModel(light=mock.EllipticalProfile),
             mass_profiles=af.CollectionPriorModel(mass=mock.EllipticalMassProfile()),
         )
 
@@ -215,42 +215,42 @@ class TestSum:
 
 class TestFloatAnnotation:
     def test_distance_from_distance(self):
-        original = mock.Distance(1.0)
+        original = mock.MockDistance(1.0)
         # noinspection PyTypeChecker
-        distance = mock.DistanceClass(first=original, second=2.0)
+        distance = mock.MockDistanceClass(first=original, second=2.0)
 
         assert distance.first is original
 
     # noinspection PyTypeChecker
     def test_instantiate_distance(self):
-        distance = mock.DistanceClass(first=1.0, second=2.0)
+        distance = mock.MockDistanceClass(first=1.0, second=2.0)
 
         assert distance.first == 1.0
         assert distance.second == 2.0
 
-        assert isinstance(distance.first, mock.Distance)
-        assert isinstance(distance.second, mock.Distance)
+        assert isinstance(distance.first, mock.MockDistance)
+        assert isinstance(distance.second, mock.MockDistance)
 
-        distance = mock.DistanceClass(1.0, 2.0)
+        distance = mock.MockDistanceClass(1.0, 2.0)
 
         assert distance.first == 1.0
         assert distance.second == 2.0
 
-        assert isinstance(distance.first, mock.Distance)
-        assert isinstance(distance.second, mock.Distance)
+        assert isinstance(distance.first, mock.MockDistance)
+        assert isinstance(distance.second, mock.MockDistance)
 
     def test_distance(self):
         mapper = af.ModelMapper()
-        mapper.object = mock.DistanceClass
+        mapper.object = mock.MockDistanceClass
 
         assert mapper.prior_count == 2
 
         result = mapper.instance_from_unit_vector([0.5, 1.0])
-        assert isinstance(result.object, mock.DistanceClass)
+        assert isinstance(result.object, mock.MockDistanceClass)
         assert result.object.first == 0.5
         assert result.object.second == 1.0
 
-        assert isinstance(result.object.first, mock.Distance)
+        assert isinstance(result.object.first, mock.MockDistance)
 
     def test_position(self):
         mapper = af.ModelMapper()
@@ -262,8 +262,8 @@ class TestFloatAnnotation:
         assert result.object.position[0] == 0.5
         assert result.object.position[1] == 1.0
 
-        assert isinstance(result.object.position[0], mock.Distance)
-        assert isinstance(result.object.position[1], mock.Distance)
+        assert isinstance(result.object.position[0], mock.MockDistance)
+        assert isinstance(result.object.position[1], mock.MockDistance)
 
     # noinspection PyUnresolvedReferences
     def test_prior_linking(self):
@@ -287,7 +287,7 @@ class TestFloatAnnotation:
         assert mapper.prior_count == 1
 
     def test_prior_tuples(self):
-        prior_model = af.PriorModel(mock.DistanceClass)
+        prior_model = af.PriorModel(mock.MockDistanceClass)
 
         assert prior_model.unique_prior_tuples[0].name == "first"
         assert prior_model.unique_prior_tuples[1].name == "second"
@@ -372,7 +372,7 @@ class TestPriorModelArguments:
 
     def test_no_passing(self):
         mapper = af.ModelMapper()
-        mapper.distance = mock.DistanceClass
+        mapper.distance = mock.MockDistanceClass
         instance = mapper.instance_from_prior_medians()
         assert not hasattr(instance.distance.first, "value") or not isinstance(
             instance.distance.first.value, af.Prior

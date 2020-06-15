@@ -1,6 +1,6 @@
 from autoconf import conf
 
-from autofit.non_linear.abstract import NonLinearSearch
+from autofit.non_linear.abstract_search import NonLinearSearch
 
 class AbstractOptimizer(NonLinearSearch):
 

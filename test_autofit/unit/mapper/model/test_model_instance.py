@@ -2,6 +2,8 @@ import pytest
 
 import autofit as af
 from test_autofit import mock
+from test_autofit.mock import MockClassx2, MockProfile
+
 
 @pytest.fixture(name="galaxy_1")
 def make_galaxy_1():
@@ -31,18 +33,6 @@ def make_instance(galaxy_1, galaxy_2):
     return instance
 
 
-class MockClassMM:
-    def __init__(self, one, two):
-        self.one = one
-        self.two = two
-
-
-class MockProfile:
-    def __init__(self, centre=(0.0, 0.0), intensity=0.1):
-        self.centre = centre
-        self.intensity = intensity
-
-
 class TestModelInstance:
     def test_as_model(self, instance):
 
@@ -68,24 +58,24 @@ class TestModelInstance:
     def test_simple_model(self):
         mapper = af.ModelMapper()
 
-        mapper.mock_class = MockClassMM
+        mapper.mock_class = MockClassx2
 
         model_map = mapper.instance_from_unit_vector([1.0, 1.0])
 
-        assert isinstance(model_map.mock_class, MockClassMM)
+        assert isinstance(model_map.mock_class, MockClassx2)
         assert model_map.mock_class.one == 1.0
         assert model_map.mock_class.two == 1.0
 
     def test_two_object_model(self):
         mapper = af.ModelMapper()
 
-        mapper.mock_class_1 = MockClassMM
-        mapper.mock_class_2 = MockClassMM
+        mapper.mock_class_1 = MockClassx2
+        mapper.mock_class_2 = MockClassx2
 
         model_map = mapper.instance_from_unit_vector([1.0, 0.0, 0.0, 1.0])
 
-        assert isinstance(model_map.mock_class_1, MockClassMM)
-        assert isinstance(model_map.mock_class_2, MockClassMM)
+        assert isinstance(model_map.mock_class_1, MockClassx2)
+        assert isinstance(model_map.mock_class_2, MockClassx2)
 
         assert model_map.mock_class_1.one == 1.0
         assert model_map.mock_class_1.two == 0.0
@@ -96,16 +86,16 @@ class TestModelInstance:
     def test_swapped_prior_construction(self):
         mapper = af.ModelMapper()
 
-        mapper.mock_class_1 = MockClassMM
-        mapper.mock_class_2 = MockClassMM
+        mapper.mock_class_1 = MockClassx2
+        mapper.mock_class_2 = MockClassx2
 
         # noinspection PyUnresolvedReferences
         mapper.mock_class_2.one = mapper.mock_class_1.one
 
         model_map = mapper.instance_from_unit_vector([1.0, 0.0, 0.0])
 
-        assert isinstance(model_map.mock_class_1, MockClassMM)
-        assert isinstance(model_map.mock_class_2, MockClassMM)
+        assert isinstance(model_map.mock_class_1, MockClassx2)
+        assert isinstance(model_map.mock_class_2, MockClassx2)
 
         assert model_map.mock_class_1.one == 1.0
         assert model_map.mock_class_1.two == 0.0
@@ -116,7 +106,7 @@ class TestModelInstance:
     def test_prior_replacement(self):
         mapper = af.ModelMapper()
 
-        mapper.mock_class = MockClassMM
+        mapper.mock_class = MockClassx2
 
         mapper.mock_class.one = af.UniformPrior(100, 200)
 

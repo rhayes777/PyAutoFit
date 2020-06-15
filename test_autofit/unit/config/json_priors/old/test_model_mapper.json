@@ -1,5 +1,5 @@
 {
-    "MockClassMM": {
+    "MockClassx2": {
         "one": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -27,7 +27,7 @@
             }
         }
     },
-    "MockClassMMinstance": {
+    "MockClassx2instance": {
         "one": {
             "type": "Constant",
             "value": 3.0

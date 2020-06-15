@@ -20,7 +20,11 @@ modeling software. The phase API provides a simple and concise interface for per
     # The phase contains Analysis class 'behind the scenes', as well as taking
     # care of results output, visualization, etc.
 
-    phase = af.Phase(phase_name="phase_example", model=Gaussian, search=af.Emcee)
+    phase = af.Phase(
+        phase_name="phase_example",
+        model=Gaussian,
+        search=af.Emcee(nwalkers=50, nsteps=100)
+    )
 
     # To perform a model fit, we simply run the phase with a dataset.
 

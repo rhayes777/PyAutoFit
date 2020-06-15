@@ -1,4 +1,32 @@
 {
+    "MockClassx2": {
+        "one": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 1.0
+            },
+            "gaussian_limits": {
+                "lower": -10.0,
+                "upper": 10.0
+            }
+        },
+        "two": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "gaussian_limits": {
+                "lower": -10.0,
+                "upper": 10.0
+            }
+        }
+    },
     "MockClassGaussian": {
         "one": {
             "type": "Gaussian",
@@ -21,6 +49,47 @@
             },
             "mean": 0.0,
             "sigma": 1.0
+        }
+    },
+    "MockProfile": {
+        "centre_0": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.0
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "centre_1": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.0
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "intensity": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.0
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
         }
     },
     "MockClassInf": {
@@ -113,50 +182,6 @@
                 "lower": 0.0,
                 "upper": 10.0
             }
-        }
-    },
-    "AbstractEllipticalSersic": {
-        "centre_0": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0
-        },
-        "centre_1": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 0.5
-        },
-        "axis_ratio": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 0.5
-        },
-        "phi": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 0.5
-        },
-        "intensity": {
-            "type": "Gaussian",
-            "lower_limit": "-inf",
-            "upper_limit": "inf",
-            "mean": 0.0,
-            "sigma": 0.5
-        },
-        "effective_radius": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 2.0
-        },
-        "sersic_index": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 2.0
-        },
-        "mass_to_light_ratio": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 10.0
         }
     },
     "EllipticalExponential": {
@@ -361,7 +386,7 @@
             "upper_limit": 1.0
         }
     },
-    "DistanceClass": {
+    "MockDistanceClass": {
         "first": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -610,9 +635,6 @@
         "two": {
             "type": "Deferred"
         }
-    },
-    "Tracer": {
-        "grid.type": "Deferred"
     },
     "Circle": {
         "circumference": {

@@ -4,14 +4,14 @@ import pytest
 
 import os
 
-from test_autofit.mock import MockClassNLOx2
+from test_autofit.mock import MockClassx2
 
 text_path = "{}/files/samples/".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.ModelMapper(mock_class=MockClassNLOx2)
+    return af.ModelMapper(mock_class=MockClassx2)
 
 
 @pytest.fixture(name="samples")

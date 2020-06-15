@@ -35,8 +35,10 @@ We define our model, a 1D Gaussian, by writing a Python class using the format b
             self.intensity = intensity
             self.sigma = sigma
 
-    # An instance of the Gaussian class will be available during model fitting.
-    # This method will be used to fit the model to data and compute a likelihood.
+    """
+    An instance of the Gaussian class will be available during model fitting.
+    This method will be used to fit the model to data and compute a likelihood.
+    """
 
     def line_from_xvalues(self, xvalues):
 
@@ -62,16 +64,20 @@ function describing how to fit the data with the model:
 
         def log_likelihood_function(self, instance):
 
-            # The 'instance' that comes into this method is an instance of the Gaussian class
-            # above, with the parameters set to (random) values chosen by the non-linear search.
+            """
+            The 'instance' that comes into this method is an instance of the Gaussian class
+            above, with the parameters set to (random) values chosen by the non-linear search.
+            """
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
             print("Intensity = ", instance.intensity)
             print("Sigma = ", instance.sigma)
 
-            # We fit the data with the Gaussian instance, using its
-            # "line_from_xvalues" function to create the model data.
+            """
+            We fit the data with the Gaussian instance, using its
+            "line_from_xvalues" function to create the model data.
+            """
 
             xvalues = np.arange(self.data.shape[0])
 
@@ -100,8 +106,8 @@ marginalized probability density functions.
 Getting Started
 ---------------
 
-To get started checkout our `readthedocs <file:///home/jammy/PycharmProjects/PyAuto/PyAutoFit/docs/_build/index.html>`_,
-where you'll find our installation guide, a general overview of **PyAutoFit**'s features, examples scripts and
+To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
+where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
 tutorials and detailed API documentation.
 
 Slack

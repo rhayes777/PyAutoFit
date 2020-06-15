@@ -3,7 +3,7 @@ import math
 import pytest
 
 import autofit as af
-from test_autofit.mock import MockClassGaussian, MockClassInf, EllipticalSersic
+from test_autofit.mock import MockClassx2, MockClassInf, EllipticalSersic
 
 
 class TestPriorLimits:
@@ -48,7 +48,7 @@ class TestPriorLimits:
 
     def test_prior_creation(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassGaussian
+        mm.mock_class_gaussian = MockClassx2
 
         prior_tuples = mm.prior_tuples_ordered_by_id
 
@@ -60,7 +60,7 @@ class TestPriorLimits:
 
     def test_out_of_limits(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassGaussian
+        mm.mock_class_gaussian = MockClassx2
 
         assert mm.instance_from_vector([1, 2]) is not None
 
@@ -92,7 +92,7 @@ class TestPriorLimits:
 
     def test_preserve_limits_tuples(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassGaussian
+        mm.mock_class_gaussian = MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples([(0.0, 0.5), (0.0, 1)])
 
@@ -106,7 +106,7 @@ class TestPriorLimits:
 
     def test_from_gaussian_no_limits(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassGaussian
+        mm.mock_class_gaussian = MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
             [(0.0, 0.5), (0.0, 1)],

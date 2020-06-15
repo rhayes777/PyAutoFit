@@ -4,13 +4,13 @@ import pytest
 
 from autoconf import conf
 import autofit as af
-from autofit.non_linear import abstract
+from autofit.non_linear import abstract_search
 from test_autofit.mock import Galaxy, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
 
-class NLO(abstract.NonLinearSearch):
+class NLO(abstract_search.NonLinearSearch):
 
     @property
     def config_type(self):
@@ -33,7 +33,7 @@ class NLO(abstract.NonLinearSearch):
                     setattr(instance, key, value)
 
                 log_likelihood = analysis.log_likelihood_function(instance)
-                self.result = abstract.Result(
+                self.result = abstract_search.Result(
                     instance, log_likelihood
                 )
 

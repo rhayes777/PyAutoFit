@@ -31,7 +31,7 @@
                 "type": "Deferred"
             }
         },
-        "MockClassNLOx2": {
+        "MockClassx2": {
             "one": {
                 "type": "Uniform",
                 "lower_limit": 0.0,

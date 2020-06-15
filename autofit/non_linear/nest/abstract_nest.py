@@ -3,9 +3,9 @@ import os
 import numpy as np
 
 from autoconf import conf
-from autofit.non_linear.abstract import NonLinearSearch
-from autofit.non_linear.abstract import IntervalCounter
-from autofit.non_linear.abstract import Result
+from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.abstract_search import IntervalCounter
+from autofit.non_linear.abstract_search import Result
 from autofit.non_linear.paths import Paths
 from autofit.text import samples_text
 
@@ -76,21 +76,6 @@ class AbstractNest(NonLinearSearch):
             else stagger_resampling_likelihood
         )
 
-
-    @property
-    def config_type(self):
-        return conf.instance.nest
-
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
-        )
-        copy.sigma = self.sigma
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
-        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
-        return copy
-
     class Fitness(NonLinearSearch.Fitness):
         def __init__(
             self,
@@ -143,7 +128,7 @@ class AbstractNest(NonLinearSearch):
 
             if not self.stagger_resampling_likelihood:
 
-                return -np.inf
+                return self.resample_likelihood
 
             else:
                 if self.stagger_accepted_samples < 10:
@@ -190,37 +175,23 @@ class AbstractNest(NonLinearSearch):
 
                     pass
 
-    def _fit(self, model, analysis):
+    @property
+    def config_type(self):
+        return conf.instance.nest
 
-        if not os.path.exists(self.paths.has_completed_path):
-
-            logger.info("Running Nested Sampler...")
-            self._fit(model=model, analysis=analysis)
-            logger.info("Nested Sampler complete")
-
-            # TODO: Some of the results below use the backup_path, which isnt updated until the end if thiss function is
-            # TODO: not located here. Do we need to rely just ono the search foldeR? This is a good idea if we always
-            # TODO: have a valid sym-link( e.g. even for aggregator use).
-
-            self.paths.backup()
-            open(self.paths.has_completed_path, "w+").close()
-        else:
-            logger.warning(f"{self.paths.name} has run previously - skipping")
-
-        samples = self.samples_from_model(model=model)
-
-        instance = samples.max_log_likelihood_instance
-        analysis.visualize(instance=instance, during_analysis=False)
-        samples_text.results_to_file(
-            samples=samples, file_results=self.paths.file_results, during_analysis=False
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        copy = super().copy_with_name_extension(
+            extension=extension, remove_phase_tag=remove_phase_tag
         )
-        result = Result(samples=samples, previous_model=model)
-        self.paths.backup_zip_remove()
-        return result
+        copy.sigma = self.sigma
+        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
+        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
+        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
+        return copy
 
     def fitness_function_from_model_and_analysis(self, model, analysis):
 
-        return AbstractNest.Fitness(
+        return self.__class__.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,

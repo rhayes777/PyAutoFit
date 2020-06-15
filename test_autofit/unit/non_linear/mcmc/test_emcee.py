@@ -3,7 +3,7 @@ import pytest
 
 from autoconf import conf
 import autofit as af
-from test_autofit.mock import MockClassNLOx4
+from test_autofit.mock import MockClassx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -70,7 +70,7 @@ class TestEmceeConfig:
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)
@@ -99,7 +99,7 @@ class TestEmceeOutput:
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)
@@ -113,7 +113,7 @@ class TestEmceeOutput:
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)
@@ -131,7 +131,7 @@ class TestEmceeOutput:
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)

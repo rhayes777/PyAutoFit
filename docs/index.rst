@@ -26,6 +26,13 @@
    overview/phase
 
 .. toctree::
+   :caption: Advanced:
+   :maxdepth: 1
+   :hidden:
+
+   advanced/pipelines
+
+.. toctree::
    :caption: API Documentation:
    :maxdepth: 1
    :hidden:

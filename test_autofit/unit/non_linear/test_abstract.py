@@ -8,7 +8,7 @@ from autoconf import conf
 from autofit.non_linear.mock.mock_nlo import MockSamples
 from test_autofit.mock import (
     GeometryProfile,
-    MockClassNLOx4,
+    MockClassx4,
 )
 
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -30,7 +30,7 @@ def make_mapper():
 
 @pytest.fixture(name="mock_list")
 def make_mock_list():
-    return [af.PriorModel(MockClassNLOx4), af.PriorModel(MockClassNLOx4)]
+    return [af.PriorModel(MockClassx4), af.PriorModel(MockClassx4)]
 
 
 @pytest.fixture(name="result")
@@ -48,7 +48,7 @@ class TestInitialize:
 
     def test__prior__points_sample_priors(self):
 
-        model = af.PriorModel(MockClassNLOx4)
+        model = af.PriorModel(MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
         model.three = af.UniformPrior(lower_limit=0.299, upper_limit=0.301)
@@ -69,7 +69,7 @@ class TestInitialize:
 
     def test__ball__points_sample_centre_of_priors(self):
 
-        model = af.PriorModel(MockClassNLOx4)
+        model = af.PriorModel(MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
         model.two = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
         model.three = af.UniformPrior(lower_limit=0.0, upper_limit=3.0)
@@ -202,7 +202,7 @@ class TestDirectorySetup:
 
 class TestLabels:
     def test_param_names(self):
-        model = af.PriorModel(MockClassNLOx4)
+        model = af.PriorModel(MockClassx4)
         assert [
                    "one",
                    "two",

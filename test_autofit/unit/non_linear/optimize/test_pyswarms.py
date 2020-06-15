@@ -3,7 +3,7 @@ import pytest
 
 from autoconf import conf
 import autofit as af
-from test_autofit.mock import MockClassNLOx4
+from test_autofit.mock import MockClassx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -73,7 +73,7 @@ class TestPySwarmsGlobalConfig:
 
         pyswarms = af.PySwarmsGlobal(paths=af.Paths())
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         model.mock_class.one = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
         model.mock_class.three = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)

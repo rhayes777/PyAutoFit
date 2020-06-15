@@ -5,10 +5,9 @@ import numpy as np
 import pickle
 
 from autofit import exc
-from autofit.non_linear.optimize.abstract import AbstractOptimizer
+from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples
-from autofit.non_linear.abstract import Result
-from autofit.non_linear.paths import Paths
+from autofit.non_linear.abstract_search import Result
 
 logger = logging.getLogger(__name__)
 
@@ -112,9 +111,6 @@ class PySwarmsGlobal(AbstractOptimizer):
         https://pyswarms.readthedocs.io/en/latest/index.html
         """
 
-        if paths is None:
-            paths = Paths(non_linear_name=type(self).__name__.lower())
-
         self.sigma = sigma
 
         self.n_particles = self.config("search", "n_particles", int) if n_particles is None else n_particles
@@ -141,41 +137,6 @@ class PySwarmsGlobal(AbstractOptimizer):
 
         logger.debug("Creating PySwarms NLO")
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self.config("tag", "name", str)
-        n_particles_tag = f"{self.config('tag', 'n_particles')}_{self.n_particles}"
-        cognitive_tag = f"{self.config('tag', 'cognitive')}_{self.cognitive}"
-        social_tag = f"{self.config('tag', 'social')}_{self.social}"
-        inertia_tag =f"{self.config('tag', 'inertia')}_{self.inertia}"
-
-        return f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
-
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the emcee non-linear search with all associated attributes.
-
-        This is used to set up the non-linear search on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
-        )
-        copy.sigma = self.sigma
-        copy.n_particles = self.n_particles
-        copy.iters = self.iters
-        copy.cognitive = self.cognitive
-        copy.social = self.social
-        copy.intertia = self.inertia
-        copy.ftol = self.ftol
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
-        copy.iterations_per_update = self.iterations_per_update
-        copy.number_of_cores = self.number_of_cores
-
-        return copy
-
     class Fitness(AbstractOptimizer.Fitness):
         def __call__(self, params):
 
@@ -191,7 +152,7 @@ class PySwarmsGlobal(AbstractOptimizer):
 
                 except exc.FitException:
 
-                    log_posteriors.append(np.inf)
+                    log_posteriors.append(-2.0*self.resample_likelihood)
 
             return np.asarray(log_posteriors)
 
@@ -285,24 +246,40 @@ class PySwarmsGlobal(AbstractOptimizer):
 
         logger.info("PySwarmsGlobal complete")
 
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
-
-        return Result(samples=samples, previous_model=model)
-
     @property
-    def load_total_iterations(self):
-        with open("{}/{}.pickle".format(self.paths.sym_path, "total_iterations"), "rb") as f:
-            return pickle.load(f)
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
 
-    @property
-    def load_points(self):
-        with open("{}/{}.pickle".format(self.paths.sym_path, "points"), "rb") as f:
-            return pickle.load(f)
+        name_tag = self.config("tag", "name", str)
+        n_particles_tag = f"{self.config('tag', 'n_particles')}_{self.n_particles}"
+        cognitive_tag = f"{self.config('tag', 'cognitive')}_{self.cognitive}"
+        social_tag = f"{self.config('tag', 'social')}_{self.social}"
+        inertia_tag =f"{self.config('tag', 'inertia')}_{self.inertia}"
 
-    @property
-    def load_log_posteriors(self):
-        with open("{}/{}.pickle".format(self.paths.sym_path, "log_posteriors"), "rb") as f:
-            return pickle.load(f)
+        return f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
+
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        """Copy this instance of the emcee non-linear search with all associated attributes.
+
+        This is used to set up the non-linear search on phase extensions."""
+        copy = super().copy_with_name_extension(
+            extension=extension, remove_phase_tag=remove_phase_tag
+        )
+        copy.sigma = self.sigma
+        copy.n_particles = self.n_particles
+        copy.iters = self.iters
+        copy.cognitive = self.cognitive
+        copy.social = self.social
+        copy.intertia = self.inertia
+        copy.ftol = self.ftol
+        copy.initialize_method = self.initialize_method
+        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
+        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.iterations_per_update = self.iterations_per_update
+        copy.number_of_cores = self.number_of_cores
+
+        return copy
 
     def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
 
@@ -339,3 +316,18 @@ class PySwarmsGlobal(AbstractOptimizer):
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
         )
+
+    @property
+    def load_total_iterations(self):
+        with open("{}/{}.pickle".format(self.paths.sym_path, "total_iterations"), "rb") as f:
+            return pickle.load(f)
+
+    @property
+    def load_points(self):
+        with open("{}/{}.pickle".format(self.paths.sym_path, "points"), "rb") as f:
+            return pickle.load(f)
+
+    @property
+    def load_log_posteriors(self):
+        with open("{}/{}.pickle".format(self.paths.sym_path, "log_posteriors"), "rb") as f:
+            return pickle.load(f)

@@ -4,7 +4,7 @@ import pytest
 
 import autofit as af
 from autofit.non_linear.samples import OptimizerSamples, PDFSamples
-from test_autofit.mock import MockClassNLOx2, MockClassNLOx4
+from test_autofit.mock import MockClassx2, MockClassx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
     name="samples"
 )
 def make_samples():
-    model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+    model = af.ModelMapper(mock_class_1=MockClassx4)
 
     parameters = [[0.0, 1.0, 2.0, 3.0],
                   [0.0, 1.0, 2.0, 3.0],
@@ -36,18 +36,18 @@ class TestSamplesTable:
             "mock_class_1_two",
             "mock_class_1_three",
             "mock_class_1_four",
-            "log_posterior",
             "log_likelihood",
-            "log_prior"
+            "log_prior",
+            "log_posterior",
         ]
 
     def test_rows(self, samples):
         rows = list(samples._rows)
-        assert rows == [[0.0, 1.0, 2.0, 3.0, 1.0, 1.0, 0.0],
-                        [0.0, 1.0, 2.0, 3.0, 2.0, 2.0, 0.0],
-                        [0.0, 1.0, 2.0, 3.0, 3.0, 3.0, 0.0],
-                        [21.0, 22.0, 23.0, 24.0, 10.0, 10.0, 0.0],
-                        [0.0, 1.0, 2.0, 3.0, 5.0, 5.0, 0.0]]
+        assert rows == [[0.0, 1.0, 2.0, 3.0, 1.0, 0.0, 1.0],
+                        [0.0, 1.0, 2.0, 3.0, 2.0, 0.0, 2.0],
+                        [0.0, 1.0, 2.0, 3.0, 3.0, 0.0, 3.0],
+                        [21.0, 22.0, 23.0, 24.0, 10.0, 0.0, 10.0],
+                        [0.0, 1.0, 2.0, 3.0, 5.0, 0.0, 5.0]]
 
     def test_write_table(self, samples):
         filename = "table.csv"
@@ -86,7 +86,7 @@ class TestOptimizerSamples:
         assert instance.mock_class_1.four == 24.0
 
     def test__log_priors_and_max_log_posterior_vector_and_instance(self):
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+        model = af.ModelMapper(mock_class_1=MockClassx4)
 
         parameters = [[0.0, 1.0, 2.0, 3.0],
                       [0.0, 1.0, 2.0, 3.0],
@@ -119,7 +119,7 @@ class TestOptimizerSamples:
                       [0.88, 1.88, 2.88, 3.88],
                       [1.12, 2.12, 3.12, 4.32]]
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         samples = OptimizerSamples(
             model=model,
             parameters=parameters,
@@ -140,7 +140,7 @@ class TestOptimizerSamples:
         assert gaussian_priors[3][1] == 0.0
 
     def test__instance_from_sample_index(self):
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
 
         parameters = [[1.0, 2.0, 3.0, 4.0],
                       [5.0, 6.0, 7.0, 8.0],
@@ -187,7 +187,7 @@ class TestPDFSamples:
 
         log_likelihoods = list(range(10))
 
-        model = af.ModelMapper(mock_class=MockClassNLOx2)
+        model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
             parameters=parameters,
@@ -225,7 +225,7 @@ class TestPDFSamples:
 
         weights = 10 * [0.1]
 
-        model = af.ModelMapper(mock_class=MockClassNLOx2)
+        model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
             parameters=parameters,
@@ -242,7 +242,7 @@ class TestPDFSamples:
         assert median_pdf.mock_class.two == pytest.approx(0.4, 1.0e-4)
 
     def test__unconverged_sample_size__uses_value_unless_fewer_samples(self):
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+        model = af.ModelMapper(mock_class_1=MockClassx4)
 
         log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
 
@@ -271,7 +271,7 @@ class TestPDFSamples:
         assert samples.unconverged_sample_size == 5
 
     def test__unconverged_pdf__median_pdf_vector_and_instance(self):
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+        model = af.ModelMapper(mock_class_1=MockClassx4)
 
         parameters = [[1.0, 2.0, 3.0, 4.0],
                       [1.0, 2.0, 3.0, 4.0],
@@ -311,7 +311,7 @@ class TestPDFSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         samples = PDFSamples(
             model=model,
             parameters=parameters,
@@ -359,7 +359,7 @@ class TestPDFSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         samples = PDFSamples(
             model=model,
             parameters=parameters,
@@ -403,7 +403,7 @@ class TestPDFSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         samples = PDFSamples(
             model=model,
             parameters=parameters,
@@ -443,7 +443,7 @@ class TestPDFSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         samples = PDFSamples(
             model=model,
             parameters=parameters,
@@ -467,7 +467,7 @@ class TestPDFSamples:
         assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
 
     def test__offset_vector_from_input_vector(self):
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+        model = af.ModelMapper(mock_class_1=MockClassx4)
 
         parameters = [[1.0, 2.0, 3.0, 4.0],
                       [1.0, 2.0, 3.0, 4.0],
@@ -497,7 +497,7 @@ class TestPDFSamples:
 class TestNestSamples:
 
     def test__acceptance_ratio_is_correct(self):
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+        model = af.ModelMapper(mock_class_1=MockClassx4)
 
         samples = af.NestSamples(
             model=model,

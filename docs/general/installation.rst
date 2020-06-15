@@ -3,16 +3,18 @@
 Installation
 ============
 
-Installation with pip
----------------------
+Dependencies
+------------
 
-The simplest way to install **PyAutoFit** is via pip which installs **PyAutoFit** with the following dependencies:
+This guide installs **PyAutoFit** with the following dependencies:
 
 **PyAutoConf** https://github.com/rhayes777/PyAutoConf
 
 **Dynesty** https://github.com/joshspeagle/dynesty
 
 **emcee** https://github.com/dfm/emcee
+
+**PySwarms** https://github.com/ljvmiranda921/pyswarms
 
 **astropy** https://www.astropy.org/
 
@@ -24,7 +26,10 @@ The simplest way to install **PyAutoFit** is via pip which installs **PyAutoFit*
 
 **scipy** https://www.scipy.org/
 
-You can install **PyAutoFit** via pip as follows:
+Installation with pip
+---------------------
+
+The simplest way to install **PyAutoFit** is via pip:
 
 .. code-block:: bash
 
@@ -71,7 +76,7 @@ You can test everything is working by running the following command in the autof
 
 .. code-block:: bash
 
-    python3 /path/to/autofit_workspace/api/simple/fit.py
+    python3 /path/to/autofit_workspace/examples/simple/fit.py
 
 PyMultiNest
 -----------

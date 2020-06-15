@@ -3,7 +3,7 @@ import pickle
 
 import dill
 
-from autofit.non_linear import abstract
+from autofit.non_linear import abstract_search
 from autofit.non_linear.samples import PDFSamples
 
 
@@ -88,7 +88,7 @@ class PhaseOutput:
         return "/".join((self.pipeline, self.phase, self.dataset_name))
 
     @property
-    def search(self) -> abstract.NonLinearSearch:
+    def search(self) -> abstract_search.NonLinearSearch:
         """
         The search object that was used in this phase
         """

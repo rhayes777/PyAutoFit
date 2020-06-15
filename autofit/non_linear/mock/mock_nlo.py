@@ -3,9 +3,9 @@ import math
 from autoconf import conf
 from autofit import exc
 from autofit.non_linear.samples import PDFSamples
-from autofit.non_linear.abstract import NonLinearSearch
-from autofit.non_linear.abstract import Analysis
-from autofit.non_linear.abstract import Result
+from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.abstract_search import Analysis
+from autofit.non_linear.abstract_search import Result
 
 
 class MockSearch(NonLinearSearch):

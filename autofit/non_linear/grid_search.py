@@ -11,7 +11,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.mcmc.emcee import Emcee
-from autofit.non_linear.abstract import Result
+from autofit.non_linear.abstract_search import Result
 from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
@@ -425,8 +425,9 @@ class GridSearch:
             )
 
         name_path = "{}/{}/{}/{}".format(
-            self.paths.name, self.phase_tag_input, self.paths.non_linear_name, "_".join(labels)
+            self.paths.name, self.phase_tag_input, self.paths.non_linear_tag, "_".join(labels)
         )
+
         search_instance = self.search_instance(name_path=name_path)
 
         return Job(

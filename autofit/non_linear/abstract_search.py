@@ -2,6 +2,7 @@ import configparser
 import logging
 import multiprocessing as mp
 import pickle
+import os
 from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
@@ -60,30 +61,15 @@ class NonLinearSearch(ABC):
             ball method.
         """
 
-        if paths is None:
-            paths = Paths()
-
         if paths.non_linear_name is "":
-            paths.non_linear_name = self.config("tag", "name", str)
+            paths.non_linear_name = self.config("tag", "name")
 
         if paths.non_linear_tag is "":
             paths.non_linear_tag_function = lambda: self.tag
 
-        log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
         self.paths = paths
 
-        if not len(log_file) == 0:
-            log_path = "{}/{}".format(self.paths.output_path, log_file)
-            logger.handlers = [logging.FileHandler(log_path)]
-            logger.propagate = False
-            # noinspection PyProtectedMember
-            logger.level = logging._nameToLevel[
-                conf.instance.general.get("output", "log_level", str)
-                    .replace(" ", "")
-                    .upper()
-            ]
-
-        self.paths.restore()
+        self.log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
 
         try:
 
@@ -147,10 +133,64 @@ class NonLinearSearch(ABC):
 
         self.number_of_cores = number_of_cores
 
-    @property
-    def tag(self):
-        """Tag the output folder of the non-linear search, based on the non linear search settings"""
-        raise NotImplementedError
+    class Fitness:
+
+        def __init__(
+                self, paths, model, analysis, samples_from_model, pool_ids=None,
+        ):
+
+            self.paths = paths
+            self.max_log_likelihood = -np.inf
+            self.analysis = analysis
+
+            self.model = model
+            self.samples_from_model = samples_from_model
+
+            self.pool_ids = pool_ids
+
+        def fit_instance(self, instance):
+
+            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+
+            if self.analysis.log_likelihood_cap is not None:
+                if log_likelihood > self.analysis.log_likelihood_cap:
+                    log_likelihood = self.analysis.log_likelihood_cap
+
+            if log_likelihood > self.max_log_likelihood:
+
+                if self.pool_ids is not None:
+                    if mp.current_process().pid != min(self.pool_ids):
+                        return log_likelihood
+
+                self.max_log_likelihood = log_likelihood
+
+            return log_likelihood
+
+        @staticmethod
+        def prior(cube, model):
+
+            # NEVER EVER REFACTOR THIS LINE! Haha.
+
+            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+
+            for i in range(len(phys_cube)):
+                cube[i] = phys_cube[i]
+
+            return cube
+
+        @staticmethod
+        def fitness(cube, model, fitness_function):
+            return fitness_function(instance=model.instance_from_vector(cube))
+
+        @property
+        def samples(self):
+            return self.samples_from_model(model=self.model)
+
+        @property
+        def resample_likelihood(self):
+            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+             should be given a likelihood so low that it is discard."""
+            return -np.inf
 
     def fit(
             self,
@@ -185,37 +225,56 @@ class NonLinearSearch(ABC):
         produced by this fit.
         """
 
-        self.save_model_info(model=model)
-        self.save_parameter_names_file(model=model)
-        self.save_metadata()
-        self.save_info(info=info)
-        self.save_search()
-        self.save_model(model=model)
+        self.paths.restore()
 
-        result = self._fit(
-            model=model,
-            analysis=analysis,
-        )
-        open(self.paths.has_completed_path, "w+").close()
-        return result
+        if not os.path.exists(self.paths.has_completed_path):
+
+            self.setup_log_file()
+            self.save_model_info(model=model)
+            self.save_parameter_names_file(model=model)
+            self.save_metadata()
+            self.save_info(info=info)
+            self.save_search()
+            self.save_model(model=model)
+
+            self._fit(
+                model=model,
+                analysis=analysis,
+            )
+            open(self.paths.has_completed_path, "w+").close()
+
+            samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
+
+        else:
+
+            samples = self.samples_from_model(model=model)
+            self.paths.backup_zip_remove()
+
+        return Result(samples=samples, previous_model=model)
 
     @abstractmethod
     def _fit(self, model, analysis):
         pass
 
+    @property
+    def tag(self):
+        """Tag the output folder of the non-linear search, based on the non linear search settings"""
+        raise NotImplementedError
+
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         name = "{}/{}".format(self.paths.name, extension)
 
         if remove_phase_tag:
-            phase_tag = ""
+            tag = ""
         else:
-            phase_tag = self.paths.tag
+            tag = self.paths.tag
 
         new_instance = self.__class__(
             paths=Paths(
                 name=name,
+                tag=tag,
                 folders=self.paths.folders,
-                tag=phase_tag,
+                path_prefix=self.paths.path_prefix,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
             ),
@@ -296,6 +355,19 @@ class NonLinearSearch(ABC):
 
         return samples
 
+    def setup_log_file(self):
+
+        if not len(self.log_file) == 0:
+            log_path = "{}/{}".format(self.paths.output_path, self.log_file)
+            logger.handlers = [logging.FileHandler(log_path)]
+            logger.propagate = False
+            # noinspection PyProtectedMember
+            logger.level = logging._nameToLevel[
+                conf.instance.general.get("output", "log_level", str)
+                    .replace(" ", "")
+                    .upper()
+            ]
+
     def save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
         with open(self.paths.file_model_info, "w+") as f:
@@ -329,6 +401,30 @@ class NonLinearSearch(ABC):
         with open("{}/info.pickle".format(self.paths.pickle_path), "wb") as f:
             pickle.dump(info, f)
 
+    def save_search(self):
+        """
+        Save the seawrch associated with the phase as a pickle
+        """
+        with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(self))
+
+    def save_model(self, model):
+        """
+        Save the model associated with the phase as a pickle
+        """
+        with open(self.paths.make_model_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(model))
+
+    def save_metadata(self):
+        """
+        Save metadata associated with the phase, such as the name of the pipeline, the
+        name of the phase and the name of the dataset being fit
+        """
+        with open("{}/metadata".format(self.paths.make_path()), "a") as f:
+            f.write(
+                self.make_metadata_text()
+            )
+
     @property
     def _default_metadata(self) -> Dict[str, str]:
         """
@@ -349,90 +445,6 @@ class NonLinearSearch(ABC):
                 **self._default_metadata,
             }.items()
         )
-
-    def save_metadata(self):
-        """
-        Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the dataset being fit
-        """
-        with open("{}/metadata".format(self.paths.make_path()), "a") as f:
-            f.write(
-                self.make_metadata_text()
-            )
-
-    def save_search(self):
-        """
-        Save the seawrch associated with the phase as a pickle
-        """
-        with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(self))
-
-    def save_model(self, model):
-        """
-        Save the model associated with the phase as a pickle
-        """
-        with open(self.paths.make_model_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(model))
-
-    def __eq__(self, other):
-        return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self.paths.restore()
-
-    class Fitness:
-
-        @staticmethod
-        def prior(cube, model):
-
-            # NEVER EVER REFACTOR THIS LINE! Haha.
-
-            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
-
-            for i in range(len(phys_cube)):
-                cube[i] = phys_cube[i]
-
-            return cube
-
-        @staticmethod
-        def fitness(cube, model, fitness_function):
-            return fitness_function(instance=model.instance_from_vector(cube))
-
-        def __init__(
-                self, paths, model, analysis, samples_from_model, pool_ids=None,
-        ):
-
-            self.paths = paths
-            self.max_log_likelihood = -np.inf
-            self.analysis = analysis
-
-            self.model = model
-            self.samples_from_model = samples_from_model
-
-            self.pool_ids = pool_ids
-
-        def fit_instance(self, instance):
-
-            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-
-            if self.analysis.log_likelihood_cap is not None:
-                if log_likelihood > self.analysis.log_likelihood_cap:
-                    log_likelihood = self.analysis.log_likelihood_cap
-
-            if log_likelihood > self.max_log_likelihood:
-
-                if self.pool_ids is not None:
-                    if mp.current_process().pid != min(self.pool_ids):
-                        return log_likelihood
-
-                self.max_log_likelihood = log_likelihood
-
-            return log_likelihood
-
-        @property
-        def samples(self):
-            return self.samples_from_model(model=self.model)
 
     def initial_points_from_model(self, number_of_points, model):
         """Generate the initial points of the non-linear search, based on the initialize_method. The following methods
@@ -511,6 +523,13 @@ class NonLinearSearch(ABC):
             ids = pool.map(f, range(self.number_of_cores))
 
             return pool, [id[1] for id in ids]
+
+    def __eq__(self, other):
+        return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.paths.restore()
 
 
 class Analysis:

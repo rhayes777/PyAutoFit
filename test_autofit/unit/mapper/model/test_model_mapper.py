@@ -8,33 +8,33 @@ from autofit import exc
 from autofit.text import formatter as frm
 from test_autofit import mock
 from test_autofit.mock import GeometryProfile
-from test_autofit.mock import MockClassGaussian
+from test_autofit.mock import MockClassx2
 
 dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 @pytest.fixture(name="initial_model")
 def make_initial_model():
-    return af.PriorModel(MockClassMM)
+    return af.PriorModel(MockClassx2)
 
 
 class TestParamNames:
     def test_has_prior(self):
-        prior_model = af.PriorModel(MockClassGaussian)
+        prior_model = af.PriorModel(MockClassx2)
         assert "one" == prior_model.name_for_prior(prior_model.one)
 
 
-class MockClassMM:
+class MockClassx2:
     def __init__(self, one, two):
         self.one = one
         self.two = two
 
 
-class MockClassMMinstance(MockClassMM):
+class MockClassx2instance(MockClassx2):
     pass
 
 
-class ExtendedMockClass(MockClassMM):
+class ExtendedMockClass(MockClassx2):
     def __init__(self, one, two, three):
         super().__init__(one, two)
         self.three = three
@@ -79,7 +79,7 @@ class TestGenerateModelInfo:
 
     def test_basic(self):
         mm = af.ModelMapper()
-        mm.mock_class = MockClassMM
+        mm.mock_class = MockClassx2
         model_info = mm.info
 
         assert (
@@ -91,7 +91,7 @@ class TestGenerateModelInfo:
 
     def test_with_instance(self):
         mm = af.ModelMapper()
-        mm.mock_class = MockClassMM
+        mm.mock_class = MockClassx2
 
         mm.mock_class.two = 1.0
 
@@ -240,7 +240,7 @@ class TestRegression:
 class TestModelingMapper:
     def test__argument_extraction(self):
         mapper = af.ModelMapper()
-        mapper.mock_class = MockClassMM
+        mapper.mock_class = MockClassx2
         assert 1 == len(mapper.prior_model_tuples)
 
         assert len(mapper.prior_tuples_ordered_by_id) == 2
@@ -248,7 +248,7 @@ class TestModelingMapper:
     def test_attribution(self):
         mapper = af.ModelMapper()
 
-        mapper.mock_class = MockClassMM
+        mapper.mock_class = MockClassx2
 
         assert hasattr(mapper, "mock_class")
         assert hasattr(mapper.mock_class, "one")
@@ -285,7 +285,7 @@ class TestRealClasses:
 
     def test_attribute(self):
         mm = af.ModelMapper()
-        mm.cls_1 = MockClassMM
+        mm.cls_1 = MockClassx2
 
         assert 1 == len(mm.prior_model_tuples)
         assert isinstance(mm.cls_1, af.PriorModel)
@@ -518,7 +518,7 @@ class TestModelInstancesRealClasses:
 
     def test_log_priors_from_vector(self):
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(MockClassMM)
+        mapper.mock_class = af.PriorModel(MockClassx2)
         mapper.mock_class.one = af.GaussianPrior(mean=1.0, sigma=2.0)
         mapper.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
@@ -530,7 +530,7 @@ class TestModelInstancesRealClasses:
         np.random.seed(1)
 
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(MockClassMM)
+        mapper.mock_class = af.PriorModel(MockClassx2)
 
         vector = mapper.random_vector_from_priors_within_limits(lower_limit=0.499999, upper_limit=0.500001)
 
@@ -546,7 +546,7 @@ class TestModelInstancesRealClasses:
 
     def test_random_vector_from_prior(self):
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(MockClassMM)
+        mapper.mock_class = af.PriorModel(MockClassx2)
 
         np.random.seed(1)
 
@@ -568,27 +568,27 @@ class TestModelInstancesRealClasses:
 
     def test_vector_from_prior_medians(self):
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(MockClassMM)
+        mapper.mock_class = af.PriorModel(MockClassx2)
 
         assert mapper.physical_values_from_prior_medians == [0.5, 0.5]
 
 
 class TestUtility:
     def test_prior_prior_model_dict(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
+        mapper = af.ModelMapper(mock_class=MockClassx2)
 
         assert len(mapper.prior_prior_model_dict) == 2
         assert (
                 mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
-                == MockClassMM
+                == MockClassx2
         )
         assert (
                 mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
-                == MockClassMM
+                == MockClassx2
         )
 
     def test_name_for_prior(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
+        mapper = af.ModelMapper(mock_class=MockClassx2)
 
         assert mapper.name_for_prior(mapper.priors[0]) == "mock_class_one"
         assert mapper.name_for_prior(mapper.priors[1]) == "mock_class_two"
@@ -596,13 +596,13 @@ class TestUtility:
 
 class TestPriorReplacement:
     def test_prior_replacement(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
+        mapper = af.ModelMapper(mock_class=MockClassx2)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
 
         assert isinstance(result.mock_class.one, af.GaussianPrior)
 
     def test_replace_priors_with_gaussians_from_tuples(self):
-        mapper = af.ModelMapper(mock_class=MockClassMM)
+        mapper = af.ModelMapper(mock_class=MockClassx2)
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
 
         assert isinstance(result.mock_class.one, af.GaussianPrior)
@@ -620,7 +620,7 @@ class TestPriorReplacement:
         assert isinstance(result.mock_class.intensity, af.GaussianPrior)
 
     def test_replace_priors_for_two_classes(self):
-        mapper = af.ModelMapper(one=MockClassMM, two=MockClassMM)
+        mapper = af.ModelMapper(one=MockClassx2, two=MockClassx2)
 
         result = mapper.mapper_from_gaussian_tuples([(1, 1), (2, 1), (3, 1), (4, 1)])
 
@@ -634,8 +634,8 @@ class TestArguments:
     def test_same_argument_name(self):
         mapper = af.ModelMapper()
 
-        mapper.one = af.PriorModel(MockClassMM)
-        mapper.two = af.PriorModel(MockClassMM)
+        mapper.one = af.PriorModel(MockClassx2)
+        mapper.two = af.PriorModel(MockClassx2)
 
         instance = mapper.instance_from_vector([0.1, 0.2, 0.3, 0.4])
 
@@ -647,7 +647,7 @@ class TestArguments:
 
 class TestIndependentPriorModel:
     def test_associate_prior_model(self):
-        prior_model = af.PriorModel(MockClassMM)
+        prior_model = af.PriorModel(MockClassx2)
 
         mapper = af.ModelMapper()
 
@@ -664,7 +664,7 @@ class TestIndependentPriorModel:
 @pytest.fixture(name="list_prior_model")
 def make_list_prior_model():
     return af.CollectionPriorModel(
-        [af.PriorModel(MockClassMM), af.PriorModel(MockClassMM)]
+        [af.PriorModel(MockClassx2), af.PriorModel(MockClassx2)]
     )
 
 
@@ -723,14 +723,14 @@ class TestListPriorModel:
 
     def test_automatic_boxing(self):
         mapper = af.ModelMapper()
-        mapper.list = [af.PriorModel(MockClassMM), af.PriorModel(MockClassMM)]
+        mapper.list = [af.PriorModel(MockClassx2), af.PriorModel(MockClassx2)]
 
         assert isinstance(mapper.list, af.CollectionPriorModel)
 
 
 @pytest.fixture(name="mock_with_instance")
 def make_mock_with_instance():
-    mock_with_instance = af.PriorModel(MockClassMM)
+    mock_with_instance = af.PriorModel(MockClassx2)
     mock_with_instance.one = 3.0
     return mock_with_instance
 
@@ -757,7 +757,7 @@ class Testinstance:
     def test_instance_in_config(self):
         mapper = af.ModelMapper()
 
-        mock_with_instance = af.PriorModel(MockClassMMinstance)
+        mock_with_instance = af.PriorModel(MockClassx2instance)
 
         mapper.mock_class = mock_with_instance
 
@@ -767,14 +767,14 @@ class Testinstance:
         assert instance.mock_class.two == 0.5
 
     def test_set_float(self):
-        prior_model = af.PriorModel(MockClassMM)
+        prior_model = af.PriorModel(MockClassx2)
         prior_model.one = 3
         prior_model.two = 4.0
         assert prior_model.one == 3
         assert prior_model.two == 4.0
 
     def test_list_prior_model_instances(self, mapper):
-        prior_model = af.PriorModel(MockClassMM)
+        prior_model = af.PriorModel(MockClassx2)
         prior_model.one = 3.0
         prior_model.two = 4.0
 
@@ -808,14 +808,14 @@ def make_mapper():
 @pytest.fixture(name="mapper_with_one")
 def make_mapper_with_one():
     mapper = af.ModelMapper()
-    mapper.one = af.PriorModel(MockClassMM)
+    mapper.one = af.PriorModel(MockClassx2)
     return mapper
 
 
 @pytest.fixture(name="mapper_with_list")
 def make_mapper_with_list():
     mapper = af.ModelMapper()
-    mapper.list = [af.PriorModel(MockClassMM), af.PriorModel(MockClassMM)]
+    mapper.list = [af.PriorModel(MockClassx2), af.PriorModel(MockClassx2)]
     return mapper
 
 
@@ -835,22 +835,22 @@ class TestGaussianWidthConfig:
 
     def test_prior_classes(self, mapper_with_one):
         assert mapper_with_one.prior_class_dict == {
-            mapper_with_one.one.one: MockClassMM,
-            mapper_with_one.one.two: MockClassMM,
+            mapper_with_one.one.one: MockClassx2,
+            mapper_with_one.one.two: MockClassx2,
         }
 
     def test_prior_classes_list(self, mapper_with_list):
         assert mapper_with_list.prior_class_dict == {
-            mapper_with_list.list[0].one: MockClassMM,
-            mapper_with_list.list[0].two: MockClassMM,
-            mapper_with_list.list[1].one: MockClassMM,
-            mapper_with_list.list[1].two: MockClassMM,
+            mapper_with_list.list[0].one: MockClassx2,
+            mapper_with_list.list[0].two: MockClassx2,
+            mapper_with_list.list[1].one: MockClassx2,
+            mapper_with_list.list[1].two: MockClassx2,
         }
 
     def test_no_override(self):
         mapper = af.ModelMapper()
 
-        mapper.one = af.PriorModel(MockClassMM)
+        mapper.one = af.PriorModel(MockClassx2)
 
         af.ModelMapper()
 

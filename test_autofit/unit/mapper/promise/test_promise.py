@@ -19,7 +19,7 @@ def make_grid_search_promise(phase):
         phase_name="phase_name",
         phase_tag="phase_tag"
     )
-    grid_search_phase.model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
+    grid_search_phase.model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalProfile)
     return grid_search_phase.result.model.one.redshift
 
 
@@ -70,7 +70,7 @@ class TestLastPromises:
         assert af.last.hyper_result[0].model.populate(collection) is result
 
     def test_second_indexed_hyper(self, collection):
-        result = mock.Result(model=af.ModelMapper(), instance=af.ModelInstance())
+        result = mock.MockResult(model=af.ModelMapper(), instance=af.ModelInstance())
         collection.add("next", result)
         result = af.last[-1].hyper_result.model.populate(collection)
         assert isinstance(result, af.ModelMapper)
@@ -153,7 +153,7 @@ class TestIndexLast:
         collection.add(
             "phase one", af.GridSearchResult(
                 [
-                    mock.Result(
+                    mock.MockResult(
                         model=af.ModelMapper(galaxy=galaxy_model_1)
                     )
                 ],
@@ -170,12 +170,12 @@ class TestIndexLast:
         galaxy_model_1 = af.PriorModel(mock.Galaxy)
         model_1 = af.ModelMapper(galaxy=galaxy_model_1)
 
-        collection.add("phase one", mock.Result(model=model_1, instance=None))
+        collection.add("phase one", mock.MockResult(model=model_1, instance=None))
 
         galaxy_model_2 = af.PriorModel(mock.Galaxy)
         model_2 = af.ModelMapper(galaxy=galaxy_model_2)
 
-        collection.add("phase two", mock.Result(model=model_2, instance=None))
+        collection.add("phase two", mock.MockResult(model=model_2, instance=None))
 
         result = af.last.model.galaxy.populate(collection)
         assert result is galaxy_model_2
@@ -185,7 +185,7 @@ class TestIndexLast:
 
     def test_results_collection_duplicates(self):
         collection = af.ResultsCollection()
-        result = mock.Result(None, None)
+        result = mock.MockResult(None, None)
 
         collection.add("name", result)
         collection.add("name", result)
@@ -270,7 +270,7 @@ class TestCase:
 
         instance = populated.instance_from_prior_medians()
 
-        assert isinstance(instance.kwargs["light"], mock.EllipticalLP)
+        assert isinstance(instance.kwargs["light"], mock.EllipticalProfile)
 
     def test_embedded_results(self, phase, collection):
         hyper_result = phase.result.hyper_result

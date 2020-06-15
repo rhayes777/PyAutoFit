@@ -141,18 +141,6 @@ class AbstractPhase:
     def run_analysis(self, analysis, info=None):
         return self.search.fit(model=self.model, analysis=analysis, info=info)
 
-    def customize_priors(self, results):
-        """
-        Perform any prior or instance passing. This could involve setting model
-        attributes equal to priors or instances from a previous phase.
-
-        Parameters
-        ----------
-        results: ResultsCollection
-            The result of the previous phase
-        """
-        pass
-
     def make_phase_attributes(self, analysis):
         raise NotImplementedError()
 
@@ -235,8 +223,6 @@ class Phase(AbstractPhase):
         self.model = self.model.populate(results)
 
         analysis = self.make_analysis(dataset=dataset)
-
-        self.customize_priors(results)
 
         result = self.run_analysis(analysis=analysis, info=info)
 

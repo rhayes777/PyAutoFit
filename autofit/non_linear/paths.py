@@ -43,8 +43,6 @@ def convert_paths(func):
         if first_arg is None:
             first_arg = kwargs.pop("phase_name", None)
 
-        remove_files = conf.instance.general.get("output", "remove_files", bool)
-
         # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
         # TODO : nicely though.
 
@@ -70,7 +68,6 @@ def convert_paths(func):
             path_prefix=kwargs.pop("phase_path", None),
             non_linear_name=search_name,
             non_linear_tag_function=non_linear_tag_function,
-            remove_files=remove_files,
         )
 
         if "search" in kwargs:
@@ -144,7 +141,7 @@ class Paths:
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
         self.non_linear_tag_function = non_linear_tag_function
-        self.remove_files = remove_files
+        self.remove_files = conf.instance.general.get("output", "remove_files", bool)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -222,7 +219,7 @@ class Paths:
     @property
     def has_completed_path(self) -> str:
         """
-        A file indicating that a multinest search has been completed previously
+        A file indicating that a non-linear search has been completed previously
         """
         return f"{self.output_path}/.completed"
 

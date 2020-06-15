@@ -1,14 +1,10 @@
 import logging
 import os
 import emcee
-import numpy as np
 
 from autofit import exc
-from autofit.non_linear.mcmc.abstract import AbstractMCMC
+from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
-from autofit.non_linear.abstract import Result
-from autofit.non_linear.paths import Paths
-
 logger = logging.getLogger(__name__)
 
 
@@ -101,9 +97,6 @@ class Emcee(AbstractMCMC):
         https://emcee.readthedocs.io/en/stable/
         """
 
-        if paths is None:
-            paths = Paths()
-
         self.sigma = sigma
 
         self.nwalkers = self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
@@ -146,37 +139,6 @@ class Emcee(AbstractMCMC):
 
         logger.debug("Creating Emcee NLO")
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self.config('tag', 'name')
-        nwalkers_tag = f"{self.config('tag', 'nwalkers')}_{self.nwalkers}"
-
-        return f'{name_tag}__{nwalkers_tag}'
-
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the emcee non-linear search with all associated attributes.
-
-        This is used to set up the non-linear search on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
-        )
-        copy.sigma = self.sigma
-        copy.nwalkers = self.nwalkers
-        copy.nsteps = self.nsteps
-        copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
-        copy.auto_correlation_check_size = self.auto_correlation_check_size
-        copy.auto_correlation_required_length = self.auto_correlation_required_length
-        copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
-        copy.iterations_per_update = self.iterations_per_update
-        copy.number_of_cores = self.number_of_cores
-
-        return copy
 
     class Fitness(AbstractMCMC.Fitness):
         def __call__(self, params):
@@ -189,8 +151,7 @@ class Emcee(AbstractMCMC):
                 return log_likelihood + sum(log_priors)
 
             except exc.FitException:
-
-                return -np.inf
+                return self.resample_likelihood
 
     def _fit(self, model, analysis):
         """
@@ -220,7 +181,7 @@ class Emcee(AbstractMCMC):
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.paths.path + "/emcee.hdf"),
+            backend=emcee.backends.HDFBackend(filename=self.paths.samples_path + "/emcee.hdf"),
             pool=pool,
         )
 
@@ -243,6 +204,7 @@ class Emcee(AbstractMCMC):
 
             total_iterations = 0
             iterations_remaining = self.nsteps
+
 
         logger.info("Running Emcee Sampling...")
 
@@ -274,23 +236,37 @@ class Emcee(AbstractMCMC):
 
         logger.info("Emcee complete")
 
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
-
-        return Result(samples=samples, previous_model=model)
-
     @property
-    def backend(self) -> emcee.backends.HDFBackend:
-        """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
 
-        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        if os.path.isfile(self.paths.path + "/emcee.hdf"):
-            return emcee.backends.HDFBackend(
-                filename=self.paths.path + "/emcee.hdf"
-            )
-        else:
-            raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path " + self.paths.path
-            )
+        name_tag = self.config('tag', 'name')
+        nwalkers_tag = f"{self.config('tag', 'nwalkers')}_{self.nwalkers}"
+
+        return f'{name_tag}__{nwalkers_tag}'
+
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        """Copy this instance of the emcee non-linear search with all associated attributes.
+
+        This is used to set up the non-linear search on phase extensions."""
+        copy = super().copy_with_name_extension(
+            extension=extension, remove_phase_tag=remove_phase_tag
+        )
+        copy.sigma = self.sigma
+        copy.nwalkers = self.nwalkers
+        copy.nsteps = self.nsteps
+        copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
+        copy.auto_correlation_check_size = self.auto_correlation_check_size
+        copy.auto_correlation_required_length = self.auto_correlation_required_length
+        copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
+        copy.initialize_method = self.initialize_method
+        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
+        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.iterations_per_update = self.iterations_per_update
+        copy.number_of_cores = self.number_of_cores
+
+        return copy
 
     def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
 
@@ -341,3 +317,17 @@ class Emcee(AbstractMCMC):
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
         )
+
+    @property
+    def backend(self) -> emcee.backends.HDFBackend:
+        """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+
+        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
+        if os.path.isfile(self.paths.samples_path + "/emcee.hdf"):
+            return emcee.backends.HDFBackend(
+                filename=self.paths.samples_path + "/emcee.hdf"
+            )
+        else:
+            raise FileNotFoundError(
+                "The file emcee.hdf does not exist at the path " + self.paths.samples_path
+            )

@@ -8,8 +8,8 @@ from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestSamples
-from autofit.non_linear.nest.abstract import AbstractNest
-from autofit.non_linear.abstract import Result
+from autofit.non_linear.nest.abstract_nest import AbstractNest
+from autofit.non_linear.abstract_search import Result
 
 logger = logging.getLogger(__name__)
 
@@ -218,33 +218,15 @@ class AbstractDynesty(AbstractNest):
 
         logger.debug("Creating DynestyStatic NLO")
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the dynesty non-linear search with all associated attributes.
+    class Fitness(AbstractNest.Fitness):
 
-        This is used to set up the non-linear search on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
-        )
-        copy.iterations_per_update = self.iterations_per_update
-        copy.bound = self.bound
-        copy.sample = self.sample
-        copy.update_interval = self.update_interval
-        copy.bootstrap = self.bootstrap
-        copy.enlarge = self.enlarge
-        copy.vol_dec = self.vol_dec
-        copy.vol_check = self.vol_check
-        copy.walks = self.walks
-        copy.sampling_efficiency = self.sampling_efficiency
-        copy.slices = self.slices
-        copy.fmove = self.fmove
-        copy.max_move = self.max_move
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
-        copy.iterations_per_update = self.iterations_per_update
-        copy.number_of_cores = self.number_of_cores
+        @property
+        def resample_likelihood(self):
+            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+             should be given a likelihood so low that it is discard.
 
-        return copy
+             -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
+            return -1.0e99
 
     def _fit(self, model: AbstractPriorModel, analysis) -> Result:
         """
@@ -329,9 +311,33 @@ class AbstractDynesty(AbstractNest):
             if total_iterations == iterations_after_run or total_iterations == self.maxcall:
                 finished = True
 
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        """Copy this instance of the dynesty non-linear search with all associated attributes.
 
-        return Result(samples=samples, previous_model=model)
+        This is used to set up the non-linear search on phase extensions."""
+        copy = super().copy_with_name_extension(
+            extension=extension, remove_phase_tag=remove_phase_tag
+        )
+        copy.iterations_per_update = self.iterations_per_update
+        copy.bound = self.bound
+        copy.sample = self.sample
+        copy.update_interval = self.update_interval
+        copy.bootstrap = self.bootstrap
+        copy.enlarge = self.enlarge
+        copy.vol_dec = self.vol_dec
+        copy.vol_check = self.vol_check
+        copy.walks = self.walks
+        copy.sampling_efficiency = self.sampling_efficiency
+        copy.slices = self.slices
+        copy.fmove = self.fmove
+        copy.max_move = self.max_move
+        copy.initialize_method = self.initialize_method
+        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
+        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.iterations_per_update = self.iterations_per_update
+        copy.number_of_cores = self.number_of_cores
+
+        return copy
 
     @property
     def load_sampler(self):
@@ -571,7 +577,7 @@ class DynestyStatic(AbstractDynesty):
 
         return StaticSampler(
             loglikelihood=fitness_function,
-            prior_transform=AbstractNest.Fitness.prior,
+            prior_transform=AbstractDynesty.Fitness.prior,
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],
@@ -682,7 +688,7 @@ class DynestyDynamic(AbstractDynesty):
         variables."""
         return DynamicNestedSampler(
             loglikelihood=fitness_function,
-            prior_transform=AbstractNest.Fitness.prior,
+            prior_transform=AbstractDynesty.Fitness.prior,
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],

@@ -1,5 +1,5 @@
 {
-    "MockClassGaussian": {
+    "MockClassx2": {
         "one": {
             "type": "Gaussian",
             "lower_limit": 0.0,
@@ -113,50 +113,6 @@
                 "lower": 0.0,
                 "upper": 10.0
             }
-        }
-    },
-    "AbstractEllipticalSersic": {
-        "centre_0": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0
-        },
-        "centre_1": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 0.5
-        },
-        "axis_ratio": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 0.5
-        },
-        "phi": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 0.5
-        },
-        "intensity": {
-            "type": "Gaussian",
-            "lower_limit": "-inf",
-            "upper_limit": "inf",
-            "mean": 0.0,
-            "sigma": 0.5
-        },
-        "effective_radius": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 2.0
-        },
-        "sersic_index": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 2.0
-        },
-        "mass_to_light_ratio": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 10.0
         }
     },
     "EllipticalExponential": {
@@ -361,7 +317,7 @@
             "upper_limit": 1.0
         }
     },
-    "DistanceClass": {
+    "MockDistanceClass": {
         "first": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -385,7 +341,7 @@
             "upper_limit": 1.0
         }
     },
-    "MockClassNLOx4": {
+    "MockClassx4": {
         "one": {
             "type": "Uniform",
             "lower_limit": -120.0,
@@ -439,7 +395,7 @@
             }
         }
     },
-    "MockClassNLOx5": {
+    "MockClassx5": {
         "one": {
             "type": "Uniform",
             "lower_limit": -100.0,
@@ -506,20 +462,6 @@
             }
         }
     },
-    "MockClassNLOx6": {
-        "one_0": {
-            "type": "Uniform",
-            "lower_limit": -100.0,
-            "upper_limit": 101.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 1.0
-            },
-            "gaussian_limits": {
-                "lower": -100.0,
-                "upper": 101.0
-            }
-        },
         "one_1": {
             "type": "Uniform",
             "lower_limit": -100.0,

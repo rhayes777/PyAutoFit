@@ -34,7 +34,7 @@ Non-linear Searches
    :toctree: generated/
 
    DownhillSimplex
-   PySwarms
+   PySwarmsGlobal
 
 **GridSearch**:
 

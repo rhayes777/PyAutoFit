@@ -50,7 +50,7 @@ class OptimizerSamples:
         Headers for the samples table
         """
         return self.parameter_names + [
-            "log_posterior", "log_likelihood", "log_prior"
+            "log_likelihood", "log_prior", "log_posterior"
         ]
 
     @property
@@ -60,9 +60,9 @@ class OptimizerSamples:
         """
         for index, row in enumerate(self.parameters):
             yield row + [
-                self.log_posteriors[index],
                 self.log_likelihoods[index],
-                self.log_priors[index]
+                self.log_priors[index],
+                self.log_posteriors[index],
             ]
 
     def write_table(self, filename: str):

@@ -2,8 +2,8 @@ import numpy as np
 import scipy.optimize
 
 from autofit import exc
-from autofit.non_linear.optimize.abstract import AbstractOptimizer
-from autofit.non_linear.abstract import logger
+from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
+from autofit.non_linear.abstract_search import logger
 from autofit.non_linear.paths import Paths
 
 

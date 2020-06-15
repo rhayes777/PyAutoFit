@@ -1,5 +1,5 @@
 {
-    "MockClassNLOx4": {
+    "MockClassx4": {
         "one": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -53,7 +53,7 @@
             }
         }
     },
-    "MockClassNLOx6": {
+    "MockClassx6": {
         "one": {
             "type": "Uniform",
             "lower_limit": 0.0,

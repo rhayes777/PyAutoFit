@@ -2,147 +2,123 @@ import inspect
 import math
 import typing
 
+from autoconf import conf
 import autofit as af
 # noinspection PyAbstractClass
 from autofit.mapper.prior_model import attribute_pair
-from autofit.non_linear.paths import Paths
 from autofit.tools.phase import Dataset
 
 
-class MockNonLinearSearch(object):
+class MockResult:
     def __init__(
-            self,
-            phase_name,
-            phase_tag=None,
-            phase_folders=tuple(),
-            median_pdf=None,
-            model_mapper=None,
-            max_log_likelihood=None,
-            model_upper_params=None,
-            model_lower_params=None,
+        self,
+        samples=None,
+        instance=None,
+        model=None,
+        analysis=None,
+        search=None,
     ):
-        super(MockNonLinearSearch, self).__init__(
-            model_mapper or af.ModelMapper(),
-            Paths(
-                name=phase_name, tag=phase_tag, folders=phase_folders
-            ),
+
+        self.instance = instance or af.ModelInstance()
+        self.model = model or af.ModelMapper()
+        self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
+
+        self.previous_model = model
+        self.gaussian_tuples = None
+        self.analysis = analysis
+        self.search = search
+
+    def model_absolute(self, absolute):
+        return self.model
+
+    def model_relative(self, relative):
+        return self.model
+
+    @property
+    def last(self):
+        return self
+
+
+class MockSamples(af.PDFSamples):
+    def __init__(
+        self,
+        max_log_likelihood_instance=None,
+        log_likelihoods=None,
+        gaussian_tuples=None,
+    ):
+
+        if log_likelihoods is None:
+            log_likelihoods = [1.0, 2.0, 3.0]
+
+        super().__init__(
+            model=None,
+            parameters=[],
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=[],
         )
 
-        self.median_pdf = median_pdf
-        self.max_log_likelihood = max_log_likelihood
-        self.model_upper_params = model_upper_params
-        self.model_lower_params = model_lower_params
+        self._max_log_likelihood_instance = max_log_likelihood_instance
+        self.gaussian_tuples = gaussian_tuples
 
-    def _simple_fit(self, model, fitness_function):
-        raise NotImplementedError()
+    @property
+    def max_log_likelihood_instance(self):
+        return self._max_log_likelihood_instance
+
+    def gaussian_priors_at_sigma(self, sigma=None):
+        return self.gaussian_tuples
+
+
+class MockSearch(af.NonLinearSearch):
+    def __init__(self, paths=None, samples=None):
+
+        super().__init__(paths=paths)
+
+        self.samples = samples or MockSamples()
 
     def _fit(self, model, analysis):
-        raise NotImplementedError()
+        class Fitness:
+            def __init__(self, instance_from_vector):
+                self.result = None
+                self.instance_from_vector = instance_from_vector
+
+            def __call__(self, vector):
+                instance = self.instance_from_vector(vector)
+
+                log_likelihood = analysis.log_likelihood_function(instance)
+                self.result = MockResult(instance=instance)
+
+                # Return Chi squared
+                return -2 * log_likelihood
+
+        fitness_function = Fitness(model.instance_from_vector)
+        fitness_function(model.prior_count * [0.8])
+
+        return fitness_function.result
 
     @property
-    def median_pdf_vector(self):
-        """
-        Read the most probable or most likely model values from the 'obj_summary.txt'
-        file which nlo from a multinest lens.
-
-        This file stores the parameters of the most probable model in the first half
-        of entries and the most likely model in the second half of entries. The
-        offset parameter is used to start at the desiredaf.
-
-        """
-        return self.median_pdf
+    def config_type(self):
+        return conf.instance.mock
 
     @property
-    def max_log_likelihood_vector(self):
-        """
-        Read the most probable or most likely model values from the 'obj_summary.txt'
-        file which nlo from a \ multinest lens.
+    def tag(self):
+        return "mock"
 
-        This file stores the parameters of the most probable model in the first half
-        of entries and the most likely model in the second half of entries. The
-        offset parameter is used to start at the desiredaf.
-        """
-        return self.max_log_likelihood
-
-    def vector_at_upper_sigma(self, sigma):
-        return self.model_upper_params
-
-    def vector_at_lower_sigma(self, sigma):
-        return self.model_lower_params
+    def samples_from_model(self, model):
+        return self.samples
 
 
-class MockClassNLOx2:
-    def __init__(self, one=1, two=2):
-        self.one = one
-        self.two = two
-
-
-class MockClassNLOx4:
-    def __init__(self, one=1, two=2, three=3, four=4):
-        self.one = one
-        self.two = two
-        self.three = three
-        self.four = four
-
-
-class MockClassNLOx5:
-    def __init__(self, one=1, two=2, three=3, four=4, five=5):
-        self.one = one
-        self.two = two
-        self.three = three
-        self.four = four
-        self.five = five
-
-
-class MockClassNLOx6:
-    def __init__(self, one=(1, 2), two=(3, 4), three=3, four=4):
-        self.one = one
-        self.two = two
-        self.three = three
-        self.four = four
-
-
-class MockAnalysis:
-    def __init__(self):
-        self.kwargs = None
-        self.instance = None
-        self.visualize_instance = None
-
-    def fit(self, instance):
-        self.instance = instance
-        return 1.0
-
-    # noinspection PyUnusedLocal
-    def visualize(self, instance, *args, **kwargs):
-        self.visualize_instance = instance
-
-
-class MockClassMM:
-    def __init__(self, one, two):
-        self.one = one
-        self.two = two
-
-class MockProfile:
-    def __init__(self, centre=(0.0, 0.0), intensity=0.1):
-        self.centre = centre
-        self.intensity = intensity
-
-
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
-    def with_circumference(self, circumference):
-        self.circumference = circumference
+class MockDataset(Dataset):
+    @property
+    def metadata(self) -> dict:
+        return dict()
 
     @property
-    def circumference(self):
-        return self.radius * 2 * math.pi
+    def name(self) -> str:
+        return "name"
 
-    @circumference.setter
-    def circumference(self, circumference):
-        self.radius = circumference / (2 * math.pi)
 
+### Mock Classes ###
 
 class SimpleClass:
     def __init__(self, one, two: float):
@@ -160,20 +136,20 @@ class ListClass:
         self.ls = ls
 
 
-class Distance(af.DimensionType):
+class MockDistance(af.DimensionType):
     pass
 
 
-class DistanceClass:
+class MockDistanceClass:
     @af.map_types
-    def __init__(self, first: Distance, second: Distance):
+    def __init__(self, first: MockDistance, second: MockDistance):
         self.first = first
         self.second = second
 
 
 class PositionClass:
     @af.map_types
-    def __init__(self, position: typing.Tuple[Distance, Distance]):
+    def __init__(self, position: typing.Tuple[MockDistance, MockDistance]):
         self.position = position
 
 
@@ -181,6 +157,57 @@ class DeferredClass:
     def __init__(self, one, two):
         self.one = one
         self.two = two
+
+
+class RelativeWidth:
+    def __init__(self, one, two, three):
+        self.one = one
+        self.two = two
+        self.three = three
+
+
+class MockClassx2:
+    def __init__(self, one=1, two=2):
+        self.one = one
+        self.two = two
+
+
+class MockClassx4:
+    def __init__(self, one=1, two=2, three=3, four=4):
+        self.one = one
+        self.two = two
+        self.three = three
+        self.four = four
+
+
+class MockProfile:
+    def __init__(self, centre=(0.0, 0.0), intensity=0.1):
+        self.centre = centre
+        self.intensity = intensity
+
+
+class MockClassInf:
+    def __init__(self, one, two):
+        self.one = one
+        self.two = two
+
+
+### Real Classes ###
+
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius
+
+    def with_circumference(self, circumference):
+        self.circumference = circumference
+
+    @property
+    def circumference(self):
+        return self.radius * 2 * math.pi
+
+    @circumference.setter
+    def circumference(self, circumference):
+        self.radius = circumference / (2 * math.pi)
 
 
 class Galaxy:
@@ -197,11 +224,8 @@ class Galaxy:
         self.kwargs = kwargs
 
 
-class RelativeWidth:
-    def __init__(self, one, two, three):
-        self.one = one
-        self.two = two
-        self.three = three
+class HyperGalaxy:
+    pass
 
 
 class Redshift:
@@ -278,7 +302,7 @@ class SphericalProfile(GeometryProfile):
 
 
 class EllipticalProfile(SphericalProfile):
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):
+    def __init__(self, centre=(0.0, 0.0),             elliptical_comps=(0.0, 0.0)):
         """ Generic elliptical profiles class to contain functions shared by light
         and mass profiles.
 
@@ -294,58 +318,6 @@ class EllipticalProfile(SphericalProfile):
         super(EllipticalProfile, self).__init__(centre)
         self.axis_ratio = axis_ratio
         self.phi = phi
-
-
-class EllipticalLP(EllipticalProfile):
-    """Generic class for an elliptical light profiles"""
-
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):
-        """  Abstract class for an elliptical light-profile.
-
-        Parameters
-        ----------
-        centre: (float, float)
-            The (y,x) coordinates of the origin of the profiles
-        axis_ratio : float
-            Ratio of light profiles ellipse's minor and major axes (b/a)
-        phi : float
-            Rotational angle of profiles ellipse counter-clockwise from positive x-axis
-        """
-        super(EllipticalLP, self).__init__(centre, axis_ratio, phi)
-
-
-class AbstractEllipticalSersic(EllipticalProfile):
-    def __init__(
-            self,
-            centre=(0.0, 0.0),
-            axis_ratio=1.0,
-            phi=0.0,
-            intensity=0.1,
-            effective_radius=0.6,
-            sersic_index=4.0,
-    ):
-        """ Abstract base class for an elliptical Sersic profile, used for computing
-        its effective radius and Sersic instance.
-
-        Parameters
-        ----------
-        centre: (float, float)
-            The (y,x) coordinates of the origin of the profiles
-        axis_ratio : float
-            Ratio of light profiles ellipse's minor and major axes (b/a)
-        phi : float
-            Rotational angle of profiles ellipse counter-clockwise from positive x-axis
-        intensity : float
-            Overall intensity normalisation in the light profiles (electrons per second)
-        effective_radius : float
-            The circular radius containing half the light of this model_mapper
-        sersic_index : Int
-            The Sersic index, which controls the light profile concentration
-        """
-        super(AbstractEllipticalSersic, self).__init__(centre, axis_ratio, phi)
-        self.intensity = intensity
-        self.effective_radius = effective_radius
-        self.sersic_index = sersic_index
 
 
 class MassProfile:
@@ -364,7 +336,7 @@ class MassProfile:
 
 # noinspection PyAbstractClass
 class EllipticalMassProfile(EllipticalProfile, MassProfile):
-    def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):
+    def __init__(self, centre=(0.0, 0.0),             elliptical_comps=(0.0, 0.0)):
         """
         Abstract class for elliptical mass profiles.
 
@@ -383,48 +355,12 @@ class EllipticalMassProfile(EllipticalProfile, MassProfile):
 
 
 # noinspection PyAbstractClass
-class EllipticalCoredPowerLaw(EllipticalMassProfile, MassProfile):
+class EllipticalCoredIsothermal(EllipticalProfile):
     def __init__(
             self,
             centre=(0.0, 0.0),
-            axis_ratio=1.0,
-            phi=0.0,
-            einstein_radius=1.0,
-            slope=2.0,
-            core_radius=0.01,
-    ):
-        """
-        Represents a cored elliptical power-law density distribution
-
-        Parameters
-        ----------
-        centre: (float, float)
-            The image_grid of the origin of the profiles
-        axis_ratio : float
-            Elliptical mass profile's minor-to-major axis ratio (b/a)
-        phi : float
-            Rotation angle of mass profile's ellipse counter-clockwise from positive
-            x-axis
-        einstein_radius : float
-            Einstein radius of power-law mass profiles
-        slope : float
-            power-law density slope of mass profiles
-        core_radius : float
-            The radius of the inner core
-        """
-        super(EllipticalCoredPowerLaw, self).__init__(centre, axis_ratio, phi)
-        self.einstein_radius = einstein_radius
-        self.slope = slope
-        self.core_radius = core_radius
-
-
-# noinspection PyAbstractClass
-class EllipticalCoredIsothermal(EllipticalCoredPowerLaw):
-    def __init__(
-            self,
-            centre=(0.0, 0.0),
-            axis_ratio=1.0,
-            phi=0.0,
+        e1 = 0.0,
+        e2 = 0.0,
             einstein_radius=1.0,
             core_radius=0.05,
     ):
@@ -449,16 +385,18 @@ class EllipticalCoredIsothermal(EllipticalCoredPowerLaw):
         """
 
         super(EllipticalCoredIsothermal, self).__init__(
-            centre, axis_ratio, phi, einstein_radius, 2.0, core_radius
+            centre, axis_ratio, phi,
         )
+        self.einstein_radius = einstein_radius
+        self.core_radius = core_radius
 
 
-class EllipticalSersic(AbstractEllipticalSersic, EllipticalLP):
+class EllipticalSersic(EllipticalProfile):
     def __init__(
             self,
             centre=(0.0, 0.0),
-            axis_ratio=1.0,
-            phi=0.0,
+        e1 = 0.0,
+        e2 = 0.0,
             intensity=0.1,
             effective_radius=0.6,
             sersic_index=4.0,
@@ -481,17 +419,20 @@ class EllipticalSersic(AbstractEllipticalSersic, EllipticalLP):
         sersic_index : Int
             Controls the concentration of the of the light profile.
         """
-        super(EllipticalSersic, self).__init__(
-            centre, axis_ratio, phi, intensity, effective_radius, sersic_index
+        super().__init__(
+            centre=centre, axis_ratio=axis_ratio, phi=phi,
         )
+        self.intensity = intensity
+        self.effective_radius = effective_radius
+        self.sersic_index = sersic_index
 
 
 class EllipticalCoreSersic(EllipticalSersic):
     def __init__(
             self,
             centre=(0.0, 0.0),
-            axis_ratio=1.0,
-            phi=0.0,
+        e1 = 0.0,
+        e2 = 0.0,
             intensity=0.1,
             effective_radius=0.6,
             sersic_index=4.0,
@@ -542,8 +483,8 @@ class EllipticalExponential(EllipticalSersic):
     def __init__(
             self,
             centre=(0.0, 0.0),
-            axis_ratio=1.0,
-            phi=0.0,
+        e1 = 0.0,
+        e2 = 0.0,
             intensity=0.1,
             effective_radius=0.6,
     ):
@@ -571,72 +512,8 @@ class EllipticalExponential(EllipticalSersic):
         )
 
 
-class EllipticalGaussian(EllipticalLP):
-    def __init__(
-            self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
-    ):
-        """ The elliptical Gaussian profile.
-
-        Parameters
-        ----------
-        centre: (float, float)
-            The (y,x) origin of the light profile.
-        axis_ratio : float
-            Ratio of light profiles ellipse's minor and major axes (b/a).
-        phi : float
-            Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
-            Overall intensity normalisation of the light profiles (electrons per
-            second).
-        sigma : float
-            The full-width half-maximum of the Gaussian.
-        """
-        super(EllipticalGaussian, self).__init__(centre, axis_ratio, phi)
-
-        self.intensity = intensity
-        self.sigma = sigma
-
-
 class Tracer:
     def __init__(self, lens_galaxy: Galaxy, source_galaxy: Galaxy, grid):
         self.lens_galaxy = lens_galaxy
         self.source_galaxy = source_galaxy
         self.grid = grid
-
-
-class Result:
-    def __init__(self, instance=None, model=None):
-        self.instance = instance
-        self.model = model
-
-    def model_absolute(self, absolute):
-        return self.model
-
-    def model_relative(self, relative):
-        return self.model
-
-
-class HyperGalaxy:
-    pass
-
-
-class MockDataset(Dataset):
-    @property
-    def metadata(self) -> dict:
-        return dict()
-
-    @property
-    def name(self) -> str:
-        return "name"
-
-
-class MockClassGaussian:
-    def __init__(self, one, two):
-        self.one = one
-        self.two = two
-
-
-class MockClassInf:
-    def __init__(self, one, two):
-        self.one = one
-        self.two = two
