@@ -1,181 +1,171 @@
 {
-    "MockClassNLOx4": {
-        "one": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        },
-        "two": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        },
-        "three": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        },
-        "four": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        }
+  "MockClassNLOx4": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
     },
-    "MockClassNLOx6": {
-        "one": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        },
-        "two": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        },
-        "three": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        },
-        "four": {
-            "type": "Uniform",
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "width_modifier": {
-                "type": "Absolute",
-                "value": 0.2
-            },
-            "gaussian_limits": {
-                "lower": 0.0,
-                "upper": 1.0
-            }
-        }
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
     },
-    "mock": {
-        "MockClassNLOx2": {
-            "one": {
-                "type": "Uniform",
-                "lower_limit": 0.0,
-                "upper_limit": 1.0,
-                "width_modifier": {
-                    "type": "Absolute",
-                    "value": 0.2
-                },
-                "gaussian_limits": {
-                    "lower": 0.0,
-                    "upper": 1.0
-                }
-            },
-            "two": {
-                "type": "Uniform",
-                "lower_limit": 0.0,
-                "upper_limit": 1.0,
-                "width_modifier": {
-                    "type": "Absolute",
-                    "value": 0.2
-                },
-                "gaussian_limits": {
-                    "lower": 0.0,
-                    "upper": 1.0
-                }
-            }
-        },
-        "Tracer": {
-            "lens_galaxy": {
-                "type": "Uniform",
-                "lower_limit": 0.0,
-                "upper_limit": 1.0,
-                "width_modifier": {
-                    "type": "Absolute",
-                    "value": 0.2
-                },
-                "gaussian_limits": {
-                    "lower": 0.0,
-                    "upper": 1.0
-                }
-            },
-            "source_galaxy": {
-                "type": "Uniform",
-                "lower_limit": 0.0,
-                "upper_limit": 1.0,
-                "width_modifier": {
-                    "type": "Absolute",
-                    "value": 0.2
-                },
-                "gaussian_limits": {
-                    "lower": 0.0,
-                    "upper": 1.0
-                }
-            },
-            "grid": {
-                "type": "Uniform",
-                "lower_limit": 0.0,
-                "upper_limit": 1.0,
-                "width_modifier": {
-                    "type": "Absolute",
-                    "value": 0.2
-                },
-                "gaussian_limits": {
-                    "lower": 0.0,
-                    "upper": 1.0
-                }
-            }
-        }
+    "three": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "four": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
     }
+  },
+  "MockClassNLOx6": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "three": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "four": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  },
+  "mock": {
+    "MockClassNLOx2": {
+      "one": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+          "type": "Absolute",
+          "value": 0.2
+        },
+        "gaussian_limits": {
+          "lower": 0.0,
+          "upper": 1.0
+        }
+      },
+      "two": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+          "type": "Absolute",
+          "value": 0.2
+        },
+        "gaussian_limits": {
+          "lower": 0.0,
+          "upper": 1.0
+        }
+      }
+    },
+    "Tracer": {
+      "lens_galaxy": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+          "type": "Absolute",
+          "value": 0.2
+        },
+        "gaussian_limits": {
+          "lower": 0.0,
+          "upper": 1.0
+        }
+      },
+      "source_galaxy": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 1.0,
+        "width_modifier": {
+          "type": "Absolute",
+          "value": 0.2
+        },
+        "gaussian_limits": {
+          "lower": 0.0,
+          "upper": 1.0
+        }
+      },
+      "grid": {
+        "type": "Deferred"
+      }
+    }
+  }
 }
