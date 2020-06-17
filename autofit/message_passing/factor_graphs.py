@@ -356,10 +356,13 @@ class FactorNode:
                 vshape = (vs[0],) + vshape
 
             if shape.size:
-                assert (
+                if not (
                         np.equal(shape[ind], 1) |
                         np.equal(shape[ind], vshape) |
-                        np.equal(vshape, 1)).all()
+                        np.equal(vshape, 1)).all():
+                    raise AssertionError(
+                        "Shapes do not match"
+                    )
                 shape[ind] = np.maximum(shape[ind], vshape)
 
         return tuple(shape)
