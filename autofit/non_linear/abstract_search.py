@@ -135,6 +135,8 @@ class NonLinearSearch(ABC):
 
         self.number_of_cores = number_of_cores
 
+        self._in_phase = False
+
     class Fitness:
 
         def __init__(

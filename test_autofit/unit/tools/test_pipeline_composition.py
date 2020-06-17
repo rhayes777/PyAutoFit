@@ -1,16 +1,16 @@
-from autofit.non_linear.mock.mock_nlo import MockSearch, MockAnalysis
-
 from os import path
+
 import autofit as af
 from autoconf import conf
+from autofit.non_linear.mock.mock_nlo import MockSearch, MockAnalysis
 from test_autofit import mock
-
 
 directory = path.dirname(path.realpath(__file__))
 
 conf.instance = conf.Config(
     config_path=path.join(directory, "../config"),
 )
+
 
 def make_pipeline_1(name, phase_folders, search):
     phase = af.Phase(
@@ -45,15 +45,18 @@ def make_pipeline(
         phase_folders=tuple(),
         search=MockSearch()
 ):
-    return make_pipeline_1(
-        name,
-        phase_folders,
-        search
-    ) + make_pipeline_2(
+    pipeline_2 = make_pipeline_2(
         name,
         phase_folders,
         search
     )
+    pipeline_1 = make_pipeline_1(
+        name,
+        phase_folders,
+        search
+    )
+
+    return pipeline_1 + pipeline_2
 
 
 def test_pipeline_composition():
