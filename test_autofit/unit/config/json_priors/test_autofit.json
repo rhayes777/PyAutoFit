@@ -1,0 +1,833 @@
+{
+    "type": "Uniform",
+    "lower_limit": 0.0,
+    "upper_limit": 1.0,
+    "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+    },
+    "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+    },
+    "mock": {
+        "GeometryProfile": {
+            "centre_0": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "centre_1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "MockDistanceClass": {
+            "first": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "second": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "MockClassx2": {
+            "one": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "two": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "MockClassInf": {
+            "one": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "two": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "EllipticalSersic": {
+            "centre": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "e1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "e2": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "intensity": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "effective_radius": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "sersic_index": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "SimpleClass": {
+            "one": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "two": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "DeferredClass": {
+            "one": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "two": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "MockProfile": {
+            "centre_0": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "centre_1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "intensity": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "EllipticalCoreSersic": {
+            "centre": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "e1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "e2": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "intensity": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "effective_radius": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "sersic_index": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "radius_break": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "intensity_break": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "gamma": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "alpha": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "RelativeWidth": {
+            "one": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "two": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "three": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "EllipticalProfile": {
+            "centre": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "elliptical_comps": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "elliptical_comps_0": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "elliptical_comps_1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "centre_0": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "centre_1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "Circle": {
+            "radius": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "Galaxy": {
+            "light_profiles": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "mass_profiles": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "redshift": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "PositionClass": {
+            "position": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "Tracer": {
+            "lens_galaxy": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "source_galaxy": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "grid": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "EllipticalCoredIsothermal": {
+            "centre": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "e1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "e2": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "einstein_radius": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "core_radius": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "MockClassx4": {
+            "one": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "two": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "three": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "four": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "Redshift": {
+            "redshift": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "EllipticalMassProfile": {
+            "centre": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "elliptical_comps": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        }
+    }
+}
