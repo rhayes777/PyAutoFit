@@ -1,6 +1,7 @@
 import logging
 import pickle
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Dict
 
 import dill
@@ -35,7 +36,7 @@ class AbstractPhase:
             The class of a non_linear search
         """
 
-        self.search = search
+        self.search = deepcopy(search)
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
