@@ -18,6 +18,4 @@ def run(module):
         noise_map_path=f"{integration_path}/dataset/{module.data_name}/noise_map.fits",
     )
 
-    mask = np.full(fill_value=False, shape=dataset.data.shape)
-
-    module.phase.run(dataset=dataset, mask=mask)
+    module.phase.run(dataset=dataset)

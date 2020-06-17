@@ -9,7 +9,7 @@ data_name = "gaussian_x1"
 phase = ph.Phase(
     phase_name="phase",
     profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
-    search=af.PySwarmsGlobal,
+    search=af.DynestyStatic(),
 )
 
 if __name__ == "__main__":

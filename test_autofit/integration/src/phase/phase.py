@@ -15,6 +15,7 @@ from test_autofit.integration.src.phase.settings import (
     PhaseSettings,
 )
 
+import numpy as np
 
 # The 'phase.py' module is mostly unchanged from the previous tutorial, however the 'run' function has been updated.
 
@@ -58,7 +59,7 @@ class Phase(af.AbstractPhase):
     def phase_folders(self):
         return self.search.folders
 
-    def run(self, dataset: Dataset, mask, info=None):
+    def run(self, dataset: Dataset, info=None, results=None):
         """
         Pass a dataset to the phase, running the phase and non-linear search.
 
@@ -75,6 +76,8 @@ class Phase(af.AbstractPhase):
             A result object comprising information on the non-linear search and the maximum likelihood model.
         """
 
+        mask = np.full(fill_value=False, shape=dataset.data.shape)
+
         # These functions save the objects we will later access using the aggregator. They are saved via the 'pickle'
         # module in Python, which serializes the data on to the hard-disk.
 
@@ -84,6 +87,11 @@ class Phase(af.AbstractPhase):
         self.save_dataset(dataset=dataset)
         self.save_mask(mask=mask)
         self.save_meta_dataset(meta_dataset=self.meta_dataset)
+
+        self.model = self.model.populate(results)
+
+        results = results or af.ResultsCollection()
+
         # This saves the search information of the phase, meaning that we can use the search instance
         # (e.g. Emcee) to interpret our results in the aggregator.
 
