@@ -238,7 +238,7 @@ class MultiNest(abstract_nest.AbstractNest):
             max_modes=self.max_modes,
             mode_tolerance=self.mode_tolerance,
             seed=self.seed,
-            verbose=self.verbose,
+            verbose=not self.silence,
             resume=self.resume,
             context=self.context,
             write_output=self.write_output,

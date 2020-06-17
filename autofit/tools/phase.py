@@ -261,7 +261,9 @@ def as_grid_search(phase_class, parallel=False):
                 number_of_steps=4,
                 **kwargs,
         ):
+
             super().__init__(paths, search=search, **kwargs)
+
             self.search = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,

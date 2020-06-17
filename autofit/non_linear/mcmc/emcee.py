@@ -183,6 +183,7 @@ class Emcee(AbstractMCMC):
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(filename=self.paths.samples_path + "/emcee.hdf"),
             pool=pool,
+
         )
 
         try:

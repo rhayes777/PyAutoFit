@@ -131,6 +131,8 @@ class NonLinearSearch(ABC):
             self.model_results_every_update
         )
 
+        self.silence = self.config("printing", "silence", bool)
+
         self.number_of_cores = number_of_cores
 
     class Fitness:

@@ -224,7 +224,7 @@ class PySwarmsGlobal(AbstractOptimizer):
                 pso.optimize(
                     objective_func=fitness_function.__call__,
                     iters=iterations,
-                    n_processes=self.number_of_cores
+                    n_processes=self.number_of_cores,
                 )
 
                 total_iterations += iterations

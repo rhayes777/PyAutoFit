@@ -298,7 +298,8 @@ class AbstractDynesty(AbstractNest):
                     maxcall=iterations,
                     dlogz=self.evidence_tolerance,
                     logl_max=self.logl_max,
-                    n_effective=self.n_effective
+                    n_effective=self.n_effective,
+                    print_progress=not self.silence,
                 )
 
             with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
