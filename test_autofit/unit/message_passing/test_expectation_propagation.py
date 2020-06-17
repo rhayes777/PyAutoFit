@@ -74,7 +74,7 @@ def test_approximations(
     assert probit_project.model_dist['x'].sigma == pytest.approx(0.814, rel=0.1)
 
     assert probit_project.factor_dist['x'].mu == pytest.approx(1.499, rel=0.1)
-    assert probit_project.factor_dist['x'].mu == pytest.approx(1.401, rel=0.1)
+    assert probit_project.factor_dist['x'].sigma == pytest.approx(1.401, rel=0.1)
 
 
 def test_looped_importance_sampling(
@@ -84,11 +84,13 @@ def test_looped_importance_sampling(
 ):
     model_approx = mp.MeanFieldApproximation.from_kws(
         model,
-        x=mp.NormalMessage(0, 1))
+        x=mp.NormalMessage(0, 1)
+    )
 
     np.random.seed(1)
     sampler = mp.ImportanceSampler(
-        n_samples=1000)
+        n_samples=1000
+    )
     history = list()
 
     for i in range(3):
@@ -99,17 +101,27 @@ def test_looped_importance_sampling(
             sample = sampler.sample(factor_approx)
             # project sufficient statistcs of sample onto normal dist
             model_dist = mp.project_factor_approx_sample(
-                factor_approx, sample)
+                factor_approx,
+                sample
+            )
+
             # divide projection by cavity distribution
             factor_project, status = factor_approx.project(
-                model_dist, delta=1)
+                model_dist,
+                delta=1
+            )
+
             # update model approximation
             model_approx, status = model_approx.project(
-                factor_project, status)
+                factor_project,
+                status
+            )
 
             # save and print current approximation
             history.append(model_approx)
             print(i, factor, model_approx['x'])
 
-    result = history[-1]
-    assert False
+    result = history[-1]['x']
+
+    assert result.mu == pytest.approx(-0.243, rel=0.1)
+    assert result.sigma == pytest.approx(0.466, rel=0.1)
