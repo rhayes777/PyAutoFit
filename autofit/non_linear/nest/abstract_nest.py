@@ -5,9 +5,7 @@ import numpy as np
 from autoconf import conf
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.abstract_search import IntervalCounter
-from autofit.non_linear.abstract_search import Result
 from autofit.non_linear.paths import Paths
-from autofit.text import samples_text
 
 from autofit import exc
 

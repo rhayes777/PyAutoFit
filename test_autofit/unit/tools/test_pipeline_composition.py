@@ -12,10 +12,10 @@ conf.instance = conf.Config(
 )
 
 
-def make_pipeline_1(name, phase_folders, search):
+def make_pipeline_1(name, folders, search):
     phase = af.Phase(
         phase_name="phase_1",
-        phase_folders=phase_folders,
+        folders=folders,
         model=af.PriorModel(
             mock.Galaxy,
             redshift=af.GaussianPrior(10.0, 1.0)
@@ -26,10 +26,10 @@ def make_pipeline_1(name, phase_folders, search):
     return af.Pipeline(f"{name}_1", phase)
 
 
-def make_pipeline_2(name, phase_folders, search):
+def make_pipeline_2(name, folders, search):
     phase = af.Phase(
         phase_name="phase_2",
-        phase_folders=phase_folders,
+        folders=folders,
         model=af.PriorModel(
             mock.Galaxy,
             redshift=af.last.model.redshift
@@ -42,17 +42,17 @@ def make_pipeline_2(name, phase_folders, search):
 
 def make_pipeline(
         name,
-        phase_folders=tuple(),
+        folders=tuple(),
         search=MockSearch()
 ):
     pipeline_2 = make_pipeline_2(
         name,
-        phase_folders,
+        folders,
         search
     )
     pipeline_1 = make_pipeline_1(
         name,
-        phase_folders,
+        folders,
         search
     )
 

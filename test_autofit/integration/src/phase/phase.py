@@ -56,7 +56,7 @@ class Phase(af.AbstractPhase):
         self.meta_dataset = MetaDataset(settings=settings)
 
     @property
-    def phase_folders(self):
+    def folders(self):
         return self.search.folders
 
     def run(self, dataset: Dataset, info=None, results=None):

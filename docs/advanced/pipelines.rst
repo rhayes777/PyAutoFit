@@ -33,14 +33,14 @@ By writing a *Pipeline*, we can break the model-fit down into 3 phases:
 
 .. code-block:: python
 
-    def make_pipeline(phase_folders=None):
+    def make_pipeline(folders=None):
 
-        if phase_folders is None:
-            phase_folders = []
+        if folders is None:
+            folders = []
 
         pipeline_name = "pipeline__x2_gaussians"
 
-        phase_folders.append(pipeline_name)
+        setup.folders.append(pipeline_name)
 
         """
         Phase 1:
@@ -54,7 +54,7 @@ By writing a *Pipeline*, we can break the model-fit down into 3 phases:
 
         phase1 = ph.Phase(
             phase_name="phase_1__left_gaussian",
-            phase_folders=phase_folders,
+            folders=folders,
             profiles=af.CollectionPriorModel(gaussian_0=gaussian_0),
             settings=PhaseSettings(trim_data_left=50), # Remove the right-hand side of the data.
             search=af.DynestyStatic(), # Use an optimizer for fast non-linear sampling.
@@ -74,7 +74,7 @@ By writing a *Pipeline*, we can break the model-fit down into 3 phases:
 
         phase2 = ph.Phase(
             phase_name="phase_2__right_gaussian",
-            phase_folders=phase_folders,
+            folders=folders,
             profiles=af.CollectionPriorModel(
                 gaussian_0=phase1.result.instance.profiles.gaussian_0,  # <- Use the Gaussian fitted in phase 1
                 gaussian_1=gaussian_1,
@@ -91,7 +91,7 @@ By writing a *Pipeline*, we can break the model-fit down into 3 phases:
 
         phase3 = ph.Phase(
             phase_name="phase_3__both_gaussian",
-            phase_folders=phase_folders,
+            folders=folders,
             profiles=af.CollectionPriorModel(
                 gaussian_0=phase1.result.model.profiles.gaussian_0,  # <- use phase 1 Gaussian results.
                 gaussian_1=phase2.result.model.profiles.gaussian_1,  # <- use phase 2 Gaussian results.

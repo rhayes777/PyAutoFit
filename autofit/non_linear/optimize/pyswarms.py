@@ -180,7 +180,7 @@ class PySwarmsGlobal(AbstractOptimizer):
             model=model, analysis=analysis, pool_ids=pool_ids,
         )
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.sym_path, "points")):
+        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "points")):
 
             init_pos = self.load_points[-1]
             total_iterations = self.load_total_iterations
@@ -229,17 +229,17 @@ class PySwarmsGlobal(AbstractOptimizer):
 
                 total_iterations += iterations
 
-                with open(f"{self.paths.sym_path}/total_iterations.pickle", "wb") as f:
+                with open(f"{self.paths.samples_path}/total_iterations.pickle", "wb") as f:
                     pickle.dump(total_iterations, f)
 
-                with open(f"{self.paths.sym_path}/points.pickle", "wb") as f:
+                with open(f"{self.paths.samples_path}/points.pickle", "wb") as f:
                     pickle.dump(pso.pos_history, f)
 
-                with open(f"{self.paths.sym_path}/log_posteriors.pickle", "wb") as f:
+                with open(f"{self.paths.samples_path}/log_posteriors.pickle", "wb") as f:
                     pickle.dump([-0.5*cost for cost in pso.cost_history], f)
 
                 self.samples_from_model(model).write_table(
-                    f"{self.paths.sym_path}/samples.csv"
+                    f"{self.paths.samples_path}/samples.csv"
                 )
 
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
@@ -303,7 +303,7 @@ class PySwarmsGlobal(AbstractOptimizer):
             cube values to physical values via the priors.
         """
 
-        parameters = [params.tolist()[0] for params in self.load_points]
+        parameters = [param.tolist() for params in self.load_points for param in params]
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
@@ -319,15 +319,15 @@ class PySwarmsGlobal(AbstractOptimizer):
 
     @property
     def load_total_iterations(self):
-        with open("{}/{}.pickle".format(self.paths.sym_path, "total_iterations"), "rb") as f:
+        with open("{}/{}.pickle".format(self.paths.samples_path, "total_iterations"), "rb") as f:
             return pickle.load(f)
 
     @property
     def load_points(self):
-        with open("{}/{}.pickle".format(self.paths.sym_path, "points"), "rb") as f:
+        with open("{}/{}.pickle".format(self.paths.samples_path, "points"), "rb") as f:
             return pickle.load(f)
 
     @property
     def load_log_posteriors(self):
-        with open("{}/{}.pickle".format(self.paths.sym_path, "log_posteriors"), "rb") as f:
+        with open("{}/{}.pickle".format(self.paths.samples_path, "log_posteriors"), "rb") as f:
             return pickle.load(f)

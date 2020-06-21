@@ -94,6 +94,8 @@ class TestPySwarmsGlobalConfig:
         assert samples.log_likelihoods[0] == pytest.approx(-5071.80777, 1.0e-4)
         assert samples.log_posteriors[0] == pytest.approx(-5070.73298, 1.0e-4)
 
+        assert len(samples.parameters) == 500
+        assert len(samples.log_likelihoods) == 500
 
 class TestCopyWithNameExtension:
     @staticmethod

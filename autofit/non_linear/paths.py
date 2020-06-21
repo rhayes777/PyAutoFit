@@ -64,7 +64,7 @@ def convert_paths(func):
         paths = Paths(
             name=first_arg,
             tag=kwargs.pop("phase_tag", None),
-            folders=kwargs.pop("phase_folders", tuple()),
+            folders=kwargs.pop("folders", tuple()),
             path_prefix=kwargs.pop("phase_path", None),
             non_linear_name=search_name,
             non_linear_tag_function=non_linear_tag_function,

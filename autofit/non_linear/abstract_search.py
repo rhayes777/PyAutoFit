@@ -15,6 +15,7 @@ from autofit.non_linear.paths import Paths, convert_paths
 from autofit.text import formatter
 from autofit.text import model_text
 from autofit.text import samples_text
+from autofit import exc
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)  # TODO: Logging issue
@@ -343,8 +344,13 @@ class NonLinearSearch(ABC):
 
         samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
 
+        try:
+            instance = samples.max_log_likelihood_instance
+        except exc.FitException:
+            return samples
+
         if self.should_visualize() or not during_analysis:
-            analysis.visualize(samples.max_log_likelihood_instance, during_analysis=during_analysis)
+            analysis.visualize(instance=instance, during_analysis=during_analysis)
 
         if self.should_output_model_results() or not during_analysis:
 
