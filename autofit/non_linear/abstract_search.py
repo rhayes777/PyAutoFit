@@ -70,6 +70,7 @@ class NonLinearSearch(ABC):
 
         self.paths = paths
 
+        self.skip_completed = conf.instance.general.get("output", "skip_completed", bool)
         self.log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
 
         try:
@@ -232,7 +233,7 @@ class NonLinearSearch(ABC):
 
         self.paths.restore()
 
-        if not os.path.exists(self.paths.has_completed_path):
+        if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
 
             self.setup_log_file()
             self.save_model_info(model=model)

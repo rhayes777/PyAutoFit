@@ -7,7 +7,7 @@
 
    general/installation
    general/workspace
-   general/howtofit
+   general/configs
    general/software
    general/future
    general/credits
@@ -24,6 +24,13 @@
    overview/result
    overview/aggregator
    overview/phase
+
+.. toctree::
+   :caption: Tutorials:
+   :maxdepth: 1
+   :hidden:
+
+   tutorials/howtofit
 
 .. toctree::
    :caption: Advanced:

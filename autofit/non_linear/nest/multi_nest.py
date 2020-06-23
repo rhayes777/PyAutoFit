@@ -283,7 +283,7 @@ class MultiNest(abstract_nest.AbstractNest):
         copy.const_efficiency_mode = self.const_efficiency_mode
         copy.n_live_points = self.n_live_points
         copy.evidence_tolerance = self.evidence_tolerance
-        copy.sampling_efficiency = self.sampling_efficiency
+        copy.facc = self.sampling_efficiency
         copy.n_iter_before_update = self.n_iter_before_update
         copy.null_log_evidence = self.null_log_evidence
         copy.max_modes = self.max_modes
