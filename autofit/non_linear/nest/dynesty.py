@@ -11,6 +11,8 @@ from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.abstract_search import Result
 
+import copy
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +21,7 @@ class AbstractDynesty(AbstractNest):
             self,
             paths=None,
             sigma=3,
-            sampling_efficiency=None,
+            facc=None,
             evidence_tolerance=None,
             bound=None,
             sample=None,
@@ -68,7 +70,7 @@ class AbstractDynesty(AbstractNest):
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
-        sampling_efficiency : float
+        facc : float
             The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
             [1. / walks, 1.].
         evidence_threshold : float
@@ -155,8 +157,8 @@ class AbstractDynesty(AbstractNest):
 
         self.evidence_tolerance = evidence_tolerance
 
-        self.sampling_efficiency = self.config("search", "sampling_efficiency",
-                                               float) if sampling_efficiency is None else sampling_efficiency
+        self.facc = self.config(
+            "search", "sampling_efficiency", float) if facc is None else facc
 
         self.bound = self.config("search", "bound", str) if bound is None else bound
         self.sample = self.config("search", "sample", str) if sample is None else sample
@@ -256,6 +258,7 @@ class AbstractDynesty(AbstractNest):
         if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
 
             sampler = self.load_sampler
+            sampler.loglikelihood = fitness_function
 
         else:
 
@@ -302,8 +305,13 @@ class AbstractDynesty(AbstractNest):
                     print_progress=not self.silence,
                 )
 
+            sampler_pickle = sampler
+            sampler_pickle.loglikelihood = None
+
             with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
-                pickle.dump(sampler, f)
+                pickle.dump(sampler_pickle, f)
+
+            sampler_pickle.loglikelihood = fitness_function
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
@@ -328,7 +336,7 @@ class AbstractDynesty(AbstractNest):
         copy.vol_dec = self.vol_dec
         copy.vol_check = self.vol_check
         copy.walks = self.walks
-        copy.sampling_efficiency = self.sampling_efficiency
+        copy.facc = self.facc
         copy.slices = self.slices
         copy.fmove = self.fmove
         copy.max_move = self.max_move
@@ -385,6 +393,36 @@ class AbstractDynesty(AbstractNest):
             number_live_points=sampler.results.nlive,
         )
 
+    @property
+    def dynesty_tag(self):
+        sample_tag = f"{self.config('tag', 'sample')}_{self.sample}"
+        bound_tag = f"{self.config('tag', 'bound')}_{self.bound}"
+        vol_dec_tag = f"{self.config('tag', 'vol_dec')}_{self.vol_dec}"
+        vol_check_tag = f"{self.config('tag', 'vol_check')}_{self.vol_check}"
+        enlarge_tag = f"{self.config('tag', 'enlarge')}_{self.enlarge}"
+
+        if self.bound in "multi":
+            bound_multi_tag = f"{vol_dec_tag}_{vol_check_tag}"
+            bound_tag = f"{bound_tag}_{bound_multi_tag}"
+
+        if self.sample in "auto":
+            return f'{bound_tag}__{enlarge_tag}__{sample_tag}'
+
+        walks_tag = f"{self.config('tag', 'walks')}_{self.walks}"
+        facc_tag = f"{self.config('tag', 'facc')}_{self.facc}"
+        slices_tag = f"{self.config('tag', 'slices')}_{self.slices}"
+        max_move_tag = f"{self.config('tag', 'max_move')}_{self.max_move}"
+
+        if self.sample in "rwalk":
+            method_tag = f"_{walks_tag}_{facc_tag}"
+        elif self.sample == "hslice":
+            method_tag = f"_{slices_tag}_{max_move_tag}"
+        elif self.sample in ["slice", "rslice"]:
+            method_tag = f"_{slices_tag}"
+        else:
+            method_tag = ""
+
+        return f'{bound_tag}__{enlarge_tag}__{sample_tag}{method_tag}'
 
 class DynestyStatic(AbstractDynesty):
     def __init__(
@@ -392,7 +430,7 @@ class DynestyStatic(AbstractDynesty):
             paths=None,
             sigma=3,
             n_live_points=None,
-            sampling_efficiency=None,
+            facc=None,
             evidence_tolerance=None,
             bound=None,
             sample=None,
@@ -413,6 +451,7 @@ class DynestyStatic(AbstractDynesty):
             acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
+            old_tag=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search, specifically the sampled which uses a static number of
@@ -480,7 +519,7 @@ class DynestyStatic(AbstractDynesty):
             Default behavior is to target a roughly constant change in prior volume, with 1.5 for 'unif', 0.15 * walks
             for 'rwalk' and 'rstagger', 0.9 * ndim * slices for 'slice', 2.0 * slices for 'rslice', and 25.0 * slices
             for 'hslice'.
-        sampling_efficiency : float
+        facc : float
             The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
             [1. / walks, 1.].
         slices : int
@@ -513,6 +552,12 @@ class DynestyStatic(AbstractDynesty):
             else n_live_points
         )
 
+        self.old_tag = (
+            self.config("tag", "old_tag", bool)
+            if old_tag is None
+            else old_tag
+        )
+
         evidence_tolerance = self.config(
             "search", "evidence_tolerance", float) if evidence_tolerance is None else evidence_tolerance
 
@@ -531,7 +576,7 @@ class DynestyStatic(AbstractDynesty):
             vol_dec=vol_dec,
             vol_check=vol_check,
             walks=walks,
-            sampling_efficiency=sampling_efficiency,
+            facc=facc,
             slices=slices,
             fmove=fmove,
             max_move=max_move,
@@ -552,11 +597,18 @@ class DynestyStatic(AbstractDynesty):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
+        if self.old_tag:
+
+            name_tag = self.config('tag', 'name', str)
+            n_live_points_tag = f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
+            sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.facc}"
+
+            return f'{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}'
+
         name_tag = self.config('tag', 'name', str)
         n_live_points_tag = f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
-        sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
 
-        return f'{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}'
+        return f'{name_tag}__{n_live_points_tag}__{self.dynesty_tag}'
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty non-linear search with all associated attributes.
@@ -591,7 +643,7 @@ class DynestyStatic(AbstractDynesty):
             vol_dec=self.vol_dec,
             vol_check=self.vol_check,
             walks=self.walks,
-            facc=self.sampling_efficiency,
+            facc=self.facc,
             slices=self.slices,
             fmove=self.fmove,
             max_move=self.max_move,
@@ -603,7 +655,7 @@ class DynestyDynamic(AbstractDynesty):
             self,
             paths=None,
             sigma=3,
-            sampling_efficiency=None,
+            facc=None,
             evidence_tolerance=None,
             bound=None,
             sample=None,
@@ -658,7 +710,7 @@ class DynestyDynamic(AbstractDynesty):
             vol_dec=vol_dec,
             vol_check=vol_check,
             walks=walks,
-            sampling_efficiency=sampling_efficiency,
+            facc=facc,
             slices=slices,
             fmove=fmove,
             max_move=max_move,
@@ -680,9 +732,8 @@ class DynestyDynamic(AbstractDynesty):
         parameters defining the search strategy."""
 
         name_tag = self.config('tag', 'name', str)
-        sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
 
-        return f"{name_tag}__{sampling_efficiency_tag}"
+        return f'{name_tag}__{self.dynesty_tag}'
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         """Get the dynamic Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
@@ -701,7 +752,7 @@ class DynestyDynamic(AbstractDynesty):
             vol_dec=self.vol_dec,
             vol_check=self.vol_check,
             walks=self.walks,
-            facc=self.sampling_efficiency,
+            facc=self.facc,
             slices=self.slices,
             fmove=self.fmove,
             max_move=self.max_move,

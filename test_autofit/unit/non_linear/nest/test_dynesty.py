@@ -40,7 +40,7 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyStatic(
             n_live_points=151,
-            sampling_efficiency=0.6,
+            facc=0.6,
             evidence_tolerance=0.1,
             bound="ellipse",
             sample="manual",
@@ -65,7 +65,7 @@ class TestDynestyConfig:
 
         assert dynesty.iterations_per_update == 501
         assert dynesty.n_live_points == 151
-        assert dynesty.sampling_efficiency == 0.6
+        assert dynesty.facc == 0.6
         assert dynesty.evidence_tolerance == 0.1
         assert dynesty.bound == "ellipse"
         assert dynesty.sample == "manual"
@@ -99,7 +99,7 @@ class TestDynestyConfig:
         assert dynesty.vol_dec == 0.5
         assert dynesty.vol_check == 2.0
         assert dynesty.walks == 25
-        assert dynesty.sampling_efficiency == 0.5
+        assert dynesty.facc == 0.5
         assert dynesty.slices == 5
         assert dynesty.fmove == 0.9
         assert dynesty.max_move == 100
@@ -113,7 +113,7 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyDynamic(
             iterations_per_update=501,
-            sampling_efficiency=0.6,
+            facc=0.6,
             evidence_tolerance=0.2,
             bound="ellipse",
             sample="manual",
@@ -136,7 +136,7 @@ class TestDynestyConfig:
         )
 
         assert dynesty.iterations_per_update == 501
-        assert dynesty.sampling_efficiency == 0.6
+        assert dynesty.facc == 0.6
         assert dynesty.evidence_tolerance == 0.2
         assert dynesty.bound == "ellipse"
         assert dynesty.sample == "manual"
@@ -160,7 +160,7 @@ class TestDynestyConfig:
         dynesty = af.DynestyDynamic()
 
         assert dynesty.iterations_per_update == 501
-        assert dynesty.sampling_efficiency == 0.6
+        assert dynesty.facc == 0.6
         assert dynesty.bound == "balls"
         assert dynesty.sample == "rwalk"
         assert dynesty.update_interval == 2.0
@@ -184,15 +184,84 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyStatic(
             n_live_points=40,
-            sampling_efficiency=0.5,
+            bound="none",
+            sample="auto",
+            enlarge=1.0
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_40_eff_0.5"
+        assert dynesty.tag == "dynesty_static__nlive_40__bound_none__enlarge_1.0__sample_auto"
 
-        dynesty = af.DynestyDynamic(sampling_efficiency=0.7
+        dynesty = af.DynestyStatic(
+            n_live_points=41,
+            bound="multi",
+            sample="unif",
+            enlarge=1.0,
+            vol_dec=2.0,
+            vol_check=3.0
         )
 
-        assert dynesty.tag == "dynesty_dynamic__eff_0.7"
+        assert dynesty.tag == "dynesty_static__nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
+
+        dynesty = af.DynestyStatic(
+            n_live_points=43,
+            bound="single",
+            sample="rwalk",
+            enlarge=1.0,
+            walks=1,
+            facc=0.5,
+        )
+
+        assert dynesty.tag == "dynesty_static__nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5"
+
+        dynesty = af.DynestyStatic(
+            n_live_points=44,
+            bound="balls",
+            sample="hslice",
+            enlarge=1.0,
+            slices=1,
+            max_move=2,
+        )
+
+        assert dynesty.tag == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2"
+
+        dynesty = af.DynestyStatic(
+            n_live_points=44,
+            bound="balls",
+            sample="slice",
+            enlarge=1.0,
+            slices=1,
+        )
+
+        assert dynesty.tag == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1"
+
+        dynesty = af.DynestyStatic(
+            n_live_points=44,
+            bound="balls",
+            sample="rslice",
+            enlarge=1.0,
+            slices=1,
+        )
+
+        assert dynesty.tag == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1"
+
+        dynesty = af.DynestyDynamic(
+            bound="multi",
+            sample="unif",
+            enlarge=1.0,
+            vol_dec=2.0,
+            vol_check=3.0
+        )
+
+        assert dynesty.tag == "dynesty_dynamic__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
+
+        dynesty = af.DynestyDynamic(
+            bound="balls",
+            sample="rslice",
+            enlarge=1.0,
+            slices=1,
+        )
+
+        assert dynesty.tag == "dynesty_dynamic__bound_balls__enlarge_1.0__sample_rslice_slices_1"
 
     def test__samples_from_model(self):
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
@@ -268,7 +337,7 @@ class TestCopyWithNameExtension:
         assert copy.vol_dec == search.vol_dec
         assert copy.vol_check == search.vol_check
         assert copy.walks == search.walks
-        assert copy.sampling_efficiency == search.sampling_efficiency
+        assert copy.facc == search.facc
         assert copy.slices == search.slices
         assert copy.fmove == search.fmove
         assert copy.max_move == search.max_move
@@ -295,7 +364,7 @@ class TestCopyWithNameExtension:
         assert copy.vol_dec == search.vol_dec
         assert copy.vol_check == search.vol_check
         assert copy.walks == search.walks
-        assert copy.sampling_efficiency == search.sampling_efficiency
+        assert copy.facc == search.facc
         assert copy.slices == search.slices
         assert copy.fmove == search.fmove
         assert copy.max_move == search.max_move

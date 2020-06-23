@@ -285,7 +285,12 @@ def as_grid_search(phase_class, parallel=False):
         def make_result(self, result, analysis):
             self.save_grid_search_result(grid_search_result=result)
 
-            return result
+            return self.Result(
+                samples=result.samples,
+                previous_model=result.previous_model,
+                analysis=analysis,
+                search=self.search,
+            )
 
         def run_analysis(self, analysis, **kwargs):
             return self.search.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)

@@ -23,7 +23,7 @@ phase = GridPhase(
     phase_name="phase_grid",
     profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
         search=af.DynestyStatic(
-            n_live_points=40, sampling_efficiency=0.5, evidence_tolerance=5.0
+            n_live_points=40, facc=0.5, evidence_tolerance=5.0
         ),
         number_of_steps=2,
     )

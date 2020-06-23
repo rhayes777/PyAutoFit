@@ -303,7 +303,7 @@ class TestGridNLOBehaviour:
         search = grid_search.search_instance("name_path")
 
         assert search.n_live_points is grid_search.n_live_points
-        assert search.sampling_efficiency is grid_search.sampling_efficiency
+        assert search.facc is grid_search.sampling_efficiency
         assert grid_search.paths.path != search.paths.path
         assert grid_search.paths.backup_path != search.paths.backup_path
         assert grid_search.paths.output_path != search.paths.output_path
