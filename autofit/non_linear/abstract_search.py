@@ -11,6 +11,7 @@ import numpy as np
 
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
+from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.text import formatter
 from autofit.text import model_text
@@ -24,13 +25,11 @@ logger = logging.getLogger(__name__)  # TODO: Logging issue
 class NonLinearSearch(ABC):
     @convert_paths
     def __init__(
-            self,
-            paths=None,
-            initialize_method=None,
-            initialize_ball_lower_limit=None,
-            initialize_ball_upper_limit=None,
-            iterations_per_update=None,
-            number_of_cores=1
+        self,
+        paths=None,
+        initializer=None,
+        iterations_per_update=None,
+        number_of_cores=1,
     ):
         """Abstract base class for non-linear searches.
 
@@ -45,21 +44,8 @@ class NonLinearSearch(ABC):
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
-        initialize_method : str
-            The method used to generate where walkers are initialized in parameter space, with options:
-            ball (default):
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between the
-                initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
-                small, such that all walkers begin close to one another.
-            prior:
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
-                thus being distributed over the prior.
-        initialize_ball_lower_limit : float
-            The lower limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
-        initialize_ball_upper_limit : float
-            The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
+        initializer : non_linear.initializer.Initializer
+            Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
 
         if paths.non_linear_name is "":
@@ -70,44 +56,17 @@ class NonLinearSearch(ABC):
 
         self.paths = paths
 
-        self.skip_completed = conf.instance.general.get("output", "skip_completed", bool)
-        self.log_file = conf.instance.general.get("output", "log_file", str).replace(" ", "")
+        self.skip_completed = conf.instance.general.get(
+            "output", "skip_completed", bool
+        )
+        self.log_file = conf.instance.general.get("output", "log_file", str).replace(
+            " ", ""
+        )
 
-        try:
-
-            self.initialize_method = (
-                self.config("initialize", "method", str)
-                if initialize_method is None
-                else initialize_method
-            )
-
-        except configparser.NoSectionError:
-
-            self.initialize_method = None
-
-        try:
-
-            self.initialize_ball_lower_limit = (
-                self.config("initialize", "ball_lower_limit", float)
-                if initialize_ball_lower_limit is None
-                else initialize_ball_lower_limit
-            )
-
-        except configparser.NoSectionError:
-
-            self.initialize_ball_lower_limit = None
-
-        try:
-
-            self.initialize_ball_upper_limit = (
-                self.config("initialize", "ball_upper_limit", float)
-                if initialize_ball_upper_limit is None
-                else initialize_ball_upper_limit
-            )
-
-        except configparser.NoSectionError:
-
-            self.initialize_ball_upper_limit = None
+        if initializer is None:
+            self.initializer = Initializer.from_config(config=self.config)
+        else:
+            self.initializer = initializer
 
         self.iterations_per_update = (
             self.config("updates", "iterations_per_update", int)
@@ -116,9 +75,7 @@ class NonLinearSearch(ABC):
         )
 
         self.log_every_update = self.config("updates", "log_every_update", int)
-        self.backup_every_update = self.config(
-            "updates", "backup_every_update", int
-        )
+        self.backup_every_update = self.config("updates", "backup_every_update", int)
         self.visualize_every_update = self.config(
             "updates", "visualize_every_update", int
         )
@@ -140,10 +97,7 @@ class NonLinearSearch(ABC):
         self._in_phase = False
 
     class Fitness:
-
-        def __init__(
-                self, paths, model, analysis, samples_from_model, pool_ids=None,
-        ):
+        def __init__(self, paths, model, analysis, samples_from_model, pool_ids=None):
 
             self.paths = paths
             self.max_log_likelihood = -np.inf
@@ -172,6 +126,26 @@ class NonLinearSearch(ABC):
 
             return log_likelihood
 
+        def log_likelihood_from_parameters(self, parameters):
+            instance = self.model.instance_from_vector(vector=parameters)
+            log_likelihood = self.fit_instance(instance)
+            return log_likelihood
+
+        def log_posterior_from_parameters(self, parameters):
+            log_likelihood = self.log_likelihood_from_parameters(parameters=parameters)
+            log_priors = self.model.log_priors_from_vector(vector=parameters)
+            return log_likelihood + sum(log_priors)
+
+        def figure_of_merit_from_parameters(self, parameters):
+            """The figure of merit is the value that the non-linear search uses to sample parameter space. This varies
+            between different non-linear search algorithms, for example:
+
+                - The *Optimizer* *PySwarms* uses the chi-squared value, which is the -2.0*log_posterior.
+                - The *MCMC* algorithm *Emcee* uses the log posterior.
+                - Nested samplers such as *Dynesty* use the log likelihood.
+            """
+            raise NotImplementedError()
+
         @staticmethod
         def prior(cube, model):
 
@@ -193,17 +167,12 @@ class NonLinearSearch(ABC):
             return self.samples_from_model(model=self.model)
 
         @property
-        def resample_likelihood(self):
+        def resample_figure_of_merit(self):
             """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
              should be given a likelihood so low that it is discard."""
             return -np.inf
 
-    def fit(
-            self,
-            model,
-            analysis: "Analysis",
-            info=None,
-    ) -> "Result":
+    def fit(self, model, analysis: "Analysis", info=None) -> "Result":
         """ Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
 
@@ -243,13 +212,12 @@ class NonLinearSearch(ABC):
             self.save_search()
             self.save_model(model=model)
 
-            self._fit(
-                model=model,
-                analysis=analysis,
-            )
+            self._fit(model=model, analysis=analysis)
             open(self.paths.has_completed_path, "w+").close()
 
-            samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
+            samples = self.perform_update(
+                model=model, analysis=analysis, during_analysis=False
+            )
 
         else:
 
@@ -283,7 +251,7 @@ class NonLinearSearch(ABC):
                 path_prefix=self.paths.path_prefix,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
-            ),
+            )
         )
 
         return new_instance
@@ -308,11 +276,8 @@ class NonLinearSearch(ABC):
         attribute
             An attribute for the key with the specified type.
         """
-        return self.config_type.config_for(
-            self.__class__.__name__).get(
-            section,
-            attribute_name,
-            attribute_type
+        return self.config_type.config_for(self.__class__.__name__).get(
+            section, attribute_name, attribute_type
         )
 
     def perform_update(self, model, analysis, during_analysis):
@@ -358,7 +323,7 @@ class NonLinearSearch(ABC):
             samples_text.results_to_file(
                 samples=samples,
                 file_results=self.paths.file_results,
-                during_analysis=during_analysis
+                during_analysis=during_analysis,
             )
 
         if not during_analysis:
@@ -375,8 +340,8 @@ class NonLinearSearch(ABC):
             # noinspection PyProtectedMember
             logger.level = logging._nameToLevel[
                 conf.instance.general.get("output", "log_level", str)
-                    .replace(" ", "")
-                    .upper()
+                .replace(" ", "")
+                .upper()
             ]
 
     def save_model_info(self, model):
@@ -432,9 +397,7 @@ class NonLinearSearch(ABC):
         name of the phase and the name of the dataset being fit
         """
         with open("{}/metadata".format(self.paths.make_path()), "a") as f:
-            f.write(
-                self.make_metadata_text()
-            )
+            f.write(self.make_metadata_text())
 
     @property
     def _default_metadata(self) -> Dict[str, str]:
@@ -450,60 +413,8 @@ class NonLinearSearch(ABC):
 
     def make_metadata_text(self):
         return "\n".join(
-            f"{key}={value or ''}"
-            for key, value
-            in {
-                **self._default_metadata,
-            }.items()
+            f"{key}={value or ''}" for key, value in {**self._default_metadata}.items()
         )
-
-    def initial_points_from_model(self, number_of_points, model):
-        """Generate the initial points of the non-linear search, based on the initialize_method. The following methods
-        can be used:
-
-        ball (default):
-            Walkers are initialized by randomly drawing unit values from a uniform distribution between the
-            initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
-            small, such that all walkers begin close to one another.
-        prior:
-            Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
-            thus being distributed over the prior.
-
-        Parameters
-        ----------
-        number_of_points : int
-            The number of points in non-linear paramemter space which initial points are created for.
-        model : ModelMapper
-            An object that represents possible instances of some model with a given dimensionality which is the number
-            of free dimensions of the model.
-        """
-
-        init_pos = np.zeros(shape=(number_of_points, model.prior_count))
-
-        if self.initialize_method in "ball":
-
-            for particle_index in range(number_of_points):
-
-                init_pos[particle_index, :] = np.asarray(
-                    model.random_vector_from_priors_within_limits(
-                        lower_limit=self.initialize_ball_lower_limit,
-                        upper_limit=self.initialize_ball_upper_limit
-                    )
-                )
-
-        elif self.initialize_method in "prior":
-
-            for particle_index in range(number_of_points):
-
-                init_pos[particle_index, :] = np.asarray(
-                    model.random_vector_from_priors
-                )
-
-        else:
-
-            init_pos = None
-
-        return init_pos
 
     def samples_from_model(self, model):
         raise NotImplementedError()
@@ -530,7 +441,9 @@ class NonLinearSearch(ABC):
 
             [idQueue.put(i) for i in range(self.number_of_cores)]
 
-            pool = mp.Pool(processes=self.number_of_cores, initializer=init, initargs=(idQueue,))
+            pool = mp.Pool(
+                processes=self.number_of_cores, initializer=init, initargs=(idQueue,)
+            )
             ids = pool.map(f, range(self.number_of_cores))
 
             return pool, [id[1] for id in ids]
@@ -544,7 +457,6 @@ class NonLinearSearch(ABC):
 
 
 class Analysis:
-
     def __init__(self, log_likelihood_cap=None):
         self.log_likelihood_cap = log_likelihood_cap
 
@@ -560,9 +472,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(
-            self, samples, previous_model=None
-    ):
+    def __init__(self, samples, previous_model=None):
         """
         The result of an optimization.
 
@@ -579,7 +489,9 @@ class Result:
 
         self.__model = None
 
-        self._instance = samples.max_log_likelihood_instance if samples is not None else None
+        self._instance = (
+            samples.max_log_likelihood_instance if samples is not None else None
+        )
 
     @property
     def log_likelihood(self):

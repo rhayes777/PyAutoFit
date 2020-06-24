@@ -12,7 +12,7 @@ from autofit.non_linear.abstract_search import Result
 logger = logging.getLogger(__name__)
 
 
-class PySwarmsGlobal(AbstractOptimizer):
+class AbstractPySwarms(AbstractOptimizer):
     def __init__(
         self,
         paths=None,
@@ -23,9 +23,7 @@ class PySwarmsGlobal(AbstractOptimizer):
         social=None,
         inertia=None,
         ftol=None,
-        initialize_method=None,
-        initialize_ball_lower_limit=None,
-        initialize_ball_upper_limit=None,
+        initializer=None,
         iterations_per_update=None,
         number_of_cores=None,
     ):
@@ -87,21 +85,8 @@ class PySwarmsGlobal(AbstractOptimizer):
             The inertia parameter defining how the PSO particles interact with one another to sample parameter space.
         ftol : float
             Relative error in objective_func(best_pos) acceptable for convergence.
-        initialize_method : str
-            The method used to generate where walkers are initialized in parameter space, with options:
-            ball (default):
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between the
-                initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
-                small, such that all walkers begin close to one another.
-            prior:
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
-                thus being distributed over the prior.
-        initialize_ball_lower_limit : float
-            The lower limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
-        initialize_ball_upper_limit : float
-            The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
+        initializer : non_linear.initializer.Initializer
+            Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
@@ -113,19 +98,29 @@ class PySwarmsGlobal(AbstractOptimizer):
 
         self.sigma = sigma
 
-        self.n_particles = self.config("search", "n_particles", int) if n_particles is None else n_particles
+        self.n_particles = (
+            self.config("search", "n_particles", int)
+            if n_particles is None
+            else n_particles
+        )
         self.iters = self.config("search", "iters", int) if iters is None else iters
 
-        self.cognitive = self.config("search", "cognitive", float) if cognitive is None else cognitive
-        self.social = self.config("search", "social", float) if social is None else social
-        self.inertia = self.config("search", "inertia", float) if inertia is None else inertia
+        self.cognitive = (
+            self.config("search", "cognitive", float)
+            if cognitive is None
+            else cognitive
+        )
+        self.social = (
+            self.config("search", "social", float) if social is None else social
+        )
+        self.inertia = (
+            self.config("search", "inertia", float) if inertia is None else inertia
+        )
         self.ftol = self.config("search", "ftol", float) if ftol is None else ftol
 
         super().__init__(
             paths=paths,
-            initialize_method=initialize_method,
-            initialize_ball_lower_limit=initialize_ball_lower_limit,
-            initialize_ball_upper_limit=initialize_ball_upper_limit,
+            initializer=initializer,
             iterations_per_update=iterations_per_update,
         )
 
@@ -138,23 +133,30 @@ class PySwarmsGlobal(AbstractOptimizer):
         logger.debug("Creating PySwarms NLO")
 
     class Fitness(AbstractOptimizer.Fitness):
-        def __call__(self, params):
+        def __call__(self, parameters):
 
-            log_posteriors = []
+            figures_of_merit = []
 
-            for params_of_particle in params:
+            for params_of_particle in parameters:
 
                 try:
-
-                    instance = self.model.instance_from_vector(vector=list(params_of_particle))
-                    log_priors = self.model.log_priors_from_vector(vector=params_of_particle)
-                    log_posteriors.append(-2.0*(self.fit_instance(instance) + sum(log_priors)))
-
+                    figure_of_merit = self.figure_of_merit_from_parameters(
+                        parameters=params_of_particle
+                    )
                 except exc.FitException:
+                    figure_of_merit = -2.0 * self.resample_figure_of_merit
 
-                    log_posteriors.append(-2.0*self.resample_likelihood)
+                figures_of_merit.append(figure_of_merit)
 
-            return np.asarray(log_posteriors)
+            return np.asarray(figures_of_merit)
+
+        def figure_of_merit_from_parameters(self, parameters):
+            """The figure of merit is the value that the non-linear search uses to sample parameter space. *PySwarms*
+            uses the chi-squared value, which is the -2.0*log_posterior."""
+            try:
+                return -2.0 * self.log_posterior_from_parameters(parameters=parameters)
+            except exc.FitException:
+                raise exc.FitException
 
     def _fit(self, model, analysis):
         """
@@ -177,7 +179,7 @@ class PySwarmsGlobal(AbstractOptimizer):
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids,
+            model=model, analysis=analysis, pool_ids=pool_ids
         )
 
         if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "points")):
@@ -187,7 +189,18 @@ class PySwarmsGlobal(AbstractOptimizer):
 
         else:
 
-            init_pos = self.initial_points_from_model(number_of_points=self.n_particles, model=model)
+            initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
+                total_points=self.n_particles,
+                model=model,
+                fitness_function=fitness_function,
+            )
+
+            init_pos = np.zeros(shape=(self.n_particles, model.prior_count))
+
+            for index, parameters in enumerate(initial_parameters):
+
+                init_pos[index, :] = np.asarray(parameters)
+
             total_iterations = 0
 
         lower_bounds = []
@@ -203,12 +216,10 @@ class PySwarmsGlobal(AbstractOptimizer):
 
         while total_iterations < self.iters:
 
-            pso = pyswarms.global_best.GlobalBestPSO(
-                n_particles=self.n_particles,
-                dimensions=model.prior_count,
+            pso = self.sampler_fom_model_and_fitness(
+                model=model,
+                fitness_function=fitness_function,
                 bounds=bounds,
-                options={'c1' : self.cognitive, 'c2' : self.social, 'w' : self.inertia},
-                ftol=self.ftol,
                 init_pos=init_pos,
             )
 
@@ -221,28 +232,28 @@ class PySwarmsGlobal(AbstractOptimizer):
 
             if iterations > 0:
 
-                pso.optimize(
-                    objective_func=fitness_function.__call__,
-                    iters=iterations,
-                    n_processes=self.number_of_cores,
-                )
+                pso.optimize(objective_func=fitness_function.__call__, iters=iterations)
 
                 total_iterations += iterations
 
-                with open(f"{self.paths.samples_path}/total_iterations.pickle", "wb") as f:
+                with open(
+                    f"{self.paths.samples_path}/total_iterations.pickle", "wb"
+                ) as f:
                     pickle.dump(total_iterations, f)
 
                 with open(f"{self.paths.samples_path}/points.pickle", "wb") as f:
                     pickle.dump(pso.pos_history, f)
 
-                with open(f"{self.paths.samples_path}/log_posteriors.pickle", "wb") as f:
-                    pickle.dump([-0.5*cost for cost in pso.cost_history], f)
+                with open(
+                    f"{self.paths.samples_path}/log_posteriors.pickle", "wb"
+                ) as f:
+                    pickle.dump([-0.5 * cost for cost in pso.cost_history], f)
 
-                self.samples_from_model(model).write_table(
-                    f"{self.paths.samples_path}/samples.csv"
+                self.perform_update(
+                    model=model, analysis=analysis, during_analysis=True
                 )
 
-                self.perform_update(model=model, analysis=analysis, during_analysis=True)
+                init_pos = self.load_points[-1]
 
         logger.info("PySwarmsGlobal complete")
 
@@ -255,9 +266,11 @@ class PySwarmsGlobal(AbstractOptimizer):
         n_particles_tag = f"{self.config('tag', 'n_particles')}_{self.n_particles}"
         cognitive_tag = f"{self.config('tag', 'cognitive')}_{self.cognitive}"
         social_tag = f"{self.config('tag', 'social')}_{self.social}"
-        inertia_tag =f"{self.config('tag', 'inertia')}_{self.inertia}"
+        inertia_tag = f"{self.config('tag', 'inertia')}_{self.inertia}"
 
-        return f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
+        return (
+            f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
+        )
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.
@@ -273,9 +286,7 @@ class PySwarmsGlobal(AbstractOptimizer):
         copy.social = self.social
         copy.intertia = self.inertia
         copy.ftol = self.ftol
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.initializer = self.initializer
         copy.iterations_per_update = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
 
@@ -291,6 +302,9 @@ class PySwarmsGlobal(AbstractOptimizer):
             pool_ids=pool_ids,
         )
 
+    def sampler_fom_model_and_fitness(self, model, fitness_function):
+        raise NotImplementedError()
+
     def samples_from_model(self, model):
         """Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
 
@@ -303,7 +317,9 @@ class PySwarmsGlobal(AbstractOptimizer):
             cube values to physical values via the priors.
         """
 
-        parameters = [param.tolist() for params in self.load_points for param in params]
+        parameters = [
+            param.tolist() for parameters in self.load_points for param in parameters
+        ]
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
@@ -312,14 +328,16 @@ class PySwarmsGlobal(AbstractOptimizer):
 
         return OptimizerSamples(
             model=model,
-            parameters=[params.tolist()[0] for params in self.load_points],
+            parameters=[parameters.tolist()[0] for parameters in self.load_points],
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
         )
 
     @property
     def load_total_iterations(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "total_iterations"), "rb") as f:
+        with open(
+            "{}/{}.pickle".format(self.paths.samples_path, "total_iterations"), "rb"
+        ) as f:
             return pickle.load(f)
 
     @property
@@ -329,5 +347,264 @@ class PySwarmsGlobal(AbstractOptimizer):
 
     @property
     def load_log_posteriors(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "log_posteriors"), "rb") as f:
+        with open(
+            "{}/{}.pickle".format(self.paths.samples_path, "log_posteriors"), "rb"
+        ) as f:
             return pickle.load(f)
+
+
+class PySwarmsGlobal(AbstractPySwarms):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        n_particles=None,
+        iters=None,
+        cognitive=None,
+        social=None,
+        inertia=None,
+        ftol=None,
+        initializer=None,
+        iterations_per_update=None,
+        number_of_cores=None,
+    ):
+        """ Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
+
+        For a full description of PySwarms, checkout its Github and readthedocs webpages:
+
+        https://github.com/ljvmiranda921/pyswarms
+
+        https://pyswarms.readthedocs.io/en/latest/index.html
+
+        A Global-best Particle Swarm Optimization (gbest PSO) algorithm.
+
+        It takes a set of candidate solutions, and tries to find the best solution using a position-velocity update
+        method. Uses a star-topology where each particle is attracted to the best performing particle.
+
+        The position update can be defined as:
+        xi(t+1)=xi(t)+vi(t+1)
+
+        Where the position at the current timestep t is updated using the computed velocity at t+1.
+
+        Furthermore, the velocity update is defined as:
+
+        vij(t+1)=w∗vij(t)+c1r1j(t)[yij(t)−xij(t)]+c2r2j(t)[y^j(t)−xij(t)]
+
+        Here, c1 and c2 are the cognitive and social parameters respectively. They control the particle’s behavior
+        given two choices: (1) to follow its personal best or (2) follow the swarm’s global best position. Overall,
+        this dictates if the swarm is explorative or exploitative in nature. In addition, a parameter w controls
+        the inertia of the swarm’s movement.
+
+        Extensions:
+
+        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by outputting the
+          necessary results (e.g. the points of the particles) during the model-fit after an input number of iterations.
+
+        - Different options for particle intialization, with the default 'prior' method starting all particles over the
+        priors defined by each parameter.
+
+        If you use *PySwarms* as part of a published work, please cite the package following the instructions under the
+        *Attribution* section of the GitHub page.
+
+        Parameters
+        ----------
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
+            backups, etc.
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        n_particles : int
+            The number of particles in the swarm used to sample parameter space.
+        iters : int
+            The number of iterations that are used to sample parameter space.
+        cognitive : float
+            The cognitive parameter defining how the PSO particles interact with one another to sample parameter space.
+        social : float
+            The social parameter defining how the PSO particles interact with one another to sample parameter space.
+        inertia : float
+            The inertia parameter defining how the PSO particles interact with one another to sample parameter space.
+        ftol : float
+            Relative error in objective_func(best_pos) acceptable for convergence.
+        initializer : non_linear.initializer.Initializer
+            Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
+        number_of_cores : int
+            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
+            pool instance is not created and the job runs in serial.
+
+        All remaining attributes are emcee parameters and described at the PySwarms API webpage:
+
+        https://pyswarms.readthedocs.io/en/latest/index.html
+        """
+
+        super().__init__(
+            paths=paths,
+            sigma=sigma,
+            n_particles=n_particles,
+            iters=iters,
+            cognitive=cognitive,
+            social=social,
+            inertia=inertia,
+            ftol=ftol,
+            initializer=initializer,
+            iterations_per_update=iterations_per_update,
+            number_of_cores=number_of_cores,
+        )
+
+        logger.debug("Creating PySwarms NLO")
+
+    def sampler_fom_model_and_fitness(self, model, fitness_function, bounds, init_pos):
+        """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
+        variables."""
+
+        return pyswarms.global_best.GlobalBestPSO(
+            n_particles=self.n_particles,
+            dimensions=model.prior_count,
+            bounds=bounds,
+            options={"c1": self.cognitive, "c2": self.social, "w": self.inertia},
+            ftol=self.ftol,
+            init_pos=init_pos,
+        )
+
+
+class PySwarmsLocal(AbstractPySwarms):
+    def __init__(
+        self,
+        paths=None,
+        sigma=3,
+        n_particles=None,
+        iters=None,
+        cognitive=None,
+        social=None,
+        inertia=None,
+        number_of_k_neighbors=None,
+        minkowski_p_norm=None,
+        ftol=None,
+        initializer=None,
+        iterations_per_update=None,
+        number_of_cores=None,
+    ):
+        """ Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
+
+        For a full description of PySwarms, checkout its Github and readthedocs webpages:
+
+        https://github.com/ljvmiranda921/pyswarms
+
+        https://pyswarms.readthedocs.io/en/latest/index.html
+
+        A Local-best Particle Swarm Optimization (lbest PSO) algorithm.
+
+        Similar to global-best PSO, it takes a set of candidate solutions, and finds the best solution using a
+        position-velocity update method. However, it uses a ring topology, thus making the particles attracted to its
+         corresponding neighborhood.
+
+        The position update can be defined as:
+        xi(t+1)=xi(t)+vi(t+1)
+
+        Where the position at the current timestep t
+        is updated using the computed velocity at t+1
+
+        . Furthermore, the velocity update is defined as:
+        vij(t+1)=m∗vij(t)+c1r1j(t)[yij(t)−xij(t)]+c2r2j(t)[y^j(t)−xij(t)]
+
+        However, in local-best PSO, a particle doesn’t compare itself to the overall performance of the swarm.
+        Instead, it looks at the performance of its nearest-neighbours, and compares itself with them. In general,
+        this kind of topology takes much more time to converge, but has a more powerful explorative feature.
+
+        In this implementation, a neighbor is selected via a k-D tree imported from scipy. Distance are computed with
+        either the L1 or L2 distance. The nearest-neighbours are then queried from this k-D tree. They are computed
+        for every iteration.
+
+        Extensions:
+
+        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by outputting the
+          necessary results (e.g. the points of the particles) during the model-fit after an input number of iterations.
+
+        - Different options for particle intialization, with the default 'prior' method starting all particles over the
+        priors defined by each parameter.
+
+        If you use *PySwarms* as part of a published work, please cite the package following the instructions under the
+        *Attribution* section of the GitHub page.
+
+        Parameters
+        ----------
+        paths : af.Paths
+            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
+            backups, etc.
+        sigma : float
+            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
+            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        n_particles : int
+            The number of particles in the swarm used to sample parameter space.
+        iters : int
+            The number of iterations that are used to sample parameter space.
+        cognitive : float
+            The cognitive parameter defining how the PSO particles interact with one another to sample parameter space.
+        social : float
+            The social parameter defining how the PSO particles interact with one another to sample parameter space.
+        inertia : float
+            The inertia parameter defining how the PSO particles interact with one another to sample parameter space.
+        number_of_k_neighbors : int
+            number of neighbors to be considered. Must be a positive integer less than n_particles.
+        minkowski_p_norm : int
+            The Minkowski p-norm to use. 1 is the sum-of-absolute values (or L1 distance) while 2 is the Euclidean
+            (or L2) distance.
+        ftol : float
+            Relative error in objective_func(best_pos) acceptable for convergence.
+        initializer : non_linear.initializer.Initializer
+            Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
+        number_of_cores : int
+            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
+            pool instance is not created and the job runs in serial.
+
+        All remaining attributes are emcee parameters and described at the PySwarms API webpage:
+
+        https://pyswarms.readthedocs.io/en/latest/index.html
+        """
+
+        self.number_of_k_neighbors = (
+            self.config("search", "number_of_k_neighbors", int)
+            if number_of_k_neighbors is None
+            else number_of_k_neighbors
+        )
+
+        self.minkowski_p_norm = (
+            self.config("search", "minkowski_p_norm", int)
+            if minkowski_p_norm is None
+            else minkowski_p_norm
+        )
+
+        super().__init__(
+            paths=paths,
+            sigma=sigma,
+            n_particles=n_particles,
+            iters=iters,
+            cognitive=cognitive,
+            social=social,
+            inertia=inertia,
+            ftol=ftol,
+            initializer=initializer,
+            iterations_per_update=iterations_per_update,
+            number_of_cores=number_of_cores,
+        )
+
+        logger.debug("Creating PySwarms NLO")
+
+    def sampler_fom_model_and_fitness(self, model, fitness_function, bounds, init_pos):
+        """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
+        variables."""
+
+        return pyswarms.local_best.LocalBestPSO(
+            n_particles=self.n_particles,
+            dimensions=model.prior_count,
+       #     bounds=bounds,
+            options={
+                "c1": self.cognitive,
+                "c2": self.social,
+                "w": self.inertia,
+                "k": self.number_of_k_neighbors,
+                "p": self.minkowski_p_norm,
+            },
+            ftol=self.ftol,
+            init_pos=init_pos,
+        )

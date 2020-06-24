@@ -192,6 +192,15 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
+    def random_unit_vector_within_limits(self, lower_limit=0.0, upper_limit=1.0):
+        """ Generate a random vector of unit values by drawing uniform random values between 0 and 1.
+        Returns
+        -------
+        unit_values: [float]
+            A list of unit values constructed by taking random values from each prior.
+        """
+        return list(np.random.uniform(low=lower_limit, high=upper_limit, size=self.prior_count))
+
     def random_vector_from_priors_within_limits(self, lower_limit, upper_limit):
         """ Generate a random vector of physical values by drawing uniform random values between an input lower and
         upper limit and using the model priors to map them from unit values to physical values.

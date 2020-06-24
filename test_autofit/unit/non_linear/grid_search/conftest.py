@@ -30,12 +30,7 @@ class MockOptimizer(af.NonLinearSearch):
     def _fit(self, model, analysis):
         fit_args.append(analysis)
         # noinspection PyTypeChecker
-        return af.Result(
-            MockSamples(
-                [1.0]
-            ),
-            analysis.log_likelihood_function(None)
-        )
+        return af.Result(MockSamples([1.0]), analysis.log_likelihood_function(None))
 
 
 class MockAnalysis(af.Analysis):

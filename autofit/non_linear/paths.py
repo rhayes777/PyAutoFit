@@ -73,25 +73,21 @@ def convert_paths(func):
         if "search" in kwargs:
             kwargs["search"].paths = paths
 
-        func(
-            self,
-            paths=paths,
-            **kwargs,
-        )
+        func(self, paths=paths, **kwargs)
 
     return wrapper
 
 
 class Paths:
     def __init__(
-            self,
-            name="",
-            tag=None,
-            folders=tuple(),
-            path_prefix=None,
-            non_linear_name=None,
-            non_linear_tag_function=lambda: "",
-            remove_files=False,
+        self,
+        name="",
+        tag=None,
+        folders=tuple(),
+        path_prefix=None,
+        non_linear_name=None,
+        non_linear_tag_function=lambda: "",
+        remove_files=False,
     ):
         """Manages the path structure for non-linear search output, for analyses both not using and using the phase
         API. Use via non-linear searches requires manual input of paths, whereas the phase API manages this using the
@@ -149,13 +145,9 @@ class Paths:
         return state
 
     def __setstate__(self, state):
-        non_linear_tag = state.pop(
-            "non_linear_tag"
-        )
+        non_linear_tag = state.pop("non_linear_tag")
         self.non_linear_tag_function = lambda: non_linear_tag
-        self.__dict__.update(
-            state
-        )
+        self.__dict__.update(state)
 
     @property
     def non_linear_tag(self):
@@ -239,7 +231,11 @@ class Paths:
     @make_path
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/{}/samples".format(
-            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_tag
+            conf.instance.output_path,
+            self.path_prefix,
+            self.name,
+            self.tag,
+            self.non_linear_tag,
         )
 
     @property
@@ -293,7 +289,11 @@ class Paths:
         Create the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_tag
+            conf.instance.output_path,
+            self.path_prefix,
+            self.name,
+            self.tag,
+            self.non_linear_tag,
         )
 
     # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
@@ -368,7 +368,7 @@ class Paths:
                         f.write(
                             os.path.join(root, file),
                             os.path.join(
-                                root[len(self.output_path):].lstrip("/"), file
+                                root[len(self.output_path) :].lstrip("/"), file
                             ),
                         )
 

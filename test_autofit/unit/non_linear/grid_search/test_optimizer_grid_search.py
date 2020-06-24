@@ -17,22 +17,18 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return af.NonLinearSearchGridSearch(af.Paths(name=""), number_of_steps=10, search=DownhillSimplex)
+    return af.NonLinearSearchGridSearch(
+        af.Paths(name=""), number_of_steps=10, search=DownhillSimplex
+    )
 
 
 def test_unpickle_result():
     result = af.GridSearchResult(
-        [af.Result(
-            samples=None
-        )],
+        [af.Result(samples=None)],
         lower_limit_lists=[[1]],
-        physical_lower_limits_lists=[[1]]
+        physical_lower_limits_lists=[[1]],
     )
-    result = pickle.loads(
-        pickle.dumps(
-            result
-        )
-    )
+    result = pickle.loads(pickle.dumps(result))
     assert result is not None
 
 
@@ -57,7 +53,9 @@ class TestGridSearchablePriors:
         assert mappers[-1].profile.centre_1.upper_limit == 1.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = af.NonLinearSearchGridSearch(af.Paths(name=""), number_of_steps=10)
+        grid_search = af.NonLinearSearchGridSearch(
+            af.Paths(name=""), number_of_steps=10
+        )
 
         mappers = list(
             grid_search.model_mappers(mapper, grid_priors=[mapper.profile.centre_0])
@@ -155,7 +153,7 @@ class TestGridNLOBehaviour:
         result = grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0]
+            grid_priors=[mapper.profile.centre_0],
         )
 
         assert len(container.init_args) == 2
@@ -166,7 +164,7 @@ class TestGridNLOBehaviour:
         grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0]
+            grid_priors=[mapper.profile.centre_0],
         )
 
         assert len(container.init_args) == 2
@@ -181,7 +179,11 @@ class TestGridNLOBehaviour:
             paths=af.Paths(name="sample_name"),
         )
 
-        grid_search.fit(model=mapper, analysis=container.MockAnalysis(), grid_priors=[mapper.profile.centre_0])
+        grid_search.fit(
+            model=mapper,
+            analysis=container.MockAnalysis(),
+            grid_priors=[mapper.profile.centre_0],
+        )
 
         assert len(container.init_args) == 3
         assert container.init_args[0] == "sample_name///profile_centre_0_0.00_0.33"
@@ -200,20 +202,20 @@ class TestGridNLOBehaviour:
         sorted_args = list(sorted(container.init_args[n] for n in range(4)))
 
         assert (
-                sorted_args[0]
-                == "sample_name///profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
+            sorted_args[0]
+            == "sample_name///profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
         )
         assert (
-                sorted_args[1]
-                == "sample_name///profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
+            sorted_args[1]
+            == "sample_name///profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
         )
         assert (
-                sorted_args[2]
-                == "sample_name///profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
+            sorted_args[2]
+            == "sample_name///profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
         )
         assert (
-                sorted_args[3]
-                == "sample_name///profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
+            sorted_args[3]
+            == "sample_name///profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
         )
 
     def test_results(self, grid_search_05, mapper, container):
@@ -292,9 +294,7 @@ class TestGridNLOBehaviour:
 
     def test_passes_attributes(self):
         grid_search = af.NonLinearSearchGridSearch(
-            af.Paths(name=""),
-            number_of_steps=10,
-            search=af.DynestyStatic(),
+            af.Paths(name=""), number_of_steps=10, search=af.DynestyStatic()
         )
 
         grid_search.n_live_points = 20
@@ -339,17 +339,32 @@ class TestGridSearchResult:
 
     def test__result_derived_properties(self):
         lower_limit_lists = [[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]]
-        physical_lower_limits_lists = [[-2.0, -3.0], [-2.0, 0.0], [0.0, -3.0], [0.0, 0.0]]
+        physical_lower_limits_lists = [
+            [-2.0, -3.0],
+            [-2.0, 0.0],
+            [0.0, -3.0],
+            [0.0, 0.0],
+        ]
 
         grid_search_result = af.GridSearchResult(
             results=None,
             physical_lower_limits_lists=physical_lower_limits_lists,
-            lower_limit_lists=lower_limit_lists
+            lower_limit_lists=lower_limit_lists,
         )
 
         print(grid_search_result)
 
         assert grid_search_result.shape == (2, 2)
         assert grid_search_result.physical_step_sizes == (2.0, 3.0)
-        assert grid_search_result.physical_centres_lists == [[-1.0, -1.5], [-1.0, 1.5], [1.0, -1.5], [1.0, 1.5]]
-        assert grid_search_result.physical_upper_limits_lists == [[0.0, 0.0], [0.0, 3.0], [2.0, 0.0], [2.0, 3.0]]
+        assert grid_search_result.physical_centres_lists == [
+            [-1.0, -1.5],
+            [-1.0, 1.5],
+            [1.0, -1.5],
+            [1.0, 1.5],
+        ]
+        assert grid_search_result.physical_upper_limits_lists == [
+            [0.0, 0.0],
+            [0.0, 3.0],
+            [2.0, 0.0],
+            [2.0, 3.0],
+        ]

@@ -3,6 +3,7 @@ import os
 import numpy as np
 
 from autoconf import conf
+from autofit.non_linear.initializer import InitializerPrior
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.paths import Paths
@@ -52,7 +53,11 @@ class AbstractNest(NonLinearSearch):
         if paths is None:
             paths = Paths()
 
-        super().__init__(paths=paths, iterations_per_update=iterations_per_update)
+        super().__init__(
+            paths=paths,
+            initializer=InitializerPrior(),
+            iterations_per_update=iterations_per_update,
+        )
 
         self.sigma = sigma
 
@@ -95,27 +100,32 @@ class AbstractNest(NonLinearSearch):
 
             self.stagger_resampling_likelihood = stagger_resampling_likelihood
             self.stagger_accepted_samples = 0
-            self.resampling_likelihood = -1.0e99
+            self.resampling_figure_of_merit = -1.0e99
 
             self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
             self.acceptance_ratio_threshold = acceptance_ratio_threshold
 
             self.should_check_terminate = IntervalCounter(1000)
 
-        def __call__(self, params, *kwargs):
+        def __call__(self, parameters, *kwargs):
 
             self.check_terminate_sampling()
 
             try:
-
-                instance = self.model.instance_from_vector(vector=params)
-                return self.fit_instance(instance)
-
+                return self.figure_of_merit_from_parameters(parameters=parameters)
             except exc.FitException:
+                return self.stagger_resampling_figure_of_merit()
 
-                return self.stagger_resampling_log_likelihood()
+        def figure_of_merit_from_parameters(self, parameters):
+            """The figure of merit is the value that the non-linear search uses to sample parameter space. All Nested
+            samplers use the log likelihood.
+            """
+            try:
+                return self.log_likelihood_from_parameters(parameters=parameters)
+            except exc.FitException:
+                raise exc.FitException
 
-        def stagger_resampling_log_likelihood(self):
+        def stagger_resampling_figure_of_merit(self):
             """By default, when a fit raises an exception a log likelihood of -np.inf is returned, which leads the
             sampler to discard the sample.
 
@@ -126,19 +136,20 @@ class AbstractNest(NonLinearSearch):
 
             if not self.stagger_resampling_likelihood:
 
-                return self.resample_likelihood
+                return self.resample_figure_of_merit
 
             else:
+
                 if self.stagger_accepted_samples < 10:
 
                     self.stagger_accepted_samples += 1
-                    self.resampling_likelihood += 1e90
+                    self.resampling_figure_of_merit += 1e90
 
-                    return self.resampling_likelihood
+                    return self.resampling_figure_of_merit
 
                 else:
 
-                    return -1.0 * np.abs(self.resampling_likelihood) * 10.0
+                    return -1.0 * np.abs(self.resampling_figure_of_merit) * 10.0
 
         def check_terminate_sampling(self):
             """Automatically terminate nested sampling when the sampler's acceptance ratio falls below a specified

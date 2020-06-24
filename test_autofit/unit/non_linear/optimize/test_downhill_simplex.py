@@ -15,8 +15,7 @@ def make_downhill_simplex():
         return x0
 
     return af.DownhillSimplex(
-        fmin=fmin,
-        paths=Paths(name="name", folders=("folders",), tag="tag"),
+        fmin=fmin, paths=Paths(name="name", folders=("folders",), tag="tag")
     )
 
 

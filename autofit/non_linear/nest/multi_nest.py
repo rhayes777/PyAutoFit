@@ -156,7 +156,9 @@ class MultiNest(abstract_nest.AbstractNest):
             if mode_tolerance is None
             else mode_tolerance
         )
-        self.max_iter = self.config("search", "max_iter", int) if max_iter is None else max_iter
+        self.max_iter = (
+            self.config("search", "max_iter", int) if max_iter is None else max_iter
+        )
         self.n_iter_before_update = (
             self.config("settings", "n_iter_before_update", int)
             if n_iter_before_update is None
@@ -168,14 +170,26 @@ class MultiNest(abstract_nest.AbstractNest):
             else null_log_evidence
         )
         self.seed = self.config("settings", "seed", int) if seed is None else seed
-        self.verbose = self.config("settings", "verbose", bool) if verbose is None else verbose
-        self.resume = self.config("settings", "resume", bool) if resume is None else resume
-        self.context = self.config("settings", "context", int) if context is None else context
-        self.write_output = (
-            self.config("settings", "write_output", bool) if write_output is None else write_output
+        self.verbose = (
+            self.config("settings", "verbose", bool) if verbose is None else verbose
         )
-        self.log_zero = self.config("settings", "log_zero", float) if log_zero is None else log_zero
-        self.init_MPI = self.config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
+        self.resume = (
+            self.config("settings", "resume", bool) if resume is None else resume
+        )
+        self.context = (
+            self.config("settings", "context", int) if context is None else context
+        )
+        self.write_output = (
+            self.config("settings", "write_output", bool)
+            if write_output is None
+            else write_output
+        )
+        self.log_zero = (
+            self.config("settings", "log_zero", float) if log_zero is None else log_zero
+        )
+        self.init_MPI = (
+            self.config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
+        )
 
         super().__init__(
             paths=paths,
@@ -252,19 +266,27 @@ class MultiNest(abstract_nest.AbstractNest):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config('tag', 'name')
-        n_live_points_tag = f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
-        sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
+        name_tag = self.config("tag", "name")
+        n_live_points_tag = (
+            f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
+        )
+        sampling_efficiency_tag = (
+            f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
+        )
         if self.const_efficiency_mode:
-            const_efficiency_mode_tag = f"_{self.config('tag', 'const_efficiency_mode')}"
+            const_efficiency_mode_tag = (
+                f"_{self.config('tag', 'const_efficiency_mode')}"
+            )
         else:
-            const_efficiency_mode_tag = ''
+            const_efficiency_mode_tag = ""
         if self.multimodal:
             multimodal_tag = f"_{self.config('tag', 'multimodal')}"
         else:
-            multimodal_tag = ''
+            multimodal_tag = ""
         if self.importance_nested_sampling:
-            importance_nested_sampling_tag = f"_{self.config('tag', 'importance_nested_sampling')}"
+            importance_nested_sampling_tag = (
+                f"_{self.config('tag', 'importance_nested_sampling')}"
+            )
         else:
             importance_nested_sampling_tag = ""
 

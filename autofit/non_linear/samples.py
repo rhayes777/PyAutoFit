@@ -16,13 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 class OptimizerSamples:
-
     def __init__(
-            self,
-            model: ModelMapper,
-            parameters: List[List[float]],
-            log_likelihoods: List[float],
-            log_priors: List[float]
+        self,
+        model: ModelMapper,
+        parameters: List[List[float]],
+        log_likelihoods: List[float],
+        log_priors: List[float],
     ):
         """The *Samples* of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
@@ -38,7 +37,9 @@ class OptimizerSamples:
         self.parameters = parameters
         self.log_likelihoods = log_likelihoods
         self.log_priors = log_priors
-        self.log_posteriors = [lh + prior for lh, prior in zip(log_likelihoods, log_priors)]
+        self.log_posteriors = [
+            lh + prior for lh, prior in zip(log_likelihoods, log_priors)
+        ]
 
     @property
     def parameter_names(self):
@@ -49,9 +50,7 @@ class OptimizerSamples:
         """
         Headers for the samples table
         """
-        return self.parameter_names + [
-            "log_likelihood", "log_prior", "log_posterior"
-        ]
+        return self.parameter_names + ["log_likelihood", "log_prior", "log_posterior"]
 
     @property
     def _rows(self) -> List[List[float]]:
@@ -76,13 +75,9 @@ class OptimizerSamples:
         """
         with open(filename, "w+") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                self._headers
-            )
+            writer.writerow(self._headers)
             for row in self._rows:
-                writer.writerow(
-                    row
-                )
+                writer.writerow(row)
 
     @property
     def parameter_labels(self):
@@ -146,7 +141,15 @@ class OptimizerSamples:
 
 
 class PDFSamples(OptimizerSamples):
-    def __init__(self, model, parameters, log_likelihoods, log_priors, weights, unconverged_sample_size=100):
+    def __init__(
+        self,
+        model,
+        parameters,
+        log_likelihoods,
+        log_priors,
+        weights,
+        unconverged_sample_size=100,
+    ):
         """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
@@ -156,7 +159,12 @@ class PDFSamples(OptimizerSamples):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods, log_priors=log_priors)
+        super().__init__(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+        )
 
         self.weights = weights
         self._unconverged_sample_size = unconverged_sample_size
@@ -264,10 +272,10 @@ class PDFSamples(OptimizerSamples):
             return list(map(lambda p: p.getLimits(limit), densities_1d))
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
         )
 
         return [
@@ -575,22 +583,21 @@ class PDFSamples(OptimizerSamples):
 
 
 class MCMCSamples(PDFSamples):
-
     def __init__(
-            self,
-            model,
-            parameters,
-            log_likelihoods,
-            log_priors,
-            weights,
-            auto_correlation_times,
-            auto_correlation_check_size,
-            auto_correlation_required_length,
-            auto_correlation_change_threshold,
-            total_walkers,
-            total_steps,
-            backend,
-            unconverged_sample_size=100
+        self,
+        model,
+        parameters,
+        log_likelihoods,
+        log_priors,
+        weights,
+        auto_correlation_times,
+        auto_correlation_check_size,
+        auto_correlation_required_length,
+        auto_correlation_change_threshold,
+        total_walkers,
+        total_steps,
+        backend,
+        unconverged_sample_size=100,
     ):
         """
         Attributes
@@ -602,9 +609,14 @@ class MCMCSamples(PDFSamples):
             to the total steps * total walkers).
         """
 
-        super().__init__(model=model, parameters=parameters, log_likelihoods=log_likelihoods, log_priors=log_priors,
-                         weights=weights,
-                         unconverged_sample_size=unconverged_sample_size)
+        super().__init__(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            unconverged_sample_size=unconverged_sample_size,
+        )
 
         self.total_walkers = total_walkers
         self.total_steps = total_steps
@@ -665,11 +677,8 @@ class MCMCSamples(PDFSamples):
     @property
     def relative_auto_correlation_times(self) -> [float]:
         return (
-                np.abs(
-                    self.previous_auto_correlation_times
-                    - self.auto_correlation_times
-                )
-                / self.auto_correlation_times
+            np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
+            / self.auto_correlation_times
         )
 
     @property
@@ -677,8 +686,7 @@ class MCMCSamples(PDFSamples):
         """Whether the emcee samples have converged on a solution or if they are still in a burn-in period, based on the
         auto correlation times of parameters."""
         converged = np.all(
-            self.auto_correlation_times
-            * self.auto_correlation_required_length
+            self.auto_correlation_times * self.auto_correlation_required_length
             < self.total_samples
         )
         if converged:
@@ -730,15 +738,17 @@ class MCMCSamples(PDFSamples):
             samples = self.samples_after_burn_in
 
             return [
-                tuple(np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit]))
+                tuple(
+                    np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit])
+                )
                 for i in range(self.model.prior_count)
             ]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
         )
 
         return [
@@ -748,18 +758,17 @@ class MCMCSamples(PDFSamples):
 
 
 class NestSamples(PDFSamples):
-
     def __init__(
-            self,
-            model,
-            parameters,
-            log_likelihoods,
-            log_priors,
-            weights,
-            number_live_points,
-            log_evidence,
-            total_samples,
-            unconverged_sample_size=100
+        self,
+        model,
+        parameters,
+        log_likelihoods,
+        log_priors,
+        weights,
+        number_live_points,
+        log_evidence,
+        total_samples,
+        unconverged_sample_size=100,
     ):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
         as files on your hard-disk) and Python.
@@ -785,7 +794,7 @@ class NestSamples(PDFSamples):
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
             weights=weights,
-            unconverged_sample_size=unconverged_sample_size
+            unconverged_sample_size=unconverged_sample_size,
         )
 
         self.number_live_points = number_live_points

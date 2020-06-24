@@ -27,9 +27,7 @@ class TestMixin:
         assert len(result.lower_limit_lists) == 2
         assert len(result.physical_lower_limits_lists) == 2
 
-        assert isinstance(
-            result.best_result, af.Result
-        )
+        assert isinstance(result.best_result, af.Result)
 
     def test_parallel_flag(self):
         my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
