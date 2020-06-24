@@ -19,7 +19,6 @@ def remove_reports():
     yield
     for d, _, files in os.walk(directory):
         for file in files:
-            print(file)
             if file == "report.log":
                 os.remove(f"{d}/{file}")
 
