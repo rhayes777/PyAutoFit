@@ -122,8 +122,8 @@ def test_(
     q_a = model_approx['a'].value.parameters.round(3)
     q_b = model_approx['b'].value.parameters.round(3)
 
-    assert q_a.mu[0] == pytest.approx(-1.243, rel=0.1)
-    assert q_a.sigma[0] == pytest.approx(0.021, rel=0.1)
+    assert q_a.mu[0] == pytest.approx(-1.2, rel=0.1)
+    assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
 
-    assert q_b.mu[0] == pytest.approx(-0.507, rel=0.1)
-    assert q_b.sigma[0] == pytest.approx(0.102, rel=0.1)
+    assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
+    assert q_b.sigma[0] == pytest.approx(0.102, rel=1)
