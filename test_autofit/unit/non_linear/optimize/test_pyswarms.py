@@ -26,9 +26,7 @@ class TestPySwarmsGlobalConfig:
             cognitive=0.4,
             social=0.5,
             inertia=0.6,
-            initialize_method="ball",
-            initialize_ball_lower_limit=0.2,
-            initialize_ball_upper_limit=0.8,
+            initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
             iterations_per_update=10,
             number_of_cores=2,
         )
@@ -38,9 +36,9 @@ class TestPySwarmsGlobalConfig:
         assert pso.cognitive == 0.4
         assert pso.social == 0.5
         assert pso.inertia == 0.6
-        assert pso.initialize_method == "ball"
-        assert pso.initialize_ball_lower_limit == 0.2
-        assert pso.initialize_ball_upper_limit == 0.8
+        assert isinstance(pso.initializer, af.InitializerBall)
+        assert pso.initializer.lower_limit == 0.2
+        assert pso.initializer.upper_limit == 0.8
         assert pso.iterations_per_update == 10
         assert pso.number_of_cores == 2
 
@@ -51,23 +49,62 @@ class TestPySwarmsGlobalConfig:
         assert pso.cognitive == 0.1
         assert pso.social == 0.2
         assert pso.inertia == 0.3
-        assert pso.initialize_method == "prior"
-        assert pso.initialize_ball_lower_limit == 0.49
-        assert pso.initialize_ball_upper_limit == 0.51
+        assert isinstance(pso.initializer, af.InitializerPrior)
+        assert pso.iterations_per_update == 11
+        assert pso.number_of_cores == 1
+
+        pso = af.PySwarmsLocal(
+            n_particles=51,
+            iters=2001,
+            cognitive=0.4,
+            social=0.5,
+            inertia=0.6,
+            number_of_k_neighbors=4,
+            minkowski_p_norm=1,
+            initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
+            iterations_per_update=10,
+            number_of_cores=2,
+        )
+
+        assert pso.n_particles == 51
+        assert pso.iters == 2001
+        assert pso.cognitive == 0.4
+        assert pso.social == 0.5
+        assert pso.inertia == 0.6
+        assert pso.number_of_k_neighbors == 4
+        assert pso.minkowski_p_norm == 1
+        assert isinstance(pso.initializer, af.InitializerBall)
+        assert pso.initializer.lower_limit == 0.2
+        assert pso.initializer.upper_limit == 0.8
+        assert pso.iterations_per_update == 10
+        assert pso.number_of_cores == 2
+
+        pso = af.PySwarmsLocal()
+
+        assert pso.n_particles == 50
+        assert pso.iters == 2000
+        assert pso.cognitive == 0.1
+        assert pso.social == 0.2
+        assert pso.inertia == 0.3
+        assert pso.number_of_k_neighbors == 3
+        assert pso.minkowski_p_norm == 2
+        assert isinstance(pso.initializer, af.InitializerPrior)
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
 
     def test__tag(self):
 
         pso = af.PySwarmsGlobal(
-            n_particles=51,
-            iters=2001,
-            cognitive=0.4,
-            social=0.5,
-            inertia=0.6,
+            n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
         )
 
-        assert pso.tag == "pyswarms__particles_51_c_0.4_s_0.5_i_0.6"
+        assert pso.tag == "pyswarms_global__particles_51_c_0.4_s_0.5_i_0.6"
+
+        pso = af.PySwarmsLocal(
+            n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
+        )
+
+        assert pso.tag == "pyswarms_local__particles_51_c_0.4_s_0.5_i_0.6"
 
     def test__samples_from_model(self):
 
@@ -97,6 +134,7 @@ class TestPySwarmsGlobalConfig:
         assert len(samples.parameters) == 500
         assert len(samples.log_likelihoods) == 500
 
+
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
@@ -115,11 +153,6 @@ class TestCopyWithNameExtension:
         assert copy.social == search.social
         assert copy.inertia == search.inertia
         assert copy.ftol is search.ftol
-        assert copy.initialize_method is search.initialize_method
-        assert copy.initialize_ball_lower_limit is search.initialize_ball_lower_limit
-        assert copy.initialize_ball_upper_limit is search.initialize_ball_upper_limit
+        assert copy.initializer is search.initializer
         assert copy.iterations_per_update is search.iterations_per_update
-        assert (
-            copy.number_of_cores
-            is search.number_of_cores
-        )
+        assert copy.number_of_cores is search.number_of_cores

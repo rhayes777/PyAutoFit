@@ -18,30 +18,31 @@ logger = logging.getLogger(__name__)
 
 class AbstractDynesty(AbstractNest):
     def __init__(
-            self,
-            paths=None,
-            sigma=3,
-            facc=None,
-            evidence_tolerance=None,
-            bound=None,
-            sample=None,
-            bootstrap=None,
-            enlarge=None,
-            update_interval=None,
-            vol_dec=None,
-            vol_check=None,
-            walks=None,
-            slices=None,
-            fmove=None,
-            max_move=None,
-            maxiter=None,
-            maxcall=None,
-            logl_max=None,
-            n_effective=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
-            iterations_per_update=None,
-            number_of_cores=None,
+        self,
+        paths=None,
+        n_live_points=None,
+        sigma=3,
+        facc=None,
+        evidence_tolerance=None,
+        bound=None,
+        sample=None,
+        bootstrap=None,
+        enlarge=None,
+        update_interval=None,
+        vol_dec=None,
+        vol_check=None,
+        walks=None,
+        slices=None,
+        fmove=None,
+        max_move=None,
+        maxiter=None,
+        maxcall=None,
+        logl_max=None,
+        n_effective=None,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+        iterations_per_update=None,
+        number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search.
@@ -155,17 +156,28 @@ class AbstractDynesty(AbstractNest):
             pool instance is not created and the job runs in serial.
         """
 
+        self.n_live_points = (
+            self.config("search", "n_live_points", int)
+            if n_live_points is None
+            else n_live_points
+        )
+
         self.evidence_tolerance = evidence_tolerance
 
-        self.facc = self.config(
-            "search", "sampling_efficiency", float) if facc is None else facc
+        self.facc = (
+            self.config("search", "sampling_efficiency", float)
+            if facc is None
+            else facc
+        )
 
         self.bound = self.config("search", "bound", str) if bound is None else bound
         self.sample = self.config("search", "sample", str) if sample is None else sample
         self.bootstrap = (
             self.config("search", "bootstrap", int) if bootstrap is None else bootstrap
         )
-        self.enlarge = self.config("search", "enlarge", float) if enlarge is None else enlarge
+        self.enlarge = (
+            self.config("search", "enlarge", float) if enlarge is None else enlarge
+        )
 
         self.update_interval = (
             self.config("search", "update_interval", float)
@@ -182,25 +194,41 @@ class AbstractDynesty(AbstractNest):
             else:
                 self.enlarge = 1.25
 
-        self.vol_dec = self.config("search", "vol_dec", float) if vol_dec is None else vol_dec
+        self.vol_dec = (
+            self.config("search", "vol_dec", float) if vol_dec is None else vol_dec
+        )
         self.vol_check = (
-            self.config("search", "vol_check", float) if vol_check is None else vol_check
+            self.config("search", "vol_check", float)
+            if vol_check is None
+            else vol_check
         )
         self.walks = self.config("search", "walks", int) if walks is None else walks
         self.slices = self.config("search", "slices", int) if slices is None else slices
         self.fmove = self.config("search", "fmove", float) if fmove is None else fmove
-        self.max_move = self.config("search", "max_move", int) if max_move is None else max_move
+        self.max_move = (
+            self.config("search", "max_move", int) if max_move is None else max_move
+        )
 
-        self.maxiter = self.config("search", "maxiter", int) if maxiter is None else maxiter
+        self.maxiter = (
+            self.config("search", "maxiter", int) if maxiter is None else maxiter
+        )
         if self.maxiter <= 0:
             self.maxiter = sys.maxsize
-        self.maxcall = self.config("search", "maxcall", int) if maxcall is None else maxcall
+        self.maxcall = (
+            self.config("search", "maxcall", int) if maxcall is None else maxcall
+        )
         self.no_limit = False
         if self.maxcall <= 0:
             self.maxcall = sys.maxsize
             self.no_limit = True
-        self.logl_max = self.config("search", "logl_max", float) if logl_max is None else logl_max
-        self.n_effective = self.config("search", "n_effective", int) if n_effective is None else n_effective
+        self.logl_max = (
+            self.config("search", "logl_max", float) if logl_max is None else logl_max
+        )
+        self.n_effective = (
+            self.config("search", "n_effective", int)
+            if n_effective is None
+            else n_effective
+        )
         if self.n_effective <= 0:
             self.n_effective = np.inf
 
@@ -221,9 +249,8 @@ class AbstractDynesty(AbstractNest):
         logger.debug("Creating DynestyStatic NLO")
 
     class Fitness(AbstractNest.Fitness):
-
         @property
-        def resample_likelihood(self):
+        def resample_figure_of_merit(self):
             """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
              should be given a likelihood so low that it is discard.
 
@@ -317,7 +344,10 @@ class AbstractDynesty(AbstractNest):
 
             iterations_after_run = np.sum(sampler.results.ncall)
 
-            if total_iterations == iterations_after_run or total_iterations == self.maxcall:
+            if (
+                total_iterations == iterations_after_run
+                or total_iterations == self.maxcall
+            ):
                 finished = True
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
@@ -340,9 +370,7 @@ class AbstractDynesty(AbstractNest):
         copy.slices = self.slices
         copy.fmove = self.fmove
         copy.max_move = self.max_move
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.initializer = self.initializer
         copy.iterations_per_update = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
 
@@ -406,7 +434,7 @@ class AbstractDynesty(AbstractNest):
             bound_tag = f"{bound_tag}_{bound_multi_tag}"
 
         if self.sample in "auto":
-            return f'{bound_tag}__{enlarge_tag}__{sample_tag}'
+            return f"{bound_tag}__{enlarge_tag}__{sample_tag}"
 
         walks_tag = f"{self.config('tag', 'walks')}_{self.walks}"
         facc_tag = f"{self.config('tag', 'facc')}_{self.facc}"
@@ -422,36 +450,58 @@ class AbstractDynesty(AbstractNest):
         else:
             method_tag = ""
 
-        return f'{bound_tag}__{enlarge_tag}__{sample_tag}{method_tag}'
+        return f"{bound_tag}__{enlarge_tag}__{sample_tag}{method_tag}"
+
+    def initial_live_points_from_model_and_fitness_function(
+        self, model, fitness_function
+    ):
+
+        unit_parameters, parameters, log_likelihoods = self.initializer.initial_samples_from_model(
+            total_points=self.n_live_points,
+            model=model,
+            fitness_function=fitness_function,
+        )
+
+        init_unit_parameters = np.zeros(shape=(self.n_live_points, model.prior_count))
+        init_parameters = np.zeros(shape=(self.n_live_points, model.prior_count))
+        init_log_likelihoods = np.zeros(shape=(self.n_live_points))
+
+        for index in range(len(parameters)):
+
+            init_unit_parameters[index, :] = np.asarray(unit_parameters[index])
+            init_parameters[index, :] = np.asarray(parameters[index])
+            init_log_likelihoods[index] = np.asarray(log_likelihoods[index])
+
+        return [init_unit_parameters, init_parameters, init_log_likelihoods]
+
 
 class DynestyStatic(AbstractDynesty):
     def __init__(
-            self,
-            paths=None,
-            sigma=3,
-            n_live_points=None,
-            facc=None,
-            evidence_tolerance=None,
-            bound=None,
-            sample=None,
-            bootstrap=None,
-            enlarge=None,
-            update_interval=None,
-            vol_dec=None,
-            vol_check=None,
-            walks=None,
-            slices=None,
-            fmove=None,
-            max_move=None,
-            maxiter=None,
-            maxcall=None,
-            logl_max=None,
-            n_effective=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
-            iterations_per_update=None,
-            number_of_cores=None,
-            old_tag=None,
+        self,
+        paths=None,
+        sigma=3,
+        n_live_points=None,
+        facc=None,
+        evidence_tolerance=None,
+        bound=None,
+        sample=None,
+        bootstrap=None,
+        enlarge=None,
+        update_interval=None,
+        vol_dec=None,
+        vol_check=None,
+        walks=None,
+        slices=None,
+        fmove=None,
+        max_move=None,
+        maxiter=None,
+        maxcall=None,
+        logl_max=None,
+        n_effective=None,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+        iterations_per_update=None,
+        number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search, specifically the sampled which uses a static number of
@@ -552,14 +602,11 @@ class DynestyStatic(AbstractDynesty):
             else n_live_points
         )
 
-        self.old_tag = (
-            self.config("tag", "old_tag", bool)
-            if old_tag is None
-            else old_tag
+        evidence_tolerance = (
+            self.config("search", "evidence_tolerance", float)
+            if evidence_tolerance is None
+            else evidence_tolerance
         )
-
-        evidence_tolerance = self.config(
-            "search", "evidence_tolerance", float) if evidence_tolerance is None else evidence_tolerance
 
         if evidence_tolerance <= 0.0:
             evidence_tolerance = 1e-3 * (self.n_live_points - 1) + 0.01
@@ -567,6 +614,7 @@ class DynestyStatic(AbstractDynesty):
         super().__init__(
             paths=paths,
             sigma=sigma,
+            n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,
             bound=bound,
             sample=sample,
@@ -597,18 +645,12 @@ class DynestyStatic(AbstractDynesty):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        if self.old_tag:
+        name_tag = self.config("tag", "name", str)
+        n_live_points_tag = (
+            f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
+        )
 
-            name_tag = self.config('tag', 'name', str)
-            n_live_points_tag = f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
-            sampling_efficiency_tag = f"{self.config('tag', 'sampling_efficiency')}_{self.facc}"
-
-            return f'{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}'
-
-        name_tag = self.config('tag', 'name', str)
-        n_live_points_tag = f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
-
-        return f'{name_tag}__{n_live_points_tag}__{self.dynesty_tag}'
+        return f"{name_tag}__{n_live_points_tag}__{self.dynesty_tag}"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty non-linear search with all associated attributes.
@@ -627,6 +669,10 @@ class DynestyStatic(AbstractDynesty):
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
+
+        live_points = self.initial_live_points_from_model_and_fitness_function(
+            model=model, fitness_function=fitness_function
+        )
 
         return StaticSampler(
             loglikelihood=fitness_function,
@@ -647,35 +693,37 @@ class DynestyStatic(AbstractDynesty):
             slices=self.slices,
             fmove=self.fmove,
             max_move=self.max_move,
+            live_points=live_points,
         )
 
 
 class DynestyDynamic(AbstractDynesty):
     def __init__(
-            self,
-            paths=None,
-            sigma=3,
-            facc=None,
-            evidence_tolerance=None,
-            bound=None,
-            sample=None,
-            bootstrap=None,
-            enlarge=None,
-            update_interval=None,
-            vol_dec=None,
-            vol_check=None,
-            walks=None,
-            slices=None,
-            fmove=None,
-            max_move=None,
-            maxiter=None,
-            maxcall=None,
-            logl_max=None,
-            n_effective=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
-            iterations_per_update=None,
-            number_of_cores=None,
+        self,
+        paths=None,
+        sigma=3,
+        n_live_points=None,
+        evidence_tolerance=None,
+        facc=None,
+        bound=None,
+        sample=None,
+        bootstrap=None,
+        enlarge=None,
+        update_interval=None,
+        vol_dec=None,
+        vol_check=None,
+        walks=None,
+        slices=None,
+        fmove=None,
+        max_move=None,
+        maxiter=None,
+        maxcall=None,
+        logl_max=None,
+        n_effective=None,
+        terminate_at_acceptance_ratio=None,
+        acceptance_ratio_threshold=None,
+        iterations_per_update=None,
+        number_of_cores=None,
     ):
         """
         Class to setup and run a Dynesty non-linear search, using the dynamic Dynesty nested sampler described at this
@@ -695,11 +743,24 @@ class DynestyDynamic(AbstractDynesty):
             pickle).
         """
 
-        evidence_tolerance = self.config("search", "evidence_tolerance",
-                                              float) if evidence_tolerance is None else evidence_tolerance
+        n_live_points = (
+            self.config("search", "n_live_points", int)
+            if n_live_points is None
+            else n_live_points
+        )
+
+        if n_live_points <= 0:
+            n_live_points = 500
+
+        evidence_tolerance = (
+            self.config("search", "evidence_tolerance", float)
+            if evidence_tolerance is None
+            else evidence_tolerance
+        )
 
         super().__init__(
             paths=paths,
+            n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,
             sigma=sigma,
             bound=bound,
@@ -731,9 +792,9 @@ class DynestyDynamic(AbstractDynesty):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config('tag', 'name', str)
+        name_tag = self.config("tag", "name", str)
 
-        return f'{name_tag}__{self.dynesty_tag}'
+        return f"{name_tag}__{self.dynesty_tag}"
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         """Get the dynamic Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty

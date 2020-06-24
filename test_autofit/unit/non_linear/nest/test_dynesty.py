@@ -112,6 +112,7 @@ class TestDynestyConfig:
         assert dynesty.number_of_cores == 1
 
         dynesty = af.DynestyDynamic(
+            n_live_points=0,
             iterations_per_update=501,
             facc=0.6,
             evidence_tolerance=0.2,
@@ -132,9 +133,10 @@ class TestDynestyConfig:
             n_effective=4,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.5,
-            number_of_cores=3
+            number_of_cores=3,
         )
 
+        assert dynesty.n_live_points == 500
         assert dynesty.iterations_per_update == 501
         assert dynesty.facc == 0.6
         assert dynesty.evidence_tolerance == 0.2
@@ -159,6 +161,7 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyDynamic()
 
+        assert dynesty.n_live_points == 5
         assert dynesty.iterations_per_update == 501
         assert dynesty.facc == 0.6
         assert dynesty.bound == "balls"
@@ -183,13 +186,13 @@ class TestDynestyConfig:
     def test__tag(self):
 
         dynesty = af.DynestyStatic(
-            n_live_points=40,
-            bound="none",
-            sample="auto",
-            enlarge=1.0
+            n_live_points=40, bound="none", sample="auto", enlarge=1.0
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_40__bound_none__enlarge_1.0__sample_auto"
+        assert (
+            dynesty.tag
+            == "dynesty_static__nlive_40__bound_none__enlarge_1.0__sample_auto"
+        )
 
         dynesty = af.DynestyStatic(
             n_live_points=41,
@@ -197,10 +200,13 @@ class TestDynestyConfig:
             sample="unif",
             enlarge=1.0,
             vol_dec=2.0,
-            vol_check=3.0
+            vol_check=3.0,
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
+        assert (
+            dynesty.tag
+            == "dynesty_static__nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
+        )
 
         dynesty = af.DynestyStatic(
             n_live_points=43,
@@ -211,7 +217,10 @@ class TestDynestyConfig:
             facc=0.5,
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5"
+        assert (
+            dynesty.tag
+            == "dynesty_static__nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5"
+        )
 
         dynesty = af.DynestyStatic(
             n_live_points=44,
@@ -222,52 +231,54 @@ class TestDynestyConfig:
             max_move=2,
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2"
+        assert (
+            dynesty.tag
+            == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2"
+        )
 
         dynesty = af.DynestyStatic(
-            n_live_points=44,
-            bound="balls",
-            sample="slice",
-            enlarge=1.0,
-            slices=1,
+            n_live_points=44, bound="balls", sample="slice", enlarge=1.0, slices=1
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1"
+        assert (
+            dynesty.tag
+            == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1"
+        )
 
         dynesty = af.DynestyStatic(
-            n_live_points=44,
-            bound="balls",
-            sample="rslice",
-            enlarge=1.0,
-            slices=1,
+            n_live_points=44, bound="balls", sample="rslice", enlarge=1.0, slices=1
         )
 
-        assert dynesty.tag == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1"
+        assert (
+            dynesty.tag
+            == "dynesty_static__nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1"
+        )
 
         dynesty = af.DynestyDynamic(
-            bound="multi",
-            sample="unif",
-            enlarge=1.0,
-            vol_dec=2.0,
-            vol_check=3.0
+            bound="multi", sample="unif", enlarge=1.0, vol_dec=2.0, vol_check=3.0
         )
 
-        assert dynesty.tag == "dynesty_dynamic__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
+        assert (
+            dynesty.tag
+            == "dynesty_dynamic__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
+        )
 
         dynesty = af.DynestyDynamic(
-            bound="balls",
-            sample="rslice",
-            enlarge=1.0,
-            slices=1,
+            bound="balls", sample="rslice", enlarge=1.0, slices=1
         )
 
-        assert dynesty.tag == "dynesty_dynamic__bound_balls__enlarge_1.0__sample_rslice_slices_1"
+        assert (
+            dynesty.tag
+            == "dynesty_dynamic__bound_balls__enlarge_1.0__sample_rslice_slices_1"
+        )
 
     def test__samples_from_model(self):
         # Setup pickle of mock Dynesty sampler that the samples_from_model function uses.
 
         results = MockDynestyResults(
-            samples=np.array([[1.0, 2.0, 3.0, 5.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]),
+            samples=np.array(
+                [[1.0, 2.0, 3.0, 5.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]
+            ),
             logl=[1.0, 2.0, 3.0],
             logwt=[1.0, 2.0, 3.0],
             ncall=[5.0, 5.0],
@@ -322,8 +333,7 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyStatic)
         assert copy.sigma is search.sigma
         assert (
-            copy.terminate_at_acceptance_ratio
-            is search.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
@@ -350,8 +360,7 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyDynamic)
         assert copy.sigma is search.sigma
         assert (
-            copy.terminate_at_acceptance_ratio
-            is search.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 

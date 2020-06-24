@@ -8,12 +8,7 @@ from autofit.non_linear.paths import Paths
 
 
 class DownhillSimplex(AbstractOptimizer):
-
-    def __init__(
-            self,
-            paths=None,
-            fmin=scipy.optimize.fmin
-    ):
+    def __init__(self, paths=None, fmin=scipy.optimize.fmin):
 
         if paths is None:
             paths = Paths()
@@ -52,14 +47,13 @@ class DownhillSimplex(AbstractOptimizer):
         return copy
 
     class Fitness(AbstractOptimizer.Fitness):
-
         def __init__(self, paths, model, analysis, samples_fom_model):
 
             super().__init__(
                 paths=paths,
                 analysis=analysis,
                 model=model,
-                samples_from_model=samples_fom_model
+                samples_from_model=samples_fom_model,
             )
 
         def __call__(self, vector):
@@ -75,7 +69,10 @@ class DownhillSimplex(AbstractOptimizer):
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            paths=self.paths, model=model, analysis=analysis, samples_fom_model=self.samples_from_model
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_fom_model=self.samples_from_model,
         )
 
         logger.info("Running DownhillSimplex...")

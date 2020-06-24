@@ -38,7 +38,7 @@ def make_pipeline_1():
         phase_name="phase_grid",
         profiles=af.CollectionPriorModel(gaussian=af.last.model.profiles.gaussian),
             search=af.DynestyStatic(
-                n_live_points=40, facc=0.5, evidence_tolerance=5.0
+                n_live_points=40, evidence_tolerance=5.0
             ),
             number_of_steps=2,
         )

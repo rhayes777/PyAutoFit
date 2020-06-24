@@ -277,8 +277,7 @@ class TestMulitNest:
         assert copy.max_iter is search.max_iter
         assert copy.init_MPI is search.init_MPI
         assert (
-            copy.terminate_at_acceptance_ratio
-            is search.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 

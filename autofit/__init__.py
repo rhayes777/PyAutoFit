@@ -36,12 +36,15 @@ from .non_linear.abstract_search import Analysis
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import Result
 from .non_linear.optimize.downhill_simplex import DownhillSimplex
+from .non_linear.optimize.pyswarms import PySwarmsLocal
 from .non_linear.optimize.pyswarms import PySwarmsGlobal
 from .non_linear.mcmc.emcee import Emcee
 from .non_linear.mock.mock_nlo import MockSearch
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multi_nest import MultiNest
+from .non_linear.initializer import InitializerPrior
+from .non_linear.initializer import InitializerBall
 from .non_linear.paths import Paths
 from .non_linear.paths import convert_paths
 from .non_linear.paths import make_path
@@ -64,4 +67,4 @@ from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
 
-__version__ = '0.59.7'
+__version__ = '0.59.8'

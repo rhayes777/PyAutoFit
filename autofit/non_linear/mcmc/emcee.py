@@ -1,10 +1,12 @@
 import logging
 import os
 import emcee
+import numpy as np
 
 from autofit import exc
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,9 +17,7 @@ class Emcee(AbstractMCMC):
         sigma=3,
         nwalkers=None,
         nsteps=None,
-        initialize_method=None,
-        initialize_ball_lower_limit=None,
-        initialize_ball_upper_limit=None,
+        initializer=None,
         auto_correlation_check_for_convergence=None,
         auto_correlation_check_size=None,
         auto_correlation_required_length=None,
@@ -59,21 +59,8 @@ class Emcee(AbstractMCMC):
         nsteps : int
             The number of steps that must be taken by every walker. The non-linear search will thus run for nwalkers *
             nsteps iterations.
-        initialize_method : str
-            The method used to generate where walkers are initialized in parameter space, with options:
-            ball (default):
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between the
-                initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
-                small, such that all walkers begin close to one another.
-            prior:
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
-                thus being distributed over the prior.
-        initialize_ball_lower_limit : float
-            The lower limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
-        initialize_ball_upper_limit : float
-            The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
+        initializer : non_linear.initializer.Initializer
+            Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         auto_correlation_check_for_convergence : bool
             Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
             If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
@@ -99,7 +86,9 @@ class Emcee(AbstractMCMC):
 
         self.sigma = sigma
 
-        self.nwalkers = self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
+        self.nwalkers = (
+            self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
+        )
         self.nsteps = self.config("search", "nsteps", int) if nsteps is None else nsteps
 
         self.auto_correlation_check_for_convergence = (
@@ -125,9 +114,7 @@ class Emcee(AbstractMCMC):
 
         super().__init__(
             paths=paths,
-            initialize_method=initialize_method,
-            initialize_ball_lower_limit=initialize_ball_lower_limit,
-            initialize_ball_upper_limit=initialize_ball_upper_limit,
+            initializer=initializer,
             iterations_per_update=iterations_per_update,
         )
 
@@ -139,19 +126,21 @@ class Emcee(AbstractMCMC):
 
         logger.debug("Creating Emcee NLO")
 
-
     class Fitness(AbstractMCMC.Fitness):
-        def __call__(self, params):
-
+        def __call__(self, parameters):
             try:
-
-                instance = self.model.instance_from_vector(vector=params)
-                log_likelihood = self.fit_instance(instance)
-                log_priors = self.model.log_priors_from_vector(vector=params)
-                return log_likelihood + sum(log_priors)
-
+                return self.figure_of_merit_from_parameters(parameters=parameters)
             except exc.FitException:
-                return self.resample_likelihood
+                return self.resample_figure_of_merit
+
+        def figure_of_merit_from_parameters(self, parameters):
+            """The figure of merit is the value that the non-linear search uses to sample parameter space. *Emcee*
+            uses the log posterior.
+            """
+            try:
+                return self.log_posterior_from_parameters(parameters=parameters)
+            except exc.FitException:
+                raise exc.FitException
 
     def _fit(self, model, analysis):
         """
@@ -174,22 +163,22 @@ class Emcee(AbstractMCMC):
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids,
+            model=model, analysis=analysis, pool_ids=pool_ids
         )
 
         emcee_sampler = emcee.EnsembleSampler(
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.paths.samples_path + "/emcee.hdf"),
+            backend=emcee.backends.HDFBackend(
+                filename=self.paths.samples_path + "/emcee.hdf"
+            ),
             pool=pool,
-
         )
 
         try:
 
             emcee_state = emcee_sampler.get_last_sample()
-
             samples = self.samples_from_model(model=model)
 
             total_iterations = emcee_sampler.iteration
@@ -201,11 +190,20 @@ class Emcee(AbstractMCMC):
 
         except AttributeError:
 
-            emcee_state = self.initial_points_from_model(number_of_points=emcee_sampler.nwalkers, model=model)
+            initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
+                total_points=emcee_sampler.nwalkers,
+                model=model,
+                fitness_function=fitness_function,
+            )
+
+            emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
+
+            for index, parameters in enumerate(initial_parameters):
+
+                emcee_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.nsteps
-
 
         logger.info("Running Emcee Sampling...")
 
@@ -226,10 +224,14 @@ class Emcee(AbstractMCMC):
 
                 pass
 
+            emcee_state = emcee_sampler.get_last_sample()
+
             total_iterations += iterations
             iterations_remaining = self.nsteps - total_iterations
 
-            samples = self.perform_update(model=model, analysis=analysis, during_analysis=True)
+            samples = self.perform_update(
+                model=model, analysis=analysis, during_analysis=True
+            )
 
             if emcee_sampler.iteration % self.auto_correlation_check_size:
                 if samples.converged and self.auto_correlation_check_for_convergence:
@@ -242,10 +244,10 @@ class Emcee(AbstractMCMC):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config('tag', 'name')
+        name_tag = self.config("tag", "name")
         nwalkers_tag = f"{self.config('tag', 'nwalkers')}_{self.nwalkers}"
 
-        return f'{name_tag}__{nwalkers_tag}'
+        return f"{name_tag}__{nwalkers_tag}"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.
@@ -257,13 +259,13 @@ class Emcee(AbstractMCMC):
         copy.sigma = self.sigma
         copy.nwalkers = self.nwalkers
         copy.nsteps = self.nsteps
-        copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
+        copy.auto_correlation_check_for_convergence = (
+            self.auto_correlation_check_for_convergence
+        )
         copy.auto_correlation_check_size = self.auto_correlation_check_size
         copy.auto_correlation_required_length = self.auto_correlation_required_length
         copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
+        copy.initializer = self.initializer
         copy.iterations_per_update = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
 
@@ -330,5 +332,6 @@ class Emcee(AbstractMCMC):
             )
         else:
             raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path " + self.paths.samples_path
+                "The file emcee.hdf does not exist at the path "
+                + self.paths.samples_path
             )

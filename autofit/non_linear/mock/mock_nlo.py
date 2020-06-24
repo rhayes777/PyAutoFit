@@ -9,7 +9,6 @@ from autofit.non_linear.abstract_search import Result
 
 
 class MockSearch(NonLinearSearch):
-
     def _fit(self, model, analysis):
 
         if model.prior_count == 0:
@@ -75,10 +74,17 @@ class MockAnalysis(Analysis):
 
 
 class MockSamples(PDFSamples):
+    def __init__(
+        self,
+        model=None,
+        max_log_likelihood_instance=None,
+        log_likelihoods=None,
+        gaussian_tuples=None,
+    ):
 
-    def __init__(self, model=None, max_log_likelihood_instance=None, log_likelihoods=None, gaussian_tuples=None):
-
-        super().__init__(model=model, parameters=[], log_likelihoods=[], log_priors=[], weights=[])
+        super().__init__(
+            model=model, parameters=[], log_likelihoods=[], log_priors=[], weights=[]
+        )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self.log_likelihoods = log_likelihoods
