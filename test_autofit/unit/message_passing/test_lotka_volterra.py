@@ -109,7 +109,6 @@ def test():
 
     history = {}
     n_iter = 1
-    total = n_iter * len(LV_model.factors)
 
     factors = [f for f in LV_model.factors if f not in (LV,)]
 
@@ -130,3 +129,5 @@ def test():
 
     model_mean = {v: d.mean for v, d in model_approx.approx.items()}
     y_pred = LV_model(**model_mean).deterministic_values['y']
+    assert y_pred.min() > 0.2
+    assert y_pred.max() < 1.6
