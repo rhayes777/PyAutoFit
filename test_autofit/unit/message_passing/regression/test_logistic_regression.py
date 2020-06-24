@@ -87,3 +87,32 @@ def test_laplace(
 
     assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
+
+
+def test_importance_sampling(
+        model,
+        model_approx
+):
+    np.random.seed(1)
+    sampler = mp.ImportanceSampler(n_samples=500)
+    history = {}
+
+    for i in range(3):
+        for factor in model.factors:
+            # We have reduced the entire EP step into a single function
+            model_approx, status = mp.sampling.project_model(
+                model_approx, factor, sampler,
+                force_sample=False, delta=1.)
+
+            # save and print current approximation
+            history[i, factor] = model_approx
+
+    #  TODO there is an API discrepancy here
+    q_a = model_approx['a'].parameters.round(3)
+    q_b = model_approx['b'].parameters.round(3)
+
+    assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
+    assert q_a.sigma[0][0] == pytest.approx(0.08, rel=1)
+
+    assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
+    assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
