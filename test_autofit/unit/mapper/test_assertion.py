@@ -94,50 +94,50 @@ class TestAssertion:
     # noinspection PyUnresolvedReferences
     def test_annotation(self):
         model = af.PriorModel(mock.MockDistanceClass)
-        assertion = model.first < model.second
+        assertion = model.one < model.two
 
         assert assertion.instance_for_arguments({
-            model.first.value: 0.3,
-            model.second.value: 0.4
+            model.one.value: 0.3,
+            model.two.value: 0.4
         }) is True
         assert assertion.instance_for_arguments({
-            model.first.value: 0.5,
-            model.second.value: 0.4
+            model.one.value: 0.5,
+            model.two.value: 0.4
         }) is False
 
 
 @pytest.fixture(name="promise_model")
 def make_promise_model(phase):
-    return phase.result.model.one.light
+    return phase.result.model.one.model_component
 
 
 @pytest.fixture(name="model")
 def make_model(collection):
-    return collection.last.model.one.light
+    return collection.last.model.one.model_component
 
 
 class TestPromiseAssertion:
     def test_less_than(self, promise_model, collection, model):
-        promise = promise_model.axis_ratio < promise_model.phi
+        promise = promise_model.one < promise_model.two
         assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
 
         assertion = promise.populate(collection)
         assert isinstance(assertion, af.prior.GreaterThanLessThanAssertion)
 
     def test_greater_than(self, promise_model, collection, model):
-        promise = promise_model.axis_ratio > promise_model.phi
+        promise = promise_model.one > promise_model.two
         assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
 
     def test_greater_than_equal(self, promise_model, collection, model):
-        promise = promise_model.axis_ratio >= promise_model.phi
+        promise = promise_model.one >= promise_model.two
         assert isinstance(promise, af.prior.GreaterThanLessThanEqualAssertion)
 
     def test_integer_promise_assertion(self, promise_model, collection, model):
-        promise = promise_model.axis_ratio > 1.0
+        promise = promise_model.one > 1.0
         assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
 
     def test_compound_assertion(self, promise_model, collection, model):
-        promise = (1.0 < promise_model.axis_ratio) < 1.0
+        promise = (1.0 < promise_model.one) < 1.0
         assert isinstance(promise, af.prior.CompoundAssertion)
 
         assertion = promise.populate(collection)
@@ -158,22 +158,22 @@ class TestModel:
 
     def test_populate_assertion_promises(self, promise_model, collection):
         model = af.ModelMapper()
-        model.light = promise_model
+        model.model_component = promise_model
         # noinspection PyTypeChecker
-        model.add_assertion(promise_model.axis_ratio < promise_model.phi)
+        model.add_assertion(promise_model.one < promise_model.two)
 
         model = model.populate(collection)
 
         assert model._assertions[0].instance_for_arguments(
             {
-                model.light.axis_ratio: 0.0,
-                model.light.phi: 1.0
+                model.model_component.one: 0.0,
+                model.model_component.two: 1.0
             }
         ) is True
         assert model._assertions[0].instance_for_arguments(
             {
-                model.light.axis_ratio: 1.0,
-                model.light.phi: 0.0
+                model.model_component.one: 1.0,
+                model.model_component.two: 0.0
             }
         ) is False
 

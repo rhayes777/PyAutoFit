@@ -16,7 +16,7 @@ class GridPhase(af.as_grid_search(phase_class=ph.Phase, parallel=False)):
     @property
     def grid_priors(self):
         return [
-            self.model.profiles.gaussian.centre,
+            self.model.profiles.gaussian.one_tuple,
         ]
 
 phase = GridPhase(

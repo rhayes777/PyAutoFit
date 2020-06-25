@@ -305,7 +305,7 @@
             }
         }
     },
-    "SimpleClass": {
+    "MockClassx2": {
         "one": {
             "type": "Uniform",
             "lower_limit": 0.0,

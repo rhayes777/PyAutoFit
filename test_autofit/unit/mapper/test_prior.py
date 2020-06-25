@@ -3,7 +3,7 @@ import math
 import pytest
 
 import autofit as af
-from test_autofit.mock import MockClassx2, MockClassInf, EllipticalSersic
+from test_autofit import mock
 
 
 class TestPriorLimits:
@@ -47,10 +47,11 @@ class TestPriorLimits:
         prior.assert_within_limits(1.0)
 
     def test_prior_creation(self):
-        mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
 
-        prior_tuples = mm.prior_tuples_ordered_by_id
+        mapper = af.ModelMapper()
+        mapper.model_component = mock.MockClassx2
+
+        prior_tuples = mapper.prior_tuples_ordered_by_id
 
         assert prior_tuples[0].prior.lower_limit == 0
         assert prior_tuples[0].prior.upper_limit == 1
@@ -60,7 +61,7 @@ class TestPriorLimits:
 
     def test_out_of_limits(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = mock.MockClassx2
 
         assert mm.instance_from_vector([1, 2]) is not None
 
@@ -72,7 +73,7 @@ class TestPriorLimits:
 
     def test_inf(self):
         mm = af.ModelMapper()
-        mm.mock_class_inf = MockClassInf
+        mm.mock_class_inf = mock.MockClassInf
 
         prior_tuples = mm.prior_tuples_ordered_by_id
 
@@ -92,7 +93,7 @@ class TestPriorLimits:
 
     def test_preserve_limits_tuples(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = mock.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples([(0.0, 0.5), (0.0, 1)])
 
@@ -106,7 +107,7 @@ class TestPriorLimits:
 
     def test_from_gaussian_no_limits(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = mock.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
             [(0.0, 0.5), (0.0, 1)],
@@ -174,12 +175,12 @@ class TestAddition:
     def test_mapper_plus_mapper(self):
         one = af.ModelMapper()
         two = af.ModelMapper()
-        one.a = af.PriorModel(EllipticalSersic)
-        two.b = af.PriorModel(EllipticalSersic)
+        one.a = af.PriorModel(mock.MockClassx2)
+        two.b = af.PriorModel(mock.MockClassx2)
 
         three = one + two
 
-        assert three.prior_count == 14
+        assert three.prior_count == 4
 
 
 class TestUniformPrior:
@@ -263,6 +264,7 @@ class TestLogUniformPrior:
         log_prior = gaussian_simple.log_prior_from_value(value=4.0)
 
         assert log_prior == 0.25
+
 
 class TestGaussianPrior:
     def test__simple_assumptions(self):

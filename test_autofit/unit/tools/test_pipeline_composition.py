@@ -17,7 +17,7 @@ def make_pipeline_1(name, folders, search):
         phase_name="phase_1",
         folders=folders,
         model=af.PriorModel(
-            mock.Galaxy,
+            mock.MockComponents,
             redshift=af.GaussianPrior(10.0, 1.0)
         ),
         search=search,
@@ -31,8 +31,8 @@ def make_pipeline_2(name, folders, search):
         phase_name="phase_2",
         folders=folders,
         model=af.PriorModel(
-            mock.Galaxy,
-            redshift=af.last.model.redshift
+            mock.MockComponents,
+            redshift=af.last.model.parameter
         ),
         search=search,
         analysis_class=MockAnalysis,
@@ -64,4 +64,4 @@ def test_pipeline_composition():
     results = pipeline.run(
         mock.MockDataset()
     )
-    assert results[0].model.redshift.mean == results[1].model.redshift.mean
+    assert results[0].model.parameter.mean == results[1].model.parameter.mean

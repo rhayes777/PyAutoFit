@@ -11,7 +11,6 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.paths import convert_paths
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.non_linear import grid_search
-from autofit.non_linear.nest.dynesty import DynestyStatic
 from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ import os
 import pytest
 
 import autofit as af
-from test_autofit.mock import GeometryProfile, Galaxy
+from test_autofit.mock import GeometryProfile, MockComponents
 
 
 @pytest.fixture(name="results")
@@ -24,7 +24,7 @@ class TestResultsCollection:
     def test_with_index(self, results):
         assert results[0] == "one"
         assert results[1] == "two"
-        assert results.first == "one"
+        assert results.one == "one"
         assert results.last == "two"
         assert len(results) == 2
 

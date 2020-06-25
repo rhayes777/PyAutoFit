@@ -5,7 +5,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit.non_linear import abstract_search
-from test_autofit.mock import Galaxy, GalaxyModel
+from test_autofit.mock import MockComponents, GalaxyModel
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -80,7 +80,7 @@ class TestPhasePropertyList:
         assert list_phase.prop == objects
 
     def test_mix(self, list_phase):
-        objects = [GalaxyModel(), Galaxy()]
+        objects = [GalaxyModel(), MockComponents()]
 
         list_phase.prop = objects
 
@@ -89,7 +89,7 @@ class TestPhasePropertyList:
 
     def test_set_item(self, list_phase):
         galaxy_prior_0 = GalaxyModel()
-        objects = [galaxy_prior_0, Galaxy()]
+        objects = [galaxy_prior_0, MockComponents()]
 
         list_phase.prop = objects
 
@@ -98,7 +98,7 @@ class TestPhasePropertyList:
 
         assert list_phase.model.prop == [galaxy_prior_0, galaxy_prior_1]
 
-        galaxy = Galaxy()
+        galaxy = MockComponents()
 
         list_phase.prop[0] = galaxy
         assert list_phase.prop == [galaxy, galaxy_prior_1]
@@ -131,11 +131,11 @@ class TestPhasePropertyCollectionAttributes:
         assert getattr(list_phase.prop, "0") == galaxy_model
 
     def test_mix(self, list_phase):
-        objects = dict(one=GalaxyModel(), two=Galaxy())
+        objects = dict(one=GalaxyModel(), two=MockComponents())
 
         list_phase.prop = objects
 
-        list_phase.prop.one = Galaxy()
+        list_phase.prop.one = MockComponents()
 
         assert len(list_phase.model.prop) == 2
 
@@ -169,7 +169,7 @@ class TestPhasePropertyCollectionAttributes:
         assert len(instance.prop) == 1
 
     def test_named_attributes_in_instance(self, list_phase):
-        galaxy = Galaxy()
+        galaxy = MockComponents()
         list_phase.prop = dict(one=galaxy)
 
         assert list_phase.model.prior_count == 0
@@ -183,7 +183,7 @@ class TestPhasePropertyCollectionAttributes:
         assert list_phase.model.prior_count == 2
 
         # noinspection PyUnresolvedReferences
-        list_phase.prop.one.redshift = list_phase.prop.two.redshift
+        list_phase.prop.one.parameter = list_phase.prop.two.parameter
 
         assert list_phase.model.prior_count == 1
 
@@ -196,12 +196,12 @@ class TestPhasePropertyCollectionAttributes:
         assert hasattr(list_phase.prop, "one")
 
     def test_position_not_a_prior(self, list_phase):
-        list_phase.prop = [af.PriorModel(Galaxy)]
+        list_phase.prop = [af.PriorModel(MockComponents)]
 
         assert list_phase.model.prior_count == 1
         assert "redshift" == list_phase.model.prior_tuples_ordered_by_id[0][0]
 
-        prior_model = af.PriorModel(Galaxy)
+        prior_model = af.PriorModel(MockComponents)
         prior_model.phase_property_position = 0
 
         print(prior_model.instance_tuples)

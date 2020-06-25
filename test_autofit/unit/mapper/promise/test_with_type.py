@@ -3,17 +3,17 @@ from test_autofit import mock
 
 
 def test_model_with_type(phase, collection):
-    promise = phase.result.model[mock.Galaxy][0]
+    promise = phase.result.model[mock.MockComponents][0]
 
     result = promise.populate(collection)
 
     assert isinstance(result, af.PriorModel)
-    assert result.cls == mock.Galaxy
+    assert result.cls == mock.MockComponents
 
 
 def test_instance_with_type(phase, collection):
-    promise = phase.result.instance[mock.Galaxy][0]
+    promise = phase.result.instance[mock.MockComponents][0]
 
     result = promise.populate(collection)
 
-    assert isinstance(result, mock.Galaxy)
+    assert isinstance(result, mock.MockComponents)

@@ -7,8 +7,8 @@ def test__parameter_names_from_text():
     model = af.ModelMapper()
     model.ls = af.CollectionPriorModel(
         [
-            af.PriorModel(mock.RelativeWidth),
-            af.PriorModel(mock.RelativeWidth),
+            af.PriorModel(mock.MockClassRelativeWidth),
+            af.PriorModel(mock.MockClassRelativeWidth),
         ]
     )
 

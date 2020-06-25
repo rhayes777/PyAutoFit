@@ -33,8 +33,8 @@ def model():
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase(phase_name="phase name", search=af.DynestyStatic())
-    phase.model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalProfile)
+    phase = af.AbstractPhase(phase_name="phase name", search=af.MockSearch())
+    phase.model.one = af.PriorModel(mock.MockComponents, model_component=mock.MockClassx2)
     return phase
 
 
@@ -42,9 +42,9 @@ def make_phase():
 def make_collection():
     collection = af.ResultsCollection()
     model = af.ModelMapper()
-    model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalProfile)
+    model.one = af.PriorModel(mock.MockComponents, model_component=mock.MockClassx2)
     instance = af.ModelInstance()
-    instance.one = mock.Galaxy(light=mock.EllipticalProfile())
+    instance.one = mock.MockComponents(model_component=mock.MockClassx2())
 
     result = mock.MockResult(model=model, instance=instance)
 

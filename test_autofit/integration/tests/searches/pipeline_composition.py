@@ -31,7 +31,7 @@ def make_pipeline_1():
         @property
         def grid_priors(self):
             return [
-                self.model.profiles.gaussian.centre,
+                self.model.profiles.gaussian.one_tuple,
             ]
 
     phase = GridPhase(

@@ -597,7 +597,7 @@ class PySwarmsLocal(AbstractPySwarms):
         return pyswarms.local_best.LocalBestPSO(
             n_particles=self.n_particles,
             dimensions=model.prior_count,
-       #     bounds=bounds,
+            bounds=bounds,
             options={
                 "c1": self.cognitive,
                 "c2": self.social,
