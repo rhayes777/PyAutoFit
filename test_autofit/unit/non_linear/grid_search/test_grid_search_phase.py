@@ -1,5 +1,5 @@
 import autofit as af
-from test_autofit.unit.mapper.model.test_model_mapper import GeometryProfile
+from test_autofit import mock
 
 
 class TestMixin:
@@ -18,7 +18,7 @@ class TestMixin:
             number_of_steps=2,
             search=container.MockOptimizer,
         )
-        my_phase.model.profile = GeometryProfile
+        my_phase.model.profile = mock.MockClassx2Tuple
 
         result = my_phase.run()
 

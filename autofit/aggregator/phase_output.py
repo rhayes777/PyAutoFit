@@ -40,15 +40,6 @@ class PhaseOutput:
         return f"{self.directory}/pickles"
 
     @property
-    def samples(self) -> PDFSamples:
-        """
-        An object describing the samples of the nonlinear search performed in this phase
-        """
-        return self.search.samples_from_model(
-            model=self.model,
-        )
-
-    @property
     def model_results(self) -> str:
         """
         Reads the model.results file
@@ -93,7 +84,7 @@ class PhaseOutput:
         The search object that was used in this phase
         """
         if self.__search is None:
-            with open(os.path.join(self.pickle_path, "non_linear.pickle"), "r+b") as f:
+            with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
                 self.__search = pickle.loads(f.read())
         return self.__search
 

@@ -1,4 +1,16 @@
 {
+    "Circle": {
+        "circumference": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0
+        },
+        "radius": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0
+        }
+    },
     "EllipticalProfile": {
         "phi": {
             "type": "Uniform",
@@ -398,5 +410,30 @@
                 "upper": 1.0
             }
         }
+    },
+    "Redshift": {
+        "redshift": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 3.0
+        }
+    },
+    "Galaxy": {
+        "redshift": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "gaussian_limits": {
+                "lower": "-inf",
+                "upper": "inf"
+            }
+        }
+    },
+    "Tracer": {
+        "grid.type": "Deferred"
     }
 }

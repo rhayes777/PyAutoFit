@@ -2,16 +2,17 @@ import pytest
 
 import autofit as af
 from test_autofit import mock
+from test_autofit import mock_real
 
 
 @pytest.fixture(name="galaxy_1")
 def make_galaxy_1():
-    return mock.MockComponents()
+    return mock_real.Galaxy()
 
 
 @pytest.fixture(name="galaxy_2")
 def make_galaxy_2():
-    return mock.MockComponents()
+    return mock_real.Galaxy()
 
 
 @pytest.fixture(name="instance")
@@ -38,7 +39,7 @@ class TestModelInstance:
         model = instance.as_model()
         assert isinstance(model, af.ModelMapper)
         assert isinstance(model.galaxy_2, af.PriorModel)
-        assert model.galaxy_2.cls == mock.MockComponents
+        assert model.galaxy_2.cls == mock_real.Galaxy
 
     def test_object_for_path(self, instance, galaxy_1, galaxy_2):
 
@@ -46,10 +47,10 @@ class TestModelInstance:
         assert instance.object_for_path(("sub", "galaxy_1")) is galaxy_1
         assert instance.object_for_path(("sub", "sub", "galaxy_1")) is galaxy_1
         setattr(instance.object_for_path(("galaxy_2",)), "galaxy", galaxy_1)
-        assert galaxy_2.model_component is galaxy_1
+        assert galaxy_2.galaxy is galaxy_1
 
     def test_path_instance_tuples_for_class(self, instance, galaxy_1, galaxy_2):
-        result = instance.path_instance_tuples_for_class(mock.MockComponents)
+        result = instance.path_instance_tuples_for_class(mock_real.Galaxy)
         assert result[0] == (("galaxy_2",), galaxy_2)
         assert result[1] == (("sub", "galaxy_1"), galaxy_1)
         assert result[2] == (("sub", "sub", "galaxy_1"), galaxy_1)

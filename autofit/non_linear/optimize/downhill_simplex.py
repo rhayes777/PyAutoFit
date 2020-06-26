@@ -83,7 +83,7 @@ class DownhillSimplex(AbstractOptimizer):
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.gaussian_tuples = [(mean, 0) for mean in samples]
-        res.previous_model = model
+        res.model = model
 
         analysis.visualize(instance=res.instance, during_analysis=False)
         self.paths.backup_zip_remove()

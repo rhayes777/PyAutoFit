@@ -71,7 +71,7 @@ class TestLastPromises:
         assert af.last.hyper_result[0].model.populate(collection) is result
 
     def test_second_indexed_hyper(self, collection):
-        result = mock.MockResult(model=af.ModelMapper(), instance=af.ModelInstance())
+        result = af.MockResult(model=af.ModelMapper(), instance=af.ModelInstance())
         collection.add("next", result)
         result = af.last[-1].hyper_result.model.populate(collection)
         assert isinstance(result, af.ModelMapper)
@@ -154,7 +154,7 @@ class TestIndexLast:
         collection.add(
             "phase one", af.GridSearchResult(
                 [
-                    mock.MockResult(
+                    af.MockResult(
                         model=af.ModelMapper(galaxy=galaxy_model_1)
                     )
                 ],
@@ -171,12 +171,12 @@ class TestIndexLast:
         galaxy_model_1 = af.PriorModel(mock.MockComponents)
         model_1 = af.ModelMapper(galaxy=galaxy_model_1)
 
-        collection.add("phase one", mock.MockResult(model=model_1, instance=None))
+        collection.add("phase one", af.MockResult(model=model_1, instance=None))
 
         galaxy_model_2 = af.PriorModel(mock.MockComponents)
         model_2 = af.ModelMapper(galaxy=galaxy_model_2)
 
-        collection.add("phase two", mock.MockResult(model=model_2, instance=None))
+        collection.add("phase two", af.MockResult(model=model_2, instance=None))
 
         result = af.last.model.model_component.populate(collection)
         assert result is galaxy_model_2
@@ -186,7 +186,7 @@ class TestIndexLast:
 
     def test_results_collection_duplicates(self):
         collection = af.ResultsCollection()
-        result = mock.MockResult(None, None)
+        result = af.MockResult(None, None)
 
         collection.add("name", result)
         collection.add("name", result)

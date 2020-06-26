@@ -1,12 +1,26 @@
 import inspect
-import math
-import typing
-
-from autoconf import conf
 import autofit as af
 # noinspection PyAbstractClass
 from autofit.mapper.prior_model import attribute_pair
-from autofit.tools.phase import Dataset
+
+
+import math
+
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius
+
+    def with_circumference(self, circumference):
+        self.circumference = circumference
+
+    @property
+    def circumference(self):
+        return self.radius * 2 * math.pi
+
+    @circumference.setter
+    def circumference(self, circumference):
+        self.radius = circumference / (2 * math.pi)
+
 
 class GeometryProfile:
     def __init__(self, centre=(0.0, 0.0)):
@@ -249,3 +263,73 @@ class EllipticalExponential(EllipticalSersic):
             effective_radius=effective_radius,
             sersic_index=1.0
         )
+
+
+class Redshift:
+    def __init__(self, redshift):
+        self.redshift = redshift
+
+
+class Galaxy:
+    def __init__(
+            self,
+            light_profiles: list = None,
+            mass_profiles: list = None,
+            redshift=None,
+            **kwargs
+    ):
+        self.redshift = redshift
+        self.light_profiles = light_profiles
+        self.mass_profiles = mass_profiles
+        self.kwargs = kwargs
+
+
+class Tracer:
+    def __init__(self, lens_galaxy: Galaxy, source_galaxy: Galaxy, grid):
+        self.lens_galaxy = lens_galaxy
+        self.source_galaxy = source_galaxy
+        self.grid = grid
+
+# noinspection PyAbstractClass
+class GalaxyModel(af.AbstractPriorModel):
+    def instance_for_arguments(self, arguments):
+        try:
+            return Galaxy(redshift=self.redshift.instance_for_arguments(arguments))
+        except AttributeError:
+            return Galaxy()
+
+    def __init__(self, model_redshift=False, **kwargs):
+        super().__init__()
+        self.redshift = af.PriorModel(Redshift) if model_redshift else None
+        print(self.redshift)
+        self.__dict__.update(
+            {
+                key: af.PriorModel(value) if inspect.isclass(value) else value
+                for key, value in kwargs.items()
+            }
+        )
+
+    @property
+    def instance_tuples(self):
+        return []
+
+    @property
+    @attribute_pair.cast_collection(
+        attribute_pair.PriorNameValue
+    )
+    def unique_prior_tuples(self):
+        return (
+            [item for item in self.__dict__.items() if isinstance(item[1], af.Prior)]
+            + [("redshift", self.redshift.redshift)]
+            if self.redshift is not None
+            else []
+        )
+
+    @property
+    @attribute_pair.cast_collection(af.PriorModelNameValue)
+    def flat_prior_model_tuples(self):
+        return [
+            item
+            for item in self.__dict__.items()
+            if isinstance(item[1], af.AbstractPriorModel)
+        ]

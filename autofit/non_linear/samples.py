@@ -193,7 +193,7 @@ class PDFSamples(OptimizerSamples):
         try:
 
             densities_1d = list(
-                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+                map(lambda p: self.getdist_samples.get1DDensity(p), self.getdist_samples.getParamNames().names)
             )
 
             if densities_1d == []:
@@ -204,7 +204,7 @@ class PDFSamples(OptimizerSamples):
             return False
 
     @property
-    def pdf(self):
+    def getdist_samples(self):
         """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search samples.
 
         *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
@@ -234,8 +234,9 @@ class PDFSamples(OptimizerSamples):
         If the samples are sufficiently converged this is estimated by passing the accepted samples to *GetDist*, else
         a crude estimate using the mean value of all accepted samples is used."""
         if self.pdf_converged:
-            return self.pdf.getMeans()
-        return list(np.mean(self.parameters, axis=0))
+            return self.getdist_samples.getMeans()
+
+        return self.max_log_likelihood_vector
 
     @property
     def median_pdf_instance(self) -> ModelInstance:
@@ -266,7 +267,7 @@ class PDFSamples(OptimizerSamples):
 
         if self.pdf_converged:
             densities_1d = list(
-                map(lambda p: self.pdf.get1DDensity(p), self.pdf.getParamNames().names)
+                map(lambda p: self.getdist_samples.get1DDensity(p), self.getdist_samples.getParamNames().names)
             )
 
             return list(map(lambda p: p.getLimits(limit), densities_1d))
@@ -426,7 +427,7 @@ class PDFSamples(OptimizerSamples):
         sigma : float
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
         return self.model.instance_from_vector(
-            vector=self.error_vector_at_sigma(sigma=sigma)
+            vector=self.error_vector_at_sigma(sigma=sigma), assert_priors_in_limits=False
         )
 
     def error_instance_at_upper_sigma(self, sigma) -> ModelInstance:
@@ -442,7 +443,7 @@ class PDFSamples(OptimizerSamples):
             PDF).
         """
         return self.model.instance_from_vector(
-            vector=self.error_vector_at_upper_sigma(sigma=sigma)
+            vector=self.error_vector_at_upper_sigma(sigma=sigma), assert_priors_in_limits=False
         )
 
     def error_instance_at_lower_sigma(self, sigma) -> ModelInstance:
@@ -458,7 +459,7 @@ class PDFSamples(OptimizerSamples):
             PDF).
         """
         return self.model.instance_from_vector(
-            vector=self.error_vector_at_lower_sigma(sigma=sigma)
+            vector=self.error_vector_at_lower_sigma(sigma=sigma), assert_priors_in_limits=False
         )
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
@@ -557,7 +558,7 @@ class PDFSamples(OptimizerSamples):
         if plot_pdf_1d_params:
 
             for param_name in self.model.parameter_names:
-                pdf_plot.plot_1d(roots=self.pdf, param=param_name)
+                pdf_plot.plot_1d(roots=self.getdist_samples, param=param_name)
                 pdf_plot.export(
                     fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
                 )
@@ -569,7 +570,7 @@ class PDFSamples(OptimizerSamples):
         if plot_pdf_triangle:
 
             try:
-                pdf_plot.triangle_plot(roots=self.pdf)
+                pdf_plot.triangle_plot(roots=self.getdist_samples)
                 pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
             except Exception as e:
                 logger.exception(e)
@@ -628,7 +629,7 @@ class MCMCSamples(PDFSamples):
         self.backend = backend
 
     @property
-    def pdf(self):
+    def getdist_samples(self):
         """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search samples.
 
         *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
@@ -711,7 +712,7 @@ class MCMCSamples(PDFSamples):
                 for i in range(self.model.prior_count)
             ]
 
-        return list(np.mean(self.parameters, axis=0))
+        return self.max_log_likelihood_vector
 
     def vector_at_sigma(self, sigma) -> [float]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function

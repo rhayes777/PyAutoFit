@@ -7,7 +7,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit.non_linear.nest import multi_nest as mn
-from test_autofit.mock import MockClassx4
+from test_autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -209,7 +209,7 @@ class TestMulitNest:
         assert multi_nest.terminate_at_acceptance_ratio == False
         assert multi_nest.acceptance_ratio_threshold == 1.0
 
-        model = af.ModelMapper(mock_class_1=MockClassx4)
+        model = af.ModelMapper(mock_class_1=mock.MockClassx4)
 
         fitness = af.MultiNest.Fitness(
             paths=multi_nest.paths,
@@ -365,7 +365,7 @@ class TestMulitNest:
         create_resume(path=multi_nest.paths.backup_path)
         create_summary_4_parameters(path=multi_nest.paths.backup_path)
 
-        model = af.ModelMapper(mock_class=MockClassx4)
+        model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = multi_nest.samples_from_model(model=model)

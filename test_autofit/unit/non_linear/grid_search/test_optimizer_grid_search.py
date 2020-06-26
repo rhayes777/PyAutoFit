@@ -5,20 +5,20 @@ import pytest
 
 import autofit as af
 from autofit import exc, DownhillSimplex
-from test_autofit.unit.mapper.model.test_model_mapper import GeometryProfile
+from test_autofit import mock_real
 
 
 @pytest.fixture(name="mapper")
 def make_mapper():
     mapper = af.ModelMapper()
-    mapper.profile = GeometryProfile
+    mapper.profile = mock_real.SphericalProfile
     return mapper
 
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
     return af.NonLinearSearchGridSearch(
-        af.Paths(name=""), number_of_steps=10, search=DownhillSimplex
+        af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
     )
 
 
@@ -34,6 +34,7 @@ def test_unpickle_result():
 
 class TestGridSearchablePriors:
     def test_generated_models(self, grid_search, mapper):
+
         mappers = list(
             grid_search.model_mappers(
                 mapper, grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1]
@@ -54,7 +55,7 @@ class TestGridSearchablePriors:
 
     def test_non_grid_searched_dimensions(self, mapper):
         grid_search = af.NonLinearSearchGridSearch(
-            af.Paths(name=""), number_of_steps=10
+            af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
         )
 
         mappers = list(
@@ -264,7 +265,7 @@ class TestGridNLOBehaviour:
     #     assert result.likelihood_merit_array.shape == (10, 10)
 
     # def test_generated_models_with_instances(self, grid_search, container, mapper):
-    #     instance_profile = GeometryProfile()
+    #     instance_profile = mock.MockClassx2Tuple()
     #     mapper.instance_profile = instance_profile
     #
     #     analysis = container.MockAnalysis()
@@ -272,7 +273,7 @@ class TestGridNLOBehaviour:
     #     grid_search.fit(analysis, mapper, [mapper.profile.centre_0])
     #
     #     for instance in container.fit_instances:
-    #         assert isinstance(instance.profile, GeometryProfile)
+    #         assert isinstance(instance.profile, mock.MockClassx2Tuple)
     #         assert instance.instance_profile == instance_profile
     #
     # def test_generated_models_with_instance_attributes(
@@ -288,7 +289,7 @@ class TestGridNLOBehaviour:
     #     assert len(container.fit_instances) > 0
     #
     #     for instance in container.fit_instances:
-    #         assert isinstance(instance.profile, GeometryProfile)
+    #         assert isinstance(instance.profile, mock.MockClassx2Tuple)
     #         # noinspection PyUnresolvedReferences
     #         assert instance.profile.centre[1] == 2
 

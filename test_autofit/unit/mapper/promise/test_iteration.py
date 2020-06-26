@@ -34,7 +34,7 @@ def make_results_collection(model):
     instance = af.Instance()
     instance.collection = [1, 2]
 
-    result = mock.MockResult(model=model, instance=instance)
+    result = af.MockResult(model=model, instance=instance)
 
     collection.add("phase name", result)
 

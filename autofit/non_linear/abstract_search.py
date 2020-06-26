@@ -219,6 +219,8 @@ class NonLinearSearch(ABC):
                 model=model, analysis=analysis, during_analysis=False
             )
 
+            self.save_samples(samples=samples)
+
         else:
 
             samples = self.samples_from_model(model=model)
@@ -381,7 +383,7 @@ class NonLinearSearch(ABC):
         """
         Save the seawrch associated with the phase as a pickle
         """
-        with open(self.paths.make_non_linear_pickle_path(), "w+b") as f:
+        with open(self.paths.make_search_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self))
 
     def save_model(self, model):
@@ -390,6 +392,13 @@ class NonLinearSearch(ABC):
         """
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(model))
+
+    def save_samples(self, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+        with open(self.paths.make_samples_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(samples))
 
     def save_metadata(self):
         """

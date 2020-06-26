@@ -5,8 +5,8 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from autofit.non_linear.mock.mock_nlo import MockSamples
-from test_autofit.mock import GeometryProfile, MockClassx4
+from autofit.non_linear.mock.mock_search import MockSamples
+from test_autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -27,13 +27,13 @@ def make_mapper():
 
 @pytest.fixture(name="mock_list")
 def make_mock_list():
-    return [af.PriorModel(MockClassx4), af.PriorModel(MockClassx4)]
+    return [af.PriorModel(mock.MockClassx4), af.PriorModel(mock.MockClassx4)]
 
 
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
-    mapper.profile = GeometryProfile
+    mapper.profile = mock.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
         samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]), previous_model=mapper
@@ -132,7 +132,7 @@ class TestDirectorySetup:
 
 class TestLabels:
     def test_param_names(self):
-        model = af.PriorModel(MockClassx4)
+        model = af.PriorModel(mock.MockClassx4)
         assert ["one", "two", "three", "four"] == model.parameter_names
 
     def test_label_config(self):

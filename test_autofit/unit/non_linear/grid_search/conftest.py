@@ -3,34 +3,17 @@ import pytest
 from autoconf import conf
 import autofit as af
 
+from test_autofit import mock
+
 init_args = []
 fit_args = []
 fit_instances = []
 
 
-class MockSamples:
-    def __init__(self, log_likelihoods):
-        self.log_likelihoods = log_likelihoods
-        self.max_log_likelihood_instance = af.ModelInstance()
-
-
-class MockOptimizer(af.NonLinearSearch):
+class MockOptimizer(af.MockSearch):
     def __init__(self, paths=af.Paths()):
         super().__init__(paths=paths)
         init_args.append(paths.name)
-
-    @property
-    def config_type(self):
-        return conf.instance.mock
-
-    @property
-    def tag(self):
-        return ""
-
-    def _fit(self, model, analysis):
-        fit_args.append(analysis)
-        # noinspection PyTypeChecker
-        return af.Result(MockSamples([1.0]), analysis.log_likelihood_function(None))
 
 
 class MockAnalysis(af.Analysis):

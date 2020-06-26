@@ -1,11 +1,7 @@
-import inspect
-import math
 import typing
 
 from autoconf import conf
 import autofit as af
-# noinspection PyAbstractClass
-from autofit.mapper.prior_model import attribute_pair
 from autofit.tools.phase import Dataset
 
 
@@ -68,6 +64,8 @@ class MockSamples(af.PDFSamples):
     def gaussian_priors_at_sigma(self, sigma=None):
         return self.gaussian_tuples
 
+    def write_table(self, filename: str):
+        pass
 
 class MockSearch(af.NonLinearSearch):
     def __init__(self, paths=None, samples=None):
@@ -104,6 +102,9 @@ class MockSearch(af.NonLinearSearch):
     def tag(self):
         return "mock"
 
+    def perform_update(self, model, analysis, during_analysis):
+        return self.samples
+
     def samples_from_model(self, model):
         return self.samples
 
@@ -123,16 +124,6 @@ class MockDataset(Dataset):
 class ListClass:
     def __init__(self, ls: list):
         self.ls = ls
-
-
-class MockDistance(af.DimensionType):
-    pass
-
-
-class PositionClass:
-    @af.map_types
-    def __init__(self, position: typing.Tuple[MockDistance, MockDistance]):
-        self.position = position
 
 
 class MockClassx2:
@@ -183,6 +174,16 @@ class ComplexClass:
         self.simple = simple
 
 
+class MockDistance(af.DimensionType):
+    pass
+
+
+class MockPositionClass:
+    @af.map_types
+    def __init__(self, position: typing.Tuple[MockDistance, MockDistance]):
+        self.position = position
+
+
 class MockDistanceClass:
     @af.map_types
     def __init__(self, one: MockDistance, two: MockDistance):
@@ -191,22 +192,6 @@ class MockDistanceClass:
 
 
 ### Real Classes ###
-
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
-    def with_circumference(self, circumference):
-        self.circumference = circumference
-
-    @property
-    def circumference(self):
-        return self.radius * 2 * math.pi
-
-    @circumference.setter
-    def circumference(self, circumference):
-        self.radius = circumference / (2 * math.pi)
-
 
 class MockComponents:
     def __init__(
@@ -226,58 +211,9 @@ class HyperGalaxy:
     pass
 
 
-class Redshift:
-    def __init__(self, redshift):
-        self.redshift = redshift
 
 
-# noinspection PyAbstractClass
-class GalaxyModel(af.AbstractPriorModel):
-    def instance_for_arguments(self, arguments):
-        try:
-            return MockComponents(parameter=self.redshift.instance_for_arguments(arguments))
-        except AttributeError:
-            return MockComponents()
-
-    def __init__(self, model_redshift=False, **kwargs):
-        super().__init__()
-        self.redshift = af.PriorModel(Redshift) if model_redshift else None
-        print(self.redshift)
-        self.__dict__.update(
-            {
-                key: af.PriorModel(value) if inspect.isclass(value) else value
-                for key, value in kwargs.items()
-            }
-        )
-
-    @property
-    def instance_tuples(self):
-        return []
-
-    @property
-    @attribute_pair.cast_collection(
-        attribute_pair.PriorNameValue
-    )
-    def unique_prior_tuples(self):
-        return (
-            [item for item in self.__dict__.items() if isinstance(item[1], af.Prior)]
-            + [("redshift", self.redshift.redshift)]
-            if self.redshift is not None
-            else []
-        )
-
-    @property
-    @attribute_pair.cast_collection(af.PriorModelNameValue)
-    def flat_prior_model_tuples(self):
-        return [
-            item
-            for item in self.__dict__.items()
-            if isinstance(item[1], af.AbstractPriorModel)
-        ]
 
 
-class Tracer:
-    def __init__(self, lens_galaxy: MockComponents, source_galaxy: MockComponents, grid):
-        self.lens_galaxy = lens_galaxy
-        self.source_galaxy = source_galaxy
-        self.grid = grid
+
+

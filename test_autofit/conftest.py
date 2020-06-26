@@ -46,7 +46,7 @@ def make_collection():
     instance = af.ModelInstance()
     instance.one = mock.MockComponents(model_component=mock.MockClassx2())
 
-    result = mock.MockResult(model=model, instance=instance)
+    result = af.MockResult(model=model, instance=instance)
 
     model = af.ModelMapper()
     instance = af.ModelInstance()
@@ -54,7 +54,7 @@ def make_collection():
     model.hyper_galaxy = mock.HyperGalaxy
     instance.hyper_galaxy = mock.HyperGalaxy()
 
-    hyper_result = mock.MockResult(model=model, instance=instance)
+    hyper_result = af.MockResult(model=model, instance=instance)
 
     result.hyper_result = hyper_result
 

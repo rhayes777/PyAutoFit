@@ -271,17 +271,23 @@ class Paths:
     def pickle_path(self) -> str:
         return f"{self.make_path()}/pickles"
 
-    def make_non_linear_pickle_path(self) -> str:
+    def make_search_pickle_path(self) -> str:
         """
         Create the path at which the search pickle should be saved
         """
-        return f"{self.pickle_path}/non_linear.pickle"
+        return f"{self.pickle_path}/search.pickle"
 
     def make_model_pickle_path(self):
         """
         Create the path at which the model pickle should be saved
         """
         return f"{self.pickle_path}/model.pickle"
+
+    def make_samples_pickle_path(self) -> str:
+        """
+        Create the path at which the search pickle should be saved
+        """
+        return f"{self.pickle_path}/samples.pickle"
 
     @make_path
     def make_path(self) -> str:

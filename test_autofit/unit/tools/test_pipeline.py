@@ -3,8 +3,7 @@ import os
 import pytest
 
 import autofit as af
-from test_autofit.mock import GeometryProfile, MockComponents
-
+from test_autofit import mock
 
 @pytest.fixture(name="results")
 def make_results_collection():
@@ -59,7 +58,7 @@ class TestPipeline:
         paths = af.Paths("Phase Name")
         search = af.MockSearch(paths)
         phase = MockPhase(phase_name="Phase_Name", search=search)
-        phase.model.profile = GeometryProfile
+        phase.model.profile = mock.MockClassx2Tuple
 
         try:
             os.makedirs(phase.paths.make_path())

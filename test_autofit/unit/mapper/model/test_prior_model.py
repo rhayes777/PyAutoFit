@@ -4,6 +4,7 @@ import pytest
 
 import autofit as af
 from test_autofit import mock
+from test_autofit import mock_real
 
 
 @pytest.fixture(name="instance_prior_model")
@@ -155,8 +156,8 @@ class TestFromInstance:
 
 class TestSum:
     def test_add_prior_models(self):
-        profile_1 = af.PriorModel(mock.EllipticalProfile)
-        profile_2 = af.PriorModel(mock.EllipticalProfile)
+        profile_1 = af.PriorModel(mock_real.EllipticalProfile)
+        profile_2 = af.PriorModel(mock_real.EllipticalProfile)
 
         profile_1.axis_ratio = 1.0
         profile_2.phi = 0.0
@@ -164,13 +165,13 @@ class TestSum:
         result = profile_1 + profile_2
 
         assert isinstance(result, af.PriorModel)
-        assert result.cls == mock.EllipticalProfile
+        assert result.cls == mock_real.EllipticalProfile
         assert isinstance(result.axis_ratio, af.Prior)
         assert isinstance(result.phi, af.Prior)
 
     def test_fail_for_mismatch(self):
-        profile_1 = af.PriorModel(mock.EllipticalProfile)
-        profile_2 = af.PriorModel(mock.EllipticalMassProfile)
+        profile_1 = af.PriorModel(mock_real.EllipticalProfile)
+        profile_2 = af.PriorModel(mock_real.EllipticalMassProfile)
 
         with pytest.raises(TypeError):
             profile_1 + profile_2
@@ -178,39 +179,39 @@ class TestSum:
     def test_add_children(self):
         galaxy_1 = af.PriorModel(
             mock.MockComponents,
-            light_profiles=af.CollectionPriorModel(light_1=mock.EllipticalProfile),
-            mass_profiles=af.CollectionPriorModel(mass_1=mock.EllipticalMassProfile),
+            components_0=af.CollectionPriorModel(light_1=mock_real.EllipticalProfile),
+            components_1=af.CollectionPriorModel(mass_1=mock_real.EllipticalMassProfile),
         )
         galaxy_2 = af.PriorModel(
             mock.MockComponents,
-            light_profiles=af.CollectionPriorModel(light_2=mock.EllipticalProfile),
-            mass_profiles=af.CollectionPriorModel(mass_2=mock.EllipticalMassProfile),
+            components_0=af.CollectionPriorModel(light_2=mock_real.EllipticalProfile),
+            components_1=af.CollectionPriorModel(mass_2=mock_real.EllipticalMassProfile),
         )
 
         result = galaxy_1 + galaxy_2
 
-        assert result.group_0.light_1 == galaxy_1.light_profiles.light_1
-        assert result.group_0.light_2 == galaxy_2.light_profiles.light_2
+        assert result.components_0.light_1 == galaxy_1.components_0.light_1
+        assert result.components_0.light_2 == galaxy_2.components_0.light_2
 
-        assert result.group_1.mass_1 == galaxy_1.mass_profiles.mass_1
-        assert result.group_1.mass_2 == galaxy_2.mass_profiles.mass_2
+        assert result.components_1.mass_1 == galaxy_1.components_1.mass_1
+        assert result.components_1.mass_2 == galaxy_2.components_1.mass_2
 
     def test_prior_model_override(self):
         galaxy_1 = af.PriorModel(
             mock.MockComponents,
-            light_profiles=af.CollectionPriorModel(light=mock.EllipticalProfile()),
-            mass_profiles=af.CollectionPriorModel(mass=mock.EllipticalMassProfile),
+            components_0=af.CollectionPriorModel(light=mock_real.EllipticalProfile()),
+            components_1=af.CollectionPriorModel(mass=mock_real.EllipticalMassProfile),
         )
         galaxy_2 = af.PriorModel(
             mock.MockComponents,
-            light_profiles=af.CollectionPriorModel(light=mock.EllipticalProfile),
-            mass_profiles=af.CollectionPriorModel(mass=mock.EllipticalMassProfile()),
+            components_0=af.CollectionPriorModel(light=mock_real.EllipticalProfile),
+            components_1=af.CollectionPriorModel(mass=mock_real.EllipticalMassProfile()),
         )
 
         result = galaxy_1 + galaxy_2
 
-        assert result.group_1.mass == galaxy_1.mass_profiles.mass
-        assert result.group_0.light == galaxy_2.light_profiles.light
+        assert result.components_1.mass == galaxy_1.components_1.mass
+        assert result.components_0.light == galaxy_2.components_0.light
 
 
 class TestFloatAnnotation:
@@ -254,11 +255,11 @@ class TestFloatAnnotation:
 
     def test_position(self):
         mapper = af.ModelMapper()
-        mapper.object = mock.PositionClass
+        mapper.object = mock.MockPositionClass
 
         assert mapper.prior_count == 2
         result = mapper.instance_from_unit_vector([0.5, 1.0])
-        assert isinstance(result.object, mock.PositionClass)
+        assert isinstance(result.object, mock.MockPositionClass)
         assert result.object.position[0] == 0.5
         assert result.object.position[1] == 1.0
 
@@ -289,8 +290,8 @@ class TestFloatAnnotation:
     def test_prior_tuples(self):
         prior_model = af.PriorModel(mock.MockDistanceClass)
 
-        assert prior_model.unique_prior_tuples[0].name == "first"
-        assert prior_model.unique_prior_tuples[1].name == "second"
+        assert prior_model.unique_prior_tuples[0].name == "one"
+        assert prior_model.unique_prior_tuples[1].name == "two"
 
 
 class TestHashing:
@@ -340,29 +341,29 @@ class TestPriorModelArguments:
 
     def test_float_argument(self):
         prior = af.UniformPrior(0.5, 2.0)
-        prior_model = af.PriorModel(mock.MockComponents, redshift=prior)
+        prior_model = af.PriorModel(mock.MockComponents, parameter=prior)
 
         assert prior_model.prior_count == 1
         assert prior_model.priors[0] is prior
 
-        prior_model = af.PriorModel(mock.MockComponents, redshift=4.0)
+        prior_model = af.PriorModel(mock.MockComponents, parameter=4.0)
         assert prior_model.prior_count == 0
-        assert prior_model.redshift == 4.0
+        assert prior_model.parameter == 4.0
 
         instance = prior_model.instance_for_arguments({})
         assert instance.parameter == 4.0
 
     def test_model_argument(self):
-        lens_galaxy = af.PriorModel(mock.MockComponents)
-        source_galaxy = mock.MockComponents()
+        lens_galaxy = af.PriorModel(mock_real.Galaxy)
+        source_galaxy = mock_real.Galaxy()
         tracer = af.PriorModel(
-            mock.Tracer,
+            mock_real.Tracer,
             lens_galaxy=lens_galaxy,
             source_galaxy=source_galaxy
         )
 
         assert tracer.lens_galaxy is lens_galaxy
-        assert tracer.prior_count == 1
+        assert tracer.prior_count == 2
 
         deferred_instance = tracer.instance_for_arguments({lens_galaxy.redshift: 0.5})
         instance = deferred_instance(grid=None)
@@ -381,15 +382,15 @@ class TestPriorModelArguments:
     def test_arbitrary_keyword_arguments(self):
         prior_model = af.PriorModel(
             mock.MockComponents,
-            light=mock.EllipticalCoredIsothermal,
-            mass=mock.EllipticalMassProfile,
+            light=mock_real.EllipticalCoredIsothermal,
+            mass=mock_real.EllipticalMassProfile,
         )
         assert prior_model.prior_count == 11
         instance = prior_model.instance_from_unit_vector(
             [0.5] * prior_model.prior_count
         )
-        assert isinstance(instance.light, mock.EllipticalCoredIsothermal)
-        assert isinstance(instance.mass, mock.EllipticalMassProfile)
+        assert isinstance(instance.light, mock_real.EllipticalCoredIsothermal)
+        assert isinstance(instance.mass, mock_real.EllipticalMassProfile)
 
 
 class TestCase:
@@ -424,9 +425,9 @@ class TestCase:
 
         assert len(instance.list_object.ls) == 2
         assert instance.list_object.ls[0].one == 0.1
-        assert instance.list_object.ls[0].two == 0.2
+        assert instance.list_object.ls[0].two == 0.4
         assert instance.list_object.ls[1].one == 0.3
-        assert instance.list_object.ls[1].two == 0.4
+        assert instance.list_object.ls[1].two == 0.8
 
     def test_mix_instances_and_models(self):
         mapper = af.ModelMapper()
@@ -440,7 +441,7 @@ class TestCase:
 
         assert len(instance.list_object.ls) == 2
         assert instance.list_object.ls[0].one == 0.1
-        assert instance.list_object.ls[0].two == 0.2
+        assert instance.list_object.ls[0].two == 0.4
         assert instance.list_object.ls[1].one == 1
         assert instance.list_object.ls[1].two == 2
 
@@ -480,7 +481,7 @@ class TestCollectionPriorModel:
         assert len(instance.ls) == 2
 
         assert instance.ls[0].one == 0.1
-        assert instance.ls[0].two == 0.2
+        assert instance.ls[0].two == 0.4
         assert instance.ls[1].one == 1
         assert instance.ls[1].two == 2
 

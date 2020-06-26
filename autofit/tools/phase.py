@@ -114,6 +114,15 @@ class AbstractPhase:
                     meta_dataset, f
                 )
 
+    def save_settings(self, settings):
+        with open(
+                f"{self.paths.pickle_path}/settings.pickle",
+                "wb+"
+        ) as f:
+            pickle.dump(
+                settings, f
+            )
+
     def save_phase_attributes(self, phase_attributes):
         with open(
                 f"{self.paths.pickle_path}/phase_attributes.pickle",
@@ -286,7 +295,7 @@ def as_grid_search(phase_class, parallel=False):
 
             return self.Result(
                 samples=result.samples,
-                previous_model=result.previous_model,
+                previous_model=result.model,
                 analysis=analysis,
                 search=self.search,
             )
