@@ -34,9 +34,9 @@ def make_samples(model):
 def test__results_at_sigma_from_sigma(samples):
     results_at_sigma = samples_text.results_at_sigma_from_samples(samples=samples, sigma=3.0)
 
-    assert "Most probable model (3.0 sigma limits):" in results_at_sigma
+    assert "Median PDF model (3.0 sigma limits):" in results_at_sigma
     assert "one                                           " \
-           "                                        1.100 (1.000, 1.200)" in results_at_sigma
+           "                                        1.000 (1.000, 1.200)" in results_at_sigma
     assert "two                                      " \
            "                                             2.100 (2.000, 2.200)"
 
@@ -44,10 +44,8 @@ def test__results_at_sigma_from_sigma(samples):
 def test__results_latex_from_sigma(samples):
     latex_results_at_sigma = samples_text.latex_results_at_sigma_from_samples(samples=samples, sigma=3.0)
 
-    print(latex_results_at_sigma[0])
-
-    assert latex_results_at_sigma[0] == 'x4p0_{\\mathrm{a}} = 1.10^{+1.20}_{-1.00} & '
-    assert latex_results_at_sigma[1] == 'x4p1_{\\mathrm{a}} = 2.10^{+2.20}_{-2.00} & '
+    assert latex_results_at_sigma[0] == 'x4p0_{\\mathrm{a}} = 1.00^{+1.20}_{-1.00} & '
+    assert latex_results_at_sigma[1] == 'x4p1_{\\mathrm{a}} = 2.00^{+2.20}_{-2.00} & '
 
 
 def test__results_to_file(samples):

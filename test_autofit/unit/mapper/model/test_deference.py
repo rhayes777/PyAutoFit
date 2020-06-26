@@ -28,7 +28,7 @@ class TestCase:
 
     def test_deferred_config(self):
         mapper = af.ModelMapper()
-        mapper.DeferredClass = mock.MockClassx2
+        mapper.DeferredClass = mock.DeferredClass
 
         assert mapper.prior_count == 1
 
@@ -38,6 +38,6 @@ class TestCase:
 
         instance = deferred_instance(two=2.0)
 
-        assert isinstance(instance, mock.MockClassx2)
+        assert isinstance(instance, mock.DeferredClass)
         assert instance.one == 1.0
         assert instance.two == 2.0

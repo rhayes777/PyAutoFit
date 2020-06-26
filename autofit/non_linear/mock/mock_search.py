@@ -7,11 +7,11 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.samples import PDFSamples
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.abstract_search import Analysis
-from autofit.non_linear.abstract_search import Result
-
+from autofit.non_linear.paths import convert_paths
 
 class MockSearch(NonLinearSearch):
 
+    @convert_paths
     def __init__(self, paths=None, samples=None, fit_fast=True):
 
         super().__init__(paths=paths)
@@ -107,6 +107,7 @@ class MockAnalysis(Analysis):
 class MockSamples(PDFSamples):
     def __init__(
         self,
+        model=None,
         max_log_likelihood_instance=None,
         log_likelihoods=None,
         gaussian_tuples=None,
@@ -116,7 +117,7 @@ class MockSamples(PDFSamples):
             log_likelihoods = [1.0, 2.0, 3.0]
 
         super().__init__(
-            model=None,
+            model=model,
             parameters=[],
             log_likelihoods=log_likelihoods,
             log_priors=[],

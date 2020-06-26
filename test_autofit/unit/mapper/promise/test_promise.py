@@ -20,7 +20,7 @@ def make_grid_search_promise(phase):
         phase_tag="phase_tag",
         search=af.MockSearch()
     )
-    grid_search_phase.model.one = af.PriorModel(mock.MockComponents, model_component=mock.MockClassx2)
+    grid_search_phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
     return grid_search_phase.result.model.one.parameter
 
 
@@ -31,7 +31,7 @@ def make_instance_promise(phase):
 
 @pytest.fixture(name="profile_promise")
 def make_profile_promise(phase):
-    return phase.result.model.one.model_component
+    return phase.result.model.one.component
 
 
 @pytest.fixture(name="last_model")
@@ -51,7 +51,7 @@ class TestHasAttr:
         assert not hasattr(model, "gone")
 
         components = model.one
-        assert hasattr(components, "model_component")
+        assert hasattr(components, "component")
         assert not hasattr(components, "nada")
 
     def test_instance(self, phase):
@@ -60,7 +60,7 @@ class TestHasAttr:
         assert not hasattr(model, "gone")
 
         components = model.one
-        assert hasattr(components, "model_component")
+        assert hasattr(components, "component")
         assert not hasattr(components, "nada")
 
 
@@ -150,12 +150,12 @@ class TestIndexLast:
 
     def test_grid_search_populate(self):
         collection = af.ResultsCollection()
-        galaxy_model_1 = af.PriorModel(mock.MockComponents)
+        components = af.PriorModel(mock.MockComponents)
         collection.add(
             "phase one", af.GridSearchResult(
                 [
                     af.MockResult(
-                        model=af.ModelMapper(galaxy=galaxy_model_1)
+                        model=af.ModelMapper(component=components)
                     )
                 ],
                 [[1]],
@@ -163,26 +163,26 @@ class TestIndexLast:
             )
         )
 
-        result = af.last.model.model_component.populate(collection)
-        assert result is galaxy_model_1
+        result = af.last.model.component.populate(collection)
+        assert result is components
 
     def test_populate(self):
         collection = af.ResultsCollection()
-        galaxy_model_1 = af.PriorModel(mock.MockComponents)
-        model_1 = af.ModelMapper(galaxy=galaxy_model_1)
+        components = af.PriorModel(mock.MockComponents)
+        model_1 = af.ModelMapper(component=components)
 
         collection.add("phase one", af.MockResult(model=model_1, instance=None))
 
-        galaxy_model_2 = af.PriorModel(mock.MockComponents)
-        model_2 = af.ModelMapper(galaxy=galaxy_model_2)
+        components_2 = af.PriorModel(mock.MockComponents)
+        model_2 = af.ModelMapper(component=components_2)
 
         collection.add("phase two", af.MockResult(model=model_2, instance=None))
 
-        result = af.last.model.model_component.populate(collection)
-        assert result is galaxy_model_2
+        result = af.last.model.component.populate(collection)
+        assert result is components_2
 
-        result = af.last[-1].model.model_component.populate(collection)
-        assert result is galaxy_model_1
+        result = af.last[-1].model.component.populate(collection)
+        assert result is components
 
     def test_results_collection_duplicates(self):
         collection = af.ResultsCollection()
@@ -264,14 +264,14 @@ class TestCase:
         assert result.parameter is collection[0].instance.one.parameter
 
     def test_kwarg_promise(self, profile_promise, collection):
-        components = af.PriorModel(mock.MockComponents, model_component=profile_promise)
+        components = af.PriorModel(mock.MockComponents, component=profile_promise)
         populated = components.populate(collection)
 
-        assert isinstance(populated.model_component, af.PriorModel)
+        assert isinstance(populated.component, af.PriorModel)
 
         instance = populated.instance_from_prior_medians()
 
-        assert isinstance(instance.kwargs["model_component"], mock.MockClassx2)
+        assert isinstance(instance.kwargs["component"], mock.MockClassx2)
 
     def test_embedded_results(self, phase, collection):
         hyper_result = phase.result.hyper_result

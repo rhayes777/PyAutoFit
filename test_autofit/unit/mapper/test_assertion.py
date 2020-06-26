@@ -108,12 +108,12 @@ class TestAssertion:
 
 @pytest.fixture(name="promise_model")
 def make_promise_model(phase):
-    return phase.result.model.one.model_component
+    return phase.result.model.one.component
 
 
 @pytest.fixture(name="model")
 def make_model(collection):
-    return collection.last.model.one.model_component
+    return collection.last.model.one.component
 
 
 class TestPromiseAssertion:
@@ -158,7 +158,7 @@ class TestModel:
 
     def test_populate_assertion_promises(self, promise_model, collection):
         model = af.ModelMapper()
-        model.model_component = promise_model
+        model.component = promise_model
         # noinspection PyTypeChecker
         model.add_assertion(promise_model.one < promise_model.two)
 
@@ -166,14 +166,14 @@ class TestModel:
 
         assert model._assertions[0].instance_for_arguments(
             {
-                model.model_component.one: 0.0,
-                model.model_component.two: 1.0
+                model.component.one: 0.0,
+                model.component.two: 1.0
             }
         ) is True
         assert model._assertions[0].instance_for_arguments(
             {
-                model.model_component.one: 1.0,
-                model.model_component.two: 0.0
+                model.component.one: 1.0,
+                model.component.two: 0.0
             }
         ) is False
 

@@ -5,13 +5,13 @@ import pytest
 
 import autofit as af
 from autofit import exc, DownhillSimplex
-from test_autofit import mock_real
+from test_autofit import mock
 
 
 @pytest.fixture(name="mapper")
 def make_mapper():
     mapper = af.ModelMapper()
-    mapper.profile = mock_real.SphericalProfile
+    mapper.component = mock.MockClassx2Tuple
     return mapper
 
 
@@ -37,21 +37,21 @@ class TestGridSearchablePriors:
 
         mappers = list(
             grid_search.model_mappers(
-                mapper, grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1]
+                mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1]
             )
         )
 
         assert len(mappers) == 100
 
-        assert mappers[0].profile.centre_0.lower_limit == 0.0
-        assert mappers[0].profile.centre_0.upper_limit == 0.1
-        assert mappers[0].profile.centre_1.lower_limit == 0.0
-        assert mappers[0].profile.centre_1.upper_limit == 0.1
+        assert mappers[0].component.one_tuple.one_tuple_0.lower_limit == 0.0
+        assert mappers[0].component.one_tuple.one_tuple_0.upper_limit == 0.1
+        assert mappers[0].component.one_tuple.one_tuple_1.lower_limit == 0.0
+        assert mappers[0].component.one_tuple.one_tuple_1.upper_limit == 0.2
 
-        assert mappers[-1].profile.centre_0.lower_limit == 0.9
-        assert mappers[-1].profile.centre_0.upper_limit == 1.0
-        assert mappers[-1].profile.centre_1.lower_limit == 0.9
-        assert mappers[-1].profile.centre_1.upper_limit == 1.0
+        assert mappers[-1].component.one_tuple.one_tuple_0.lower_limit == 0.9
+        assert mappers[-1].component.one_tuple.one_tuple_0.upper_limit == 1.0
+        assert mappers[-1].component.one_tuple.one_tuple_1.lower_limit == 1.8
+        assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
     def test_non_grid_searched_dimensions(self, mapper):
         grid_search = af.NonLinearSearchGridSearch(
@@ -59,83 +59,83 @@ class TestGridSearchablePriors:
         )
 
         mappers = list(
-            grid_search.model_mappers(mapper, grid_priors=[mapper.profile.centre_0])
+            grid_search.model_mappers(mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0])
         )
 
         assert len(mappers) == 10
 
-        assert mappers[0].profile.centre_0.lower_limit == 0.0
-        assert mappers[0].profile.centre_0.upper_limit == 0.1
-        assert mappers[0].profile.centre_1.lower_limit == 0.0
-        assert mappers[0].profile.centre_1.upper_limit == 1.0
+        assert mappers[0].component.one_tuple.one_tuple_0.lower_limit == 0.0
+        assert mappers[0].component.one_tuple.one_tuple_0.upper_limit == 0.1
+        assert mappers[0].component.one_tuple.one_tuple_1.lower_limit == 0.0
+        assert mappers[0].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
-        assert mappers[-1].profile.centre_0.lower_limit == 0.9
-        assert mappers[-1].profile.centre_0.upper_limit == 1.0
-        assert mappers[-1].profile.centre_1.lower_limit == 0.0
-        assert mappers[-1].profile.centre_1.upper_limit == 1.0
+        assert mappers[-1].component.one_tuple.one_tuple_0.lower_limit == 0.9
+        assert mappers[-1].component.one_tuple.one_tuple_0.upper_limit == 1.0
+        assert mappers[-1].component.one_tuple.one_tuple_1.lower_limit == 0.0
+        assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
     def test_tied_priors(self, grid_search, mapper):
-        mapper.profile.centre_0 = mapper.profile.centre_1
+        mapper.component.one_tuple.one_tuple_0 = mapper.component.one_tuple.one_tuple_1
 
         mappers = list(
             grid_search.model_mappers(
-                grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1],
+                grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
                 model=mapper,
             )
         )
 
         assert len(mappers) == 10
 
-        assert mappers[0].profile.centre_0.lower_limit == 0.0
-        assert mappers[0].profile.centre_0.upper_limit == 0.1
-        assert mappers[0].profile.centre_1.lower_limit == 0.0
-        assert mappers[0].profile.centre_1.upper_limit == 0.1
+        assert mappers[0].component.one_tuple.one_tuple_0.lower_limit == 0.0
+        assert mappers[0].component.one_tuple.one_tuple_0.upper_limit == 0.2
+        assert mappers[0].component.one_tuple.one_tuple_1.lower_limit == 0.0
+        assert mappers[0].component.one_tuple.one_tuple_1.upper_limit == 0.2
 
-        assert mappers[-1].profile.centre_0.lower_limit == 0.9
-        assert mappers[-1].profile.centre_0.upper_limit == 1.0
-        assert mappers[-1].profile.centre_1.lower_limit == 0.9
-        assert mappers[-1].profile.centre_1.upper_limit == 1.0
+        assert mappers[-1].component.one_tuple.one_tuple_0.lower_limit == 1.8
+        assert mappers[-1].component.one_tuple.one_tuple_0.upper_limit == 2.0
+        assert mappers[-1].component.one_tuple.one_tuple_1.lower_limit == 1.8
+        assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
         for mapper in mappers:
-            assert mapper.profile.centre_0 == mapper.profile.centre_1
+            assert mapper.component.one_tuple.one_tuple_0 == mapper.component.one_tuple.one_tuple_1
 
     def test_different_prior_width(self, grid_search, mapper):
-        mapper.profile.centre_0 = af.UniformPrior(0.0, 2.0)
+        mapper.component.one_tuple.one_tuple_0 = af.UniformPrior(0.0, 2.0)
         mappers = list(
             grid_search.model_mappers(
-                grid_priors=[mapper.profile.centre_0], model=mapper
+                grid_priors=[mapper.component.one_tuple.one_tuple_0], model=mapper
             )
         )
 
         assert len(mappers) == 10
 
-        assert mappers[0].profile.centre_0.lower_limit == 0.0
-        assert mappers[0].profile.centre_0.upper_limit == 0.2
+        assert mappers[0].component.one_tuple.one_tuple_0.lower_limit == 0.0
+        assert mappers[0].component.one_tuple.one_tuple_0.upper_limit == 0.2
 
-        assert mappers[-1].profile.centre_0.lower_limit == 1.8
-        assert mappers[-1].profile.centre_0.upper_limit == 2.0
+        assert mappers[-1].component.one_tuple.one_tuple_0.lower_limit == 1.8
+        assert mappers[-1].component.one_tuple.one_tuple_0.upper_limit == 2.0
 
-        mapper.profile.centre_0 = af.UniformPrior(1.0, 1.5)
+        mapper.component.one_tuple.one_tuple_0 = af.UniformPrior(1.0, 1.5)
         mappers = list(
-            grid_search.model_mappers(mapper, grid_priors=[mapper.profile.centre_0])
+            grid_search.model_mappers(mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0])
         )
 
         assert len(mappers) == 10
 
-        assert mappers[0].profile.centre_0.lower_limit == 1.0
-        assert mappers[0].profile.centre_0.upper_limit == 1.05
+        assert mappers[0].component.one_tuple.one_tuple_0.lower_limit == 1.0
+        assert mappers[0].component.one_tuple.one_tuple_0.upper_limit == 1.05
 
-        assert mappers[-1].profile.centre_0.lower_limit == 1.45
-        assert mappers[-1].profile.centre_0.upper_limit == 1.5
+        assert mappers[-1].component.one_tuple.one_tuple_0.lower_limit == 1.45
+        assert mappers[-1].component.one_tuple.one_tuple_0.upper_limit == 1.5
 
     def test_raises_exception_for_bad_limits(self, grid_search, mapper):
-        mapper.profile.centre_0 = af.GaussianPrior(
+        mapper.component.one_tuple.one_tuple_0 = af.GaussianPrior(
             0.0, 2.0, lower_limit=float("-inf"), upper_limit=float("inf")
         )
         with pytest.raises(exc.PriorException):
             list(
                 grid_search.make_arguments(
-                    [[0, 1]], grid_priors=[mapper.profile.centre_0]
+                    [[0, 1]], grid_priors=[mapper.component.one_tuple.one_tuple_0]
                 )
             )
 
@@ -154,7 +154,7 @@ class TestGridNLOBehaviour:
         result = grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0],
+            grid_priors=[mapper.component.one_tuple.one_tuple_0],
         )
 
         assert len(container.init_args) == 2
@@ -165,17 +165,17 @@ class TestGridNLOBehaviour:
         grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0],
+            grid_priors=[mapper.component.one_tuple.one_tuple_0],
         )
 
         assert len(container.init_args) == 2
         print(container.init_args[0])
-        assert container.init_args[0] == "sample_name///profile_centre_0_0.00_0.50"
-        assert container.init_args[1] == "sample_name///profile_centre_0_0.50_1.00"
+        assert container.init_args[0] == "sample_name///component_one_tuple.one_tuple_0_0.00_0.50"
+        assert container.init_args[1] == "sample_name///component_one_tuple.one_tuple_0_0.50_1.00"
 
     def test_round_names(self, container, mapper):
         grid_search = af.NonLinearSearchGridSearch(
-            search=container.MockOptimizer,
+            search=container.MockOptimizer(),
             number_of_steps=3,
             paths=af.Paths(name="sample_name"),
         )
@@ -183,19 +183,19 @@ class TestGridNLOBehaviour:
         grid_search.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0],
+            grid_priors=[mapper.component.one_tuple.one_tuple_0],
         )
 
         assert len(container.init_args) == 3
-        assert container.init_args[0] == "sample_name///profile_centre_0_0.00_0.33"
-        assert container.init_args[1] == "sample_name///profile_centre_0_0.33_0.67"
-        assert container.init_args[2] == "sample_name///profile_centre_0_0.67_1.00"
+        assert container.init_args[0] == "sample_name///component_one_tuple.one_tuple_0_0.00_0.33"
+        assert container.init_args[1] == "sample_name///component_one_tuple.one_tuple_0_0.33_0.67"
+        assert container.init_args[2] == "sample_name///component_one_tuple.one_tuple_0_0.67_1.00"
 
     def test_names_2d(self, grid_search_05, mapper, container):
         grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1],
+            grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
         )
 
         assert len(container.init_args) == 4
@@ -204,26 +204,26 @@ class TestGridNLOBehaviour:
 
         assert (
             sorted_args[0]
-            == "sample_name///profile_centre_0_0.00_0.50_profile_centre_1_0.00_0.50"
+            == "sample_name///component_one_tuple.one_tuple_0_0.00_0.50_component_one_tuple.one_tuple_1_0.00_0.50"
         )
         assert (
             sorted_args[1]
-            == "sample_name///profile_centre_0_0.00_0.50_profile_centre_1_0.50_1.00"
+            == "sample_name///component_one_tuple.one_tuple_0_0.00_0.50_component_one_tuple.one_tuple_1_0.50_1.00"
         )
         assert (
             sorted_args[2]
-            == "sample_name///profile_centre_0_0.50_1.00_profile_centre_1_0.00_0.50"
+            == "sample_name///component_one_tuple.one_tuple_0_0.50_1.00_component_one_tuple.one_tuple_1_0.00_0.50"
         )
         assert (
             sorted_args[3]
-            == "sample_name///profile_centre_0_0.50_1.00_profile_centre_1_0.50_1.00"
+            == "sample_name///component_one_tuple.one_tuple_0_0.50_1.00_component_one_tuple.one_tuple_1_0.50_1.00"
         )
 
     def test_results(self, grid_search_05, mapper, container):
         result = grid_search_05.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1],
+            grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
         )
 
         assert len(result.results) == 4
@@ -240,7 +240,7 @@ class TestGridNLOBehaviour:
         result = grid_search.fit(
             model=mapper,
             analysis=container.MockAnalysis(),
-            grid_priors=[mapper.profile.centre_0, mapper.profile.centre_1],
+            grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
         )
 
         assert len(result.results) == 100
@@ -257,7 +257,7 @@ class TestGridNLOBehaviour:
     #     result = grid_search.fit(
     #         container.MockAnalysis(),
     #         mapper,
-    #         [mapper.profile.centre_0, mapper.profile.centre_1],
+    #         [mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
     #     )
     #
     #     assert len(result.results) == 100
@@ -265,33 +265,33 @@ class TestGridNLOBehaviour:
     #     assert result.likelihood_merit_array.shape == (10, 10)
 
     # def test_generated_models_with_instances(self, grid_search, container, mapper):
-    #     instance_profile = mock.MockClassx2Tuple()
-    #     mapper.instance_profile = instance_profile
+    #     instance_component = mock.MockClassx2Tuple()
+    #     mapper.instance_component = instance_component
     #
     #     analysis = container.MockAnalysis()
     #
-    #     grid_search.fit(analysis, mapper, [mapper.profile.centre_0])
+    #     grid_search.fit(analysis, mapper, [mapper.component.one_tuple.one_tuple_0])
     #
     #     for instance in container.fit_instances:
-    #         assert isinstance(instance.profile, mock.MockClassx2Tuple)
-    #         assert instance.instance_profile == instance_profile
+    #         assert isinstance(instance.component, mock.MockClassx2Tuple)
+    #         assert instance.instance_component == instance_component
     #
     # def test_generated_models_with_instance_attributes(
     #         self, grid_search, mapper, container
     # ):
     #     instance = 2.0
-    #     mapper.profile.centre_1 = instance
+    #     mapper.component.one_tuple.one_tuple_1 = instance
     #
     #     analysis = container.MockAnalysis()
     #
-    #     grid_search.fit(analysis, mapper, [mapper.profile.centre_0])
+    #     grid_search.fit(analysis, mapper, [mapper.component.one_tuple.one_tuple_0])
     #
     #     assert len(container.fit_instances) > 0
     #
     #     for instance in container.fit_instances:
-    #         assert isinstance(instance.profile, mock.MockClassx2Tuple)
+    #         assert isinstance(instance.component, mock.MockClassx2Tuple)
     #         # noinspection PyUnresolvedReferences
-    #         assert instance.profile.centre[1] == 2
+    #         assert instance.component.centre[1] == 2
 
     def test_passes_attributes(self):
         grid_search = af.NonLinearSearchGridSearch(
@@ -304,7 +304,6 @@ class TestGridNLOBehaviour:
         search = grid_search.search_instance("name_path")
 
         assert search.n_live_points is grid_search.n_live_points
-        assert search.facc is grid_search.sampling_efficiency
         assert grid_search.paths.path != search.paths.path
         assert grid_search.paths.backup_path != search.paths.backup_path
         assert grid_search.paths.output_path != search.paths.output_path

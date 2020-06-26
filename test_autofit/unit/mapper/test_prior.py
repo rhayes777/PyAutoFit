@@ -49,7 +49,7 @@ class TestPriorLimits:
     def test_prior_creation(self):
 
         mapper = af.ModelMapper()
-        mapper.model_component = mock.MockClassx2
+        mapper.component = mock.MockClassx2
 
         prior_tuples = mapper.prior_tuples_ordered_by_id
 

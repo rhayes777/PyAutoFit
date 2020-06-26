@@ -33,7 +33,7 @@ def make_mock_list():
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
-    mapper.profile = mock.MockClassx2Tuple
+    mapper.component = mock.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
         samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]), previous_model=mapper
@@ -42,25 +42,25 @@ def make_result():
 
 class TestResult:
     def test_model(self, result):
-        profile = result.model.profile
-        assert profile.centre_0.mean == 0
-        assert profile.centre_1.mean == 1
-        assert profile.centre_0.sigma == 0.05
-        assert profile.centre_1.sigma == 0.05
+        component = result.model.component
+        assert component.one_tuple.one_tuple_0.mean == 0
+        assert component.one_tuple.one_tuple_1.mean == 1
+        assert component.one_tuple.one_tuple_0.sigma == 0.2
+        assert component.one_tuple.one_tuple_1.sigma == 0.2
 
     def test_model_absolute(self, result):
-        profile = result.model_absolute(a=2.0).profile
-        assert profile.centre_0.mean == 0
-        assert profile.centre_1.mean == 1
-        assert profile.centre_0.sigma == 2.0
-        assert profile.centre_1.sigma == 2.0
+        component = result.model_absolute(a=2.0).component
+        assert component.one_tuple.one_tuple_0.mean == 0
+        assert component.one_tuple.one_tuple_1.mean == 1
+        assert component.one_tuple.one_tuple_0.sigma == 2.0
+        assert component.one_tuple.one_tuple_1.sigma == 2.0
 
     def test_model_relative(self, result):
-        profile = result.model_relative(r=1.0).profile
-        assert profile.centre_0.mean == 0
-        assert profile.centre_1.mean == 1
-        assert profile.centre_0.sigma == 0.0
-        assert profile.centre_1.sigma == 1.0
+        component = result.model_relative(r=1.0).component
+        assert component.one_tuple.one_tuple_0.mean == 0
+        assert component.one_tuple.one_tuple_1.mean == 1
+        assert component.one_tuple.one_tuple_0.sigma == 0.0
+        assert component.one_tuple.one_tuple_1.sigma == 1.0
 
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
@@ -121,13 +121,6 @@ def test_nlo_wrong_info():
 
     return nlo_wrong_info_path
 
-
-class TestDirectorySetup:
-    def test__1_class__correct_directory(self, nlo_setup_path):
-        conf.instance.output_path = nlo_setup_path + "1_class"
-        af.MockSearch(af.Paths(name=""))
-
-        assert os.path.exists(nlo_setup_path + "1_class")
 
 
 class TestLabels:

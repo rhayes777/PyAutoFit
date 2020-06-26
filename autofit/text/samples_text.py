@@ -27,7 +27,7 @@ def results_at_sigma_from_samples(samples, sigma) -> str:
         value = f"{value} ({lower_limit}, {upper_limit})"
         sigma_formatter.add((prior_path, value))
 
-    return "\n\nMost probable model ({} sigma limits):\n\n{}".format(
+    return "\n\nMedian PDF model ({} sigma limits):\n\n{}".format(
         sigma, sigma_formatter.text
     )
 
