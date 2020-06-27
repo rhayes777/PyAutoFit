@@ -26,6 +26,7 @@ def make_samples():
         parameters=parameters,
         log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
         log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+        weights=[1.0, 1.0, 1.0, 1.0, 1.0],
     )
 
 
@@ -44,11 +45,11 @@ class TestSamplesTable:
     def test_rows(self, samples):
         rows = list(samples._rows)
         assert rows == [
-            [0.0, 1.0, 2.0, 3.0, 1.0, 0.0, 1.0],
-            [0.0, 1.0, 2.0, 3.0, 2.0, 0.0, 2.0],
-            [0.0, 1.0, 2.0, 3.0, 3.0, 0.0, 3.0],
-            [21.0, 22.0, 23.0, 24.0, 10.0, 0.0, 10.0],
-            [0.0, 1.0, 2.0, 3.0, 5.0, 0.0, 5.0],
+            [0.0, 1.0, 2.0, 3.0, 1.0, 0.0, 1.0, 1.0],
+            [0.0, 1.0, 2.0, 3.0, 2.0, 0.0, 2.0, 1.0],
+            [0.0, 1.0, 2.0, 3.0, 3.0, 0.0, 3.0, 1.0],
+            [21.0, 22.0, 23.0, 24.0, 10.0, 0.0, 10.0, 1.0],
+            [0.0, 1.0, 2.0, 3.0, 5.0, 0.0, 5.0, 1.0],
         ]
 
     def test_write_table(self, samples):
@@ -101,6 +102,7 @@ class TestOptimizerSamples:
             parameters=parameters,
             log_likelihoods=[1.0, 2.0, 3.0, 0.0, 5.0],
             log_priors=[1.0, 2.0, 3.0, 10.0, 6.0],
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0]
         )
 
         assert samples.log_posteriors == [2.0, 4.0, 6.0, 10.0, 11.0]
@@ -129,6 +131,7 @@ class TestOptimizerSamples:
             parameters=parameters,
             log_likelihoods=[10.0, 0.0, 0.0, 0.0, 0.0],
             log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0]
         )
 
         gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
@@ -159,6 +162,7 @@ class TestOptimizerSamples:
             parameters=parameters,
             log_likelihoods=[0.0, 0.0, 0.0, 0.0, 0.0],
             log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0]
         )
 
         instance = samples.instance_from_sample_index(sample_index=0)

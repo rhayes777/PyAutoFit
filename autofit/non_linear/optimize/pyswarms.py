@@ -7,7 +7,6 @@ import pickle
 from autofit import exc
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples
-from autofit.non_linear.abstract_search import Result
 
 logger = logging.getLogger(__name__)
 
@@ -325,12 +324,14 @@ class AbstractPySwarms(AbstractOptimizer):
         ]
         log_posteriors = self.load_log_posteriors
         log_likelihoods = [lp - prior for lp, prior in zip(log_posteriors, log_priors)]
+        weights = len(log_likelihoods)*[1.0]
 
         return OptimizerSamples(
             model=model,
             parameters=[parameters.tolist()[0] for parameters in self.load_points],
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
+            weights=weights
         )
 
     @property

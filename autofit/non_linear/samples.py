@@ -22,6 +22,7 @@ class OptimizerSamples:
         parameters: List[List[float]],
         log_likelihoods: List[float],
         log_priors: List[float],
+        weights: List[float],
     ):
         """The *Samples* of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
@@ -40,6 +41,7 @@ class OptimizerSamples:
         self.log_posteriors = [
             lh + prior for lh, prior in zip(log_likelihoods, log_priors)
         ]
+        self.weights = weights
 
     @property
     def parameter_names(self):
@@ -62,6 +64,7 @@ class OptimizerSamples:
                 self.log_likelihoods[index],
                 self.log_priors[index],
                 self.log_posteriors[index],
+                self.weights[index]
             ]
 
     def write_table(self, filename: str):
@@ -164,9 +167,9 @@ class PDFSamples(OptimizerSamples):
             parameters=parameters,
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
+            weights=weights
         )
 
-        self.weights = weights
         self._unconverged_sample_size = unconverged_sample_size
 
     @property
