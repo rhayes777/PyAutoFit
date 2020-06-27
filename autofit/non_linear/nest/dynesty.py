@@ -11,8 +11,6 @@ from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.abstract_search import Result
 
-import copy
-
 logger = logging.getLogger(__name__)
 
 
@@ -66,8 +64,7 @@ class AbstractDynesty(AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
@@ -395,8 +392,7 @@ class AbstractDynesty(AbstractNest):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         """
 
         sampler = self.load_sampler
@@ -419,6 +415,7 @@ class AbstractDynesty(AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=sampler.results.nlive,
+            time=self.timer.time
         )
 
     @property
@@ -524,8 +521,7 @@ class DynestyStatic(AbstractDynesty):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.

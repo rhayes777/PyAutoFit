@@ -1,8 +1,4 @@
 import logging
-
-import numpy as np
-
-from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest import abstract_nest
@@ -51,8 +47,7 @@ class MultiNest(abstract_nest.AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
@@ -374,6 +369,7 @@ class MultiNest(abstract_nest.AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,
+            time=self.timer.time
         )
 
 

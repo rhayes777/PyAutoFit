@@ -1,4 +1,3 @@
-import configparser
 import logging
 import multiprocessing as mp
 import pickle
@@ -7,11 +6,13 @@ from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
 
+
 import numpy as np
 
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.timer import Timer
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.text import formatter
 from autofit.text import model_text
@@ -39,8 +40,7 @@ class NonLinearSearch(ABC):
         Parameters
         ------------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
@@ -55,6 +55,7 @@ class NonLinearSearch(ABC):
             paths.non_linear_tag_function = lambda: self.tag
 
         self.paths = paths
+        self.timer = Timer(paths=paths)
 
         self.skip_completed = conf.instance.general.get(
             "output", "skip_completed", bool
@@ -211,6 +212,9 @@ class NonLinearSearch(ABC):
             self.save_info(info=info)
             self.save_search()
             self.save_model(model=model)
+            # TODO : Better way to handle?
+            self.timer.paths = self.paths
+            self.timer.start()
 
             self._fit(model=model, analysis=analysis)
             open(self.paths.has_completed_path, "w+").close()
@@ -308,6 +312,8 @@ class NonLinearSearch(ABC):
         if self.should_backup() or not during_analysis:
             self.paths.backup()
 
+        self.timer.update()
+
         samples = self.samples_from_model(model=model)
 
         samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
@@ -324,9 +330,11 @@ class NonLinearSearch(ABC):
 
             samples_text.results_to_file(
                 samples=samples,
-                file_results=self.paths.file_results,
+                filename=self.paths.file_results,
                 during_analysis=during_analysis,
             )
+
+            samples_text.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
 
         if not during_analysis:
             self.paths.backup_zip_remove()

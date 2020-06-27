@@ -49,8 +49,7 @@ class Emcee(AbstractMCMC):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
@@ -160,6 +159,7 @@ class Emcee(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
+
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
@@ -292,7 +292,7 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
             backups, etc.
         """
 
@@ -319,6 +319,7 @@ class Emcee(AbstractMCMC):
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
+            time=self.timer.time
         )
 
     @property

@@ -31,6 +31,73 @@ def results_at_sigma_from_samples(samples, sigma) -> str:
         sigma, sigma_formatter.text
     )
 
+def results_to_file(samples, filename, during_analysis):
+    """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
+    sigma confidence and information on the maximum log likelihood.
+
+    Parameters
+    ----------
+    during_analysis : bool
+        Whether the model.results are being written during the analysis or after the non-linear search has finished.
+    """
+
+    results = []
+
+    if hasattr(samples, "log_evidence"):
+        if samples.log_evidence is not None:
+            results += frm.label_and_value_string(
+                label="Bayesian Evidence ",
+                value=samples.log_evidence,
+                whitespace=90,
+                format_string="{:.8f}",
+            )
+            results += ["\n"]
+
+    results += frm.label_and_value_string(
+        label="Maximum Likelihood ",
+        value=max(samples.log_likelihoods),
+        whitespace=90,
+        format_string="{:.8f}",
+    )
+    results += ["\n\n"]
+
+    results += ["Maximum Log Likelihood Model:\n\n"]
+
+    formatter = frm.TextFormatter()
+
+    for i, prior_path in enumerate(samples.model.unique_prior_paths):
+        formatter.add((prior_path, format_str().format(samples.max_log_likelihood_vector[i])))
+    results += [formatter.text + "\n"]
+
+    if hasattr(samples, "pdf_converged"):
+
+        if samples.pdf_converged:
+
+            results += results_at_sigma_from_samples(samples=samples, sigma=3.0)
+            results += ["\n"]
+            results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
+
+        else:
+
+            results += [
+                "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
+                "The model below over estimates errors. \n\n"
+            ]
+            results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
+
+        results += ["\n\ninstances\n"]
+
+    formatter = frm.TextFormatter()
+
+    for t in samples.model.path_float_tuples:
+        formatter.add(t)
+
+    results += ["\n" + formatter.text]
+
+    frm.output_list_of_strings_to_file(
+        file=filename, list_of_strings=results
+    )
+
 
 def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> [str]:
     """Return the results of the non-linear search at an input sigma value as a string that is formated for simple
@@ -70,6 +137,24 @@ def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> 
     return line
 
 
+def search_summary_from_samples(samples) -> [str]:
+
+    line = [f"Total Samples = {samples.total_samples}\n"]
+    if hasattr(samples, "total_accepted_samples"):
+        line.append(f"Total Accepted Samples = {samples.total_accepted_samples}\n")
+        line.append(f"Acceptance Ratio = {samples.acceptance_ratio}\n")
+    if samples.time is not None:
+        line.append(f"Time To Run = {samples.time}\n")
+    return line
+
+def search_summary_to_file(samples, filename):
+
+    summary = search_summary_from_samples(samples=samples)
+
+    frm.output_list_of_strings_to_file(
+        file=filename, list_of_strings=summary
+    )
+
 def format_str() -> str:
     """The format string for the model.results file, describing to how many decimal points every parameter
     estimate is output in the model.results file.
@@ -80,69 +165,3 @@ def format_str() -> str:
     return f"{{:.{decimal_places}f}}"
 
 
-def results_to_file(samples, file_results, during_analysis):
-    """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
-    sigma confidence and information on the maximum log likelihood.
-
-    Parameters
-    ----------
-    during_analysis : bool
-        Whether the model.results are being written during the analysis or after the non-linear search has finished.
-    """
-
-    results = []
-
-    if hasattr(samples, "log_evidence"):
-        if samples.log_evidence is not None:
-            results += frm.label_and_value_string(
-                label="Bayesian Evidence ",
-                value=samples.log_evidence,
-                whitespace=90,
-                format_string="{:.8f}",
-            )
-            results += ["\n"]
-
-    results += frm.label_and_value_string(
-        label="Maximum Likelihood ",
-        value=max(samples.log_likelihoods),
-        whitespace=90,
-        format_string="{:.8f}",
-    )
-    results += ["\n\n"]
-
-    results += ["Maximum Log Likelihood Model:\n\n"]
-
-    formatter = frm.TextFormatter()
-
-    for i, prior_path in enumerate(samples.model.unique_prior_paths):
-        formatter.add((prior_path, format_str().format(samples.max_log_likelihood_vector[i])))
-    results += [formatter.text + "\n"]
-
-    if hasattr(samples, "weights"):
-
-        if samples.pdf_converged:
-
-            results += results_at_sigma_from_samples(samples=samples, sigma=3.0)
-            results += ["\n"]
-            results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
-
-        else:
-
-            results += [
-                "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
-                "The model below over estimates errors. \n\n"
-            ]
-            results += results_at_sigma_from_samples(samples=samples, sigma=1.0)
-
-        results += ["\n\ninstances\n"]
-
-    formatter = frm.TextFormatter()
-
-    for t in samples.model.path_float_tuples:
-        formatter.add(t)
-
-    results += ["\n" + formatter.text]
-
-    frm.output_list_of_strings_to_file(
-        file=file_results, list_of_strings=results
-    )

@@ -67,8 +67,7 @@ class AbstractPySwarms(AbstractOptimizer):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
@@ -331,7 +330,8 @@ class AbstractPySwarms(AbstractOptimizer):
             parameters=[parameters.tolist()[0] for parameters in self.load_points],
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
-            weights=weights
+            weights=weights,
+            time=self.timer.time
         )
 
     @property
@@ -410,8 +410,7 @@ class PySwarmsGlobal(AbstractPySwarms):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
@@ -530,8 +529,7 @@ class PySwarmsLocal(AbstractPySwarms):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         sigma : float
             The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
             parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
