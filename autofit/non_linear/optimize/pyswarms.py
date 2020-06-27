@@ -15,7 +15,7 @@ class AbstractPySwarms(AbstractOptimizer):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         n_particles=None,
         iters=None,
         cognitive=None,
@@ -68,9 +68,9 @@ class AbstractPySwarms(AbstractOptimizer):
         ----------
         paths : af.Paths
             A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -94,8 +94,6 @@ class AbstractPySwarms(AbstractOptimizer):
         https://pyswarms.readthedocs.io/en/latest/index.html
         """
 
-        self.sigma = sigma
-
         self.n_particles = (
             self.config("search", "n_particles", int)
             if n_particles is None
@@ -118,6 +116,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         super().__init__(
             paths=paths,
+            prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
         )
@@ -277,7 +276,7 @@ class AbstractPySwarms(AbstractOptimizer):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma = self.sigma
+        copy.prior_passer = self.prior_passer
         copy.n_particles = self.n_particles
         copy.iters = self.iters
         copy.cognitive = self.cognitive
@@ -358,7 +357,7 @@ class PySwarmsGlobal(AbstractPySwarms):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         n_particles=None,
         iters=None,
         cognitive=None,
@@ -411,9 +410,9 @@ class PySwarmsGlobal(AbstractPySwarms):
         ----------
         paths : af.Paths
             A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -439,7 +438,7 @@ class PySwarmsGlobal(AbstractPySwarms):
 
         super().__init__(
             paths=paths,
-            sigma=sigma,
+            prior_passer=prior_passer,
             n_particles=n_particles,
             iters=iters,
             cognitive=cognitive,
@@ -471,7 +470,7 @@ class PySwarmsLocal(AbstractPySwarms):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         n_particles=None,
         iters=None,
         cognitive=None,
@@ -530,9 +529,9 @@ class PySwarmsLocal(AbstractPySwarms):
         ----------
         paths : af.Paths
             A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -575,7 +574,7 @@ class PySwarmsLocal(AbstractPySwarms):
 
         super().__init__(
             paths=paths,
-            sigma=sigma,
+            prior_passer=prior_passer,
             n_particles=n_particles,
             iters=iters,
             cognitive=cognitive,

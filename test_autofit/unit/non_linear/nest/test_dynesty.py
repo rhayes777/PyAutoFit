@@ -39,6 +39,7 @@ class TestDynestyConfig:
     def test__loads_from_config_file_if_not_input(self):
 
         dynesty = af.DynestyStatic(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=151,
             facc=0.6,
             evidence_tolerance=0.1,
@@ -63,6 +64,9 @@ class TestDynestyConfig:
             number_of_cores=2,
         )
 
+        assert dynesty.prior_passer.sigma == 2.0
+        assert dynesty.prior_passer.use_errors == False
+        assert dynesty.prior_passer.use_widths == False
         assert dynesty.iterations_per_update == 501
         assert dynesty.n_live_points == 151
         assert dynesty.facc == 0.6
@@ -88,6 +92,9 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyStatic()
 
+        assert dynesty.prior_passer.sigma == 3.0
+        assert dynesty.prior_passer.use_errors == True
+        assert dynesty.prior_passer.use_widths == True
         assert dynesty.iterations_per_update == 500
         assert dynesty.n_live_points == 150
         assert dynesty.evidence_tolerance == 0.159
@@ -112,6 +119,7 @@ class TestDynestyConfig:
         assert dynesty.number_of_cores == 1
 
         dynesty = af.DynestyDynamic(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=0,
             iterations_per_update=501,
             facc=0.6,
@@ -136,6 +144,9 @@ class TestDynestyConfig:
             number_of_cores=3,
         )
 
+        assert dynesty.prior_passer.sigma == 2.0
+        assert dynesty.prior_passer.use_errors == False
+        assert dynesty.prior_passer.use_widths == False
         assert dynesty.n_live_points == 500
         assert dynesty.iterations_per_update == 501
         assert dynesty.facc == 0.6
@@ -161,6 +172,9 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyDynamic()
 
+        assert dynesty.prior_passer.sigma == 3.0
+        assert dynesty.prior_passer.use_errors == True
+        assert dynesty.prior_passer.use_widths == True
         assert dynesty.n_live_points == 5
         assert dynesty.iterations_per_update == 501
         assert dynesty.facc == 0.6
@@ -326,12 +340,12 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test_dynesty(self):
-        search = af.DynestyStatic(af.Paths("phase_name"), sigma=2.0)
+        search = af.DynestyStatic(af.Paths("phase_name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.DynestyStatic)
-        assert copy.sigma is search.sigma
+        assert copy.prior_passer is search.prior_passer
         assert (
             copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
@@ -353,12 +367,12 @@ class TestCopyWithNameExtension:
         assert copy.max_move == search.max_move
         assert copy.number_of_cores == search.number_of_cores
 
-        search = af.DynestyDynamic(af.Paths("phase_name"), sigma=2.0)
+        search = af.DynestyDynamic(af.Paths("phase_name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.DynestyDynamic)
-        assert copy.sigma is search.sigma
+        assert copy.prior_passer is search.prior_passer
         assert (
             copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )

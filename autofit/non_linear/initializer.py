@@ -1,6 +1,5 @@
 from autofit import exc
 
-import numpy as np
 import configparser
 
 
@@ -21,6 +20,7 @@ class Initializer:
 
     @classmethod
     def from_config(cls, config):
+        """Load the Initializer from a non_linear config file."""
 
         try:
 

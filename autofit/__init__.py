@@ -35,6 +35,7 @@ from .mapper.prior_model.util import PriorModelNameValue
 from .non_linear.abstract_search import Analysis
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import Result
+from .non_linear.abstract_search import PriorPasser
 from .non_linear.optimize.downhill_simplex import DownhillSimplex
 from .non_linear.optimize.pyswarms import PySwarmsLocal
 from .non_linear.optimize.pyswarms import PySwarmsGlobal
