@@ -172,3 +172,10 @@ config to run. Therefore, if you fork or clone the **PyAutoFit** repository, you
 `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ with the PYTHONPATH and WORKSPACE environment
 variables set up as described on the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ repository
 or the installation instructions below.
+
+Trouble Shooting
+----------------
+
+If you have issues with installation or using **PyAutoFit** in general, please raise an issue on the
+`autofit_workspace issues page <https://github.com/Jammy2211/autofit_workspace/issues>`_ with a description of the
+problem and your system setup (operating system, Python version, etc.).
