@@ -54,7 +54,7 @@ class OptimizerSamples:
         """
         Headers for the samples table
         """
-        return self.parameter_names + ["log_likelihood", "log_prior", "log_posterior"]
+        return self.parameter_names + ["log_likelihood", "log_prior", "log_posterior", "weights"]
 
     @property
     def _rows(self) -> List[List[float]]:

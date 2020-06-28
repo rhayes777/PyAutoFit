@@ -90,7 +90,7 @@ class NonLinearSearch(ABC):
             "updates", "model_results_every_update", int
         )
 
-        self.should_log = IntervalCounter(self.log_every_update)
+      #  self.should_log = IntervalCounter(self.log_every_update)
         self.should_backup = IntervalCounter(self.backup_every_update)
         self.should_visualize = IntervalCounter(self.visualize_every_update)
         self.should_output_model_results = IntervalCounter(
