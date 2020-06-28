@@ -133,6 +133,10 @@ class MultiNest(abstract_nest.AbstractNest):
             if evidence_tolerance is None
             else evidence_tolerance
         )
+
+        if self.evidence_tolerance <= 0.0:
+            self.evidence_tolerance = 0.8
+
         self.multimodal = (
             multimodal or self.config("search", "multimodal", bool)
             if multimodal is None

@@ -236,7 +236,7 @@ class NonLinearSearch(ABC):
             samples = self.samples_from_model(model=model)
             self.paths.backup_zip_remove()
 
-        return Result(samples=samples, previous_model=model, prior_passer=self.prior_passer)
+        return Result(samples=samples, previous_model=model, search=self)
 
     @abstractmethod
     def _fit(self, model, analysis):
@@ -495,7 +495,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples, previous_model=None, prior_passer=None):
+    def __init__(self, samples, previous_model, search):
         """
         The result of an optimization.
 
@@ -510,7 +510,7 @@ class Result:
 
         self.samples = samples
         self.previous_model = previous_model
-        self.prior_passer = prior_passer
+        self.search = search
 
         self.__model = None
 
@@ -534,9 +534,9 @@ class Result:
     def model(self):
         if self.__model is None:
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self.samples.gaussian_priors_at_sigma(sigma=self.prior_passer.sigma),
-                use_errors=self.prior_passer.use_errors,
-                use_widths=self.prior_passer.use_widths
+                self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma),
+                use_errors=self.search.prior_passer.use_errors,
+                use_widths=self.search.prior_passer.use_widths
             )
         return self.__model
 
@@ -687,7 +687,7 @@ class PriorPasser:
 
     @classmethod
     def from_config(cls, config):
-        """Load the PriorPassing from a non_linear config file."""
+        """Load the PriorPasser from a non_linear config file."""
         sigma = config("prior_passer", "sigma", float)
         use_errors = config("prior_passer", "use_errors", bool)
         use_widths = config("prior_passer", "use_widths", bool)
