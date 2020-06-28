@@ -69,8 +69,4 @@ from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
 
-<<<<<<< HEAD
-__version__ = '0.61.2'
-=======
 __version__ = '0.61.3'
->>>>>>> release/0.61.3
