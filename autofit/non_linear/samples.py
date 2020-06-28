@@ -22,6 +22,8 @@ class OptimizerSamples:
         parameters: List[List[float]],
         log_likelihoods: List[float],
         log_priors: List[float],
+        weights: List[float],
+        time : float = None
     ):
         """The *Samples* of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
@@ -40,6 +42,8 @@ class OptimizerSamples:
         self.log_posteriors = [
             lh + prior for lh, prior in zip(log_likelihoods, log_priors)
         ]
+        self.weights = weights
+        self.time = time
 
     @property
     def parameter_names(self):
@@ -62,6 +66,7 @@ class OptimizerSamples:
                 self.log_likelihoods[index],
                 self.log_priors[index],
                 self.log_posteriors[index],
+                self.weights[index]
             ]
 
     def write_table(self, filename: str):
@@ -143,12 +148,13 @@ class OptimizerSamples:
 class PDFSamples(OptimizerSamples):
     def __init__(
         self,
-        model,
-        parameters,
-        log_likelihoods,
-        log_priors,
-        weights,
-        unconverged_sample_size=100,
+        model: ModelMapper,
+        parameters: List[List[float]],
+        log_likelihoods: List[float],
+        log_priors: List[float],
+        weights: List[float],
+        unconverged_sample_size : int =100,
+        time : float = None,
     ):
         """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
@@ -164,9 +170,10 @@ class PDFSamples(OptimizerSamples):
             parameters=parameters,
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
+            weights=weights,
+            time=time
         )
 
-        self.weights = weights
         self._unconverged_sample_size = unconverged_sample_size
 
     @property
@@ -205,7 +212,7 @@ class PDFSamples(OptimizerSamples):
 
     @property
     def getdist_samples(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search samples.
+        """An interface to *GetDist* which can be used for analysing and visualizing the samples.
 
         *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
         checked using the *pdf_converged* bool before *GetDist* is called.
@@ -586,19 +593,20 @@ class PDFSamples(OptimizerSamples):
 class MCMCSamples(PDFSamples):
     def __init__(
         self,
-        model,
-        parameters,
-        log_likelihoods,
-        log_priors,
-        weights,
-        auto_correlation_times,
-        auto_correlation_check_size,
-        auto_correlation_required_length,
-        auto_correlation_change_threshold,
-        total_walkers,
-        total_steps,
-        backend,
-        unconverged_sample_size=100,
+        model: ModelMapper,
+        parameters: List[List[float]],
+        log_likelihoods: List[float],
+        log_priors: List[float],
+        weights: List[float],
+        auto_correlation_times : np.ndarray,
+        auto_correlation_check_size : int,
+        auto_correlation_required_length : int,
+        auto_correlation_change_threshold : float,
+        total_walkers : int,
+        total_steps : int,
+        backend : emcee.backends.HDFBackend,
+        unconverged_sample_size : int = 100,
+        time : float = None
     ):
         """
         Attributes
@@ -617,6 +625,7 @@ class MCMCSamples(PDFSamples):
             log_priors=log_priors,
             weights=weights,
             unconverged_sample_size=unconverged_sample_size,
+            time=time
         )
 
         self.total_walkers = total_walkers
@@ -630,7 +639,7 @@ class MCMCSamples(PDFSamples):
 
     @property
     def getdist_samples(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the non-linear search samples.
+        """An interface to *GetDist* which can be used for analysing and visualizing the samples.
 
         *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
         checked using the *pdf_converged* bool before *GetDist* is called.
@@ -761,15 +770,16 @@ class MCMCSamples(PDFSamples):
 class NestSamples(PDFSamples):
     def __init__(
         self,
-        model,
-        parameters,
-        log_likelihoods,
-        log_priors,
-        weights,
-        number_live_points,
-        log_evidence,
-        total_samples,
-        unconverged_sample_size=100,
+        model: ModelMapper,
+        parameters: List[List[float]],
+        log_likelihoods: List[float],
+        log_priors: List[float],
+        weights: List[float],
+        number_live_points : int,
+        log_evidence : float,
+        total_samples : int,
+        unconverged_sample_size : int =100,
+        time : float = None
     ):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
         as files on your hard-disk) and Python.
@@ -796,6 +806,7 @@ class NestSamples(PDFSamples):
             log_priors=log_priors,
             weights=weights,
             unconverged_sample_size=unconverged_sample_size,
+            time=time
         )
 
         self.number_live_points = number_live_points

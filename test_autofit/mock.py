@@ -67,6 +67,7 @@ class MockSamples(af.PDFSamples):
     def write_table(self, filename: str):
         pass
 
+
 class MockSearch(af.NonLinearSearch):
     def __init__(self, paths=None, samples=None):
 
@@ -187,6 +188,12 @@ class MockPositionClass:
 class MockDistanceClass:
     @af.map_types
     def __init__(self, one: MockDistance, two: MockDistance):
+        self.one = one
+        self.two = two
+
+
+class DeferredClass:
+    def __init__(self, one, two):
         self.one = one
         self.two = two
 

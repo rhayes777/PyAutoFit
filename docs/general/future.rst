@@ -5,7 +5,7 @@ Future
 
 The following features are planned for 2020 - 2021:
 
-- **Bayesian Model Comparison** - Determine the most probable model via the Bayesian log evidence.
+- **Bayesian Model Comparison** - Determine the median PDF model via the Bayesian log evidence.
 - **Generalized Linear Models** - Fit for global trends to model fits to large data-sets.
 - **Hierarchical modeling** - Combine fits over multiple data-sets to perform hierarchical inference.
 - **Time series modelling** - Fit temporally varying models using fits which marginalize over time.

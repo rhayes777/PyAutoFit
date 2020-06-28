@@ -1,4 +1,3 @@
-import configparser
 import logging
 import multiprocessing as mp
 import pickle
@@ -7,11 +6,13 @@ from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
 
+
 import numpy as np
 
 from autoconf import conf
 from autofit.mapper import model_mapper as mm
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.timer import Timer
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.text import formatter
 from autofit.text import model_text
@@ -27,6 +28,7 @@ class NonLinearSearch(ABC):
     def __init__(
         self,
         paths=None,
+        prior_passer=None,
         initializer=None,
         iterations_per_update=None,
         number_of_cores=1,
@@ -39,11 +41,10 @@ class NonLinearSearch(ABC):
         Parameters
         ------------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
@@ -55,6 +56,12 @@ class NonLinearSearch(ABC):
             paths.non_linear_tag_function = lambda: self.tag
 
         self.paths = paths
+        if prior_passer is None:
+            self.prior_passer = PriorPasser.from_config(config=self.config)
+        else:
+            self.prior_passer = prior_passer
+
+        self.timer = Timer(paths=paths)
 
         self.skip_completed = conf.instance.general.get(
             "output", "skip_completed", bool
@@ -211,6 +218,9 @@ class NonLinearSearch(ABC):
             self.save_info(info=info)
             self.save_search()
             self.save_model(model=model)
+            # TODO : Better way to handle?
+            self.timer.paths = self.paths
+            self.timer.start()
 
             self._fit(model=model, analysis=analysis)
             open(self.paths.has_completed_path, "w+").close()
@@ -226,7 +236,7 @@ class NonLinearSearch(ABC):
             samples = self.samples_from_model(model=model)
             self.paths.backup_zip_remove()
 
-        return Result(samples=samples, previous_model=model)
+        return Result(samples=samples, previous_model=model, search=self)
 
     @abstractmethod
     def _fit(self, model, analysis):
@@ -308,6 +318,8 @@ class NonLinearSearch(ABC):
         if self.should_backup() or not during_analysis:
             self.paths.backup()
 
+        self.timer.update()
+
         samples = self.samples_from_model(model=model)
 
         samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
@@ -324,9 +336,11 @@ class NonLinearSearch(ABC):
 
             samples_text.results_to_file(
                 samples=samples,
-                file_results=self.paths.file_results,
+                filename=self.paths.file_results,
                 during_analysis=during_analysis,
             )
+
+            samples_text.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
 
         if not during_analysis:
             self.paths.backup_zip_remove()
@@ -481,20 +495,22 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples, previous_model=None):
+    def __init__(self, samples, previous_model, search):
         """
         The result of an optimization.
 
         Parameters
         ----------
-            A value indicating the figure of merit given by the optimal fit
         previous_model
             The model mapper from the stage that produced this result
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         """
 
         self.samples = samples
-
         self.previous_model = previous_model
+        self.search = search
 
         self.__model = None
 
@@ -518,7 +534,9 @@ class Result:
     def model(self):
         if self.__model is None:
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self.samples.gaussian_priors_at_sigma(sigma=3.0)
+                self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma),
+                use_errors=self.search.prior_passer.use_errors,
+                use_widths=self.search.prior_passer.use_widths
             )
         return self.__model
 
@@ -546,7 +564,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=3.0), a=a
+            self.samples.gaussian_priors_at_sigma(sigma=self.prior_passing_sigma), a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -562,7 +580,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=3.0), r=r
+            self.samples.gaussian_priors_at_sigma(sigma=self.prior_passing_sigma), r=r
         )
 
 
@@ -576,6 +594,104 @@ class IntervalCounter:
             return False
         self.count += 1
         return self.count % self.interval == 0
+
+
+class PriorPasser:
+
+    def __init__(self, sigma, use_errors, use_widths):
+        """Class to package the API for prior passing.
+
+        This class contains the parameters that controls how priors are passed from the results of one non-linear
+        search to the next.
+
+        Using the Phase API, we can pass priors from the result of one phase to another follows:
+
+            model_component.parameter = phase_1_result.model.model_component.parameter
+
+        By invoking the 'model' attribute, the prior is passed following 3 rules:
+
+            1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
+               the end of a phase are easily summarized as a Gaussian.
+
+            2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in phase 1.
+
+              This ensures that the initial sampling of the new phase's non-linear starts by searching the region of
+              non-linear parameter space that correspond to highest log likelihood solutions in the previous phase.
+              Thus, we're setting our priors to look in the 'correct' regions of parameter space.
+
+            3) The sigma of the Gaussian will use the maximum of two values:
+
+                    (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
+                    (ii) The value specified for the profile in the 'config/json_priors/*.json' config
+                         file's 'width_modifer' field (check these files out now).
+
+               The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
+               broad region of parameter space, so that the model can change if a better solution is nearby. However,
+               we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
+               risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
+               previous phase.
+
+               Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
+               we underestimate the parameter errors. This is especially true when we take the shortcuts in early
+               phases - fast non-linear search settings, simplified models, etc.
+
+               Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
+               is suspiciously small, we instead use the value specified in the widths file. These values are chosen
+               based on our experience as being a good balance broadly sampling parameter space but not being so narrow
+               important solutions are missed.
+
+        There are two ways a value is specified using the priors/width file:
+
+            1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
+               example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
+               a value 0.05. This means if the error on the parameter was less than 0.05 in the previous phase, the
+               sigma of its GaussianPrior in this phase will be 0.05.
+
+            2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
+               given in the config file. For example, if the parameter estimated in the previous phase was 2.0, and the
+               relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
+               will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
+
+        The PriorPasser allows us to customize at what sigma the error values the model results are computed at to
+        compute the passed sigma values and customizes whether the widths in the config file, these computed errors,
+        or both, are used to set the sigma values of the passed priors.
+
+        The default values of the PriorPasser are found in the config file of every non-linear search, in the
+        [prior_passer] section. All non-linear searches by default use a sigma value of 3.0, use_width=True and
+        use_errors=True. We anticipate you should not need to change these values to get lens modeling to work
+        proficiently!
+
+        Example:
+
+        Lets say in phase 1 we fit a model, and we estimate that a parameter is equal to 4.0 +- 2.0, where the error
+        value of 2.0 was computed at 3.0 sigma confidence. To pass this as a prior to phase 2, we would write:
+
+            model_component.parameter = phase1.result.model.model_component.parameter
+
+        The prior on the parameter in phase 2 would thus be a GaussianPrior, with mean=4.0 and
+        sigma=2.0. If we had used a sigma value of 1.0 to compute the error, which reduced the estimate from 4.0 +- 2.0
+        to 4.0 +- 0.5, the sigma of the Gaussian prior would instead be 0.5.
+
+        If the error on the parameter in phase 1 had been really small, lets say, 0.01, we would instead use the value
+        of the parameter width in the json_priors config file to set sigma instead. Lets imagine the prior config file
+        specifies that we use an "Absolute" value of 0.8 to link this prior. Then, the GaussianPrior in phase 2 would
+        have a mean=4.0 and sigma=0.8.
+
+        If the prior config file had specified that we use an relative value of 0.8, the GaussianPrior in phase 2 would
+        have a mean=4.0 and sigma=3.2.
+        """
+
+        self.sigma = sigma
+        self.use_errors = use_errors
+        self.use_widths = use_widths
+
+    @classmethod
+    def from_config(cls, config):
+        """Load the PriorPasser from a non_linear config file."""
+        sigma = config("prior_passer", "sigma", float)
+        use_errors = config("prior_passer", "use_errors", bool)
+        use_widths = config("prior_passer", "use_widths", bool)
+        return PriorPasser(sigma=sigma, use_errors=use_errors, use_widths=use_widths)
 
 
 def init(queue):

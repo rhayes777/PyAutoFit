@@ -21,6 +21,7 @@ class TestEmceeConfig:
     def test__loads_from_config_file_correct(self):
 
         emcee = af.Emcee(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nwalkers=51,
             nsteps=2001,
             initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
@@ -31,6 +32,9 @@ class TestEmceeConfig:
             number_of_cores=2,
         )
 
+        assert emcee.prior_passer.sigma == 2.0
+        assert emcee.prior_passer.use_errors == False
+        assert emcee.prior_passer.use_widths == False
         assert emcee.nwalkers == 51
         assert emcee.nsteps == 2001
         assert isinstance(emcee.initializer, af.InitializerBall)
@@ -44,6 +48,9 @@ class TestEmceeConfig:
 
         emcee = af.Emcee()
 
+        assert emcee.prior_passer.sigma == 3.0
+        assert emcee.prior_passer.use_errors == True
+        assert emcee.prior_passer.use_widths == True
         assert emcee.nwalkers == 50
         assert emcee.nsteps == 2000
         assert isinstance(emcee.initializer, af.InitializerPrior)
@@ -144,12 +151,12 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test_emcee(self):
-        search = af.Emcee(af.Paths("phase_name"), sigma=2.0)
+        search = af.Emcee(af.Paths("phase_name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.Emcee)
-        assert copy.sigma is search.sigma
+        assert copy.prior_passer is search.prior_passer
         assert copy.nwalkers is search.nwalkers
         assert copy.nsteps is search.nsteps
         assert copy.initializer is search.initializer

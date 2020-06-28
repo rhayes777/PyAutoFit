@@ -143,6 +143,7 @@ class TestMulitNest:
     def test__loads_from_config_file_if_not_input(self):
 
         multi_nest = af.MultiNest(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=40,
             sampling_efficiency=0.5,
             const_efficiency_mode=True,
@@ -165,6 +166,9 @@ class TestMulitNest:
             acceptance_ratio_threshold=0.9,
         )
 
+        assert multi_nest.prior_passer.sigma == 2.0
+        assert multi_nest.prior_passer.use_errors == False
+        assert multi_nest.prior_passer.use_widths == False
         assert multi_nest.n_live_points == 40
         assert multi_nest.sampling_efficiency == 0.5
         assert multi_nest.const_efficiency_mode == True
@@ -188,6 +192,9 @@ class TestMulitNest:
 
         multi_nest = af.MultiNest()
 
+        assert multi_nest.prior_passer.sigma == 3.0
+        assert multi_nest.prior_passer.use_errors == True
+        assert multi_nest.prior_passer.use_widths == True
         assert multi_nest.importance_nested_sampling == True
         assert multi_nest.multimodal == True
         assert multi_nest.const_efficiency_mode == False
@@ -252,12 +259,12 @@ class TestMulitNest:
         assert copy.paths.name == "phase_name/one"
 
     def test__copy_with_name_extension(self):
-        search = af.MultiNest(af.Paths("phase_name"), sigma=2.0)
+        search = af.MultiNest(af.Paths("phase_name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.MultiNest)
-        assert copy.sigma is search.sigma
+        assert copy.prior_passer is search.prior_passer
         assert copy.importance_nested_sampling is search.importance_nested_sampling
         assert copy.multimodal is search.multimodal
         assert copy.const_efficiency_mode is search.const_efficiency_mode

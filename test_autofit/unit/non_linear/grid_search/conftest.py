@@ -12,7 +12,7 @@ fit_instances = []
 
 class MockOptimizer(af.MockSearch):
     def __init__(self, paths=af.Paths()):
-        super().__init__(paths=paths)
+        super().__init__(paths=paths, fit_fast=False)
         init_args.append(paths.name)
 
 
@@ -21,7 +21,7 @@ class MockAnalysis(af.Analysis):
 
     def log_likelihood_function(self, instance):
         fit_instances.append(instance)
-        return 1
+        return [1]
 
     def visualize(self, instance, during_analysis):
         pass

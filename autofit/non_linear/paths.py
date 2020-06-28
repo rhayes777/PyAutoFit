@@ -321,6 +321,10 @@ class Paths:
         return "{}/{}".format(self.backup_path, "multinestresume.dat")
 
     @property
+    def file_search_summary(self) -> str:
+        return "{}/{}".format(self.output_path, "search.summary")
+
+    @property
     def file_results(self):
         return "{}/{}".format(self.output_path, "model.results")
 

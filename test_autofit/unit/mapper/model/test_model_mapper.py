@@ -862,7 +862,7 @@ class TestGaussianWidthConfig:
 @pytest.fixture(name="promise_mapper")
 def make_promise_mapper():
     mapper = af.ModelMapper()
-    mapper.model_component = af.PriorModel(
+    mapper.component = af.PriorModel(
         mock.MockComponents,
         parameter=af.prior.Promise(
             None,
@@ -880,7 +880,7 @@ class TestPromises:
         assert promise_mapper.promise_count == 1
         assert promise_mapper.variable_promise_count == 1
 
-        promise_mapper.model_component.parameter.is_instance = True
+        promise_mapper.component.parameter.is_instance = True
         assert promise_mapper.variable_promise_count == 0
 
     def test_raises(self, promise_mapper):

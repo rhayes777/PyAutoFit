@@ -17,7 +17,7 @@ class AbstractNest(NonLinearSearch):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         iterations_per_update=None,
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
@@ -38,11 +38,10 @@ class AbstractNest(NonLinearSearch):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         terminate_at_acceptance_ratio : bool
             If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value.
@@ -55,11 +54,10 @@ class AbstractNest(NonLinearSearch):
 
         super().__init__(
             paths=paths,
+            prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,
         )
-
-        self.sigma = sigma
 
         self.terminate_at_acceptance_ratio = (
             self.config("settings", "terminate_at_acceptance_ratio", bool)
@@ -192,7 +190,7 @@ class AbstractNest(NonLinearSearch):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma = self.sigma
+        copy.prior_passer = self.prior_passer
         copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
         copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
         copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood

@@ -11,8 +11,6 @@ from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.abstract_search import Result
 
-import copy
-
 logger = logging.getLogger(__name__)
 
 
@@ -20,8 +18,8 @@ class AbstractDynesty(AbstractNest):
     def __init__(
         self,
         paths=None,
+        prior_passer=None,
         n_live_points=None,
-        sigma=3,
         facc=None,
         evidence_tolerance=None,
         bound=None,
@@ -66,11 +64,10 @@ class AbstractDynesty(AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         facc : float
             The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
             [1. / walks, 1.].
@@ -234,7 +231,7 @@ class AbstractDynesty(AbstractNest):
 
         super().__init__(
             paths=paths,
-            sigma=sigma,
+            prior_passer=prior_passer,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             iterations_per_update=iterations_per_update,
@@ -395,8 +392,7 @@ class AbstractDynesty(AbstractNest):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         """
 
         sampler = self.load_sampler
@@ -419,6 +415,7 @@ class AbstractDynesty(AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=sampler.results.nlive,
+            time=self.timer.time
         )
 
     @property
@@ -479,7 +476,7 @@ class DynestyStatic(AbstractDynesty):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         n_live_points=None,
         facc=None,
         evidence_tolerance=None,
@@ -524,11 +521,10 @@ class DynestyStatic(AbstractDynesty):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         bound : str
             Method used to approximately bound the prior using the current set of live points. Conditions the sampling
             methods used to propose new live points. Choices are no bound ('none'), a single bounding ellipsoid
@@ -613,7 +609,7 @@ class DynestyStatic(AbstractDynesty):
 
         super().__init__(
             paths=paths,
-            sigma=sigma,
+            prior_passer=prior_passer,
             n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,
             bound=bound,
@@ -701,7 +697,7 @@ class DynestyDynamic(AbstractDynesty):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         n_live_points=None,
         evidence_tolerance=None,
         facc=None,
@@ -735,9 +731,9 @@ class DynestyDynamic(AbstractDynesty):
 
         Attributes
         ----------
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
@@ -760,9 +756,9 @@ class DynestyDynamic(AbstractDynesty):
 
         super().__init__(
             paths=paths,
+            prior_passer=prior_passer,
             n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,
-            sigma=sigma,
             bound=bound,
             sample=sample,
             bootstrap=bootstrap,

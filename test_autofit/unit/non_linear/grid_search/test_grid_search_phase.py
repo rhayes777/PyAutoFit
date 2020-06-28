@@ -5,9 +5,12 @@ from test_autofit import mock
 class TestMixin:
     def test_mixin(self, container):
         class MyPhase(af.as_grid_search(af.AbstractPhase)):
+
+            Result = mock.MockResult
+
             @property
             def grid_priors(self):
-                return [self.model.profile.centre_0]
+                return [self.model.component.one_tuple.one_tuple_0]
 
             def run(self):
                 analysis = container.MockAnalysis()
@@ -16,9 +19,9 @@ class TestMixin:
         my_phase = MyPhase(
             af.Paths(name="", folders=tuple()),
             number_of_steps=2,
-            search=container.MockOptimizer,
+            search=container.MockOptimizer(),
         )
-        my_phase.model.profile = mock.MockClassx2Tuple
+        my_phase.model.component = mock.MockClassx2Tuple
 
         result = my_phase.run()
 

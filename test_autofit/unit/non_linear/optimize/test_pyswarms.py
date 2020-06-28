@@ -20,6 +20,7 @@ class TestPySwarmsGlobalConfig:
     def test__loads_from_config_file_correct(self):
 
         pso = af.PySwarmsGlobal(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_particles=51,
             iters=2001,
             cognitive=0.4,
@@ -30,6 +31,9 @@ class TestPySwarmsGlobalConfig:
             number_of_cores=2,
         )
 
+        assert pso.prior_passer.sigma == 2.0
+        assert pso.prior_passer.use_errors == False
+        assert pso.prior_passer.use_widths == False
         assert pso.n_particles == 51
         assert pso.iters == 2001
         assert pso.cognitive == 0.4
@@ -43,6 +47,9 @@ class TestPySwarmsGlobalConfig:
 
         pso = af.PySwarmsGlobal()
 
+        assert pso.prior_passer.sigma == 3.0
+        assert pso.prior_passer.use_errors == True
+        assert pso.prior_passer.use_widths == True
         assert pso.n_particles == 50
         assert pso.iters == 2000
         assert pso.cognitive == 0.1
@@ -53,6 +60,7 @@ class TestPySwarmsGlobalConfig:
         assert pso.number_of_cores == 1
 
         pso = af.PySwarmsLocal(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_particles=51,
             iters=2001,
             cognitive=0.4,
@@ -65,6 +73,9 @@ class TestPySwarmsGlobalConfig:
             number_of_cores=2,
         )
 
+        assert pso.prior_passer.sigma == 2.0
+        assert pso.prior_passer.use_errors == False
+        assert pso.prior_passer.use_widths == False
         assert pso.n_particles == 51
         assert pso.iters == 2001
         assert pso.cognitive == 0.4
@@ -80,6 +91,9 @@ class TestPySwarmsGlobalConfig:
 
         pso = af.PySwarmsLocal()
 
+        assert pso.prior_passer.sigma == 3.0
+        assert pso.prior_passer.use_errors == True
+        assert pso.prior_passer.use_widths == True
         assert pso.n_particles == 50
         assert pso.iters == 2000
         assert pso.cognitive == 0.1
@@ -129,6 +143,7 @@ class TestPySwarmsGlobalConfig:
 
         assert samples.log_likelihoods[0] == pytest.approx(-5071.80777, 1.0e-4)
         assert samples.log_posteriors[0] == pytest.approx(-5070.73298, 1.0e-4)
+        assert samples.weights[0] == 1.0
 
         assert len(samples.parameters) == 500
         assert len(samples.log_likelihoods) == 500
@@ -140,12 +155,12 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test__pyswarms(self):
-        search = af.PySwarmsGlobal(af.Paths("phase_name"), sigma=2.0)
+        search = af.PySwarmsGlobal(af.Paths("phase_name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.PySwarmsGlobal)
-        assert copy.sigma is search.sigma
+        assert copy.prior_passer is search.prior_passer
         assert copy.n_particles is search.n_particles
         assert copy.iters is search.iters
         assert copy.cognitive == search.cognitive

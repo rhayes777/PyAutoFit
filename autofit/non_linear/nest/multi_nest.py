@@ -1,8 +1,4 @@
 import logging
-
-import numpy as np
-
-from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest import abstract_nest
@@ -15,7 +11,7 @@ class MultiNest(abstract_nest.AbstractNest):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         n_live_points=None,
         sampling_efficiency=None,
         const_efficiency_mode=None,
@@ -51,11 +47,10 @@ class MultiNest(abstract_nest.AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         n_live_points : int
             The number of live points used to sample non-linear parameter space. More points provides a more thorough
             sampling of parameter space, at the expense of taking longer to run. The number of live points required for
@@ -138,6 +133,10 @@ class MultiNest(abstract_nest.AbstractNest):
             if evidence_tolerance is None
             else evidence_tolerance
         )
+
+        if self.evidence_tolerance <= 0.0:
+            self.evidence_tolerance = 0.8
+
         self.multimodal = (
             multimodal or self.config("search", "multimodal", bool)
             if multimodal is None
@@ -193,7 +192,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
         super().__init__(
             paths=paths,
-            sigma=sigma,
+            prior_passer=prior_passer,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             stagger_resampling_likelihood=stagger_resampling_likelihood,
@@ -299,7 +298,7 @@ class MultiNest(abstract_nest.AbstractNest):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma = self.sigma
+        copy.prior_passer = self.prior_passer
         copy.importance_nested_sampling = self.importance_nested_sampling
         copy.multimodal = self.multimodal
         copy.const_efficiency_mode = self.const_efficiency_mode
@@ -374,6 +373,7 @@ class MultiNest(abstract_nest.AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,
+            time=self.timer.time
         )
 
 

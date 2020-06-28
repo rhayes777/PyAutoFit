@@ -328,6 +328,8 @@ class AbstractPriorModel(AbstractModel):
             tuples,
             a=None,
             r=None,
+            use_errors=True,
+            use_widths=True,
             no_limits=False
     ):
         """
@@ -344,7 +346,16 @@ class AbstractPriorModel(AbstractModel):
         r
             The relative width to be assigned to gaussian priors
         a
+            print(tuples[i][1], width)
             The absolute width to be assigned to gaussian priors
+        use_errors : bool
+            If True, the passed errors of the model components estimated in a previous non-linear search (computed
+            at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
+            passed errors are used, the maximum of these two values are used).
+        use_widths : bool
+            If True, the minimum prior widths specified in the json_prior configs of the model components are used to
+            set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
+            these two values are used).
         tuples
             A list of tuples each containing the mean and width of a prior
         Returns
@@ -392,9 +403,19 @@ class AbstractPriorModel(AbstractModel):
                 except exc.PriorException:
                     limits = prior.limits
 
+            if use_errors and not use_widths:
+                sigma = tuples[i][1]
+            elif not use_errors and use_widths:
+                sigma = width
+            elif use_errors and use_widths:
+                sigma = max(tuples[i][1], width)
+            else:
+                raise exc.PriorException("use_passed_errors and use_widths are both False, meeaning there is no "
+                                         "way to pass priors to set up the new model's Gaussian Priors.")
+
             arguments[prior] = GaussianPrior(
                 mean,
-                max(tuples[i][1], width),
+                sigma,
                 *limits
             )
 

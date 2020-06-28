@@ -14,7 +14,7 @@ class Emcee(AbstractMCMC):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         nwalkers=None,
         nsteps=None,
         initializer=None,
@@ -49,11 +49,10 @@ class Emcee(AbstractMCMC):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : PriorPasser
+            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
+            non-linear search.
         nwalkers : int
             The number of walkers in the ensemble used to sample parameter space.
         nsteps : int
@@ -84,8 +83,6 @@ class Emcee(AbstractMCMC):
         https://emcee.readthedocs.io/en/stable/
         """
 
-        self.sigma = sigma
-
         self.nwalkers = (
             self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
         )
@@ -114,6 +111,7 @@ class Emcee(AbstractMCMC):
 
         super().__init__(
             paths=paths,
+            prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
         )
@@ -160,6 +158,7 @@ class Emcee(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
+
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
@@ -256,7 +255,7 @@ class Emcee(AbstractMCMC):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
-        copy.sigma = self.sigma
+        copy.prior_passer = self.prior_passer
         copy.nwalkers = self.nwalkers
         copy.nsteps = self.nsteps
         copy.auto_correlation_check_for_convergence = (
@@ -292,7 +291,7 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            A class that manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
             backups, etc.
         """
 
@@ -319,6 +318,7 @@ class Emcee(AbstractMCMC):
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
+            time=self.timer.time
         )
 
     @property
