@@ -40,6 +40,7 @@ class TestSamplesTable:
             "log_likelihood",
             "log_prior",
             "log_posterior",
+            "weights",
         ]
 
     def test_rows(self, samples):
