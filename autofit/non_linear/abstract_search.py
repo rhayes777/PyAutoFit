@@ -81,6 +81,9 @@ class NonLinearSearch(ABC):
             else iterations_per_update
         )
 
+        if conf.instance.general.get("hpc", "hpc_mode", bool):
+            self.iterations_per_update = conf.instance.general.get("hpc", "iterations_per_update", float)
+
         self.log_every_update = self.config("updates", "log_every_update", int)
         self.backup_every_update = self.config("updates", "backup_every_update", int)
         self.visualize_every_update = self.config(
@@ -98,6 +101,9 @@ class NonLinearSearch(ABC):
         )
 
         self.silence = self.config("printing", "silence", bool)
+
+        if conf.instance.general.get("hpc", "hpc_mode", bool):
+            self.silence = True
 
         self.number_of_cores = number_of_cores
 

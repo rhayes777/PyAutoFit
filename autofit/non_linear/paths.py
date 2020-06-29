@@ -139,6 +139,9 @@ class Paths:
         self.non_linear_tag_function = non_linear_tag_function
         self.remove_files = conf.instance.general.get("output", "remove_files", bool)
 
+        if conf.instance.general.get("hpc", "hpc_mode", bool):
+            self.remove_files = True
+
     def __getstate__(self):
         state = self.__dict__.copy()
         state["non_linear_tag"] = state.pop("non_linear_tag_function")()
