@@ -14,7 +14,6 @@ from autofit.tools import util
 
 logger = logging.getLogger(__name__)
 
-
 class OptimizerSamples:
     def __init__(
         self,
@@ -220,18 +219,29 @@ class PDFSamples(OptimizerSamples):
         https://github.com/cmbant/getdist
         https://getdist.readthedocs.io/en/latest/
 
-        For *Dynesty*, samples are passed to *GetDist* using the pickled sapler instance, which contains the physical
-        model parameters of every accepted sample, their likelihoods and weights.
+        GetDist is pretty vocal about its logging, in a way that can't be silenced via inputs to GetDist. So, to shut
+        it, up we switch the Python logger to CRITICAL and back to the default settings.
         """
         import getdist
 
+        logger = logging.getLogger()
+        logger.setLevel(level=logging.CRITICAL)
+
         with util.suppress_stdout():
-            return getdist.mcsamples.MCSamples(
+            getdist_samples = getdist.mcsamples.MCSamples(
                 samples=np.asarray(self.parameters),
                 weights=np.asarray(self.weights),
                 names=self.parameter_names,
                 labels=self.parameter_labels,
             )
+
+        logger.level = logging._nameToLevel[
+            conf.instance.general.get("output", "log_level", str)
+            .replace(" ", "")
+            .upper()
+        ]
+
+        return getdist_samples
 
     @property
     def median_pdf_vector(self) -> [float]:
@@ -241,7 +251,16 @@ class PDFSamples(OptimizerSamples):
         If the samples are sufficiently converged this is estimated by passing the accepted samples to *GetDist*, else
         a crude estimate using the mean value of all accepted samples is used."""
         if self.pdf_converged:
-            return self.getdist_samples.getMeans()
+
+            densities_1d = list(
+                map(lambda p: self.getdist_samples.get1DDensity(p), self.getdist_samples.getParamNames().names)
+            )
+            limit = math.erf(0.5 * 0.001 * math.sqrt(2))
+            try:
+                limits = list(map(lambda p: p.getLimits(limit), densities_1d))
+                return [(limit[0] + limit[1]) / 2.0 for limit in limits]
+            except IndexError:
+                return self.getdist_samples.getMeans()
 
         return self.max_log_likelihood_vector
 
@@ -556,6 +575,8 @@ class PDFSamples(OptimizerSamples):
         backend = conf.instance.visualize_general.get("general", "backend", str)
         if not backend in "default":
             matplotlib.use(backend)
+        if conf.instance.general.get("hpc", "hpc_mode", bool):
+            matplotlib.use("Agg")
         import matplotlib.pyplot as plt
 
         pdf_plot = getdist.plots.GetDistPlotter()

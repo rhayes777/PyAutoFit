@@ -294,9 +294,9 @@ class TestDynestyConfig:
                 [[1.0, 2.0, 3.0, 5.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]
             ),
             logl=[1.0, 2.0, 3.0],
-            logwt=[1.0, 2.0, 3.0],
+            logwt=[np.log(1.0), np.log(2.0), np.log(3.0)],
             ncall=[5.0, 5.0],
-            logz=[10.0, 11.0, 12.0],
+            logz=[-2.0, -1.0, 0.0],
             nlive=3,
         )
 
@@ -304,10 +304,10 @@ class TestDynestyConfig:
 
         paths = af.Paths()
 
-        with open(f"{paths.samples_path}/dynesty.pickle", "wb") as f:
-            pickle.dump(sampler, f)
-
         dynesty = af.DynestyStatic(paths=paths)
+
+        with open(f"{dynesty.paths.samples_path}/dynesty.pickle", "wb") as f:
+            pickle.dump(sampler, f)
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -328,9 +328,9 @@ class TestDynestyConfig:
         ]
         assert samples.log_likelihoods == [1.0, 2.0, 3.0]
         assert samples.log_priors == [0.2, 0.25, 0.25]
-        assert samples.weights == [1.0, 2.0, 3.0]
+        assert samples.weights == pytest.approx([1.0, 2.0, 3.0], 1.0e-4)
         assert samples.total_samples == 10
-        assert samples.log_evidence == 12.0
+        assert samples.log_evidence == 0.0
         assert samples.number_live_points == 3
 
 

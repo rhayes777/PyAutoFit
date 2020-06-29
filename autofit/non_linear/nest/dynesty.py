@@ -401,7 +401,11 @@ class AbstractDynesty(AbstractNest):
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
         log_likelihoods = list(sampler.results.logl)
-        weights = list(sampler.results.logwt)
+
+        try:
+            weights = list(np.exp(np.asarray(sampler.results.logwt) - sampler.results.logz[-1]))
+        except:
+            weights = sampler.results['weights']
 
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
