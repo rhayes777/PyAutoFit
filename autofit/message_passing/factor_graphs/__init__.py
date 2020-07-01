@@ -94,7 +94,7 @@ class AbstractNode(ABC):
     @property
     def plates(self) -> Tuple[Plate]:
         """
-        A tuple of the set of all plates in this graph
+        A tuple of the set of all plates in this graph, ordered by id
         """
         return tuple(sorted(set(
             cast(Plate, plate)
@@ -104,7 +104,12 @@ class AbstractNode(ABC):
         )))
 
     @property
-    def ndim(self):
+    def ndim(self) -> int:
+        """
+        The number of plates contained within this graph's variables
+
+        That is, the total dimensions of those variables.
+        """
         return len(self.plates)
 
     def _match_plates(
