@@ -24,7 +24,10 @@ class FactorValue(NamedTuple):
 
 
 class AbstractNode(ABC):
-    _deterministic_variables: Dict[str, Variable] = {}
+    _deterministic_variables: Union[
+        Dict[str, Variable],
+        ChainMap
+    ]
 
     def __init__(self, *args, **kwargs):
         self._variables = {v.name: v for v in args}
@@ -77,6 +80,8 @@ class FactorNode(AbstractNode):
             **kwargs
         )
         self._factor = factor
+
+        self._deterministic_variables = dict()
 
         self._args = tuple(v.name for v in args)
         self._kwargs = {n: v.name for n, v in kwargs.items()}
@@ -351,8 +356,8 @@ class DeterministicFactorNode(FactorNode):
                  deterministic_variables: Tuple[Variable, ...] = (),
                  *args: Tuple[Variable, ...],
                  **kwargs: Dict[str, Variable]):
-        self._deterministic_variables = {v.name: v for v in deterministic_variables}
         super().__init__(factor, *args, **kwargs)
+        self._deterministic_variables = {v.name: v for v in deterministic_variables}
 
     def __call__(self, *args: Tuple[np.ndarray, ...],
                  **kwargs: Dict[str, np.ndarray]) -> FactorValue:
