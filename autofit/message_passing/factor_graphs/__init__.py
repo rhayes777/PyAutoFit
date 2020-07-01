@@ -40,7 +40,7 @@ class AbstractNode(ABC):
             self._deterministic_variables
         )
 
-    def _broadcast(self, plate_inds: Collection[int], value: np.ndarray) -> np.ndarray:
+    def _broadcast(self, plate_inds: np.ndarray, value: np.ndarray) -> np.ndarray:
         shape = np.shape(value)
         plate_inds = np.asanyarray(plate_inds)
         shift = len(shape) - plate_inds.size
