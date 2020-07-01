@@ -8,10 +8,9 @@ from typing import (
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.factor import Plate, Variable, Factor
+from autofit.message_passing.factor_graphs.component import Plate, Variable, Factor
 from autofit.message_passing.factor_graphs.numerical import numerical_jacobian
 from autofit.message_passing.utils import add_arrays
-from .factor import Variable, Plate, Factor
 
 
 class FactorValue(NamedTuple):

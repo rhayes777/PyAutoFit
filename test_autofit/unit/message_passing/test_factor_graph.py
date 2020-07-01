@@ -3,7 +3,7 @@ from operator import sub
 import numpy as np
 import pytest
 
-import autofit.message_passing.factor_graphs.factor
+
 from autofit import message_passing as mp
 
 
@@ -23,14 +23,14 @@ def plus_two(x):
     name="y"
 )
 def make_y():
-    return autofit.message_passing.factor_graphs.factor.Variable('y')
+    return mp.Variable('y')
 
 
 @pytest.fixture(
     name="sigmoid"
 )
 def make_sigmoid(x):
-    return autofit.message_passing.factor_graphs.factor.Factor(
+    return mp.Factor(
         log_sigmoid
     )(x)
 
@@ -39,7 +39,7 @@ def make_sigmoid(x):
     name="phi"
 )
 def make_phi(x):
-    return autofit.message_passing.factor_graphs.factor.Factor(
+    return mp.Factor(
         log_phi
     )(x)
 
@@ -57,7 +57,7 @@ def make_compound(
     name="plus"
 )
 def make_plus(x):
-    return autofit.message_passing.factor_graphs.factor.Factor(plus_two)(x)
+    return mp.Factor(plus_two)(x)
 
 
 @pytest.fixture(
@@ -69,7 +69,7 @@ def make_flat_compound(
         sigmoid
 ):
     g = plus == y
-    phi = autofit.message_passing.factor_graphs.factor.Factor(log_phi)(y)
+    phi = mp.Factor(log_phi)(y)
     return phi * g * sigmoid
 
 
@@ -130,13 +130,13 @@ class TestFactorGraph:
         }
 
     def test_plates(self):
-        obs = autofit.message_passing.factor_graphs.factor.Plate(name='obs')
-        dims = autofit.message_passing.factor_graphs.factor.Plate(name='dims')
+        obs = mp.Plate(name='obs')
+        dims = mp.Plate(name='dims')
 
-        x = autofit.message_passing.factor_graphs.factor.Variable('x', obs, dims)
-        y = autofit.message_passing.factor_graphs.factor.Variable('y', dims)
+        x = mp.Variable('x', obs, dims)
+        y = mp.Variable('y', dims)
 
-        subtract = autofit.message_passing.factor_graphs.factor.Factor(sub)(x, y)
+        subtract = mp.Factor(sub)(x, y)
 
         x = np.array(
             [[1, 2, 3],
@@ -156,7 +156,7 @@ class TestFactorGraph:
         [1, 2, 3, 4, 5]
     )
     def test_jacobian(self, x, coefficient):
-        factor = autofit.message_passing.factor_graphs.factor.Factor(
+        factor = mp.Factor(
             lambda p: coefficient * p
         )(x)
 

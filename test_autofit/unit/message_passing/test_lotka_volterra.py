@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import integrate, stats
 
-import autofit.message_passing.factor_graphs.factor
+
 from autofit import message_passing as mp
 
 
@@ -53,24 +53,24 @@ def test():
     y = y_true + noise * np.random.randn(n_species, n_obs)
 
     ## Specifying dimensions of problem
-    obs = autofit.message_passing.factor_graphs.factor.Plate(name='obs')
-    species = autofit.message_passing.factor_graphs.factor.Plate(name='species')
+    obs = mp.Plate(name='obs')
+    species = mp.Plate(name='species')
     # Need to specify a second plate for species because
     # A is (species, species) and we need a second plate
     # to unique specify the second dimension
-    speciesA = autofit.message_passing.factor_graphs.factor.Plate(name='species')
-    dims = autofit.message_passing.factor_graphs.factor.Plate(name='dims')
+    speciesA = mp.Plate(name='species')
+    dims = mp.Plate(name='dims')
 
     ## Specifying variables
-    r_ = autofit.message_passing.factor_graphs.factor.Variable('r', species)
-    A_ = autofit.message_passing.factor_graphs.factor.Variable('A', species, speciesA)
-    K_ = autofit.message_passing.factor_graphs.factor.Variable('K')
+    r_ = mp.Variable('r', species)
+    A_ = mp.Variable('A', species, speciesA)
+    K_ = mp.Variable('K')
 
-    y0_ = autofit.message_passing.factor_graphs.factor.Variable('y0', species)
-    y_ = autofit.message_passing.factor_graphs.factor.Variable('y', species, obs)
+    y0_ = mp.Variable('y0', species)
+    y_ = mp.Variable('y', species, obs)
 
-    y_obs_ = autofit.message_passing.factor_graphs.factor.Variable('y_obs', species, obs)
-    t_obs_ = autofit.message_passing.factor_graphs.factor.Variable('t_obs', obs)
+    y_obs_ = mp.Variable('y_obs', species, obs)
+    t_obs_ = mp.Variable('t_obs', obs)
 
     _norm = stats.norm(loc=0, scale=noise)
     _prior = stats.norm(loc=0, scale=10)
@@ -81,14 +81,14 @@ def test():
 
     ## Specifying factors
 
-    likelihood = autofit.message_passing.factor_graphs.factor.Factor(_likelihood)(y_obs_, y_)
-    prior_A = autofit.message_passing.factor_graphs.factor.Factor(_prior.logpdf, 'prior_A')(A_)
-    prior_r = autofit.message_passing.factor_graphs.factor.Factor(_prior.logpdf, 'prior_r')(r_)
-    prior_y0 = autofit.message_passing.factor_graphs.factor.Factor(_prior_exp.logpdf, 'prior_y0')(y0_)
+    likelihood = mp.Factor(_likelihood)(y_obs_, y_)
+    prior_A = mp.Factor(_prior.logpdf, 'prior_A')(A_)
+    prior_r = mp.Factor(_prior.logpdf, 'prior_r')(r_)
+    prior_y0 = mp.Factor(_prior_exp.logpdf, 'prior_y0')(y0_)
 
     # calc_lotka_volterra does not vectorise over
     # multiple inputs, see `FactorNode._py_vec_call`
-    LV = autofit.message_passing.factor_graphs.factor.Factor(
+    LV = mp.Factor(
         calc_lotka_volterra, 'LV',
         vectorised=False
     )(y0_, r_, A_, K_, t_obs_) == y_
