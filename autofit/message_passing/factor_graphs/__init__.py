@@ -28,18 +28,44 @@ class AbstractNode(ABC):
         ChainMap
     ]
 
-    def __init__(self, *args, **kwargs):
-        self._variables = {v.name: v for v in args}
-        self._variables.update((v.name, v) for v in kwargs.values())
+    def __init__(
+            self,
+            *args: Variable,
+            **kwargs: Variable
+    ):
+        """
+        A node in a factor graph
+
+        Parameters
+        ----------
+        args
+            Positional arguments passed to the factor
+        kwargs
+            Key word arguments passed to the value
+        """
+        self._variables = {
+            v.name: v
+            for v
+            in args + tuple(
+                kwargs.values()
+            )
+        }
 
     @property
-    def all_variables(self):
-        return ChainMap(
-            self._variables,
-            self._deterministic_variables
-        )
+    def all_variables(self) -> Dict[str, Variable]:
+        """
+        A dictionary of variables associated with this node
+        """
+        return {
+            **self._variables,
+            **self._deterministic_variables
+        }
 
-    def _broadcast(self, plate_inds: np.ndarray, value: np.ndarray) -> np.ndarray:
+    def _broadcast(
+            self,
+            plate_inds: np.ndarray,
+            value: np.ndarray
+    ) -> np.ndarray:
         shape = np.shape(value)
         plate_inds = np.asanyarray(plate_inds)
         shift = len(shape) - plate_inds.size

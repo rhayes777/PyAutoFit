@@ -2,6 +2,8 @@ from typing import Tuple, Dict, NamedTuple
 
 import numpy as np
 
+from autofit.message_passing.factor_graphs.component import Variable
+
 
 class JacobianValue(NamedTuple):
     log_value: Dict[str, np.ndarray]
