@@ -23,7 +23,8 @@ class DeterministicFactorNode(FactorNode):
 
     def __call__(self, *args: Tuple[np.ndarray, ...],
                  **kwargs: Dict[str, np.ndarray]) -> FactorValue:
-        res, shape = self._call_factor(*args, **kwargs)
+        res = self._call_factor(*args, **kwargs)
+        shape = self._function_shape(*args, **kwargs)
         shift = len(shape) - self.ndim
         plate_dim = dict(zip(self.plates, shape[shift:]))
 

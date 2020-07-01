@@ -164,9 +164,10 @@ class FactorNode(AbstractNode):
         kws = {n: kwargs[v] for n, v in self.kwarg_names}
         return args, kws
 
-    def _function_shape(self, args, kws) -> Tuple[int, ...]:
+    def _function_shape(self, *args, **kwargs) -> Tuple[int]:
         """Calculates the expected function shape based on the variables
         """
+        args, kws = self._resolve_args(*args, **kwargs)
         variables = {v: x for v, x in zip(self.arg_names, args)}
         variables.update(
             (self._kwargs[k], x) for k, x in kws.items())
@@ -219,18 +220,15 @@ class FactorNode(AbstractNode):
 
     def _call_factor(self, *args: Tuple[np.ndarray, ...],
                      **kwargs: Dict[str, np.ndarray]
-                     ) -> Tuple[np.ndarray, Tuple[int, ...]]:
+                     ) -> Tuple[np.ndarray]:
         args, kws = self._resolve_args(
             *args,
             **kwargs
         )
-        shape = self._function_shape(
-            args,
-            kws
-        )
+
         if self._factor.vectorised:
-            return self._factor.call_factor(*args, **kws), shape
-        return self._py_vec_call(*args, **kws), shape
+            return self._factor.call_factor(*args, **kws)
+        return self._py_vec_call(*args, **kws)
 
     def _py_vec_call(self, *args: Tuple[np.ndarray, ...],
                      **kwargs: Dict[str, np.ndarray]) -> np.ndarray:
@@ -299,8 +297,11 @@ class FactorNode(AbstractNode):
 
     def __call__(self, *args: Tuple[np.ndarray, ...],
                  **kwargs: Dict[str, np.ndarray]) -> FactorValue:
-        val, shape = self._call_factor(*args, **kwargs)
-        return FactorValue(val.reshape(shape), {})
+        val = self._call_factor(*args, **kwargs)
+        return FactorValue(val.reshape(self._function_shape(
+            *args,
+            **kwargs
+        )), {})
 
     def broadcast_variable(self, variable: str, value: np.ndarray) -> np.ndarray:
         """
