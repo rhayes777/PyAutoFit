@@ -109,7 +109,20 @@ class Factor:
         """
         return self.factor(*args, **kwargs)
 
-    def __call__(self, *args):
+    def __call__(self, *args: Variable):
+        """
+        Create a node in the graph from this factor by passing it the variables
+        it uses.
+
+        Parameters
+        ----------
+        args
+            The variables with which this factor is associated
+
+        Returns
+        -------
+        A node in the factor graph
+        """
         return FactorNode(self, *args)
 
     def __hash__(self):
@@ -117,13 +130,16 @@ class Factor:
 
 
 class FactorValue(NamedTuple):
+    """
+    The value associated with some factor
+    """
+
     log_value: np.ndarray
     deterministic_values: Dict[str, np.ndarray]
 
 
 class FactorNode:
     _deterministic_variables: Dict[str, Variable] = {}
-    is_composite: bool = property(lambda self: False)
 
     def __init__(
             self,
@@ -484,8 +500,6 @@ class DeterministicFactorNode(FactorNode):
 
 
 class FactorGraph(DeterministicFactorNode):
-    is_composite: bool = property(lambda self: True)
-
     def __init__(self, factors: Collection[FactorNode], name=None):
         self._factors = tuple(factors)
         self._name = ".".join(f.name for f in factors) if name is None else name
