@@ -110,7 +110,7 @@ class Factor:
         return self.factor(*args, **kwargs)
 
     def __call__(self, *args: Variable):
-        from . import FactorNode
+        from autofit.message_passing.factor_graphs import FactorNode
         """
         Create a node in the graph from this factor by passing it the variables
         it uses.
