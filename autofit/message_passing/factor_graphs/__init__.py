@@ -147,8 +147,6 @@ class FactorNode:
             *args: Variable,
             **kwargs: Variable
     ):
-        self._input_args = args
-        self._input_kwargs = kwargs
         self._factor = factor
         self._variables = {v.name: v for v in args}
         self._variables.update((v.name, v) for v in kwargs.values())
