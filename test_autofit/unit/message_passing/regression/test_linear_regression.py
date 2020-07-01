@@ -31,23 +31,19 @@ def test(
 
     model = likelihood_factor * linear_factor * prior_a * prior_b
 
-    message_a = mp.FracMessage(
-        mp.NormalMessage.from_mode(
-            np.zeros((n_features, n_dims)),
-            100
-        )
+    message_a = mp.NormalMessage.from_mode(
+        np.zeros((n_features, n_dims)),
+        100
     )
-    message_b = mp.FracMessage(
-        mp.NormalMessage.from_mode(
-            np.zeros(n_dims),
-            100
-        )
+
+    message_b = mp.NormalMessage.from_mode(
+        np.zeros(n_dims),
+        100
     )
-    message_z = mp.FracMessage(
-        mp.NormalMessage.from_mode(
-            np.zeros((n_obs, n_dims)),
-            100
-        )
+
+    message_z = mp.NormalMessage.from_mode(
+        np.zeros((n_obs, n_dims)),
+        100
     )
 
     model_approx = mp.MeanFieldApproximation.from_kws(
@@ -74,8 +70,8 @@ def test(
             # save and print current approximation
             history[i, factor] = model_approx
 
-    q_a = model_approx['a'].value.parameters.round(3)
-    q_b = model_approx['b'].value.parameters.round(3)
+    q_a = model_approx['a'].parameters.round(3)
+    q_b = model_approx['b'].parameters.round(3)
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
