@@ -1,3 +1,4 @@
+from abc import ABC
 from collections import defaultdict, ChainMap, Counter
 from itertools import chain, count, repeat
 from typing import (
@@ -136,26 +137,63 @@ class FactorValue(NamedTuple):
     deterministic_values: Dict[str, np.ndarray]
 
 
-class FactorNode:
+class AbstractNode(ABC):
     _deterministic_variables: Dict[str, Variable] = {}
 
+    def __init__(self, *args, **kwargs):
+        self._variables = {v.name: v for v in args}
+        self._variables.update((v.name, v) for v in kwargs.values())
+
+    @property
+    def all_variables(self):
+        return ChainMap(
+            self._variables,
+            self._deterministic_variables
+        )
+
+    def _broadcast(self, plate_inds: Collection[int], value: np.ndarray) -> np.ndarray:
+        shape = np.shape(value)
+        plate_inds = np.asanyarray(plate_inds)
+        shift = len(shape) - plate_inds.size
+
+        assert shift in {0, 1}
+        newshape = np.ones(self.ndim + shift, dtype=int)
+        newshape[:shift] = shape[:shift]
+        newshape[shift + plate_inds] = shape[shift:]
+
+        return np.reshape(value, newshape)
+
+    def broadcast_plates(self, plates: Collection[Plate], value: np.ndarray) -> np.ndarray:
+        return self._broadcast(self._match_plates(plates), value)
+
+    @property
+    def plates(self):
+        return tuple(set(
+            plate for v in self.all_variables.values() for plate in v.plates))
+
+    @property
+    def ndim(self):
+        return len(self.plates)
+
+    def _match_plates(self, plates: Collection[Plate]) -> np.ndarray:
+        return np.array([self.plates.index(p) for p in plates], dtype=int)
+
+
+class FactorNode(AbstractNode):
     def __init__(
             self,
             factor: Factor,
             *args: Variable,
             **kwargs: Variable
     ):
+        super().__init__(
+            *args,
+            **kwargs
+        )
         self._factor = factor
-        self._variables = {v.name: v for v in args}
-        self._variables.update((v.name, v) for v in kwargs.values())
 
         self._args = tuple(v.name for v in args)
         self._kwargs = {n: v.name for n, v in kwargs.items()}
-
-        self._all_variables = ChainMap(
-            self._variables,
-            self._deterministic_variables
-        )
 
     jacobian = numerical_jacobian
     hessdiag = numerical_hessdiag
@@ -170,11 +208,6 @@ class FactorNode:
         return {
             k: len(self.all_variables[v].plates) for k, v in self._kwargs.items()
         }
-
-    @property
-    def _plates(self):
-        return tuple(set(
-            plate for v in self.all_variables.values() for plate in v.plates))
 
     @property
     def _variable_plates(self):
@@ -338,24 +371,6 @@ class FactorNode:
         val, shape = self._call_factor(*args, **kwargs)
         return FactorValue(val.reshape(shape), {})
 
-    def _match_plates(self, plates: Collection[Plate]) -> np.ndarray:
-        return np.array([self._plates.index(p) for p in plates], dtype=int)
-
-    def _broadcast(self, plate_inds: Collection[int], value: np.ndarray) -> np.ndarray:
-        shape = np.shape(value)
-        plate_inds = np.asanyarray(plate_inds)
-        shift = len(shape) - plate_inds.size
-
-        assert shift in {0, 1}
-        newshape = np.ones(self.ndim + shift, dtype=int)
-        newshape[:shift] = shape[:shift]
-        newshape[shift + plate_inds] = shape[shift:]
-
-        return np.reshape(value, newshape)
-
-    def broadcast_plates(self, plates: Collection[Plate], value: np.ndarray) -> np.ndarray:
-        return self._broadcast(self._match_plates(plates), value)
-
     def broadcast_variable(self, variable: str, value: np.ndarray) -> np.ndarray:
         """
         broad casts the value of a variable to match the specific shape
@@ -429,18 +444,6 @@ class FactorNode:
         return self._deterministic_variables
 
     @property
-    def all_variables(self) -> Dict[str, Variable]:
-        return self._all_variables
-
-    @property
-    def plates(self):
-        return self._plates
-
-    @property
-    def ndim(self):
-        return len(self.plates)
-
-    @property
     def name(self):
         return self._factor.name
 
@@ -493,8 +496,9 @@ class DeterministicFactorNode(FactorNode):
         return f"({factor_str} == ({var_str}))"
 
 
-class FactorGraph(DeterministicFactorNode):
+class FactorGraph(AbstractNode):
     def __init__(self, factors: Collection[FactorNode], name=None):
+        super().__init__()
         self._factors = tuple(factors)
         self._name = ".".join(f.name for f in factors) if name is None else name
 
