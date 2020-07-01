@@ -87,7 +87,6 @@ class FactorValue(NamedTuple):
 class FactorNode:
     _deterministic_variables: Dict[str, Variable] = {}
     is_composite: bool = property(lambda self: False)
-    is_deterministic: bool = property(lambda self: False)
 
     def __init__(
             self,
@@ -413,8 +412,6 @@ class FactorNode:
 
 
 class DeterministicFactorNode(FactorNode):
-    is_deterministic: bool = property(lambda self: True)
-
     def __init__(self, factor: Factor,
                  deterministic_variables: Tuple[Variable, ...] = (),
                  *args: Tuple[Variable, ...],
@@ -528,7 +525,7 @@ class FactorGraph(DeterministicFactorNode):
             calls = []
             new_variables = {}
             for factor in factors:
-                if factor.is_deterministic:
+                if isinstance(factor, DeterministicFactorNode):
                     det_vars = factor._deterministic_variables
                 else:
                     det_vars = {}
