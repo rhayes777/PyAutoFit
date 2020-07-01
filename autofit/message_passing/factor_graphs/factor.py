@@ -1,12 +1,11 @@
 from itertools import chain, repeat
-from typing import Tuple, Dict, Any, Union, Set, NamedTuple
+from typing import Tuple, Dict, Any, Union, Set, NamedTuple, Callable, Optional
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.component import Factor, Variable
 from autofit.message_passing.factor_graphs.abstract import AbstractNode
+from autofit.message_passing.factor_graphs.variable import Variable
 from autofit.message_passing.factor_graphs.numerical import numerical_jacobian
-
 
 
 class FactorValue(NamedTuple):
@@ -16,6 +15,58 @@ class FactorValue(NamedTuple):
 
     log_value: np.ndarray
     deterministic_values: Dict[str, np.ndarray]
+
+
+class Factor:
+    def __init__(
+            self,
+            factor: Callable,
+            name: Optional[str] = None,
+            vectorised: bool = True
+    ):
+        """
+        A factor in the model. This is a function that has been decomposed
+        from the overall model.
+
+        Parameters
+        ----------
+        factor
+            Some callable
+        name
+            The name of this factor (defaults to the name of the callable)
+        vectorised
+            Can this factor be computed in a vectorised manner?
+        """
+        self.factor = factor
+        self.name = name or factor.__name__
+        self.vectorised = vectorised
+
+    def call_factor(self, *args, **kwargs):
+        """
+        Call the underlying function and return its value for some set of
+        arguments
+        """
+        return self.factor(*args, **kwargs)
+
+    def __call__(self, *args: Variable):
+        from autofit.message_passing.factor_graphs import FactorNode
+        """
+        Create a node in the graph from this factor by passing it the variables
+        it uses.
+
+        Parameters
+        ----------
+        args
+            The variables with which this factor is associated
+
+        Returns
+        -------
+        A node in the factor graph
+        """
+        return FactorNode(self, *args)
+
+    def __hash__(self):
+        return hash((self.name, self.factor))
 
 
 class FactorNode(AbstractNode):

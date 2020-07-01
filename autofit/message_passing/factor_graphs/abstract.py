@@ -4,7 +4,7 @@ from typing import Union, Dict, List, Tuple, cast, Collection
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.component import Variable, Plate
+from autofit.message_passing.factor_graphs.variable import Variable, Plate
 
 
 class AbstractNode(ABC):
