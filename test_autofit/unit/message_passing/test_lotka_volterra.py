@@ -80,16 +80,17 @@ def test():
 
     ## Specifying factors
 
-    likelihood = mp.factor(_likelihood)(y_obs_, y_)
-    prior_A = mp.factor(_prior.logpdf, 'prior_A')(A_)
-    prior_r = mp.factor(_prior.logpdf, 'prior_r')(r_)
-    prior_y0 = mp.factor(_prior_exp.logpdf, 'prior_y0')(y0_)
+    likelihood = mp.Factor(_likelihood)(y_obs_, y_)
+    prior_A = mp.Factor(_prior.logpdf, 'prior_A')(A_)
+    prior_r = mp.Factor(_prior.logpdf, 'prior_r')(r_)
+    prior_y0 = mp.Factor(_prior_exp.logpdf, 'prior_y0')(y0_)
 
     # calc_lotka_volterra does not vectorise over
     # multiple inputs, see `FactorNode._py_vec_call`
-    LV = mp.factor(
+    LV = mp.Factor(
         calc_lotka_volterra, 'LV',
-        _vectorised=False)(y0_, r_, A_, K_, t_obs_) == y_
+        vectorised=False
+    )(y0_, r_, A_, K_, t_obs_) == y_
 
     ## Defining model
     priors = prior_A * prior_r * prior_y0

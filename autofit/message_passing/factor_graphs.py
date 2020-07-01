@@ -12,8 +12,6 @@ import numpy as np
 
 from autofit.message_passing.utils import add_arrays
 
-_plate_ids = count()
-
 
 class Plate:
     _ids = count()
@@ -24,7 +22,7 @@ class Plate:
             name: Optional[str] = None
     ):
         self.index = index
-        self.id = next(_plate_ids)
+        self.id = next(self._ids)
         self.name = name or f"plate_{self.id}"
 
     def __repr__(self):
@@ -41,7 +39,7 @@ class Plate:
 
 
 class Variable:
-    __slot__ = ("name")
+    __slots__ = ("name", "plates")
 
     def __init__(self, name: str, *plates):
         self.name = name
@@ -59,10 +57,16 @@ class Variable:
         return len(self.plates)
 
 
-class Factor(NamedTuple):
-    factor: Callable
-    name: str
-    vectorised: bool = True
+class Factor:
+    def __init__(
+            self,
+            factor: Callable,
+            name: Optional[str] = None,
+            vectorised: bool = True
+    ):
+        self.factor = factor
+        self.name = name or factor.__name__
+        self.vectorised = vectorised
 
     def call_factor(self, *args, **kwargs):
         return self.factor(*args, **kwargs)
@@ -72,14 +76,6 @@ class Factor(NamedTuple):
 
     def __hash__(self):
         return hash((self.name, self.factor))
-
-
-# couldn't redefine __new__ for Factor
-def factor(factor: Callable, name: Optional[str] = None,
-           _vectorised: bool = True) -> Factor:
-    if name is None:
-        name = factor.__name__
-    return Factor(factor, name, _vectorised)
 
 
 class JacobianValue(NamedTuple):

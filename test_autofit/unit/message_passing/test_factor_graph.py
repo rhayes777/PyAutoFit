@@ -29,7 +29,7 @@ def make_y():
     name="sigmoid"
 )
 def make_sigmoid(x):
-    return mp.factor(
+    return mp.Factor(
         log_sigmoid
     )(x)
 
@@ -38,7 +38,7 @@ def make_sigmoid(x):
     name="phi"
 )
 def make_phi(x):
-    return mp.factor(
+    return mp.Factor(
         log_phi
     )(x)
 
@@ -56,7 +56,7 @@ def make_compound(
     name="plus"
 )
 def make_plus(x):
-    return mp.factor(plus_two)(x)
+    return mp.Factor(plus_two)(x)
 
 
 @pytest.fixture(
@@ -68,7 +68,7 @@ def make_flat_compound(
         sigmoid
 ):
     g = plus == y
-    phi = mp.factor(log_phi)(y)
+    phi = mp.Factor(log_phi)(y)
     return phi * g * sigmoid
 
 
@@ -135,7 +135,7 @@ class TestFactorGraph:
         x = mp.Variable('x', obs, dims)
         y = mp.Variable('y', dims)
 
-        subtract = mp.factor(sub)(x, y)
+        subtract = mp.Factor(sub)(x, y)
 
         x = np.array(
             [[1, 2, 3],
@@ -155,7 +155,7 @@ class TestFactorGraph:
         [1, 2, 3, 4, 5]
     )
     def test_jacobian(self, x, coefficient):
-        factor = mp.factor(
+        factor = mp.Factor(
             lambda p: coefficient * p
         )(x)
 

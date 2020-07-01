@@ -15,7 +15,7 @@ def make_x():
     name="probit_factor"
 )
 def make_probit_factor(x):
-    return mp.factor(
+    return mp.Factor(
         stats.norm(
             loc=0.,
             scale=1.

@@ -9,7 +9,7 @@ from autofit import message_passing as mp
     name="normal_factor"
 )
 def make_normal_factor(x):
-    return mp.factor(
+    return mp.Factor(
         stats.norm(
             loc=-0.5,
             scale=0.5
