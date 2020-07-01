@@ -63,7 +63,28 @@ class Factor:
         -------
         A node in the factor graph
         """
-        return FactorNode(self, *args)
+        args = list(args)
+        extra_nodes = list()
+        for i in range(len(args)):
+            arg = args[i]
+            if isinstance(arg, FactorNode):
+                extra_nodes.append(
+                    arg
+                )
+                from autofit.message_passing.factor_graphs import DeterministicFactorNode
+                variable = Variable(
+                    name=arg.name
+                )
+                args[i] = variable
+                extra_nodes.append(
+                    DeterministicFactorNode(
+                        self, (variable,),
+                    )
+                )
+        node = FactorNode(self, *args)
+        for deterministic_node in extra_nodes:
+            node *= deterministic_node
+        return node
 
     def __hash__(self):
         return hash((self.name, self.factor))
