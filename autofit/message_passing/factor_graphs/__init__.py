@@ -554,7 +554,6 @@ class FactorGraph(DeterministicFactorNode):
 
         n_args = len(args)
         if n_args > len(self._args):
-            kws_str = ", ".join(self._kwargs)
             raise TypeError(
                 f"too many arguments passed, must pass {len(self._args)} arguments, "
                 f"factor graph call signature: {self.call_signature}")
