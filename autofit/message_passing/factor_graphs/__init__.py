@@ -19,15 +19,13 @@ class Plate:
 
     def __init__(
             self,
-            index=slice(None),
             name: Optional[str] = None
     ):
-        self.index = index
         self.id = next(self._ids)
         self.name = name or f"plate_{self.id}"
 
     def __repr__(self):
-        return f"{type(self).__name__}({self.index}, name={self.name})"
+        return f"{type(self).__name__}(name={self.name})"
 
     def __eq__(self, other):
         return isinstance(
