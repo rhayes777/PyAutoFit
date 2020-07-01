@@ -154,26 +154,43 @@ class FactorNode:
         self._args = tuple(v.name for v in args)
         self._kwargs = {n: v.name for n, v in kwargs.items()}
 
-        self._initialise()
+        self._all_variables = ChainMap(
+            self._variables,
+            self._deterministic_variables
+        )
 
     jacobian = numerical_jacobian
     hessdiag = numerical_hessdiag
 
-    def _initialise(self):
-        self.n_variables = len(self._variables)
-        self.n_deterministic = len(self._deterministic_variables)
-        self._all_variables = ChainMap(
-            self._variables,
-            self._deterministic_variables)
-        self._args_dims = tuple(
+    @property
+    def _args_dims(self):
+        return tuple(
             len(self.all_variables[v].plates) for v in self._args)
-        self._kwargs_dims = {
-            k: len(self.all_variables[v].plates) for k, v in self._kwargs.items()}
-        self._plates = tuple(set(
+
+    @property
+    def _kwargs_dims(self):
+        return {
+            k: len(self.all_variables[v].plates) for k, v in self._kwargs.items()
+        }
+
+    @property
+    def _plates(self):
+        return tuple(set(
             plate for v in self.all_variables.values() for plate in v.plates))
-        self._variable_plates = {
+
+    @property
+    def _variable_plates(self):
+        return {
             n: self._match_plates(v.plates)
             for n, v in self.all_variables.items()}
+
+    @property
+    def n_variables(self):
+        return len(self._variables)
+
+    @property
+    def n_deterministic(self):
+        return len(self._deterministic_variables)
 
     def __hash__(self) -> int:
         return hash(self._factor)
@@ -512,7 +529,6 @@ class FactorGraph(DeterministicFactorNode):
             f: f.all_variables for f in self._factors}
 
         self._validate()
-        self._initialise()
         self._hash = hash(frozenset(self.factors))
 
     @property
