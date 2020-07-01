@@ -16,40 +16,28 @@ _plate_ids = count()
 
 
 class Plate:
+    _ids = count()
+
     def __init__(
             self,
             index=slice(None),
-            id_: Optional[int] = None,
             name: Optional[str] = None
     ):
         self.index = index
-        self.id = next(_plate_ids) if id_ is None else id_
-        self.name = f"plate_{self.id}" if name is None else name
-
-    def __getitem__(self, args):
-        return self(args)
-
-    def set_name(self, name: str) -> "Plate":
-        self.name = name
-        return self
-
-    def __call__(self, args):
-        return type(self)(args)
+        self.id = next(_plate_ids)
+        self.name = name or f"plate_{self.id}"
 
     def __repr__(self):
         return f"{type(self).__name__}({self.index}, name={self.name})"
 
     def __eq__(self, other):
-        if type(self) is type(other):
-            return self.id == other.id
-        else:
-            return False
+        return isinstance(
+            other,
+            Plate
+        ) and self.id == other.id
 
     def __hash__(self):
         return self.id
-
-
-plate = Plate()
 
 
 class Variable:
