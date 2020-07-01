@@ -257,22 +257,31 @@ class FactorNode(AbstractNode):
             self,
             *args: np.ndarray,
             **kwargs: np.ndarray
-    ) -> Tuple[Any, dict, Tuple[int, ...]]:
-        """Transforms in the input arguments to match the arguments
-        specified for the factor"""
+    ) -> Tuple[Any, dict]:
+        """
+        Transforms in the input arguments to match the arguments
+        specified for the factor.
+
+        Parameters
+        ----------
+        args
+        kwargs
+
+        Returns
+        -------
+
+        """
         n_args = len(args)
         args = args + tuple(kwargs[v] for v in self.arg_names[n_args:])
         kws = {n: kwargs[v] for n, v in self.kwarg_names}
+        return args, kws
 
+    def _function_shape(self, args, kws) -> Tuple[int, ...]:
+        """Calculates the expected function shape based on the variables
+        """
         variables = {v: x for v, x in zip(self.arg_names, args)}
         variables.update(
             (self._kwargs[k], x) for k, x in kws.items())
-        return args, kws, self._function_shape(variables)
-
-    def _function_shape(self, variables: Dict[str, np.ndarray]
-                        ) -> Tuple[int, ...]:
-        """Calculates the expected function shape based on the variables
-        """
         var_shapes = {v: np.shape(x) for v, x in variables.items()}
         var_dims_diffs = {
             v: len(s) - self.all_variables[v].ndim  #
@@ -320,16 +329,17 @@ class FactorNode(AbstractNode):
 
         return tuple(shape)
 
-    def _variables_difference(self, *args: Tuple[np.ndarray, ...],
-                              **kwargs: Dict[str, np.ndarray]
-                              ) -> Set[str]:
-        args = self.arg_names[:len(args)]
-        return (self._variables.keys() - args).difference(kwargs)
-
     def _call_factor(self, *args: Tuple[np.ndarray, ...],
                      **kwargs: Dict[str, np.ndarray]
                      ) -> Tuple[np.ndarray, Tuple[int, ...]]:
-        args, kws, shape = self._resolve_args(*args, **kwargs)
+        args, kws = self._resolve_args(
+            *args,
+            **kwargs
+        )
+        shape = self._function_shape(
+            args,
+            kws
+        )
         if self._factor.vectorised:
             return self._factor.call_factor(*args, **kws), shape
         return self._py_vec_call(*args, **kws), shape
@@ -479,6 +489,12 @@ class FactorNode(AbstractNode):
     @property
     def name(self):
         return self._factor.name
+
+    def _variables_difference(self, *args: Tuple[np.ndarray, ...],
+                              **kwargs: Dict[str, np.ndarray]
+                              ) -> Set[str]:
+        args = self.arg_names[:len(args)]
+        return (self._variables.keys() - args).difference(kwargs)
 
 
 class DeterministicFactorNode(FactorNode):
