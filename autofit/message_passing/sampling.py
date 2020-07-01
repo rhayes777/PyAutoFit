@@ -5,7 +5,7 @@ from typing import NamedTuple, Tuple, Dict, Optional, Any, List
 
 import numpy as np
 
-from .factor_graphs import FactorNode
+from autofit.message_passing.factor_graphs import FactorNode
 from .mean_field import \
     (
     MeanFieldApproximation, FactorApproximation, Status

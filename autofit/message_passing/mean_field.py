@@ -6,7 +6,7 @@ from typing import (
 
 import numpy as np
 
-from .factor_graphs import (
+from autofit.message_passing.factor_graphs import (
     FactorNode, FactorGraph
 )
 from .messages import (

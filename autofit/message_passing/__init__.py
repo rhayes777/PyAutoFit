@@ -1,4 +1,4 @@
-from .factor_graphs import Factor, Variable, Plate
+from autofit.message_passing.factor_graphs import Factor, Variable, Plate
 from .mean_field import FactorApproximation, MeanFieldApproximation
 from .messages import NormalMessage, FracMessage, FixedMessage, GammaMessage
 from .optimise import OptFactor, lstsq_laplace_factor_approx

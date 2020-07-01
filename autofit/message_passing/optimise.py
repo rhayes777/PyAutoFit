@@ -4,7 +4,7 @@ from typing import Optional, Dict, Tuple, NamedTuple, Any
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
 
-from .factor_graphs import FactorNode
+from autofit.message_passing.factor_graphs import FactorNode
 from .mean_field import \
     (
     FactorApproximation, MeanFieldApproximation, Status
