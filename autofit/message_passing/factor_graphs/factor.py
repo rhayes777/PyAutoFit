@@ -4,8 +4,8 @@ from typing import Tuple, Dict, Any, Union, Set, NamedTuple, Callable, Optional
 import numpy as np
 
 from autofit.message_passing.factor_graphs.abstract import AbstractNode
-from autofit.message_passing.factor_graphs.variable import Variable
 from autofit.message_passing.factor_graphs.numerical import numerical_jacobian
+from autofit.message_passing.factor_graphs.variable import Variable
 
 
 class FactorValue(NamedTuple):
@@ -164,7 +164,7 @@ class FactorNode(AbstractNode):
         kws = {n: kwargs[v] for n, v in self.kwarg_names}
         return args, kws
 
-    def _function_shape(self, *args, **kwargs) -> Tuple[int]:
+    def _function_shape(self, *args, **kwargs) -> Tuple[int, ...]:
         """Calculates the expected function shape based on the variables
         """
         args, kws = self._resolve_args(*args, **kwargs)
@@ -218,9 +218,25 @@ class FactorNode(AbstractNode):
 
         return tuple(shape)
 
-    def _call_factor(self, *args: Tuple[np.ndarray, ...],
-                     **kwargs: Dict[str, np.ndarray]
-                     ) -> Tuple[np.ndarray]:
+    def _call_factor(
+            self,
+            *args: Tuple[np.ndarray, ...],
+            **kwargs: Dict[str, np.ndarray]
+    ) -> np.ndarray:
+        """
+        Call the underlying function
+
+        Parameters
+        ----------
+        args
+            Positional arguments for the function
+        kwargs
+            Keyword arguments for the function
+
+        Returns
+        -------
+        Value returned by the factor
+        """
         args, kws = self._resolve_args(
             *args,
             **kwargs
@@ -230,8 +246,12 @@ class FactorNode(AbstractNode):
             return self._factor.call_factor(*args, **kws)
         return self._py_vec_call(*args, **kws)
 
-    def _py_vec_call(self, *args: Tuple[np.ndarray, ...],
-                     **kwargs: Dict[str, np.ndarray]) -> np.ndarray:
+    def _py_vec_call(
+            self,
+            *args:
+            Tuple[np.ndarray, ...],
+            **kwargs: Dict[str, np.ndarray]
+    ) -> np.ndarray:
         """Some factors may not be vectorised to broadcast over
         multiple inputs
 
@@ -288,35 +308,50 @@ class FactorNode(AbstractNode):
                 yield {
                     k: next(a) for k, a in iter_kws.items()}
 
-        # TODO this loop can also be paralleised for increased performance
+        # TODO this loop can also be parallelised for increased performance
         res = np.array([
             self._factor.call_factor(*args, **kws)
             for args, kws in zip(zip_args, gen_kwargs())])
 
         return res
 
-    def __call__(self, *args: Tuple[np.ndarray, ...],
-                 **kwargs: Dict[str, np.ndarray]) -> FactorValue:
+    def __call__(
+            self,
+            *args: Tuple[np.ndarray, ...],
+            **kwargs: Dict[str, np.ndarray]
+    ) -> FactorValue:
         val = self._call_factor(*args, **kwargs)
         return FactorValue(val.reshape(self._function_shape(
             *args,
             **kwargs
         )), {})
 
-    def broadcast_variable(self, variable: str, value: np.ndarray) -> np.ndarray:
+    def broadcast_variable(
+            self,
+            variable: str,
+            value: np.ndarray
+    ) -> np.ndarray:
         """
-        broad casts the value of a variable to match the specific shape
+        broadcasts the value of a variable to match the specific shape
         of the factor
 
         if the number of dimensions passed of the variable is 1
         greater than the dimensions of the variable then it's assumed
         that that dimension corresponds to multiple samples of that variable
         """
-        return self._broadcast(self._variable_plates[variable], value)
+        return self._broadcast(
+            self._variable_plates[variable],
+            value
+        )
 
-    def collapse(self, variable: str, value: np.ndarray, agg_func=np.sum) -> np.ndarray:
+    def collapse(
+            self,
+            variable: str,
+            value: np.ndarray,
+            agg_func=np.sum
+    ) -> np.ndarray:
         """
-        broad casts the value of a variable to match the specific shape
+        broadcasts the value of a variable to match the specific shape
         of the factor
 
         if the number of dimensions passed of the variable is 1
