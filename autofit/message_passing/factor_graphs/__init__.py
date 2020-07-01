@@ -89,9 +89,12 @@ class FactorNode:
     is_composite: bool = property(lambda self: False)
     is_deterministic: bool = property(lambda self: False)
 
-    def __init__(self, factor: Factor,
-                 *args: Tuple[Variable, ...],
-                 **kwargs: Dict[str, Variable]):
+    def __init__(
+            self,
+            factor: Factor,
+            *args: Variable,
+            **kwargs: Variable
+    ):
         self._input_args = args
         self._input_kwargs = kwargs
         self._factor = factor
