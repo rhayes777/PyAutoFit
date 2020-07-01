@@ -3,7 +3,8 @@ from collections import defaultdict, ChainMap, Counter
 from itertools import chain, repeat
 from typing import (
     NamedTuple, Tuple, Dict, Set, Union,
-    Collection, Any
+    Collection, Any,
+    cast
 )
 
 import numpy as np
@@ -66,8 +67,21 @@ class AbstractNode(ABC):
             plate_inds: np.ndarray,
             value: np.ndarray
     ) -> np.ndarray:
+        """
+        Ensure the shape of the data matches the shape of the plates
+
+        Parameters
+        ----------
+        plate_inds
+            The indices of the plates of some factor within this node
+        value
+            Some data
+
+        Returns
+        -------
+        The data reshaped
+        """
         shape = np.shape(value)
-        plate_inds = np.asanyarray(plate_inds)
         shift = len(shape) - plate_inds.size
 
         assert shift in {0, 1}
@@ -77,19 +91,39 @@ class AbstractNode(ABC):
 
         return np.reshape(value, newshape)
 
-    def broadcast_plates(self, plates: Collection[Plate], value: np.ndarray) -> np.ndarray:
-        return self._broadcast(self._match_plates(plates), value)
-
     @property
-    def plates(self):
-        return tuple(set(
-            plate for v in self.all_variables.values() for plate in v.plates))
+    def plates(self) -> Tuple[Plate]:
+        """
+        A tuple of the set of all plates in this graph
+        """
+        return tuple(sorted(set(
+            cast(Plate, plate)
+            for variable
+            in self.all_variables.values()
+            for plate in variable.plates
+        )))
 
     @property
     def ndim(self):
         return len(self.plates)
 
-    def _match_plates(self, plates: Collection[Plate]) -> np.ndarray:
+    def _match_plates(
+            self,
+            plates: Collection[Plate]
+    ) -> np.ndarray:
+        """
+        Find indices plates from some factor in the collection of
+        plates associated with this node.
+
+        Parameters
+        ----------
+        plates
+            Plates from some other node
+
+        Returns
+        -------
+        An array of plate indices
+        """
         return np.array([self.plates.index(p) for p in plates], dtype=int)
 
 
@@ -433,6 +467,28 @@ class FactorGraph(AbstractNode):
 
         self._validate()
         self._hash = hash(frozenset(self.factors))
+
+    def broadcast_plates(
+            self,
+            plates: Collection[Plate],
+            value: np.ndarray
+    ) -> np.ndarray:
+        """
+        Extract the indices of a collection of plates then match
+        the shape of the data to that shape.
+
+        Parameters
+        ----------
+        plates
+            Plates representing the dimensions of some factor
+        value
+            A value to broadcast
+
+        Returns
+        -------
+        The value reshaped to match the plates
+        """
+        return self._broadcast(self._match_plates(plates), value)
 
     @property
     def name(self):

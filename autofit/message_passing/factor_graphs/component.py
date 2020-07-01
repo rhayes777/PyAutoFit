@@ -32,11 +32,17 @@ class Plate:
     def __hash__(self):
         return self.id
 
+    def __lt__(self, other):
+        return self.id < other.id
+
+    def __gt__(self, other):
+        return self.id > other.id
+
 
 class Variable:
     __slots__ = ("name", "plates")
 
-    def __init__(self, name: str, *plates):
+    def __init__(self, name: str, *plates: Plate):
         """
         Represents a variable in the problem. This may be fixed data or some coefficient
         that we are optimising for.
