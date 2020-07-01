@@ -1,11 +1,9 @@
-from collections import \
-    (
-    defaultdict, ChainMap, Counter
-)
+from collections import defaultdict, ChainMap, Counter
 from itertools import chain, count, repeat
 from typing import (
     NamedTuple, Callable, Tuple, Dict, Set, Union,
-    Collection, Optional
+    Collection, Optional,
+    Any
 )
 
 import numpy as np
@@ -185,10 +183,6 @@ class FactorNode:
             for n, v in self.all_variables.items()}
 
     @property
-    def n_variables(self):
-        return len(self._variables)
-
-    @property
     def n_deterministic(self):
         return len(self._deterministic_variables)
 
@@ -197,7 +191,7 @@ class FactorNode:
 
     def _resolve_args(self, *args: Tuple[np.ndarray, ...],
                       **kwargs: Dict[str, np.ndarray]
-                      ) -> Tuple[Tuple[np.ndarray, ...], Dict[str, np.ndarray]]:
+                      ) -> Tuple[Any, dict, Tuple[int, ...]]:
         """Transforms in the input arguments to match the arguments
         specified for the factor"""
         n_args = len(args)
@@ -214,9 +208,6 @@ class FactorNode:
         """Calculates the expected function shape based on the variables
         """
         var_shapes = {v: np.shape(x) for v, x in variables.items()}
-        var_dims_diffs = {
-            v: len(s) - self.all_variables[v].ndim
-            for v, s in var_shapes.items()}
         var_dims_diffs = {
             v: len(s) - self.all_variables[v].ndim  #
             for v, s in var_shapes.items()}
@@ -275,8 +266,7 @@ class FactorNode:
         args, kws, shape = self._resolve_args(*args, **kwargs)
         if self._factor.vectorised:
             return self._factor.call_factor(*args, **kws), shape
-        else:
-            return self._py_vec_call(*args, **kws), shape
+        return self._py_vec_call(*args, **kws), shape
 
     def _py_vec_call(self, *args: Tuple[np.ndarray, ...],
                      **kwargs: Dict[str, np.ndarray]) -> np.ndarray:
@@ -298,56 +288,50 @@ class FactorNode:
                 all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
         if direct_call:
             return self._factor.call_factor(*args, **kwargs)
-        else:
-            # Check dimensions of inputs match plates + 1
-            vectorised = (
-                    (tuple(d + 1 for d in self._args_dims) == arg_dims) and
-                    all(dim + 1 == kwargs_dims[k]
-                        for k, dim in self._kwargs_dims.items()))
 
-            if not vectorised:
-                raise ValueError(
-                    "input dimensions do not match required dims"
-                    f"input: *args={arg_dims}, **kwargs={kwargs_dims}"
-                    f"required: *args={self._args_dims}, "
-                    f"**kwargs={self._kwargs_dims}")
+        # Check dimensions of inputs match plates + 1
+        vectorised = (
+                (tuple(d + 1 for d in self._args_dims) == arg_dims) and
+                all(dim + 1 == kwargs_dims[k]
+                    for k, dim in self._kwargs_dims.items()))
 
-            lens = [len(a) for a in args]
-            kw_lens = {k: len(a) for k, a in kwargs.items()}
+        if not vectorised:
+            raise ValueError(
+                "input dimensions do not match required dims"
+                f"input: *args={arg_dims}, **kwargs={kwargs_dims}"
+                f"required: *args={self._args_dims}, "
+                f"**kwargs={self._kwargs_dims}")
 
-            # checking 1st dimensions match
-            sizes = set(chain(lens, kw_lens.values()))
-            dim0 = max(sizes)
-            if sizes.difference({1, dim0}):
-                raise ValueError(
-                    f"size mismatch first dimensions passed: {sizes}")
+        lens = [len(a) for a in args]
+        kw_lens = {k: len(a) for k, a in kwargs.items()}
 
-            # teeing up iterators to generate arguments to factor calls
-            zip_args = zip(*(
-                a if l == dim0 else repeat(a[0])
-                for a, l in zip(args, lens)))
-            iter_kws = {
-                k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
-                for k, a in kwargs.items()}
+        # checking 1st dimensions match
+        sizes = set(chain(lens, kw_lens.values()))
+        dim0 = max(sizes)
+        if sizes.difference({1, dim0}):
+            raise ValueError(
+                f"size mismatch first dimensions passed: {sizes}")
 
-            # iterator to generate keyword arguments
-            def gen_kwargs():
-                for i in range(dim0):
-                    yield {
-                        k: next(a) for k, a in iter_kws.items()}
+        # teeing up iterators to generate arguments to factor calls
+        zip_args = zip(*(
+            a if l == dim0 else repeat(a[0])
+            for a, l in zip(args, lens)))
+        iter_kws = {
+            k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
+            for k, a in kwargs.items()}
 
-            # TODO this loop can also be paralleised for increased performance
-            res = np.array([
-                self._factor.call_factor(*args, **kws)
-                for args, kws in zip(zip_args, gen_kwargs())])
+        # iterator to generate keyword arguments
+        def gen_kwargs():
+            for i in range(dim0):
+                yield {
+                    k: next(a) for k, a in iter_kws.items()}
 
-            return res
+        # TODO this loop can also be paralleised for increased performance
+        res = np.array([
+            self._factor.call_factor(*args, **kws)
+            for args, kws in zip(zip_args, gen_kwargs())])
 
-        raise ValueError(
-            "input dimensions do not match required dims"
-            f"input: *args={arg_dims}, **kwargs={kwargs_dims}"
-            f"required: *args={self._args_dims}, "
-            f"**kwargs={self._kwargs_dims}")
+        return res
 
     def __call__(self, *args: Tuple[np.ndarray, ...],
                  **kwargs: Dict[str, np.ndarray]) -> FactorValue:
