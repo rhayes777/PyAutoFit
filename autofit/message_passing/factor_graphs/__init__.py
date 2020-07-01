@@ -4,7 +4,8 @@ from itertools import chain, repeat
 from typing import (
     NamedTuple, Tuple, Dict, Set, Union,
     Collection, Any,
-    cast
+    cast,
+    List
 )
 
 import numpy as np
@@ -53,18 +54,20 @@ class AbstractNode(ABC):
         }
 
         self._args = args
-        print(kwargs)
-        if any(map(lambda s: isinstance(s, str), kwargs.values())):
-            print("!")
         self._kwargs = kwargs
 
     @property
     @abstractmethod
-    def name(self):
-        pass
+    def name(self) -> str:
+        """
+        A name for this object
+        """
 
     @property
-    def call_signature(self):
+    def call_signature(self) -> str:
+        """
+        The apparent signature of this object
+        """
         args = ", ".join(self.arg_names)
         kws = ", ".join(map("{0[0]}={0[1]}".format, self.kwarg_names))
         call_strs = []
@@ -77,7 +80,10 @@ class AbstractNode(ABC):
         return call_sig
 
     @property
-    def arg_names(self):
+    def arg_names(self) -> List[str]:
+        """
+        The names of the variables passed as positional arguments
+        """
         return [
             arg.name
             for arg
@@ -85,7 +91,10 @@ class AbstractNode(ABC):
         ]
 
     @property
-    def kwarg_names(self):
+    def kwarg_names(self) -> List[str]:
+        """
+        The names of the variables passed as keyword arguments
+        """
         return [
             arg.name
             for arg
@@ -544,7 +553,7 @@ class FactorGraph(AbstractNode):
                 "Improper FactorGraph? unused variables: "
                 + ", ".join(diff))
 
-    def _get_call_sequence(self) -> None:
+    def _get_call_sequence(self):
         """Calculates an appropriate call sequence for the factor graph
 
         each set of calls can be evaluated independently in parallel
@@ -558,7 +567,12 @@ class FactorGraph(AbstractNode):
         self._args = tuple(
             factor_args[0][i] for i in range(max_len)
             if len(set(arg[i] for arg in factor_args)) == 1)
-        self._kwargs = {k: variable for k, variable in variables.items() if variable not in self._args}
+        self._kwargs = {
+            k: variable
+            for k, variable
+            in variables.items()
+            if variable not in self._args
+        }
 
         call_sets = defaultdict(list)
         for factor in self.factors:
