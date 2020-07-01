@@ -9,7 +9,7 @@ from typing import (
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.numerical import numerical_jacobian, numerical_hessdiag
+from autofit.message_passing.factor_graphs.numerical import numerical_jacobian
 from autofit.message_passing.utils import add_arrays
 
 
@@ -196,7 +196,6 @@ class FactorNode(AbstractNode):
         self._kwargs = {n: v.name for n, v in kwargs.items()}
 
     jacobian = numerical_jacobian
-    hessdiag = numerical_hessdiag
 
     @property
     def _args_dims(self):
