@@ -155,11 +155,6 @@ class FactorNode:
         self._kwargs = {n: v.name for n, v in kwargs.items()}
 
         self._initialise()
-        self._hash = hash(
-            (self._factor, self._args,
-             frozenset(self._kwargs.items()),
-             frozenset(self.variables.items()),
-             frozenset(self.deterministic_variables.items())))
 
     jacobian = numerical_jacobian
     hessdiag = numerical_hessdiag
@@ -181,7 +176,7 @@ class FactorNode:
             for n, v in self.all_variables.items()}
 
     def __hash__(self) -> int:
-        return self._hash
+        return hash(self._factor)
 
     def _resolve_args(self, *args: Tuple[np.ndarray, ...],
                       **kwargs: Dict[str, np.ndarray]
