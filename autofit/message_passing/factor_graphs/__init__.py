@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import defaultdict, ChainMap, Counter
 from itertools import chain, repeat
 from typing import (
@@ -51,6 +51,46 @@ class AbstractNode(ABC):
                 kwargs.values()
             )
         }
+
+        self._args = args
+        print(kwargs)
+        if any(map(lambda s: isinstance(s, str), kwargs.values())):
+            print("!")
+        self._kwargs = kwargs
+
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    @property
+    def call_signature(self):
+        args = ", ".join(self.arg_names)
+        kws = ", ".join(map("{0[0]}={0[1]}".format, self.kwarg_names))
+        call_strs = []
+        if args:
+            call_strs.append(args)
+        if kws:
+            call_strs.extend(['*', kws])
+        call_str = ", ".join(call_strs)
+        call_sig = f"{self.name}({call_str})"
+        return call_sig
+
+    @property
+    def arg_names(self):
+        return [
+            arg.name
+            for arg
+            in self._args
+        ]
+
+    @property
+    def kwarg_names(self):
+        return [
+            arg.name
+            for arg
+            in self._kwargs.values()
+        ]
 
     @property
     def all_variables(self) -> Dict[str, Variable]:
@@ -147,20 +187,17 @@ class FactorNode(AbstractNode):
 
         self._deterministic_variables = dict()
 
-        self._args = tuple(v.name for v in args)
-        self._kwargs = {n: v.name for n, v in kwargs.items()}
-
     jacobian = numerical_jacobian
 
     @property
     def _args_dims(self):
         return tuple(
-            len(self.all_variables[v].plates) for v in self._args)
+            len(v.plates) for v in self._args)
 
     @property
     def _kwargs_dims(self):
         return {
-            k: len(self.all_variables[v].plates) for k, v in self._kwargs.items()
+            k: len(v.plates) for k, v in self._kwargs.items()
         }
 
     @property
@@ -182,10 +219,10 @@ class FactorNode(AbstractNode):
         """Transforms in the input arguments to match the arguments
         specified for the factor"""
         n_args = len(args)
-        args = args + tuple(kwargs[v] for v in self._args[n_args:])
-        kws = {n: kwargs[v] for n, v in self._kwargs}
+        args = args + tuple(kwargs[v] for v in self.arg_names[n_args:])
+        kws = {n: kwargs[v] for n, v in self.kwarg_names}
 
-        variables = {v: x for v, x in zip(self._args, args)}
+        variables = {v: x for v, x in zip(self.arg_names, args)}
         variables.update(
             (self._kwargs[k], x) for k, x in kws.items())
         return args, kws, self._function_shape(variables)
@@ -244,7 +281,7 @@ class FactorNode(AbstractNode):
     def _variables_difference(self, *args: Tuple[np.ndarray, ...],
                               **kwargs: Dict[str, np.ndarray]
                               ) -> Set[str]:
-        args = self._args[:len(args)]
+        args = self.arg_names[:len(args)]
         return (self._variables.keys() - args).difference(kwargs)
 
     def _call_factor(self, *args: Tuple[np.ndarray, ...],
@@ -377,7 +414,7 @@ class FactorNode(AbstractNode):
 
         return DeterministicFactorNode(
             self._factor, other,
-            *(self._variables[name] for name in self._args),
+            *(self._variables[name] for name in self.arg_names),
             **{n: self._variables[name] for n, name in self._kwargs.items()})
 
     def __mul__(self, other) -> "FactorGraph":
@@ -385,8 +422,8 @@ class FactorNode(AbstractNode):
 
     def __repr__(self) -> str:
         args = ", ".join(chain(
-            self._args,
-            map("{0[0]}={0[1]}".format, self._kwargs.items())))
+            self.arg_names,
+            map("{0[0]}={0[1]}".format, self.kwarg_names)))
         return f"Factor({self._factor.name})({args})"
 
     @property
@@ -400,19 +437,6 @@ class FactorNode(AbstractNode):
     @property
     def name(self):
         return self._factor.name
-
-    @property
-    def call_signature(self):
-        args = ", ".join(self._args)
-        kws = ", ".join(map("{0[0]}={0[1]}".format, self._kwargs.items()))
-        call_strs = []
-        if args:
-            call_strs.append(args)
-        if kws:
-            call_strs.extend(['*', kws])
-        call_str = ", ".join(call_strs)
-        call_sig = f"{self.name}({call_str})"
-        return call_sig
 
 
 class DeterministicFactorNode(FactorNode):
@@ -534,7 +558,7 @@ class FactorGraph(AbstractNode):
         self._args = tuple(
             factor_args[0][i] for i in range(max_len)
             if len(set(arg[i] for arg in factor_args)) == 1)
-        self._kwargs = {k: k for k in variables.keys() - self._args}
+        self._kwargs = {k: variable for k, variable in variables.items() if variable not in self._args}
 
         call_sets = defaultdict(list)
         for factor in self.factors:
@@ -582,7 +606,7 @@ class FactorGraph(AbstractNode):
                 f"too many arguments passed, must pass {len(self._args)} arguments, "
                 f"factor graph call signature: {self.call_signature}")
 
-        missing = self._kwargs.keys() - variables.keys() - set(self._args[:n_args])
+        missing = set(self.kwarg_names) - variables.keys() - set(self.arg_names[:n_args])
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)
