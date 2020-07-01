@@ -188,43 +188,76 @@ class FactorNode(AbstractNode):
             *args: Variable,
             **kwargs: Variable
     ):
+        """
+        A node in a graph representing a factor
+
+        Parameters
+        ----------
+        factor
+            A wrapper around some callable
+        args
+            Variables representing positional arguments for the function
+        kwargs
+            Variables representing keyword arguments for the function
+        """
         super().__init__(
             *args,
             **kwargs
         )
         self._factor = factor
-
         self._deterministic_variables = dict()
 
     jacobian = numerical_jacobian
 
     @property
-    def _args_dims(self):
-        return tuple(
-            len(v.plates) for v in self._args)
+    def _args_dims(self) -> Tuple[int]:
+        """
+        The number of plates for each positional argument variable
+        """
+        return tuple(map(
+            len, self._args
+        ))
 
     @property
-    def _kwargs_dims(self):
+    def _kwargs_dims(self) -> Dict[str, int]:
+        """
+        The number of plates for each keyword argument variable
+        """
         return {
-            k: len(v.plates) for k, v in self._kwargs.items()
+            key: len(value)
+            for key, value
+            in self._kwargs.items()
         }
 
     @property
-    def _variable_plates(self):
+    def _variable_plates(self) -> Dict[str, int]:
+        """
+        Maps the name of each variable to the indices of its plates
+        within this node
+        """
         return {
-            n: self._match_plates(v.plates)
-            for n, v in self.all_variables.items()}
+            name: self._match_plates(
+                variable.plates
+            )
+            for name, variable
+            in self.all_variables.items()
+        }
 
     @property
-    def n_deterministic(self):
+    def n_deterministic(self) -> int:
+        """
+        How many deterministic variables are there associated with this node?
+        """
         return len(self._deterministic_variables)
 
     def __hash__(self) -> int:
         return hash(self._factor)
 
-    def _resolve_args(self, *args: Tuple[np.ndarray, ...],
-                      **kwargs: Dict[str, np.ndarray]
-                      ) -> Tuple[Any, dict, Tuple[int, ...]]:
+    def _resolve_args(
+            self,
+            *args: np.ndarray,
+            **kwargs: np.ndarray
+    ) -> Tuple[Any, dict, Tuple[int, ...]]:
         """Transforms in the input arguments to match the arguments
         specified for the factor"""
         n_args = len(args)

@@ -64,6 +64,12 @@ class Variable:
     def __hash__(self):
         return hash((self.name, type(self)))
 
+    def __len__(self):
+        return len(self.plates)
+
+    def __str__(self):
+        return self.name
+
     @property
     def ndim(self) -> int:
         """
