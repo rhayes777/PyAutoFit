@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from scipy import stats
 
+import autofit.message_passing.factor_graphs.factor
 from autofit import message_passing as mp
 
 
@@ -9,7 +10,7 @@ from autofit import message_passing as mp
     name="normal_factor"
 )
 def make_normal_factor(x):
-    return mp.Factor(
+    return autofit.message_passing.factor_graphs.factor.Factor(
         stats.norm(
             loc=-0.5,
             scale=0.5
