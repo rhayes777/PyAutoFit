@@ -222,10 +222,11 @@ class PDFSamples(OptimizerSamples):
         GetDist is pretty vocal about its logging, in a way that can't be silenced via inputs to GetDist. So, to shut
         it, up we switch the Python logger to CRITICAL and back to the default settings.
         """
-        import getdist
 
         logger = logging.getLogger()
         logger.setLevel(level=logging.CRITICAL)
+
+        import getdist
 
         with util.suppress_stdout():
             getdist_samples = getdist.mcsamples.MCSamples(

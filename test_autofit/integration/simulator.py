@@ -89,7 +89,7 @@ Evaluate this Gaussian model instance at every xvalues to create its model line 
 """
 
 # %%
-model_line = gaussian.line_from_xvalues(xvalues=xvalues)
+model_line = gaussian.profile_from_xvalues(xvalues=xvalues)
 
 # %%
 """

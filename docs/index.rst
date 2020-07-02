@@ -9,6 +9,7 @@
    general/workspace
    general/configs
    general/software
+   general/citations
    general/future
    general/credits
 
@@ -18,8 +19,7 @@
    :hidden:
 
    overview/model_fit
-   overview/model_fit_complex
-   overview/model_customize
+   overview/model_complex
    overview/non_linear_search
    overview/result
    overview/aggregator

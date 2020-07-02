@@ -26,10 +26,10 @@ We define our model, a 1D Gaussian, by writing a Python class using the format b
     class Gaussian:
 
         def __init__(
-            self,            # <- PyAutoFit recognises these
-            centre = 0.0,    # <- constructor arguments are
-            intensity = 0.1, # <- the model parameters of .
-            sigma = 0.01,    # <- the Gaussian.
+            self,
+            centre=0.0,     # <- PyAutoFit recognises these
+            intensity=0.1,  # <- constructor arguments are
+            sigma=0.01,     # <- the Gaussian's parameters.
         ):
             self.centre = centre
             self.intensity = intensity
@@ -40,7 +40,7 @@ We define our model, a 1D Gaussian, by writing a Python class using the format b
     This method will be used to fit the model to data and compute a likelihood.
     """
 
-    def line_from_xvalues(self, xvalues):
+    def profile_from_xvalues(self, xvalues):
 
         transformed_xvalues = xvalues - self.centre
 
@@ -76,12 +76,12 @@ function describing how to fit the data with the model:
 
             """
             We fit the data with the Gaussian instance, using its
-            "line_from_xvalues" function to create the model data.
+            "profile_from_xvalues" function to create the model data.
             """
 
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.line_from_xvalues(xvalues=xvalues)
+            model_data = instance.profile_from_xvalues(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)

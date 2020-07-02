@@ -40,7 +40,7 @@ class Analysis(af.Analysis):
     def model_data_from_instance(self, instance):
         return sum(
             [
-                profile.line_from_xvalues(xvalues=self.masked_dataset.xvalues)
+                profile.profile_from_xvalues(xvalues=self.masked_dataset.xvalues)
                 for profile in instance.profiles
             ]
         )

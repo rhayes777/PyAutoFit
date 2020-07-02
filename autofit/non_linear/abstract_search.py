@@ -235,8 +235,6 @@ class NonLinearSearch(ABC):
                 model=model, analysis=analysis, during_analysis=False
             )
 
-            self.save_samples(samples=samples)
-
         else:
 
             samples = self.samples_from_model(model=model)
@@ -327,8 +325,8 @@ class NonLinearSearch(ABC):
         self.timer.update()
 
         samples = self.samples_from_model(model=model)
-
         samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
+        self.save_samples(samples=samples)
 
         try:
             instance = samples.max_log_likelihood_instance

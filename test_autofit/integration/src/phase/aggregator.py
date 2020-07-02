@@ -87,7 +87,7 @@ def model_data_from_agg_obj(agg_obj):
     instance = agg_obj.samples.max_log_likelihood_instance
     profiles = instance.profiles
     model_data = sum(
-        [profile.line_from_xvalues(xvalues=xvalues) for profile in profiles]
+        [profile.profile_from_xvalues(xvalues=xvalues) for profile in profiles]
     )
 
     return model_data

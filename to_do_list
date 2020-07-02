@@ -1,0 +1,26 @@
+Paper:
+
+    - Preprint format.
+
+Features:
+
+    - Remove sym link in most searches.
+    - Loading a Samples instance from a csv.
+    - Implement LBFGS.
+    - Visualization, corner and remove GetDist.
+    - Covariance intiialization tansform search space using tchileveky decomposition of cov matrix?
+    - Use importance sampling to generate initial saples with well defined priors?
+
+Readthedocs:
+
+    - Read docstring API, use notebook sphinx
+
+Future:
+
+Ideas / Other:
+
+    - Change license LGPL
+    - normal wishart distribution - prior of covariance matrix over normal distribution..
+    - Prism / Linear Bayes / Emulation
+    - Gaussian Processes
+    - Gibbs Sampling

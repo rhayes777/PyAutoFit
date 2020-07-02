@@ -99,7 +99,7 @@ likelihood model:
 
 .. code-block:: bash
 
-    model_data = samples.max_log_likelihood_instance.line_from_xvalues(
+    model_data = samples.max_log_likelihood_instance.profile_from_xvalues(
         xvalues=np.arange(data.shape[0])
     )
 

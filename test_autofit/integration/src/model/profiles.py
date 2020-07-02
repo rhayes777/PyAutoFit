@@ -43,7 +43,7 @@ class Gaussian(Profile):
 
         self.sigma = sigma
 
-    def line_from_xvalues(self, xvalues):
+    def profile_from_xvalues(self, xvalues):
         """
         Calculate the intensity of the line profile on a line of Cartesian x coordinates.
 
@@ -85,7 +85,7 @@ class Exponential(Profile):
 
         self.rate = rate
 
-    def line_from_xvalues(self, xvalues):
+    def profile_from_xvalues(self, xvalues):
         """
         Calculate the intensity of the line profile on a line of Cartesian x coordinates.
 

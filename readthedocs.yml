@@ -1,0 +1,7 @@
+# .readthedocs.yml
+
+python:
+  version: 3.7
+  setup_py_install: true
+
+requirements_file: requirements.txt
