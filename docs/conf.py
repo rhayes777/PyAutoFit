@@ -25,7 +25,7 @@ copyright = "2020, James Nightingale, Richard Hayes"
 author = "James Nightingale, Richard Hayes"
 
 # The full version, including alpha/beta/rc tags
-release = "0.58.0"
+release = "0.61.4"
 master_doc = "index"
 
 
@@ -55,7 +55,6 @@ autodoc_default_flags = ['members']
 numpydoc_show_class_members = False
 numpydoc_show_inherited_class_members = False
 numpydoc_class_members_toctree = False
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
