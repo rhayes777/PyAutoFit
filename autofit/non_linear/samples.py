@@ -4,25 +4,25 @@ import math
 from typing import List
 
 import emcee
+import corner
 import numpy as np
 
-from autoconf import conf
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.text import model_text
-from autofit.tools import util
 
 logger = logging.getLogger(__name__)
 
+
 class OptimizerSamples:
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        time : float = None
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            time: float = None
     ):
         """The *Samples* of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
@@ -47,6 +47,10 @@ class OptimizerSamples:
     @property
     def parameter_names(self):
         return self.model.parameter_names
+
+    @property
+    def parameters_extract(self):
+        return [[params[i] for params in self.parameters] for i in range(self.model.prior_count)]
 
     @property
     def _headers(self) -> List[str]:
@@ -146,14 +150,14 @@ class OptimizerSamples:
 
 class PDFSamples(OptimizerSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        unconverged_sample_size : int =100,
-        time : float = None,
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
@@ -189,80 +193,25 @@ class PDFSamples(OptimizerSamples):
 
     @property
     def pdf_converged(self) -> bool:
-        """ To analyse and visualize samples using *GetDist*, the analysis must be sufficiently converged to produce
-        smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
-        converged for *GetDist* use.
+        """ To analyse and visualize samples the analysis must be sufficiently converged to produce smooth enough
+        PDF for error estimate and PDF generation.
 
-        For *Dynesty*, during initial sampling one accepted live point typically has > 99% of the probabilty as its
-        log_likelihood is significantly higher than all other points. Convergence is only achieved late in sampling when
-        all live points have similar log_likelihood and sampling probabilities."""
-        try:
+        This property checks whether the non-linear search's samples are sufficiently converged for this, by checking
+        if one sample's weight contains > 99% of the weight. If this is the case, it implies the convergence necessary
+        for error estimate and visualization has not been met.
 
-            densities_1d = list(
-                map(lambda p: self.getdist_samples.get1DDensity(p), self.getdist_samples.getParamNames().names)
-            )
-
-            if densities_1d == []:
-                return False
-
-            return True
-        except Exception:
+        This does not necessarily imply the non-linear search has converged overall, only that errors and visualization
+        can be performed numerically.."""
+        if np.max(self.weights) > 0.99:
             return False
-
-    @property
-    def getdist_samples(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the samples.
-
-        *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
-        checked using the *pdf_converged* bool before *GetDist* is called.
-
-        https://github.com/cmbant/getdist
-        https://getdist.readthedocs.io/en/latest/
-
-        GetDist is pretty vocal about its logging, in a way that can't be silenced via inputs to GetDist. So, to shut
-        it, up we switch the Python logger to CRITICAL and back to the default settings.
-        """
-
-        logger = logging.getLogger()
-        logger.setLevel(level=logging.CRITICAL)
-
-        import getdist
-
-        with util.suppress_stdout():
-            getdist_samples = getdist.mcsamples.MCSamples(
-                samples=np.asarray(self.parameters),
-                weights=np.asarray(self.weights),
-                names=self.parameter_names,
-                labels=self.parameter_labels,
-            )
-
-        logger.level = logging._nameToLevel[
-            conf.instance.general.get("output", "log_level", str)
-            .replace(" ", "")
-            .upper()
-        ]
-
-        return getdist_samples
+        return True
 
     @property
     def median_pdf_vector(self) -> [float]:
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a list of values.
-
-        If the samples are sufficiently converged this is estimated by passing the accepted samples to *GetDist*, else
-        a crude estimate using the mean value of all accepted samples is used."""
+        as a list of values."""
         if self.pdf_converged:
-
-            densities_1d = list(
-                map(lambda p: self.getdist_samples.get1DDensity(p), self.getdist_samples.getParamNames().names)
-            )
-            limit = math.erf(0.5 * 0.001 * math.sqrt(2))
-            try:
-                limits = list(map(lambda p: p.getLimits(limit), densities_1d))
-                return [(limit[0] + limit[1]) / 2.0 for limit in limits]
-            except IndexError:
-                return self.getdist_samples.getMeans()
-
+            return [corner.quantile(x=params, q=[0.15], weights=self.weights)[0] for params in self.parameters_extract]
         return self.max_log_likelihood_vector
 
     @property
@@ -290,20 +239,23 @@ class PDFSamples(OptimizerSamples):
         ----------
         sigma : float
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
-        limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
-            densities_1d = list(
-                map(lambda p: self.getdist_samples.get1DDensity(p), self.getdist_samples.getParamNames().names)
-            )
+            limit = math.erf(0.5 * sigma * math.sqrt(2))
 
-            return list(map(lambda p: p.getLimits(limit), densities_1d))
+            lower_errors = [corner.quantile(x=params, q=1.0 - limit, weights=self.weights)[0] for params in
+                            self.parameters_extract]
+
+            upper_errors = [corner.quantile(x=params, q=limit, weights=self.weights)[0] for params in
+                            self.parameters_extract]
+
+            return [(lower, upper) for lower, upper in zip(lower_errors, upper_errors)]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -570,65 +522,68 @@ class PDFSamples(OptimizerSamples):
          - The marginalized 2D PDF of every parameter pair.
          - A Triangle plot of the 2D and 1D PDF's.
          """
-        import getdist.plots
-        import matplotlib
 
-        backend = conf.instance.visualize_general.get("general", "backend", str)
-        if not backend in "default":
-            matplotlib.use(backend)
-        if conf.instance.general.get("hpc", "hpc_mode", bool):
-            matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
+        pass
 
-        pdf_plot = getdist.plots.GetDistPlotter()
-
-        plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
-
-        if plot_pdf_1d_params:
-
-            for param_name in self.model.parameter_names:
-                pdf_plot.plot_1d(roots=self.getdist_samples, param=param_name)
-                pdf_plot.export(
-                    fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
-                )
-
-        plt.close()
-
-        plot_pdf_triangle = conf.instance.visualize_plots.get("pdf", "triangle", bool)
-
-        if plot_pdf_triangle:
-
-            try:
-                pdf_plot.triangle_plot(roots=self.getdist_samples)
-                pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
-            except Exception as e:
-                logger.exception(e)
-                print(
-                    "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
-                    "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
-                    "parameter evidence_tolerance."
-                )
-
-        plt.close()
+        # import getdist.plots
+        # import matplotlib
+        #
+        # backend = conf.instance.visualize_general.get("general", "backend", str)
+        # if not backend in "default":
+        #     matplotlib.use(backend)
+        # if conf.instance.general.get("hpc", "hpc_mode", bool):
+        #     matplotlib.use("Agg")
+        # import matplotlib.pyplot as plt
+        #
+        # pdf_plot = getdist.plots.GetDistPlotter()
+        #
+        # plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
+        #
+        # if plot_pdf_1d_params:
+        #
+        #     for param_name in self.model.parameter_names:
+        #         pdf_plot.plot_1d(roots=self.getdist_samples, param=param_name)
+        #         pdf_plot.export(
+        #             fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
+        #         )
+        #
+        # plt.close()
+        #
+        # plot_pdf_triangle = conf.instance.visualize_plots.get("pdf", "triangle", bool)
+        #
+        # if plot_pdf_triangle:
+        #
+        #     try:
+        #         pdf_plot.triangle_plot(roots=self.getdist_samples)
+        #         pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
+        #     except Exception as e:
+        #         logger.exception(e)
+        #         print(
+        #             "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
+        #             "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
+        #             "parameter evidence_tolerance."
+        #         )
+        #
+        # plt.close()
 
 
 class MCMCSamples(PDFSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        auto_correlation_times : np.ndarray,
-        auto_correlation_check_size : int,
-        auto_correlation_required_length : int,
-        auto_correlation_change_threshold : float,
-        total_walkers : int,
-        total_steps : int,
-        backend : emcee.backends.HDFBackend,
-        unconverged_sample_size : int = 100,
-        time : float = None
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            auto_correlation_times: np.ndarray,
+            auto_correlation_check_size: int,
+            auto_correlation_required_length: int,
+            auto_correlation_change_threshold: float,
+            total_walkers: int,
+            total_steps: int,
+            backend: emcee.backends.HDFBackend,
+            unconverged_sample_size: int = 100,
+            time: float = None
     ):
         """
         Attributes
@@ -658,24 +613,6 @@ class MCMCSamples(PDFSamples):
         self.auto_correlation_change_threshold = auto_correlation_change_threshold
         self.log_evidence = None
         self.backend = backend
-
-    @property
-    def getdist_samples(self):
-        """An interface to *GetDist* which can be used for analysing and visualizing the samples.
-
-        *GetDist* can only be used when samples are converged enough to provide a smooth PDF and this convergence is
-        checked using the *pdf_converged* bool before *GetDist* is called.
-
-        https://github.com/cmbant/getdist
-        https://getdist.readthedocs.io/en/latest/
-
-        For *emcee*, samples are passed to *GetDist* via the hdt backend. *GetDist* currently does not provide accurate
-        model sampling.
-        """
-        import getdist
-
-        with util.suppress_stdout():
-            return getdist.mcsamples.MCSamples(samples=self.samples_after_burn_in)
 
     @property
     def pdf_converged(self):
@@ -709,8 +646,8 @@ class MCMCSamples(PDFSamples):
     @property
     def relative_auto_correlation_times(self) -> [float]:
         return (
-            np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
-            / self.auto_correlation_times
+                np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
+                / self.auto_correlation_times
         )
 
     @property
@@ -766,7 +703,6 @@ class MCMCSamples(PDFSamples):
         limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
-
             samples = self.samples_after_burn_in
 
             return [
@@ -777,10 +713,10 @@ class MCMCSamples(PDFSamples):
             ]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -791,17 +727,17 @@ class MCMCSamples(PDFSamples):
 
 class NestSamples(PDFSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        number_live_points : int,
-        log_evidence : float,
-        total_samples : int,
-        unconverged_sample_size : int =100,
-        time : float = None
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            number_live_points: int,
+            log_evidence: float,
+            total_samples: int,
+            unconverged_sample_size: int = 100,
+            time: float = None
     ):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
         as files on your hard-disk) and Python.

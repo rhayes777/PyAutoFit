@@ -1,6 +1,5 @@
 import logging
 import os
-import pyswarms
 import numpy as np
 import pickle
 
@@ -8,7 +7,8 @@ from autofit import exc
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples
 
-logger = logging.getLogger(__name__)
+logging.basicConfig()
+logger = logging.getLogger(__name__)  # TODO: Logging issue
 
 
 class AbstractPySwarms(AbstractOptimizer):
@@ -456,6 +456,8 @@ class PySwarmsGlobal(AbstractPySwarms):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
 
+        import pyswarms
+
         return pyswarms.global_best.GlobalBestPSO(
             n_particles=self.n_particles,
             dimensions=model.prior_count,
@@ -591,6 +593,8 @@ class PySwarmsLocal(AbstractPySwarms):
     def sampler_fom_model_and_fitness(self, model, fitness_function, bounds, init_pos):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
+
+        import pyswarms
 
         return pyswarms.local_best.LocalBestPSO(
             n_particles=self.n_particles,

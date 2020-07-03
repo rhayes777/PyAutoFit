@@ -182,7 +182,7 @@ class TestOptimizerSamples:
 
 
 class TestPDFSamples:
-    def test__converged_vector__median_pdf_vector_and_instance(self):
+    def test__converged__median_pdf_vector_and_instance(self):
         parameters = [
             [1.0, 2.0],
             [1.0, 2.0],
@@ -196,7 +196,8 @@ class TestPDFSamples:
             [1.1, 2.1],
         ]
 
-        log_likelihoods = list(range(10))
+        log_likelihoods = 10 * [0.1]
+        weights = 10 * [0.1]
 
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
@@ -204,22 +205,55 @@ class TestPDFSamples:
             parameters=parameters,
             log_likelihoods=log_likelihoods,
             log_priors=[],
-            weights=log_likelihoods,
+            weights=weights,
         )
 
-        #      assert samples.pdf_converged == True
+        assert samples.pdf_converged == True
 
-        errors = samples.vector_at_sigma(sigma=3.0)
+        median_pdf_vector = samples.median_pdf_vector
 
-        assert errors[0][0:2] == pytest.approx((0.88, 1.12), 1e-1)
-        assert errors[1][0:2] == pytest.approx((1.88, 2.12), 1e-1)
+        assert median_pdf_vector[0] == pytest.approx(1.0, 1.0e-4)
+        assert median_pdf_vector[1] == pytest.approx(2.0, 1.0e-4)
 
-        errors = samples.vector_at_sigma(sigma=1.0)
+        median_pdf_instance = samples.median_pdf_instance
 
-        assert errors[0][0:2] == pytest.approx((0.93, 1.07), 1e-1)
-        assert errors[1][0:2] == pytest.approx((1.93, 2.07), 1e-1)
+        assert median_pdf_instance.mock_class.one == pytest.approx(1.0, 1e-1)
+        assert median_pdf_instance.mock_class.two == pytest.approx(2.0, 1e-1)
 
-    def test__converged_vector__at_upper_and_lower_sigma(self):
+    def test__unconverged__median_pdf_vector(self):
+        parameters = [
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.1, 2.1],
+            [0.9, 1.9],
+        ]
+
+        log_likelihoods = 9 * [0.0] + [1.0]
+        weights = 9 * [0.0] + [1.0]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = PDFSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights,
+        )
+
+        assert samples.pdf_converged == False
+
+        median_pdf_vector = samples.median_pdf_vector
+
+        assert median_pdf_vector[0] == pytest.approx(0.9, 1.0e-4)
+        assert median_pdf_vector[1] == pytest.approx(1.9, 1.0e-4)
+
+    def test__converged__vector_and_instance_at_upper_and_lower_sigma(self):
         parameters = [
             [0.1, 0.4],
             [0.1, 0.4],
@@ -246,29 +280,157 @@ class TestPDFSamples:
             weights=weights,
         )
 
-        #    assert samples.pdf_converged == True
+        assert samples.pdf_converged == True
 
-        median_pdf = samples.median_pdf_instance
+        vector_at_sigma = samples.vector_at_sigma(sigma=3.0)
 
-        assert median_pdf.mock_class.one == pytest.approx(0.2, 1.0e-4)
-        assert median_pdf.mock_class.two == pytest.approx(0.3, 1.0e-4)
+        assert vector_at_sigma[0] == pytest.approx((0.00242, 0.19757), 1e-1)
+        assert vector_at_sigma[1] == pytest.approx((0.30243, 0.49757), 1e-1)
+
+        vector_at_sigma = samples.vector_at_upper_sigma(sigma=3.0)
+
+        assert vector_at_sigma[0] == pytest.approx(0.19757, 1e-1)
+        assert vector_at_sigma[1] == pytest.approx(0.49757, 1e-1)
+
+        vector_at_sigma = samples.vector_at_lower_sigma(sigma=3.0)
+
+        assert vector_at_sigma[0] == pytest.approx(0.00242, 1e-1)
+        assert vector_at_sigma[1] == pytest.approx(0.30243, 1e-1)
+
+        vector_at_sigma = samples.vector_at_sigma(sigma=1.0)
+
+        assert vector_at_sigma[0] == pytest.approx((0.1, 0.1), 1e-1)
+        assert vector_at_sigma[1] == pytest.approx((0.4, 0.4), 1e-1)
+
+        instance_at_sigma = samples.instance_at_sigma(sigma=1.0)
+
+        assert instance_at_sigma.mock_class.one == pytest.approx((0.1, 0.1), 1e-1)
+        assert instance_at_sigma.mock_class.two == pytest.approx((0.4, 0.4), 1e-1)
+
+        instance_at_sigma = samples.instance_at_upper_sigma(sigma=3.0)
+
+        assert instance_at_sigma.mock_class.one == pytest.approx(0.19757, 1e-1)
+        assert instance_at_sigma.mock_class.two == pytest.approx(0.49757, 1e-1)
+
+        instance_at_sigma = samples.instance_at_lower_sigma(sigma=3.0)
+
+        assert instance_at_sigma.mock_class.one == pytest.approx(0.00242, 1e-1)
+        assert instance_at_sigma.mock_class.two == pytest.approx(0.30243, 1e-1)
+
+    def test__unconverged_vector_at_lower_and_upper_sigma(self):
+        parameters = [
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.0, 2.0],
+            [1.1, 2.1],
+            [0.9, 1.9],
+        ]
+
+        log_likelihoods = 9 * [0.0] + [1.0]
+        weights = 9 * [0.0] + [1.0]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = PDFSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights,
+        )
+
+        assert samples.pdf_converged == False
+
+        vector_at_sigma = samples.vector_at_sigma(sigma=1.0)
+
+        assert vector_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
+        assert vector_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
+
+        vector_at_sigma = samples.vector_at_sigma(sigma=3.0)
+
+        assert vector_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
+        assert vector_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
+
+    def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma(self):
+        parameters = [
+            [0.1, 0.4],
+            [0.1, 0.4],
+            [0.1, 0.4],
+            [0.1, 0.4],
+            [0.1, 0.4],
+            [0.1, 0.4],
+            [0.1, 0.4],
+            [0.1, 0.4],
+            [0.0, 0.5],
+            [0.2, 0.3],
+        ]
+
+        log_likelihoods = list(range(10))
+
+        weights = 10 * [0.1]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = PDFSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[],
+            weights=weights,
+        )
+
+        assert samples.pdf_converged == True
+
+        errors = samples.error_vector_at_sigma(sigma=3.0)
+
+        assert errors == pytest.approx([0.19514, 0.19514], 1e-1)
+
+        errors = samples.error_vector_at_upper_sigma(sigma=3.0)
+
+        assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
+
+        errors = samples.error_vector_at_lower_sigma(sigma=3.0)
+
+        assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
+
+        errors = samples.error_vector_at_sigma(sigma=1.0)
+
+        assert errors == pytest.approx([0.0, 0.0], 1e-1)
+
+        errors_instance = samples.error_instance_at_sigma(sigma=1.0)
+
+        assert errors_instance.mock_class.one == pytest.approx(0.0, 1e-1)
+        assert errors_instance.mock_class.two == pytest.approx(0.0, 1e-1)
+
+        errors_instance = samples.error_instance_at_upper_sigma(sigma=3.0)
+
+        assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
+        assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
+
+        errors_instance = samples.error_instance_at_lower_sigma(sigma=3.0)
+
+        assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
+        assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
 
     def test__unconverged_sample_size__uses_value_unless_fewer_samples(self):
         model = af.ModelMapper(mock_class_1=MockClassx4)
 
-        log_likelihoods = [1.0, 2.0, 3.0, 10.0, 5.0]
+        log_likelihoods = 4 * [0.0] + [1.0]
+        weights = 4 * [0.0] + [1.0]
 
         samples = PDFSamples(
             model=model,
             parameters=[[]],
             log_likelihoods=log_likelihoods,
             log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weights=[],
+            weights=weights,
             unconverged_sample_size=2,
         )
 
         assert samples.pdf_converged == False
-
         assert samples.unconverged_sample_size == 2
 
         samples = PDFSamples(
@@ -276,207 +438,12 @@ class TestPDFSamples:
             parameters=[[]],
             log_likelihoods=log_likelihoods,
             log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weights=[],
+            weights=weights,
             unconverged_sample_size=6,
         )
 
+        assert samples.pdf_converged == False
         assert samples.unconverged_sample_size == 5
-
-    def test__unconverged_pdf__uses_max_log_likelihood__instance(self):
-        model = af.ModelMapper(mock_class_1=MockClassx4)
-
-        parameters = [
-            [1.0, 2.0, 3.0, 4.5],
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [1.1, 2.1, 3.1, 4.1],
-        ]
-
-        weights = [1.0, 0.0, 0.0, 0.0, 0.0]
-
-        log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
-
-        samples = PDFSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
-
-        assert samples.pdf_converged == False
-
-        median_pdf = samples.median_pdf_instance
-
-        assert median_pdf.mock_class_1.one == pytest.approx(1.0, 1.0e-4)
-        assert median_pdf.mock_class_1.two == pytest.approx(2.0, 1.0e-4)
-        assert median_pdf.mock_class_1.three == pytest.approx(3.0, 1.0e-4)
-        assert median_pdf.mock_class_1.four == pytest.approx(4.5, 1.0e-4)
-
-    def test__unconverged_vector_at_upper_and_lower_sigma(self):
-        parameters = [
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [0.88, 1.88, 2.88, 3.88],
-            [1.12, 2.12, 3.12, 4.12],
-        ]
-
-        weights = [1.0, 0.0, 0.0, 0.0, 0.0]
-
-        log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
-
-        model = af.ModelMapper(mock_class=MockClassx4)
-        samples = PDFSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
-
-        assert samples.pdf_converged == False
-
-        parameters_upper = samples.vector_at_upper_sigma(sigma=1.0)
-        assert parameters_upper == pytest.approx([1.12, 2.12, 3.12, 4.12], 1e-2)
-        parameters_lower = samples.vector_at_lower_sigma(sigma=1.0)
-        assert parameters_lower == pytest.approx([0.88, 1.88, 2.88, 3.88], 1e-2)
-
-        parameters_upper = samples.vector_at_upper_sigma(sigma=2.0)
-        assert parameters_upper == pytest.approx([1.12, 2.12, 3.12, 4.12], 1e-2)
-        parameters_lower = samples.vector_at_lower_sigma(sigma=2.0)
-        assert parameters_lower == pytest.approx([0.88, 1.88, 2.88, 3.88], 1e-2)
-
-        instance = samples.instance_at_upper_sigma(sigma=1.0)
-        assert instance.mock_class.one == pytest.approx(1.12, 1e-2)
-        assert instance.mock_class.two == pytest.approx(2.12, 1e-2)
-        assert instance.mock_class.three == pytest.approx(3.12, 1e-2)
-        assert instance.mock_class.four == pytest.approx(4.12, 1e-2)
-
-        instance = samples.instance_at_lower_sigma(sigma=1.0)
-        assert instance.mock_class.one == pytest.approx(0.88, 1e-2)
-        assert instance.mock_class.two == pytest.approx(1.88, 1e-2)
-        assert instance.mock_class.three == pytest.approx(2.88, 1e-2)
-        assert instance.mock_class.four == pytest.approx(3.88, 1e-2)
-
-    def test__unconverged_error_vector_and_instance_at_sigma(self):
-        parameters = [
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [0.88, 1.88, 2.88, 3.88],
-            [1.12, 2.12, 3.12, 4.12],
-        ]
-
-        weights = [1.0, 0.0, 0.0, 0.0, 0.0]
-
-        log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
-
-        model = af.ModelMapper(mock_class=MockClassx4)
-        samples = PDFSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
-
-        assert samples.pdf_converged == False
-
-        errors = samples.error_vector_at_sigma(sigma=1.0)
-        assert errors == pytest.approx(
-            [1.12 - 0.88, 2.12 - 1.88, 3.12 - 2.88, 4.12 - 3.88], 1e-2
-        )
-
-        errors_instance = samples.error_instance_at_sigma(sigma=1.0)
-        assert errors_instance.mock_class.one == pytest.approx(1.12 - 0.88, 1e-2)
-        assert errors_instance.mock_class.two == pytest.approx(2.12 - 1.88, 1e-2)
-        assert errors_instance.mock_class.three == pytest.approx(3.12 - 2.88, 1e-2)
-        assert errors_instance.mock_class.four == pytest.approx(4.12 - 3.88, 1e-2)
-
-        errors = samples.error_vector_at_sigma(sigma=2.0)
-        assert errors == pytest.approx(
-            [(1.12 - 0.88), (2.12 - 1.88), (3.12 - 2.88), (4.12 - 3.88)], 1e-2
-        )
-
-    def test__unconverged_error_vector_and_instance_at_upper_and_lower_sigma(self):
-        parameters = [
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0],
-            [0.98, 1.88, 2.88, 3.88],
-            [1.02, 2.12, 3.12, 4.22],
-        ]
-
-        weights = [1.0, 0.0, 0.0, 0.0, 0.0]
-
-        log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
-
-        model = af.ModelMapper(mock_class=MockClassx4)
-        samples = PDFSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
-
-        assert samples.pdf_converged == False
-
-        upper_errors = samples.error_vector_at_upper_sigma(sigma=1.0)
-        assert upper_errors == pytest.approx([0.02, 0.12, 0.12, 0.22], 1e-2)
-
-        errors_instance = samples.error_instance_at_upper_sigma(sigma=1.0)
-        assert errors_instance.mock_class.one == pytest.approx(0.02, 1e-2)
-        assert errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.three == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.four == pytest.approx(0.22, 1e-2)
-
-        lower_errors = samples.error_vector_at_lower_sigma(sigma=1.0)
-        assert lower_errors == pytest.approx([0.02, 0.12, 0.12, 0.12], 1e-2)
-
-        errors_instance = samples.error_instance_at_lower_sigma(sigma=1.0)
-        assert errors_instance.mock_class.one == pytest.approx(0.02, 1e-2)
-        assert errors_instance.mock_class.two == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.three == pytest.approx(0.12, 1e-2)
-        assert errors_instance.mock_class.four == pytest.approx(0.12, 1e-2)
-
-    def test__unonverged__gaussian_priors(self):
-        parameters = [
-            [1.0, 2.0, 3.0, 4.1],
-            [1.0, 2.0, 3.0, 4.1],
-            [1.0, 2.0, 3.0, 4.1],
-            [0.88, 1.88, 2.88, 3.88],
-            [1.12, 2.12, 3.12, 4.32],
-        ]
-
-        weights = [1.0, 0.0, 0.0, 0.0, 0.0]
-
-        log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
-
-        model = af.ModelMapper(mock_class=MockClassx4)
-        samples = PDFSamples(
-            model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
-
-        assert samples.pdf_converged == False
-
-        gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
-
-        assert gaussian_priors[0][0] == 1.0
-        assert gaussian_priors[1][0] == 2.0
-        assert gaussian_priors[2][0] == 3.0
-        assert gaussian_priors[3][0] == 4.1
-
-        assert gaussian_priors[0][1] == pytest.approx(0.12, 1e-2)
-        assert gaussian_priors[1][1] == pytest.approx(0.12, 1e-2)
-        assert gaussian_priors[2][1] == pytest.approx(0.12, 1e-2)
-        assert gaussian_priors[3][1] == pytest.approx(0.22, 1e-2)
 
     def test__offset_vector_from_input_vector(self):
         model = af.ModelMapper(mock_class_1=MockClassx4)
@@ -505,7 +472,7 @@ class TestPDFSamples:
             input_vector=[1.0, 1.0, 2.0, 3.0]
         )
 
-        assert offset_values == pytest.approx([0.1, 1.1, 1.1, 1.1], 1.0e-4)
+        assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.0], 1.0e-4)
 
 
 class TestNestSamples:
