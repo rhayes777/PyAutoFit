@@ -472,7 +472,7 @@ class TestPDFSamples:
             input_vector=[1.0, 1.0, 2.0, 3.0]
         )
 
-        assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.0], 1.0e-4)
+        assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
 
 class TestNestSamples:

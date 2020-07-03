@@ -211,7 +211,7 @@ class PDFSamples(OptimizerSamples):
         """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values."""
         if self.pdf_converged:
-            return [corner.quantile(x=params, q=[0.15], weights=self.weights)[0] for params in self.parameters_extract]
+            return [corner.quantile(x=params, q=0.5, weights=self.weights)[0] for params in self.parameters_extract]
         return self.max_log_likelihood_vector
 
     @property
