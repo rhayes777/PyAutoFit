@@ -22,12 +22,12 @@ def data(fit, output_path=None, output_filename=None, output_format="show"):
 
 
 def noise_map(fit, output_path=None, output_filename=None, output_format="show"):
-    """Plot the noise map of a Fit.
+    """Plot the noise-map of a Fit.
 
     Parameters
     -----------
     Fit : fit.Fit
-        The observed Fit whose noise map is plotted.
+        The observed Fit whose noise-map is plotted.
     """
     line_plots.line(
         xvalues=fit.xvalues,
@@ -42,12 +42,12 @@ def noise_map(fit, output_path=None, output_filename=None, output_format="show")
 def signal_to_noise_map(
     fit, output_path=None, output_filename=None, output_format="show"
 ):
-    """Plot the signal-to-noise map of a Fit.
+    """Plot the signal-to-noise-map of a Fit.
 
     Parameters
     -----------
     Fit : fit.Fit
-        The observed Fit whose signal-to-noise map is plotted.
+        The observed Fit whose signal-to-noise-map is plotted.
     """
     line_plots.line(
         xvalues=fit.xvalues,

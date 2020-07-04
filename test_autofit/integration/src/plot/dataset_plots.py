@@ -22,7 +22,7 @@ def data(dataset, output_path=None, output_filename=None, output_format="show"):
 
 
 def noise_map(dataset, output_path=None, output_filename=None, output_format="show"):
-    """Plot the noise map of a Line dataset.
+    """Plot the noise-map of a Line dataset.
 
     Parameters
     -----------

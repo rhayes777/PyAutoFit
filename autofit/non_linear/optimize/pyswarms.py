@@ -24,12 +24,12 @@ class AbstractPySwarms(AbstractOptimizer):
         iterations_per_update=None,
         number_of_cores=None,
     ):
-        """ Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
+        """
+        Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
 
         For a full description of PySwarms, checkout its Github and readthedocs webpages:
 
         https://github.com/ljvmiranda921/pyswarms
-
         https://pyswarms.readthedocs.io/en/latest/index.html
 
         A Global-best Particle Swarm Optimization (gbest PSO) algorithm.
@@ -53,14 +53,19 @@ class AbstractPySwarms(AbstractOptimizer):
 
         Extensions:
 
-        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by outputting the
-          necessary results (e.g. the points of the particles) during the model-fit after an input number of iterations.
+        Allows runs to be terminated and resumed from the point it was terminated. This is achieved by outputting
+        the necessary results (e.g. the points of the particles) during the model-fit after an input number of
+        iterations.
 
-        - Different options for particle intialization, with the default 'prior' method starting all particles over the
-        priors defined by each parameter.
+        Different options for particle intialization, with the default 'prior' method starting all particles over
+        the priors defined by each parameter.
 
         If you use *PySwarms* as part of a published work, please cite the package following the instructions under the
         *Attribution* section of the GitHub page.
+
+        All remaining attributes are emcee parameters and described at the PySwarms API webpage:
+
+        https://pyswarms.readthedocs.io/en/latest/index.html
 
         Parameters
         ----------
@@ -86,10 +91,6 @@ class AbstractPySwarms(AbstractOptimizer):
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
-
-        All remaining attributes are emcee parameters and described at the PySwarms API webpage:
-
-        https://pyswarms.readthedocs.io/en/latest/index.html
         """
 
         self.n_particles = (

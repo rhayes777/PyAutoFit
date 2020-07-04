@@ -105,3 +105,10 @@ html_context = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+import os
+from pyprojroot import here
+
+workspace_path = here()
+os.environ['WORKSPACE'] = f"{str(workspace_path)}/howtofit"
+os.environ['PYTHONPATH'] = f"{str(workspace_path)}"

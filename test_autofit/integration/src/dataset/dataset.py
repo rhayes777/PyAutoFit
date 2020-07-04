@@ -6,7 +6,7 @@ import numpy as np
 
 class Dataset:
     def __init__(self, data, noise_map, name=None):
-        """A class containing the data and noise map of a 1D line dataset.
+        """A class containing the data and noise-map of a 1D line dataset.
 
         Parameters
         ----------
@@ -29,14 +29,14 @@ class Dataset:
 
     @classmethod
     def from_fits(cls, data_path, noise_map_path, name=None):
-        """Load the data and noise map of a 1D line dataset from '.fits' files.
+        """Load the data and noise-map of a 1D line dataset from '.fits' files.
 
         Parameters
         ----------
         data_path : str
             The path on your hard-disk to the '.fits' file of the data.
         noise_map_path : str
-            The path on your hard-disk to the '.fits' file of the noise map.
+            The path on your hard-disk to the '.fits' file of the noise-map.
         """
         data_hdu_list = fits.open(data_path)
         noise_map_hdu_list = fits.open(noise_map_path)
@@ -50,12 +50,12 @@ class Dataset:
 class MaskedDataset:
     def __init__(self, dataset, mask):
         """
-        A masked dataset, which is an image, noise map and mask.
+        A masked dataset, which is an image, noise-map and mask.
 
         Parameters
         ----------
         dataset: im.Dataset
-            The dataset (the image, noise map, etc.)
+            The dataset (the image, noise-map, etc.)
         mask: msk.Mask
             The 1D mask that is applied to the dataset.
         """

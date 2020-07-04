@@ -47,7 +47,7 @@ class MockPhase(af.AbstractPhase):
 class TestPipeline:
     def test_unique_phases(self):
 
-        phase_1 = MockPhase(paths=af.Paths(name="one"), search=af.MockSearch())
+        phase1 = MockPhase(paths=af.Paths(name="one"), search=af.MockSearch())
         phase_2 = MockPhase(paths=af.Paths(name="two"), search=af.MockSearch())
 
         af.Pipeline("name", phase_1, phase_2)
