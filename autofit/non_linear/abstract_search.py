@@ -19,9 +19,7 @@ from autofit.text import model_text
 from autofit.text import samples_text
 from autofit import exc
 
-logging.basicConfig()
-logger = logging.getLogger(__name__)  # TODO: Logging issue
-
+from autofit.non_linear.log import logger
 
 class NonLinearSearch(ABC):
     @convert_paths
@@ -93,6 +91,7 @@ class NonLinearSearch(ABC):
             "updates", "model_results_every_update", int
         )
 
+        self.iterations = 0
         self.should_log = IntervalCounter(self.log_every_update)
         self.should_backup = IntervalCounter(self.backup_every_update)
         self.should_visualize = IntervalCounter(self.visualize_every_update)
@@ -214,10 +213,10 @@ class NonLinearSearch(ABC):
         """
 
         self.paths.restore()
+        self.setup_log_file()
 
         if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
 
-            self.setup_log_file()
             self.save_model_info(model=model)
             self.save_parameter_names_file(model=model)
             self.save_metadata()
@@ -236,6 +235,8 @@ class NonLinearSearch(ABC):
             )
 
         else:
+
+            logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
 
             samples = self.samples_from_model(model=model)
             self.paths.backup_zip_remove()
@@ -319,6 +320,9 @@ class NonLinearSearch(ABC):
              of updates and only a subset of visualization may be performed.
         """
 
+        self.iterations += self.iterations_per_update
+        logger.info(f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.).")
+
         if self.should_backup() or not during_analysis:
             self.paths.backup()
 
@@ -353,16 +357,15 @@ class NonLinearSearch(ABC):
 
     def setup_log_file(self):
 
-        if not len(self.log_file) == 0:
+        if conf.instance.general.get("output", "log_to_file", bool):
+
+            if len(self.log_file) == 0:
+                raise ValueError("In general.ini log_to_file is True, but log_file is an empty string. "
+                                 "Either give log_file a name or set log_to_file to False.")
+
             log_path = "{}/{}".format(self.paths.output_path, self.log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
-            # noinspection PyProtectedMember
-            logger.level = logging._nameToLevel[
-                conf.instance.general.get("output", "log_level", str)
-                .replace(" ", "")
-                .upper()
-            ]
 
     def save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""

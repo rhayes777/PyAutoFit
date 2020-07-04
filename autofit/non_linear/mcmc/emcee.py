@@ -1,4 +1,3 @@
-import logging
 import os
 import emcee
 import numpy as np
@@ -7,7 +6,7 @@ from autofit import exc
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
 
-logger = logging.getLogger(__name__)
+from autofit.non_linear.log import logger
 
 
 class Emcee(AbstractMCMC):
@@ -187,6 +186,8 @@ class Emcee(AbstractMCMC):
             else:
                 iterations_remaining = self.nsteps - total_iterations
 
+                logger.info("Existing Emcee samples found, resuming non-linear search.")
+
         except AttributeError:
 
             initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
@@ -197,14 +198,14 @@ class Emcee(AbstractMCMC):
 
             emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
 
+            logger.info("No Emcee samples found, beginning new non-linear search.")
+
             for index, parameters in enumerate(initial_parameters):
 
                 emcee_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.nsteps
-
-        logger.info("Running Emcee Sampling...")
 
         while iterations_remaining > 0:
 
@@ -236,7 +237,7 @@ class Emcee(AbstractMCMC):
                 if samples.converged and self.auto_correlation_check_for_convergence:
                     iterations_remaining = 0
 
-        logger.info("Emcee complete")
+        logger.info("Emcee sampling complete.")
 
     @property
     def tag(self):

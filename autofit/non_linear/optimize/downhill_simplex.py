@@ -3,9 +3,9 @@ import scipy.optimize
 
 from autofit import exc
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.abstract_search import logger
 from autofit.non_linear.paths import Paths
 
+from autofit.non_linear.log import logger
 
 class DownhillSimplex(AbstractOptimizer):
     def __init__(self, paths=None, fmin=scipy.optimize.fmin):

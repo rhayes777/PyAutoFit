@@ -1,4 +1,3 @@
-import logging
 import os
 import numpy as np
 import pickle
@@ -7,8 +6,7 @@ from autofit import exc
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples
 
-logging.basicConfig()
-logger = logging.getLogger(__name__)  # TODO: Logging issue
+from autofit.non_linear.log import logger
 
 
 class AbstractPySwarms(AbstractOptimizer):
@@ -184,6 +182,8 @@ class AbstractPySwarms(AbstractOptimizer):
             init_pos = self.load_points[-1]
             total_iterations = self.load_total_iterations
 
+            logger.info("Existing PySwarms samples found, resuming non-linear search.")
+
         else:
 
             initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
@@ -199,6 +199,8 @@ class AbstractPySwarms(AbstractOptimizer):
                 init_pos[index, :] = np.asarray(parameters)
 
             total_iterations = 0
+
+            logger.info("No PySwarms samples found, beginning new non-linear search. ")
 
         lower_bounds = []
         upper_bounds = []

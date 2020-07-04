@@ -1,5 +1,4 @@
 import copy
-import logging
 import multiprocessing
 from time import sleep
 from typing import List
@@ -13,8 +12,7 @@ from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import Result
 from autofit.non_linear.paths import Paths
 
-logger = logging.getLogger(__name__)
-
+from autofit.non_linear.log import logger
 
 class GridSearchResult:
     def __init__(
