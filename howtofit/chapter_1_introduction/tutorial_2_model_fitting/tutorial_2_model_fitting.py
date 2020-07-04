@@ -45,6 +45,8 @@ noise_map = np.array(noise_map_hdu_list[0].data)
 """
 The shape of the data gives us its xvalues - the x coordinates we evaluate our model 1D Gaussian on.
 """
+
+# %%
 xvalues = np.arange(data.shape[0])
 print(xvalues)
 
@@ -276,7 +278,7 @@ For convenience, I've create functions which compute the chi-squared-map and log
 method to plot a profile, residual-map or chi-squared-map.
 """
 
-
+# %%
 def chi_squared_map_from_data_and_model_data(data, noise_map, model_data):
     residual_map = data - model_data
     normalized_residual_map = residual_map / noise_map
@@ -315,7 +317,7 @@ plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-print("Likelihood:")
+print("Log Likelihood:")
 print(log_likelihood)
 
 gaussian = model.instance_from_vector(vector=[50.0, 25.0, 5.0])
@@ -328,7 +330,7 @@ plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-print("Likelihood:")
+print("Log Likelihood:")
 print(log_likelihood)
 
 gaussian = model.instance_from_vector(vector=[50.0, 25.0, 10.0])
@@ -341,7 +343,7 @@ plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-print("Likelihood:")
+print("Log Likelihood:")
 print(log_likelihood)
 
 # %%
