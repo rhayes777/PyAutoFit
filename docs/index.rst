@@ -30,7 +30,8 @@
    :maxdepth: 1
    :hidden:
 
-   tutorials/howtofit
+   howtofit/howtofit
+   howtofit/chapter_1_introduction/index
 
 .. toctree::
    :caption: Advanced:
