@@ -1,5 +1,5 @@
-Chapter 1: Strong Lensing
-=========================
+Chapter 1: Introduction
+=======================
 
 In chapter 1, we'll introduce you to strong gravitational lensing and the core PyAutoLens API.
 

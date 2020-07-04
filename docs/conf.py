@@ -41,6 +41,7 @@ extensions = [
     'sphinx.ext.extlinks',
     'numpydoc',
     'nbsphinx',
+    "nbsphinx_link",
 ]
 
 ## Generate autodoc stubs with summaries from code
@@ -111,4 +112,3 @@ from pyprojroot import here
 
 workspace_path = here()
 os.environ['WORKSPACE'] = f"{str(workspace_path)}/howtofit"
-os.environ['PYTHONPATH'] = f"{str(workspace_path)}"
