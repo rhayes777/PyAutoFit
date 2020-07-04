@@ -1,5 +1,4 @@
 import csv
-import logging
 import math
 from typing import List
 
@@ -10,9 +9,6 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.text import model_text
-
-logger = logging.getLogger(__name__)
-
 
 class OptimizerSamples:
     def __init__(

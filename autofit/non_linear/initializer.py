@@ -1,5 +1,7 @@
 from autofit import exc
 
+from autofit.non_linear.log import logger
+
 import configparser
 
 
@@ -55,6 +57,8 @@ class Initializer:
             An object that represents possible instances of some model with a given dimensionality which is the number
             of free dimensions of the model.
         """
+
+        logger.info("Generating initial samples of model, which are subject to prior limits and other constraints.")
 
         initial_unit_parameters = []
         initial_parameters = []

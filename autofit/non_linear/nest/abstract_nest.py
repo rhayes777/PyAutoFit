@@ -1,5 +1,3 @@
-import logging
-import os
 import numpy as np
 
 from autoconf import conf
@@ -9,9 +7,6 @@ from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.paths import Paths
 
 from autofit import exc
-
-logger = logging.getLogger(__name__)
-
 
 class AbstractNest(NonLinearSearch):
     def __init__(

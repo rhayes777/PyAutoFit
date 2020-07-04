@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import pickle
@@ -11,7 +10,7 @@ from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.abstract_search import Result
 
-logger = logging.getLogger(__name__)
+from autofit.non_linear.log import logger
 
 
 class AbstractDynesty(AbstractNest):
@@ -283,6 +282,7 @@ class AbstractDynesty(AbstractNest):
 
             sampler = self.load_sampler
             sampler.loglikelihood = fitness_function
+            logger.info("Existing Dynesty samples found, resuming non-linear search.")
 
         else:
 
@@ -294,6 +294,8 @@ class AbstractDynesty(AbstractNest):
             sampler = self.sampler_fom_model_and_fitness(
                 model=model, fitness_function=fitness_function
             )
+
+            logger.info("No Dynesty samples found, beginning new non-linear search. ")
 
         # These hacks are necessary to be able to pickle the sampler.
 

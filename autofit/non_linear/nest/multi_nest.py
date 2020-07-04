@@ -1,10 +1,9 @@
-import logging
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear import abstract_search
 
-logger = logging.getLogger(__name__)
+from autofit.non_linear.log import logger
 
 
 class MultiNest(abstract_nest.AbstractNest):
@@ -234,6 +233,8 @@ class MultiNest(abstract_nest.AbstractNest):
         )
 
         import pymultinest
+
+        logger.info("Beginning MultiNest non-linear search. ")
 
         pymultinest.run(
             fitness_function,

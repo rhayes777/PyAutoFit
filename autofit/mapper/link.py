@@ -74,7 +74,6 @@ def make_linked_folder(sym_path):
         os.mkdir(source_path)
         logger.debug("Success")
     except FileExistsError as e:
-        logger.info("Source already existed")
         logger.debug(e)
     try:
         logger.debug(

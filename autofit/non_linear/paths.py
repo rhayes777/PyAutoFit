@@ -1,5 +1,4 @@
 import glob
-import logging
 import os
 import shutil
 import zipfile
@@ -8,7 +7,7 @@ from functools import wraps
 from autoconf import conf
 from autofit.mapper import link
 
-logger = logging.getLogger(__name__)
+from autofit.non_linear.log import logger
 
 
 def make_path(func):
