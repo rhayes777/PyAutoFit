@@ -456,6 +456,18 @@ class AbstractDynesty(AbstractNest):
 
         return f"{bound_tag}__{enlarge_tag}__{sample_tag}{method_tag}"
 
+    @property
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
+
+        name_tag = self.config("tag", "name", str)
+        n_live_points_tag = (
+            f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
+        )
+
+        return f"{name_tag}__{n_live_points_tag}__{self.dynesty_tag}"
+
     def initial_live_points_from_model_and_fitness_function(
         self, model, fitness_function
     ):
@@ -643,18 +655,6 @@ class DynestyStatic(AbstractDynesty):
 
         logger.debug("Creating DynestyStatic NLO")
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self.config("tag", "name", str)
-        n_live_points_tag = (
-            f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
-        )
-
-        return f"{name_tag}__{n_live_points_tag}__{self.dynesty_tag}"
-
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty non-linear search with all associated attributes.
 
@@ -789,15 +789,6 @@ class DynestyDynamic(AbstractDynesty):
         )
 
         logger.debug("Creating DynestyDynamic NLO")
-
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self.config("tag", "name", str)
-
-        return f"{name_tag}__{self.dynesty_tag}"
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         """Get the dynamic Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
@@ -955,6 +946,7 @@ class DynestyDynamic(AbstractDynesty):
             if iterations > 0:
 
                 sampler.run_nested(
+                    nlive_init=self.n_live_points,
                     maxcall=iterations,
                     dlogz_init=self.evidence_tolerance,
                     logl_max_init=self.logl_max,
