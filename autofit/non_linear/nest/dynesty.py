@@ -9,7 +9,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.abstract_search import Result
-
+from autofit.text import samples_text
+from autofit import exc
 from autofit.non_linear.log import logger
 
 
@@ -819,4 +820,222 @@ class DynestyDynamic(AbstractDynesty):
             slices=self.slices,
             fmove=self.fmove,
             max_move=self.max_move,
+        )
+
+    def perform_update(self, model, analysis, during_analysis):
+        """Perform an update of the non-linear search results, which occurs every *iterations_per_update* of the
+        non-linear search. The update performs the following tasks:
+
+        1) Visualize the maximum log likelihood model.
+        2) Backup the samples.
+        3) Output the model results to the model.reults file.
+
+        These task are performed every n updates, set by the relevent *task_every_update* variable, for example
+        *visualize_every_update* and *backup_every_update*.
+
+        Parameters
+        ----------
+        model : ModelMapper
+            The model which generates instances for different points in parameter space.
+        analysis : Analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the non-linear search maximizes.
+        during_analysis : bool
+            If the update is during a non-linear search, in which case tasks are only performed after a certain number
+             of updates and only a subset of visualization may be performed.
+        """
+        pass
+
+    def fit(self, model, analysis: "Analysis", info=None) -> "Result":
+        """ Fit a model, M with some function f that takes instances of the
+        class represented by model M and gives a score for their fitness.
+
+        A model which represents possible instances with some dimensionality is fit.
+
+        The analysis provides two functions. One visualises an instance of a model and the
+        other scores an instance based on how well it fits some data. The search
+        produces instances of the model by picking points in an N dimensional space.
+
+        Parameters
+        ----------
+        analysis : af.Analysis
+            An object that encapsulates the data and a log likelihood function.
+        model : ModelMapper
+            An object that represents possible instances of some model with a
+            given dimensionality which is the number of free dimensions of the
+            model.
+        info : dict
+            Optional dictionary containing information about the fit that can be loaded by the aggregator.
+
+        Returns
+        -------
+        An object encapsulating how well the model fit the data, the best fit instance
+        and an updated model with free parameters updated to represent beliefs
+        produced by this fit.
+        """
+
+        self.paths.restore()
+        self.setup_log_file()
+
+        self.save_model_info(model=model)
+        self.save_parameter_names_file(model=model)
+        self.save_metadata()
+        self.save_info(info=info)
+        self.save_search()
+        self.save_model(model=model)
+        # TODO : Better way to handle?
+        self.timer.paths = self.paths
+        self.timer.start()
+
+        samples = self._fit(model=model, analysis=analysis)
+        open(self.paths.has_completed_path, "w+").close()
+
+        return Result(samples=samples, previous_model=model, search=self)
+
+    def _fit(self, model: AbstractPriorModel, analysis) -> Result:
+        """
+        Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
+        instances of the model, which the non-linear search seeks to maximize.
+
+        Parameters
+        ----------
+        model : ModelMapper
+            The model which generates instances for different points in parameter space.
+        analysis : Analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the non-linear search maximizes.
+
+        Returns
+        -------
+        A result object comprising the Samples object that includes the maximum log likelihood instance and full
+        set of accepted ssamples of the fit.
+        """
+
+        pool, pool_ids = self.make_pool()
+
+        fitness_function = self.fitness_function_from_model_and_analysis(
+            model=model, analysis=analysis
+        )
+
+        try:
+            os.makedirs(self.paths.samples_path)
+        except FileExistsError:
+            pass
+
+        sampler = self.sampler_fom_model_and_fitness(
+            model=model, fitness_function=fitness_function
+        )
+
+        logger.info("No DynestyDynamic samples found, beginning new non-linear search. ")
+
+        # These hacks are necessary to be able to pickle the sampler.
+
+        sampler.rstate = np.random
+        sampler.pool = pool
+
+        if self.number_of_cores == 1:
+            sampler.M = map
+        else:
+            sampler.M = pool.map
+
+        finished = False
+
+        while not finished:
+
+            try:
+                total_iterations = np.sum(sampler.results.ncall)
+            except AttributeError:
+                total_iterations = 0
+
+            if not self.no_limit:
+                iterations = self.maxcall - total_iterations
+            else:
+                iterations = self.iterations_per_update
+
+            if iterations > 0:
+
+                sampler.run_nested(
+                    maxcall=iterations,
+                    dlogz_init=self.evidence_tolerance,
+                    logl_max_init=self.logl_max,
+                    n_effective=self.n_effective,
+                    print_progress=not self.silence,
+                )
+
+            iterations_after_run = np.sum(sampler.results.ncall)
+
+            if (
+                total_iterations == iterations_after_run
+                or total_iterations == self.maxcall
+            ):
+                finished = True
+
+        during_analysis = False
+
+        if self.should_backup() or not during_analysis:
+            self.paths.backup()
+
+        self.timer.update()
+
+        samples = self.samples_from_model(model=model, sampler=sampler)
+        samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
+        self.save_samples(samples=samples)
+
+        instance = samples.max_log_likelihood_instance
+
+        if self.should_visualize() or not during_analysis:
+            analysis.visualize(instance=instance, during_analysis=during_analysis)
+
+        if self.should_output_model_results() or not during_analysis:
+
+            samples_text.results_to_file(
+                samples=samples,
+                filename=self.paths.file_results,
+                during_analysis=during_analysis,
+            )
+
+            samples_text.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
+
+        self.paths.backup_zip_remove()
+
+        return samples
+
+    def samples_from_model(self, model, sampler):
+        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+
+        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        """
+
+        parameters = sampler.results.samples.tolist()
+        log_priors = [
+            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
+        log_likelihoods = list(sampler.results.logl)
+
+        try:
+            weights = list(np.exp(np.asarray(sampler.results.logwt) - sampler.results.logz[-1]))
+        except:
+            weights = sampler.results['weights']
+
+        total_samples = int(np.sum(sampler.results.ncall))
+        log_evidence = np.max(sampler.results.logz)
+
+        return NestSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            total_samples=total_samples,
+            log_evidence=log_evidence,
+            number_live_points=self.n_live_points,
+            time=self.timer.time
         )
