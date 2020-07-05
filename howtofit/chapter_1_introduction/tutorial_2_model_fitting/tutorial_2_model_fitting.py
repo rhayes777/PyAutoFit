@@ -9,7 +9,6 @@ In this tutorial, we'll fit the 1D Gaussian model from the previous tutorial to 
 # %%
 #%matplotlib inline
 
-# %%
 from autoconf import conf
 import autofit as af
 import matplotlib.pyplot as plt
@@ -33,6 +32,8 @@ conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
 Lets load the data and noise-map we'll use for our fits (if you are unfamiliar with the .fits format, don't worry about 
 it, its a format typically used only by Astronomers).
 """
+
+# %%
 dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1"
 
 data_hdu_list = fits.open(f"{dataset_path}/data.fits")
