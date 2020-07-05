@@ -1,0 +1,43 @@
+{
+    "Gaussian": {
+        "centre": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 100.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 20.0
+            },
+            "gaussian_limits": {
+                "lower": "-inf",
+                "upper": "inf"
+            }
+        },
+        "intensity": {
+            "type": "LogUniform",
+            "lower_limit": 1e-06,
+            "upper_limit": 1000000.0,
+            "width_modifier": {
+                "type": "Relative",
+                "value": 0.5
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": "inf"
+            }
+        },
+        "sigma": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 25.0,
+            "width_modifier": {
+                "type": "Relative",
+                "value": 0.5
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": "inf"
+            }
+        }
+    }
+}
