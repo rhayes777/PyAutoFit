@@ -2,7 +2,7 @@ from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.plot import (
     line_plots,
 )
 
-# This module is unchanged from the previous tutorial.
+"""This module is unchanged from the previous tutorial."""
 
 
 def data(dataset, output_path=None, output_filename=None, output_format="show"):

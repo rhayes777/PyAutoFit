@@ -18,31 +18,20 @@ Before looking at these modules, lets first perform a series of Emcee fits to se
 of PyAutoFit.
 """
 
-
 # %%
 #%matplotlib inline
 
-# %%
 from autoconf import conf
 import autofit as af
 import numpy as np
 
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.model import (
-    profiles,
-)
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset import (
-    dataset as ds,
-)
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase import (
-    phase as ph,
-)
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.settings import (
-    PhaseSettings,
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
+    src as htf,
 )
 
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -78,26 +67,22 @@ CollectionPriorModel to do this).
 """
 
 # %%
-phase = ph.Phase(
+phase = htf.Phase(
     phase_name="phase_t7",
-    profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
-    settings=PhaseSettings(data_trim_left=None, data_trim_right=None),
+    profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
+    settings=htf.PhaseSettings(data_trim_left=None, data_trim_right=None),
     search=af.Emcee(),
 )
 
 # %%
 """
-Lets load the dataset, create a mask and perform the fit.
+Import the simulator module, set up the Dataset and mask and set up the dataset.
 """
 
 # %%
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1/"
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
-dataset = ds.Dataset.from_fits(
-    data_path=f"{dataset_path}/data.fits",
-    noise_map_path=f"{dataset_path}/noise_map.fits",
-)
-
+dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 mask = np.full(fill_value=False, shape=dataset.data.shape)
 
 print(
@@ -124,7 +109,7 @@ PhaseSettings object using our input values of these parameters.
 """
 
 # %%
-settings = PhaseSettings(data_trim_left=20, data_trim_right=30)
+settings = htf.PhaseSettings(data_trim_left=20, data_trim_right=30)
 
 # %%
 """
@@ -133,9 +118,9 @@ which you might think would cause conflicts in the path the results are output t
 """
 
 # %%
-phase = ph.Phase(
+phase = htf.Phase(
     phase_name="phase_t7",
-    profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
+    profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
     settings=settings,
     search=af.Emcee(),
 )

@@ -12,11 +12,10 @@ In this tutorial, we'll fit the 1D Gaussian model from the previous tutorial to 
 from autoconf import conf
 import autofit as af
 import matplotlib.pyplot as plt
-from astropy.io import fits
 import numpy as np
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -29,18 +28,14 @@ conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
 
 # %%
 """
-Lets load the data and noise-map we'll use for our fits (if you are unfamiliar with the .fits format, don't worry about 
-it, its a format typically used only by Astronomers).
+To create the Dataset, we import the simulator module and use it to generate the Dataset's data and noise-map. 
 """
 
 # %%
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1"
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
-data_hdu_list = fits.open(f"{dataset_path}/data.fits")
-data = np.array(data_hdu_list[0].data)
-
-noise_map_hdu_list = fits.open(f"{dataset_path}/noise_map.fits")
-noise_map = np.array(noise_map_hdu_list[0].data)
+data = gaussian_x1.data
+noise_map = gaussian_x1.noise_map
 
 # %%
 """

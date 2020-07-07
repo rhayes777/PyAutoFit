@@ -11,7 +11,7 @@ from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.
 )
 
 
-# The Phase class __init__ method is unchanged from the previous tutorial, however other methods are changed.
+"""The Phase class __init__ method is unchanged from the previous tutorial, however other methods are changed."""
 
 
 class Phase(af.AbstractPhase):
@@ -39,8 +39,10 @@ class Phase(af.AbstractPhase):
 
         self.gaussian = gaussian
 
-    # The run method is slightly different, as it now passed a mask in addition to the dataset. These are used to set up
-    # the masked-dataset in the 'analysis.py' module.
+    """
+    The run method is slightly different, as it now passed a mask in addition to the dataset. These are used to set up
+    the masked-dataset in the 'analysis.py' module.
+    """
 
     def run(self, dataset: Dataset, mask):
         """
@@ -81,13 +83,15 @@ class Phase(af.AbstractPhase):
             instance.
         """
 
-        # To mask the dataset we simply pass both to the MaskedDataset class.
+        """To mask the dataset we simply pass both to the MaskedDataset class."""
 
         masked_dataset = MaskedDataset(dataset=dataset, mask=mask)
 
-        # The 'image_path' is where visualizatiion of the model fit is output. Below, we direct it to the same path as
-        # the non-linear search output, but with an additional folder 'image' at the end. This path should be used
-        # for pretty much any project.
+        """
+        The 'image_path' is where visualizatiion of the model fit is output. Below, we direct it to the same path as
+        the non-linear search output, but with an additional folder 'image' at the end. This path should be used
+        for pretty much any project.
+        """
 
         return Analysis(
             masked_dataset=masked_dataset, image_path=self.search.paths.image_path

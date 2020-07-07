@@ -1,6 +1,6 @@
 import numpy as np
 
-# The 'profiles.py' module is unchanged from the previous tutorial.
+"""The 'profiles.py' module is unchanged from the previous tutorial."""
 
 
 class Profile:

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-# This module is unchanged from the previous tutorial.
+"""This module is unchanged from the previous tutorial."""
 
 
 def line(

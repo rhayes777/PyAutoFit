@@ -2,7 +2,7 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot imp
     line_plots,
 )
 
-# The 'fit_plots.py' module is unchanged from the previous tutorial.
+"""The 'fit_plots.py' module is unchanged from the previous tutorial."""
 
 
 def data(fit, output_path=None, output_filename=None, output_format="show"):

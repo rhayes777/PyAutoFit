@@ -2,12 +2,14 @@ from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot i
     line_plots,
 )
 
-# To visualize images during a phase, we need to be able to output them to hard-disk as a file (e.g a .png'). The line
-# plot function and dataset plot functions below have been extended to provide this functionality.
+"""
+To visualize images during a phase, we need to be able to output them to hard-disk as a file (e.g a .png'). The line
+plot function and dataset plot functions below have been extended to provide this functionality.
 
-# The benefit of writing our visualization methods in this style, as separate functions in a specific 'plot' module is
-# now more clear. In 'visualizer.py', this makes it a lot more straight forward to plot each component of the dataset.
-# However, the real benefit of this style will become fully apparently in tutorial 6.
+The benefit of writing our visualization methods in this style, as separate functions in a specific 'plot' module is
+now more clear. In 'visualizer.py', this makes it a lot more straight forward to plot each component of the dataset.
+However, the real benefit of this style will become fully apparently in tutorial 6.
+"""
 
 
 def data(dataset, output_path=None, output_filename=None, output_format="show"):

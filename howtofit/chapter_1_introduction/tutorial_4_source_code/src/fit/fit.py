@@ -1,7 +1,9 @@
 import numpy as np
 
-# This module handles a fit, offering a class that computes all relevent quantities of a fit described in tutorial 2,
-# such as the residuals, chi-squared and log_likelihood.
+"""
+This module handles a fit, offering a class that computes all relevent quantities of a fit described in tutorial 2,
+such as the residuals, chi-squared and log_likelihood.
+"""
 
 
 class FitDataset:
@@ -37,14 +39,16 @@ class FitDataset:
         self.dataset = dataset
         self.model_data = model_data
 
-    # This is a convenience method that makes the dataset's xvalues (used to generate the model data) directly
-    # accessible to an instance of to fit class. It is used in the 'plot.py' module.
+    """
+    This is a convenience method that makes the dataset's xvalues (used to generate the model data) directly
+    accessible to an instance of to fit class. It is used in the 'plot.py' module.
+    """
 
     @property
     def xvalues(self):
         return self.dataset.xvalues
 
-    # Lets use properties to make the 'data' and noise-map accessible via our fit.
+    """Lets use properties to make the 'data' and noise-map accessible via our fit."""
 
     @property
     def data(self):

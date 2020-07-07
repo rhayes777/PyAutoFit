@@ -1,6 +1,9 @@
 import autofit as af
 
-# The 'result.py' module is unchanged from the previous tutorial, although there is a short comment below worth reading.
+"""
+The 'result.py' module is unchanged from the previous tutorial, although there is a short comment below worth 
+reading.
+"""
 
 
 class Result(af.Result):
@@ -22,12 +25,14 @@ class Result(af.Result):
     @property
     def max_log_likelihood_model_data(self):
 
-        # It is worth noting why we store the 'Analysis' class in the Result class. In this tutorial, we changed our
-        # model and how it created the model-data (e.g. as a sum of profiles). However, we did not need to change
-        # the result module in any way, because it uses the 'analysis.py' module.
+        """
+        It is worth noting why we store the 'Analysis' class in the Result class. In this tutorial, we changed our
+        model and how it created the model-data (e.g. as a sum of profiles). However, we did not need to change
+        the result module in any way, because it uses the 'analysis.py' module.
 
-        # Had this function explicitly written out how the most likely model-data is created it would of needed to be
-        # updated, creating more work for ourselves!
+        Had this function explicitly written out how the most likely model-data is created it would of needed to be
+        updated, creating more work for ourselves!
+        """
 
         return self.analysis.model_data_from_instance(
             instance=self.samples.max_log_likelihood_instance

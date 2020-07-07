@@ -2,21 +2,25 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset 
     dataset as ds,
 )
 
-# In this tutorial, we run phases where the dataset we input into the phase is altered before the model-fitting
-# procedure is run. The dataset is trimmed by an input number of pixels to the left and / or right.
+"""
+In this tutorial, we run phases where the dataset we input into the phase is altered before the model-fitting
+procedure is run. The dataset is trimmed by an input number of pixels to the left and / or right.
 
-# The 'meta_dataset.py' module is the module in PyAutoFit which handles the creation of these new datasets. If we want
-# to have the option of a phase editing the data-set, the parameters which control this (e.g. 'data_trim_left')
-# are stored here and then used when the 'phase.run' method is called.
+The 'meta_dataset.py' module is the module in PyAutoFit which handles the creation of these new datasets. If we want
+to have the option of a phase editing the data-set, the parameters which control this (e.g. 'data_trim_left')
+are stored here and then used when the 'phase.run' method is called.
 
-# Your model-fitting problem may not require the meta_dataset.py module. If so that is fine, and you can revert to the
-# templates of the previous tutorials which do not use one. It really depends on the nature of your problem.
+Your model-fitting problem may not require the meta_dataset.py module. If so that is fine, and you can revert to the
+templates of the previous tutorials which do not use one. It really depends on the nature of your problem.
+"""
 
 
 class MetaDataset:
 
-    # The data_trim_left and data_trim_right are passed to the phase when it is set up and stored in an
-    # instance of the 'MetaDataset' class.
+    """
+    The data_trim_left and data_trim_right are passed to the phase when it is set up and stored in an
+    instance of the 'MetaDataset' class.
+    """
 
     def __init__(self, settings):
         """An intermediate meta-dataset class which is used to create the masked dataset, but with phase-dependent
@@ -31,10 +35,12 @@ class MetaDataset:
 
         self.settings = settings
 
-    # The masked dataset that is fitted by an analysis is created by the MetaDataset class using the method below.
+    """
+    The masked dataset that is fitted by an analysis is created by the MetaDataset class using the method below.
 
-    # If the MetaDataset's data trim attributes are not None, they are used to trim the masked-dataset before it is
-    # fitted.
+    If the MetaDataset's data trim attributes are not None, they are used to trim the masked-dataset before it is
+    fitted.
+    """
 
     def masked_dataset_from_dataset_and_mask(self, dataset, mask):
         """Create a masked dataset from the input dataset and a mask.

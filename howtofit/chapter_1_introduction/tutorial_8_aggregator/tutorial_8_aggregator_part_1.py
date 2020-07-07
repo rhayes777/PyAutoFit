@@ -13,23 +13,16 @@ different data-sets. Each dataset is a single Gaussian and we'll fit them using 
 # %%
 #%matplotlib inline
 
-# %%
 from autoconf import conf
 import autofit as af
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_8_aggregator import (
+    src as htf,
+)
 
-from howtofit.chapter_1_introduction.tutorial_8_aggregator.src.model import profiles
-from howtofit.chapter_1_introduction.tutorial_8_aggregator.src.dataset import (
-    dataset as ds,
-)
-from howtofit.chapter_1_introduction.tutorial_8_aggregator.src.phase import phase as ph
-from howtofit.chapter_1_introduction.tutorial_8_aggregator.src.phase.settings import (
-    PhaseSettings,
-)
 import numpy as np
-
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -56,7 +49,13 @@ figures we make via the aggregator.
 """
 
 # %%
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_0
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_1
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_2
+
 dataset_names = ["gaussian_x1_0", "gaussian_x1_1", "gaussian_x1_2"]
+datas = [gaussian_x1_0.data, gaussian_x1_1.data, gaussian_x1_2.data]
+noise_maps = [gaussian_x1_0.noise_map, gaussian_x1_1.noise_map, gaussian_x1_2.noise_map]
 
 # %%
 """
@@ -65,6 +64,8 @@ We can also attach information to the model-fit, by setting up an info dictionar
 Information about our model-fit (e.g. the dataset) that isn't part of the model-fit is made accessible to the 
 aggregator. For example, below we write info on the dataset's data of observation and exposure time.
 """
+
+# %%
 info = {"date_of_observation": "01-02-18", "exposure_time": 1000.0}
 
 # %%
@@ -73,54 +74,49 @@ This for loop runs over every dataset, checkout the comments below for how we se
 """
 
 # %%
-for dataset_name in dataset_names:
+for index in range(len(datas)):
 
-    # The code below loads the dataset and creates the mask as per usual.
+    """The code below creates the dataset and mask as per usual."""
 
-    dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/{dataset_name}"
-
-    dataset = ds.Dataset.from_fits(
-        data_path=f"{dataset_path}//data.fits",
-        noise_map_path=f"{dataset_path}/noise_map.fits",
-        name=dataset_name,
-    )
+    dataset = htf.Dataset(data=datas[index], noise_map=noise_maps[index])
 
     mask = np.full(fill_value=False, shape=dataset.data.shape)
 
-    # Here, we create a phase as normal. However, we also include an input parameter 'folders'. The phase folders
-    # define the names of folders that the phase goes in. For example, if a phase goes to the path:
+    """
+    Here, we create a phase as normal. However, we also include an input parameter 'folders'. The phase folders
+    define the names of folders that the phase goes in. For example, if a phase goes to the path:
 
-    # '/path/to/autofit_workspace/output/phase_name/'
+        '/path/to/autofit_workspace/output/phase_name/'
 
-    # A phase folder with the input 'phase_folder' edits this path to:
+    A phase folder with the input 'phase_folder' edits this path to:
 
-    # '/path/to/autofit_workspace/output/phase_folder/phase_name/'
+        '/path/to/autofit_workspace/output/phase_folder/phase_name/'
 
-    # You can input multiple phase folders, for example 'folders=['folder_0', 'folder_1'] would create the path:
+    #ou can input multiple phase folders, for example 'folders=['folder_0', 'folder_1'] would create the path:
 
-    # '/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/'
+        '/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/'
 
-    # Below, we use the data_name, so our results go in a folder specific to the dataset, e.g:
+    Below, we use the data_name, so our results go in a folder specific to the dataset, e.g:
 
-    # '/path/to/autofit_workspace/output/gaussian_x1_0/phase_t8/'
+        '/path/to/autofit_workspace/output/gaussian_x1_0/phase_t8/'
+    """
 
     print(
-        "Emcee has begun running - checkout the autofit_workspace/howtofit/chapter_1_introduction/output/"
-        + dataset_name
-        + "/phase_t8"
-        "folder for live output of the results."
-        "This Jupyter notebook cell with progress once Emcee has completed - this could take a few minutes!"
+        f"Emcee has begun running - checkout the "
+        f"autofit_workspace/howtofit/chapter_1_introduction/output/{dataset_names[index]}/phase_t8 folder for live "
+        f"output of the results. This Jupyter notebook cell with progress once Emcee has completed - this could take a "
+        f"few minutes!"
     )
 
-    phase = ph.Phase(
+    phase = htf.Phase(
         phase_name="phase_t8",
-        folders=[dataset_name],
-        profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
-        settings=PhaseSettings(),
+        folders=[dataset_names[index]],
+        profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
+        settings=htf.PhaseSettings(),
         search=af.Emcee(),
     )
 
-    # Note that we pass the info to the phase when we run it, so that the aggregator can make it accessible.
+    """Note that we pass the info to the phase when we run it, so that the aggregator can make it accessible."""
 
     phase.run(dataset=dataset, mask=mask, info=info)
 
@@ -200,6 +196,8 @@ results. This is useful if you fit a large sample of data where:
 
 The example below shows us using the contains filter to get the results of the fit to only the first dataset. 
 """
+
+# %%
 agg_filter_contains = agg.filter(
     agg.directory.contains("phase_t8"), agg.directory.contains("gaussian_x1_0")
 )

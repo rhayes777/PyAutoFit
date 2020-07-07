@@ -11,17 +11,19 @@ from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase.analysi
     Analysis,
 )
 
-# This module has some minor changes from tutorial 5 which are described in comments below.
+"""This module has some minor changes from tutorial 5 which are described in comments below."""
 
 
 class Phase(af.AbstractPhase):
 
-    # Because we now have multiple profiles in our model, we have renamed 'gaussian' to 'profiles'. As before,
-    # PyAutoFit uses this information to map the input Profile classes to a model instance when performing a fit.
+    """
+    Because we now have multiple profiles in our model, we have renamed 'gaussian' to 'profiles'. As before,
+    PyAutoFit uses this information to map the input Profile classes to a model instance when performing a fit.
 
-    # Whereas the 'gaussian' variable took a single Gaussian object in the previous tutorials, the 'profiles' variable
-    # is a list of model component objects. The PhaseProperty class below accounts for this, such that the instance
-    # object passed into the log likelihood function can be iterated over like a list.
+    Whereas the 'gaussian' variable took a single Gaussian object in the previous tutorials, the 'profiles' variable
+    is a list of model component objects. The PhaseProperty class below accounts for this, such that the instance
+    object passed into the log likelihood function can be iterated over like a list.
+    """
 
     profiles = af.PhaseProperty("profiles")
 

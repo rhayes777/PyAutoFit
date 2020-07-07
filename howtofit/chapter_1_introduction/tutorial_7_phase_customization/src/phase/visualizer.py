@@ -3,7 +3,7 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot imp
     fit_plots,
 )
 
-# The 'visualizer.py' module is unchanged from the previous tutorial.
+"""The 'visualizer.py' module is unchanged from the previous tutorial."""
 
 
 class AbstractVisualizer:

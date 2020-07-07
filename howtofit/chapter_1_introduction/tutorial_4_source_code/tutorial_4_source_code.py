@@ -27,12 +27,11 @@ templates we provide in the HowToFit series will adhere to it.
 # %%
 #%matplotlib inline
 
-# %%
 from autoconf import conf
 import autofit as af
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 
@@ -42,25 +41,45 @@ conf.instance = conf.Config(
     output_path=f"{workspace_path}/howtofit/output",  # <- This sets up where the non-linear search's outputs go.
 )
 
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1/"
+# %%
+"""
+First, checkout the file 
+
+ 'autofit_workspace/howtofit/chapter_1_introduction/tutorial_4_source_code/src/__init__.py
+
+Here, we have added imports to this file allowing us to import the entire project in one go, which we do below,
+importing it as 'htf'. 
+
+Many software projects tend not to do this, instead relying on the user explicitly importing every module in the 
+project that need, for example:
+
+   from tutorial_4_source_code.src.dataset.dataset import Dataset
+   from tutorial_4_source_code.src.model.gaussian import Gaussian
+   from tutorial_4_source_code.src.plot import dataset_plots
+   from tutorial_4_source_code.src.plot import fit_plots
+
+Clearly, this creates a burden on the user in them having to understand the project structure and a lot of unecessary
+code that clutters their scripts! Furthermore, as you'll see below, by controlling the project import in this way
+you can design an API that makes takes like plotting results more intuitive.
+"""
+
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code import (
+    src as htf,
+)
 
 # %%
 """
-To begin, checkout the 'data' package, which contains one module, 'dataset.py'. Whereas before we has arrays which
-separately contained the data and noise_map, from here on we'll combine them into a 'Dataset' class, which can be 
-easily extended if our model-fitting problem has additional data components.
+To begin, in the 'src' folder checkout the 'data' package, which contains one module, 'dataset.py'. Whereas before we 
+had arrays which separately contained the data and noise_map, from here on we'll combine them into a 'Dataset' class, 
+which can be easily extended if our model-fitting problem has additional data components.
 
-We can use the Dataset's 'from_fits' method to load the dataset for the model-fit we will perform.
+To create the Dataset, we import the simulator module and use it to generate the Dataset's data and noise-map. 
 """
 
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.dataset import (
-    dataset as ds,
-)
+# %%
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
-dataset = ds.Dataset.from_fits(
-    data_path=f"{dataset_path}/data.fits",
-    noise_map_path=f"{dataset_path}/noise_map.fits",
-)
+dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 
 # %%
 """
@@ -68,18 +87,21 @@ Previously, we manually specified how to plot the dataset. These plotting functi
 'plot' package - check them out now! You'll note we have separate modules for plotting lines (e.g. anything which is 
 line, the data, a residual-map, etc.), parts of the dataset or the results of a fit.
 
-You'll notice that the dataset plot functions take instances of the Dataset class. This means we don't have to manually
-specify which part of our data we want to pass to the function - just use the function that plots the data!
+You should take note of two things:  
+
+ - The dataset plot functions take instances of the Dataset class, meaning we we don't have to manually the part of 
+ our data we want to pass to the function, making for a more concise API.
+ 
+ - In plot/__init__.py we have imported the 'dataset_plots', 'fit_plots' and 'line_plots' modules as their 
+ corresponding class names; 'Dataset', 'FitDataset' and 'Line'. This again makes for a clean API, where it is 
+ immediately obvious to the user how to plot the objects they have used elsewhere in the project for performing 
+ calculations.
 
 Lets use a plot function to plot our data.
 """
 
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.plot import (
-    dataset_plots,
-)
-
-dataset_plots.data(dataset=dataset)
-dataset_plots.noise_map(dataset=dataset)
+htf.plot.Dataset.data(dataset=dataset)
+htf.plot.Dataset.noise_map(dataset=dataset)
 
 # %%
 """
@@ -90,41 +112,36 @@ By packaging all the model components into a single package, this will make it s
 components to the source code.
 """
 
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.model import (
-    gaussian as g,
-)
-
-gaussian = g.Gaussian(centre=50.0, intensity=2.0, sigma=20.0)
+gaussian = htf.Gaussian(centre=50.0, intensity=2.0, sigma=20.0)
 
 # %%
 """
 Next, lets checkout the 'fit' package which contains the 'fit.py' module. This packages all the fitting methods we 
-introduced in tutorial 2 into a single Fit class, making it straight forward to compute the residual-map, chi-squared 
-map, log likelihood and so forth. 
+introduced in tutorial 2 into a single FitDataset class, making it straight forward to compute the residual-map, 
+chi-squared map, log likelihood and so forth. 
 
-The fit plot functions take an instance of this Fit class, making it straight forward to plot the different components
-of the fit. Below, I used the Gaussian model above to illustrate how we can easily plot different aspects of a fit. 
+Again, take note of how the fit plot functions take an instance of the FitDataset class and were imported as 
+'FitDataset', making for a clean API where it is intuitive how to plot the fit.
+
+Below, I used the Gaussian model above to illustrate how we can easily plot different aspects of a fit. 
 """
 
 # %%
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.plot import fit_plots
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.fit import fit as f
-
 model_data = gaussian.profile_from_xvalues(xvalues=dataset.xvalues)
 
-fit = f.FitDataset(dataset=dataset, model_data=model_data)
+fit = htf.FitDataset(dataset=dataset, model_data=model_data)
 
-fit_plots.residual_map(fit=fit)
-fit_plots.normalized_residual_map(fit=fit)
-fit_plots.chi_squared_map(fit=fit)
+htf.plot.FitDataset.residual_map(fit=fit)
+htf.plot.FitDataset.normalized_residual_map(fit=fit)
+htf.plot.FitDataset.chi_squared_map(fit=fit)
 
 # %%
 """
 As we discussed in tutorial 2, the different steps of performing a fit (e.g. computing the residuals, the chi-squared,
 log likelihood, and so forth) are pretty much generic tasks performed by any model-fitting problem. 
 
-Thus, you should literally be able to copy and paste the Fit class found in this tutorial (and future tutorials) and 
-use them in your modeling software! I have made sure the class works for datasets of higher dimensionality (e.g. 
+Thus, you should literally be able to copy and paste the FitDataset class found in this tutorial (and future tutorials) 
+and use them in your modeling software! I have made sure the class works for datasets of higher dimensionality (e.g. 
 2D images or 3D datacubes).
 """
 
@@ -170,10 +187,10 @@ performs the following tasks (which we performed manually in the previous tutori
 
 In the previous tutorial, after we composed our model using the _PriorModel_ object we had to manually specify its
 priors. However, now we are using a source code, the priors are instead loaded from config files, specifically the
-config file found at 'autofit_workspace/config/json_piors/gaussian.json'. If you inspect this file, you'll see the priors
-are set up using the same values as the previous tutorila.
+config file found at 'autofit_workspace/howtofit/config/json_piors/gaussian.json'. If you inspect this file, you'll 
+see the priors are set up using the same values as the previous tutorial.
 
-It is worth noting that the name of this config file, 'gaussian.json', is not a conincidence. It is named after the
+It is worth noting that the name of this config file, 'gaussian.json', is not a conincedence. It is named after the
 module we imported to create the _PriorModel_, the 'gaussian.py' module. Thus, our the json_config files we use to
 set up the default priors of different model components share the name of the module they are in! 
 
@@ -186,10 +203,8 @@ contrast to the previous tutorial includes the phase name in the path structure.
 """
 
 # %%
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase import phase as ph
-
-phase = ph.Phase(
-    phase_name="phase_t4", gaussian=af.PriorModel(g.Gaussian), search=af.Emcee()
+phase = htf.Phase(
+    phase_name="phase_t4", gaussian=af.PriorModel(htf.Gaussian), search=af.Emcee()
 )
 
 print(
@@ -214,21 +229,23 @@ print(result.max_log_likelihood_fit)
 
 # %%
 """
-The benefit of writing plot functions that take as input instances of class, specifically in this case the Fit class,
-is now clear. We can visualize our results by simply passing this instance to our plots!
+Another benefit of writing our plot functions so that their input is instances of class they plot is now clear. We can 
+visualize our results by simply passing the instance which is readily available in the results to our plot functions!
 """
 
 # %%
-fit_plots.model_data(fit=result.max_log_likelihood_fit)
-fit_plots.residual_map(fit=result.max_log_likelihood_fit)
-fit_plots.chi_squared_map(fit=result.max_log_likelihood_fit)
+htf.plot.FitDataset.model_data(fit=result.max_log_likelihood_fit)
+htf.plot.FitDataset.residual_map(fit=result.max_log_likelihood_fit)
+htf.plot.FitDataset.chi_squared_map(fit=result.max_log_likelihood_fit)
 
 # %%
 """
 And with that, we have introduced the PyAutoFit phase API alongside an example project, which provides a template on
 how to structure model-fitting software. 
 
-All of the remaining tutorials will be provided with a 'src' source code folder, and the functionality these tutorials
-describe will be reflected in the comments of the source code. At this point, you should be thinking about how you
-might wish to structure your model-fitting software!
+All of the remaining tutorials will be provided with a 'src' source code folder, which we will add to the __init__.py
+file of in order to design the API of our project. 
+
+The functionality these tutorials describe will be reflected in the comments of the source code. At this point, you 
+should be thinking about how you might wish to structure your model-fitting software!
 """

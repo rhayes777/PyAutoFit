@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-# The 'line_plots.py' module is unchanged from the previous tutorial.
+"""The 'line_plots.py' module is unchanged from the previous tutorial."""
 
 
 def line(

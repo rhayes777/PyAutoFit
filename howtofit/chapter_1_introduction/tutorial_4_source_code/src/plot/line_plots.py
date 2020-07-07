@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-# This function plots a line of 1D data, and was already introduce in tutorial 2.
+"""This function plots a line of 1D data, and was already introduce in tutorial 2."""
 
 
 def line(xvalues, line, ylabel=None):

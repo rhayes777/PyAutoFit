@@ -19,18 +19,17 @@ generate the model-data we generate it as the sum of all individual profiles in 
 # %%
 #%matplotlib inline
 
-# %%
 from autoconf import conf
 import autofit as af
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models import (
+    src as htf,
+)
+
 import numpy as np
 
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.model import profiles
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.dataset import (
-    dataset as ds,
-)
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -51,7 +50,7 @@ list of parameters to a model instance.
 """
 
 # %%
-model = af.PriorModel(profiles.Gaussian)
+model = af.PriorModel(htf.profiles.Gaussian)
 
 print("PriorModel Gaussian object: \n")
 print(model)
@@ -74,7 +73,7 @@ object.
 
 # %%
 model = af.CollectionPriorModel(
-    gaussian=profiles.Gaussian, exponential=profiles.Exponential
+    gaussian=htf.profiles.Gaussian, exponential=htf.profiles.Exponential
 )
 
 # %%
@@ -109,7 +108,7 @@ We can call the components of a CollectionPriorModel whatever we want, and the m
 
 # %%
 model_custom_names = af.CollectionPriorModel(
-    james=profiles.Gaussian, rich=profiles.Exponential
+    james=htf.profiles.Gaussian, rich=htf.profiles.Exponential
 )
 
 instance = model_custom_names.instance_from_vector(
@@ -132,17 +131,22 @@ the model's individual profiles. For example, in the model above, the model data
 individual profile and Exponential's individual profile.
 
 Checkout 'phase.py' and 'analysis.py' now, for a description of how this has been implemented.
-
-Lets create the phase and run it to fit a dataset which was specifically generated as a sum of a Gaussian and
-Exponential profile.
 """
 
 # %%
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1_exponential_x1"
+"""
+Import the simulator module and set up the dataset. This uses a new dataset that is generated as a sum of a Gaussian 
+and Exponential profile.
+"""
 
-dataset = ds.Dataset.from_fits(
-    data_path=f"{dataset_path}/data.fits",
-    noise_map_path=f"{dataset_path}/noise_map.fits",
+# %%
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_exponential_x1
+from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.dataset import (
+    dataset as ds,
+)
+
+dataset = ds.Dataset(
+    data=gaussian_x1_exponential_x1.data, noise_map=gaussian_x1_exponential_x1.noise_map
 )
 
 # %%
@@ -161,14 +165,10 @@ dimensionality has increased from N=3 to N=6, given that we are now fitting two 
 """
 
 # %%
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase import (
-    phase as ph,
-)
-
-phase = ph.Phase(
+phase = htf.Phase(
     phase_name="phase_t6_gaussian_x1_exponential_x1",
     profiles=af.CollectionPriorModel(
-        gaussian=profiles.Gaussian, exponential=profiles.Exponential
+        gaussian=htf.profiles.Gaussian, exponential=htf.profiles.Exponential
     ),
     search=af.Emcee(),
 )
@@ -193,19 +193,18 @@ Lets fit a model composed of two Gaussians and and an Exponential, which will ha
 """
 
 # %%
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x2_exponential_x1"
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x2_exponential_x1
 
-dataset = ds.Dataset.from_fits(
-    data_path=f"{dataset_path}/data.fits",
-    noise_map_path=f"{dataset_path}/noise_map.fits",
+dataset = ds.Dataset(
+    data=gaussian_x2_exponential_x1.data, noise_map=gaussian_x2_exponential_x1.noise_map
 )
 
-phase = ph.Phase(
+phase = htf.Phase(
     phase_name="phase_t6_gaussian_x2_exponential_x1",
     profiles=af.CollectionPriorModel(
-        gaussian_0=profiles.Gaussian,
-        gaussian_1=profiles.Gaussian,
-        exponential=profiles.Exponential,
+        gaussian_0=htf.profiles.Gaussian,
+        gaussian_1=htf.profiles.Gaussian,
+        exponential=htf.profiles.Exponential,
     ),
     search=af.Emcee(),
 )
@@ -233,9 +232,9 @@ We can edit our CollectionPriorModel to meet these constraints accordingly:
 
 # %%
 model = af.CollectionPriorModel(
-    gaussian_0=profiles.Gaussian,
-    gaussian_1=profiles.Gaussian,
-    gaussian_2=profiles.Gaussian,
+    gaussian_0=htf.profiles.Gaussian,
+    gaussian_1=htf.profiles.Gaussian,
+    gaussian_2=htf.profiles.Gaussian,
 )
 
 # %%
@@ -261,14 +260,11 @@ We can now fit this model using a phase as per usual.
 """
 
 # %%
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x3/"
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x3
 
-dataset = ds.Dataset.from_fits(
-    data_path=f"{dataset_path}/data.fits",
-    noise_map_path=f"{dataset_path}/noise_map.fits",
-)
+dataset = ds.Dataset(data=gaussian_x3.data, noise_map=gaussian_x3.noise_map)
 
-phase = ph.Phase(phase_name="phase_t6_gaussian_x3", profiles=model, search=af.Emcee())
+phase = htf.Phase(phase_name="phase_t6_gaussian_x3", profiles=model, search=af.Emcee())
 
 print(
     "Emcee has begun running - checkout the autofit_workspace/howtofit/chapter_1_introduction/output/phase_t5_gaussian_x3"

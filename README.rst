@@ -5,7 +5,7 @@ PyAutoFit
 straightforwardly integrated into scientific modeling software. **PyAutoFit** specializes in:
 
 - **Black box** models with complex and expensive log likelihood functions. 
-- Fitting **many different model parametrizations** to a data-set. 
+- Composing, fitting and comparing **many different model-fits** to a data-set.
 - Modeling **extremely large-datasets** with a homogenous fitting procedure. 
 - Automating complex model-fitting tasks via **transdimensional model-fitting pipelines**.
 

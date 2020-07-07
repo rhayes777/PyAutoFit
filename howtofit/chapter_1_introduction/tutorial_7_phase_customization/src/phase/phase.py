@@ -16,14 +16,18 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.se
 )
 
 
-# The phase module has new features not included in tutorial 6, which customize the dataset that is fitted and tag
-# the output path of the results.
+"""
+The phase module has new features not included in tutorial 6, which customize the dataset that is fitted and tag
+the output path of the results.
+"""
 
 
 class Phase(af.AbstractPhase):
 
-    # Because we now have multiple profiles in our model, we have renamed 'gaussian' to 'profiles'. As before,
-    # PyAutoFit uses this information to map the input Profile classes to a model instance when performing a fit.
+    """
+    Because we now have multiple profiles in our model, we have renamed 'gaussian' to 'profiles'. As before,
+    PyAutoFit uses this information to map the input Profile classes to a model instance when performing a fit.
+    """
 
     profiles = af.PhaseProperty("profiles")
 
@@ -46,11 +50,13 @@ class Phase(af.AbstractPhase):
             The collection of settings of the phase used to augment the data that is fitted and tag the output path.
         """
 
-        # Here, we create a 'tag' for our phase. If we use an optional phase setting to alter the dataset we fit (here,
-        # a data_trim_ variable), we want to 'tag' the phase such that results are output to a unique
-        # directory whose names makes it explicit how the dataset was changed.
+        """
+        Here, we create a 'tag' for our phase. If we use an optional phase setting to alter the dataset we fit (here,
+        a data_trim_ variable), we want to 'tag' the phase such that results are output to a unique
+        directory whose names makes it explicit how the dataset was changed.
 
-        # If this setting is off, the tag is an empty string and thus the directory structure is not changed.
+        If this setting is off, the tag is an empty string and thus the directory structure is not changed.
+        """
 
         paths.tag = settings.tag  # The phase_tag must be manually added to the phase.
 
@@ -58,10 +64,12 @@ class Phase(af.AbstractPhase):
 
         self.profiles = profiles
 
-        # Phase settings alter the dataset that is fitted, however a phase does not have access to the dataset until it
-        # is run (e.g. the run method below is passed the dataset). In order for a phase to use its input phase
-        # settings to create the dataset it fits, these settings are stored in the 'meta_dataset' attribute and used
-        # when the 'run' and 'make_analysis' methods are called.
+        """
+        Phase settings alter the dataset that is fitted, however a phase does not have access to the dataset until it
+        is run (e.g. the run method below is passed the dataset). In order for a phase to use its input phase
+        settings to create the dataset it fits, these settings are stored in the 'meta_dataset' attribute and used
+        when the 'run' and 'make_analysis' methods are called.
+        """
 
         self.meta_dataset = MetaDataset(settings=settings)
 
@@ -104,10 +112,12 @@ class Phase(af.AbstractPhase):
             instance.
         """
 
-        # Here, the meta_dataset is used to create the masked dataset that is fitted. If the data_trim_left and / or
-        # data_trim_right settings are passed into the phase, the function below uses them to alter the masked dataset.
+        """
+        Here, the meta_dataset is used to create the masked dataset that is fitted. If the data_trim_left and / or
+        data_trim_right settings are passed into the phase, the function below uses them to alter the masked dataset.
 
-        # Checkout 'meta_dataset.py' for more details.
+        Checkout 'meta_dataset.py' for more details.
+        """
 
         masked_dataset = self.meta_dataset.masked_dataset_from_dataset_and_mask(
             dataset=dataset, mask=mask

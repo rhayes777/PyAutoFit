@@ -1,6 +1,6 @@
 import numpy as np
 
-# The 'fit.py' module is unchanged from the previous tutorial.
+"""The 'fit.py' module is unchanged from the previous tutorial."""
 
 
 class FitDataset:
@@ -35,20 +35,13 @@ class FitDataset:
         self.masked_dataset = masked_dataset
         self.model_data = model_data
 
-    # This is a convenience method that makes the dataset's xvalues (used to generate the model data) directly
-    # accessible to an instance of to fit class. It is used in the 'plot.py' module.
-
     @property
     def xvalues(self):
         return self.masked_dataset.dataset.xvalues
 
-    # Another convenience method for the mask.
-
     @property
     def mask(self):
         return self.masked_dataset.mask
-
-    # Given this is a masked fit, its attributes (the data, noise-map, residual-map, etc. will all be masked).
 
     @property
     def data(self):

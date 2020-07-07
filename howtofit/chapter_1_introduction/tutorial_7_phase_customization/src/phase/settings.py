@@ -1,11 +1,13 @@
 import autofit as af
 
-# This module create tags for phases settings that customize the analysis. We tag phases for two reasons:
+"""
+This module create tags for phases settings that customize the analysis. We tag phases for two reasons:
 
-# 1) Tags describes the phase settings, making it explicit what analysis was used to create the results.
+    1) Tags describes the phase settings, making it explicit what analysis was used to create the results.
 
-# 2) Tags create unique output paths, ensuring that if you run multiple phases on the same data with different settings
-#    each non-linear search (e.g. Emcee) won't inadvertently use results generated via a different analysis method.
+    2) Tags create unique output paths, ensuring that if you run multiple phases on the same data with different settings
+       each non-linear search (e.g. Emcee) won't inadvertently use results generated via a different analysis method.
+"""
 
 
 class PhaseSettings(af.AbstractPhaseSettings):
@@ -19,7 +21,7 @@ class PhaseSettings(af.AbstractPhaseSettings):
     @property
     def tag(self):
 
-        # You may well have many more tags which appear here.
+        """You may well have many more tags which appear here."""
 
         return (
             "settings"  # For every tag you add, you'll add it to this return statement
@@ -28,8 +30,10 @@ class PhaseSettings(af.AbstractPhaseSettings):
             # e.g. + your_own_tag
         )
 
-    # This function generates a string we'll use to 'tag' a phase which uses this setting, thus ensuring results are
-    # output to a unique path.
+    """
+    This function generates a string we'll use to 'tag' a phase which uses this setting, thus ensuring results are
+    output to a unique path.
+    """
 
     @property
     def data_trim_left_tag(self):

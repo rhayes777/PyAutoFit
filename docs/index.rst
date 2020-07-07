@@ -34,15 +34,15 @@
    howtofit/chapter_1_introduction/index
 
 .. toctree::
-   :caption: Advanced:
-   :maxdepth: 1
-   :hidden:
-
-   advanced/pipelines
-
-.. toctree::
    :caption: API Documentation:
    :maxdepth: 1
    :hidden:
 
    api/api
+
+.. toctree::
+   :caption: Advanced:
+   :maxdepth: 1
+   :hidden:
+
+   advanced/pipelines

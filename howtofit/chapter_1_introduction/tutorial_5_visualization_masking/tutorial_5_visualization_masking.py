@@ -13,26 +13,19 @@ These new features have lead to an additional module in the 'phase' package not 
 'visualizer.py'. Before looking at this module, lets perform a fit to see the changed behaviour of PyAutoFit.
 """
 
-
 # %%
 #%matplotlib inline
 
-# %%
 from autoconf import conf
 import autofit as af
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
+    src as htf,
+)
+
 import numpy as np
-
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.model import (
-    gaussian,
-)
-
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase import (
-    phase as ph,
-)
-
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -46,16 +39,15 @@ conf.instance = conf.Config(
     output_path=f"{workspace_path}/howtofit/output",
 )
 
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1"
+# %%
+"""
+Import the simulator module and set up the dataset.
+"""
 
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.dataset import (
-    dataset as ds,
-)
+# %%
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
-dataset = ds.Dataset.from_fits(
-    data_path=f"{dataset_path}/data.fits",
-    noise_map_path=f"{dataset_path}/noise_map.fits",
-)
+dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 
 # %%
 """
@@ -86,8 +78,8 @@ Lets now reperform the fit from tutorial 4, but with a masked dataset and visual
 """
 
 # %%
-phase = ph.Phase(
-    phase_name="phase_t5", gaussian=af.PriorModel(gaussian.Gaussian), search=af.Emcee()
+phase = htf.Phase(
+    phase_name="phase_t5", gaussian=af.PriorModel(htf.Gaussian), search=af.Emcee()
 )
 
 print(

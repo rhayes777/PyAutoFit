@@ -1,6 +1,6 @@
 from howtofit.chapter_1_introduction.tutorial_8_aggregator.src.plot import line_plots
 
-# The 'fit_plots.py' module is unchanged from the previous tutorial.
+"""The 'fit_plots.py' module is unchanged from the previous tutorial."""
 
 
 def data(fit, output_path=None, output_filename=None, output_format="show"):

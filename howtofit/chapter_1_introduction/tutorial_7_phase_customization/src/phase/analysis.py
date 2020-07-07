@@ -7,7 +7,7 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase im
     visualizer,
 )
 
-# The 'analysis.py' module in this tutorial is unchanged from the previous tutorial.
+"""The 'analysis.py' module in this tutorial is unchanged from the previous tutorial."""
 
 
 class Analysis(af.Analysis):
@@ -15,7 +15,7 @@ class Analysis(af.Analysis):
 
         super().__init__()
 
-        # The masked dataset and visualizer are created in the same way as tutorial 6.
+        """The masked dataset and visualizer are created in the same way as tutorial 6."""
 
         self.masked_dataset = masked_dataset
 

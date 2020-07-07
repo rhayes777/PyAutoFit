@@ -1,19 +1,21 @@
 import numpy as np
 
-# In tutorial 5, we perform modeling using multiple profiles, in particular the Gaussian profile from the previous
-# tutorials and an Exponential profile. In analysis.py, we will edit how model-data is generated from profiles such
-# that it is the sum of all profiles in our model.
+"""
+In tutorial 5, we perform modeling using multiple profiles, in particular the Gaussian profile from the previous
+tutorials and an Exponential profile. In analysis.py, we will edit how model-data is generated from profiles such
+that it is the sum of all profiles in our model.
 
-# In this module, we thus now have two classes following the PyAutoFit model component format. We have renamed the
-# module from 'gaussian.py' to 'profiles.py' to reflect this. We have created an abstract base class 'Profile' from
-# which all profiles inherit.
+In this module, we thus now have two classes following the PyAutoFit model component format. We have renamed the
+module from 'gaussian.py' to 'profiles.py' to reflect this. We have created an abstract base class 'Profile' from
+which all profiles inherit.
 
-# If you are not familiar with Python classes, in particular inheritance and the 'super' method below, you may
-# be unsure what the classes are doing below. I have included comments describing what these command do.
+If you are not familiar with Python classes, in particular inheritance and the 'super' method below, you may
+be unsure what the classes are doing below. I have included comments describing what these command do.
 
-# The Profile class is a base class from which all profiles we add (e.g Gaussian, Exponential, additional profiles
-# added down the line) will inherit. This is useful, as it signifinies which aspects of our model are different ways of
-# representing the same thing.
+The Profile class is a base class from which all profiles we add (e.g Gaussian, Exponential, additional profiles
+added down the line) will inherit. This is useful, as it signifinies which aspects of our model are different ways of
+representing the same thing.
+"""
 
 
 class Profile:
@@ -28,16 +30,22 @@ class Profile:
             Overall intensity normalisation of the profile.
         """
 
-        # Every profile class we add below (e.g. Gaussian, Exponential) will call this __init__ method of the Profile
-        # base class. Given that every profile will have a centre and intensity, this means we can set these parameters
-        # in the Profile class's init method instead of repeating the two lines of code for every individual profile.
+        """
+        Every profile class we add below (e.g. Gaussian, Exponential) will call this __init__ method of the Profile
+        base class. Given that every profile will have a centre and intensity, this means we can set these parameters
+        in the Profile class's init method instead of repeating the two lines of code for every individual profile.
+        """
 
         self.centre = centre
         self.intensity = intensity
 
 
-# The inclusioon of (Profile) in the Gaussian below instructs Python that the Gaussian class is going to inherit from
-# the Profile class.
+"""
+The inclusioon of (Profile) in the Gaussian below instructs Python that the Gaussian class is going to inherit from
+the Profile class.
+"""
+
+
 class Gaussian(Profile):
     def __init__(
         self,
@@ -58,12 +66,17 @@ class Gaussian(Profile):
             The sigma value controlling the size of the Gaussian.
         """
 
-        # Writing (Profile) above does not mean the Gaussian class will call the Profile class's __init__ method. To
-        # achieve this we have the call the 'super' method following the format below.
+        """
+        Writing (Profile) above does not mean the Gaussian class will call the Profile class's __init__ method. To
+        achieve this we have the call the 'super' method following the format below.
+        """
+
         super(Gaussian, self).__init__(centre=centre, intensity=intensity)
 
-        # This super method calls the __init__ method of the Profile class above, which means we do not need
-        # to write the two lines of code below (which are commented out given they are not necessary).
+        """
+        This super method calls the __init__ method of the Profile class above, which means we do not need
+        to write the two lines of code below (which are commented out given they are not necessary).
+        """
 
         # self.centre = centre
         # self.intensity = intensity

@@ -1,6 +1,6 @@
 import autofit as af
 
-# The 'result.py' module is unchanged from the previous tutorial.
+"""The 'result.py' module is unchanged from the previous tutorial."""
 
 
 class Result(af.Result):

@@ -1,7 +1,6 @@
-from astropy.io import fits
 import numpy as np
 
-# The 'dataset.py' module has been extended to give the dataset a name and metadata.
+"""The 'dataset.py' module has been extended to give the dataset a name and metadata."""
 
 
 class Dataset:
@@ -26,25 +25,6 @@ class Dataset:
     @property
     def xvalues(self):
         return np.arange(self.data.shape[0])
-
-    @classmethod
-    def from_fits(cls, data_path, noise_map_path, name=None):
-        """Load the data and noise-map of a 1D line dataset from '.fits' files.
-
-        Parameters
-        ----------
-        data_path : str
-            The path on your hard-disk to the '.fits' file of the data.
-        noise_map_path : str
-            The path on your hard-disk to the '.fits' file of the noise-map.
-        """
-        data_hdu_list = fits.open(data_path)
-        noise_map_hdu_list = fits.open(noise_map_path)
-
-        data = np.array(data_hdu_list[0].data)
-        noise_map = np.array(noise_map_hdu_list[0].data)
-
-        return Dataset(data=data, noise_map=noise_map, name=name)
 
 
 class MaskedDataset:
@@ -77,7 +57,7 @@ class MaskedDataset:
         if data_trim_left is None:
             return self
 
-        # Here, we use the existing masked dataset to create a trimmed dataset.
+        """Here, we use the existing masked dataset to create a trimmed dataset."""
 
         data_trimmed = self.dataset.data[data_trim_left:]
         noise_map_trimmed = self.dataset.noise_map[data_trim_left:]
@@ -93,7 +73,7 @@ class MaskedDataset:
         if data_trim_right is None:
             return self
 
-        # We do the same as above, but removing data to the right.
+        """We do the same as above, but removing data to the right."""
 
         data_trimmed = self.dataset.data[:-data_trim_right]
         noise_map_trimmed = self.dataset.noise_map[:-data_trim_right]
