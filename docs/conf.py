@@ -12,10 +12,14 @@ import datetime
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+from pyprojroot import here
+workspace_path = str(here())
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('.'))
+
+os.environ['WORKSPACE'] = f"{str(workspace_path)}/howtofit"
 
 # -- Project information -----------------------------------------------------
 
@@ -41,6 +45,7 @@ extensions = [
     'sphinx.ext.extlinks',
     'numpydoc',
     'nbsphinx',
+    "nbsphinx_link",
 ]
 
 ## Generate autodoc stubs with summaries from code
@@ -105,10 +110,3 @@ html_context = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-
-import os
-from pyprojroot import here
-
-workspace_path = here()
-os.environ['WORKSPACE'] = f"{str(workspace_path)}/howtofit"
-os.environ['PYTHONPATH'] = f"{str(workspace_path)}"

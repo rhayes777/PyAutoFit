@@ -9,15 +9,13 @@ In this tutorial, we'll fit the 1D Gaussian model from the previous tutorial to 
 # %%
 #%matplotlib inline
 
-# %%
 from autoconf import conf
 import autofit as af
 import matplotlib.pyplot as plt
-from astropy.io import fits
 import numpy as np
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -30,21 +28,21 @@ conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
 
 # %%
 """
-Lets load the data and noise-map we'll use for our fits (if you are unfamiliar with the .fits format, don't worry about 
-it, its a format typically used only by Astronomers).
+To create the Dataset, we import the simulator module and use it to generate the Dataset's data and noise-map. 
 """
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1"
 
-data_hdu_list = fits.open(f"{dataset_path}/data.fits")
-data = np.array(data_hdu_list[0].data)
+# %%
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
-noise_map_hdu_list = fits.open(f"{dataset_path}/noise_map.fits")
-noise_map = np.array(noise_map_hdu_list[0].data)
+data = gaussian_x1.data
+noise_map = gaussian_x1.noise_map
 
 # %%
 """
 The shape of the data gives us its xvalues - the x coordinates we evaluate our model 1D Gaussian on.
 """
+
+# %%
 xvalues = np.arange(data.shape[0])
 print(xvalues)
 
@@ -276,7 +274,7 @@ For convenience, I've create functions which compute the chi-squared-map and log
 method to plot a profile, residual-map or chi-squared-map.
 """
 
-
+# %%
 def chi_squared_map_from_data_and_model_data(data, noise_map, model_data):
     residual_map = data - model_data
     normalized_residual_map = residual_map / noise_map
@@ -315,7 +313,7 @@ plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-print("Likelihood:")
+print("Log Likelihood:")
 print(log_likelihood)
 
 gaussian = model.instance_from_vector(vector=[50.0, 25.0, 5.0])
@@ -328,7 +326,7 @@ plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-print("Likelihood:")
+print("Log Likelihood:")
 print(log_likelihood)
 
 gaussian = model.instance_from_vector(vector=[50.0, 25.0, 10.0])
@@ -341,7 +339,7 @@ plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-print("Likelihood:")
+print("Log Likelihood:")
 print(log_likelihood)
 
 # %%

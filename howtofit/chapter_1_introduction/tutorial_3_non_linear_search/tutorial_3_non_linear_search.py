@@ -47,11 +47,10 @@ a complete description of *non-linear searches* in chapter 2 of the HowToFit lec
 from autoconf import conf
 import autofit as af
 import matplotlib.pyplot as plt
-from astropy.io import fits
 import numpy as np
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -74,22 +73,21 @@ conf.instance = conf.Config(
 
 # %%
 """
-Lets load the data and noise-map we'll use for our fits, which is the same data we used in tutorial 2.
+To create the Dataset, we import the simulator module and use it to generate the Dataset's data and noise-map. 
 """
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1/"
 
-data_hdu_list = fits.open(f"{dataset_path}/data.fits")
-data = np.array(data_hdu_list[0].data)
+# %%
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
-noise_map_hdu_list = fits.open(f"{dataset_path}/noise_map.fits")
-noise_map = np.array(noise_map_hdu_list[0].data)
+data = gaussian_x1.data
+noise_map = gaussian_x1.noise_map
 
 # %%
 """
 Lets remind ourselves what the data looks like, using the plot_lint convenience method fom the previous tutorial.
 """
 
-
+# %%
 def plot_line(xvalues, line, ylabel=None):
 
     plt.plot(xvalues, line)
@@ -196,6 +194,7 @@ class and pass them to an instance of the Emcee class.
 We manually set the priors on the model, in the next tutorial we'll cover how this can be performed automatically.
 """
 
+# %%
 model = af.PriorModel(Gaussian)
 model.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
 model.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)

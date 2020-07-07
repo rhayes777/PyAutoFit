@@ -12,7 +12,6 @@ which we'll ultimately need to fit to data.
 
 from autoconf import conf
 import autofit as af
-from astropy.io import fits
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -36,7 +35,7 @@ Throughout these tutorials, we will use this workspace_path.
 # %%
 from pyprojroot import here
 
-workspace_path = here()
+workspace_path = str(here())
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -56,29 +55,22 @@ conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
 
 # %%
 """
-The dataset path specifies where the dataset is located, this time in the directory 'chapter_path/dataset'. We'll
-load the example dataset containing one Gaussian.
+Below, you'll notice the command:
+
+    'from autofit_workspace.howtofit.simulators.chapter_1.gaussian_x1'
+
+This will crop up in nearly every tutorial from here on. This imports a module that simulates the dataset we plot in
+this tutorialt. Feel free to check out the simulator scripts to see how this is done!
+
+ - The data is a 1D numpy array of values corresponding to the observed counts of the Gaussian.
+ - The noise-map corresponds to the expected noise in every data point.
 """
 
 # %%
-dataset_path = f"{workspace_path}/howtofit/dataset/chapter_1/gaussian_x1/"
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
-# %%
-"""
-We now load the data and noise from .fits files, where:
-
-- The data is a 1D numpy array of values corresponding to the observed counts of the Gaussian.
-- The noise-map corresponds to the expected noise in every data point.
-"""
-
-# %%
-data_path = f"{dataset_path}/data.fits"
-data_hdu_list = fits.open(data_path)
-data = np.array(data_hdu_list[0].data)
-
-noise_map_path = f"{dataset_path}/noise_map.fits"
-noise_map_hdu_list = fits.open(noise_map_path)
-noise_map = np.array(noise_map_hdu_list[0].data)
+data = gaussian_x1.data
+noise_map = gaussian_x1.noise_map
 
 # %%
 """

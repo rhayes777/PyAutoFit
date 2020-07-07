@@ -613,7 +613,7 @@ class PriorPasser:
 
         Using the Phase API, we can pass priors from the result of one phase to another follows:
 
-            model_component.parameter = phase_1_result.model.model_component.parameter
+            model_component.parameter = phase1_result.model.model_component.parameter
 
         By invoking the 'model' attribute, the prior is passed following 3 rules:
 

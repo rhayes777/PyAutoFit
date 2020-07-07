@@ -30,14 +30,8 @@
    :maxdepth: 1
    :hidden:
 
-   tutorials/howtofit
-
-.. toctree::
-   :caption: Advanced:
-   :maxdepth: 1
-   :hidden:
-
-   advanced/pipelines
+   howtofit/howtofit
+   howtofit/chapter_1_introduction/index
 
 .. toctree::
    :caption: API Documentation:
@@ -45,3 +39,10 @@
    :hidden:
 
    api/api
+
+.. toctree::
+   :caption: Advanced:
+   :maxdepth: 1
+   :hidden:
+
+   advanced/pipelines
