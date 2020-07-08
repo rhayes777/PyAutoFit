@@ -10,14 +10,39 @@ from autofit.message_passing.utils import add_arrays
 
 
 class DeterministicFactorNode(FactorNode):
-    def __init__(self, factor: Factor,
-                 deterministic_variables: Tuple[Variable, ...] = (),
-                 *args: Tuple[Variable, ...],
-                 **kwargs: Dict[str, Variable]):
-        super().__init__(factor, *args, **kwargs)
-        self._deterministic_variables = {v.name: v for v in deterministic_variables}
+    def __init__(
+            self,
+            factor: Factor,
+            variable: Variable,
+            *args: Variable,
+            **kwargs: Variable
+    ):
+        """
+        A deterministic factor is used to convert a function f(g(x)) to f(y)g(x) (integrating over y wit
+        a delta function) so that it can be represented in a factor graph.
 
-    def __call__(self, *args: Tuple[np.ndarray, ...],
+        Parameters
+        ----------
+        factor
+            The original factor to which the deterministic factor is associated
+        variable
+            The deterministic factor used
+        args
+            Variables for the original factor
+        kwargs
+            Variables for the original factor
+        """
+        super().__init__(
+            factor,
+            *args,
+            **kwargs
+        )
+        self._deterministic_variables = {
+            variable.name: variable
+        }
+
+    def __call__(
+            self, *args: Tuple[np.ndarray, ...],
                  **kwargs: Dict[str, np.ndarray]) -> FactorValue:
         res = self._call_factor(*args, **kwargs)
         shape = self._function_shape(*args, **kwargs)

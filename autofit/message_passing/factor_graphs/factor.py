@@ -384,8 +384,6 @@ class FactorNode(AbstractNode):
             else:
                 return False
 
-        elif isinstance(other, Variable):
-            other = [other]
         from autofit.message_passing.factor_graphs import DeterministicFactorNode
         return DeterministicFactorNode(
             self._factor,
