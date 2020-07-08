@@ -20,7 +20,6 @@ class Roundable(tuple):
 
 
 class AbstractMessage(ABC):
-    _parameters = None
     _log_partition: Optional[np.ndarray] = None
     _sufficient_statistics: Optional[np.ndarray] = None
     _log_base_measure = NotImplemented
@@ -70,6 +69,7 @@ class AbstractMessage(ABC):
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
         self.parameters = Roundable(parameters)
+        self.natural_parameters = self.calc_natural_parameters(*self.parameters)
 
     def __iter__(self):
         return iter(self.parameters)
@@ -115,12 +115,6 @@ class AbstractMessage(ABC):
     def from_sufficient_statistics(cls, suff_stats, **kwargs):
         natural_params = cls.invert_sufficient_statistics(suff_stats)
         return cls.from_natural_parameters(natural_params, **kwargs)
-
-    @property
-    def natural_parameters(self):
-        if self._parameters is None:
-            self._parameters = self.calc_natural_parameters(*self.parameters)
-        return self._parameters
 
     @property
     def log_partition(self):
@@ -393,10 +387,10 @@ class FixedMessage(AbstractMessage):
     _fixed = True
 
     def __init__(self, parameters, log_norm=0.):
-        self.parameters = parameters,
-        self.log_norm = log_norm
-        self._broadcast = np.broadcast(*self.parameters)
-        ABC.__init__(self)
+        super().__init__(
+            (parameters,),
+            log_norm=log_norm
+        )
 
     @staticmethod
     def calc_natural_parameters(args):
