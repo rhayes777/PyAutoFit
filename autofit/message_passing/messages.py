@@ -442,7 +442,7 @@ class AbstractMessage(ABC):
 
     def _iter_dists(self, dists):
         for elem in dists:
-            if isinstance(elem, (AbstractMessage, AbstractMessageBeliefMixin)):
+            if isinstance(elem, AbstractMessage):
                 yield elem
             elif np.isscalar(elem):
                 yield elem
@@ -817,90 +817,6 @@ class NormalGammaMessage(NormalMessage):
         x = [stats.norm.rvs(loc=mu, scale=(lam * t_) ** -0.5)
              for t_ in t]
         return np.c_[x, t].T
-
-
-class AbstractMessageBeliefMixin(ABC):
-    @property
-    @abstractmethod
-    def posterior_predictive(self):
-        pass
-
-    @classmethod
-    @abstractmethod
-    def from_projection_statistics(cls, projection):
-        pass
-
-    @classmethod
-    def project(cls, samples, log_weights=None, **kwargs):
-        """calculates the projection of the samples according to
-
-        projection = cls.Message.project_with_statistics
-
-        then calculates the projection using
-
-        cls.from_project_with_statisticsion(projection)
-        """
-        projection = cls.Message.project_with_statistics(samples, log_weights)
-        return cls.from_projection_statistics(projection)
-
-    def rvs(self, *args, **kwargs):
-        return self.posterior_predictive.rvs(*args, **kwargs)
-
-    def logpdf(self, x):
-        return self.posterior_predictive.logpdf(x).sum()
-
-
-def normalgamma_calcmoments(alpha, beta, mu, lam):
-    """
-    for a normal gamma distribution with pdf,
-
-    f_NG(x, tau; mu, lam, alpha, beta) = (
-        beta**alpha / gamma(alpha) * sqrt(lam/2/pi)
-        * tau ** (alpha - 1/2)
-        * exp(-beta * tau) * exp(- lam * tau (x - mu)**2 / 2))
-
-    this function returns
-
-    E[tau] = alpha/beta
-    V[tau] = alpha/beta**2
-    E[x tau] = mu * alpha / beta
-    V[x tau] = alpha/beta/lam  + mu**2 * alpha / beta**2
-
-    where E[x] is the expected value of x and
-    V[x] is the variance of x.
-    """
-    t = alpha / beta
-    vart = t / beta
-    mt = mu * t
-    varmt = t / lam + mu ** 2 * vart
-    return (t, vart, mt, varmt)
-
-
-def normalgamma_matchmoments(t, vart, mt, varmt):
-    """
-    calculates parameters of a normal gamma distribution with pdf,
-
-    f_NG(x, tau; mu, lam, alpha, beta) = (
-        beta**alpha / gamma(alpha) * sqrt(lam/2/pi)
-        * tau ** (alpha - 1/2)
-        * exp(-beta * tau) * exp(- lam * tau (x - mu)**2 / 2))
-
-    that match the following moments,
-
-    E[tau] = alpha/beta
-    V[tau] = alpha/beta**2
-    E[x tau] = mu * alpha / beta
-    V[x tau] = alpha/beta/lam  + mu**2 * alpha / beta**2
-
-    where E[x] is the expected value of x and
-    V[x] is the variance of x.
-    """
-    beta = t / vart
-    alpha = t * beta
-    mu = mt / t
-    lam = t / (varmt - mu ** 2 * vart)
-
-    return NormalGammaParams(alpha=alpha, beta=beta, mu=mu, lam=lam)
 
 
 def map_dists(dists: Dict[str, AbstractMessage],
