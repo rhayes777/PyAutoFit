@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from functools import wraps, reduce
+from functools import reduce
 from itertools import chain
 from operator import and_
 from typing import (
@@ -105,20 +105,6 @@ DistributionParams = Union[
     Tuple, NormalParams, GammaParams, NormalGammaParams]
 
 
-def _force_same_class(method):
-    @wraps(method)
-    def new_method(self, *args):
-        if all(isinstance(arg, type(self)) for arg in args):
-            return method(self, *args)
-        else:
-            types = tuple(map(type, args))
-            raise TypeError(
-                f"can't apply {method.__name__} to "
-                f" {type(self)} with {types}")
-
-    return new_method
-
-
 class AbstractMessage(ABC):
     _parameters = None
     _log_partition: Optional[np.ndarray] = None
@@ -212,29 +198,22 @@ class AbstractMessage(ABC):
     def natural_parameters(self):
         if self._parameters is None:
             self._parameters = self.calc_natural_parameters(*self.parameters)
-            return self._parameters
-        else:
-            return self._parameters
+        return self._parameters
 
     @property
     def log_partition(self):
         if self._log_partition is None:
             self._log_partition = self.calc_log_partition(
                 self.natural_parameters)
-            return self._log_partition
-        else:
-            return self._log_partition
+        return self._log_partition
 
     @property
     def sufficient_statistics(self):
         if self._sufficient_statistics is None:
             self._sufficient_statistics = self.calc_sufficient_statistics(
                 self.natural_parameters)
-            return self._sufficient_statistics
-        else:
-            return self._sufficient_statistics
+        return self._sufficient_statistics
 
-    @_force_same_class
     def sum_natural_parameters(self, *dists):
         """return the unnormalised result of multiplying the pdf
         of this distribution with another distribution of the same
@@ -242,28 +221,19 @@ class AbstractMessage(ABC):
         """
         log_norm = self.log_norm + sum(
             dist.log_norm for dist in self._iter_dists(dists))
-        #         log_norm += self.log_base_measure - self.log_partition
-        #         log_norm += sum(
-        #             dist.log_base_measure - dist.log_partition
-        #             for dist in self._iter_dists(dists))
         new_params = sum(
             (dist.natural_parameters for dist in self._iter_dists(dists)),
             self.natural_parameters)
         mul_dist = self.from_natural_parameters(new_params, log_norm=log_norm)
-        #         mul_dist.log_norm -= mul_dist.log_base_measure - mul_dist.log_partition
         return mul_dist
 
-    @_force_same_class
     def sub_natural_parameters(self, other):
         """return the unnormalised result of dividing the pdf
         of this distribution with another distribution of the same
         type"""
         log_norm = self.log_norm - other.log_norm
-        #         log_norm += self.log_base_measure - self.log_partition
-        #         log_norm -= other.log_base_measure - other.log_partition
         new_params = (self.natural_parameters - other.natural_parameters)
         div_dist = self.from_natural_parameters(new_params, log_norm=log_norm)
-        #         div_dist.log_norm -= div_dist.log_base_measure - div_dist.log_partition
         return div_dist
 
     _multiply = sum_natural_parameters
@@ -318,10 +288,6 @@ class AbstractMessage(ABC):
             logbase = self.calc_log_base_measure(x)
             etaT = (eta * T).sum(0)  # TODO this can be made more efficient using tensordot
             return logbase + etaT - self.log_partition
-        #         dims1 = np.arange(eta.ndim)
-        #         dims2 = dims1.copy()
-        #         dims2[1:] += 1
-        #         return logbase + np.tensordot(eta, T, (dims1, dims2)) - self.log_partition
         elif np.shape(x)[1:] == self.shape:
             return np.array([self.logpdf(x_) for x_ in x])
         else:
@@ -333,13 +299,6 @@ class AbstractMessage(ABC):
 
     logpdfs = logpdf
     pdfs = pdf
-
-    #     def logpdfs(self, x):
-    #         #todo reimplement to be faster
-    #         return np.array([self.logpdf(x_) for x_ in x])
-
-    #     def pdfs(self, x):
-    #         return np.exp(self.logpdfs(x))
 
     @classmethod
     def project(cls, samples, log_weights=None, **kwargs):
@@ -482,7 +441,7 @@ class AbstractMessage(ABC):
         elif self.ndim:
             return np.array(True, dtype=bool, ndmin=self.ndim)
         else:
-            return True
+            return np.array([True])
 
     @property
     def is_valid(self):
@@ -514,7 +473,6 @@ class AbstractMessage(ABC):
             inds = tuple(np.indices(mean.shape))
             variance = np.asanyarray(covariance)[inds * 2]
         else:
-            inds = tuple(np.indices(mean.shape))
             raise ValueError(
                 f"shape of covariance {covariance.shape} is invalid "
                 f"must be (), {mean.shape}, or {mean.shape * 2}")
@@ -718,7 +676,6 @@ class GammaMessage(AbstractMessage):
     def variance(self):
         return (self.parameters.alpha / self.parameters.beta ** 2)
 
-    @_force_same_class
     def __add__(self, other):
         a1, b1 = self.parameters
         a2, b2 = other.parameters
