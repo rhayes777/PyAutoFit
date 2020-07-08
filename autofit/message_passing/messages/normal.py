@@ -63,7 +63,7 @@ class NormalMessage(AbstractMessage):
     def variance(self):
         return self.sigma ** 2
 
-    def sample(self, n_samples, *args, **kwargs):
+    def sample(self, n_samples):
         x = np.random.randn(n_samples, *self.shape)
         mu, sigma = self.parameters
         if self.shape:

@@ -33,7 +33,7 @@ class FixedMessage(AbstractMessage):
     def invert_sufficient_statistics(cls, suff_stats):
         return suff_stats
 
-    def sample(self, n_samples, *args, **kwargs):
+    def sample(self, n_samples):
         """
         Rely on array broadcasting to get fixed values to
         calculate correctly
@@ -42,8 +42,6 @@ class FixedMessage(AbstractMessage):
 
     def logpdf(self, x):
         return np.zeros_like(x)
-
-    logpdfs = logpdf
 
     @property
     def mean(self):

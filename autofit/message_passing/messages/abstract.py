@@ -7,11 +7,6 @@ from typing import Optional, Tuple
 import numpy as np
 
 
-class Roundable(tuple):
-    def round(self, decimals=1):
-        return tuple(np.round(x, decimals) for x in self)
-
-
 class AbstractMessage(ABC):
     log_base_measure: float
 
@@ -55,7 +50,7 @@ class AbstractMessage(ABC):
     def __init__(self, parameters, log_norm=0.):
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
-        self.parameters = Roundable(parameters)
+        self.parameters = parameters
 
     def __iter__(self):
         return iter(self.parameters)
@@ -153,9 +148,6 @@ class AbstractMessage(ABC):
     def pdf(self, x):
         return np.exp(self.logpdf(x))
 
-    logpdfs = logpdf
-    pdfs = pdf
-
     @classmethod
     def project(cls, samples, log_weights):
         """Calculates the sufficient statistics of a set of samples
@@ -196,26 +188,6 @@ class AbstractMessage(ABC):
         log_denominator = prod_dist.log_base_measure - prod_dist.log_partition
 
         return log_numerator - log_denominator
-
-    def logBF_isequal(self, other, prior):
-        """
-        Calculates the log Bayes factor that this distribution is equal
-        another given a prior distribution of the same type,
-
-        evidence same = \int d1(x) * d2(x) * prior(x) dx
-        evidence different = \int d1(x) * prior(x) dx * \int d2(x) * prior(x) dx
-
-        logBF = log(evidence same) - log(evidence different)
-
-        NOTE: ignores log normalisation
-        """
-        d1, d2 = self, other
-
-        log_d1 = d1.log_normalisation(prior)
-        log_d2 = d2.log_normalisation(prior)
-        log_d12 = d1.log_normalisation(d2, prior)
-
-        return log_d12 - log_d1 - log_d2
 
     def _iter_dists(self, dists):
         for elem in dists:

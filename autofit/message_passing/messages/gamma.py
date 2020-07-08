@@ -67,7 +67,7 @@ class GammaMessage(AbstractMessage):
     def variance(self):
         return self.alpha / self.beta ** 2
 
-    def sample(self, n_samples, *args, **kwargs):
+    def sample(self, n_samples):
         a1, b1 = self.parameters
         return np.random.gamma(a1, scale=1 / b1, size=(n_samples,) + self.shape)
 
