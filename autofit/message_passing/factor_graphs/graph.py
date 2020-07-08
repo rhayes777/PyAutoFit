@@ -42,8 +42,24 @@ class DeterministicFactorNode(FactorNode):
         }
 
     def __call__(
-            self, *args: Tuple[np.ndarray, ...],
-                 **kwargs: Dict[str, np.ndarray]) -> FactorValue:
+            self,
+            *args: np.ndarray,
+            **kwargs: np.ndarray
+    ) -> FactorValue:
+        """
+        Call this factor with a set of arguments
+
+        Parameters
+        ----------
+        args
+            Positional arguments for the underlying factor
+        kwargs
+            Keyword arguments for the underlying factor
+
+        Returns
+        -------
+        An object encapsulating the value for the factor
+        """
         res = self._call_factor(*args, **kwargs)
         shape = self._function_shape(*args, **kwargs)
         shift = len(shape) - self.ndim
@@ -53,15 +69,20 @@ class DeterministicFactorNode(FactorNode):
             v: shape[:shift] + tuple(
                 plate_dim[p] for v in self.deterministic_variables.values()
                 for p in v.plates)
-            for v in self.deterministic_variables}
+            for v in self.deterministic_variables
+        }
 
         if not (isinstance(res, tuple) or self.n_deterministic > 1):
             res = res,
 
         log_val = 0. if shape == () else np.zeros(np.ones_like(shape))
         det_vals = {
-            k: np.reshape(val, det_shapes[k]) if det_shapes[k] else val
-            for k, val in zip(self._deterministic_variables, res)}
+            k: np.reshape(val, det_shapes[k])
+            if det_shapes[k]
+            else val
+            for k, val
+            in zip(self._deterministic_variables, res)
+        }
         return FactorValue(log_val, det_vals)
 
     def __repr__(self) -> str:

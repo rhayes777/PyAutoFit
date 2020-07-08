@@ -118,7 +118,7 @@ class FactorNode(AbstractNode):
         }
 
     @property
-    def _variable_plates(self) -> Dict[str, int]:
+    def _variable_plates(self) -> Dict[str, np.ndarray]:
         """
         Maps the name of each variable to the indices of its plates
         within this node
@@ -165,16 +165,22 @@ class FactorNode(AbstractNode):
         return args, kws
 
     def _function_shape(self, *args, **kwargs) -> Tuple[int, ...]:
-        """Calculates the expected function shape based on the variables
+        """
+        Calculates the expected function shape based on the variables
         """
         args, kws = self._resolve_args(*args, **kwargs)
-        variables = {v: x for v, x in zip(self.arg_names, args)}
+        variables = {
+            v: x
+            for v, x
+            in zip(self.arg_names, args)
+        }
         variables.update(
             (self._kwargs[k], x) for k, x in kws.items())
         var_shapes = {v: np.shape(x) for v, x in variables.items()}
         var_dims_diffs = {
-            v: len(s) - self.all_variables[v].ndim  #
-            for v, s in var_shapes.items()}
+            v: len(s) - self.all_variables[v].ndim
+            for v, s in var_shapes.items()
+        }
         """
         If all the passed variables have an extra dimension then 
         we assume we're evaluating multiple instances of the function at the 
@@ -250,7 +256,7 @@ class FactorNode(AbstractNode):
             self,
             *args:
             Tuple[np.ndarray, ...],
-            **kwargs: Dict[str, np.ndarray]
+            **kwargs: np.ndarray
     ) -> np.ndarray:
         """Some factors may not be vectorised to broadcast over
         multiple inputs
@@ -296,8 +302,8 @@ class FactorNode(AbstractNode):
 
         # teeing up iterators to generate arguments to factor calls
         zip_args = zip(*(
-            a if l == dim0 else repeat(a[0])
-            for a, l in zip(args, lens)))
+            a if length == dim0 else repeat(a[0])
+            for a, length in zip(args, lens)))
         iter_kws = {
             k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
             for k, a in kwargs.items()}
@@ -317,14 +323,32 @@ class FactorNode(AbstractNode):
 
     def __call__(
             self,
-            *args: Tuple[np.ndarray, ...],
-            **kwargs: Dict[str, np.ndarray]
+            *args: np.ndarray,
+            **kwargs: np.ndarray
     ) -> FactorValue:
+        """
+        Call the underlying factor
+
+        Parameters
+        ----------
+        args
+            Positional arguments for the factor
+        kwargs
+            Keyword arguments for the factor
+
+        Returns
+        -------
+        Object encapsulating the result of the function call
+        """
         val = self._call_factor(*args, **kwargs)
-        return FactorValue(val.reshape(self._function_shape(
-            *args,
-            **kwargs
-        )), {})
+        return FactorValue(
+            val.reshape(
+                self._function_shape(
+                    *args,
+                    **kwargs
+                )
+            ), {}
+        )
 
     def broadcast_variable(
             self,
@@ -370,6 +394,10 @@ class FactorNode(AbstractNode):
         return agg_func(moved, axis=dropaxes)
 
     def __eq__(self, other: Union["FactorNode", Variable]):
+        """
+        If set equal to a variable that variable is taken to be deterministic and
+        so a DeterministicFactorNode is generated.
+        """
         if isinstance(other, FactorNode):
             if isinstance(other, type(self)):
                 return (
@@ -393,6 +421,9 @@ class FactorNode(AbstractNode):
         )
 
     def __mul__(self, other):
+        """
+        When two factors are multiplied together this creates a graph
+        """
         from autofit.message_passing.factor_graphs.graph import FactorGraph
         return FactorGraph([self]) * other
 
