@@ -75,12 +75,6 @@ class AbstractMessage(ABC):
     def ndim(self):
         return self._broadcast.ndim
 
-    def calc_log_base_measure(self, x):
-        if callable(self.log_base_measure):
-            return self.log_base_measure(x)
-        else:
-            return self.log_base_measure
-
     @classmethod
     def from_natural_parameters(cls, parameters, **kwargs):
         args = cls.invert_natural_parameters(parameters)
@@ -154,7 +148,7 @@ class AbstractMessage(ABC):
         if np.shape(x) == self.shape:
             eta = self.natural_parameters
             T = self.to_canonical_form(x)
-            logbase = self.calc_log_base_measure(x)
+            logbase = self.log_base_measure
             etaT = (eta * T).sum(0)  # TODO this can be made more efficient using tensordot
             return logbase + etaT - self.log_partition
         elif np.shape(x)[1:] == self.shape:
