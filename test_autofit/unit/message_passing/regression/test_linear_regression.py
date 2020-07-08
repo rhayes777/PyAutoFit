@@ -1,8 +1,6 @@
 import numpy as np
 import pytest
 
-import autofit.message_passing.messages.fixed
-import autofit.message_passing.messages.normal
 from autofit import message_passing as mp
 
 
@@ -33,17 +31,17 @@ def test(
 
     model = likelihood_factor * linear_factor * prior_a * prior_b
 
-    message_a = autofit.message_passing.messages.normal.NormalMessage.from_mode(
+    message_a = mp.NormalMessage.from_mode(
         np.zeros((n_features, n_dims)),
         100
     )
 
-    message_b = autofit.message_passing.messages.normal.NormalMessage.from_mode(
+    message_b = mp.NormalMessage.from_mode(
         np.zeros(n_dims),
         100
     )
 
-    message_z = autofit.message_passing.messages.normal.NormalMessage.from_mode(
+    message_z = mp.NormalMessage.from_mode(
         np.zeros((n_obs, n_dims)),
         100
     )
@@ -53,8 +51,8 @@ def test(
         a=message_a,
         b=message_b,
         z=message_z,
-        x=autofit.message_passing.messages.fixed.FixedMessage(x),
-        y=autofit.message_passing.messages.fixed.FixedMessage(y))
+        x=mp.FixedMessage(x),
+        y=mp.FixedMessage(y))
 
     np.random.seed(1)
     history = {}

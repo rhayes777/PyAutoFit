@@ -5,9 +5,9 @@ from typing import (
 import numpy as np
 
 from .abstract import AbstractMessage
-from .abstract import AbstractMessage
 from .fixed import FixedMessage
 from .gamma import GammaMessage
+from .normal import NormalMessage
 
 
 def map_dists(dists: Dict[str, AbstractMessage],

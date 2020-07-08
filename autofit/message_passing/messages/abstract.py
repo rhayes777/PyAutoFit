@@ -135,10 +135,10 @@ class AbstractMessage(ABC):
     def logpdf(self, x):
         if np.shape(x) == self.shape:
             eta = self.natural_parameters
-            T = self.to_canonical_form(x)
-            logbase = self.log_base_measure
-            etaT = (eta * T).sum(0)  # TODO this can be made more efficient using tensordot
-            return logbase + etaT - self.log_partition
+            t = self.to_canonical_form(x)
+            log_base = self.log_base_measure
+            eta_t = (eta * t).sum(0)  # TODO this can be made more efficient using tensordot
+            return log_base + eta_t - self.log_partition
         elif np.shape(x)[1:] == self.shape:
             return np.array([self.logpdf(x_) for x_ in x])
 
@@ -162,9 +162,9 @@ class AbstractMessage(ABC):
         norm = w.mean(0)
         log_norm = np.log(norm) + log_w_max[0]
 
-        TX = cls.to_canonical_form(samples)
+        tx = cls.to_canonical_form(samples)
         w /= norm
-        suff_stats = (TX * w[None, ...]).mean(1)
+        suff_stats = (tx * w[None, ...]).mean(1)
 
         assert np.isfinite(suff_stats).all()
         return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
@@ -189,7 +189,8 @@ class AbstractMessage(ABC):
 
         return log_numerator - log_denominator
 
-    def _iter_dists(self, dists):
+    @staticmethod
+    def _iter_dists(dists):
         for elem in dists:
             if isinstance(elem, AbstractMessage):
                 yield elem
@@ -218,16 +219,18 @@ class AbstractMessage(ABC):
                  for p, support in zip(self.parameters, self._parameter_support)))
         elif self.ndim:
             return np.array(True, dtype=bool, ndmin=self.ndim)
-        else:
-            return np.array([True])
+        return np.array([True])
 
     @property
     def is_valid(self):
-        return (np.isfinite(self.natural_parameters).all() and
-                np.all(self.check_support()))
+        return np.isfinite(
+            self.natural_parameters
+        ).all() and np.all(
+            self.check_support()
+        )
 
     @staticmethod
-    def _get_mean_variance(mean: np.ndarray, covariance: np.ndarray
+    def _get_mean_variance(mean: np.ndarray, covariance: float
                            ) -> Tuple[np.ndarray, np.ndarray]:
         mean, covariance = np.asanyarray(mean), np.asanyarray(covariance)
 
