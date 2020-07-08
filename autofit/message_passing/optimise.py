@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
 
 from autofit.message_passing.factor_graphs import FactorNode
-from autofit.message_passing.messages import FixedMessage
+from autofit.message_passing import FixedMessage
 from .mean_field import FactorApproximation, MeanFieldApproximation, Status
 from .utils import propagate_uncertainty, FlattenArrays
 

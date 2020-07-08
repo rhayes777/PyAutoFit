@@ -10,7 +10,8 @@ from .mean_field import \
     (
     MeanFieldApproximation, FactorApproximation, Status
 )
-from .messages import AbstractMessage, map_dists
+from .messages import map_dists
+from autofit.message_passing.messages.abstract import AbstractMessage
 from .utils import add_arrays
 
 

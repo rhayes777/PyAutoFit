@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+import autofit.message_passing.messages.fixed
+import autofit.message_passing.messages.normal
 from autofit import message_passing as mp
 
 
@@ -51,14 +53,14 @@ def make_model_approx(
 
     return mp.MeanFieldApproximation.from_kws(
         model,
-        a=mp.NormalMessage.from_mode(
+        a=autofit.message_passing.messages.normal.NormalMessage.from_mode(
             np.zeros((n_features, n_dims)), 10),
-        b=mp.NormalMessage.from_mode(
+        b=autofit.message_passing.messages.normal.NormalMessage.from_mode(
             np.zeros(n_dims), 10),
-        z=mp.NormalMessage.from_mode(
+        z=autofit.message_passing.messages.normal.NormalMessage.from_mode(
             np.zeros((n_obs, n_dims)), 10),
-        x=mp.FixedMessage(x),
-        y=mp.FixedMessage(y))
+        x=autofit.message_passing.messages.fixed.FixedMessage(x),
+        y=autofit.message_passing.messages.fixed.FixedMessage(y))
 
 
 def test_laplace(

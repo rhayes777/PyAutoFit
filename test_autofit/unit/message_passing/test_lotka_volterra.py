@@ -1,6 +1,9 @@
 import numpy as np
 from scipy import integrate, stats
 
+import autofit.message_passing.messages.fixed
+import autofit.message_passing.messages.gamma
+import autofit.message_passing.messages.normal
 from autofit import message_passing as mp
 
 
@@ -99,13 +102,13 @@ def test():
 
     model_approx = mp.MeanFieldApproximation.from_kws(
         LV_model,
-        A=mp.NormalMessage.from_mode(A, 100.),
-        r=mp.NormalMessage.from_mode(r, 100.),
-        y0=mp.GammaMessage.from_mode(np.ones_like(y0), 1),
-        y=mp.NormalMessage.from_mode(y, 1),
-        K=mp.FixedMessage(1),
-        y_obs=mp.FixedMessage(y),
-        t_obs=mp.FixedMessage(t_obs), )
+        A=autofit.message_passing.messages.normal.NormalMessage.from_mode(A, 100.),
+        r=autofit.message_passing.messages.normal.NormalMessage.from_mode(r, 100.),
+        y0=autofit.message_passing.messages.gamma.GammaMessage.from_mode(np.ones_like(y0), 1),
+        y=autofit.message_passing.messages.normal.NormalMessage.from_mode(y, 1),
+        K=autofit.message_passing.messages.fixed.FixedMessage(1),
+        y_obs=autofit.message_passing.messages.fixed.FixedMessage(y),
+        t_obs=autofit.message_passing.messages.fixed.FixedMessage(t_obs), )
 
     history = {}
     n_iter = 1

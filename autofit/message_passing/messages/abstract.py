@@ -2,14 +2,9 @@ from abc import ABC, abstractmethod
 from functools import reduce
 from itertools import chain
 from operator import and_
-from typing import (
-    Dict, Tuple, Optional, Iterator
-)
+from typing import Optional, Tuple
 
 import numpy as np
-from scipy import special
-
-from autofit.message_passing.utils import invpsilog
 
 
 class Roundable(tuple):
@@ -44,12 +39,14 @@ class AbstractMessage(ABC):
         pass
 
     @property
+    @abstractmethod
     def mean(self):
-        raise NotImplementedError
+        pass
 
     @property
+    @abstractmethod
     def variance(self):
-        raise NotImplementedError
+        pass
 
     @property
     def scale(self):
@@ -66,10 +63,6 @@ class AbstractMessage(ABC):
     @property
     def shape(self):
         return self._broadcast.shape
-
-    @property
-    def size(self):
-        return self._broadcast.size
 
     @property
     def ndim(self):
@@ -164,26 +157,18 @@ class AbstractMessage(ABC):
     pdfs = pdf
 
     @classmethod
-    def project(cls, samples, log_weights=None, **kwargs):
+    def project(cls, samples, log_weights):
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
         that match the sufficient statistics
         """
         # if weights aren't passed then equally weight all samples
-        n_samples = len(samples)
-        if log_weights is None:
-            w = np.ones_like(samples)
-            norm = 1.
-            log_norm = 0.
-        #             log_norm_var = 0.
-        else:
-            # Numerically stable weighting for very small/large weights
-            # log_norm = logsumexp(log_weights, axis=0) - np.log(n_samples)
-            log_w_max = np.max(log_weights, axis=0, keepdims=True)
-            w = np.exp(log_weights - log_w_max)
-            norm = w.mean(0)
-            log_norm = np.log(norm) + log_w_max[0]
-        #             log_norm_var = np.log(w.var())
+
+        # Numerically stable weighting for very small/large weights
+        log_w_max = np.max(log_weights, axis=0, keepdims=True)
+        w = np.exp(log_weights - log_w_max)
+        norm = w.mean(0)
+        log_norm = np.log(norm) + log_w_max[0]
 
         TX = cls.to_canonical_form(samples)
         w /= norm
@@ -290,246 +275,3 @@ class AbstractMessage(ABC):
                 f"shape of covariance {covariance.shape} is invalid "
                 f"must be (), {mean.shape}, or {mean.shape * 2}")
         return mean, variance
-
-
-class FixedMessage(AbstractMessage):
-    log_base_measure = 0
-
-    def __init__(self, value, log_norm=0.):
-        self._value = value
-        super().__init__(
-            (value,),
-            log_norm=log_norm
-        )
-
-    @property
-    def natural_parameters(self):
-        return self.parameters
-
-    @staticmethod
-    def invert_natural_parameters(natural_parameters):
-        return natural_parameters,
-
-    @staticmethod
-    def to_canonical_form(x):
-        return x
-
-    @property
-    def log_partition(self):
-        return 0.
-
-    @classmethod
-    def invert_sufficient_statistics(cls, suff_stats):
-        return suff_stats
-
-    def sample(self, n_samples, *args, **kwargs):
-        """
-        Rely on array broadcasting to get fixed values to
-        calculate correctly
-        """
-        return np.array(self.parameters)
-
-    def logpdf(self, x):
-        return np.zeros_like(x)
-
-    logpdfs = logpdf
-
-    @property
-    def mean(self):
-        return self._value
-
-    @property
-    def variance(self):
-        return np.zeros_like(self.mean)
-
-    def _no_op(self, *other, **kwargs):
-        """
-        'no-op' operation
-
-        In many operations fixed messages should just
-        return themselves
-        """
-        return self
-
-    project = _no_op
-    from_mode = _no_op
-    __pow__ = _no_op
-    __mul__ = _no_op
-    __div__ = _no_op
-    default = _no_op
-    _multiply = _no_op
-    _divide = _no_op
-    sum_natural_parameters = _no_op
-    sub_natural_parameters = _no_op
-
-
-class NormalMessage(AbstractMessage):
-    @property
-    def log_partition(self):
-        eta1, eta2 = self.natural_parameters
-        return - eta1 ** 2 / 4 / eta2 - np.log(-2 * eta2) / 2
-
-    log_base_measure = - 0.5 * np.log(2 * np.pi)
-    _support = ((-np.inf, np.inf),)
-    _parameter_support = ((-np.inf, np.inf), (0, np.inf))
-
-    def __init__(
-            self,
-            mu=0.,
-            sigma=1.,
-            log_norm=0.
-    ):
-        self.mu = mu
-        self.sigma = sigma
-        super().__init__(
-            (mu, sigma),
-            log_norm=log_norm
-        )
-
-    @property
-    def natural_parameters(self):
-        return self.calc_natural_parameters(
-            self.mu,
-            self.sigma
-        )
-
-    @staticmethod
-    def calc_natural_parameters(mu, sigma):
-        precision = sigma ** -2
-        return np.array([mu * precision, - precision / 2])
-
-    @staticmethod
-    def invert_natural_parameters(natural_parameters):
-        eta1, eta2 = natural_parameters
-        mu = - 0.5 * eta1 / eta2
-        sigma = np.sqrt(- 0.5 / eta2)
-        return mu, sigma
-
-    @staticmethod
-    def to_canonical_form(x):
-        return np.array([x, x ** 2])
-
-    @classmethod
-    def invert_sufficient_statistics(cls, suff_stats):
-        m1, m2 = suff_stats
-        sigma = np.sqrt(m2 - m1 ** 2)
-        return cls.calc_natural_parameters(m1, sigma)
-
-    @property
-    def mean(self):
-        return self.mu
-
-    @property
-    def variance(self):
-        return self.sigma ** 2
-
-    def sample(self, n_samples, *args, **kwargs):
-        x = np.random.randn(n_samples, *self.shape)
-        mu, sigma = self.parameters
-        if self.shape:
-            return x * sigma[None, ...] + mu[None, ...]
-
-        return x * sigma + mu
-
-    @classmethod
-    def from_mode(cls, mode: np.ndarray, covariance: np.ndarray = 1., **kwargs):
-        mode, variance = cls._get_mean_variance(mode, covariance)
-        return cls(mode, variance ** 0.5)
-
-
-class GammaMessage(AbstractMessage):
-    @property
-    def log_partition(self):
-        alpha, beta = GammaMessage.invert_natural_parameters(
-            self.natural_parameters
-        )
-        return special.gammaln(alpha) - alpha * np.log(beta)
-
-    log_base_measure = 0.
-    _support = ((0, np.inf),)
-    _parameter_support = ((0, np.inf), (0, np.inf))
-
-    def __init__(
-            self,
-            alpha=1.,
-            beta=1.,
-            log_norm=0.
-    ):
-        self.alpha = alpha
-        self.beta = beta
-        super().__init__(
-            parameters=[
-                alpha, beta
-            ],
-            log_norm=log_norm
-        )
-
-    @property
-    def natural_parameters(self):
-        return self.calc_natural_parameters(
-            self.alpha,
-            self.beta
-        )
-
-    @staticmethod
-    def calc_natural_parameters(alpha, beta):
-        return np.array([alpha - 1, - beta])
-
-    @staticmethod
-    def invert_natural_parameters(natural_parameters):
-        eta1, eta2 = natural_parameters
-        return eta1 + 1, -eta2
-
-    @staticmethod
-    def to_canonical_form(x):
-        return np.array([np.log(x), x])
-
-    @classmethod
-    def invert_sufficient_statistics(cls, suff_stats):
-        logX, X = suff_stats
-        alpha = invpsilog(logX - np.log(X))
-        beta = alpha / X
-        return cls.calc_natural_parameters(alpha, beta)
-
-    @property
-    def mean(self):
-        return self.alpha / self.beta
-
-    @property
-    def variance(self):
-        return self.alpha / self.beta ** 2
-
-    def __add__(self, other):
-        a1, b1 = self.parameters
-        a2, b2 = other.parameters
-        ab = a1 / b1 + a2 / b2
-        ab2 = a1 / b1 ** 2 + a2 / b2 ** 2
-        return GammaMessage(ab ** 2 / ab2, ab / ab2)
-
-    def sample(self, n_samples, *args, **kwargs):
-        a1, b1 = self.parameters
-        return np.random.gamma(a1, scale=1 / b1, size=(n_samples,) + self.shape)
-
-    @classmethod
-    def from_mode(cls, mode, covariance, **kwargs):
-        m, V = cls._get_mean_variance(mode, covariance)
-
-        alpha = 1 + m ** 2 * V  # match variance
-        beta = alpha / m  # match mean
-        return cls(alpha, beta)
-
-
-def map_dists(dists: Dict[str, AbstractMessage],
-              values: Dict[str, np.ndarray],
-              _call: str = 'logpdf'
-              ) -> Iterator[Tuple[str, np.ndarray]]:
-    """
-    Calls a method (default: logpdf) for each Message in dists
-    on the corresponding value in values
-    """
-    for v in dists.keys() & values.keys():
-        dist = dists[v]
-        if isinstance(dist, AbstractMessage):
-            yield v, getattr(dist, _call)(values[v])
-
-# Message = Union[AbstractMessage, AbstractMessageBeliefMixin]

@@ -12,8 +12,9 @@ from autofit.message_passing.factor_graphs import (
 from autofit.message_passing.factor_graphs.graph import FactorGraph
 from autofit.message_passing.messages import FixedMessage
 from .messages import (
-    AbstractMessage, map_dists
+    map_dists
 )
+from autofit.message_passing.messages.abstract import AbstractMessage
 from .utils import prod, add_arrays
 
 VariableFactorDist = Dict[str, Dict[FactorNode, AbstractMessage]]

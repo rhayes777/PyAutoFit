@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from scipy import integrate
 
+import autofit.message_passing.messages.normal
 from autofit import message_passing as mp
 
 
@@ -9,7 +10,7 @@ from autofit import message_passing as mp
     name="q_cavity"
 )
 def make_q_cavity():
-    return mp.NormalMessage(-0.5, 0.5)
+    return autofit.message_passing.messages.normal.NormalMessage(-0.5, 0.5)
 
 
 def test_integration(
@@ -31,7 +32,7 @@ def test_integration(
     ni_0, ni_1, ni_2 = (
         integrate.trapz(x ** i * tilted_distribution, x) for i in range(3))
 
-    q_numerical = mp.NormalMessage.from_sufficient_statistics(
+    q_numerical = autofit.message_passing.messages.normal.NormalMessage.from_sufficient_statistics(
         [ni_1 / ni_0, ni_2 / ni_0]
     )
 
@@ -68,7 +69,7 @@ def test_laplace_method(probit_factor, q_cavity):
     opt_probit = mp.OptFactor.from_approx(probit_approx)
     result = opt_probit.maximise(x=0.)
 
-    q_probit_laplace = mp.NormalMessage.from_mode(
+    q_probit_laplace = autofit.message_passing.messages.normal.NormalMessage.from_mode(
         result.mode['x'],
         covariance=result.inv_hessian['x']
     )
