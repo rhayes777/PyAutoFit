@@ -1,17 +1,14 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from itertools import chain
-from typing import NamedTuple, Tuple, Dict, Optional, Any, List
+from typing import NamedTuple, Tuple, Dict, Optional, List
 
 import numpy as np
 
 from autofit.message_passing.factor_graphs import FactorNode
-from .mean_field import \
-    (
-    MeanFieldApproximation, FactorApproximation, Status
-)
-from .messages import map_dists
 from autofit.message_passing.messages.abstract import AbstractMessage
+from .mean_field import MeanFieldApproximation, FactorApproximation, Status
+from .messages import map_dists
 from .utils import add_arrays
 
 
@@ -32,7 +29,7 @@ class SamplingResult(NamedTuple):
         return np.exp(self.log_weights)
 
 
-def merge_sampling_results(*results: Tuple[SamplingResult, ...]) -> SamplingResult:
+def merge_sampling_results(*results: SamplingResult) -> SamplingResult:
     # TODO put check to loop over same variables in results.samples
     n = results[0].n_samples
 
@@ -61,7 +58,7 @@ def merge_sampling_results(*results: Tuple[SamplingResult, ...]) -> SamplingResu
         log_measure, log_propose, n_samples)
 
 
-def effective_sample_size(weights: np.ndarray, axis=None) -> float:
+def effective_sample_size(weights: np.ndarray, axis=None) -> np.ndarray:
     return np.sum(weights, axis=axis) ** 2 / np.square(weights).sum(axis=axis)
 
 
@@ -92,11 +89,6 @@ class ImportanceSampler(AbstractSampler):
             n_samples=n_samples, n_resample=n_resample,
             min_n_eff=min_n_eff, max_samples=max_samples)
         self._history = defaultdict(SamplingHistory)
-
-    def _kwargs_update_params(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
-        kwargs.update((k, val) for k, val in self.params.items()
-                      if k not in kwargs)
-        return kwargs
 
     def sample(self, factor_approx: "FactorApproximation") -> SamplingResult:
         # Update default params 
@@ -130,15 +122,17 @@ class ImportanceSampler(AbstractSampler):
         else:
             return None
 
-    def _weight_samples(self,
-                        factor: "FactorNode",
-                        samples: Dict[str, np.ndarray],
-                        det_vars: Dict[str, np.ndarray],
-                        log_factor: np.ndarray,
-                        cavity_dist: Dict[str, AbstractMessage],
-                        deterministic_dist: Dict[str, AbstractMessage],
-                        proposal_dist: Dict[str, AbstractMessage],
-                        n_samples: int) -> SamplingResult:
+    @staticmethod
+    def _weight_samples(
+            factor: "FactorNode",
+            samples: Dict[str, np.ndarray],
+            det_vars: Dict[str, np.ndarray],
+            log_factor: np.ndarray,
+            cavity_dist: Dict[str, AbstractMessage],
+            deterministic_dist: Dict[str, AbstractMessage],
+            proposal_dist: Dict[str, AbstractMessage],
+            n_samples: int
+    ) -> SamplingResult:
 
         log_measure = 0.
         for res in chain(map_dists(cavity_dist, samples),
@@ -150,15 +144,6 @@ class ImportanceSampler(AbstractSampler):
         for res in map_dists(proposal_dist, samples):
             log_propose = add_arrays(
                 log_propose, factor.broadcast_variable(*res))
-
-        # could probably refactor to:
-        # or define a mapreduce
-        #         log_measure = add_arrays(*(
-        #             starmap(factor.broadcast_variable, chain(
-        #                 map_dists(cavity_dist, samples),
-        #                 map_dists(deterministic_dist, det_vars)))
-        #         log_propose = add_arrays(*(
-        #             starmap(factor.broadcast_variable, map_dists(proposal_dist, samples)))
 
         log_weights = log_factor + log_measure - log_propose
 
@@ -222,14 +207,6 @@ class ImportanceSampler(AbstractSampler):
         return samples
 
 
-def sample_factor(
-        factor_approx: FactorApproximation,
-        sampler: AbstractSampler,
-        last_samples: Optional[Dict[FactorNode, SamplingResult]] = None,
-        **kwargs) -> SamplingResult:
-    return sampler(factor_approx, last_samples=last_samples, **kwargs)
-
-
 def project_factor_approx_sample(
         factor_approx: FactorApproximation,
         sample: SamplingResult) -> Dict[str, AbstractMessage]:
@@ -245,18 +222,6 @@ def project_factor_approx_sample(
     return model_dist
 
 
-def project_factor_approx_from_sample(
-        factor_approx: FactorApproximation,
-        sample: SamplingResult,
-        delta: float = 0.5,
-) -> Tuple[FactorApproximation, Status]:
-    """
-    """
-    model_dist = project_factor_approx_sample(
-        factor_approx, sample)
-    return factor_approx.project(model_dist, delta=delta)
-
-
 def project_model(
         model_approx: MeanFieldApproximation,
         factor: FactorNode,
@@ -270,6 +235,3 @@ def project_model(
     model_dist = project_factor_approx_sample(factor_approx, sample)
     projection, status = factor_approx.project(model_dist, delta=delta)
     return model_approx.project(projection, status=status)
-
-# TODO uncomment this so typing works
-# from message_passing import FactorApproximation, FactorNode

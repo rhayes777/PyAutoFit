@@ -80,7 +80,6 @@ def test_laplace(
             # save and print current approximation
             history[i, factor] = model_approx
 
-    #  TODO there is an API discrepancy here
     q_a = model_approx['a']
     q_b = model_approx['b']
 
@@ -109,7 +108,6 @@ def test_importance_sampling(
             # save and print current approximation
             history[i, factor] = model_approx
 
-    #  TODO there is an API discrepancy here
     q_a = model_approx['a']
     q_b = model_approx['b']
 

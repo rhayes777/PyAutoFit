@@ -18,6 +18,10 @@ class AbstractMessage(ABC):
     def natural_parameters(self):
         pass
 
+    @abstractmethod
+    def sample(self, n_samples):
+        pass
+
     @staticmethod
     @abstractmethod
     def invert_natural_parameters(natural_parameters):
