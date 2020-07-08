@@ -1,4 +1,4 @@
-from collections import ChainMap, Counter, defaultdict
+from collections import Counter, defaultdict
 from typing import Tuple, Dict, Collection
 
 import numpy as np
@@ -92,27 +92,29 @@ class DeterministicFactorNode(FactorNode):
 
 
 class FactorGraph(AbstractNode):
-    def __init__(self, factors: Collection[FactorNode], name=None):
+    def __init__(
+            self,
+            factors: Collection[FactorNode],
+    ):
         super().__init__()
         self._factors = tuple(factors)
-        self._name = ".".join(f.name for f in factors) if name is None else name
+        self._name = ".".join(f.name for f in factors)
 
-        self._variables = ChainMap(*(
-            f.variables for f in self._factors))
-        self._deterministic_variables = ChainMap(*(
-            f.deterministic_variables for f in self._factors))
-        self._all_variables = ChainMap(*(
-            f.all_variables for f in self._factors))
+        self._variables = dict()
+        self._deterministic_variables = dict()
 
-        self._factor_variables = {
-            f: f.variables for f in self._factors}
-        self._factor_det_variables = {
-            f: f.deterministic_variables for f in self._factors}
+        for f in self._factors:
+            self._variables.update(
+                f.variables
+            )
+            self._deterministic_variables.update(
+                f.deterministic_variables
+            )
+
         self._factor_all_variables = {
             f: f.all_variables for f in self._factors}
 
         self._validate()
-        self._hash = hash(frozenset(self.factors))
 
     def broadcast_plates(
             self,
@@ -150,7 +152,8 @@ class FactorGraph(AbstractNode):
             raise ValueError(
                 "Improper FactorGraph, "
                 f"Deterministic variables {det_var_counts} appear in "
-                "multiple factors")
+                "multiple factors"
+            )
 
         self._call_sequence, variables = self._get_call_sequence()
         self._all_factors = tuple(sum(self._call_sequence, []))
@@ -159,7 +162,8 @@ class FactorGraph(AbstractNode):
         if diff:
             raise ValueError(
                 "Improper FactorGraph? unused variables: "
-                + ", ".join(diff))
+                + ", ".join(diff)
+            )
 
     def _get_call_sequence(self):
         """Calculates an appropriate call sequence for the factor graph
@@ -267,14 +271,6 @@ class FactorGraph(AbstractNode):
     @property
     def factors(self) -> Tuple[FactorNode, ...]:
         return self._factors
-
-    @property
-    def factor_variables(self) -> Dict[FactorNode, str]:
-        return self._factor_all_variables
-
-    @property
-    def factor_deterministic_variables(self) -> Dict[FactorNode, str]:
-        return self._factor_det_variables
 
     @property
     def factor_all_variables(self) -> Dict[FactorNode, str]:
