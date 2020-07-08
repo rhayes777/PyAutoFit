@@ -1,7 +1,6 @@
 import numpy as np
 from scipy import integrate, stats
 
-
 from autofit import message_passing as mp
 
 
@@ -102,8 +101,7 @@ def test():
         LV_model,
         A=mp.NormalMessage.from_mode(A, 100.),
         r=mp.NormalMessage.from_mode(r, 100.),
-        y0=mp.FracMessage(
-            mp.GammaMessage.from_mode(np.ones_like(y0), 1)),
+        y0=mp.GammaMessage.from_mode(np.ones_like(y0), 1),
         y=mp.NormalMessage.from_mode(y, 1),
         K=mp.FixedMessage(1),
         y_obs=mp.FixedMessage(y),
