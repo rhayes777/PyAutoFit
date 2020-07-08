@@ -20,7 +20,6 @@ class Roundable(tuple):
 
 
 class AbstractMessage(ABC):
-    _sufficient_statistics: Optional[np.ndarray] = None
     _log_base_measure = NotImplemented
 
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
@@ -102,22 +101,15 @@ class AbstractMessage(ABC):
     def invert_sufficient_statistics(cls, suff_stats):
         pass
 
-    @classmethod
+    @property
     @abstractmethod
-    def calc_sufficient_statistics(cls, params):
+    def sufficient_statistics(self):
         pass
 
     @classmethod
     def from_sufficient_statistics(cls, suff_stats, **kwargs):
         natural_params = cls.invert_sufficient_statistics(suff_stats)
         return cls.from_natural_parameters(natural_params, **kwargs)
-
-    @property
-    def sufficient_statistics(self):
-        if self._sufficient_statistics is None:
-            self._sufficient_statistics = self.calc_sufficient_statistics(
-                self.natural_parameters)
-        return self._sufficient_statistics
 
     def sum_natural_parameters(self, *dists):
         """return the unnormalised result of multiplying the pdf
@@ -382,9 +374,9 @@ class FixedMessage(AbstractMessage):
     def log_partition(self):
         return 0.
 
-    @classmethod
-    def calc_sufficient_statistics(cls, natural_parameters):
-        return natural_parameters
+    @property
+    def sufficient_statistics(self):
+        return self.natural_parameters
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
@@ -477,9 +469,9 @@ class NormalMessage(AbstractMessage):
     def to_canonical_form(x):
         return np.array([x, x ** 2])
 
-    @classmethod
-    def calc_sufficient_statistics(cls, natural_parameters):
-        eta1, eta2 = natural_parameters
+    @property
+    def sufficient_statistics(self):
+        eta1, eta2 = self.natural_parameters
         T1 = -eta1 / 2 / eta2
         T2 = eta1 ** 2 / 4 / eta2 - 0.5 / eta2
         return np.array([T1, T2])
@@ -559,9 +551,11 @@ class GammaMessage(AbstractMessage):
     def to_canonical_form(x):
         return np.array([np.log(x), x])
 
-    @classmethod
-    def calc_sufficient_statistics(cls, natural_parameters):
-        alpha, beta = cls.invert_natural_parameters(natural_parameters)
+    @property
+    def sufficient_statistics(self):
+        alpha, beta = self.invert_natural_parameters(
+            self.natural_parameters
+        )
         logX = special.digamma(alpha) - np.log(beta)
         X = alpha / beta
         return np.array([logX, X])
