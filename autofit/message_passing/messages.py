@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from functools import reduce
 from itertools import chain
 from operator import and_
@@ -9,7 +8,6 @@ from typing import (
 
 import numpy as np
 from scipy import special
-from scipy.special import logsumexp
 
 from autofit.message_passing.utils import invpsilog
 
@@ -20,14 +18,10 @@ class Roundable(tuple):
 
 
 class AbstractMessage(ABC):
-    _log_base_measure = NotImplemented
+    log_base_measure: float
 
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
-    _Projection = namedtuple(
-        "Projection",
-        ["sufficient_statistics", "variance", "effective_sample_size",
-         "log_norm", "log_norm_var"])
 
     @property
     @abstractmethod
@@ -80,10 +74,6 @@ class AbstractMessage(ABC):
     @property
     def ndim(self):
         return self._broadcast.ndim
-
-    @property
-    def log_base_measure(self):
-        return self._log_base_measure
 
     def calc_log_base_measure(self, x):
         if callable(self.log_base_measure):
@@ -214,38 +204,8 @@ class AbstractMessage(ABC):
         return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
 
     @classmethod
-    def from_mode(self, mode, covariance, **kwargs):
+    def from_mode(cls, mode, covariance, **kwargs):
         pass
-
-    @classmethod
-    def project_with_statistics(cls, samples, log_weights=None, **kwargs):
-        """
-        Calculates the sufficient statistics of a set of samples, the
-        variances and the effective sample size for each statistic.
-        """
-        # if weights aren't passed then equally weight all samples
-        n_samples = len(samples)
-        if log_weights is None:
-            w = np.ones(len(samples))
-            log_norm = 0.
-            log_norm_var = 0.
-        else:
-            # log_norm = logsumexp(log_weights, axis=0) - np.log(n_samples)
-            w = np.exp(log_weights - logsumexp(log_weights, axis=0))
-            norm = w.mean(0)
-            w /= norm
-            log_norm = np.log(norm)
-            log_norm_var = np.log(w.var())
-
-        TX = cls.to_canonical_form(samples)
-        TXw = TX * w[None, ...]
-        suff_stats = TXw.mean(1)
-        var = np.square(TXw - suff_stats[:, None, ...]).mean(1)
-        n_eff = np.abs(TXw).sum(1) ** 2 / (TXw ** 2).sum(1)
-
-        assert np.isfinite(suff_stats).all()
-        assert np.isfinite(var).all()
-        return cls._Projection(suff_stats, var, n_eff, log_norm, log_norm_var)
 
     def log_normalisation(self, *dists):
         """
@@ -293,11 +253,6 @@ class AbstractMessage(ABC):
                 for dist in elem:
                     yield dist
 
-    def sample(self, n_samples, *args, **kwargs):
-        shape = self.shape
-        return np.array(
-            [self.rvs(*args, **kwargs).reshape(shape) for _ in range(n_samples)])
-
     def update_invalid(self, other: 'AbstractMessage') -> 'AbstractMessage':
         invalid = reduce(
             and_, (np.isfinite(p) for p in
@@ -306,7 +261,7 @@ class AbstractMessage(ABC):
             valid_parameters = (
                 np.where(invalid, p, p_safe) for p, p_safe in zip(self, other))
         else:
-            valid_parameters = self if invalid else other
+            valid_parameters = self if invalid else other  # TODO: Fairly certain this would not work
         return type(self)(*valid_parameters, log_norm=self.log_norm)
 
     def check_support(self) -> np.ndarray:
@@ -349,7 +304,7 @@ class AbstractMessage(ABC):
 
 
 class FixedMessage(AbstractMessage):
-    _log_base_measure = 0
+    log_base_measure = 0
 
     def __init__(self, value, log_norm=0.):
         self._value = value
@@ -429,7 +384,7 @@ class NormalMessage(AbstractMessage):
         eta1, eta2 = self.natural_parameters
         return - eta1 ** 2 / 4 / eta2 - np.log(-2 * eta2) / 2
 
-    _log_base_measure = - 0.5 * np.log(2 * np.pi)
+    log_base_measure = - 0.5 * np.log(2 * np.pi)
     _support = ((-np.inf, np.inf),)
     _parameter_support = ((-np.inf, np.inf), (0, np.inf))
 
@@ -512,7 +467,7 @@ class GammaMessage(AbstractMessage):
         )
         return special.gammaln(alpha) - alpha * np.log(beta)
 
-    _log_base_measure = 0.
+    log_base_measure = 0.
     _support = ((0, np.inf),)
     _parameter_support = ((0, np.inf), (0, np.inf))
 
