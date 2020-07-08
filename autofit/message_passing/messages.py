@@ -4,105 +4,19 @@ from functools import reduce
 from itertools import chain
 from operator import and_
 from typing import (
-    NamedTuple, Dict, Tuple, Optional, Union, Iterator
+    Dict, Tuple, Optional, Iterator
 )
 
 import numpy as np
-from scipy import stats, special
+from scipy import special
 from scipy.special import logsumexp
 
 from autofit.message_passing.utils import invpsilog
 
-MAX_REPR_SIZE = 10
 
-
-def _round(params, decimals=1):
-    return type(params)(*(np.round(x, decimals) for x in params))
-
-
-class NormalParams(NamedTuple):
-    mu: np.ndarray
-    sigma: np.ndarray
-
-    @property
-    def dist(self):
-        """return scipy normal dist of the parameters"""
-        return stats.norm(self.mu, self.sigma)
-
-    round = _round
-
-
-NormalParams.__doc__ = """NormalParams(mu, sigma)
-
-Standard parameters for a normal distribution with pdf
-
-f_N(x) = 1/sqrt(2 * pi * sigma**2) * exp(- (x - mu)**2 / (2 * sigma**2))
-
-conditions
-----------
-mu is real
-sigma > 0
-"""
-
-
-class GammaParams(NamedTuple):
-    alpha: np.ndarray
-    beta: np.ndarray
-
-    @property
-    def dist(self):
-        """return scipy gamma dist of the parameters"""
-        return stats.gamma(self.alpha, scale=1 / self.beta)
-
-    round = _round
-
-
-GammaParams.__doc__ = """GammaParams(alpha, beta)
-
-Standard parameters for a gamma distribution with PDF:
-
-f_G(x) = beta ** alpha / gamma(alpha) * x ** (alpha - 1) * exp(-beta * x)
-
-conditions
-----------
-alpha > 0
-beta > 0
-"""
-
-
-class NormalGammaParams(NamedTuple):
-    alpha: np.ndarray
-    beta: np.ndarray
-    mu: np.ndarray
-    lam: np.ndarray
-
-    round = _round
-
-
-NormalGammaParams.__doc__ = """NormalGammaParams(alpha, beta, mu, lam)
-
-Standard parameters for a normal gamma distribution with PDF:
-
-f_NG(x, t) = (
-    beta ** alpha / gamma(alpha) * sqrt(lam/(2 * pi)) 
-    * t ** (alpha - 1/2) * exp(-beta * t) * 
-    exp( - lam * t * (x - mu)**2 / 2))
-
-the PDF of the normal gamma can be expressed as the product of 
-a Normal and gamma distribution, 
-
-f_NG(x, t) = f_G(t; alpha, beta) * f_N(x, mu, 1/sqrt(lam * t))
-
-conditions
-----------
-alpha > 0
-beta > 0
-mu is real
-lam > 0
-"""
-
-DistributionParams = Union[
-    Tuple, NormalParams, GammaParams, NormalGammaParams]
+class Roundable(tuple):
+    def round(self, decimals=1):
+        return tuple(np.round(x, decimals) for x in self)
 
 
 class AbstractMessage(ABC):
@@ -113,7 +27,6 @@ class AbstractMessage(ABC):
     _dist = None
     _fixed = False
 
-    _Parameters: DistributionParams = staticmethod(lambda *x: tuple(x))
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
     _Projection = namedtuple(
@@ -153,11 +66,10 @@ class AbstractMessage(ABC):
     def scale(self):
         return self.variance ** 0.5
 
-    def __init__(self, *args, log_norm=0., **kwargs):
-        self.parameters = self._Parameters(*args, **kwargs)
+    def __init__(self, parameters, log_norm=0.):
         self.log_norm = log_norm
-        self._broadcast = np.broadcast(*self.parameters)
-        super().__init__()
+        self._broadcast = np.broadcast(*parameters)
+        self.parameters = Roundable(parameters)
 
     def __iter__(self):
         return iter(self.parameters)
@@ -188,6 +100,16 @@ class AbstractMessage(ABC):
     def from_natural_parameters(cls, parameters, **kwargs):
         args = cls.invert_natural_parameters(parameters)
         return cls(*args, **kwargs)
+
+    @classmethod
+    @abstractmethod
+    def invert_sufficient_statistics(cls, suff_stats):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def calc_sufficient_statistics(cls, params):
+        pass
 
     @classmethod
     def from_sufficient_statistics(cls, suff_stats, **kwargs):
@@ -262,24 +184,11 @@ class AbstractMessage(ABC):
         log_norm = other * self.log_norm
         return self.from_natural_parameters(new_params, log_norm=log_norm)
 
-    def __getattr__(self, item):
-        return getattr(
-            self.parameters,
-            item
-        )
-
     def __repr__(self):
-        params = self.parameters
-        if self.size > MAX_REPR_SIZE:
-            shapes = (", ".join(map(repr, np.shape(p))) for p in params)
-            names = ((type(p).__name__) for p in params)
-            params = self._Parameters(*(
-                f"{name}[{shape}]" for name, shape in zip(names, shapes)))
+        return f"{type(self).__name__}({self}"
 
-            param_str = "(".join(str(params).split("(")[1:])
-        else:
-            param_str = "(".join(repr(params).split("(")[1:])
-        return f"{type(self).__name__}({param_str}"
+    def __str__(self):
+        return ""
 
     def logpdf(self, x):
         if np.shape(x) == self.shape:
@@ -290,9 +199,9 @@ class AbstractMessage(ABC):
             return logbase + etaT - self.log_partition
         elif np.shape(x)[1:] == self.shape:
             return np.array([self.logpdf(x_) for x_ in x])
-        else:
-            raise ValueError(
-                f"shape of passed value {x.shape} does not match message shape {self.shape}")
+
+        raise ValueError(
+            f"shape of passed value {x.shape} does not match message shape {self.shape}")
 
     def pdf(self, x):
         return np.exp(self.logpdf(x))
@@ -556,10 +465,21 @@ class FixedMessage(AbstractMessage):
 
 class NormalMessage(AbstractMessage):
     _log_base_measure = - 0.5 * np.log(2 * np.pi)
-    _Parameters = NormalParams
     _support = ((-np.inf, np.inf),)
     _parameter_support = ((-np.inf, np.inf), (0, np.inf))
-    _default_params = NormalParams(0., 1.)
+
+    def __init__(
+            self,
+            mu=0.,
+            sigma=1.,
+            log_norm=0.
+    ):
+        self.mu = mu
+        self.sigma = sigma
+        super().__init__(
+            (mu, sigma),
+            log_norm=log_norm
+        )
 
     @staticmethod
     def calc_natural_parameters(mu, sigma):
@@ -571,7 +491,7 @@ class NormalMessage(AbstractMessage):
         eta1, eta2 = natural_parameters
         mu = - 0.5 * eta1 / eta2
         sigma = np.sqrt(- 0.5 / eta2)
-        return NormalMessage._Parameters(mu, sigma)
+        return mu, sigma
 
     @staticmethod
     def to_canonical_form(x):
@@ -604,11 +524,11 @@ class NormalMessage(AbstractMessage):
 
     @property
     def mean(self):
-        return self.parameters.mu
+        return self.mu
 
     @property
     def variance(self):
-        return self.parameters.sigma ** 2
+        return self.sigma ** 2
 
     def sample(self, n_samples, *args, **kwargs):
         x = np.random.randn(n_samples, *self.shape)
@@ -626,10 +546,23 @@ class NormalMessage(AbstractMessage):
 
 class GammaMessage(AbstractMessage):
     _log_base_measure = 0.
-    _Parameters = GammaParams
     _support = ((0, np.inf),)
     _parameter_support = ((0, np.inf), (0, np.inf))
-    _default_params = GammaParams(1., 1.)
+
+    def __init__(
+            self,
+            alpha=1.,
+            beta=1.,
+            log_norm=0.
+    ):
+        self.alpha = alpha
+        self.beta = beta
+        super().__init__(
+            parameters=[
+                alpha, beta
+            ],
+            log_norm=log_norm
+        )
 
     @staticmethod
     def calc_natural_parameters(alpha, beta):
@@ -638,7 +571,7 @@ class GammaMessage(AbstractMessage):
     @staticmethod
     def invert_natural_parameters(natural_parameters):
         eta1, eta2 = natural_parameters
-        return GammaMessage._Parameters(eta1 + 1, -eta2)
+        return eta1 + 1, -eta2
 
     @staticmethod
     def to_canonical_form(x):
@@ -648,7 +581,7 @@ class GammaMessage(AbstractMessage):
     def calc_log_partition(natural_parameters):
         alpha, beta = GammaMessage.invert_natural_parameters(
             natural_parameters)
-        return (special.gammaln(alpha) - alpha * np.log(beta))
+        return special.gammaln(alpha) - alpha * np.log(beta)
 
     @classmethod
     def calc_sufficient_statistics(cls, natural_parameters):
@@ -670,11 +603,11 @@ class GammaMessage(AbstractMessage):
 
     @property
     def mean(self):
-        return self.parameters.alpha / self.parameters.beta
+        return self.alpha / self.beta
 
     @property
     def variance(self):
-        return (self.parameters.alpha / self.parameters.beta ** 2)
+        return self.alpha / self.beta ** 2
 
     def __add__(self, other):
         a1, b1 = self.parameters
@@ -694,86 +627,6 @@ class GammaMessage(AbstractMessage):
         alpha = 1 + m ** 2 * V  # match variance
         beta = alpha / m  # match mean
         return cls(alpha, beta)
-
-
-class NormalGammaMessage(NormalMessage):
-    _Parameters = NormalGammaParams
-    _support = ((-np.inf, np.inf), (0, np.inf),)
-    _parameter_support = ((0, np.inf), (0, np.inf), (-np.inf, np.inf), (0, np.inf))
-    _HumanParameters = namedtuple(
-        "NormalGamma", "mean, variance, n_mean, n_variance")
-    _default_params = NormalGammaParams(1., 1., 0., 1.)
-
-    @staticmethod
-    def calc_natural_parameters(alpha, beta, mu, lam):
-        return np.array([
-            alpha - 0.5,
-            -beta - lam * mu ** 2 / 2,
-            lam * mu,
-            -lam / 2])
-
-    @staticmethod
-    def invert_natural_parameters(natural_parameters):
-        eta1, eta2, eta3, eta4 = natural_parameters
-        return (eta1 + 0.5,
-                -eta2 + eta3 ** 2 / 4 / eta4,
-                -eta3 / 2 / eta4,
-                -2 * eta4)
-
-    @staticmethod
-    def to_canonical_form(xt):
-        x, t = xt
-        return np.array([
-            np.log(t), t, t * x, t * x ** 2])
-
-    @classmethod
-    def calc_sufficient_statistics(cls, natural_parameters):
-        alpha, beta, mu, lam = cls.invert_natural_parameters(natural_parameters)
-        eta1, eta2, eta3, eta4 = natural_parameters
-
-        T1 = special.digamma(alpha) - np.log(beta)
-        T2 = alpha / beta
-        T3 = mu * alpha / beta
-        T4 = 1 / lam + mu * T3
-        return np.array([T1, T2, T3, T4])
-
-    @classmethod
-    def invert_sufficient_statistics(cls, suff_stats):
-        logT, T, TX, TX2 = suff_stats
-
-        mu = TX / T
-        lam = (TX2 - mu * TX) ** -1
-        alpha = invpsilog(logT - np.log(T))
-        beta = alpha / T
-        return cls.calc_natural_parameters(alpha, beta, mu, lam)
-
-    @staticmethod
-    def calc_log_partition(eta):
-        a, b, mu, lam = NormalGammaMessage.invert_natural_parameters(eta)
-        return (
-                special.gammaln(a) - 0.5 * np.log(lam) - a * np.log(b))
-
-    @abstractmethod
-    def from_mode(self, mode, covariance, **kwargs):
-        raise NotImplementedError
-
-    @property
-    def mean(self):
-        alpha, beta, mu, lam = self.parameters
-        return np.array([mu, np.sqrt(beta / alpha)])
-
-    @property
-    def variance(self):
-        alpha, beta, mu, lam = self.parameters
-        return np.array([beta / lam / (alpha - 1), alpha / beta ** 2])
-
-    def sample(self, n_samples):
-        alpha, beta, mu, lam = self.parameters
-        gamma = stats.gamma(alpha, scale=1 / beta)
-        t = [gamma.rvs() for _ in range(n_samples)]
-        x = [stats.norm.rvs(loc=mu, scale=(lam * t_) ** -0.5)
-             for t_ in t]
-        return np.c_[x, t].T
 
 
 def map_dists(dists: Dict[str, AbstractMessage],
