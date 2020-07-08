@@ -248,6 +248,25 @@ class FactorGraph(AbstractNode):
             *args: np.ndarray,
             **kwargs: np.ndarray
     ) -> FactorValue:
+        """
+        Call each function in the graph in the correct order, adding the logarithmic results.
+
+        Deterministic values computed in initial factor calls are added to a dictionary and
+        passed to subsequent factor calls.
+
+        Parameters
+        ----------
+        args
+            Positional arguments
+        kwargs
+            Keyword arguments
+
+        Returns
+        -------
+        Object comprising the log value of the computation and a dictionary containing
+        the values of deterministic variables.
+        """
+
         # generate set of factors to call, these are indexed by the
         # missing deterministic variables that need to be calculated
         log_value = 0.
@@ -282,6 +301,10 @@ class FactorGraph(AbstractNode):
         return FactorValue(log_value, det_values)
 
     def __mul__(self, other: AbstractNode) -> "FactorGraph":
+        """
+        Combine this object with another factor node or graph, creating
+        a new graph that comprises all of the factors of the two objects.
+        """
         factors = self.factors
 
         if isinstance(other, FactorGraph):
