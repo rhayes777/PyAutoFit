@@ -7,8 +7,9 @@ from typing import (
 import numpy as np
 
 from autofit.message_passing.factor_graphs import (
-    FactorNode, FactorGraph
+    FactorNode
 )
+from autofit.message_passing.factor_graphs.graph import FactorGraph
 from .messages import (
     AbstractMessage, map_dists
 )

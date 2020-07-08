@@ -393,7 +393,7 @@ class FactorNode(AbstractNode):
             **{n: self._variables[name] for n, name in self._kwargs.items()})
 
     def __mul__(self, other):
-        from autofit.message_passing.factor_graphs import FactorGraph
+        from autofit.message_passing.factor_graphs.graph import FactorGraph
         return FactorGraph([self]) * other
 
     def __repr__(self) -> str:
