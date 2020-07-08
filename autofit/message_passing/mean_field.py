@@ -1,7 +1,7 @@
 from collections import ChainMap
 from itertools import chain
 from typing import (
-    Dict, Tuple, Collection, Optional, Type, NamedTuple
+    Dict, Tuple, Optional, Type, NamedTuple
 )
 
 import numpy as np
@@ -11,10 +11,10 @@ from autofit.message_passing.factor_graphs import (
 )
 from autofit.message_passing.factor_graphs.graph import FactorGraph
 from autofit.message_passing.messages import FixedMessage
+from autofit.message_passing.messages.abstract import AbstractMessage
 from .messages import (
     map_dists
 )
-from autofit.message_passing.messages.abstract import AbstractMessage
 from .utils import prod, add_arrays
 
 VariableFactorDist = Dict[str, Dict[FactorNode, AbstractMessage]]
@@ -89,8 +89,11 @@ def project_on_to_factor_approx(
                 model_dist[v] = q_model
 
     projection = FactorApproximation(
-        *factor_approx[:3], factor_dist=factor_projection,
-        model_dist=model_dist, log_norm=log_norm)
+        *factor_approx[:3],
+        factor_dist=factor_projection,
+        model_dist=model_dist,
+        log_norm=log_norm
+    )
     status = Status(success, messages)
 
     return projection, status
@@ -108,7 +111,8 @@ class FactorApproximation(NamedTuple):
     def all_cavity_dist(self):
         return ChainMap(
             self.cavity_dist,
-            self.deterministic_dist)
+            self.deterministic_dist
+        )
 
     @property
     def is_valid(self) -> bool:
@@ -135,16 +139,19 @@ class FactorApproximation(NamedTuple):
 
     def __repr__(self):
         # TODO make this nicer
-        return f"{(type(self).__name__)}({self.factor}, ...)"
+        return f"{type(self).__name__}({self.factor}, ...)"
 
 
 class MeanFieldApproximation:
     '''
     '''
 
-    def __init__(self, factor_graph: FactorGraph,
-                 variable_factor_dist: VariableFactorDist,
-                 factor_evidence: Optional[Dict[FactorNode, float]] = None):
+    def __init__(
+            self,
+            factor_graph: FactorGraph,
+            variable_factor_dist: VariableFactorDist,
+            factor_evidence: Optional[Dict[FactorNode, float]] = None
+    ):
         self._factor_graph = factor_graph
         self._variable_factor_dist = variable_factor_dist
         if factor_evidence is None:
@@ -221,14 +228,13 @@ class MeanFieldApproximation:
 
     def _variable_cavity_dist(self, variable: str,
                               cavity_factor: FactorNode
-                              ) -> Collection[AbstractMessage]:
+                              ) -> Optional[AbstractMessage]:
         dists = [dist for factor, dist in
                  self._variable_factor_dist[variable].items()
                  if factor != cavity_factor]
         if dists:
             return prod(dists)
-        else:
-            return None
+        return None
 
     def factor_approximation(self, factor: FactorNode) -> FactorApproximation:
         var_cavity = ((v, self._variable_cavity_dist(v, factor))
@@ -263,18 +269,6 @@ class MeanFieldApproximation:
         return sum(
             prod(factors.values()).logpdf(kwargs[v])
             for v, factors in self._variable_factor_dist.items())
-
-    def step(self, factor: FactorNode, sampler: "AbstractSampler",
-             delta: float = 0.5,
-             **kwargs
-             ) -> Tuple["MeanFieldApproximation", Status]:
-        factor_approx, sample = self.sample_factor(factor, sampler, **kwargs)
-        projection, status = factor_approx.project(sample, delta=delta)
-        return self.project(projection, sample, status=status)
-
-    @property
-    def evidence(self) -> float:
-        return sum(self._factor_evidence.values())
 
     @property
     def is_valid(self) -> bool:
