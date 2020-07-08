@@ -13,6 +13,13 @@ def make_norm():
 
 
 @pytest.fixture(
+    autouse=True
+)
+def set_seed():
+    np.random.seed(1)
+
+
+@pytest.fixture(
     name="prior_norm"
 )
 def make_prior_norm():

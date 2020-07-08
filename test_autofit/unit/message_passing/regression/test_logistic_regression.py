@@ -18,13 +18,6 @@ def make_likelihood():
 
 
 @pytest.fixture(
-    autouse=True
-)
-def set_seed():
-    np.random.seed(1)
-
-
-@pytest.fixture(
     name="model"
 )
 def make_model(
