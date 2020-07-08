@@ -33,9 +33,9 @@ class AbstractMessage(ABC):
         ["sufficient_statistics", "variance", "effective_sample_size",
          "log_norm", "log_norm_var"])
 
-    @staticmethod
+    @property
     @abstractmethod
-    def calc_natural_parameters(*parameters, **kwargs):
+    def natural_parameters(self):
         pass
 
     @staticmethod
@@ -48,9 +48,9 @@ class AbstractMessage(ABC):
     def to_canonical_form(x):
         pass
 
-    @staticmethod
+    @property
     @abstractmethod
-    def calc_log_partition(natural_parameters):
+    def log_partition(self):
         pass
 
     @property
@@ -69,7 +69,6 @@ class AbstractMessage(ABC):
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
         self.parameters = Roundable(parameters)
-        self.natural_parameters = self.calc_natural_parameters(*self.parameters)
 
     def __iter__(self):
         return iter(self.parameters)
@@ -115,13 +114,6 @@ class AbstractMessage(ABC):
     def from_sufficient_statistics(cls, suff_stats, **kwargs):
         natural_params = cls.invert_sufficient_statistics(suff_stats)
         return cls.from_natural_parameters(natural_params, **kwargs)
-
-    @property
-    def log_partition(self):
-        if self._log_partition is None:
-            self._log_partition = self.calc_log_partition(
-                self.natural_parameters)
-        return self._log_partition
 
     @property
     def sufficient_statistics(self):
@@ -312,17 +304,10 @@ class AbstractMessage(ABC):
                 for dist in elem:
                     yield dist
 
-    def rvs(self, *args, **kwargs):
-        return self.dist.rvs(*args, **kwargs)
-
     def sample(self, n_samples, *args, **kwargs):
         shape = self.shape
         return np.array(
             [self.rvs(*args, **kwargs).reshape(shape) for _ in range(n_samples)])
-
-    @classmethod
-    def default(cls) -> 'AbstractMessage':
-        return cls(*cls._default_params)
 
     def update_invalid(self, other: 'AbstractMessage') -> 'AbstractMessage':
         invalid = reduce(
@@ -386,15 +371,16 @@ class FixedMessage(AbstractMessage):
     _log_base_measure = 0
     _fixed = True
 
-    def __init__(self, parameters, log_norm=0.):
+    def __init__(self, value, log_norm=0.):
+        self._value = value
         super().__init__(
-            (parameters,),
+            (value,),
             log_norm=log_norm
         )
 
-    @staticmethod
-    def calc_natural_parameters(args):
-        return args
+    @property
+    def natural_parameters(self):
+        return self.parameters
 
     @staticmethod
     def invert_natural_parameters(natural_parameters):
@@ -404,8 +390,8 @@ class FixedMessage(AbstractMessage):
     def to_canonical_form(x):
         return x
 
-    @staticmethod
-    def calc_log_partition(natural_parameters):
+    @property
+    def log_partition(self):
         return 0.
 
     @classmethod
@@ -430,7 +416,7 @@ class FixedMessage(AbstractMessage):
 
     @property
     def mean(self):
-        return self.parameters[0]
+        return self._value
 
     @property
     def variance(self):
@@ -458,6 +444,11 @@ class FixedMessage(AbstractMessage):
 
 
 class NormalMessage(AbstractMessage):
+    @property
+    def log_partition(self):
+        eta1, eta2 = self.natural_parameters
+        return - eta1 ** 2 / 4 / eta2 - np.log(-2 * eta2) / 2
+
     _log_base_measure = - 0.5 * np.log(2 * np.pi)
     _support = ((-np.inf, np.inf),)
     _parameter_support = ((-np.inf, np.inf), (0, np.inf))
@@ -473,6 +464,13 @@ class NormalMessage(AbstractMessage):
         super().__init__(
             (mu, sigma),
             log_norm=log_norm
+        )
+
+    @property
+    def natural_parameters(self):
+        return self.calc_natural_parameters(
+            self.mu,
+            self.sigma
         )
 
     @staticmethod
@@ -491,11 +489,6 @@ class NormalMessage(AbstractMessage):
     def to_canonical_form(x):
         return np.array([x, x ** 2])
 
-    @staticmethod
-    def calc_log_partition(natural_parameters):
-        eta1, eta2 = natural_parameters
-        return (- eta1 ** 2 / 4 / eta2 - np.log(-2 * eta2) / 2)
-
     @classmethod
     def calc_sufficient_statistics(cls, natural_parameters):
         eta1, eta2 = natural_parameters
@@ -510,13 +503,6 @@ class NormalMessage(AbstractMessage):
         return cls.calc_natural_parameters(m1, sigma)
 
     @property
-    def dist(self):
-        if self._dist is None:
-            self._dist = self.parameters.dist
-
-        return self._dist
-
-    @property
     def mean(self):
         return self.mu
 
@@ -528,9 +514,9 @@ class NormalMessage(AbstractMessage):
         x = np.random.randn(n_samples, *self.shape)
         mu, sigma = self.parameters
         if self.shape:
-            return (x * sigma[None, ...] + mu[None, ...])
-        else:
-            return (x * sigma + mu)
+            return x * sigma[None, ...] + mu[None, ...]
+
+        return x * sigma + mu
 
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: np.ndarray = 1., **kwargs):
@@ -539,6 +525,13 @@ class NormalMessage(AbstractMessage):
 
 
 class GammaMessage(AbstractMessage):
+    @property
+    def log_partition(self):
+        alpha, beta = GammaMessage.invert_natural_parameters(
+            self.natural_parameters
+        )
+        return special.gammaln(alpha) - alpha * np.log(beta)
+
     _log_base_measure = 0.
     _support = ((0, np.inf),)
     _parameter_support = ((0, np.inf), (0, np.inf))
@@ -558,6 +551,13 @@ class GammaMessage(AbstractMessage):
             log_norm=log_norm
         )
 
+    @property
+    def natural_parameters(self):
+        return self.calc_natural_parameters(
+            self.alpha,
+            self.beta
+        )
+
     @staticmethod
     def calc_natural_parameters(alpha, beta):
         return np.array([alpha - 1, - beta])
@@ -570,12 +570,6 @@ class GammaMessage(AbstractMessage):
     @staticmethod
     def to_canonical_form(x):
         return np.array([np.log(x), x])
-
-    @staticmethod
-    def calc_log_partition(natural_parameters):
-        alpha, beta = GammaMessage.invert_natural_parameters(
-            natural_parameters)
-        return special.gammaln(alpha) - alpha * np.log(beta)
 
     @classmethod
     def calc_sufficient_statistics(cls, natural_parameters):
@@ -590,10 +584,6 @@ class GammaMessage(AbstractMessage):
         alpha = invpsilog(logX - np.log(X))
         beta = alpha / X
         return cls.calc_natural_parameters(alpha, beta)
-
-    @property
-    def dist(self):
-        return self.parameters.dist
 
     @property
     def mean(self):
