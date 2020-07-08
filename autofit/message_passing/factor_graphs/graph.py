@@ -104,11 +104,11 @@ class FactorGraph(AbstractNode):
         factors
             Nodes wrapping individual factors in a model
         """
-        self._variables = dict()
-        self._factors = tuple(factors)
-
         self._name = ".".join(f.name for f in factors)
 
+        self._factors = tuple(factors)
+
+        self._variables = dict()
         self._deterministic_variables = dict()
 
         for f in self._factors:
@@ -148,6 +148,10 @@ class FactorGraph(AbstractNode):
             *_args,
             **_kwargs
         )
+
+    @property
+    def deterministic_variables(self):
+        return self._deterministic_variables
 
     def broadcast_plates(
             self,
@@ -222,7 +226,7 @@ class FactorGraph(AbstractNode):
             new_variables = {}
             for factor in factors:
                 if isinstance(factor, DeterministicFactorNode):
-                    det_vars = factor._deterministic_variables
+                    det_vars = factor.deterministic_variables
                 else:
                     det_vars = {}
 
@@ -277,7 +281,7 @@ class FactorGraph(AbstractNode):
 
         return FactorValue(log_value, det_values)
 
-    def __mul__(self, other: FactorNode) -> "FactorGraph":
+    def __mul__(self, other: AbstractNode) -> "FactorGraph":
         factors = self.factors
 
         if isinstance(other, FactorGraph):

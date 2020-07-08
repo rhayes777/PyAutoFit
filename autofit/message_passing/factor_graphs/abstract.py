@@ -41,6 +41,11 @@ class AbstractNode(ABC):
 
     @property
     @abstractmethod
+    def deterministic_variables(self):
+        return self._deterministic_variables
+
+    @property
+    @abstractmethod
     def name(self) -> str:
         """
         A name for this object
