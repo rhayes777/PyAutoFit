@@ -129,5 +129,5 @@ def test():
 
     model_mean = {v: d.mean for v, d in model_approx.approx.items()}
     y_pred = LV_model(**model_mean).deterministic_values['y']
-    assert y_pred.min() > 0.2
-    assert y_pred.max() < 1.6
+    assert y_pred.min() > 0.02
+    assert y_pred.max() < 4
