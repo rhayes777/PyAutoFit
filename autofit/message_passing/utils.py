@@ -1,6 +1,5 @@
-from operator import mul
 from functools import reduce
-from collections import namedtuple
+from operator import mul
 from typing import (
     Iterable, Tuple, List, Optional, Any, TypeVar, Callable,
     Dict
@@ -95,7 +94,7 @@ def jupyter_word_count(filepath, as_version=2):
     return word_count
 
 
-def add_arrays(*arrays: Tuple[np.ndarray]) -> np.ndarray:
+def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     """Sums over broadcasting multidimensional arrays
     whilst preserving the total sum
 

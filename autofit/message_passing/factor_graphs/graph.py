@@ -1,5 +1,5 @@
 from collections import Counter, defaultdict
-from typing import Tuple, Dict, Collection
+from typing import Tuple, Dict, Collection, List
 
 import numpy as np
 
@@ -96,25 +96,58 @@ class FactorGraph(AbstractNode):
             self,
             factors: Collection[FactorNode],
     ):
-        super().__init__()
+        """
+        A graph relating factors
+
+        Parameters
+        ----------
+        factors
+            Nodes wrapping individual factors in a model
+        """
+        self._variables = dict()
         self._factors = tuple(factors)
+
         self._name = ".".join(f.name for f in factors)
 
-        self._variables = dict()
         self._deterministic_variables = dict()
 
         for f in self._factors:
-            self._variables.update(
-                f.variables
-            )
             self._deterministic_variables.update(
                 f.deterministic_variables
+            )
+            self._variables.update(
+                f.variables
             )
 
         self._factor_all_variables = {
             f: f.all_variables for f in self._factors}
 
+        self._call_sequence = self._get_call_sequence()
+
         self._validate()
+
+        factor_args = [
+            factor._args
+            for factor
+            in self.factors
+        ]
+
+        max_len = min(map(len, factor_args))
+        _args = tuple(
+            factor_args[0][i] for i in range(max_len)
+            if len(set(arg[i] for arg in factor_args)) == 1
+        )
+        _kwargs = {
+            k: variable
+            for k, variable
+            in self.variables.items()
+            if variable not in _args
+        }
+
+        super().__init__(
+            *_args,
+            **_kwargs
+        )
 
     def broadcast_plates(
             self,
@@ -142,7 +175,12 @@ class FactorGraph(AbstractNode):
     def name(self):
         return self._name
 
-    def _validate(self) -> None:
+    def _validate(self):
+        """
+        Raises
+        ------
+        If there is an inconsistency with this graph
+        """
         det_var_counts = ", ".join(
             v for v, c in Counter(
                 v for f in self.factors
@@ -155,40 +193,24 @@ class FactorGraph(AbstractNode):
                 "multiple factors"
             )
 
-        self._call_sequence, variables = self._get_call_sequence()
-        self._all_factors = tuple(sum(self._call_sequence, []))
-
-        diff = variables.keys() ^ self._variables.keys()
-        if diff:
-            raise ValueError(
-                "Improper FactorGraph? unused variables: "
-                + ", ".join(diff)
-            )
-
-    def _get_call_sequence(self):
-        """Calculates an appropriate call sequence for the factor graph
-
-        each set of calls can be evaluated independently in parallel
-        """
-        variables = {
+    @property
+    def variables(self):
+        return {
             v: self._variables[v] for v in
-            (self._variables.keys() - self._deterministic_variables.keys())}
-
-        factor_args = [factor._args for factor in self.factors]
-        max_len = min(map(len, factor_args))
-        self._args = tuple(
-            factor_args[0][i] for i in range(max_len)
-            if len(set(arg[i] for arg in factor_args)) == 1)
-        self._kwargs = {
-            k: variable
-            for k, variable
-            in variables.items()
-            if variable not in self._args
+            (self._variables.keys() - self._deterministic_variables.keys())
         }
 
+    def _get_call_sequence(self) -> List[List[FactorNode]]:
+        """
+        Compute the order in which the factors must be evaluated. This is done by checking whether
+        all variables required to call a factor are present in the set of variables encapsulated
+        by all factors, not including deterministic variables.
+
+        Deterministic variables must be computed before the dependent factors can be computed.
+        """
         call_sets = defaultdict(list)
         for factor in self.factors:
-            missing_vars = frozenset(factor.variables_difference(**variables))
+            missing_vars = frozenset(factor.variables_difference(**self.variables))
             call_sets[missing_vars].append(factor)
 
         call_sequence = []
@@ -215,11 +237,13 @@ class FactorGraph(AbstractNode):
                     factors = call_sets.pop(missing)
                     call_sets[missing.difference(new_variables)].extend(factors)
 
-            variables.update(new_variables)
-        return call_sequence, variables
+        return call_sequence
 
-    def __call__(self, *args: Tuple[np.ndarray, ...],
-                 **kwargs: Dict[str, np.ndarray]) -> FactorValue:
+    def __call__(
+            self,
+            *args: np.ndarray,
+            **kwargs: np.ndarray
+    ) -> FactorValue:
         # generate set of factors to call, these are indexed by the
         # missing deterministic variables that need to be calculated
         log_value = 0.
@@ -228,16 +252,19 @@ class FactorGraph(AbstractNode):
 
         n_args = len(args)
         if n_args > len(self._args):
-            raise TypeError(
+            raise ValueError(
                 f"too many arguments passed, must pass {len(self._args)} arguments, "
-                f"factor graph call signature: {self.call_signature}")
+                f"factor graph call signature: {self.call_signature}"
+            )
 
         missing = set(self.kwarg_names) - variables.keys() - set(self.arg_names[:n_args])
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)
-            raise TypeError(f"{self} missing {n_miss} arguments: {missing_str}"
-                            f"factor graph call signature: {self.call_signature}")
+            raise ValueError(
+                f"{self} missing {n_miss} arguments: {missing_str}"
+                f"factor graph call signature: {self.call_signature}"
+            )
 
         for calls in self._call_sequence:
             # TODO parallelise this part?
