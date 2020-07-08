@@ -88,12 +88,7 @@ class AbstractMessage(ABC):
 
     @classmethod
     @abstractmethod
-    def invert_sufficient_statistics(cls, suff_stats):
-        pass
-
-    @property
-    @abstractmethod
-    def sufficient_statistics(self):
+    def invert_sufficient_statistics(cls, sufficient_statistics):
         pass
 
     @classmethod
@@ -329,10 +324,6 @@ class FixedMessage(AbstractMessage):
     def log_partition(self):
         return 0.
 
-    @property
-    def sufficient_statistics(self):
-        return self.natural_parameters
-
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         return suff_stats
@@ -424,13 +415,6 @@ class NormalMessage(AbstractMessage):
     def to_canonical_form(x):
         return np.array([x, x ** 2])
 
-    @property
-    def sufficient_statistics(self):
-        eta1, eta2 = self.natural_parameters
-        T1 = -eta1 / 2 / eta2
-        T2 = eta1 ** 2 / 4 / eta2 - 0.5 / eta2
-        return np.array([T1, T2])
-
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
@@ -505,15 +489,6 @@ class GammaMessage(AbstractMessage):
     @staticmethod
     def to_canonical_form(x):
         return np.array([np.log(x), x])
-
-    @property
-    def sufficient_statistics(self):
-        alpha, beta = self.invert_natural_parameters(
-            self.natural_parameters
-        )
-        logX = special.digamma(alpha) - np.log(beta)
-        X = alpha / beta
-        return np.array([logX, X])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
