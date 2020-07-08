@@ -3,6 +3,7 @@ from operator import sub
 import numpy as np
 import pytest
 
+
 from autofit import message_passing as mp
 
 
@@ -70,14 +71,6 @@ def make_flat_compound(
     g = plus == y
     phi = mp.Factor(log_phi)(y)
     return phi * g * sigmoid
-
-
-def test_implicit_deterministic(
-        plus,
-        x
-):
-    result = mp.Factor(log_phi)(mp.Factor(plus_two)(x))
-    assert len(result._deterministic_variables) == 1
 
 
 class TestFactorGraph:
