@@ -20,11 +20,8 @@ class Roundable(tuple):
 
 
 class AbstractMessage(ABC):
-    _log_partition: Optional[np.ndarray] = None
     _sufficient_statistics: Optional[np.ndarray] = None
     _log_base_measure = NotImplemented
-    _dist = None
-    _fixed = False
 
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
@@ -336,14 +333,6 @@ class AbstractMessage(ABC):
         return (np.isfinite(self.natural_parameters).all() and
                 np.all(self.check_support()))
 
-    @property
-    def is_fixed(self):
-        return self._fixed
-
-    @property
-    def is_free(self):
-        return ~ self.is_fixed
-
     @staticmethod
     def _get_mean_variance(mean: np.ndarray, covariance: np.ndarray
                            ) -> Tuple[np.ndarray, np.ndarray]:
@@ -369,7 +358,6 @@ class AbstractMessage(ABC):
 
 class FixedMessage(AbstractMessage):
     _log_base_measure = 0
-    _fixed = True
 
     def __init__(self, value, log_norm=0.):
         self._value = value

@@ -10,6 +10,7 @@ from autofit.message_passing.factor_graphs import (
     FactorNode
 )
 from autofit.message_passing.factor_graphs.graph import FactorGraph
+from autofit.message_passing.messages import FixedMessage
 from .messages import (
     AbstractMessage, map_dists
 )
@@ -43,7 +44,7 @@ def project_on_to_factor_approx(
     log_norm = 0.
     for v, q_fit in model_dist.items():
         q_cavity = factor_approx.all_cavity_dist.get(v)
-        if q_fit.is_fixed:
+        if isinstance(q_fit, FixedMessage):
             factor_projection[v] = q_fit
         elif q_fit.is_valid:
             if q_cavity:

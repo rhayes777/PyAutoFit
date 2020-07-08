@@ -5,10 +5,8 @@ import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
 
 from autofit.message_passing.factor_graphs import FactorNode
-from .mean_field import \
-    (
-    FactorApproximation, MeanFieldApproximation, Status
-)
+from autofit.message_passing.messages import FixedMessage
+from .mean_field import FactorApproximation, MeanFieldApproximation, Status
 from .utils import propagate_uncertainty, FlattenArrays
 
 
@@ -53,7 +51,7 @@ class OptFactor:
         bounds = {}
         for v in factor_approx.factor.variables:
             dist = factor_approx.model_dist[v]
-            if dist.is_fixed:
+            if isinstance(dist, FixedMessage):
                 fixed_kws[v] = dist.mean
             else:
                 kwargs[v] = dist.shape
@@ -61,14 +59,6 @@ class OptFactor:
 
         return cls(factor_approx, fixed_kws=fixed_kws, sign=-1,
                    bounds=bounds, **kwargs)
-
-    def gradient(self, args, _eps=1e06):
-        params = self.param_shapes.unflatten(arr)
-        args = tuple(params)
-        params.update(self.fixed_kws)
-        grad, _ = self.factor_approx.factor.jacobian(
-            *args, _eps=_eps, _calc_deterministic=False, **params)
-        return self.param_shapes.flatten(**grad)
 
     def __call__(self, args):
         params = self.param_shapes.unflatten(args)
@@ -235,7 +225,7 @@ class LeastSquaresOpt:
 
         for v in factor_approx.factor.variables:
             dist = factor_approx.model_dist[v]
-            if dist.is_fixed:
+            if isinstance(dist, FixedMessage):
                 fixed_kws[v] = dist.mean
             else:
                 param_shapes[v] = dist.shape
@@ -247,7 +237,8 @@ class LeastSquaresOpt:
         if opt_only is None:
             opt_only = tuple(
                 v for v, d in factor_approx.all_cavity_dist.items()
-                if not d.is_fixed)
+                if not isinstance(d, FixedMessage)
+            )
 
         self.opt_only = opt_only
         self.resid_means = {
