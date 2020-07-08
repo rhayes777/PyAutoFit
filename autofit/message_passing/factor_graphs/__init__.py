@@ -7,9 +7,9 @@ import numpy as np
 
 from autofit.message_passing.factor_graphs.abstract import AbstractNode
 from autofit.message_passing.factor_graphs.abstract import AbstractNode
-from autofit.message_passing.factor_graphs.variable import Plate, Variable
 from autofit.message_passing.factor_graphs.factor import FactorNode, FactorValue, Factor
 from autofit.message_passing.factor_graphs.numerical import numerical_jacobian
+from autofit.message_passing.factor_graphs.variable import Plate, Variable
 from autofit.message_passing.utils import add_arrays
 
 
@@ -142,7 +142,7 @@ class FactorGraph(AbstractNode):
 
         call_sets = defaultdict(list)
         for factor in self.factors:
-            missing_vars = frozenset(factor._variables_difference(**variables))
+            missing_vars = frozenset(factor.variables_difference(**variables))
             call_sets[missing_vars].append(factor)
 
         call_sequence = []

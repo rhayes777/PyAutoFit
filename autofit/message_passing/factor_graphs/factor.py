@@ -404,18 +404,41 @@ class FactorNode(AbstractNode):
 
     @property
     def variables(self) -> Dict[str, Variable]:
+        """
+        Dictionary mapping the names of variables to those variables
+        """
         return self._variables
 
     @property
     def deterministic_variables(self) -> Dict[str, Variable]:
+        """
+        Dictionary mapping the names of deterministic variables to those variables
+        """
         return self._deterministic_variables
 
     @property
     def name(self):
+        """
+        The name of this factor
+        """
         return self._factor.name
 
-    def _variables_difference(self, *args: Tuple[np.ndarray, ...],
-                              **kwargs: Dict[str, np.ndarray]
-                              ) -> Set[str]:
+    def variables_difference(
+            self,
+            *args: np.ndarray,
+            **kwargs: np.ndarray
+    ) -> Set[str]:
+        """
+        Compute which variables are missing when determining the sequence of calls
+
+        Parameters
+        ----------
+        args
+        kwargs
+
+        Returns
+        -------
+
+        """
         args = self.arg_names[:len(args)]
         return (self._variables.keys() - args).difference(kwargs)
