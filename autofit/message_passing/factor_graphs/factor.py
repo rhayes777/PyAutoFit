@@ -388,9 +388,11 @@ class FactorNode(AbstractNode):
             other = [other]
         from autofit.message_passing.factor_graphs import DeterministicFactorNode
         return DeterministicFactorNode(
-            self._factor, other,
-            *(self._variables[name] for name in self.arg_names),
-            **{n: self._variables[name] for n, name in self._kwargs.items()})
+            self._factor,
+            other,
+            *self._args,
+            **self._kwargs
+        )
 
     def __mul__(self, other):
         from autofit.message_passing.factor_graphs.graph import FactorGraph
