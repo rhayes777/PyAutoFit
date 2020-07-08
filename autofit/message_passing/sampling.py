@@ -81,9 +81,13 @@ class AbstractSampler(ABC):
 
 
 class ImportanceSampler(AbstractSampler):
-    def __init__(self,
-                 n_samples: int = 200, n_resample: int = 100,
-                 min_n_eff: int = 100, max_samples: int = 1000):
+    def __init__(
+            self,
+            n_samples: int = 200,
+            n_resample: int = 100,
+            min_n_eff: int = 100,
+            max_samples: int = 1000
+    ):
 
         self.params = dict(
             n_samples=n_samples, n_resample=n_resample,
@@ -119,8 +123,7 @@ class ImportanceSampler(AbstractSampler):
         samples = self._history[factor].samples
         if samples:
             return samples[-1]
-        else:
-            return None
+        return None
 
     @staticmethod
     def _weight_samples(
@@ -150,9 +153,14 @@ class ImportanceSampler(AbstractSampler):
         assert np.isfinite(log_weights).all()
 
         return SamplingResult(
-            samples=samples, det_variables=det_vars, log_weights=log_weights,
-            log_factor=log_factor, log_measure=log_measure,
-            log_propose=log_propose, n_samples=n_samples)
+            samples=samples,
+            det_variables=det_vars,
+            log_weights=log_weights,
+            log_factor=log_factor,
+            log_measure=log_measure,
+            log_propose=log_propose,
+            n_samples=n_samples
+        )
 
     def reweight_sample(self,
                         factor_approx: "FactorApproximation",
@@ -173,8 +181,11 @@ class ImportanceSampler(AbstractSampler):
 
         return ess > self.params['min_n_eff'] or n > self.params['max_samples']
 
-    def __call__(self, factor_approx: "FactorApproximation",
-                 force_sample: bool = True) -> SamplingResult:
+    def __call__(
+            self,
+            factor_approx: "FactorApproximation",
+            force_sample: bool = True
+    ) -> SamplingResult:
         """
         """
         samples = None
@@ -227,7 +238,8 @@ def project_model(
         factor: FactorNode,
         sampler: AbstractSampler,
         delta: float = 0.5,
-        **kwargs) -> Tuple[MeanFieldApproximation, Status]:
+        **kwargs
+) -> Tuple[MeanFieldApproximation, Status]:
     """
     """
     factor_approx = model_approx.factor_approximation(factor)

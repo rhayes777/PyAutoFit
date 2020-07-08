@@ -1,8 +1,6 @@
 import numpy as np
 import pytest
 
-import autofit.message_passing.messages.fixed
-import autofit.message_passing.messages.normal
 from autofit import message_passing as mp
 
 
@@ -17,6 +15,13 @@ def make_likelihood():
         return y * logp + (1 - y) * log1p
 
     return likelihood
+
+
+@pytest.fixture(
+    autouse=True
+)
+def set_seed():
+    np.random.seed(1)
 
 
 @pytest.fixture(
@@ -53,21 +58,21 @@ def make_model_approx(
 
     return mp.MeanFieldApproximation.from_kws(
         model,
-        a=autofit.message_passing.messages.normal.NormalMessage.from_mode(
+        a=mp.NormalMessage.from_mode(
             np.zeros((n_features, n_dims)), 10),
-        b=autofit.message_passing.messages.normal.NormalMessage.from_mode(
+        b=mp.NormalMessage.from_mode(
             np.zeros(n_dims), 10),
-        z=autofit.message_passing.messages.normal.NormalMessage.from_mode(
+        z=mp.NormalMessage.from_mode(
             np.zeros((n_obs, n_dims)), 10),
-        x=autofit.message_passing.messages.fixed.FixedMessage(x),
-        y=autofit.message_passing.messages.fixed.FixedMessage(y))
+        x=mp.FixedMessage(x),
+        y=mp.FixedMessage(y)
+    )
 
 
 def test_laplace(
         model,
         model_approx
 ):
-    np.random.seed(1)
     history = {}
     n_iter = 1
 
@@ -84,7 +89,7 @@ def test_laplace(
     q_b = model_approx['b']
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
-    assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
+    assert q_a.sigma[0][0] == pytest.approx(0.09, rel=1)
 
     assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
@@ -94,7 +99,6 @@ def test_importance_sampling(
         model,
         model_approx
 ):
-    np.random.seed(1)
     sampler = mp.ImportanceSampler(n_samples=500)
     history = {}
 
@@ -102,8 +106,12 @@ def test_importance_sampling(
         for factor in model.factors:
             # We have reduced the entire EP step into a single function
             model_approx, status = mp.sampling.project_model(
-                model_approx, factor, sampler,
-                force_sample=False, delta=1.)
+                model_approx,
+                factor,
+                sampler,
+                force_sample=False,
+                delta=1.
+            )
 
             # save and print current approximation
             history[i, factor] = model_approx
