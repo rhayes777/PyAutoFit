@@ -9,10 +9,9 @@ the `autofit workspace <https://github.com/Jammy2211/autofit_workspace>`_.
 The lectures are provided as Jupyter notebooks, and they can be browsed on this readthedocs. Of course, I'd recommend
 you do them on your own computer by installation **PyAutoFit** and downloading the notebooks.
 
-The lectures consists of 1 chapter (more chapters are planned in the future):
+The lectures consist of 1 chapter (more chapters are planned in the future):
 
-**Introduction**: How to write a **PyAutoFit** project using the *phase* API to exploit
-                  **PyAutoFits**'s advanced modeling features.
+**Introduction**: How to write a **PyAutoFit** project and use the *phase* API to exploit **PyAutoFits**'s advanced modeling features.
 
 Config File Path
 ----------------

@@ -37,7 +37,7 @@ The **HowToFit** lecture series are a collection of Jupyter notebooks describing
 fitting project and giving illustrations of different statistical methods and techniiques.
 
 Checkout the
-`tutorials section <file:///home/jammy/PycharmProjects/PyAuto/PyAutoFit/docs/_build/tutorials/howtofit.html>`_ for a
+`tutorials section <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_ for a
 full description of the lectures and online examples of every notebook.
 
 Dataset

@@ -36,13 +36,13 @@ The simplest way to install **PyAutoFit** is via pip:
     pip install autofit
 
 Clone autofit workspace & set WORKSPACE environment model ('--depth 1' clones only the most recent branch on the
-autofit_workspace, reducing the download size)::
+autofit_workspace, reducing the download size):
 
 .. code-block:: bash
 
-    cd /path/where/you/want/autofit_workspace
-    git clone https://github.com/Jammy2211/autofit_workspace --depth 1
-    export WORKSPACE=/path/to/autofit_workspace/
+   cd /path/where/you/want/autofit_workspace
+   git clone https://github.com/Jammy2211/autofit_workspace --depth 1
+   export WORKSPACE=/path/to/autofit_workspace/
 
 Set PYTHONPATH to include the autofit_workspace directory:
 

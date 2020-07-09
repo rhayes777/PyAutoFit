@@ -14,8 +14,8 @@ relevant web pages detailing their citation information or the papers themselves
 
 **corner.py**;
 
-The visualization and samples analysis package **corner.py** is used by **PyAutoFit** for error estimates, so please
-make sure you cite it!
+The visualization and samples analysis package **corner.py** is used by **PyAutoLens** for plotting PDF's and error
+estimates, so please make sure you cite it!
 
 https://github.com/dfm/corner.py
 
