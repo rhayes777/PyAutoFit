@@ -32,7 +32,7 @@ To create the Dataset, we import the simulator module and use it to generate the
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
+from howtofit.simulators.chapter_1 import gaussian_x1
 
 data = gaussian_x1.data
 noise_map = gaussian_x1.noise_map

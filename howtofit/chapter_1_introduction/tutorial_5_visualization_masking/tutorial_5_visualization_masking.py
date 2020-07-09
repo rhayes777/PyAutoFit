@@ -18,7 +18,7 @@ These new features have lead to an additional module in the 'phase' package not 
 
 from autoconf import conf
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
     src as htf,
 )
 
@@ -45,7 +45,7 @@ Import the simulator module and set up the dataset.
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
+from howtofit.simulators.chapter_1 import gaussian_x1
 
 dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 

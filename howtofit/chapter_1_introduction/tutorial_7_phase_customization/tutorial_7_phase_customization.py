@@ -25,7 +25,7 @@ from autoconf import conf
 import autofit as af
 import numpy as np
 
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
     src as htf,
 )
 
@@ -80,7 +80,7 @@ Import the simulator module, set up the Dataset and mask and set up the dataset.
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
+from howtofit.simulators.chapter_1 import gaussian_x1
 
 dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 mask = np.full(fill_value=False, shape=dataset.data.shape)

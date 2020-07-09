@@ -15,7 +15,7 @@ different data-sets. Each dataset is a single Gaussian and we'll fit them using 
 
 from autoconf import conf
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_8_aggregator import (
+from howtofit.chapter_1_introduction.tutorial_8_aggregator import (
     src as htf,
 )
 
@@ -49,9 +49,9 @@ figures we make via the aggregator.
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_0
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_1
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_2
+from howtofit.simulators.chapter_1 import gaussian_x1_0
+from howtofit.simulators.chapter_1 import gaussian_x1_1
+from howtofit.simulators.chapter_1 import gaussian_x1_2
 
 dataset_names = ["gaussian_x1_0", "gaussian_x1_1", "gaussian_x1_2"]
 datas = [gaussian_x1_0.data, gaussian_x1_1.data, gaussian_x1_2.data]
