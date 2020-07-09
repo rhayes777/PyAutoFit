@@ -357,7 +357,9 @@ class AbstractDynesty(AbstractNest):
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
+        copy.n_live_points = self.n_live_points
         copy.iterations_per_update = self.iterations_per_update
+        copy.evidence_tolerance = self.evidence_tolerance
         copy.bound = self.bound
         copy.sample = self.sample
         copy.update_interval = self.update_interval
@@ -373,6 +375,9 @@ class AbstractDynesty(AbstractNest):
         copy.initializer = self.initializer
         copy.iterations_per_update = self.iterations_per_update
         copy.number_of_cores = self.number_of_cores
+        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
+        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
+        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
 
         return copy
 
@@ -654,20 +659,6 @@ class DynestyStatic(AbstractDynesty):
         )
 
         logger.debug("Creating DynestyStatic NLO")
-
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the dynesty non-linear search with all associated attributes.
-
-        This is used to set up the non-linear search on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
-        )
-        copy.n_live_points = self.n_live_points
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
-        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
-
-        return copy
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty

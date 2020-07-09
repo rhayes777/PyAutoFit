@@ -105,7 +105,7 @@ class TestDynestyConfig:
         assert dynesty.enlarge == 1.0
         assert dynesty.vol_dec == 0.5
         assert dynesty.vol_check == 2.0
-        assert dynesty.walks == 25
+        assert dynesty.walks == 5
         assert dynesty.facc == 0.5
         assert dynesty.slices == 5
         assert dynesty.fmove == 0.9
@@ -274,7 +274,7 @@ class TestDynestyConfig:
 
         assert (
             dynesty.tag
-            == "dynesty_dynamic__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
+            == "dynesty_dynamic__nlive_5__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif"
         )
 
         dynesty = af.DynestyDynamic(
@@ -283,7 +283,7 @@ class TestDynestyConfig:
 
         assert (
             dynesty.tag
-            == "dynesty_dynamic__bound_balls__enlarge_1.0__sample_rslice_slices_1"
+            == "dynesty_dynamic__nlive_5__bound_balls__enlarge_1.0__sample_rslice_slices_1"
         )
 
     def test__samples_from_model(self):
@@ -352,6 +352,7 @@ class TestCopyWithNameExtension:
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
         assert copy.iterations_per_update is search.iterations_per_update
+        assert copy.evidence_tolerance == search.evidence_tolerance
         assert copy.n_live_points == search.n_live_points
         assert copy.bound == search.bound
         assert copy.sample == search.sample
@@ -378,6 +379,7 @@ class TestCopyWithNameExtension:
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
+        assert copy.evidence_tolerance == search.evidence_tolerance
         assert copy.iterations_per_update is search.iterations_per_update
         assert copy.bound == search.bound
         assert copy.sample == search.sample
