@@ -1,4 +1,3 @@
-import autoarray as aa
 import numpy as np
 
 # The 'fit.py' module is unchanged from the previous tutorial.

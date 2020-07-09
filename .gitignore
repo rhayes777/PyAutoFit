@@ -39,7 +39,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test_autoarray / coverage reports
+# Unit / coverage reports
 htmlcov/
 .tox/
 .coverage
