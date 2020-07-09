@@ -18,7 +18,11 @@ We call these *Pipeline*'s objects **transdimensional model-fitting pipelines**,
 To illustrate this, we'll extend our example of fitting 1D Gaussians to a problem where there are two Gaussians in the
 data:
 
-![alt text](https://github.com/rhayes777/PyAutoFit/blob/master/docs/advanced/images/gaussian_x2_split.png)
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/toy_model_fit.png
+  :width: 400
+  :alt: Alternative text
+
+  https://github.com/rhayes777/PyAutoFit/blob/master/docs/advanced/images/gaussian_x2_split.png
 
 The data has two Gaussians which clearly distinguishable, one is on the left hand side and the other is on the right
 hand side. Traditional approaches would fit both Gaussians simultaneously, making parameter space more complex, slower
