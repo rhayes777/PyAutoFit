@@ -63,6 +63,7 @@ code that clutters their scripts! Furthermore, as you'll see below, by controlli
 you can design an API that makes takes like plotting results more intuitive.
 """
 
+# %%
 from howtofit.chapter_1_introduction.tutorial_4_source_code import (
     src as htf,
 )
@@ -100,6 +101,7 @@ You should take note of two things:
 Lets use a plot function to plot our data.
 """
 
+# %%
 htf.plot.Dataset.data(dataset=dataset)
 htf.plot.Dataset.noise_map(dataset=dataset)
 
@@ -112,6 +114,7 @@ By packaging all the model components into a single package, this will make it s
 components to the source code.
 """
 
+# %%
 gaussian = htf.Gaussian(centre=50.0, intensity=2.0, sigma=20.0)
 
 # %%

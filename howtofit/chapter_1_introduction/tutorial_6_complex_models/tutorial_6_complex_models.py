@@ -141,11 +141,8 @@ and Exponential profile.
 
 # %%
 from howtofit.simulators.chapter_1 import gaussian_x1_exponential_x1
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.dataset import (
-    dataset as ds,
-)
 
-dataset = ds.Dataset(
+dataset = htf.Dataset(
     data=gaussian_x1_exponential_x1.data, noise_map=gaussian_x1_exponential_x1.noise_map
 )
 
@@ -195,7 +192,7 @@ Lets fit a model composed of two Gaussians and and an Exponential, which will ha
 # %%
 from howtofit.simulators.chapter_1 import gaussian_x2_exponential_x1
 
-dataset = ds.Dataset(
+dataset = htf.Dataset(
     data=gaussian_x2_exponential_x1.data, noise_map=gaussian_x2_exponential_x1.noise_map
 )
 
@@ -262,7 +259,7 @@ We can now fit this model using a phase as per usual.
 # %%
 from howtofit.simulators.chapter_1 import gaussian_x3
 
-dataset = ds.Dataset(data=gaussian_x3.data, noise_map=gaussian_x3.noise_map)
+dataset = htf.Dataset(data=gaussian_x3.data, noise_map=gaussian_x3.noise_map)
 
 phase = htf.Phase(phase_name="phase_t6_gaussian_x3", profiles=model, search=af.Emcee())
 

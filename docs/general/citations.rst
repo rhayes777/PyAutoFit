@@ -12,12 +12,12 @@ by name and include a link to our GitHub page https://github.com/rhayes777/PyAut
 Below are the packages used by **PyAutoFit** that we ask you also cite if your analysis used them. Links to the
 relevant web pages detailing their citation information or the papers themselves are provided.
 
-**GetDist**;
+**corner.py**;
 
-The visualization and samples analysis package **GetDist** is used by **PyAutoFit** for error estimates, so please
+The visualization and samples analysis package **corner.py** is used by **PyAutoFit** for error estimates, so please
 make sure you cite it!
 
-https://github.com/cmbant/getdist
+https://github.com/dfm/corner.py
 
 **Non-linear Searches**
 
