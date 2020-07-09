@@ -27,7 +27,7 @@ Unfortunately, Jupyter notebooks cannot use relative paths, therefore we use the
 'here' function provides the path to the GitHub project directory, which is the autolens_workspace. For example on my 
 computer the here() function returns:
 
-    '/home/jammy/PycharmProjects/PyAuto/autolens_workspace'
+ '/home/jammy/PycharmProjects/PyAuto/autolens_workspace'
 
 Throughout these tutorials, we will use this workspace_path. 
 """
@@ -43,8 +43,8 @@ print("Workspace Path: ", workspace_path)
 You're going to see a line like the one below (with 'conf.instance =') in every tutorial this chapter. This sets the
 following property:
 
-    - The path to the configuration files used by PyAutoFit. You need to give the path to your autofit_workspace, so 
-      the configuration files in the workspace are used (e.g. '/path/to/autolens_workspace/config'). 
+ - The path to the configuration files used by PyAutoFit. You need to give the path to your autofit_workspace, so 
+ the configuration files in the workspace are used (e.g. '/path/to/autolens_workspace/config'). 
 
 (These will work autommatically if the WORKSPACE environment variable was set up correctly during installation. 
 Nevertheless, setting the paths explicitly within the code is good practise.
@@ -57,7 +57,7 @@ conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
 """
 Below, you'll notice the command:
 
-    'from howtofit.simulators.chapter_1.gaussian_x1'
+ 'from howtofit.simulators.chapter_1.gaussian_x1'
 
 This will crop up in nearly every tutorial from here on. This imports a module that simulates the dataset we plot in
 this tutorialt. Feel free to check out the simulator scripts to see how this is done!
@@ -144,8 +144,10 @@ class Gaussian:
 The class's format is how PyAutoFit requires the components of a model to be written, where:
 
 - The name of the class is the name of the model component, in this case, "Gaussian".
+
 - The input arguments of the constructor are the model parameters which we will ultimately fit for, in this case the
   centre, intensity and sigma.
+  
 - The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued floats or a 
   multi-valued tuple. For the Gaussian class, no input parameters are a tuple and we will show an example of a tuple 
   input in a later tutorial).

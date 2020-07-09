@@ -254,12 +254,14 @@ they all mean as they are at the core of all model-fitting performed in PyAutoFi
 """
 So to recap the previous tutorial and this one:
     
-    - We can define a model components in PyAutoFit, like our Gaussian, using Python classes that follow a certain 
-      format.
-    - The model component's parameters each have priors, which given a unit vector can be mapped to an instance of the
-      Gaussian class.
-    - We can use this model instance to create model data of our Gaussian and compare it to data and quantify the
-      goodness-of-fit via a log likelihood.
+ - We can define a model components in PyAutoFit, like our Gaussian, using Python classes that follow a certain 
+ format.
+ 
+ - The model component's parameters each have priors, which given a unit vector can be mapped to an instance of the
+ Gaussian class.
+ 
+ - We can use this model instance to create model data of our Gaussian and compare it to data and quantify the
+ goodness-of-fit via a log likelihood.
 
 Thus we have everything we need to fit our model to our data! So, how do we go about finding the best-fit model?
 That is, the model which maximizes the log likelihood.
@@ -369,10 +371,10 @@ PyAutoFit provides a lot of flexibility in how you ultimate use your model insta
 should find that it is straight forward to find a solution. But, whatever you need to do at its core your modeling
 problem will break down into the tasks we did in this tutorial:
 
-    1) Use your model to create some model data.
-    2) Subtract it from the data to create residuals.
-    3) Use these residuals in conjunction with your noise-map to define a log likelihood.
-    4) Find the highest log likelihood models.
+ 1) Use your model to create some model data.
+ 2) Subtract it from the data to create residuals.
+ 3) Use these residuals in conjunction with your noise-map to define a log likelihood.
+ 4) Find the highest log likelihood models.
 
 So, get thinking about how these steps would be performed for your model!
 """

@@ -4,6 +4,11 @@ Chapter 1: Introduction
 In chapter 1, we'll introduce you to the **PyAutoFit** API and describe how to set up your own software project to use
 **PyAutoFit**.
 
+A number of the notebooks require a *non-linear search* to be performed, which can lead the auto-generation of the
+**HowToFit** readthedocs pages to crash. For this reason, all cells which perform a *non-linear search* or use its
+result are commented out. We advise if you want to read through the **HowToFit** lectures in full that you download
+the autofit_workspace and run them from there (where these comments are removed).
+
 The chapter contains the following tutorials:
 
 `Tutorial 1: Model Mapping <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_1_model_mapping.html>`_

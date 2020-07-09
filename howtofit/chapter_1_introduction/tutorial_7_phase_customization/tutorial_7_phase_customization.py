@@ -139,16 +139,16 @@ print("Emcee has finished run - you may now continue the notebook.")
 """
 You'll note the results are now in a slightly different directory to the fit performed above:
 
-'autofit_workspace/howtofit/chapter_1_introduction/tutorial_7_phase_customization/output/phase_example/settings__trim_left_20__trim_right_30'
+ 'autofit_workspace/howtofit/chapter_1_introduction/tutorial_7_phase_customization/output/phase_example/settings__trim_left_20__trim_right_30'
 
 By customizing the phase's settings, PyAutoFit has changed it output path using a tag for this phase. There are two
 reasons PyAutoFit does this:
 
-1) Tags describes the analysis, making it explicit what was done to the dataset for the fit.
+ 1) Tags describes the analysis, making it explicit what was done to the dataset for the fit.
 
-2) Tags create a unique output path, allowing you to compare results of phases that use different settings. Equally,
-   if you run multiple phases with different settings this ensures the non-linear search (e.g. Emcee) won't
-   inadvertantly use results generated via a different analysis method.
+ 2) Tags create a unique output path, allowing you to compare results of phases that use different settings. Equally,
+ if you run multiple phases with different settings this ensures the non-linear search (e.g. Emcee) won't
+ inadvertantly use results generated via a different analysis method.
 
 You should now check out the 'settings.py' and 'meta_dataset.py' modules in the 'phase' package, to see how we 
 implemented this.

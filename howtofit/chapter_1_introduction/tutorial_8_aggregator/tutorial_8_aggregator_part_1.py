@@ -92,7 +92,7 @@ for index in range(len(datas)):
 
         '/path/to/autofit_workspace/output/phase_folder/phase_name/'
 
-    #ou can input multiple phase folders, for example 'folders=['folder_0', 'folder_1'] would create the path:
+    You can input multiple phase folders, for example 'folders=['folder_0', 'folder_1'] would create the path:
 
         '/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/'
 
@@ -149,11 +149,11 @@ crash!
 
 There are two things to bare in mind with generators:
 
-1) A generator has no length, thus to determine how many entries of data it corresponds to you first must turn it to a 
-list.
+ 1) A generator has no length, thus to determine how many entries of data it corresponds to you first must turn it to a 
+ list.
 
-2) Once we use a generator, we cannot use it again - we'll need to remake it. For this reason, we typically avoid 
-   storing the generator as a variable and instead use the aggregator to create them on use.
+ 2) Once we use a generator, we cannot use it again - we'll need to remake it. For this reason, we typically avoid 
+ storing the generator as a variable and instead use the aggregator to create them on use.
 
 We can now create a 'samples' generator of every fit. An instance of the Samples class acts as an 
 interface between the results of the non-linear fit on your hard-disk and Python.
@@ -190,9 +190,11 @@ samples_gen = agg_filter.values("samples")
 Alternatively, we can filter using strings, requiring that the string appears in the full path of the output
 results. This is useful if you fit a large sample of data where:
 
-    - Multiple results, corresponding to different phases and model-fits are stored in the same path.
-    - Different runs using different _PhaseSettings_ are in the same path.
-    - Fits using different non-linear searches, with different settings, are contained in the same path.
+ - Multiple results, corresponding to different phases and model-fits are stored in the same path.
+ 
+ - Different runs using different _PhaseSettings_ are in the same path.
+ 
+ - Fits using different non-linear searches, with different settings, are contained in the same path.
 
 The example below shows us using the contains filter to get the results of the fit to only the first dataset. 
 """
@@ -213,6 +215,7 @@ this tutorial we'll inspect the Sampels class in more detail. The Samples class 
 samples of the non-linear search, which is a list of lists where:
 
  - The outer list is the size of the total number of samples.
+ 
  - The inner list is the size of the number of free parameters in the fit.
 
 """
@@ -229,16 +232,16 @@ for samples in agg_filter.values("samples"):
 The Samples class also contains the log likelihood, log prior, log posterior and weights of every accepted sample, 
 where:
 
-   - The log likelihood is the value evaluated from the likelihood function (e.g. -0.5 * chi_squared + the noise 
-     normalized).
+ - The log likelihood is the value evaluated from the likelihood function (e.g. -0.5 * chi_squared + the noise 
+ normalized).
 
-   - The log prior encodes information on how the priors on the parameters maps the log likelihood value to the log
-     posterior value.
+ - The log prior encodes information on how the priors on the parameters maps the log likelihood value to the log
+ posterior value.
 
-   - The log posterior is log_likelihood + log_prior.
+ - The log posterior is log_likelihood + log_prior.
 
-   - The weight gives information on how samples should be combined to estimate the posterior. The weight values 
-     depend on the sampler used, for MCMC samples they are all 1 (e.g. all weighted equally).
+ - The weight gives information on how samples should be combined to estimate the posterior. The weight values 
+ depend on the sampler used, for MCMC samples they are all 1 (e.g. all weighted equally).
 
 """
 

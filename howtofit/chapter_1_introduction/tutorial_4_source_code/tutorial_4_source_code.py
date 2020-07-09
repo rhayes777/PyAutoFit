@@ -1,4 +1,4 @@
-#%%
+# %%
 """
 Tutorial 4: Source Code
 =======================
@@ -53,10 +53,10 @@ importing it as 'htf'.
 Many software projects tend not to do this, instead relying on the user explicitly importing every module in the 
 project that need, for example:
 
-   from tutorial_4_source_code.src.dataset.dataset import Dataset
-   from tutorial_4_source_code.src.model.gaussian import Gaussian
-   from tutorial_4_source_code.src.plot import dataset_plots
-   from tutorial_4_source_code.src.plot import fit_plots
+ from tutorial_4_source_code.src.dataset.dataset import Dataset
+ from tutorial_4_source_code.src.model.gaussian import Gaussian
+ from tutorial_4_source_code.src.plot import dataset_plots
+ from tutorial_4_source_code.src.plot import fit_plots
 
 Clearly, this creates a burden on the user in them having to understand the project structure and a lot of unecessary
 code that clutters their scripts! Furthermore, as you'll see below, by controlling the project import in this way
@@ -161,21 +161,25 @@ An over view of each is as follows:
 
 phase.py -> contains the Phase class:
 
-    - Receives the model to be fitted (in this case a single Gaussian).
-    - Handles the directory structure of the output (in this example results are output to the folder
-      '/output/phase_example/'.
-    - Is passed the data when run, which is set up for the analysis.
+ - Receives the model to be fitted (in this case a single Gaussian).
+ 
+ - Handles the directory structure of the output (in this example results are output to the folder
+ '/output/phase_example/'.
+ 
+  Is passed the data when run, which is set up for the analysis.
 
 analysis.py -> contains the Analysis class (is a restructred version of the the previous tutorial's Analysis class):
 
-    - Prepares the dataset for fitting.
-    - Fits this dataset with a model instance to compute a log likelihood for every iteration of the non-linear search.
+ - Prepares the dataset for fitting.
+ 
+ - Fits this dataset with a model instance to compute a log likelihood for every iteration of the non-linear search.
 
 result.py -> contains the Result class:
 
-    - Stores the Samples object containing information on the non-linear search's samples.
-    - Has functions to create the model image, residual-map, chi-squared-map and so forth of the maximum log likelihood 
-      model etc.
+ - Stores the Samples object containing information on the non-linear search's samples.
+ 
+ - Has functions to create the model image, residual-map, chi-squared-map and so forth of the maximum log likelihood 
+  model etc.
 """
 
 # %%
@@ -183,10 +187,13 @@ result.py -> contains the Result class:
 Perform a non-linear search in PyAutoFit now only requires that we instantiate and run a Phase object. The Phase 
 performs the following tasks (which we performed manually in the previous tutorial):
 
-    - Builds the model to be fitted and interfaces it with the non-linear search algorithm.
-    - Receives the data to be fitted and prepares it so the model can fit it.
-    - Contains the Analysis class that defines the log likelihood function.
-    - Returns the results. including the non-linear search's samples and the maximum likelihood fit.
+ - Builds the model to be fitted and interfaces it with the non-linear search algorithm.
+ 
+ - Receives the data to be fitted and prepares it so the model can fit it.
+ 
+ - Contains the Analysis class that defines the log likelihood function.
+ 
+ - Returns the results. including the non-linear search's samples and the maximum likelihood fit.
 
 In the previous tutorial, after we composed our model using the _PriorModel_ object we had to manually specify its
 priors. However, now we are using a source code, the priors are instead loaded from config files, specifically the
