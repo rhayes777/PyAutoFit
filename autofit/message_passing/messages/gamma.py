@@ -72,7 +72,7 @@ class GammaMessage(AbstractMessage):
         return np.random.gamma(a1, scale=1 / b1, size=(n_samples,) + self.shape)
 
     @classmethod
-    def from_mode(cls, mode, covariance, **kwargs):
+    def from_mode(cls, mode, covariance):
         m, V = cls._get_mean_variance(mode, covariance)
 
         alpha = 1 + m ** 2 * V  # match variance

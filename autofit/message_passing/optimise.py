@@ -20,11 +20,14 @@ class OptFactor:
     """
     """
 
-    def __init__(self, factor_approx: FactorApproximation,
-                 fixed_kws: Optional[Dict[str, np.ndarray]] = None,
-                 bounds: Optional[Dict[str, Tuple[float, float]]] = None,
-                 sign: int = 1, method: str = 'L-BFGS-B',
-                 **kwargs: Dict[str, Tuple[int, ...]]):
+    def __init__(
+            self,
+            factor_approx: FactorApproximation,
+            fixed_kws: Optional[Dict[str, np.ndarray]] = None,
+            bounds: Optional[Dict[str, Tuple[float, float]]] = None,
+            sign: int = 1, method: str = 'L-BFGS-B',
+            **kwargs: Dict[str, Tuple[int, ...]]
+    ):
         self.factor_approx = factor_approx
         self.param_shapes = FlattenArrays(**kwargs)
         self.param_bounds = bounds
@@ -203,25 +206,35 @@ class Optimiser:
     def laplace_factor_approx(
             self,
             factor: FactorNode,
-            project_kws: Optional[Dict[str, Any]] = None,
             opt_kws: Optional[Dict[str, Any]] = None
     ):
         factor_approx = self.model_approx.factor_approximation(factor)
 
         opt_kws = {} if opt_kws is None else opt_kws
-        mode, covars, status, result = find_factor_mode(
-            factor_approx, return_cov=True, **opt_kws)
+        mode, covars, status, _ = find_factor_mode(
+            factor_approx,
+            return_cov=True,
+            **opt_kws
+        )
 
-        project_kws = {} if project_kws is None else project_kws
         model_dist = {
             v: factor_approx.factor_dist[v].from_mode(
-                mode[v], covars.get(v), **project_kws)
-            for v in mode}
+                mode[v],
+                covars.get(v)
+            )
+            for v in mode
+        }
 
         projection, status = factor_approx.project(
-            model_dist, delta=self.delta, status=status)
+            model_dist,
+            delta=self.delta,
+            status=status
+        )
 
-        return self.model_approx.project(projection, status=status)
+        return self.model_approx.project(
+            projection,
+            status=status
+        )
 
 
 class LeastSquaresOpt:
@@ -341,7 +354,6 @@ def lstsq_laplace_factor_approx(
         model_approx: MeanFieldApproximation,
         factor: FactorNode,
         delta: float = 0.5,
-        project_kws: Optional[Dict[str, Any]] = None,
         opt_kws: Optional[Dict[str, Any]] = None):
     """
     """
@@ -359,11 +371,12 @@ def lstsq_laplace_factor_approx(
         f"status={result.status}, message={result.message}",)
     status = Status(result.success, message)
 
-    project_kws = {} if project_kws is None else project_kws
     model_dist = {
         v: factor_approx.factor_dist[v].from_mode(
-            mode[v], covar.get(v), **project_kws)
-        for v in mode}
+            mode[v],
+            covar.get(v))
+        for v in mode
+    }
 
     projection, status = factor_approx.project(
         model_dist, delta=delta, status=status)

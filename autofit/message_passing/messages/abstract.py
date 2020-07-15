@@ -174,7 +174,7 @@ class AbstractMessage(ABC):
         return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
 
     @classmethod
-    def from_mode(cls, mode, covariance, **kwargs):
+    def from_mode(cls, mode, covariance):
         pass
 
     def log_normalisation(self, *dists):

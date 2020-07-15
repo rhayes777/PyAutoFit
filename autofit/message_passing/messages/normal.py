@@ -72,6 +72,6 @@ class NormalMessage(AbstractMessage):
         return x * sigma + mu
 
     @classmethod
-    def from_mode(cls, mode: np.ndarray, covariance: float = 1., **kwargs):
+    def from_mode(cls, mode: np.ndarray, covariance: float = 1.):
         mode, variance = cls._get_mean_variance(mode, covariance)
         return cls(mode, variance ** 0.5)
