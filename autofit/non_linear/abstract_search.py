@@ -566,7 +566,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.prior_passing_sigma), a=a
+            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -582,7 +582,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.prior_passing_sigma), r=r
+            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
         )
 
 

@@ -23,7 +23,7 @@ class TestResultsCollection:
     def test_with_index(self, results):
         assert results[0] == "one"
         assert results[1] == "two"
-        assert results.one == "one"
+        assert results.first == "one"
         assert results.last == "two"
         assert len(results) == 2
 
@@ -50,7 +50,7 @@ class TestPipeline:
         phase1 = MockPhase(paths=af.Paths(name="one"), search=af.MockSearch())
         phase2 = MockPhase(paths=af.Paths(name="two"), search=af.MockSearch())
 
-        af.Pipeline("name", phase_1, phase_2)
+        af.Pipeline("name", phase1, phase2)
         with pytest.raises(af.exc.PipelineException):
             af.Pipeline("name", MockPhase(af.Paths("one")), MockPhase(af.Paths("one")))
 
@@ -74,7 +74,6 @@ class TestPipeline:
         second = af.Pipeline("second")
 
         assert (first + second).pipeline_name == "first + second"
-
 
 
 # noinspection PyUnresolvedReferences
