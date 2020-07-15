@@ -502,7 +502,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples, previous_model, search):
+    def __init__(self, samples, previous_model, search=None):
         """
         The result of an optimization.
 

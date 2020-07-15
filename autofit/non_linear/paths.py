@@ -2,11 +2,11 @@ import glob
 import os
 import shutil
 import zipfile
+from configparser import NoSectionError
 from functools import wraps
 
 from autoconf import conf
 from autofit.mapper import link
-
 from autofit.non_linear.log import logger
 
 
@@ -79,14 +79,14 @@ def convert_paths(func):
 
 class Paths:
     def __init__(
-        self,
-        name="",
-        tag=None,
-        folders=tuple(),
-        path_prefix=None,
-        non_linear_name=None,
-        non_linear_tag_function=lambda: "",
-        remove_files=False,
+            self,
+            name="",
+            tag=None,
+            folders=tuple(),
+            path_prefix=None,
+            non_linear_name=None,
+            non_linear_tag_function=lambda: "",
+            remove_files=False,
     ):
         """Manages the path structure for non-linear search output, for analyses both not using and using the phase
         API. Use via non-linear searches requires manual input of paths, whereas the phase API manages this using the
@@ -136,10 +136,14 @@ class Paths:
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
         self.non_linear_tag_function = non_linear_tag_function
-        self.remove_files = conf.instance.general.get("output", "remove_files", bool)
 
-        if conf.instance.general.get("hpc", "hpc_mode", bool):
-            self.remove_files = True
+        try:
+            self.remove_files = conf.instance.general.get("output", "remove_files", bool)
+
+            if conf.instance.general.get("hpc", "hpc_mode", bool):
+                self.remove_files = True
+        except NoSectionError as e:
+            logger.exception(e)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -380,7 +384,7 @@ class Paths:
                         f.write(
                             os.path.join(root, file),
                             os.path.join(
-                                root[len(self.output_path) :].lstrip("/"), file
+                                root[len(self.output_path):].lstrip("/"), file
                             ),
                         )
 
