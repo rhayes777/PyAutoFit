@@ -35,6 +35,6 @@ class TestMixin:
     def test_parallel_flag(self):
         my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
             af.Paths(name="phase name"),
-            search=None
+            search=mock.MockSearch()
         )
         assert my_phase.search.parallel

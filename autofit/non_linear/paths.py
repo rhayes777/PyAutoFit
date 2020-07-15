@@ -45,7 +45,9 @@ def convert_paths(func):
         # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
         # TODO : nicely though.
 
-        if "search" in kwargs:
+        search = kwargs.get("search")
+
+        if search is not None:
 
             search = kwargs["search"]
             search_name = search._config("tag", "name", str)
@@ -69,8 +71,8 @@ def convert_paths(func):
             non_linear_tag_function=non_linear_tag_function,
         )
 
-        if "search" in kwargs:
-            kwargs["search"].paths = paths
+        if search is not None:
+            search.paths = paths
 
         func(self, paths=paths, **kwargs)
 
