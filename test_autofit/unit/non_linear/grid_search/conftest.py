@@ -1,9 +1,6 @@
 import pytest
 
-from autoconf import conf
 import autofit as af
-
-from test_autofit import mock
 
 init_args = []
 fit_args = []
