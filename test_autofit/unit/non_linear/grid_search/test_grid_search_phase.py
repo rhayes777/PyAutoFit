@@ -3,7 +3,7 @@ from test_autofit import mock
 
 
 class TestMixin:
-    def test_mixin(self, container):
+    def test_mixin(self):
         class MyPhase(af.as_grid_search(af.AbstractPhase)):
 
             Result = mock.MockResult
@@ -13,13 +13,13 @@ class TestMixin:
                 return [self.model.component.one_tuple.one_tuple_0]
 
             def run(self):
-                analysis = container.MockAnalysis()
+                analysis = mock.MockAnalysis()
                 return self.make_result(self.run_analysis(analysis), analysis)
 
         my_phase = MyPhase(
             af.Paths(name="", folders=tuple()),
             number_of_steps=2,
-            search=container.MockOptimizer(),
+            search=mock.MockSearch(),
         )
         my_phase.model.component = mock.MockClassx2Tuple
 

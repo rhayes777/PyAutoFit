@@ -9,7 +9,8 @@ import autofit as af
 def make_phase():
     return af.AbstractPhase(
         phase_name="phase_name",
-        phase_tag="phase_tag"
+        phase_tag="phase_tag",
+        search=None
     )
 
 
