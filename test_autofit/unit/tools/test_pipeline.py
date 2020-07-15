@@ -5,6 +5,7 @@ import pytest
 import autofit as af
 from test_autofit import mock
 
+
 @pytest.fixture(name="results")
 def make_results_collection():
     results = af.ResultsCollection()
@@ -47,12 +48,12 @@ class MockPhase(af.AbstractPhase):
 class TestPipeline:
     def test_unique_phases(self):
 
-        phase1 = MockPhase(paths=af.Paths(name="one"), search=af.MockSearch())
-        phase2 = MockPhase(paths=af.Paths(name="two"), search=af.MockSearch())
+        phase1 = MockPhase("one", search=af.MockSearch())
+        phase2 = MockPhase("two", search=af.MockSearch())
 
         af.Pipeline("name", phase1, phase2)
         with pytest.raises(af.exc.PipelineException):
-            af.Pipeline("name", MockPhase(af.Paths("one")), MockPhase(af.Paths("one")))
+            af.Pipeline("name", MockPhase(search=af.MockSearch("one")), MockPhase(search=af.MockSearch("one")))
 
     def test_search_assertion(self, model):
         paths = af.Paths("Phase Name")
@@ -64,8 +65,6 @@ class TestPipeline:
             os.makedirs(phase.paths.make_path())
         except FileExistsError:
             pass
-
-
 
         phase.model.profile.centre_0 = af.UniformPrior()
 
@@ -79,16 +78,16 @@ class TestPipeline:
 # noinspection PyUnresolvedReferences
 class TestPhasePipelineName:
     def test_name_stamping(self):
-        one = MockPhase(af.Paths("one"))
-        two = MockPhase(af.Paths("two"))
+        one = MockPhase("one", search=af.MockSearch())
+        two = MockPhase("two", search=af.MockSearch())
         af.Pipeline("name", one, two)
 
         assert one.pipeline_name == "name"
         assert two.pipeline_name == "name"
 
     def test_no_restamping(self):
-        one = MockPhase(af.Paths("one"))
-        two = MockPhase(af.Paths("two"))
+        one = MockPhase("one", search=af.MockSearch())
+        two = MockPhase("two", search=af.MockSearch())
         pipeline_one = af.Pipeline("one", one)
         pipeline_two = af.Pipeline("two", two)
 
