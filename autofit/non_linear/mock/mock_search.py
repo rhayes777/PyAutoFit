@@ -4,10 +4,11 @@ from autoconf import conf
 from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
-from autofit.non_linear.samples import PDFSamples
-from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.abstract_search import Analysis
+from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.paths import convert_paths
+from autofit.non_linear.samples import PDFSamples
+
 
 class MockSearch(NonLinearSearch):
 
@@ -40,9 +41,9 @@ class MockSearch(NonLinearSearch):
         return fitness_function.result
 
     def _fit(self, model, analysis):
-
         if self.fit_fast:
-            return self._fit_fast(model=model, analysis=analysis)
+            result = self._fit_fast(model=model, analysis=analysis)
+            return result
 
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")
@@ -83,7 +84,13 @@ class MockSearch(NonLinearSearch):
         return "mock"
 
     def perform_update(self, model, analysis, during_analysis):
-        return MockSamples(log_likelihoods=[1.0, 2.0])
+        return MockSamples(
+            log_likelihoods=[1.0, 2.0],
+            gaussian_tuples=[
+                (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
+                for prior in sorted(model.priors, key=lambda prior: prior.id)
+            ]
+        )
 
     def samples_from_model(self, model):
         return MockSamples()
@@ -106,11 +113,11 @@ class MockAnalysis(Analysis):
 
 class MockSamples(PDFSamples):
     def __init__(
-        self,
-        model=None,
-        max_log_likelihood_instance=None,
-        log_likelihoods=None,
-        gaussian_tuples=None,
+            self,
+            model=None,
+            max_log_likelihood_instance=None,
+            log_likelihoods=None,
+            gaussian_tuples=None,
     ):
 
         if log_likelihoods is None:
@@ -140,14 +147,13 @@ class MockSamples(PDFSamples):
 
 class MockResult:
     def __init__(
-        self,
-        samples=None,
-        instance=None,
-        model=None,
-        analysis=None,
-        search=None,
+            self,
+            samples=None,
+            instance=None,
+            model=None,
+            analysis=None,
+            search=None,
     ):
-
         self.instance = instance or ModelInstance()
         self.model = model or ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)

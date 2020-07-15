@@ -197,4 +197,5 @@ class Pipeline:
             )
             name = phase.phase_name
             results.add(name, func(phase, results))
+            print(results.last.model)
         return results
