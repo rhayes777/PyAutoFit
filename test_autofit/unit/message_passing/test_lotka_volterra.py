@@ -117,17 +117,25 @@ def test():
 
     np.random.seed(1)
 
+    opt = mp.optimise.Optimiser(
+        model_approx,
+        LV_model,
+        n_iter=n_iter
+    )
+
     for i in range(n_iter):
         # perform least squares fit for LV model
         model_approx, status = mp.lstsq_laplace_factor_approx(
             model_approx,
             LV
         )
+        opt.model_approx = model_approx
 
         # perform laplace non linear fit for other factors
         for factor in factors:
-            model_approx, status = mp.optimise.laplace_factor_approx(
-                model_approx, factor, delta=1.)
+            model_approx, status = opt.laplace_factor_approx(
+                factor
+            )
             history[i, factor] = model_approx
 
     model_mean = {v: d.mean for v, d in model_approx.approx.items()}
