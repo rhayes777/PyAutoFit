@@ -25,7 +25,7 @@ class AbstractPySwarms(AbstractOptimizer):
         number_of_cores=None,
     ):
         """
-        Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
+        A PySwarms Particle Swarm Optimizer global non-linear search.
 
         For a full description of PySwarms, checkout its Github and readthedocs webpages:
 
@@ -70,10 +70,9 @@ class AbstractPySwarms(AbstractOptimizer):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -94,24 +93,24 @@ class AbstractPySwarms(AbstractOptimizer):
         """
 
         self.n_particles = (
-            self.config("search", "n_particles", int)
+            self._config("search", "n_particles", int)
             if n_particles is None
             else n_particles
         )
-        self.iters = self.config("search", "iters", int) if iters is None else iters
+        self.iters = self._config("search", "iters", int) if iters is None else iters
 
         self.cognitive = (
-            self.config("search", "cognitive", float)
+            self._config("search", "cognitive", float)
             if cognitive is None
             else cognitive
         )
         self.social = (
-            self.config("search", "social", float) if social is None else social
+            self._config("search", "social", float) if social is None else social
         )
         self.inertia = (
-            self.config("search", "inertia", float) if inertia is None else inertia
+            self._config("search", "inertia", float) if inertia is None else inertia
         )
-        self.ftol = self.config("search", "ftol", float) if ftol is None else ftol
+        self.ftol = self._config("search", "ftol", float) if ftol is None else ftol
 
         super().__init__(
             paths=paths,
@@ -121,7 +120,7 @@ class AbstractPySwarms(AbstractOptimizer):
         )
 
         self.number_of_cores = (
-            self.config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores", int)
             if number_of_cores is None
             else number_of_cores
         )
@@ -262,11 +261,11 @@ class AbstractPySwarms(AbstractOptimizer):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config("tag", "name", str)
-        n_particles_tag = f"{self.config('tag', 'n_particles')}_{self.n_particles}"
-        cognitive_tag = f"{self.config('tag', 'cognitive')}_{self.cognitive}"
-        social_tag = f"{self.config('tag', 'social')}_{self.social}"
-        inertia_tag = f"{self.config('tag', 'inertia')}_{self.inertia}"
+        name_tag = self._config("tag", "name", str)
+        n_particles_tag = f"{self._config('tag', 'n_particles')}_{self.n_particles}"
+        cognitive_tag = f"{self._config('tag', 'cognitive')}_{self.cognitive}"
+        social_tag = f"{self._config('tag', 'social')}_{self.social}"
+        inertia_tag = f"{self._config('tag', 'inertia')}_{self.inertia}"
 
         return (
             f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
@@ -371,7 +370,7 @@ class PySwarmsGlobal(AbstractPySwarms):
         iterations_per_update=None,
         number_of_cores=None,
     ):
-        """ Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
+        """ A PySwarms Particle Swarm Optimizer global non-linear search.
 
         For a full description of PySwarms, checkout its Github and readthedocs webpages:
 
@@ -412,10 +411,9 @@ class PySwarmsGlobal(AbstractPySwarms):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -488,7 +486,7 @@ class PySwarmsLocal(AbstractPySwarms):
         iterations_per_update=None,
         number_of_cores=None,
     ):
-        """ Class to setup and run a PySwarms Particle Swarm Optimizer global non-linear search.
+        """ A PySwarms Particle Swarm Optimizer global non-linear search.
 
         For a full description of PySwarms, checkout its Github and readthedocs webpages:
 
@@ -533,10 +531,9 @@ class PySwarmsLocal(AbstractPySwarms):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -566,13 +563,13 @@ class PySwarmsLocal(AbstractPySwarms):
         """
 
         self.number_of_k_neighbors = (
-            self.config("search", "number_of_k_neighbors", int)
+            self._config("search", "number_of_k_neighbors", int)
             if number_of_k_neighbors is None
             else number_of_k_neighbors
         )
 
         self.minkowski_p_norm = (
-            self.config("search", "minkowski_p_norm", int)
+            self._config("search", "minkowski_p_norm", int)
             if minkowski_p_norm is None
             else minkowski_p_norm
         )

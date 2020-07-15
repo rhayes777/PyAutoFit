@@ -33,10 +33,9 @@ class AbstractNest(NonLinearSearch):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         terminate_at_acceptance_ratio : bool
             If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value.
@@ -55,19 +54,19 @@ class AbstractNest(NonLinearSearch):
         )
 
         self.terminate_at_acceptance_ratio = (
-            self.config("settings", "terminate_at_acceptance_ratio", bool)
+            self._config("settings", "terminate_at_acceptance_ratio", bool)
             if terminate_at_acceptance_ratio is None
             else terminate_at_acceptance_ratio
         )
 
         self.acceptance_ratio_threshold = (
-            self.config("settings", "acceptance_ratio_threshold", float)
+            self._config("settings", "acceptance_ratio_threshold", float)
             if acceptance_ratio_threshold is None
             else acceptance_ratio_threshold
         )
 
         self.stagger_resampling_likelihood = (
-            self.config("settings", "stagger_resampling_likelihood", bool)
+            self._config("settings", "stagger_resampling_likelihood", bool)
             if stagger_resampling_likelihood is None
             else stagger_resampling_likelihood
         )

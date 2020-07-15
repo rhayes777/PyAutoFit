@@ -1,4 +1,4 @@
-.. _api:
+.. _model_fit:
 
 Fitting a Model
 ---------------

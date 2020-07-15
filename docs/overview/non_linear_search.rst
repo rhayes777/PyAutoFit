@@ -1,4 +1,4 @@
-.. _api:
+.. _non_linear_search:
 
 Non-linear Searches
 -------------------

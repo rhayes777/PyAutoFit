@@ -50,6 +50,7 @@ extensions = [
 
 ## Generate autodoc stubs with summaries from code
 autosummary_generate = True
+autosummary_imported_members = True
 
 ## Include Python objects as they appear in source files
 autodoc_member_order = 'bysource'

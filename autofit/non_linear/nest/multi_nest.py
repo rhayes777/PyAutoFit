@@ -34,7 +34,7 @@ class MultiNest(abstract_nest.AbstractNest):
         stagger_resampling_likelihood=None,
     ):
         """
-        Class to setup and run a MultiNest non-linear search.
+        A MultiNest non-linear search.
 
         For a full description of MultiNest and its Python wrapper PyMultiNest, checkout its Github and documentation
         webpages:
@@ -46,10 +46,9 @@ class MultiNest(abstract_nest.AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         n_live_points : int
             The number of live points used to sample non-linear parameter space. More points provides a more thorough
             sampling of parameter space, at the expense of taking longer to run. The number of live points required for
@@ -113,22 +112,22 @@ class MultiNest(abstract_nest.AbstractNest):
         """
 
         self.n_live_points = (
-            self.config("search", "n_live_points", int)
+            self._config("search", "n_live_points", int)
             if n_live_points is None
             else n_live_points
         )
         self.sampling_efficiency = (
-            self.config("search", "sampling_efficiency", float)
+            self._config("search", "sampling_efficiency", float)
             if sampling_efficiency is None
             else sampling_efficiency
         )
         self.const_efficiency_mode = (
-            self.config("search", "const_efficiency_mode", bool)
+            self._config("search", "const_efficiency_mode", bool)
             if const_efficiency_mode is None
             else const_efficiency_mode
         )
         self.evidence_tolerance = (
-            self.config("search", "evidence_tolerance", float)
+            self._config("search", "evidence_tolerance", float)
             if evidence_tolerance is None
             else evidence_tolerance
         )
@@ -137,56 +136,56 @@ class MultiNest(abstract_nest.AbstractNest):
             self.evidence_tolerance = 0.8
 
         self.multimodal = (
-            multimodal or self.config("search", "multimodal", bool)
+            multimodal or self._config("search", "multimodal", bool)
             if multimodal is None
             else multimodal
         )
         self.importance_nested_sampling = (
-            self.config("search", "importance_nested_sampling", bool)
+            self._config("search", "importance_nested_sampling", bool)
             if importance_nested_sampling is None
             else importance_nested_sampling
         )
         self.max_modes = (
-            self.config("search", "max_modes", int) if max_modes is None else max_modes
+            self._config("search", "max_modes", int) if max_modes is None else max_modes
         )
         self.mode_tolerance = (
-            self.config("search", "mode_tolerance", float)
+            self._config("search", "mode_tolerance", float)
             if mode_tolerance is None
             else mode_tolerance
         )
         self.max_iter = (
-            self.config("search", "max_iter", int) if max_iter is None else max_iter
+            self._config("search", "max_iter", int) if max_iter is None else max_iter
         )
         self.n_iter_before_update = (
-            self.config("settings", "n_iter_before_update", int)
+            self._config("settings", "n_iter_before_update", int)
             if n_iter_before_update is None
             else n_iter_before_update
         )
         self.null_log_evidence = (
-            self.config("settings", "null_log_evidence", float)
+            self._config("settings", "null_log_evidence", float)
             if null_log_evidence is None
             else null_log_evidence
         )
-        self.seed = self.config("settings", "seed", int) if seed is None else seed
+        self.seed = self._config("settings", "seed", int) if seed is None else seed
         self.verbose = (
-            self.config("settings", "verbose", bool) if verbose is None else verbose
+            self._config("settings", "verbose", bool) if verbose is None else verbose
         )
         self.resume = (
-            self.config("settings", "resume", bool) if resume is None else resume
+            self._config("settings", "resume", bool) if resume is None else resume
         )
         self.context = (
-            self.config("settings", "context", int) if context is None else context
+            self._config("settings", "context", int) if context is None else context
         )
         self.write_output = (
-            self.config("settings", "write_output", bool)
+            self._config("settings", "write_output", bool)
             if write_output is None
             else write_output
         )
         self.log_zero = (
-            self.config("settings", "log_zero", float) if log_zero is None else log_zero
+            self._config("settings", "log_zero", float) if log_zero is None else log_zero
         )
         self.init_MPI = (
-            self.config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
+            self._config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
         )
 
         super().__init__(
@@ -266,26 +265,26 @@ class MultiNest(abstract_nest.AbstractNest):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config("tag", "name")
+        name_tag = self._config("tag", "name")
         n_live_points_tag = (
-            f"{self.config('tag', 'n_live_points')}_{self.n_live_points}"
+            f"{self._config('tag', 'n_live_points')}_{self.n_live_points}"
         )
         sampling_efficiency_tag = (
-            f"{self.config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
+            f"{self._config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
         )
         if self.const_efficiency_mode:
             const_efficiency_mode_tag = (
-                f"_{self.config('tag', 'const_efficiency_mode')}"
+                f"_{self._config('tag', 'const_efficiency_mode')}"
             )
         else:
             const_efficiency_mode_tag = ""
         if self.multimodal:
-            multimodal_tag = f"_{self.config('tag', 'multimodal')}"
+            multimodal_tag = f"_{self._config('tag', 'multimodal')}"
         else:
             multimodal_tag = ""
         if self.importance_nested_sampling:
             importance_nested_sampling_tag = (
-                f"_{self.config('tag', 'importance_nested_sampling')}"
+                f"_{self._config('tag', 'importance_nested_sampling')}"
             )
         else:
             importance_nested_sampling_tag = ""

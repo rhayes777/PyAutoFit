@@ -39,23 +39,22 @@ class NonLinearSearch(ABC):
         Parameters
         ------------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
 
         if paths.non_linear_name is "":
-            paths.non_linear_name = self.config("tag", "name")
+            paths.non_linear_name = self._config("tag", "name")
 
         if paths.non_linear_tag is "":
             paths.non_linear_tag_function = lambda: self.tag
 
         self.paths = paths
         if prior_passer is None:
-            self.prior_passer = PriorPasser.from_config(config=self.config)
+            self.prior_passer = PriorPasser.from_config(config=self._config)
         else:
             self.prior_passer = prior_passer
 
@@ -69,12 +68,12 @@ class NonLinearSearch(ABC):
         )
 
         if initializer is None:
-            self.initializer = Initializer.from_config(config=self.config)
+            self.initializer = Initializer.from_config(config=self._config)
         else:
             self.initializer = initializer
 
         self.iterations_per_update = (
-            self.config("updates", "iterations_per_update", int)
+            self._config("updates", "iterations_per_update", int)
             if iterations_per_update is None
             else iterations_per_update
         )
@@ -82,12 +81,12 @@ class NonLinearSearch(ABC):
         if conf.instance.general.get("hpc", "hpc_mode", bool):
             self.iterations_per_update = conf.instance.general.get("hpc", "iterations_per_update", float)
 
-        self.log_every_update = self.config("updates", "log_every_update", int)
-        self.backup_every_update = self.config("updates", "backup_every_update", int)
-        self.visualize_every_update = self.config(
+        self.log_every_update = self._config("updates", "log_every_update", int)
+        self.backup_every_update = self._config("updates", "backup_every_update", int)
+        self.visualize_every_update = self._config(
             "updates", "visualize_every_update", int
         )
-        self.model_results_every_update = self.config(
+        self.model_results_every_update = self._config(
             "updates", "model_results_every_update", int
         )
 
@@ -99,7 +98,7 @@ class NonLinearSearch(ABC):
             self.model_results_every_update
         )
 
-        self.silence = self.config("printing", "silence", bool)
+        self.silence = self._config("printing", "silence", bool)
 
         if conf.instance.general.get("hpc", "hpc_mode", bool):
             self.silence = True
@@ -237,9 +236,9 @@ class NonLinearSearch(ABC):
         else:
 
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
-
             samples = self.samples_from_model(model=model)
-            self.paths.backup_zip_remove()
+
+        self.paths.backup_zip_remove()
 
         return Result(samples=samples, previous_model=model, search=self)
 
@@ -277,7 +276,7 @@ class NonLinearSearch(ABC):
     def config_type(self):
         raise NotImplementedError()
 
-    def config(self, section, attribute_name, attribute_type=str):
+    def _config(self, section, attribute_name, attribute_type=str):
         """
         Get a config field from this search's section in non_linear.ini by a key and value type.
 
@@ -349,9 +348,6 @@ class NonLinearSearch(ABC):
             )
 
             samples_text.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
-
-        if not during_analysis:
-            self.paths.backup_zip_remove()
 
         return samples
 
@@ -510,9 +506,8 @@ class Result:
         ----------
         previous_model
             The model mapper from the stage that produced this result
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         """
 
         self.samples = samples

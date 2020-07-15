@@ -24,7 +24,7 @@ class Emcee(AbstractMCMC):
         iterations_per_update=None,
         number_of_cores=None,
     ):
-        """ Class to setup and run an Emcee non-linear search.
+        """ An Emcee non-linear search.
 
         For a full description of Emcee, checkout its Github and readthedocs webpages:
 
@@ -48,10 +48,9 @@ class Emcee(AbstractMCMC):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
-        prior_passer : PriorPasser
-            A Class which controls how priors are passed from the results of this non-linear search to a subsequent
-            non-linear search.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         nwalkers : int
             The number of walkers in the ensemble used to sample parameter space.
         nsteps : int
@@ -83,27 +82,27 @@ class Emcee(AbstractMCMC):
         """
 
         self.nwalkers = (
-            self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
+            self._config("search", "nwalkers", int) if nwalkers is None else nwalkers
         )
-        self.nsteps = self.config("search", "nsteps", int) if nsteps is None else nsteps
+        self.nsteps = self._config("search", "nsteps", int) if nsteps is None else nsteps
 
         self.auto_correlation_check_for_convergence = (
-            self.config("auto_correlation", "check_for_convergence", bool)
+            self._config("auto_correlation", "check_for_convergence", bool)
             if auto_correlation_check_for_convergence is None
             else auto_correlation_check_for_convergence
         )
         self.auto_correlation_check_size = (
-            self.config("auto_correlation", "check_size", int)
+            self._config("auto_correlation", "check_size", int)
             if auto_correlation_check_size is None
             else auto_correlation_check_size
         )
         self.auto_correlation_required_length = (
-            self.config("auto_correlation", "required_length", int)
+            self._config("auto_correlation", "required_length", int)
             if auto_correlation_required_length is None
             else auto_correlation_required_length
         )
         self.auto_correlation_change_threshold = (
-            self.config("auto_correlation", "change_threshold", float)
+            self._config("auto_correlation", "change_threshold", float)
             if auto_correlation_change_threshold is None
             else auto_correlation_change_threshold
         )
@@ -116,7 +115,7 @@ class Emcee(AbstractMCMC):
         )
 
         self.number_of_cores = (
-            self.config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores", int)
             if number_of_cores is None
             else number_of_cores
         )
@@ -244,8 +243,8 @@ class Emcee(AbstractMCMC):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self.config("tag", "name")
-        nwalkers_tag = f"{self.config('tag', 'nwalkers')}_{self.nwalkers}"
+        name_tag = self._config("tag", "name")
+        nwalkers_tag = f"{self._config('tag', 'nwalkers')}_{self.nwalkers}"
 
         return f"{name_tag}__{nwalkers_tag}"
 
@@ -292,7 +291,7 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
+            Manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
             backups, etc.
         """
 

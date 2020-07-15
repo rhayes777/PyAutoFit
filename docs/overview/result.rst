@@ -1,4 +1,4 @@
-.. _api:
+.. _result:
 
 Results & Samples
 -----------------

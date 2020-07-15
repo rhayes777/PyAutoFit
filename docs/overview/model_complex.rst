@@ -1,4 +1,4 @@
-.. _api:
+.. _model_complex:
 
 Model Composition & Customization
 ---------------------------------

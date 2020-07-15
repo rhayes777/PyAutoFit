@@ -15,14 +15,14 @@ class DownhillSimplex(AbstractOptimizer):
 
         super().__init__(paths)
 
-        self.xtol = self.config("search", "xtol", float)
-        self.ftol = self.config("search", "ftol", float)
-        self.maxiter = self.config("search", "maxiter", int)
-        self.maxfun = self.config("search", "maxfun", int)
+        self.xtol = self._config("search", "xtol", float)
+        self.ftol = self._config("search", "ftol", float)
+        self.maxiter = self._config("search", "maxiter", int)
+        self.maxfun = self._config("search", "maxfun", int)
 
-        self.full_output = self.config("search", "full_output", int)
-        self.disp = self.config("search", "disp", int)
-        self.retall = self.config("search", "retall", int)
+        self.full_output = self._config("search", "full_output", int)
+        self.disp = self._config("search", "disp", int)
+        self.retall = self._config("search", "retall", int)
 
         self.fmin = fmin
 

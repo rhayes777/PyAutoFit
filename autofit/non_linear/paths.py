@@ -48,7 +48,7 @@ def convert_paths(func):
         if "search" in kwargs:
 
             search = kwargs["search"]
-            search_name = search.config("tag", "name", str)
+            search_name = search._config("tag", "name", str)
 
             def non_linear_tag_function():
                 return search.tag

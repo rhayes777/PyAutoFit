@@ -34,7 +34,7 @@
    howtofit/chapter_1_introduction/index
 
 .. toctree::
-   :caption: API Documentation:
+   :caption: API Reference:
    :maxdepth: 1
    :hidden:
 

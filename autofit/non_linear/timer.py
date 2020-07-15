@@ -10,7 +10,7 @@ class Timer:
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         """
 
         self.paths = paths
