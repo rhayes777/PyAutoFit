@@ -119,7 +119,6 @@ def test():
 
     opt = mp.optimise.Optimiser(
         model_approx,
-        LV_model,
         n_iter=n_iter
     )
 

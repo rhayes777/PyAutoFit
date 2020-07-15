@@ -182,12 +182,11 @@ class Optimiser:
     def __init__(
             self,
             model_approx,
-            model,
             n_iter=4,
             delta=1.
     ):
         self.model_approx = model_approx
-        self.model = model
+        self.model = model_approx.factor_graph
         self.history = dict()
         self.n_iter = n_iter
         self.delta = delta
