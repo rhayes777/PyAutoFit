@@ -4,8 +4,8 @@ from typing import Optional, Dict, Tuple, NamedTuple, Any
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
 
-from autofit.message_passing.factor_graphs import FactorNode
 from autofit.message_passing import FixedMessage
+from autofit.message_passing.factor_graphs import FactorNode
 from .mean_field import FactorApproximation, MeanFieldApproximation, Status
 from .utils import propagate_uncertainty, FlattenArrays
 
@@ -124,7 +124,8 @@ def find_factor_mode(
         return_cov: bool = True,
         status: Optional[Status] = None,
         min_iter: int = 2,
-        **kwargs) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+        **kwargs
+):
     """
     """
     success, messages = Status() if status is None else status
@@ -175,47 +176,52 @@ def find_factor_mode(
 
 
 class Optimiser:
-    def __init__(self, model_approx, model):
+    def __init__(
+            self,
+            model_approx,
+            model,
+            n_iter=4,
+            delta=1.
+    ):
         self.model_approx = model_approx
         self.model = model
         self.history = dict()
-        self.n_iter = 1
+        self.n_iter = n_iter
+        self.delta = delta
 
     def run(self):
         for i in range(self.n_iter):
             for factor in self.model.factors:
                 # We have reduced the entire EP step into a single function
-                self.model_approx, status = laplace_factor_approx(
-                    self.model_approx, factor, delta=1.)
+                self.model_approx, status = self.laplace_factor_approx(
+                    factor
+                )
 
                 # save and print current approximation
                 self.history[i, factor] = self.model_approx
 
+    def laplace_factor_approx(
+            self,
+            factor: FactorNode,
+            project_kws: Optional[Dict[str, Any]] = None,
+            opt_kws: Optional[Dict[str, Any]] = None
+    ):
+        factor_approx = self.model_approx.factor_approximation(factor)
 
-def laplace_factor_approx(
-        model_approx: MeanFieldApproximation,
-        factor: FactorNode,
-        delta: float = 0.5,
-        project_kws: Optional[Dict[str, Any]] = None,
-        opt_kws: Optional[Dict[str, Any]] = None):
-    """
-    """
-    factor_approx = model_approx.factor_approximation(factor)
+        opt_kws = {} if opt_kws is None else opt_kws
+        mode, covars, status, result = find_factor_mode(
+            factor_approx, return_cov=True, **opt_kws)
 
-    opt_kws = {} if opt_kws is None else opt_kws
-    mode, covars, status, result = find_factor_mode(
-        factor_approx, return_cov=True, **opt_kws)
+        project_kws = {} if project_kws is None else project_kws
+        model_dist = {
+            v: factor_approx.factor_dist[v].from_mode(
+                mode[v], covars.get(v), **project_kws)
+            for v in mode}
 
-    project_kws = {} if project_kws is None else project_kws
-    model_dist = {
-        v: factor_approx.factor_dist[v].from_mode(
-            mode[v], covars.get(v), **project_kws)
-        for v in mode}
+        projection, status = factor_approx.project(
+            model_dist, delta=self.delta, status=status)
 
-    projection, status = factor_approx.project(
-        model_dist, delta=delta, status=status)
-
-    return model_approx.project(projection, status=status)
+        return self.model_approx.project(projection, status=status)
 
 
 class LeastSquaresOpt:
