@@ -205,7 +205,7 @@ class TestAddition:
         three = one + two
 
         assert three.a == "a"
-        assert three.data == "b"
+        assert three.b == "b"
 
     def test_list_properties(self):
         one = af.AbstractModel()
@@ -226,7 +226,7 @@ class TestAddition:
         three = one + two
 
         assert three.a == "a"
-        assert three.data == "b"
+        assert three.b == "b"
 
     def test_mapper_plus_mapper(self):
         one = af.ModelMapper()

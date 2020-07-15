@@ -30,7 +30,7 @@ def test_basic():
     a = A(B())
     a.b.a = a
     result = dict_recurse(a)
-    assert isinstance(result.item.data.item.a, Wrapper)
+    assert isinstance(result.item.b.item.a, Wrapper)
 
 
 def test_sub_recursion():
