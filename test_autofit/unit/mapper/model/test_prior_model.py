@@ -299,8 +299,8 @@ class TestHashing:
         assert hash(af.AbstractPriorModel()) is not None
         assert hash(af.PriorModel(mock.MockClassx2)) is not None
         assert (
-            hash(af.AnnotationPriorModel(mock.MockClassx2, mock.MockClassx2, "one"))
-            is not None
+                hash(af.AnnotationPriorModel(mock.MockClassx2, mock.MockClassx2, "one"))
+                is not None
         )
 
     def test_prior_prior_model_hash_consecutive(self):
@@ -352,24 +352,6 @@ class TestPriorModelArguments:
 
         instance = prior_model.instance_for_arguments({})
         assert instance.parameter == 4.0
-
-    def test_model_argument(self):
-        lens_galaxy = af.PriorModel(mock_real.Galaxy)
-        source_galaxy = mock_real.Galaxy()
-        tracer = af.PriorModel(
-            mock_real.Tracer,
-            lens_galaxy=lens_galaxy,
-            source_galaxy=source_galaxy
-        )
-
-        assert tracer.lens_galaxy is lens_galaxy
-        assert tracer.prior_count == 2
-
-        deferred_instance = tracer.instance_for_arguments({lens_galaxy.redshift: 0.5})
-        instance = deferred_instance(grid=None)
-
-        assert instance.lens_galaxy.parameter == 0.5
-        assert instance.source_galaxy is source_galaxy
 
     def test_no_passing(self):
         mapper = af.ModelMapper()

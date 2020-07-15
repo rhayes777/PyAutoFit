@@ -1,7 +1,7 @@
 import typing
 
-from autoconf import conf
 import autofit as af
+from autoconf import conf
 from autofit.tools.phase import Dataset
 
 
@@ -25,14 +25,14 @@ class MockAnalysis(af.Analysis):
 
 class MockResult:
     def __init__(
-        self,
-        samples=None,
-        instance=None,
-        model=None,
-        analysis=None,
-        search=None,
+            self,
+            samples=None,
+            instance=None,
+            previous_model=None,
+            model=None,
+            analysis=None,
+            search=None,
     ):
-
         self.instance = instance or af.ModelInstance()
         self.model = model or af.ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
@@ -41,6 +41,7 @@ class MockResult:
         self.gaussian_tuples = None
         self.analysis = analysis
         self.search = search
+        self.previous_model = previous_model
 
     def model_absolute(self, absolute):
         return self.model
@@ -55,10 +56,10 @@ class MockResult:
 
 class MockSamples(af.PDFSamples):
     def __init__(
-        self,
-        max_log_likelihood_instance=None,
-        log_likelihoods=None,
-        gaussian_tuples=None,
+            self,
+            max_log_likelihood_instance=None,
+            log_likelihoods=None,
+            gaussian_tuples=None,
     ):
 
         if log_likelihoods is None:
@@ -88,7 +89,6 @@ class MockSamples(af.PDFSamples):
 
 class MockSearch(af.NonLinearSearch):
     def __init__(self, paths=None, samples=None):
-
         super().__init__(paths=paths)
 
         self.samples = samples or MockSamples()
@@ -109,7 +109,7 @@ class MockSearch(af.NonLinearSearch):
                 return -2 * log_likelihood
 
         fitness_function = Fitness(model.instance_from_vector)
-        fitness_function(model.prior_count * [0.8])
+        fitness_function(model.prior_count * [0.5])
 
         return fitness_function.result
 
@@ -234,11 +234,3 @@ class MockComponents:
 
 class HyperGalaxy:
     pass
-
-
-
-
-
-
-
-

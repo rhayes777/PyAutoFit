@@ -244,10 +244,20 @@ class PriorModel(AbstractPriorModel):
                 prior_model_tuple.name
             ] = prior_model.instance_for_arguments(arguments)
 
+        prior_arguments = dict()
+
+        for name, prior in self.direct_prior_tuples:
+            try:
+                prior_arguments[name] = arguments[prior]
+            except KeyError as e:
+                raise KeyError(
+                    f"No argument given for prior {name}"
+                ) from e
+
         constructor_arguments = {
             **attribute_arguments,
             **model_arguments,
-            **{t.name: arguments[t.prior] for t in self.direct_prior_tuples},
+            **prior_arguments,
         }
 
         if self.is_deferred_arguments:

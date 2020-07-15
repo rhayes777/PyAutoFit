@@ -5,7 +5,6 @@ from test_autofit import mock
 class TestMixin:
     def test_mixin(self):
         class MyPhase(af.as_grid_search(af.AbstractPhase)):
-
             Result = mock.MockResult
 
             @property
@@ -14,12 +13,16 @@ class TestMixin:
 
             def run(self):
                 analysis = mock.MockAnalysis()
-                return self.make_result(self.run_analysis(analysis), analysis)
+                return self.run_analysis(analysis)
 
         my_phase = MyPhase(
             af.Paths(name="", folders=tuple()),
             number_of_steps=2,
-            search=mock.MockSearch(),
+            search=mock.MockSearch(
+                samples=mock.MockSamples(
+                    gaussian_tuples=[(0.5, 0.5), (0.5, 0.5)]
+                )
+            ),
         )
         my_phase.model.component = mock.MockClassx2Tuple
 
