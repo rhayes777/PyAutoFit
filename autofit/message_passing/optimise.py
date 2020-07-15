@@ -174,6 +174,24 @@ def find_factor_mode(
     return mode, covars, Status(success, messages), result
 
 
+class Optimiser:
+    def __init__(self, model_approx, model):
+        self.model_approx = model_approx
+        self.model = model
+        self.history = dict()
+        self.n_iter = 1
+
+    def run(self):
+        for i in range(self.n_iter):
+            for factor in self.model.factors:
+                # We have reduced the entire EP step into a single function
+                self.model_approx, status = laplace_factor_approx(
+                    self.model_approx, factor, delta=1.)
+
+                # save and print current approximation
+                self.history[i, factor] = self.model_approx
+
+
 def laplace_factor_approx(
         model_approx: MeanFieldApproximation,
         factor: FactorNode,
