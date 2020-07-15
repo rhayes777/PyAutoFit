@@ -69,23 +69,15 @@ def test_laplace(
         model,
         model_approx
 ):
-    history = {}
-    n_iter = 3
+    opt = mp.optimise.Optimiser(
+        model_approx,
+        model,
+        n_iter=3
+    )
+    opt.run()
 
-    for i in range(n_iter):
-        for factor in model.factors:
-            # We have reduced the entire EP step into a single function
-            model_approx, status = mp.optimise.laplace_factor_approx(
-                model_approx,
-                factor,
-                delta=1.
-            )
-
-            # save and print current approximation
-            history[i, factor] = model_approx
-
-    q_a = model_approx['a']
-    q_b = model_approx['b']
+    q_a = opt.model_approx['a']
+    q_b = opt.model_approx['b']
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
