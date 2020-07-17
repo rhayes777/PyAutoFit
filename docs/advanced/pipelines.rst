@@ -1,7 +1,7 @@
 .. _pipelines:
 
-Pipelines
-=========
+Transdimensional Pipelines
+==========================
 
 In **PyAutoFit**, a pipeline is a sequence of non-linear searches (or *Phase*'s) which fit different models to a
 dataset. The different *Phase*'s compose and fit many different models, whereby the initial phases fit simplified
