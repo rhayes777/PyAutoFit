@@ -201,7 +201,7 @@ class Phase(AbstractPhase):
             search,
             model=None,
     ):
-        super().__init__(paths, search=search, model=model)
+        super().__init__(paths=paths, search=search, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):

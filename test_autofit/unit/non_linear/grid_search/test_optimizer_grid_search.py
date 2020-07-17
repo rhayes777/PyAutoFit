@@ -1,11 +1,11 @@
 import pickle
 
-import numpy as np
 import pytest
 
 import autofit as af
-from autofit import exc, DownhillSimplex
+from autofit import exc
 from test_autofit import mock
+from test_autofit.mock import MockAnalysis
 
 
 @pytest.fixture(name="mapper")
@@ -24,7 +24,7 @@ def make_grid_search(mapper):
 
 def test_unpickle_result():
     result = af.GridSearchResult(
-        [af.Result(samples=None)],
+        [af.Result(samples=None, previous_model=None)],
         lower_limit_lists=[[1]],
         physical_lower_limits_lists=[[1]],
     )
@@ -141,105 +141,48 @@ class TestGridSearchablePriors:
 
 
 @pytest.fixture(name="grid_search_05")
-def make_grid_search_05(container):
+def make_grid_search_05():
     return af.NonLinearSearchGridSearch(
-        search=container.MockOptimizer(),
+        search=MockOptimizer(),
         number_of_steps=2,
         paths=af.Paths(name="sample_name"),
     )
 
 
+class MockOptimizer(af.MockSearch):
+    init_args = list()
+
+    def __init__(self, paths=af.Paths()):
+        super().__init__(paths=paths, fit_fast=False)
+        self.init_args.append(paths)
+
+
+@pytest.fixture(
+    autouse=True
+)
+def empty_args():
+    MockOptimizer.init_args = list()
+
+
 class TestGridNLOBehaviour:
-    def test_calls(self, grid_search_05, container, mapper):
+    def test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
             model=mapper,
-            analysis=container.MockAnalysis(),
-            grid_priors=[mapper.component.one_tuple.one_tuple_0],
-        )
-
-        assert len(container.init_args) == 2
-        assert len(container.fit_args) == 2
-        assert len(result.results) == 2
-
-    def test_names_1d(self, grid_search_05, container, mapper):
-        grid_search_05.fit(
-            model=mapper,
-            analysis=container.MockAnalysis(),
-            grid_priors=[mapper.component.one_tuple.one_tuple_0],
-        )
-
-        assert len(container.init_args) == 2
-        print(container.init_args[0])
-        assert container.init_args[0] == "sample_name///component_one_tuple.one_tuple_0_0.00_0.50"
-        assert container.init_args[1] == "sample_name///component_one_tuple.one_tuple_0_0.50_1.00"
-
-    def test_round_names(self, container, mapper):
-        grid_search = af.NonLinearSearchGridSearch(
-            search=container.MockOptimizer(),
-            number_of_steps=3,
-            paths=af.Paths(name="sample_name"),
-        )
-
-        grid_search.fit(
-            model=mapper,
-            analysis=container.MockAnalysis(),
-            grid_priors=[mapper.component.one_tuple.one_tuple_0],
-        )
-
-        assert len(container.init_args) == 3
-        assert container.init_args[0] == "sample_name///component_one_tuple.one_tuple_0_0.00_0.33"
-        assert container.init_args[1] == "sample_name///component_one_tuple.one_tuple_0_0.33_0.67"
-        assert container.init_args[2] == "sample_name///component_one_tuple.one_tuple_0_0.67_1.00"
-
-    def test_names_2d(self, grid_search_05, mapper, container):
-        grid_search_05.fit(
-            model=mapper,
-            analysis=container.MockAnalysis(),
-            grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
-        )
-
-        assert len(container.init_args) == 4
-
-        sorted_args = list(sorted(container.init_args[n] for n in range(4)))
-
-        assert (
-            sorted_args[0]
-            == "sample_name///component_one_tuple.one_tuple_0_0.00_0.50_component_one_tuple.one_tuple_1_0.00_0.50"
-        )
-        assert (
-            sorted_args[1]
-            == "sample_name///component_one_tuple.one_tuple_0_0.00_0.50_component_one_tuple.one_tuple_1_0.50_1.00"
-        )
-        assert (
-            sorted_args[2]
-            == "sample_name///component_one_tuple.one_tuple_0_0.50_1.00_component_one_tuple.one_tuple_1_0.00_0.50"
-        )
-        assert (
-            sorted_args[3]
-            == "sample_name///component_one_tuple.one_tuple_0_0.50_1.00_component_one_tuple.one_tuple_1_0.50_1.00"
-        )
-
-    def test_results(self, grid_search_05, mapper, container):
-        result = grid_search_05.fit(
-            model=mapper,
-            analysis=container.MockAnalysis(),
+            analysis=MockAnalysis(),
             grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
         )
 
         assert len(result.results) == 4
         assert result.no_dimensions == 2
-        assert np.equal(
-            result.max_log_likelihood_values, np.array([[1.0, 1.0], [1.0, 1.0]])
-        ).all()
 
         grid_search = af.NonLinearSearchGridSearch(
-            search=container.MockOptimizer,
+            search=MockOptimizer(),
             number_of_steps=10,
             paths=af.Paths(name="sample_name"),
         )
         result = grid_search.fit(
             model=mapper,
-            analysis=container.MockAnalysis(),
+            analysis=MockAnalysis(),
             grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
         )
 

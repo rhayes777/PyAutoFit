@@ -2,7 +2,7 @@ from os import path
 
 import autofit as af
 from autoconf import conf
-from autofit.non_linear.mock.mock_search import MockSearch, MockAnalysis
+from autofit.non_linear.mock.mock_search import MockSearch, MockAnalysis, MockSamples
 from test_autofit import mock
 
 directory = path.dirname(path.realpath(__file__))
@@ -18,7 +18,7 @@ def make_pipeline_1(name, folders, search):
         folders=folders,
         model=af.PriorModel(
             mock.MockComponents,
-            redshift=af.GaussianPrior(10.0, 1.0)
+            parameter=af.GaussianPrior(10.0, 1.0)
         ),
         search=search,
         analysis_class=MockAnalysis,
@@ -32,7 +32,7 @@ def make_pipeline_2(name, folders, search):
         folders=folders,
         model=af.PriorModel(
             mock.MockComponents,
-            redshift=af.last.model.parameter
+            parameter=af.last.model.parameter
         ),
         search=search,
         analysis_class=MockAnalysis,
@@ -43,7 +43,11 @@ def make_pipeline_2(name, folders, search):
 def make_pipeline(
         name,
         folders=tuple(),
-        search=MockSearch()
+        search=MockSearch(
+            samples=MockSamples(
+                gaussian_tuples=[(0.5, 0.5)]
+            )
+        )
 ):
     pipeline_2 = make_pipeline_2(
         name,

@@ -1,35 +1,34 @@
 import logging
 import multiprocessing as mp
-import pickle
 import os
+import pickle
 from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
 
-
 import numpy as np
 
 from autoconf import conf
+from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.non_linear.initializer import Initializer
-from autofit.non_linear.timer import Timer
+from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
+from autofit.non_linear.timer import Timer
 from autofit.text import formatter
 from autofit.text import model_text
 from autofit.text import samples_text
-from autofit import exc
 
-from autofit.non_linear.log import logger
 
 class NonLinearSearch(ABC):
     @convert_paths
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        initializer=None,
-        iterations_per_update=None,
-        number_of_cores=1,
+            self,
+            paths=None,
+            prior_passer=None,
+            initializer=None,
+            iterations_per_update=None,
+            number_of_cores=1,
     ):
         """Abstract base class for non-linear searches.
 
@@ -498,7 +497,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples, previous_model, search):
+    def __init__(self, samples, previous_model, search=None):
         """
         The result of an optimization.
 
@@ -535,8 +534,11 @@ class Result:
     @property
     def model(self):
         if self.__model is None:
+            tuples = self.samples.gaussian_priors_at_sigma(
+                sigma=self.search.prior_passer.sigma
+            )
             self.__model = self.previous_model.mapper_from_gaussian_tuples(
-                self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma),
+                tuples,
                 use_errors=self.search.prior_passer.use_errors,
                 use_widths=self.search.prior_passer.use_widths
             )
@@ -566,7 +568,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.prior_passing_sigma), a=a
+            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), a=a
         )
 
     def model_relative(self, r: float) -> mm.ModelMapper:
@@ -582,7 +584,7 @@ class Result:
         width.
         """
         return self.previous_model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.prior_passing_sigma), r=r
+            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
         )
 
 

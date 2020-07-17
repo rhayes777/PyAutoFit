@@ -36,7 +36,7 @@ def make_result():
     mapper.component = mock.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]), previous_model=mapper
+        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]), previous_model=mapper, search=mock.MockSearch()
     )
 
 

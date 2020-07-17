@@ -3,9 +3,8 @@ from test_autofit import mock
 
 
 class TestMixin:
-    def test_mixin(self, container):
+    def test_mixin(self):
         class MyPhase(af.as_grid_search(af.AbstractPhase)):
-
             Result = mock.MockResult
 
             @property
@@ -13,13 +12,17 @@ class TestMixin:
                 return [self.model.component.one_tuple.one_tuple_0]
 
             def run(self):
-                analysis = container.MockAnalysis()
-                return self.make_result(self.run_analysis(analysis), analysis)
+                analysis = mock.MockAnalysis()
+                return self.run_analysis(analysis)
 
         my_phase = MyPhase(
             af.Paths(name="", folders=tuple()),
             number_of_steps=2,
-            search=container.MockOptimizer(),
+            search=mock.MockSearch(
+                samples=mock.MockSamples(
+                    gaussian_tuples=[(0.5, 0.5), (0.5, 0.5)]
+                )
+            ),
         )
         my_phase.model.component = mock.MockClassx2Tuple
 
@@ -34,6 +37,7 @@ class TestMixin:
 
     def test_parallel_flag(self):
         my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
-            af.Paths(name="phase name")
+            af.Paths(name="phase name"),
+            search=mock.MockSearch()
         )
         assert my_phase.search.parallel

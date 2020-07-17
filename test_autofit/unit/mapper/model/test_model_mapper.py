@@ -759,7 +759,7 @@ class Testinstance:
     def test_instance_in_config(self):
         mapper = af.ModelMapper()
 
-        mock_with_instance = af.PriorModel(MockClassx2instance)
+        mock_with_instance = af.PriorModel(MockClassx2instance, one=3)
 
         mapper.mock_class = mock_with_instance
 
