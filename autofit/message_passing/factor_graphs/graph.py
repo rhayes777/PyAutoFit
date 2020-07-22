@@ -236,7 +236,7 @@ class FactorGraph(AbstractNode):
             call_sequence.append(calls)
 
             # update to include newly calculated factors
-            for missing in call_sets:
+            for missing in list(call_sets.keys()):
                 if missing.intersection(new_variables):
                     factors = call_sets.pop(missing)
                     call_sets[missing.difference(new_variables)].extend(factors)
