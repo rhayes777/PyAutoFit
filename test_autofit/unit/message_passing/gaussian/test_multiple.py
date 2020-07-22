@@ -135,7 +135,7 @@ def test_gaussian():
     opt.run()
 
     def print_factor(name):
-        print(f"{string} = {opt.model_approx[string].mu}")
+        print(f"{name} = {opt.model_approx[name].mu}")
 
     print_factor("intensity")
 
