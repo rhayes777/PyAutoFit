@@ -55,54 +55,66 @@ def make_model(
     return likelihood * gaussian * prior_centre * prior_sigma
 
 
-def test_gaussian():
+def make_message_dict(
+        number,
+        gaussian
+):
     x, y = make_data(
-        Gaussian(
-            centre=50.0,
-            intensity=25.0,
-            sigma=10.0
-        ),
+        gaussian,
         n_observations
     )
+
+    return {
+        f"centre_{number}": mp.NormalMessage.from_prior(
+            prior
+        ),
+        f"intensity": mp.NormalMessage.from_prior(
+            prior
+        ),
+        f"sigma_{number}": mp.NormalMessage.from_prior(
+            prior
+        ),
+        f"x_{number}": mp.FixedMessage(x),
+        f"y_{number}": mp.FixedMessage(y),
+        f"z_{number}": mp.NormalMessage.from_mode(
+            np.zeros(n_observations), 100
+        )
+    }
+
+
+def test_gaussian():
+    intensity = 25.0
 
     observations = mp.Plate(
         name="observations"
     )
 
-    intensity = mp.Variable(
+    intensity_ = mp.Variable(
         "intensity"
     )
 
     prior_intensity = mp.Factor(
         prior
-    )(intensity)
+    )(intensity_)
 
     number = 0
 
     model = make_model(
         number,
         observations,
-        intensity
+        intensity_
     ) * prior_intensity
 
     model_approx = mp.MeanFieldApproximation.from_kws(
         model,
-        **{
-            f"centre_{number}": mp.NormalMessage.from_prior(
-                prior
-            ),
-            f"intensity": mp.NormalMessage.from_prior(
-                prior
-            ),
-            f"sigma_{number}": mp.NormalMessage.from_prior(
-                prior
-            ),
-            f"x_{number}": mp.FixedMessage(x),
-            f"y_{number}": mp.FixedMessage(y),
-            f"z_{number}": mp.NormalMessage.from_mode(
-                np.zeros(n_observations), 100
+        **make_message_dict(
+            number,
+            Gaussian(
+                centre=50.0,
+                intensity=intensity,
+                sigma=10.0
             )
-        }
+        )
     )
 
     opt = mp.optimise.LaplaceOptimiser(
