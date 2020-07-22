@@ -3,7 +3,9 @@
 Citations & References
 ======================
 
-The **PyAutoFit** publication is yet to be published (or submitted), thus there is no suitable academic citation
+The bibtex entries for **PyAutoFit** and also software packages used by **PyAutoFit** can be found [here]()
+
+The **PyAutoFit** publication has been submitted to the Journal of Open Source Software, and thes yet to be published (or submitted), thus there is no suitable academic citation
 currently.
 
 However, if you do use **PyAutoFit** in your publication, we would greatly appreciate it if you mention **PyAutoFit**

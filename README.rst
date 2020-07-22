@@ -13,13 +13,13 @@ API Overview
 ------------
 
 To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
-noisy 1D data of a Gaussian's line profile. Here's an example of the data (blue) and the model we'll fit (orange):
+noisy 1D data. Here's an example of the data (blue) and the model we'll fit (orange):
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/toy_model_fit.png
   :width: 400
   :alt: Alternative text
 
-We define our model, a 1D Gaussian, by writing a Python class using the format below.
+We define our model, a 1D Gaussian by writing a Python class using the format below:
 
 .. code-block:: python
 
@@ -37,6 +37,7 @@ We define our model, a 1D Gaussian, by writing a Python class using the format b
 
     """
     An instance of the Gaussian class will be available during model fitting.
+
     This method will be used to fit the model to data and compute a likelihood.
     """
 
@@ -48,7 +49,7 @@ We define our model, a 1D Gaussian, by writing a Python class using the format b
                 np.exp(-0.5 * transformed_xvalues / self.sigma)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
-a non-linear search like `emcee <https://github.com/dfm/emcee>`_..
+a non-linear search like `emcee <https://github.com/dfm/emcee>`_.
 
 To fit this Gaussian to the data we create an Analysis object, which gives **PyAutoFit** the data and a likelihood
 function describing how to fit the data with the model:
