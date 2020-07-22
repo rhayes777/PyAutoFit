@@ -101,8 +101,8 @@ def test_gaussian():
         ),
         x=mp.FixedMessage(x),
         y=mp.FixedMessage(y),
-        z=mp.NormalMessage.from_prior(
-            prior
+        z=mp.NormalMessage.from_mode(
+            np.zeros(n_observations), 100
         ),
     )
 
