@@ -178,7 +178,7 @@ def find_factor_mode(
     return mode, covars, Status(success, messages), result
 
 
-class Optimiser:
+class LaplaceOptimiser:
     def __init__(
             self,
             model_approx,

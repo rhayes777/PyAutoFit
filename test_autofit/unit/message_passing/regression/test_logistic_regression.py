@@ -65,7 +65,7 @@ def make_model_approx(
 def test_laplace(
         model_approx
 ):
-    opt = mp.optimise.Optimiser(
+    opt = mp.optimise.LaplaceOptimiser(
         model_approx
     )
     opt.run()

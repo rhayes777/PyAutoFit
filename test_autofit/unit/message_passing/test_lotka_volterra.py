@@ -117,7 +117,7 @@ def test():
 
     np.random.seed(1)
 
-    opt = mp.optimise.Optimiser(
+    opt = mp.optimise.LaplaceOptimiser(
         model_approx,
         n_iter=n_iter
     )
