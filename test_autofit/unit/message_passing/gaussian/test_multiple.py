@@ -101,7 +101,9 @@ def test_gaussian():
     message_dict = dict()
 
     kwarg_list = [
-        {"centre": 50.0, "sigma": 10.0}
+        {"centre": 50.0, "sigma": 10.0},
+        {"centre": 30.0, "sigma": 20.0},
+        {"centre": 0.0, "sigma": 50.0},
     ]
 
     for number, kwargs in enumerate(kwarg_list):
@@ -132,6 +134,11 @@ def test_gaussian():
     )
     opt.run()
 
+    def print_factor(name):
+        print(f"{string} = {opt.model_approx[string].mu}")
+
+    print_factor("intensity")
+
     for number in range(len(kwarg_list)):
-        for string in (f"centre_{number}", "intensity", f"sigma_{number}"):
-            print(f"{string} = {opt.model_approx[string].mu}")
+        for string in (f"centre_{number}", f"sigma_{number}"):
+            print_factor(string)
