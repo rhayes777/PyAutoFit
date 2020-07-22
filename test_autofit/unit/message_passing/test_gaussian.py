@@ -27,7 +27,7 @@ _norm = stats.norm(loc=0, scale=1.)
 
 prior = af.GaussianPrior(
     mean=0,
-    sigma=20
+    sigma=40
 )
 
 
@@ -111,6 +111,9 @@ def test_gaussian():
         n_iter=3
     )
     opt.run()
+
+    for string in ("centre", "intensity", "sigma"):
+        print(f"{string} = {opt.model_approx[string].mu}")
 
 
 class Profile:
