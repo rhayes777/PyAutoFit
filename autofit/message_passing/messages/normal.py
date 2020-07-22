@@ -26,6 +26,16 @@ class NormalMessage(AbstractMessage):
             log_norm=log_norm
         )
 
+    @classmethod
+    def from_prior(
+            cls,
+            prior
+    ):
+        return NormalMessage(
+            mu=prior.mean,
+            sigma=prior.sigma
+        )
+
     @property
     def natural_parameters(self):
         return self.calc_natural_parameters(

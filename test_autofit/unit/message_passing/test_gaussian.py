@@ -1,20 +1,113 @@
 import numpy as np
+from scipy import stats
+
+import autofit as af
+from autofit import message_passing as mp
+
+n_observations = 100
 
 
 def make_data():
     gaussian = Gaussian(centre=50.0, intensity=25.0, sigma=10.0)
-    pixels = 100
-    xvalues = np.arange(pixels)
-    model_line = gaussian.profile_from_xvalues(xvalues=xvalues)
+    x = np.arange(n_observations)
+    model_line = gaussian.profile_from_xvalues(xvalues=x)
     signal_to_noise_ratio = 25.0
-    noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, pixels)
-    data = model_line + noise
-    return data
+    noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, n_observations)
+    y = model_line + noise
+    return x, y
+
+
+# TODO: Use autofit class?
+def _gaussian(x, centre, intensity, sigma):
+    gaussian = Gaussian(centre=centre, intensity=intensity, sigma=sigma)
+    return gaussian.profile_from_xvalues(x)
+
+
+_norm = stats.norm(loc=0, scale=1.)
+
+prior = af.GaussianPrior(
+    mean=0,
+    sigma=20
+)
+
+
+# TODO: use autofit likelihood
+def _likelihood(z, y):
+    return _norm.logpdf(z - y)
 
 
 def test_gaussian():
-    data = make_data()
-    n_obs, = data.shape
+    x, y = make_data()
+
+    observations = mp.Plate(
+        name="observations"
+    )
+
+    # TODO: Can we derive variables by looking at function argument names?
+    x_ = mp.Variable(
+        "x", observations
+    )
+    y_ = mp.Variable(
+        "y", observations
+    )
+    z = mp.Variable(
+        "z", observations
+    )
+    centre = mp.Variable(
+        "centre"
+    )
+    intensity = mp.Variable(
+        "intensity"
+    )
+    sigma = mp.Variable(
+        "sigma"
+    )
+
+    gaussian = mp.Factor(
+        _gaussian
+    )(
+        x_,
+        centre,
+        intensity,
+        sigma
+    ) == z
+    likelihood = mp.Factor(
+        _likelihood
+    )(z, y_)
+
+    # TODO: Can priors look like autofit priors? Could mp objects derive promise functionality from autofit?
+    prior_centre = mp.Factor(
+        prior
+    )(centre)
+    prior_intensity = mp.Factor(
+        prior
+    )(intensity)
+    prior_sigma = mp.Factor(
+        prior
+    )(sigma)
+
+    model = likelihood * gaussian * prior_centre * prior_sigma * prior_intensity
+
+    model_approx = mp.MeanFieldApproximation.from_kws(
+        model,
+        centre=mp.NormalMessage.from_prior(
+            prior
+        ),
+        intensity=mp.NormalMessage.from_prior(
+            prior
+        ),
+        sigma=mp.NormalMessage.from_prior(
+            prior
+        ),
+        x=mp.FixedMessage(x),
+        y=mp.FixedMessage(y)
+    )
+
+    opt = mp.optimise.LaplaceOptimiser(
+        model_approx,
+        n_iter=3
+    )
+    opt.run()
 
 
 class Profile:
