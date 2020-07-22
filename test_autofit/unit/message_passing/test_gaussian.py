@@ -100,7 +100,10 @@ def test_gaussian():
             prior
         ),
         x=mp.FixedMessage(x),
-        y=mp.FixedMessage(y)
+        y=mp.FixedMessage(y),
+        z=mp.NormalMessage.from_prior(
+            prior
+        ),
     )
 
     opt = mp.optimise.LaplaceOptimiser(
