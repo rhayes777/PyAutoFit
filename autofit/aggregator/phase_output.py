@@ -3,7 +3,7 @@ import pickle
 
 import dill
 
-from autofit.non_linear import abstract
+from autofit.non_linear import abstract_search
 from autofit.non_linear.samples import PDFSamples
 
 
@@ -38,15 +38,6 @@ class PhaseOutput:
     @property
     def pickle_path(self):
         return f"{self.directory}/pickles"
-
-    @property
-    def samples(self) -> PDFSamples:
-        """
-        An object describing the samples of the nonlinear search performed in this phase
-        """
-        return self.search.samples_from_model(
-            model=self.model,
-        )
 
     @property
     def model_results(self) -> str:
@@ -88,12 +79,12 @@ class PhaseOutput:
         return "/".join((self.pipeline, self.phase, self.dataset_name))
 
     @property
-    def search(self) -> abstract.NonLinearSearch:
+    def search(self) -> abstract_search.NonLinearSearch:
         """
         The search object that was used in this phase
         """
         if self.__search is None:
-            with open(os.path.join(self.pickle_path, "non_linear.pickle"), "r+b") as f:
+            with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
                 self.__search = pickle.loads(f.read())
         return self.__search
 

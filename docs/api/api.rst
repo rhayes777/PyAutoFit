@@ -1,14 +1,14 @@
-=================
-API Documentation
-=================
+=============
+API Reference
+=============
+
+.. currentmodule:: autofit
 
 -------------------
 Non-linear Searches
 -------------------
 
 **Nested Samplers:**
-
-.. currentmodule:: autofit
 
 .. autosummary::
    :toctree: generated/
@@ -17,8 +17,6 @@ Non-linear Searches
    DynestyStatic
    MultiNest
 
-.. currentmodule:: autofit
-
 **MCMC:**
 
 .. autosummary::
@@ -26,15 +24,13 @@ Non-linear Searches
 
    Emcee
 
-.. currentmodule:: autofit
-
 **Optimizers:**
 
 .. autosummary::
    :toctree: generated/
 
    DownhillSimplex
-   PySwarms
+   PySwarmsGlobal
 
 **GridSearch**:
 
@@ -49,8 +45,6 @@ Non-linear Searches
 Priors
 ------
 
-.. currentmodule:: autofit
-
 .. autosummary::
    :toctree: generated/
 
@@ -62,8 +56,6 @@ Priors
 Models
 ------
 
-.. currentmodule:: autofit
-
 .. autosummary::
    :toctree: generated/
 
@@ -74,8 +66,6 @@ Models
 Paths
 -----
 
-.. currentmodule:: autofit
-
 .. autosummary::
    :toctree: generated/
 
@@ -84,8 +74,6 @@ Paths
 -------
 Samples
 -------
-
-.. currentmodule:: autofit
 
 .. autosummary::
    :toctree: generated/
@@ -99,8 +87,6 @@ Samples
 Aggregator
 ----------
 
-.. currentmodule:: autofit
-
 .. autosummary::
    :toctree: generated/
 
@@ -109,8 +95,6 @@ Aggregator
 -------
 Backend
 -------
-
-.. currentmodule:: autofit
 
 .. autosummary::
    :toctree: generated/

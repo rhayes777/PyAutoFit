@@ -5,7 +5,7 @@ PyAutoFit
 straightforwardly integrated into scientific modeling software. **PyAutoFit** specializes in:
 
 - **Black box** models with complex and expensive log likelihood functions. 
-- Fitting **many different model parametrizations** to a data-set. 
+- Composing, fitting and comparing **many different model-fits** to a data-set.
 - Modeling **extremely large-datasets** with a homogenous fitting procedure. 
 - Automating complex model-fitting tasks via **transdimensional model-fitting pipelines**.
 
@@ -26,19 +26,21 @@ We define our model, a 1D Gaussian, by writing a Python class using the format b
     class Gaussian:
 
         def __init__(
-            self,            # <- PyAutoFit recognises these
-            centre = 0.0,    # <- constructor arguments are
-            intensity = 0.1, # <- the model parameters of .
-            sigma = 0.01,    # <- the Gaussian.
+            self,
+            centre=0.0,     # <- PyAutoFit recognises these
+            intensity=0.1,  # <- constructor arguments are
+            sigma=0.01,     # <- the Gaussian's parameters.
         ):
             self.centre = centre
             self.intensity = intensity
             self.sigma = sigma
 
-    # An instance of the Gaussian class will be available during model fitting.
-    # This method will be used to fit the model to data and compute a likelihood.
+    """
+    An instance of the Gaussian class will be available during model fitting.
+    This method will be used to fit the model to data and compute a likelihood.
+    """
 
-    def line_from_xvalues(self, xvalues):
+    def profile_from_xvalues(self, xvalues):
 
         transformed_xvalues = xvalues - self.centre
 
@@ -62,20 +64,24 @@ function describing how to fit the data with the model:
 
         def log_likelihood_function(self, instance):
 
-            # The 'instance' that comes into this method is an instance of the Gaussian class
-            # above, with the parameters set to (random) values chosen by the non-linear search.
+            """
+            The 'instance' that comes into this method is an instance of the Gaussian class
+            above, with the parameters set to (random) values chosen by the non-linear search.
+            """
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
             print("Intensity = ", instance.intensity)
             print("Sigma = ", instance.sigma)
 
-            # We fit the data with the Gaussian instance, using its
-            # "line_from_xvalues" function to create the model data.
+            """
+            We fit the data with the Gaussian instance, using its
+            "profile_from_xvalues" function to create the model data.
+            """
 
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.line_from_xvalues(xvalues=xvalues)
+            model_data = instance.profile_from_xvalues(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)
@@ -100,8 +106,8 @@ marginalized probability density functions.
 Getting Started
 ---------------
 
-To get started checkout our `readthedocs <file:///home/jammy/PycharmProjects/PyAuto/PyAutoFit/docs/_build/index.html>`_,
-where you'll find our installation guide, a general overview of **PyAutoFit**'s features, examples scripts and
+To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
+where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
 tutorials and detailed API documentation.
 
 Slack

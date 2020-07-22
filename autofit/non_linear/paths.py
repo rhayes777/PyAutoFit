@@ -1,14 +1,13 @@
 import glob
-import logging
 import os
 import shutil
 import zipfile
+from configparser import NoSectionError
 from functools import wraps
 
 from autoconf import conf
 from autofit.mapper import link
-
-logger = logging.getLogger(__name__)
+from autofit.non_linear.log import logger
 
 
 def make_path(func):
@@ -43,39 +42,39 @@ def convert_paths(func):
         if first_arg is None:
             first_arg = kwargs.pop("phase_name", None)
 
-        remove_files = conf.instance.general.get("output", "remove_files", bool)
-
         # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
         # TODO : nicely though.
 
-        if "non_linear_class" in kwargs:
+        search = kwargs.get("search")
 
-            non_linear_instance = kwargs["non_linear_class"]()
-            non_linear_name = non_linear_instance.config("tag", "name", str)
+        if search is not None:
+
+            search = kwargs["search"]
+            search_name = search._config("tag", "name", str)
 
             def non_linear_tag_function():
-                return non_linear_instance.tag
+                return search.tag
 
         else:
 
-            non_linear_name = None
+            search_name = None
 
             def non_linear_tag_function():
                 return ""
 
-        func(
-            self,
-            paths=Paths(
-                name=first_arg,
-                tag=kwargs.pop("phase_tag", None),
-                folders=kwargs.pop("phase_folders", tuple()),
-                path_prefix=kwargs.pop("phase_path", None),
-                non_linear_name=non_linear_name,
-                non_linear_tag_function=non_linear_tag_function,
-                remove_files=remove_files,
-            ),
-            **kwargs,
+        paths = Paths(
+            name=first_arg,
+            tag=kwargs.pop("phase_tag", None),
+            folders=kwargs.pop("folders", tuple()),
+            path_prefix=kwargs.pop("phase_path", None),
+            non_linear_name=search_name,
+            non_linear_tag_function=non_linear_tag_function,
         )
+
+        if search is not None:
+            search.paths = paths
+
+        func(self, paths=paths, **kwargs)
 
     return wrapper
 
@@ -139,7 +138,14 @@ class Paths:
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
         self.non_linear_tag_function = non_linear_tag_function
-        self.remove_files = remove_files
+
+        try:
+            self.remove_files = conf.instance.general.get("output", "remove_files", bool)
+
+            if conf.instance.general.get("hpc", "hpc_mode", bool):
+                self.remove_files = True
+        except NoSectionError as e:
+            logger.exception(e)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -147,13 +153,9 @@ class Paths:
         return state
 
     def __setstate__(self, state):
-        non_linear_tag = state.pop(
-            "non_linear_tag"
-        )
+        non_linear_tag = state.pop("non_linear_tag")
         self.non_linear_tag_function = lambda: non_linear_tag
-        self.__dict__.update(
-            state
-        )
+        self.__dict__.update(state)
 
     @property
     def non_linear_tag(self):
@@ -217,7 +219,7 @@ class Paths:
     @property
     def has_completed_path(self) -> str:
         """
-        A file indicating that a multinest search has been completed previously
+        A file indicating that a non-linear search has been completed previously
         """
         return f"{self.output_path}/.completed"
 
@@ -237,7 +239,11 @@ class Paths:
     @make_path
     def sym_path(self) -> str:
         return "{}/{}/{}/{}/{}/samples".format(
-            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_tag
+            conf.instance.output_path,
+            self.path_prefix,
+            self.name,
+            self.tag,
+            self.non_linear_tag,
         )
 
     @property
@@ -273,11 +279,11 @@ class Paths:
     def pickle_path(self) -> str:
         return f"{self.make_path()}/pickles"
 
-    def make_non_linear_pickle_path(self) -> str:
+    def make_search_pickle_path(self) -> str:
         """
         Create the path at which the search pickle should be saved
         """
-        return f"{self.pickle_path}/non_linear.pickle"
+        return f"{self.pickle_path}/search.pickle"
 
     def make_model_pickle_path(self):
         """
@@ -285,13 +291,23 @@ class Paths:
         """
         return f"{self.pickle_path}/model.pickle"
 
+    def make_samples_pickle_path(self) -> str:
+        """
+        Create the path at which the search pickle should be saved
+        """
+        return f"{self.pickle_path}/samples.pickle"
+
     @make_path
     def make_path(self) -> str:
         """
         Create the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/{}/".format(
-            conf.instance.output_path, self.path_prefix, self.name, self.tag, self.non_linear_tag
+            conf.instance.output_path,
+            self.path_prefix,
+            self.name,
+            self.tag,
+            self.non_linear_tag,
         )
 
     # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
@@ -311,6 +327,10 @@ class Paths:
     @property
     def file_resume(self) -> str:
         return "{}/{}".format(self.backup_path, "multinestresume.dat")
+
+    @property
+    def file_search_summary(self) -> str:
+        return "{}/{}".format(self.output_path, "search.summary")
 
     @property
     def file_results(self):

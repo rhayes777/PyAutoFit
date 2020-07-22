@@ -40,7 +40,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test_autoarray / coverage reports
+# Unit / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -118,3 +118,12 @@ test_autofit/test_files/text/psycopg2-binary==2.8.1
 test_autofit/test_files/text/
 fit/test_autofit/optimize/test_fit
 *.DS_Store
+
+test_autofit/unit/config/json_priors/old
+
+# docs
+docs/_build
+docs/_static
+docs/_templates
+docs/generated
+docs/api/generated

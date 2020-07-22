@@ -1,14 +1,14 @@
 import autofit as af
 from test_autofit import mock
-from test_autofit.mock import MockClassNLOx4
+from test_autofit.mock import MockClassx4
 
 
 def test__parameter_names_from_text():
     model = af.ModelMapper()
     model.ls = af.CollectionPriorModel(
         [
-            af.PriorModel(mock.RelativeWidth),
-            af.PriorModel(mock.RelativeWidth),
+            af.PriorModel(mock.MockClassRelativeWidth),
+            af.PriorModel(mock.MockClassRelativeWidth),
         ]
     )
 
@@ -25,7 +25,7 @@ def test__parameter_names_from_text():
 
 
 def test__parameter_labels_from_text():
-    model = af.PriorModel(MockClassNLOx4)
+    model = af.PriorModel(MockClassx4)
 
     parameter_labels = af.text.Model.parameter_labels_from_model(model=model)
 

@@ -15,14 +15,13 @@ def make_downhill_simplex():
         return x0
 
     return af.DownhillSimplex(
-        fmin=fmin,
-        paths=Paths(name="name", folders=("folders",), tag="tag"),
+        fmin=fmin, paths=Paths(name="name", folders=("folders",), tag="tag")
     )
 
 
 # class TestDownhillSimplex:
 #     def test_instance(self, downhill_simplex, model):
-#         model.mock_class = MockClassNLOx4()
+#         model.mock_class = MockClassx4()
 #
 #         assert hasattr(model.instance_from_unit_vector([]), "mock_class")
 #
@@ -33,7 +32,7 @@ def make_downhill_simplex():
 #         assert result.log_likelihood == 1
 #
 #     def test_model(self, downhill_simplex, model):
-#         model.mock_class = af.PriorModel(MockClassNLOx4)
+#         model.mock_class = af.PriorModel(MockClassx4)
 #         result = downhill_simplex.fit(MockAnalysis(), model)
 #
 #         assert result.instance.mock_class.one == 0.0
@@ -44,8 +43,8 @@ def make_downhill_simplex():
 #         assert result.model.mock_class.two.mean == 0.0
 #
 #     def test_instance_and_model(self, downhill_simplex, model):
-#         model.instance = MockClassNLOx4()
-#         model.model = af.PriorModel(MockClassNLOx4)
+#         model.instance = MockClassx4()
+#         model.model = af.PriorModel(MockClassx4)
 #
 #         result = downhill_simplex.fit(MockAnalysis(), model)
 #

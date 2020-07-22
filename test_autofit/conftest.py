@@ -46,8 +46,8 @@ def model():
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase(phase_name="phase name")
-    phase.model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
+    phase = af.AbstractPhase(phase_name="phase name", search=af.MockSearch())
+    phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
     return phase
 
 
@@ -55,11 +55,11 @@ def make_phase():
 def make_collection():
     collection = af.ResultsCollection()
     model = af.ModelMapper()
-    model.one = af.PriorModel(mock.Galaxy, light=mock.EllipticalLP)
+    model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
     instance = af.ModelInstance()
-    instance.one = mock.Galaxy(light=mock.EllipticalLP())
+    instance.one = mock.MockComponents(component=mock.MockClassx2())
 
-    result = mock.Result(model=model, instance=instance)
+    result = af.MockResult(model=model, instance=instance)
 
     model = af.ModelMapper()
     instance = af.ModelInstance()
@@ -67,7 +67,7 @@ def make_collection():
     model.hyper_galaxy = mock.HyperGalaxy
     instance.hyper_galaxy = mock.HyperGalaxy()
 
-    hyper_result = mock.Result(model=model, instance=instance)
+    hyper_result = af.MockResult(model=model, instance=instance)
 
     result.hyper_result = hyper_result
 

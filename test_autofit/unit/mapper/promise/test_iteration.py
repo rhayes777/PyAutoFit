@@ -25,7 +25,7 @@ def make_model(prior_0, prior_1):
 
 @pytest.fixture(name="phase")
 def make_phase(model):
-    return af.AbstractPhase(phase_name="phase name", model=model)
+    return af.AbstractPhase(phase_name="phase name", model=model, search=af.MockSearch())
 
 
 @pytest.fixture(name="results_collection")
@@ -34,7 +34,7 @@ def make_results_collection(model):
     instance = af.Instance()
     instance.collection = [1, 2]
 
-    result = mock.Result(model=model, instance=instance)
+    result = af.MockResult(model=model, instance=instance)
 
     collection.add("phase name", result)
 

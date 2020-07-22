@@ -3,10 +3,10 @@
 Installation
 ============
 
-Installation with pip
----------------------
+Dependencies
+------------
 
-The simplest way to install **PyAutoFit** is via pip which installs **PyAutoFit** with the following dependencies:
+This guide installs **PyAutoFit** with the following dependencies:
 
 **PyAutoConf** https://github.com/rhayes777/PyAutoConf
 
@@ -14,9 +14,11 @@ The simplest way to install **PyAutoFit** is via pip which installs **PyAutoFit*
 
 **emcee** https://github.com/dfm/emcee
 
+**PySwarms** https://github.com/ljvmiranda921/pyswarms
+
 **astropy** https://www.astropy.org/
 
-**GetDist** https://getdist.readthedocs.io/en/latest/
+**corner.py** https://github.com/dfm/corner.py
 
 **matplotlib** https://matplotlib.org/
 
@@ -24,19 +26,23 @@ The simplest way to install **PyAutoFit** is via pip which installs **PyAutoFit*
 
 **scipy** https://www.scipy.org/
 
-You can install **PyAutoFit** via pip as follows:
+Installation with pip
+---------------------
+
+The simplest way to install **PyAutoFit** is via pip:
 
 .. code-block:: bash
 
     pip install autofit
 
-Clone autofit workspace & set WORKSPACE environment model:
+Clone autofit workspace & set WORKSPACE environment model ('--depth 1' clones only the most recent branch on the
+autofit_workspace, reducing the download size):
 
 .. code-block:: bash
 
-    cd /path/where/you/want/autofit_workspace
-    git clone https://github.com/Jammy2211/autofit_workspace
-    export WORKSPACE=/path/to/autofit_workspace/
+   cd /path/where/you/want/autofit_workspace
+   git clone https://github.com/Jammy2211/autofit_workspace --depth 1
+   export WORKSPACE=/path/to/autofit_workspace/
 
 Set PYTHONPATH to include the autofit_workspace directory:
 
@@ -71,7 +77,7 @@ You can test everything is working by running the following command in the autof
 
 .. code-block:: bash
 
-    python3 /path/to/autofit_workspace/api/simple/fit.py
+    python3 /path/to/autofit_workspace/examples/simple/fit.py
 
 PyMultiNest
 -----------
@@ -167,3 +173,10 @@ config to run. Therefore, if you fork or clone the **PyAutoFit** repository, you
 `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ with the PYTHONPATH and WORKSPACE environment
 variables set up as described on the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ repository
 or the installation instructions below.
+
+Trouble Shooting
+----------------
+
+If you have issues with installation or using **PyAutoFit** in general, please raise an issue on the
+`autofit_workspace issues page <https://github.com/Jammy2211/autofit_workspace/issues>`_ with a description of the
+problem and your system setup (operating system, Python version, etc.).

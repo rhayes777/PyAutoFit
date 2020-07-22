@@ -3,13 +3,13 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-from test_autofit.mock import GalaxyModel
-from test_autofit.unit.mapper.model.test_model_mapper import GeometryProfile
+from test_autofit import mock
+from test_autofit import mock_real
 
 
 @pytest.fixture(name="prior_model")
 def make_prior_model():
-    return af.PriorModel(GeometryProfile)
+    return af.PriorModel(mock.MockClassx2Tuple)
 
 
 class TestCase:
@@ -43,8 +43,8 @@ class TestCase:
 
     def test_non_trivial_equality(self):
         model_mapper = af.ModelMapper()
-        model_mapper.galaxy = GalaxyModel(
-            light_profile=GeometryProfile, mass_profile=GeometryProfile
+        model_mapper.galaxy = mock_real.GalaxyModel(
+            light_profile=mock.MockClassx2Tuple, mass_profile=mock.MockClassx2Tuple
         )
         model_mapper_copy = deepcopy(model_mapper)
 
@@ -56,7 +56,7 @@ class TestCase:
 
     def test_model_instance_equality(self):
         model_instance = af.ModelInstance()
-        model_instance.profile = GeometryProfile()
+        model_instance.profile = mock.MockClassx2Tuple()
         model_instance_copy = deepcopy(model_instance)
 
         assert model_instance == model_instance_copy

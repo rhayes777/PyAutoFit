@@ -1,6 +1,7 @@
 import logging
 import pickle
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Dict
 
 import dill
@@ -10,7 +11,6 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.paths import convert_paths
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.non_linear import grid_search
-from autofit.non_linear.mcmc.emcee import Emcee
 from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ class AbstractPhase:
             self,
             paths: Paths,
             *,
-            non_linear_class=Emcee,
+            search,
             model=None,
     ):
         """
@@ -31,18 +31,20 @@ class AbstractPhase:
 
         Parameters
         ----------
-        non_linear_class: class
+        search: class
             The class of a non_linear search
         """
 
-        self.paths = paths
-
-        self.search = non_linear_class(paths=self.paths)
+        self.search = deepcopy(search)
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
         self.pipeline_tag = None
         self.meta_dataset = None
+
+    @property
+    def paths(self):
+        return self.search.paths
 
     def save_model_info(self):
         """Save the model.info file, which summarizes every parameter and prior."""
@@ -112,6 +114,15 @@ class AbstractPhase:
                     meta_dataset, f
                 )
 
+    def save_settings(self, settings):
+        with open(
+                f"{self.paths.pickle_path}/settings.pickle",
+                "wb+"
+        ) as f:
+            pickle.dump(
+                settings, f
+            )
+
     def save_phase_attributes(self, phase_attributes):
         with open(
                 f"{self.paths.pickle_path}/phase_attributes.pickle",
@@ -138,18 +149,6 @@ class AbstractPhase:
 
     def run_analysis(self, analysis, info=None):
         return self.search.fit(model=self.model, analysis=analysis, info=info)
-
-    def customize_priors(self, results):
-        """
-        Perform any prior or instance passing. This could involve setting model
-        attributes equal to priors or instances from a previous phase.
-
-        Parameters
-        ----------
-        results: ResultsCollection
-            The result of the previous phase
-        """
-        pass
 
     def make_phase_attributes(self, analysis):
         raise NotImplementedError()
@@ -199,10 +198,10 @@ class Phase(AbstractPhase):
             paths,
             *,
             analysis_class,
-            non_linear_class=Emcee,
+            search,
             model=None,
     ):
-        super().__init__(paths, non_linear_class=non_linear_class, model=model)
+        super().__init__(paths=paths, search=search, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
@@ -233,8 +232,6 @@ class Phase(AbstractPhase):
         self.model = self.model.populate(results)
 
         analysis = self.make_analysis(dataset=dataset)
-
-        self.customize_priors(results)
 
         result = self.run_analysis(analysis=analysis, info=info)
 
@@ -269,15 +266,17 @@ def as_grid_search(phase_class, parallel=False):
                 self,
                 paths,
                 *,
+                search,
                 number_of_steps=4,
-                non_linear_class=Emcee,
                 **kwargs,
         ):
-            super().__init__(paths, non_linear_class=non_linear_class, **kwargs)
+
+            super().__init__(paths, search=search, **kwargs)
+
             self.search = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,
-                non_linear_class=non_linear_class,
+                search=search,
                 parallel=parallel,
             )
 
@@ -294,7 +293,12 @@ def as_grid_search(phase_class, parallel=False):
         def make_result(self, result, analysis):
             self.save_grid_search_result(grid_search_result=result)
 
-            return result
+            return self.Result(
+                samples=result.samples,
+                previous_model=result.model,
+                analysis=analysis,
+                search=self.search,
+            )
 
         def run_analysis(self, analysis, **kwargs):
             return self.search.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)

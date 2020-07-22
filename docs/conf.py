@@ -12,10 +12,14 @@ import datetime
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+from pyprojroot import here
+workspace_path = str(here())
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('.'))
+
+os.environ['WORKSPACE'] = f"{str(workspace_path)}/howtofit"
 
 # -- Project information -----------------------------------------------------
 
@@ -25,7 +29,7 @@ copyright = "2020, James Nightingale, Richard Hayes"
 author = "James Nightingale, Richard Hayes"
 
 # The full version, including alpha/beta/rc tags
-release = "0.58.0"
+release = "0.61.5"
 master_doc = "index"
 
 
@@ -41,10 +45,12 @@ extensions = [
     'sphinx.ext.extlinks',
     'numpydoc',
     'nbsphinx',
+    "nbsphinx_link",
 ]
 
 ## Generate autodoc stubs with summaries from code
 autosummary_generate = True
+autosummary_imported_members = True
 
 ## Include Python objects as they appear in source files
 autodoc_member_order = 'bysource'
@@ -55,7 +61,6 @@ autodoc_default_flags = ['members']
 numpydoc_show_class_members = False
 numpydoc_show_inherited_class_members = False
 numpydoc_class_members_toctree = False
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

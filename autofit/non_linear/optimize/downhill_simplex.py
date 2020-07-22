@@ -2,32 +2,27 @@ import numpy as np
 import scipy.optimize
 
 from autofit import exc
-from autofit.non_linear.optimize.abstract import AbstractOptimizer
-from autofit.non_linear.abstract import logger
+from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.paths import Paths
 
+from autofit.non_linear.log import logger
 
 class DownhillSimplex(AbstractOptimizer):
-
-    def __init__(
-            self,
-            paths=None,
-            fmin=scipy.optimize.fmin
-    ):
+    def __init__(self, paths=None, fmin=scipy.optimize.fmin):
 
         if paths is None:
             paths = Paths()
 
         super().__init__(paths)
 
-        self.xtol = self.config("search", "xtol", float)
-        self.ftol = self.config("search", "ftol", float)
-        self.maxiter = self.config("search", "maxiter", int)
-        self.maxfun = self.config("search", "maxfun", int)
+        self.xtol = self._config("search", "xtol", float)
+        self.ftol = self._config("search", "ftol", float)
+        self.maxiter = self._config("search", "maxiter", int)
+        self.maxfun = self._config("search", "maxfun", int)
 
-        self.full_output = self.config("search", "full_output", int)
-        self.disp = self.config("search", "disp", int)
-        self.retall = self.config("search", "retall", int)
+        self.full_output = self._config("search", "full_output", int)
+        self.disp = self._config("search", "disp", int)
+        self.retall = self._config("search", "retall", int)
 
         self.fmin = fmin
 
@@ -52,14 +47,13 @@ class DownhillSimplex(AbstractOptimizer):
         return copy
 
     class Fitness(AbstractOptimizer.Fitness):
-
         def __init__(self, paths, model, analysis, samples_fom_model):
 
             super().__init__(
                 paths=paths,
                 analysis=analysis,
                 model=model,
-                samples_from_model=samples_fom_model
+                samples_from_model=samples_fom_model,
             )
 
         def __call__(self, vector):
@@ -75,7 +69,10 @@ class DownhillSimplex(AbstractOptimizer):
         initial_vector = model.physical_values_from_prior_medians
 
         fitness_function = DownhillSimplex.Fitness(
-            paths=self.paths, model=model, analysis=analysis, samples_fom_model=self.samples_from_model
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_fom_model=self.samples_from_model,
         )
 
         logger.info("Running DownhillSimplex...")
@@ -86,7 +83,7 @@ class DownhillSimplex(AbstractOptimizer):
 
         # Create a set of Gaussian priors from this result and associate them with the result object.
         res.gaussian_tuples = [(mean, 0) for mean in samples]
-        res.previous_model = model
+        res.model = model
 
         analysis.visualize(instance=res.instance, during_analysis=False)
         self.paths.backup_zip_remove()

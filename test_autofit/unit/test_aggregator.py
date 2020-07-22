@@ -5,7 +5,7 @@ import pytest
 import autofit as af
 
 
-class MostProbableInstance:
+class MedianPDFInstance:
     def __init__(self, name):
         self.name = name
 
@@ -19,7 +19,7 @@ class MockPhaseOutput:
 
     @property
     def median_pdf_instance(self):
-        return MostProbableInstance(
+        return MedianPDFInstance(
             self.phase
         )
 

@@ -1,5 +1,4 @@
 import copy
-import logging
 import multiprocessing
 from time import sleep
 from typing import List
@@ -10,19 +9,17 @@ from autoconf import conf
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
-from autofit.non_linear.mcmc.emcee import Emcee
-from autofit.non_linear.abstract import Result
+from autofit.non_linear.abstract_search import Result
 from autofit.non_linear.paths import Paths
 
-logger = logging.getLogger(__name__)
-
+from autofit.non_linear.log import logger
 
 class GridSearchResult:
     def __init__(
-            self,
-            results: List[Result],
-            lower_limit_lists: List[List[float]],
-            physical_lower_limits_lists: List[List[float]]
+        self,
+        results: List[Result],
+        lower_limit_lists: List[List[float]],
+        physical_lower_limits_lists: List[List[float]],
     ):
         """
         The result of a grid search.
@@ -54,9 +51,7 @@ class GridSearchResult:
         return self.__dict__
 
     def __setstate__(self, state):
-        self.__dict__.update(
-            state
-        )
+        self.__dict__.update(state)
 
     @property
     def shape(self):
@@ -75,8 +70,8 @@ class GridSearchResult:
         best_result = None
         for result in self.results:
             if (
-                    best_result is None
-                    or result.log_likelihood > best_result.log_likelihood
+                best_result is None
+                or result.log_likelihood > best_result.log_likelihood
             ):
                 best_result = result
         return best_result
@@ -118,21 +113,31 @@ class GridSearchResult:
             elif dim == 1:
                 physical_step_sizes.append(np.min(diff))
             else:
-                raise exc.GridSearchException("This feature does not support > 2 dimensions")
+                raise exc.GridSearchException(
+                    "This feature does not support > 2 dimensions"
+                )
 
         return tuple(physical_step_sizes)
 
     @property
     def physical_centres_lists(self):
-        return [[lower_limit[dim] + self.physical_step_sizes[dim] / 2 for dim in range(self.no_dimensions)]
-                for lower_limit
-                in self.physical_lower_limits_lists]
+        return [
+            [
+                lower_limit[dim] + self.physical_step_sizes[dim] / 2
+                for dim in range(self.no_dimensions)
+            ]
+            for lower_limit in self.physical_lower_limits_lists
+        ]
 
     @property
     def physical_upper_limits_lists(self):
-        return [[lower_limit[dim] + self.physical_step_sizes[dim] for dim in range(self.no_dimensions)]
-                for lower_limit
-                in self.physical_lower_limits_lists]
+        return [
+            [
+                lower_limit[dim] + self.physical_step_sizes[dim]
+                for dim in range(self.no_dimensions)
+            ]
+            for lower_limit in self.physical_lower_limits_lists
+        ]
 
     @property
     def max_log_likelihood_values(self):
@@ -165,9 +170,7 @@ class GridSearchResult:
 
 class GridSearch:
     # TODO: this should be using paths
-    def __init__(
-            self, paths, number_of_steps=4, non_linear_class=Emcee, parallel=False
-    ):
+    def __init__(self, paths, search, number_of_steps=4, parallel=False):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -177,21 +180,19 @@ class GridSearch:
         ----------
         number_of_steps: int
             The number of steps to go in each direction
-        non_linear_class: class
+        search: class
             The class of the search that is run at each step
         """
         self.paths = paths
 
         self.parallel = parallel
-        self.number_of_cores = conf.instance.non_linear.config_for(
-            "GridSearch"
-        ).get(
+        self.number_of_cores = conf.instance.non_linear.config_for("GridSearch").get(
             "general", "number_of_cores", int
         )
         self.phase_tag_input = paths.tag
 
         self.number_of_steps = number_of_steps
-        self.non_linear_class = non_linear_class
+        self.search = search
 
     @property
     def hyper_step_size(self):
@@ -206,11 +207,7 @@ class GridSearch:
     def make_physical_lists(self, grid_priors) -> List[List[float]]:
         lists = self.make_lists(grid_priors)
         return [
-            [
-                prior.value_for(value)
-                for prior, value
-                in zip(grid_priors, l)
-            ]
+            [prior.value_for(value) for prior, value in zip(grid_priors, l)]
             for l in lists
         ]
 
@@ -236,16 +233,16 @@ class GridSearch:
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
             if (
-                    float("-inf") == grid_prior.lower_limit
-                    or float("inf") == grid_prior.upper_limit
+                float("-inf") == grid_prior.lower_limit
+                or float("inf") == grid_prior.upper_limit
             ):
                 raise exc.PriorException(
                     "Priors passed to the grid search must have definite limits"
                 )
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
             upper_limit = (
-                    grid_prior.lower_limit
-                    + (value + self.hyper_step_size) * grid_prior.width
+                grid_prior.lower_limit
+                + (value + self.hyper_step_size) * grid_prior.width
             )
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
@@ -277,9 +274,13 @@ class GridSearch:
             An object that comprises the results from each individual fit
         """
         if self.parallel:
-            return self.fit_parallel(model=model, analysis=analysis, grid_priors=grid_priors)
+            return self.fit_parallel(
+                model=model, analysis=analysis, grid_priors=grid_priors
+            )
         else:
-            return self.fit_sequential(model=model, analysis=analysis, grid_priors=grid_priors)
+            return self.fit_sequential(
+                model=model, analysis=analysis, grid_priors=grid_priors
+            )
 
     def fit_parallel(self, model, analysis, grid_priors):
         """
@@ -302,13 +303,13 @@ class GridSearch:
         grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
-        physical_lists = self.make_physical_lists(
-            grid_priors
-        )
+        physical_lists = self.make_physical_lists(grid_priors)
 
-        results_list = [["index"] +
-                        list(map(model.name_for_prior, grid_priors)) + ["likelihood_merit"]
-                        ]
+        results_list = [
+            ["index"]
+            + list(map(model.name_for_prior, grid_priors))
+            + ["likelihood_merit"]
+        ]
 
         job_queue = multiprocessing.Queue()
 
@@ -323,7 +324,7 @@ class GridSearch:
                 model=model,
                 grid_priors=grid_priors,
                 values=values,
-                index=index
+                index=index,
             )
             job_queue.put(job)
 
@@ -367,17 +368,21 @@ class GridSearch:
         grid_priors = list(sorted(set(grid_priors), key=lambda prior: prior.id))
         results = []
         lists = self.make_lists(grid_priors)
-        physical_lists = self.make_physical_lists(
-            grid_priors
-        )
+        physical_lists = self.make_physical_lists(grid_priors)
 
-        results_list = [["index"] +
-                        list(map(model.name_for_prior, grid_priors)) + ["max_log_likelihood"]
-                        ]
+        results_list = [
+            ["index"]
+            + list(map(model.name_for_prior, grid_priors))
+            + ["max_log_likelihood"]
+        ]
 
         for index, values in enumerate(lists):
             job = self.job_for_analysis_grid_priors_and_values(
-                analysis=analysis, model=model, grid_priors=grid_priors, values=values, index=index
+                analysis=analysis,
+                model=model,
+                grid_priors=grid_priors,
+                values=values,
+                index=index,
             )
 
             result = job.perform()
@@ -409,7 +414,7 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-            self, model, analysis, grid_priors, values, index
+        self, model, analysis, grid_priors, values, index
     ):
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
@@ -418,15 +423,17 @@ class GridSearch:
         for prior in sorted(arguments.values(), key=lambda pr: pr.id):
             labels.append(
                 "{}_{:.2f}_{:.2f}".format(
-                    model.name_for_prior(prior),
-                    prior.lower_limit,
-                    prior.upper_limit,
+                    model.name_for_prior(prior), prior.lower_limit, prior.upper_limit
                 )
             )
 
         name_path = "{}/{}/{}/{}".format(
-            self.paths.name, self.phase_tag_input, self.paths.non_linear_name, "_".join(labels)
+            self.paths.name,
+            self.phase_tag_input,
+            self.paths.non_linear_tag,
+            "_".join(labels),
         )
+
         search_instance = self.search_instance(name_path=name_path)
 
         return Job(
@@ -434,19 +441,22 @@ class GridSearch:
             model=model,
             analysis=analysis,
             arguments=arguments,
-            index=index
+            index=index,
         )
 
     def search_instance(self, name_path):
 
-        search_instance = self.non_linear_class(
-            Paths(
-                name=name_path,
-                tag=self.paths.tag,
-                folders=self.paths.folders,
-                remove_files=self.paths.remove_files,
-            )
+        paths = Paths(
+            name=name_path,
+            tag=self.paths.tag,
+            folders=self.paths.folders,
+            remove_files=self.paths.remove_files,
         )
+
+        search_instance = copy.copy(self.search)
+
+        search_instance.paths = paths
+
         for key, value in self.__dict__.items():
             if key not in ("model", "instance", "paths"):
                 try:
@@ -494,9 +504,11 @@ class Job:
 
     def perform(self):
         result = self.search_instance.fit(model=self.model, analysis=self.analysis)
-        result_list_row = [self.index, *[prior.lower_limit for prior in self.arguments.values()],
-                           result.log_likelihood,
-                           ]
+        result_list_row = [
+            self.index,
+            *[prior.lower_limit for prior in self.arguments.values()],
+            result.log_likelihood,
+        ]
 
         return JobResult(result, result_list_row)
 

@@ -1,27 +1,22 @@
-import logging
 import os
 import emcee
 import numpy as np
 
 from autofit import exc
-from autofit.non_linear.mcmc.abstract import AbstractMCMC
+from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
-from autofit.non_linear.abstract import Result
-from autofit.non_linear.paths import Paths
 
-logger = logging.getLogger(__name__)
+from autofit.non_linear.log import logger
 
 
 class Emcee(AbstractMCMC):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         nwalkers=None,
         nsteps=None,
-        initialize_method=None,
-        initialize_ball_lower_limit=None,
-        initialize_ball_upper_limit=None,
+        initializer=None,
         auto_correlation_check_for_convergence=None,
         auto_correlation_check_size=None,
         auto_correlation_required_length=None,
@@ -29,7 +24,7 @@ class Emcee(AbstractMCMC):
         iterations_per_update=None,
         number_of_cores=None,
     ):
-        """ Class to setup and run an Emcee non-linear search.
+        """ An Emcee non-linear search.
 
         For a full description of Emcee, checkout its Github and readthedocs webpages:
 
@@ -53,31 +48,16 @@ class Emcee(AbstractMCMC):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         nwalkers : int
             The number of walkers in the ensemble used to sample parameter space.
         nsteps : int
             The number of steps that must be taken by every walker. The non-linear search will thus run for nwalkers *
             nsteps iterations.
-        initialize_method : str
-            The method used to generate where walkers are initialized in parameter space, with options:
-            ball (default):
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between the
-                initialize_ball_lower_limit and initialize_ball_upper_limit values. It is recommended these limits are
-                small, such that all walkers begin close to one another.
-            prior:
-                Walkers are initialized by randomly drawing unit values from a uniform distribution between 0 and 1,
-                thus being distributed over the prior.
-        initialize_ball_lower_limit : float
-            The lower limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
-        initialize_ball_upper_limit : float
-            The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
-            ball method.
+        initializer : non_linear.initializer.Initializer
+            Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         auto_correlation_check_for_convergence : bool
             Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
             If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
@@ -101,96 +81,62 @@ class Emcee(AbstractMCMC):
         https://emcee.readthedocs.io/en/stable/
         """
 
-        if paths is None:
-            paths = Paths()
-
-        self.sigma = sigma
-
-        self.nwalkers = self.config("search", "nwalkers", int) if nwalkers is None else nwalkers
-        self.nsteps = self.config("search", "nsteps", int) if nsteps is None else nsteps
+        self.nwalkers = (
+            self._config("search", "nwalkers", int) if nwalkers is None else nwalkers
+        )
+        self.nsteps = self._config("search", "nsteps", int) if nsteps is None else nsteps
 
         self.auto_correlation_check_for_convergence = (
-            self.config("auto_correlation", "check_for_convergence", bool)
+            self._config("auto_correlation", "check_for_convergence", bool)
             if auto_correlation_check_for_convergence is None
             else auto_correlation_check_for_convergence
         )
         self.auto_correlation_check_size = (
-            self.config("auto_correlation", "check_size", int)
+            self._config("auto_correlation", "check_size", int)
             if auto_correlation_check_size is None
             else auto_correlation_check_size
         )
         self.auto_correlation_required_length = (
-            self.config("auto_correlation", "required_length", int)
+            self._config("auto_correlation", "required_length", int)
             if auto_correlation_required_length is None
             else auto_correlation_required_length
         )
         self.auto_correlation_change_threshold = (
-            self.config("auto_correlation", "change_threshold", float)
+            self._config("auto_correlation", "change_threshold", float)
             if auto_correlation_change_threshold is None
             else auto_correlation_change_threshold
         )
 
         super().__init__(
             paths=paths,
-            initialize_method=initialize_method,
-            initialize_ball_lower_limit=initialize_ball_lower_limit,
-            initialize_ball_upper_limit=initialize_ball_upper_limit,
+            prior_passer=prior_passer,
+            initializer=initializer,
             iterations_per_update=iterations_per_update,
         )
 
         self.number_of_cores = (
-            self.config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores", int)
             if number_of_cores is None
             else number_of_cores
         )
 
         logger.debug("Creating Emcee NLO")
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self.config("tag", "name", str)
-        nwalkers_tag = self.config("tag", "nwalkers", str) + "_" + str(self.nwalkers)
-
-        return f"{name_tag}__{nwalkers_tag}"
-
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the emcee non-linear search with all associated attributes.
-
-        This is used to set up the non-linear search on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
-        )
-        copy.sigma = self.sigma
-        copy.nwalkers = self.nwalkers
-        copy.nsteps = self.nsteps
-        copy.auto_correlation_check_for_convergence = self.auto_correlation_check_for_convergence
-        copy.auto_correlation_check_size = self.auto_correlation_check_size
-        copy.auto_correlation_required_length = self.auto_correlation_required_length
-        copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
-        copy.initialize_method = self.initialize_method
-        copy.initialize_ball_lower_limit = self.initialize_ball_lower_limit
-        copy.initialize_ball_upper_limit = self.initialize_ball_upper_limit
-        copy.iterations_per_update = self.iterations_per_update
-        copy.number_of_cores = self.number_of_cores
-
-        return copy
-
     class Fitness(AbstractMCMC.Fitness):
-        def __call__(self, params):
-
+        def __call__(self, parameters):
             try:
-
-                instance = self.model.instance_from_vector(vector=params)
-                log_likelihood = self.fit_instance(instance)
-                log_priors = self.model.log_priors_from_vector(vector=params)
-                return log_likelihood + sum(log_priors)
-
+                return self.figure_of_merit_from_parameters(parameters=parameters)
             except exc.FitException:
+                return self.resample_figure_of_merit
 
-                return -np.inf
+        def figure_of_merit_from_parameters(self, parameters):
+            """The figure of merit is the value that the non-linear search uses to sample parameter space. *Emcee*
+            uses the log posterior.
+            """
+            try:
+                return self.log_posterior_from_parameters(parameters=parameters)
+            except exc.FitException:
+                raise exc.FitException
 
     def _fit(self, model, analysis):
         """
@@ -210,24 +156,26 @@ class Emcee(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
+
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids,
+            model=model, analysis=analysis, pool_ids=pool_ids
         )
 
         emcee_sampler = emcee.EnsembleSampler(
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.paths.sym_path + "/emcee.hdf"),
+            backend=emcee.backends.HDFBackend(
+                filename=self.paths.samples_path + "/emcee.hdf"
+            ),
             pool=pool,
         )
 
         try:
 
             emcee_state = emcee_sampler.get_last_sample()
-
             samples = self.samples_from_model(model=model)
 
             total_iterations = emcee_sampler.iteration
@@ -237,14 +185,26 @@ class Emcee(AbstractMCMC):
             else:
                 iterations_remaining = self.nsteps - total_iterations
 
+                logger.info("Existing Emcee samples found, resuming non-linear search.")
+
         except AttributeError:
 
-            emcee_state = self.initial_points_from_model(number_of_points=emcee_sampler.nwalkers, model=model)
+            initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
+                total_points=emcee_sampler.nwalkers,
+                model=model,
+                fitness_function=fitness_function,
+            )
+
+            emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
+
+            logger.info("No Emcee samples found, beginning new non-linear search.")
+
+            for index, parameters in enumerate(initial_parameters):
+
+                emcee_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.nsteps
-
-        logger.info("Running Emcee Sampling...")
 
         while iterations_remaining > 0:
 
@@ -263,34 +223,52 @@ class Emcee(AbstractMCMC):
 
                 pass
 
+            emcee_state = emcee_sampler.get_last_sample()
+
             total_iterations += iterations
             iterations_remaining = self.nsteps - total_iterations
 
-            samples = self.perform_update(model=model, analysis=analysis, during_analysis=True)
+            samples = self.perform_update(
+                model=model, analysis=analysis, during_analysis=True
+            )
 
             if emcee_sampler.iteration % self.auto_correlation_check_size:
                 if samples.converged and self.auto_correlation_check_for_convergence:
                     iterations_remaining = 0
 
-        logger.info("Emcee complete")
-
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
-
-        return Result(samples=samples, previous_model=model)
+        logger.info("Emcee sampling complete.")
 
     @property
-    def backend(self) -> emcee.backends.HDFBackend:
-        """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
 
-        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        if os.path.isfile(self.paths.sym_path + "/emcee.hdf"):
-            return emcee.backends.HDFBackend(
-                filename=self.paths.sym_path + "/emcee.hdf"
-            )
-        else:
-            raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path " + self.paths.path
-            )
+        name_tag = self._config("tag", "name")
+        nwalkers_tag = f"{self._config('tag', 'nwalkers')}_{self.nwalkers}"
+
+        return f"{name_tag}__{nwalkers_tag}"
+
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        """Copy this instance of the emcee non-linear search with all associated attributes.
+
+        This is used to set up the non-linear search on phase extensions."""
+        copy = super().copy_with_name_extension(
+            extension=extension, remove_phase_tag=remove_phase_tag
+        )
+        copy.prior_passer = self.prior_passer
+        copy.nwalkers = self.nwalkers
+        copy.nsteps = self.nsteps
+        copy.auto_correlation_check_for_convergence = (
+            self.auto_correlation_check_for_convergence
+        )
+        copy.auto_correlation_check_size = self.auto_correlation_check_size
+        copy.auto_correlation_required_length = self.auto_correlation_required_length
+        copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
+        copy.initializer = self.initializer
+        copy.iterations_per_update = self.iterations_per_update
+        copy.number_of_cores = self.number_of_cores
+
+        return copy
 
     def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
 
@@ -313,15 +291,15 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search chains,
+            Manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
             backups, etc.
         """
 
-        parameters = self.backend.get_chain(flat=True)
+        parameters = self.backend.get_chain(flat=True).tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
-        log_likelihoods = self.backend.get_log_prob(flat=True)
+        log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
         weights = len(log_likelihoods) * [1.0]
         auto_correlation_time = self.backend.get_autocorr_time(tol=0)
         total_walkers = len(self.backend.get_chain()[0, :, 0])
@@ -340,4 +318,20 @@ class Emcee(AbstractMCMC):
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
+            time=self.timer.time
         )
+
+    @property
+    def backend(self) -> emcee.backends.HDFBackend:
+        """The *Emcee* hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+
+        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
+        if os.path.isfile(self.paths.samples_path + "/emcee.hdf"):
+            return emcee.backends.HDFBackend(
+                filename=self.paths.samples_path + "/emcee.hdf"
+            )
+        else:
+            raise FileNotFoundError(
+                "The file emcee.hdf does not exist at the path "
+                + self.paths.samples_path
+            )

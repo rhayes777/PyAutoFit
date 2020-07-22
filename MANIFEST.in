@@ -1,16 +1,8 @@
 # MANIFEST.in
 exclude .gitignore
-exclude data 
-exclude docs
-exclude paper_plots
-exclude profiling
-exclude results
-exclude scripts
-exclude output
-exclude workspace
 exclude .coverage
-exclude howtolens
 exclude .travis.yml
+exclude docs
 include README.rst
 include setup.cfg
 prune .cache

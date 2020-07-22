@@ -1,21 +1,16 @@
-import logging
-
-import numpy as np
-
-from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestSamples
-from autofit.non_linear.nest import abstract as ns
-from autofit.non_linear import abstract as nl
+from autofit.non_linear.nest import abstract_nest
+from autofit.non_linear import abstract_search
 
-logger = logging.getLogger(__name__)
+from autofit.non_linear.log import logger
 
 
-class MultiNest(ns.AbstractNest):
+class MultiNest(abstract_nest.AbstractNest):
     def __init__(
         self,
         paths=None,
-        sigma=3,
+        prior_passer=None,
         n_live_points=None,
         sampling_efficiency=None,
         const_efficiency_mode=None,
@@ -39,7 +34,7 @@ class MultiNest(ns.AbstractNest):
         stagger_resampling_likelihood=None,
     ):
         """
-        Class to setup and run a MultiNest non-linear search.
+        A MultiNest non-linear search.
 
         For a full description of MultiNest and its Python wrapper PyMultiNest, checkout its Github and documentation
         webpages:
@@ -51,11 +46,9 @@ class MultiNest(ns.AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            A class that manages all paths, e.g. where the phase outputs are stored, the non-linear search samples,
-            backups, etc.
-        sigma : float
-            The error-bound value that linked Gaussian prior withs are computed using. For example, if sigma=3.0,
-            parameters will use Gaussian Priors with widths coresponding to errors estimated at 3 sigma confidence.
+            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         n_live_points : int
             The number of live points used to sample non-linear parameter space. More points provides a more thorough
             sampling of parameter space, at the expense of taking longer to run. The number of live points required for
@@ -119,67 +112,85 @@ class MultiNest(ns.AbstractNest):
         """
 
         self.n_live_points = (
-            self.config("search", "n_live_points", int)
+            self._config("search", "n_live_points", int)
             if n_live_points is None
             else n_live_points
         )
         self.sampling_efficiency = (
-            self.config("search", "sampling_efficiency", float)
+            self._config("search", "sampling_efficiency", float)
             if sampling_efficiency is None
             else sampling_efficiency
         )
         self.const_efficiency_mode = (
-            self.config("search", "const_efficiency_mode", bool)
+            self._config("search", "const_efficiency_mode", bool)
             if const_efficiency_mode is None
             else const_efficiency_mode
         )
         self.evidence_tolerance = (
-            self.config("search", "evidence_tolerance", float)
+            self._config("search", "evidence_tolerance", float)
             if evidence_tolerance is None
             else evidence_tolerance
         )
+
+        if self.evidence_tolerance <= 0.0:
+            self.evidence_tolerance = 0.8
+
         self.multimodal = (
-            multimodal or self.config("search", "multimodal", bool)
+            multimodal or self._config("search", "multimodal", bool)
             if multimodal is None
             else multimodal
         )
         self.importance_nested_sampling = (
-            self.config("search", "importance_nested_sampling", bool)
+            self._config("search", "importance_nested_sampling", bool)
             if importance_nested_sampling is None
             else importance_nested_sampling
         )
         self.max_modes = (
-            self.config("search", "max_modes", int) if max_modes is None else max_modes
+            self._config("search", "max_modes", int) if max_modes is None else max_modes
         )
         self.mode_tolerance = (
-            self.config("search", "mode_tolerance", float)
+            self._config("search", "mode_tolerance", float)
             if mode_tolerance is None
             else mode_tolerance
         )
-        self.max_iter = self.config("search", "max_iter", int) if max_iter is None else max_iter
+        self.max_iter = (
+            self._config("search", "max_iter", int) if max_iter is None else max_iter
+        )
         self.n_iter_before_update = (
-            self.config("settings", "n_iter_before_update", int)
+            self._config("settings", "n_iter_before_update", int)
             if n_iter_before_update is None
             else n_iter_before_update
         )
         self.null_log_evidence = (
-            self.config("settings", "null_log_evidence", float)
+            self._config("settings", "null_log_evidence", float)
             if null_log_evidence is None
             else null_log_evidence
         )
-        self.seed = self.config("settings", "seed", int) if seed is None else seed
-        self.verbose = self.config("settings", "verbose", bool) if verbose is None else verbose
-        self.resume = self.config("settings", "resume", bool) if resume is None else resume
-        self.context = self.config("settings", "context", int) if context is None else context
-        self.write_output = (
-            self.config("settings", "write_output", bool) if write_output is None else write_output
+        self.seed = self._config("settings", "seed", int) if seed is None else seed
+        self.verbose = (
+            self._config("settings", "verbose", bool) if verbose is None else verbose
         )
-        self.log_zero = self.config("settings", "log_zero", float) if log_zero is None else log_zero
-        self.init_MPI = self.config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
+        self.resume = (
+            self._config("settings", "resume", bool) if resume is None else resume
+        )
+        self.context = (
+            self._config("settings", "context", int) if context is None else context
+        )
+        self.write_output = (
+            self._config("settings", "write_output", bool)
+            if write_output is None
+            else write_output
+        )
+        self.log_zero = (
+            self._config("settings", "log_zero", float) if log_zero is None else log_zero
+        )
+        self.init_MPI = (
+            self._config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
+        )
 
         super().__init__(
             paths=paths,
-            sigma=sigma,
+            prior_passer=prior_passer,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             stagger_resampling_likelihood=stagger_resampling_likelihood,
@@ -187,61 +198,7 @@ class MultiNest(ns.AbstractNest):
 
         logger.debug("Creating MultiNest NLO")
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self.config("tag", "name", str)
-        n_live_points_tag = self.config("tag", "n_live_points", str) + "_" + str(self.n_live_points)
-        sampling_efficiency_tag = self.config("tag", "sampling_efficiency", str) + "_" + str(self.sampling_efficiency)
-        if self.const_efficiency_mode:
-            const_efficiency_mode_tag = "_" + self.config("tag", "const_efficiency_mode", str)
-        else:
-            const_efficiency_mode_tag = ""
-        if self.multimodal:
-            multimodal_tag = "_" + self.config("tag", "multimodal", str)
-        else:
-            multimodal_tag = ""
-        if self.importance_nested_sampling:
-            importance_nested_sampling_tag = "_" + self.config("tag", "importance_nested_sampling", str)
-        else:
-            importance_nested_sampling_tag = ""
-
-        return f"{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}"
-
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the multinest non-linear search with all associated attributes.
-
-        This is used to set up the non-linear search on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
-        )
-        copy.sigma = self.sigma
-        copy.importance_nested_sampling = self.importance_nested_sampling
-        copy.multimodal = self.multimodal
-        copy.const_efficiency_mode = self.const_efficiency_mode
-        copy.n_live_points = self.n_live_points
-        copy.evidence_tolerance = self.evidence_tolerance
-        copy.sampling_efficiency = self.sampling_efficiency
-        copy.n_iter_before_update = self.n_iter_before_update
-        copy.null_log_evidence = self.null_log_evidence
-        copy.max_modes = self.max_modes
-        copy.mode_tolerance = self.mode_tolerance
-        copy.seed = self.seed
-        copy.verbose = self.verbose
-        copy.resume = self.resume
-        copy.context = self.context
-        copy.write_output = self.write_output
-        copy.log_zero = self.log_zero
-        copy.max_iter = self.max_iter
-        copy.init_MPI = self.init_MPI
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
-        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
-        return copy
-
-    def _fit(self, model: AbstractPriorModel, analysis) -> nl.Result:
+    def _fit(self, model: AbstractPriorModel, analysis) -> abstract_search.Result:
         """
         Fit a model using MultiNest and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the non-linear search seeks to maximize.
@@ -276,6 +233,8 @@ class MultiNest(ns.AbstractNest):
 
         import pymultinest
 
+        logger.info("Beginning MultiNest non-linear search. ")
+
         pymultinest.run(
             fitness_function,
             prior,
@@ -292,7 +251,7 @@ class MultiNest(ns.AbstractNest):
             max_modes=self.max_modes,
             mode_tolerance=self.mode_tolerance,
             seed=self.seed,
-            verbose=self.verbose,
+            verbose=not self.silence,
             resume=self.resume,
             context=self.context,
             write_output=self.write_output,
@@ -301,9 +260,67 @@ class MultiNest(ns.AbstractNest):
             init_MPI=self.init_MPI,
         )
 
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
+    @property
+    def tag(self):
+        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
+        parameters defining the search strategy."""
 
-        return nl.Result(samples=samples, previous_model=model)
+        name_tag = self._config("tag", "name")
+        n_live_points_tag = (
+            f"{self._config('tag', 'n_live_points')}_{self.n_live_points}"
+        )
+        sampling_efficiency_tag = (
+            f"{self._config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
+        )
+        if self.const_efficiency_mode:
+            const_efficiency_mode_tag = (
+                f"_{self._config('tag', 'const_efficiency_mode')}"
+            )
+        else:
+            const_efficiency_mode_tag = ""
+        if self.multimodal:
+            multimodal_tag = f"_{self._config('tag', 'multimodal')}"
+        else:
+            multimodal_tag = ""
+        if self.importance_nested_sampling:
+            importance_nested_sampling_tag = (
+                f"_{self._config('tag', 'importance_nested_sampling')}"
+            )
+        else:
+            importance_nested_sampling_tag = ""
+
+        return f"{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}"
+
+    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+        """Copy this instance of the multinest non-linear search with all associated attributes.
+
+        This is used to set up the non-linear search on phase extensions."""
+        copy = super().copy_with_name_extension(
+            extension=extension, remove_phase_tag=remove_phase_tag
+        )
+        copy.prior_passer = self.prior_passer
+        copy.importance_nested_sampling = self.importance_nested_sampling
+        copy.multimodal = self.multimodal
+        copy.const_efficiency_mode = self.const_efficiency_mode
+        copy.n_live_points = self.n_live_points
+        copy.evidence_tolerance = self.evidence_tolerance
+        copy.sampling_efficiency = self.sampling_efficiency
+        copy.n_iter_before_update = self.n_iter_before_update
+        copy.null_log_evidence = self.null_log_evidence
+        copy.max_modes = self.max_modes
+        copy.mode_tolerance = self.mode_tolerance
+        copy.seed = self.seed
+        copy.verbose = self.verbose
+        copy.resume = self.resume
+        copy.context = self.context
+        copy.write_output = self.write_output
+        copy.log_zero = self.log_zero
+        copy.max_iter = self.max_iter
+        copy.init_MPI = self.init_MPI
+        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
+        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
+        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
+        return copy
 
     def samples_from_model(self, model: AbstractPriorModel):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
@@ -356,6 +373,7 @@ class MultiNest(ns.AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,
+            time=self.timer.time
         )
 
 

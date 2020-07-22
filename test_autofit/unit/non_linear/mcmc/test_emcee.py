@@ -3,7 +3,7 @@ import pytest
 
 from autoconf import conf
 import autofit as af
-from test_autofit.mock import MockClassNLOx4
+from test_autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -21,11 +21,10 @@ class TestEmceeConfig:
     def test__loads_from_config_file_correct(self):
 
         emcee = af.Emcee(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nwalkers=51,
             nsteps=2001,
-            initialize_method="ball",
-            initialize_ball_lower_limit=0.2,
-            initialize_ball_upper_limit=0.8,
+            initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
             auto_correlation_check_for_convergence=False,
             auto_correlation_check_size=101,
             auto_correlation_required_length=51,
@@ -33,11 +32,14 @@ class TestEmceeConfig:
             number_of_cores=2,
         )
 
+        assert emcee.prior_passer.sigma == 2.0
+        assert emcee.prior_passer.use_errors == False
+        assert emcee.prior_passer.use_widths == False
         assert emcee.nwalkers == 51
         assert emcee.nsteps == 2001
-        assert emcee.initialize_method == "ball"
-        assert emcee.initialize_ball_lower_limit == 0.2
-        assert emcee.initialize_ball_upper_limit == 0.8
+        assert isinstance(emcee.initializer, af.InitializerBall)
+        assert emcee.initializer.lower_limit == 0.2
+        assert emcee.initializer.upper_limit == 0.8
         assert emcee.auto_correlation_check_for_convergence == False
         assert emcee.auto_correlation_check_size == 101
         assert emcee.auto_correlation_required_length == 51
@@ -46,11 +48,12 @@ class TestEmceeConfig:
 
         emcee = af.Emcee()
 
+        assert emcee.prior_passer.sigma == 3.0
+        assert emcee.prior_passer.use_errors == True
+        assert emcee.prior_passer.use_widths == True
         assert emcee.nwalkers == 50
         assert emcee.nsteps == 2000
-        assert emcee.initialize_method == "prior"
-        assert emcee.initialize_ball_lower_limit == 0.49
-        assert emcee.initialize_ball_upper_limit == 0.51
+        assert isinstance(emcee.initializer, af.InitializerPrior)
         assert emcee.auto_correlation_check_for_convergence == True
         assert emcee.auto_correlation_check_size == 100
         assert emcee.auto_correlation_required_length == 50
@@ -59,9 +62,7 @@ class TestEmceeConfig:
 
     def test__tag(self):
 
-        emcee = af.Emcee(
-            nwalkers=11
-        )
+        emcee = af.Emcee(nwalkers=11)
 
         assert emcee.tag == "emcee__nwalkers_11"
 
@@ -70,10 +71,17 @@ class TestEmceeConfig:
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)
+
+        assert isinstance(samples.parameters, list)
+        assert isinstance(samples.parameters[0], list)
+        assert isinstance(samples.log_likelihoods, list)
+        assert isinstance(samples.log_priors, list)
+        assert isinstance(samples.log_posteriors, list)
+        assert isinstance(samples.weights, list)
 
         assert samples.parameters[0] == pytest.approx(
             [0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4
@@ -92,7 +100,7 @@ class TestEmceeOutput:
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)
@@ -106,25 +114,25 @@ class TestEmceeOutput:
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)
 
-        params = samples.vector_at_sigma(sigma=3.0)
+        parameters = samples.vector_at_sigma(sigma=3.0)
 
-        assert params[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
+        assert parameters[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
 
-        params = samples.vector_at_sigma(sigma=1.0)
+        parameters = samples.vector_at_sigma(sigma=1.0)
 
-        assert params[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
+        assert parameters[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
     def test__autocorrelation_times(self):
 
         emcee = af.Emcee(paths=af.Paths())
         emcee.paths.backup()
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = emcee.samples_from_model(model=model)
@@ -143,18 +151,19 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == "phase_name/one"
 
     def test_emcee(self):
-        search = af.Emcee(af.Paths("phase_name"), sigma=2.0)
+        search = af.Emcee(af.Paths("phase_name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.Emcee)
-        assert copy.sigma is search.sigma
+        assert copy.prior_passer is search.prior_passer
         assert copy.nwalkers is search.nwalkers
         assert copy.nsteps is search.nsteps
-        assert copy.initialize_method is search.initialize_method
-        assert copy.initialize_ball_lower_limit is search.initialize_ball_lower_limit
-        assert copy.initialize_ball_upper_limit is search.initialize_ball_upper_limit
-        assert copy.auto_correlation_check_for_convergence is search.auto_correlation_check_for_convergence
+        assert copy.initializer is search.initializer
+        assert (
+            copy.auto_correlation_check_for_convergence
+            is search.auto_correlation_check_for_convergence
+        )
         assert copy.auto_correlation_check_size is search.auto_correlation_check_size
         assert (
             copy.auto_correlation_required_length
@@ -164,7 +173,4 @@ class TestCopyWithNameExtension:
             copy.auto_correlation_change_threshold
             is search.auto_correlation_change_threshold
         )
-        assert (
-            copy.number_of_cores
-            is search.number_of_cores
-        )
+        assert copy.number_of_cores is search.number_of_cores

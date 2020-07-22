@@ -7,7 +7,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit.non_linear.nest import multi_nest as mn
-from test_autofit.mock import MockClassNLOx4
+from test_autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -143,6 +143,7 @@ class TestMulitNest:
     def test__loads_from_config_file_if_not_input(self):
 
         multi_nest = af.MultiNest(
+            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=40,
             sampling_efficiency=0.5,
             const_efficiency_mode=True,
@@ -165,6 +166,9 @@ class TestMulitNest:
             acceptance_ratio_threshold=0.9,
         )
 
+        assert multi_nest.prior_passer.sigma == 2.0
+        assert multi_nest.prior_passer.use_errors == False
+        assert multi_nest.prior_passer.use_widths == False
         assert multi_nest.n_live_points == 40
         assert multi_nest.sampling_efficiency == 0.5
         assert multi_nest.const_efficiency_mode == True
@@ -188,6 +192,9 @@ class TestMulitNest:
 
         multi_nest = af.MultiNest()
 
+        assert multi_nest.prior_passer.sigma == 3.0
+        assert multi_nest.prior_passer.use_errors == True
+        assert multi_nest.prior_passer.use_widths == True
         assert multi_nest.importance_nested_sampling == True
         assert multi_nest.multimodal == True
         assert multi_nest.const_efficiency_mode == False
@@ -209,7 +216,7 @@ class TestMulitNest:
         assert multi_nest.terminate_at_acceptance_ratio == False
         assert multi_nest.acceptance_ratio_threshold == 1.0
 
-        model = af.ModelMapper(mock_class_1=MockClassNLOx4)
+        model = af.ModelMapper(mock_class_1=mock.MockClassx4)
 
         fitness = af.MultiNest.Fitness(
             paths=multi_nest.paths,
@@ -252,12 +259,12 @@ class TestMulitNest:
         assert copy.paths.name == "phase_name/one"
 
     def test__copy_with_name_extension(self):
-        search = af.MultiNest(af.Paths("phase_name"), sigma=2.0)
+        search = af.MultiNest(af.Paths("phase_name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.MultiNest)
-        assert copy.sigma is search.sigma
+        assert copy.prior_passer is search.prior_passer
         assert copy.importance_nested_sampling is search.importance_nested_sampling
         assert copy.multimodal is search.multimodal
         assert copy.const_efficiency_mode is search.const_efficiency_mode
@@ -277,8 +284,7 @@ class TestMulitNest:
         assert copy.max_iter is search.max_iter
         assert copy.init_MPI is search.init_MPI
         assert (
-            copy.terminate_at_acceptance_ratio
-            is search.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
@@ -366,7 +372,7 @@ class TestMulitNest:
         create_resume(path=multi_nest.paths.backup_path)
         create_summary_4_parameters(path=multi_nest.paths.backup_path)
 
-        model = af.ModelMapper(mock_class=MockClassNLOx4)
+        model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
         samples = multi_nest.samples_from_model(model=model)
