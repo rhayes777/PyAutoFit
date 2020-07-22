@@ -97,24 +97,33 @@ def test_gaussian():
         prior
     )(intensity_)
 
-    number = 0
+    model = prior_intensity
+    message_dict = dict()
 
-    model = make_model(
-        number,
-        observations,
-        intensity_
-    ) * prior_intensity
+    kwarg_list = [
+        {"centre": 50.0, "sigma": 10.0}
+    ]
+
+    for number, kwargs in enumerate(kwarg_list):
+        model *= make_model(
+            number,
+            observations,
+            intensity_
+        )
+
+        message_dict.update(
+            make_message_dict(
+                number,
+                Gaussian(
+                    intensity=intensity,
+                    **kwargs
+                )
+            )
+        )
 
     model_approx = mp.MeanFieldApproximation.from_kws(
         model,
-        **make_message_dict(
-            number,
-            Gaussian(
-                centre=50.0,
-                intensity=intensity,
-                sigma=10.0
-            )
-        )
+        **message_dict
     )
 
     opt = mp.optimise.LaplaceOptimiser(
@@ -123,5 +132,6 @@ def test_gaussian():
     )
     opt.run()
 
-    for string in (f"centre_{number}", "intensity", f"sigma_{number}"):
-        print(f"{string} = {opt.model_approx[string].mu}")
+    for number in range(len(kwarg_list)):
+        for string in (f"centre_{number}", "intensity", f"sigma_{number}"):
+            print(f"{string} = {opt.model_approx[string].mu}")
