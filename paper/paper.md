@@ -15,7 +15,7 @@ authors:
 affiliations:
   - name: Institute for Computational Cosmology, Stockton Rd, Durham DH1 3LE
     index: 1
-date: 24 July 2020
+date: 17 July 2020
 codeRepository: https://github.com/rhayes777/PyAutoFit
 license: MIT
 bibliography: paper.bib
@@ -31,7 +31,7 @@ Probabilistic programming languages (PPLs) have enabled contemporary statistical
 
 # Software Description
 
-`PyAutoFit` is a PPL whose core design is providing a direct interface with the model, data, fitting procedure and results, allowing it to provide more complete management of the model-fitting task than other PPLs and making it suited to longer term software projects. Model components are written as Python classes, allowing `PyAutoFit` to define the model and associated parameters in an expressive way that is tied to the modeling software's API. A model fit then only requires that a `PyAutoFit` _Analysis_ class is writen, which combines the data, model and likelihood function and defines how the model-fit is performed using a non-linear search (e.g. `Dynesty` [@dynesty], `Emcee` [@emcee] or `PySwarms` [@pyswarms]). 
+`PyAutoFit` is a PPL whose core design is providing a direct interface with the model, data, fitting procedure and results, allowing it to provide more complete management of the model-fitting task than other PPLs and making it suited to longer term software projects. Model components are written as Python classes, allowing `PyAutoFit` to define the model and associated parameters in an expressive way that is tied to the modeling software's API. A model fit then only requires that a `PyAutoFit` _Analysis_ class is writen, which combines the data, model and likelihood function and defines how the model-fit is performed using a non-linear search (e.g. `dynesty` [@dynesty], `emcee` [@emcee] or `PySwarms` [@pyswarms]). 
 
 The _Analysis_ class provides a model specific interface between `PyAutoFit` and the modeling software, allowing it to handle the 'heavy lifting' that comes with writing model-fitting software. This includes interfacing with the non-linear search, outputting results in a structured path format and model-specific visualization during and after the non-linear search. Results are output in a database structure with metadata that allows the _Aggregator_ tool to load results post-analysis via a Python script or Jupyter notebook. This includes methods for summarizing the results of every fit, filtering results to inspect subsets of model fits and visualizing results. Results are loaded as `Python` generators, ensuring the _Aggregator_ can be used to interpret large result datasets in a memory efficient way. `PyAutoFit` is therefore suited to 'big data' problems where independent fits to large homogeneous data-sets using an identical model-fitting procedure are performed. 
 
@@ -49,7 +49,7 @@ For many model fitting problems, domain specific knowledge of the model can be e
  
 # Workspace and HowToFit Tutorials
 
-`PyAutoFit` is distributed with the [autofit workspace](https://github.com/Jammy2211/autofit_workspace), which contains example scripts for composing a model, performing a fit and using the _Aggregator_. Also included are the `HowToFit` tutorials, 10 Jupyter notebooks aimed at non-experts, introducing them to model-fitting and Bayesian inference. They teach users how to write a _phase_ package in `PyAutoFit`, which interfaces with their modeling software and ensures the design follows the concepts of object-oriented design which cleanly separates different parts of the modeling problem. The lectures can be viewed on our [readthedocs](https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html).
+`PyAutoFit` is distributed with the [autofit workspace](https://github.com/Jammy2211/autofit_workspace), which contains example scripts for composing a model, performing a fit and using the _Aggregator_. Also included are the `HowToFit` tutorials, a series of Jupyter notebooks aimed at non-experts, introducing them to model-fitting and Bayesian inference. They teach users how to write a _phase_ package in `PyAutoFit`, which interfaces with their modeling software and ensures the design follows the concepts of object-oriented design which cleanly separates different parts of the modeling problem. The lectures can be viewed on our [readthedocs](https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html).
 
 # Software Citations
 
