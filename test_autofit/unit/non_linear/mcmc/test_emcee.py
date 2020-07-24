@@ -1,5 +1,6 @@
 import os
 import pytest
+import shutil
 
 from autoconf import conf
 import autofit as af
@@ -15,7 +16,6 @@ def set_config_path():
         config_path=os.path.join(directory, "files/emcee/config"),
         output_path=os.path.join(directory, "files/emcee/output"),
     )
-
 
 class TestEmceeConfig:
     def test__loads_from_config_file_correct(self):
@@ -69,6 +69,9 @@ class TestEmceeConfig:
     def test__samples_from_model(self):
 
         emcee = af.Emcee(paths=af.Paths())
+
+        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
+
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
