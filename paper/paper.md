@@ -67,8 +67,8 @@ For many model fitting problems, domain specific knowledge of the model can be e
 # Related Probabilistic Programming Languages
 
 - `PyMC3` https://github.com/pymc-devs/pymc3 [@Salvatier2016]
-- `Pyro` [@Bingham2019]
-- `STAN` [@Carptenter2017]
+- `Pyro` https://github.com/pyro-ppl/pyro [@Bingham2019]
+- `STAN` https://github.com/stan-dev/stan [@Carpenter2017]
 - `TensorFlow Probability` https://github.com/tensorflow/probability [@tensorflow]
 
 # Acknowledgements
