@@ -64,6 +64,13 @@ For many model fitting problems, domain specific knowledge of the model can be e
 - `PySwarms` https://github.com/ljvmiranda921/pyswarms [@pyswarms]
 - `Scipy` https://github.com/scipy/scipy [@scipy]
 
+# Related Probabilistic Programming Languages
+
+- `PyMC3` https://github.com/pymc-devs/pymc3 [@Salvatier2016]
+- `Pyro` [@Bingham2019]
+- `STAN` [@Carptenter2017]
+- `TensorFlow Probability` https://github.com/tensorflow/probability [@tensorflow]
+
 # Acknowledgements
 
 JWN and RJM are supported by the UK Space Agency, through grant ST/V001582/1, and by InnovateUK through grant TS/V002856/1. RGH is supported by STFC Opportunities grant ST/T002565/1.
