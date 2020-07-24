@@ -69,9 +69,7 @@ class TestEmceeConfig:
     def test__samples_from_model(self):
 
         emcee = af.Emcee(paths=af.Paths())
-
         shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
-
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -101,6 +99,7 @@ class TestEmceeOutput:
     def test__median_pdf_parameters(self):
 
         emcee = af.Emcee(paths=af.Paths())
+        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -115,6 +114,7 @@ class TestEmceeOutput:
     def test__vector_at_sigma__uses_output_files(self):
 
         emcee = af.Emcee(paths=af.Paths())
+        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -133,6 +133,7 @@ class TestEmceeOutput:
     def test__autocorrelation_times(self):
 
         emcee = af.Emcee(paths=af.Paths())
+        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
