@@ -3,7 +3,6 @@ import pickle
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Dict
-
 import dill
 
 from autoconf import conf
@@ -147,8 +146,8 @@ class AbstractPhase:
         """
         return PromiseResult(self)
 
-    def run_analysis(self, analysis, info=None):
-        return self.search.fit(model=self.model, analysis=analysis, info=info)
+    def run_analysis(self, analysis, info=None, pickle_files=None):
+        return self.search.fit(model=self.model, analysis=analysis, info=info, pickle_files=pickle_files)
 
     def make_phase_attributes(self, analysis):
         raise NotImplementedError()
@@ -210,7 +209,7 @@ class Phase(AbstractPhase):
     def make_analysis(self, dataset):
         return self.analysis_class(dataset)
 
-    def run(self, dataset: Dataset, results=None, info=None):
+    def run(self, dataset: Dataset, results=None, info=None, pickle_files=None):
         """
         Run this phase.
 
@@ -233,7 +232,7 @@ class Phase(AbstractPhase):
 
         analysis = self.make_analysis(dataset=dataset)
 
-        result = self.run_analysis(analysis=analysis, info=info)
+        result = self.run_analysis(analysis=analysis, info=info, pickle_files=pickle_files)
 
         return self.make_result(result=result, analysis=None)
 

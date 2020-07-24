@@ -3,42 +3,11 @@
 Citations & References
 ======================
 
-The bibtex entries for **PyAutoFit** and also software packages used by **PyAutoFit** can be found [here]()
+The bibtex entries for **PyAutoFit** and its affiliated software packages can be found
+`here <https://github.com/rhayes777/PyAutoFit/blob/master/citations.bib>`_, with example text for citing **PyAutoFit**
+in `.tex format here <https://github.com/rhayes777/PyAutoFit/blob/master/citation.tex>`_ format here and
+`.md format here <https://github.com/rhayes777/PyAutoFit/blob/master/citations.md>`_. As shown in the examples, we
+would greatly appreciate it if you mention **PyAutoFit** by name and include a link to our GitHub page!
 
-The **PyAutoFit** publication has been submitted to the Journal of Open Source Software, and thes yet to be published (or submitted), thus there is no suitable academic citation
-currently.
-
-However, if you do use **PyAutoFit** in your publication, we would greatly appreciate it if you mention **PyAutoFit**
-by name and include a link to our GitHub page https://github.com/rhayes777/PyAutoFit.
-
-Below are the packages used by **PyAutoFit** that we ask you also cite if your analysis used them. Links to the
-relevant web pages detailing their citation information or the papers themselves are provided.
-
-**corner.py**;
-
-The visualization and samples analysis package **corner.py** is used by **PyAutoLens** for plotting PDF's and error
-estimates, so please make sure you cite it!
-
-https://github.com/dfm/corner.py
-
-**Non-linear Searches**
-
-Please cite all of the non-linear searches below that you use to generate results in your publication.
-
-**Dynesty**:
-
-https://dynesty.readthedocs.io/en/latest/references.html
-
-**PyMultiNest**:
-
-https://johannesbuchner.github.io/PyMultiNest/
-
-https://ui.adsabs.harvard.edu/abs/2009MNRAS.398.1601F/abstract
-
-**Emcee**:
-
-https://github.com/dfm/emcee
-
-**PySwarms**:
-
-https://github.com/ljvmiranda921/pyswarms
+The **PyAutoFit** publication has been submitted to the Journal of Open Source Software and its entry in the above .bib
+file is a placeholder linking to the GitHub.

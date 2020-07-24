@@ -1,6 +1,7 @@
 import os
+import numpy as np
 import shutil
-
+import pickle
 import pytest
 
 import autofit as af
@@ -133,3 +134,35 @@ class TestLabels:
         assert conf.instance.label.label("two") == "x4p1"
         assert conf.instance.label.label("three") == "x4p2"
         assert conf.instance.label.label("four") == "x4p3"
+
+test_path = "{}/files/phase".format(os.path.dirname(os.path.realpath(__file__)))
+
+class TestMovePickleFiles:
+
+    def test__move_pickle_files(self):
+
+        output_path = "{}/files/nlo/output/test_phase/mock/pickles".format(os.path.dirname(os.path.realpath(__file__)))
+
+        if os.path.exists(output_path):
+            shutil.rmtree(output_path)
+
+        search = af.MockSearch(paths=af.Paths(name="test_phase", ))
+
+        pickle_paths = ["{}/files/pickles".format(os.path.dirname(os.path.realpath(__file__)))]
+
+        arr = np.ones((3, 3))
+
+        with open(f"{pickle_paths[0]}/test.pickle", "wb") as f:
+            pickle.dump(arr, f)
+
+        pickle_paths = ["{}/files/pickles/test.pickle".format(os.path.dirname(os.path.realpath(__file__)))]
+
+        search.move_pickle_files(pickle_files=pickle_paths)
+
+        with open(f"{output_path}/test.pickle", "rb") as f:
+            arr_load = pickle.load(f)
+
+        assert (arr == arr_load).all()
+
+        if os.path.exists(test_path):
+            shutil.rmtree(test_path)

@@ -1,7 +1,3 @@
-import os
-
-import pytest
-
 import autofit as af
 
 def test__phase_settings_tag():

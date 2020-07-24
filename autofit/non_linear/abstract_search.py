@@ -5,7 +5,7 @@ import pickle
 from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
-
+import shutil
 import numpy as np
 
 from autoconf import conf
@@ -182,7 +182,7 @@ class NonLinearSearch(ABC):
              should be given a likelihood so low that it is discard."""
             return -np.inf
 
-    def fit(self, model, analysis: "Analysis", info=None) -> "Result":
+    def fit(self, model, analysis: "Analysis", info=None, pickle_files=None) -> "Result":
         """ Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
 
@@ -202,6 +202,9 @@ class NonLinearSearch(ABC):
             model.
         info : dict
             Optional dictionary containing information about the fit that can be loaded by the aggregator.
+        pickle_files : [str]
+            Optional list of strings specifying the path and filename of .pickle files, that are copied to each
+            model-fits pickles folder so they are accessible via the Aggregator.
 
         Returns
         -------
@@ -221,6 +224,7 @@ class NonLinearSearch(ABC):
             self.save_info(info=info)
             self.save_search()
             self.save_model(model=model)
+            self.move_pickle_files(pickle_files=pickle_files)
             # TODO : Better way to handle?
             self.timer.paths = self.paths
             self.timer.start()
@@ -423,6 +427,14 @@ class NonLinearSearch(ABC):
         """
         with open("{}/metadata".format(self.paths.make_path()), "a") as f:
             f.write(self.make_metadata_text())
+
+    def move_pickle_files(self, pickle_files):
+        """
+        Move extra files a user has input the full path + filename of from the location specified to the
+        pickles folder of the Aggregator, so that they can be accessed via the aggregator.
+        """
+        if pickle_files is not None:
+            [shutil.copy(file, self.paths.pickle_path) for file in pickle_files]
 
     @property
     def _default_metadata(self) -> Dict[str, str]:

@@ -1,8 +1,8 @@
-In the main body of the paper:
+I**nesrt in the main body of the paper:**
 
 We use the probabilistic programming language `PyAutoFit` https://github.com/rhayes777/PyAutoFit) [@pyautofit] to...
 
-At the end of the paper (delete as appropriate, see https://pyautofit.readthedocs.io/en/latest/general/citations.html):
+**At the end of the paper (delete as appropriate, see https://pyautofit.readthedocs.io/en/latest/general/citations.html):**
 
 # Software Citations
 
