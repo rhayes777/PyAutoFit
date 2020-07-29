@@ -9,7 +9,7 @@ We use the probabilistic programming language `PyAutoFit` https://github.com/rha
 This work uses the following software packages:
 
 - `corner.py` https://github.com/dfm/corner.py [@corner]
-- `dynesty` https://github.com/joshspeagle/dynesty [@Dynesty]
+- `dynesty` https://github.com/joshspeagle/dynesty [@dynesty]
 - `emcee` https://github.com/dfm/emcee [@emcee]
 - `matplotlib` https://github.com/matplotlib/matplotlib [@matplotlib]
 - `NumPy` https://github.com/numpy/numpy [@numpy]

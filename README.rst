@@ -67,7 +67,7 @@ function describing how to fit the data with the model:
 
             """
             The 'instance' that comes into this method is an instance of the Gaussian class
-            above, with the parameters set to (random) values chosen by the non-linear search.
+            above, with the parameters set to values chosen by the non-linear search.
             """
 
             print("Gaussian Instance:")
@@ -101,8 +101,8 @@ We can now fit data to the model using a non-linear search of our choice.
 
     result = emcee.fit(model=model, analysis=analysis)
 
-The result object contains information on the model-fit, for example the parameter samples, best-fit model and
-marginalized probability density functions.
+The result object contains information on the model-fit, for example the parameter samples, maximum log likelihood
+model and marginalized probability density functions.
 
 Getting Started
 ---------------
