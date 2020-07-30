@@ -38,7 +38,7 @@ class DeterministicFactorNode(Factor):
             **kwargs
         )
         self._deterministic_variables = {
-            variable.name: variable
+            variable
         }
 
     def __call__(
@@ -67,7 +67,7 @@ class DeterministicFactorNode(Factor):
 
         det_shapes = {
             v: shape[:shift] + tuple(
-                plate_dim[p] for v in self.deterministic_variables.values()
+                plate_dim[p] for v in self.deterministic_variables
                 for p in v.plates)
             for v in self.deterministic_variables
         }
@@ -87,7 +87,7 @@ class DeterministicFactorNode(Factor):
 
     def __repr__(self) -> str:
         factor_str = super().__repr__()
-        var_str = ", ".join(self._deterministic_variables)
+        var_str = ", ".join(sorted(variable.name for variable in self._deterministic_variables))
         return f"({factor_str} == ({var_str}))"
 
 
@@ -108,8 +108,8 @@ class FactorGraph(AbstractNode):
 
         self._factors = tuple(factors)
 
-        self._variables = dict()
-        self._deterministic_variables = dict()
+        self._variables = set()
+        self._deterministic_variables = set()
 
         for f in self._factors:
             self._deterministic_variables.update(
@@ -128,9 +128,9 @@ class FactorGraph(AbstractNode):
         self._validate()
 
         _kwargs = {
-            k: variable
-            for k, variable
-            in self.variables.items()
+            variable.name: variable
+            for variable
+            in self.variables
         }
 
         super().__init__(
@@ -187,10 +187,7 @@ class FactorGraph(AbstractNode):
 
     @property
     def variables(self):
-        return {
-            v: self._variables[v] for v in
-            (self._variables.keys() - self._deterministic_variables.keys())
-        }
+        return self._variables - self._deterministic_variables
 
     def _get_call_sequence(self) -> List[List[Factor]]:
         """
@@ -202,7 +199,7 @@ class FactorGraph(AbstractNode):
         """
         call_sets = defaultdict(list)
         for factor in self.factors:
-            missing_vars = frozenset(factor.variables_difference(**self.variables))
+            missing_vars = frozenset(factor.variables.difference(self.variables))
             call_sets[missing_vars].append(factor)
 
         call_sequence = []
@@ -211,12 +208,12 @@ class FactorGraph(AbstractNode):
             factors = call_sets.pop(frozenset(()))
             # if there's a KeyError then the FactorGraph is improper
             calls = []
-            new_variables = {}
+            new_variables = set()
             for factor in factors:
                 if isinstance(factor, DeterministicFactorNode):
                     det_vars = factor.deterministic_variables
                 else:
-                    det_vars = {}
+                    det_vars = set()
 
                 calls.append(factor)
                 new_variables.update(det_vars)

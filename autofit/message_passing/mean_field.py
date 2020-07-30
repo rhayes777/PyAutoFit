@@ -6,6 +6,7 @@ from typing import (
 
 import numpy as np
 
+from autofit.message_passing import Variable
 from autofit.message_passing.factor_graphs import Factor
 from autofit.message_passing.factor_graphs.graph import FactorGraph
 from autofit.message_passing.messages import FixedMessage
@@ -121,8 +122,14 @@ class FactorApproximation(NamedTuple):
             self.model_dist.values())
         return all(d.is_valid for d in dists if isinstance(d, AbstractMessage))
 
-    def __call__(self, **kwargs: Dict[str, np.ndarray]) -> np.ndarray:
-        log_result, det_vars = self.factor(**kwargs)
+    def __call__(self, kwargs: Dict[Variable, np.ndarray]) -> np.ndarray:
+        log_result, det_vars = self.factor(
+            **{
+                variable.name: array
+                for variable, array
+                in kwargs.items()
+            }
+        )
 
         # refactor as a mapreduce?
         for res in chain(map_dists(self.cavity_dist, kwargs),
@@ -158,26 +165,29 @@ class MeanFieldApproximation:
         self._factor_evidence = factor_evidence
 
     def __getitem__(self, item):
-        if isinstance(item, str):
+        if isinstance(item, Variable):
             return self.approx[item]
         elif isinstance(item, Factor):
             return self.factor_approximation(item)
         else:
             raise TypeError(
-                f"type passed {(type(item))} is not `str` or `Factor`")
+                f"type passed {(type(item))} is not `Variable` or `Factor`")
 
     @classmethod
-    def from_approx_dists(cls, factor_graph: FactorGraph,
-                          approx_dists: Dict[str, Type[AbstractMessage]],
-                          factor_evidence: Optional[Dict[Factor, float]] = None,
-                          ) -> "MeanFieldApproximation":
-
+    def from_approx_dists(
+            cls,
+            factor_graph: FactorGraph,
+            approx_dists: Dict[str, Type[AbstractMessage]],
+            factor_evidence: Optional[Dict[Factor, float]] = None,
+    ) -> "MeanFieldApproximation":
         variable_factor_dist = {}
         for factor, variables in factor_graph.factor_all_variables.items():
             for variable in variables:
-                variable_factor_dist. \
-                    setdefault(variable, {}). \
-                    setdefault(factor, approx_dists[variable])
+                variable_factor_dist.setdefault(
+                    variable, {}
+                ).setdefault(
+                    factor, approx_dists[variable]
+                )
 
         return cls(factor_graph, variable_factor_dist,
                    factor_evidence=factor_evidence)
@@ -186,12 +196,12 @@ class MeanFieldApproximation:
     def from_kws(
             cls,
             factor_graph: FactorGraph,
+            approx_dists,
             factor_evidence: Optional[Dict[Factor, float]] = None,
-            **kws
     ) -> "MeanFieldApproximation":
         return cls.from_approx_dists(
             factor_graph=factor_graph,
-            approx_dists=kws,
+            approx_dists=approx_dists,
             factor_evidence=factor_evidence
         )
 
@@ -263,9 +273,12 @@ class MeanFieldApproximation:
         return f"{name}({fac}, {varfacdist})"
 
     @property
-    def approx(self) -> Dict[str, AbstractMessage]:
-        return {v: prod(factors.values())
-                for v, factors in self._variable_factor_dist.items()}
+    def approx(self) -> Dict[Variable, AbstractMessage]:
+        return {
+            v: prod(factors.values())
+            for v, factors
+            in self._variable_factor_dist.items()
+        }
 
     def __call__(self, **kwargs: Dict[str, np.ndarray]) -> np.ndarray:
         return sum(

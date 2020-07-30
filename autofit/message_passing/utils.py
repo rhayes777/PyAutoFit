@@ -7,6 +7,8 @@ from typing import (
 import numpy as np
 from scipy import special
 
+from autofit.message_passing.factor_graphs.variable import Variable
+
 
 class FlattenArrays(dict):
     """
@@ -23,8 +25,10 @@ class FlattenArrays(dict):
         [ 9, 16, 25]])}
     """
 
-    def __init__(self, *args, **kwargs: Dict[str, Tuple[int, ...]]):
-        super().__init__(*args, **kwargs)
+    def __init__(self, dict_: Dict[Variable, Tuple[int, ...]]):
+        super().__init__()
+
+        self.update(dict_)
         self.splits = np.cumsum([
             np.prod(s) for s in self.values()], dtype=int)
         self.inds = [
@@ -35,11 +39,11 @@ class FlattenArrays(dict):
     def from_arrays(cls, **arrays: Dict[str, np.ndarray]) -> "FlattenArrays":
         return cls(**{k: np.shape(arr) for k, arr in arrays.items()})
 
-    def flatten(self, **arrays: Dict[str, np.ndarray]) -> np.ndarray:
-        assert all(np.shape(arrays[k]) == shape
+    def flatten(self, arrays_dict: Dict[Variable, np.ndarray]) -> np.ndarray:
+        assert all(np.shape(arrays_dict[k]) == shape
                    for k, shape in self.items())
         return np.concatenate([
-            np.ravel(arrays[k]) for k in self.keys()])
+            np.ravel(arrays_dict[k]) for k in self.keys()])
 
     def unflatten(self, arr: np.ndarray, ndim=None) -> Dict[str, np.ndarray]:
         arr = np.asanyarray(arr)
@@ -60,17 +64,6 @@ class FlattenArrays(dict):
     @property
     def size(self):
         return self.splits[-1]
-
-    def _immutable(self, *args, **kws):
-        raise TypeError('object is immutable')
-
-    __setitem__ = _immutable
-    __delitem__ = _immutable
-    clear = _immutable
-    update = _immutable
-    setdefault = _immutable
-    pop = _immutable
-    popitem = _immutable
 
 
 def add_arrays(*arrays: np.ndarray) -> np.ndarray:

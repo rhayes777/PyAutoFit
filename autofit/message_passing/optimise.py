@@ -4,7 +4,7 @@ from typing import Optional, Dict, Tuple, NamedTuple, Any
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
 
-from autofit.message_passing import FixedMessage
+from autofit.message_passing import FixedMessage, Variable
 from autofit.message_passing.factor_graphs import Factor
 from .mean_field import FactorApproximation, MeanFieldApproximation, Status
 from .utils import propagate_uncertainty, FlattenArrays
@@ -23,13 +23,13 @@ class OptFactor:
     def __init__(
             self,
             factor_approx: FactorApproximation,
+            kwargs: Dict[Variable, Tuple[int, ...]],
             fixed_kws: Optional[Dict[str, np.ndarray]] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
             sign: int = 1, method: str = 'L-BFGS-B',
-            **kwargs: Dict[str, Tuple[int, ...]]
     ):
         self.factor_approx = factor_approx
-        self.param_shapes = FlattenArrays(**kwargs)
+        self.param_shapes = FlattenArrays(kwargs)
         self.param_bounds = bounds
         self.free_vars = tuple(kwargs)
 
@@ -38,7 +38,7 @@ class OptFactor:
         self.method = method
 
         if bounds:
-            # TODO check that this is correct for composite 
+            # TODO check that this is correct for composite
             # distributions e.g. NormalGammaMessage
             self.bounds = [
                 b for k, s in kwargs.items()
@@ -48,8 +48,11 @@ class OptFactor:
             self.bounds = bounds
 
     @classmethod
-    def from_approx(cls, factor_approx: FactorApproximation,
-                    **kwargs) -> 'OptFactor':
+    def from_approx(
+            cls,
+            factor_approx: FactorApproximation,
+            **kwargs
+    ) -> 'OptFactor':
         fixed_kws = {}
         bounds = {}
         for v in factor_approx.factor.variables:
@@ -60,18 +63,23 @@ class OptFactor:
                 kwargs[v] = dist.shape
                 bounds[v] = dist._support
 
-        return cls(factor_approx, fixed_kws=fixed_kws, sign=-1,
-                   bounds=bounds, **kwargs)
+        return cls(
+            factor_approx,
+            kwargs,
+            fixed_kws=fixed_kws,
+            sign=-1,
+            bounds=bounds,
+        )
 
     def __call__(self, args):
         params = self.param_shapes.unflatten(args)
         params.update(self.fixed_kws)
-        return self.sign * np.sum(self.factor_approx(**params))
+        return self.sign * np.sum(self.factor_approx(params))
 
-    def _minimise(self, method=None, bounds=None,
+    def _minimise(self, arrays_dict, method=None, bounds=None,
                   constraints=(), tol=None, callback=None,
-                  options=None, **arrays):
-        x0 = self.param_shapes.flatten(**arrays)
+                  options=None):
+        x0 = self.param_shapes.flatten(arrays_dict)
         bounds = self.bounds if bounds is None else bounds
         method = self.method if method is None else method
         return minimize(
@@ -94,13 +102,18 @@ class OptFactor:
             callback=callback, options=options, **arrays)
         return self._parse_result(res)
 
-    def maximise(self, bounds=None,
-                 constraints=(), tol=None, callback=None,
-                 options=None, **arrays):
+    def maximise(
+            self,
+            arrays_dict,
+            bounds=None,
+            constraints=(), tol=None, callback=None,
+            options=None
+    ):
         self.sign = -1
         res = self._minimise(
+            arrays_dict,
             bounds=bounds, constraints=constraints, tol=tol,
-            callback=callback, options=options, **arrays)
+            callback=callback, options=options)
         self.sign = 1
         return self._parse_result(res)
 
@@ -142,7 +155,7 @@ def find_factor_mode(
         for v in free_vars}
 
     # find the mode of the factor approximation
-    res = opt.maximise(**p0)
+    res = opt.maximise(p0)
     mode = {**res.mode, **opt.fixed_kws}
 
     result = res.result
@@ -157,14 +170,14 @@ def find_factor_mode(
         # TODO implement numerical Hessian
 
     # find the values of the deterministic variables at the mode
-    f = factor(**mode)
+    f = factor(**{variable.name: array for variable, array in mode.items()})
     mode.update(f.deterministic_values)
 
     if return_cov:
         # Calculate covariance of deterministic variables based on
         # the free variables covariance and Jacobians
         covars = res.inv_hessian
-        factor_jac = factor.jacobian(*free_vars, **mode)
+        factor_jac = factor.jacobian(free_vars, mode)
         for det in det_vars:
             covars[det] = 0.
             for v in free_vars:

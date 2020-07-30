@@ -12,10 +12,10 @@ class JacobianValue(NamedTuple):
 
 def numerical_jacobian(
         factor,
-        *args: Tuple[str, ...],
+        args: Tuple[Variable, ...],
+        kwargs: Dict[Variable, np.array],
         _eps: float = 1e-6,
         _calc_deterministic: bool = True,
-        **kwargs: Dict[str, np.array]
 ) -> JacobianValue:
     """Calculates the numerical Jacobian of the passed factor
 
@@ -48,7 +48,7 @@ def numerical_jacobian(
     """
     # copy the input array
     p0 = {v: np.array(x, dtype=float) for v, x in kwargs.items()}
-    f0 = factor(**p0)
+    f0 = factor(**{variable.name: array for variable, array in p0.items()})
     log_f0 = f0.log_value
     det_vars0 = f0.deterministic_values
 
@@ -73,7 +73,7 @@ def numerical_jacobian(
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
-                f = factor(**p0)
+                f = factor(**{variable.name: array for variable, array in p0.items()})
                 x0[ind] -= _eps
 
                 jac_f[v][ind] = (f.log_value - log_f0) / _eps
@@ -84,7 +84,7 @@ def numerical_jacobian(
                             (val - det_vars0[det]) / _eps
         else:
             p0[v] += _eps
-            f = factor(**p0)
+            f = factor(**{variable.name: array for variable, array in p0.items()})
             p0[v] -= _eps
 
             jac_f[v] = (f.log_value - log_f0) / _eps

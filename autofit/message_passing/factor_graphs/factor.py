@@ -42,7 +42,7 @@ class Factor(AbstractNode):
         self.vectorised = vectorised
 
         self._factor = factor
-        self._deterministic_variables = dict()
+        self._deterministic_variables = set()
 
         args = getfullargspec(self._factor).args
         kwargs = {
@@ -84,11 +84,11 @@ class Factor(AbstractNode):
         within this node
         """
         return {
-            name: self._match_plates(
+            variable: self._match_plates(
                 variable.plates
             )
-            for name, variable
-            in self.all_variables.items()
+            for variable
+            in self.all_variables
         }
 
     @property
@@ -132,7 +132,7 @@ class Factor(AbstractNode):
                 (self._kwargs[k], x) for k, x in kws.items())
             var_shapes = {v: np.shape(x) for v, x in variables.items()}
             var_dims_diffs = {
-                v: len(s) - self.all_variables[v.name].ndim
+                v: len(s) - v.ndim
                 for v, s in var_shapes.items()
             }
             """
@@ -160,7 +160,7 @@ class Factor(AbstractNode):
             """
             shape = np.ones(self.ndim + shift, dtype=int)
             for v, vs in var_shapes.items():
-                ind = self._variable_plates[v.name] + shift
+                ind = self._variable_plates[v] + shift
                 vshape = vs[shift:]
                 if shift:
                     ind = np.r_[0, ind]
@@ -358,10 +358,10 @@ class Factor(AbstractNode):
                         (self._factor == other._factor)
                         and (frozenset(self._kwargs.items())
                              == frozenset(other._kwargs.items()))
-                        and (frozenset(self.variables.items())
-                             == frozenset(other.variables.items()))
-                        and (frozenset(self.deterministic_variables.items())
-                             == frozenset(self.deterministic_variables.items())))
+                        and (frozenset(self.variables)
+                             == frozenset(other.variables))
+                        and (frozenset(self.deterministic_variables)
+                             == frozenset(self.deterministic_variables)))
             else:
                 return False
 
@@ -385,14 +385,14 @@ class Factor(AbstractNode):
         return f"Factor({self.name})({args})"
 
     @property
-    def variables(self) -> Dict[str, Variable]:
+    def variables(self) -> Set[Variable]:
         """
         Dictionary mapping the names of variables to those variables
         """
         return self._variables
 
     @property
-    def deterministic_variables(self) -> Dict[str, Variable]:
+    def deterministic_variables(self) -> Set[Variable]:
         """
         Dictionary mapping the names of deterministic variables to those variables
         """
@@ -400,7 +400,6 @@ class Factor(AbstractNode):
 
     def variables_difference(
             self,
-            *args: np.ndarray,
             **kwargs: np.ndarray
     ) -> Set[str]:
         """
@@ -408,11 +407,10 @@ class Factor(AbstractNode):
 
         Parameters
         ----------
-        args
         kwargs
 
         Returns
         -------
 
         """
-        return (self._variables.keys() - args).difference(kwargs)
+        return self._variables.keys().difference(kwargs)

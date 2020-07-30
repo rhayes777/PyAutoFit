@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from collections import ChainMap
-from typing import Union, Dict, List, Tuple, cast, Collection
+from typing import List, Tuple, cast, Collection, Set
 
 import numpy as np
 
@@ -8,10 +7,7 @@ from autofit.message_passing.factor_graphs.variable import Variable, Plate
 
 
 class AbstractNode(ABC):
-    _deterministic_variables: Union[
-        Dict[str, Variable],
-        ChainMap
-    ]
+    _deterministic_variables: Set[Variable]
 
     def __init__(
             self,
@@ -27,12 +23,16 @@ class AbstractNode(ABC):
         kwargs
             Key word arguments passed to the value
         """
-        self._variables = {
-            variable.name: variable
-            for variable
-            in kwargs.values()
-        }
+        self._variables = set(kwargs.values())
         self._kwargs = kwargs
+
+    @property
+    def variable_names(self):
+        return {
+            variable.name
+            for variable
+            in self.variable_names
+        }
 
     @property
     @abstractmethod
@@ -82,14 +82,11 @@ class AbstractNode(ABC):
         ]
 
     @property
-    def all_variables(self) -> Dict[str, Variable]:
+    def all_variables(self) -> Set[Variable]:
         """
         A dictionary of variables associated with this node
         """
-        return {
-            **self._variables,
-            **self._deterministic_variables
-        }
+        return self._variables | self._deterministic_variables
 
     def _broadcast(
             self,
@@ -128,7 +125,7 @@ class AbstractNode(ABC):
         return tuple(sorted(set(
             cast(Plate, plate)
             for variable
-            in self.all_variables.values()
+            in self.all_variables
             for plate in variable.plates
         )))
 
