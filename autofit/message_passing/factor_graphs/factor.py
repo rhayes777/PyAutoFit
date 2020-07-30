@@ -88,6 +88,7 @@ class FactorNode(AbstractNode):
         kwargs
             Variables representing keyword arguments for the function
         """
+        self.__function_shape = None
         super().__init__(
             *args,
             **kwargs
@@ -168,61 +169,63 @@ class FactorNode(AbstractNode):
         """
         Calculates the expected function shape based on the variables
         """
-        args, kws = self._resolve_args(*args, **kwargs)
-        variables = {
-            v: x
-            for v, x
-            in zip(self.arg_names, args)
-        }
-        variables.update(
-            (self._kwargs[k], x) for k, x in kws.items())
-        var_shapes = {v: np.shape(x) for v, x in variables.items()}
-        var_dims_diffs = {
-            v: len(s) - self.all_variables[v].ndim
-            for v, s in var_shapes.items()
-        }
-        """
-        If all the passed variables have an extra dimension then 
-        we assume we're evaluating multiple instances of the function at the 
-        same time
+        if self.__function_shape is None:
+            args, kws = self._resolve_args(*args, **kwargs)
+            variables = {
+                v: x
+                for v, x
+                in zip(self.arg_names, args)
+            }
+            variables.update(
+                (self._kwargs[k], x) for k, x in kws.items())
+            var_shapes = {v: np.shape(x) for v, x in variables.items()}
+            var_dims_diffs = {
+                v: len(s) - self.all_variables[v].ndim
+                for v, s in var_shapes.items()
+            }
+            """
+            If all the passed variables have an extra dimension then 
+            we assume we're evaluating multiple instances of the function at the 
+            same time
+    
+            otherwise an error is raised
+            """
+            if set(var_dims_diffs.values()) == {1}:
+                # Check if we're passing multiple values e.g. for sampling
+                shift = 1
+            elif set(var_dims_diffs.values()) == {0}:
+                shift = 0
+            else:
+                raise ValueError("dimensions of passed inputs do not match")
 
-        otherwise an error is raised
-        """
-        if set(var_dims_diffs.values()) == {1}:
-            # Check if we're passing multiple values e.g. for sampling
-            shift = 1
-        elif set(var_dims_diffs.values()) == {0}:
-            shift = 0
-        else:
-            raise ValueError("dimensions of passed inputs do not match")
+            """
+            Updating shape of output array to match input arrays
+    
+            singleton dimensions are always assumed to match as in
+            standard array broadcasting
+    
+            e.g. (1, 2, 3) == (3, 2, 1)
+            """
+            shape = np.ones(self.ndim + shift, dtype=int)
+            for v, vs in var_shapes.items():
+                ind = self._variable_plates[v] + shift
+                vshape = vs[shift:]
+                if shift:
+                    ind = np.r_[0, ind]
+                    vshape = (vs[0],) + vshape
 
-        """
-        Updating shape of output array to match input arrays
+                if shape.size:
+                    if not (
+                            np.equal(shape[ind], 1) |
+                            np.equal(shape[ind], vshape) |
+                            np.equal(vshape, 1)).all():
+                        raise AssertionError(
+                            "Shapes do not match"
+                        )
+                    shape[ind] = np.maximum(shape[ind], vshape)
 
-        singleton dimensions are always assumed to match as in
-        standard array broadcasting
-
-        e.g. (1, 2, 3) == (3, 2, 1)
-        """
-        shape = np.ones(self.ndim + shift, dtype=int)
-        for v, vs in var_shapes.items():
-            ind = self._variable_plates[v] + shift
-            vshape = vs[shift:]
-            if shift:
-                ind = np.r_[0, ind]
-                vshape = (vs[0],) + vshape
-
-            if shape.size:
-                if not (
-                        np.equal(shape[ind], 1) |
-                        np.equal(shape[ind], vshape) |
-                        np.equal(vshape, 1)).all():
-                    raise AssertionError(
-                        "Shapes do not match"
-                    )
-                shape[ind] = np.maximum(shape[ind], vshape)
-
-        return tuple(shape)
+            self.__function_shape = tuple(shape)
+        return self.__function_shape
 
     def _call_factor(
             self,
