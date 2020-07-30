@@ -185,13 +185,17 @@ class MeanFieldApproximation:
                    factor_evidence=factor_evidence)
 
     @classmethod
-    def from_kws(cls, factor_graph: FactorGraph,
-                 factor_evidence: Optional[Dict[FactorNode, float]] = None,
-                 **kws
-                 ) -> "MeanFieldApproximation":
+    def from_kws(
+            cls,
+            factor_graph: FactorGraph,
+            factor_evidence: Optional[Dict[FactorNode, float]] = None,
+            **kws
+    ) -> "MeanFieldApproximation":
         return cls.from_approx_dists(
-            factor_graph=factor_graph, approx_dists=kws,
-            factor_evidence=factor_evidence)
+            factor_graph=factor_graph,
+            approx_dists=kws,
+            factor_evidence=factor_evidence
+        )
 
     def project(self, projection: FactorApproximation,
                 status: Optional[Status] = None

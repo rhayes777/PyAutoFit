@@ -44,6 +44,14 @@ class AbstractNode(ABC):
     def deterministic_variables(self):
         return self._deterministic_variables
 
+    def __getattr__(self, item):
+        try:
+            return self._kwargs[
+                item
+            ]
+        except KeyError:
+            return AttributeError
+
     @property
     @abstractmethod
     def name(self) -> str:

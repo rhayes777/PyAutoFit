@@ -52,13 +52,19 @@ def test_gaussian():
     # TODO: Can priors look like autofit priors? Could mp objects derive promise functionality from autofit?
     prior_centre = mp.Factor(
         prior
-    )()
+    )(
+        x=gaussian.centre
+    )
     prior_intensity = mp.Factor(
         prior
-    )()
+    )(
+        x=gaussian.intensity
+    )
     prior_sigma = mp.Factor(
         prior
-    )()
+    )(
+        x=gaussian.sigma
+    )
 
     model = likelihood * gaussian * prior_centre * prior_sigma * prior_intensity
 
