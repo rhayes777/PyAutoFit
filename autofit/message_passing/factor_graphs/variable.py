@@ -1,6 +1,8 @@
 from itertools import count, chain
 from typing import Optional
 
+from autofit import ModelObject
+
 
 class Plate:
     _ids = count()
@@ -39,7 +41,7 @@ class Plate:
         return self.id > other.id
 
 
-class Variable:
+class Variable(ModelObject):
     __slots__ = ("name", "plates")
 
     def __init__(self, name: str, *plates: Plate):
@@ -54,6 +56,7 @@ class Variable:
         plates
             Representation of the dimensions of this variable
         """
+        super().__init__()
         self.name = name
         self.plates = plates
 
@@ -62,7 +65,7 @@ class Variable:
         return f"{self.__class__.__name__}({args})"
 
     def __hash__(self):
-        return hash((self.name, type(self)))
+        return self.id
 
     def __len__(self):
         return len(self.plates)
@@ -76,5 +79,3 @@ class Variable:
         How many dimensions does this variable have?
         """
         return len(self.plates)
-
-
