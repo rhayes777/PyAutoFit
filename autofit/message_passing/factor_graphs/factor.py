@@ -46,9 +46,12 @@ class Factor:
         Call the underlying function and return its value for some set of
         arguments
         """
-        return self.factor(*args, **kwargs)
+        try:
+            return self.factor(*args, **kwargs)
+        except TypeError:
+            pass
 
-    def __call__(self, *args: Variable):
+    def __call__(self, *args: Variable, **kwargs: Variable):
         from autofit.message_passing.factor_graphs import FactorNode
         """
         Create a node in the graph from this factor by passing it the variables
@@ -63,7 +66,7 @@ class Factor:
         -------
         A node in the factor graph
         """
-        return FactorNode(self, *args)
+        return FactorNode(self, *args, **kwargs)
 
     def __hash__(self):
         return hash((self.name, self.factor))
@@ -162,7 +165,7 @@ class FactorNode(AbstractNode):
         """
         n_args = len(args)
         args = args + tuple(kwargs[v] for v in self.arg_names[n_args:])
-        kws = {n: kwargs[v] for n, v in self.kwarg_names}
+        kws = {n: kwargs[v.name] for n, v in self._kwargs.items()}
         return args, kws
 
     def _function_shape(self, *args, **kwargs) -> Tuple[int, ...]:
@@ -180,7 +183,7 @@ class FactorNode(AbstractNode):
                 (self._kwargs[k], x) for k, x in kws.items())
             var_shapes = {v: np.shape(x) for v, x in variables.items()}
             var_dims_diffs = {
-                v: len(s) - self.all_variables[v].ndim
+                v: len(s) - self.all_variables[v.name].ndim
                 for v, s in var_shapes.items()
             }
             """
@@ -208,7 +211,7 @@ class FactorNode(AbstractNode):
             """
             shape = np.ones(self.ndim + shift, dtype=int)
             for v, vs in var_shapes.items():
-                ind = self._variable_plates[v] + shift
+                ind = self._variable_plates[v.name] + shift
                 vshape = vs[shift:]
                 if shift:
                     ind = np.r_[0, ind]
@@ -433,7 +436,7 @@ class FactorNode(AbstractNode):
     def __repr__(self) -> str:
         args = ", ".join(chain(
             self.arg_names,
-            map("{0[0]}={0[1]}".format, self.kwarg_names)))
+            map("{0[0]}={0[1]}".format, self._kwargs.items())))
         return f"Factor({self._factor.name})({args})"
 
     @property
