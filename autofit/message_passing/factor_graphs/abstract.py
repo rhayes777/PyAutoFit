@@ -15,7 +15,6 @@ class AbstractNode(ABC):
 
     def __init__(
             self,
-            *args: Variable,
             **kwargs: Variable
     ):
         """
@@ -29,14 +28,10 @@ class AbstractNode(ABC):
             Key word arguments passed to the value
         """
         self._variables = {
-            v.name: v
-            for v
-            in args + tuple(
-                kwargs.values()
-            )
+            variable.name: variable
+            for variable
+            in kwargs.values()
         }
-
-        self._args = args
         self._kwargs = kwargs
 
     @property
@@ -50,7 +45,7 @@ class AbstractNode(ABC):
                 item
             ]
         except KeyError:
-            return AttributeError
+            raise AttributeError
 
     @property
     @abstractmethod
@@ -74,17 +69,6 @@ class AbstractNode(ABC):
         call_str = ", ".join(call_strs)
         call_sig = f"{self.name}({call_str})"
         return call_sig
-
-    @property
-    def arg_names(self) -> List[str]:
-        """
-        The names of the variables passed as positional arguments
-        """
-        return [
-            arg.name
-            for arg
-            in self._args
-        ]
 
     @property
     def kwarg_names(self) -> List[str]:

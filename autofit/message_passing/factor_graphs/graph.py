@@ -120,32 +120,20 @@ class FactorGraph(AbstractNode):
             )
 
         self._factor_all_variables = {
-            f: f.all_variables for f in self._factors}
+            f: f.all_variables for f in self._factors
+        }
 
         self._call_sequence = self._get_call_sequence()
 
         self._validate()
 
-        factor_args = [
-            factor._args
-            for factor
-            in self.factors
-        ]
-
-        max_len = min(map(len, factor_args))
-        _args = tuple(
-            factor_args[0][i] for i in range(max_len)
-            if len(set(arg[i] for arg in factor_args)) == 1
-        )
         _kwargs = {
             k: variable
             for k, variable
             in self.variables.items()
-            if variable not in _args
         }
 
         super().__init__(
-            *_args,
             **_kwargs
         )
 
@@ -245,7 +233,6 @@ class FactorGraph(AbstractNode):
 
     def __call__(
             self,
-            *args: np.ndarray,
             **kwargs: np.ndarray
     ) -> FactorValue:
         """
@@ -273,14 +260,7 @@ class FactorGraph(AbstractNode):
         det_values = {}
         variables = kwargs
 
-        n_args = len(args)
-        if n_args > len(self._args):
-            raise ValueError(
-                f"too many arguments passed, must pass {len(self._args)} arguments, "
-                f"factor graph call signature: {self.call_signature}"
-            )
-
-        missing = set(self.kwarg_names) - variables.keys() - set(self.arg_names[:n_args])
+        missing = set(self.kwarg_names) - variables.keys()
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)
@@ -292,7 +272,7 @@ class FactorGraph(AbstractNode):
         for calls in self._call_sequence:
             # TODO parallelise this part?
             for factor in calls:
-                ret = factor(*args, **variables)
+                ret = factor(**variables)
                 ret_value = self.broadcast_plates(factor.plates, ret.log_value)
                 log_value = add_arrays(log_value, ret_value)
                 det_values.update(ret.deterministic_values)

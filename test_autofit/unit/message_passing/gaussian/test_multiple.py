@@ -62,25 +62,28 @@ def make_model(
     # like to implicitly generate variables as this point but right now the plate logic stops that from
     #  being tractable
     gaussian = mp.Factor(
-        _gaussian
-    )(
-        x_,
-        centre,
-        intensity,
-        sigma
+        _gaussian,
+        x=x_,
+        centre=centre,
+        intensity=intensity,
+        sigma=sigma
     ) == z
     # Likelihood function is another variable. Note how it's a function of data and a deterministic variable.
     likelihood = mp.Factor(
-        _likelihood
-    )(z, y_)
+        _likelihood,
+        z=z,
+        y=y_
+    )
 
     # Here I've made factors around a real autofit prior! That's exciting isn't it?
     prior_centre = mp.Factor(
-        prior
-    )(centre)
+        prior,
+        x=centre
+    )
     prior_sigma = mp.Factor(
-        prior
-    )(sigma)
+        prior,
+        x=sigma
+    )
 
     # Make part of the model in the form of a factor graph
     return likelihood * gaussian * prior_centre * prior_sigma
@@ -143,8 +146,9 @@ def test_gaussian():
 
     # And one global intensity prior...
     prior_intensity = mp.Factor(
-        prior
-    )(intensity_)
+        prior,
+        x=intensity_
+    )
 
     # ...that's our initial model
     model = prior_intensity
@@ -170,6 +174,8 @@ def test_gaussian():
             observations,
             intensity_
         )
+
+        assert len(model.variables) == 16
 
         # Update our initial messages with messages for one gaussian
         message_dict.update(

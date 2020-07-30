@@ -67,15 +67,6 @@ class Factor(AbstractNode):
         return self._name
 
     @property
-    def _args_dims(self) -> Tuple[int]:
-        """
-        The number of plates for each positional argument variable
-        """
-        return tuple(map(
-            len, self._args
-        ))
-
-    @property
     def _kwargs_dims(self) -> Dict[str, int]:
         """
         The number of plates for each keyword argument variable
@@ -128,8 +119,6 @@ class Factor(AbstractNode):
         -------
 
         """
-        n_args = len(args)
-        args = args + tuple(kwargs[v] for v in self.arg_names[n_args:])
         kws = {n: kwargs[v.name] for n, v in self._kwargs.items()}
         return args, kws
 
@@ -139,12 +128,7 @@ class Factor(AbstractNode):
         """
         if self.__function_shape is None:
             args, kws = self._resolve_args(*args, **kwargs)
-            variables = {
-                v: x
-                for v, x
-                in zip(self.arg_names, args)
-            }
-            variables.update(
+            variables = dict(
                 (self._kwargs[k], x) for k, x in kws.items())
             var_shapes = {v: np.shape(x) for v, x in variables.items()}
             var_dims_diffs = {
@@ -243,8 +227,7 @@ class Factor(AbstractNode):
         kwargs_dims = {k: np.ndim(a) for k, a in kwargs.items()}
         # Check dimensions of inputs directly match plates
         direct_call = (
-                self._args_dims == arg_dims and
-                all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
+            all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
         if direct_call:
             return self._factor(*args, **kwargs)
 
@@ -373,7 +356,6 @@ class Factor(AbstractNode):
             if isinstance(other, type(self)):
                 return (
                         (self._factor == other._factor)
-                        and (self._args == other._args)
                         and (frozenset(self._kwargs.items())
                              == frozenset(other._kwargs.items()))
                         and (frozenset(self.variables.items())
@@ -387,7 +369,6 @@ class Factor(AbstractNode):
         return DeterministicFactorNode(
             self._factor,
             other,
-            *self._args,
             **self._kwargs
         )
 
@@ -400,7 +381,6 @@ class Factor(AbstractNode):
 
     def __repr__(self) -> str:
         args = ", ".join(chain(
-            self.arg_names,
             map("{0[0]}={0[1]}".format, self._kwargs.items())))
         return f"Factor({self.name})({args})"
 
@@ -435,5 +415,4 @@ class Factor(AbstractNode):
         -------
 
         """
-        args = self.arg_names[:len(args)]
         return (self._variables.keys() - args).difference(kwargs)
