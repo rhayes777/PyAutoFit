@@ -141,7 +141,7 @@ class AbstractMessage(ABC):
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
             log_base = self.log_base_measure
-            eta_t = (eta * t).sum(0)  # TODO this can be made more efficient using tensordot
+            eta_t = np.multiply(eta, t).sum(0)  # TODO this can be made more efficient using tensordot
             return log_base + eta_t - self.log_partition
         elif np.shape(x)[1:] == self.shape:
             return np.array([self.logpdf(x_) for x_ in x])
