@@ -8,10 +8,12 @@ def _gaussian(x, centre, intensity, sigma):
     return Gaussian(centre=centre, intensity=intensity, sigma=sigma)(x)
 
 
+_norm = stats.norm(loc=0, scale=1.)
+
+
 # TODO: use autofit likelihood
 def _likelihood(z, y):
-    _norm = stats.norm(loc=0, scale=1.)
-    return _norm.logpdf(z - y)
+    return np.multiply(-0.5, np.square(np.subtract(z, y)))
 
 
 class Profile:

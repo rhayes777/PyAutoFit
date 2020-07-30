@@ -127,7 +127,7 @@ def make_message_dict(
 
 # Commented out this test as it takes a while to run. It's really an integration test and I'll promote it to that
 #  lofty status when I'm ready to 'release' some form of MP
-def _test_gaussian():
+def test_gaussian():
     # There's one global intensity
     intensity = 25.0
 
