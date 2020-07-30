@@ -1,18 +1,18 @@
 from collections import Counter, defaultdict
-from typing import Tuple, Dict, Collection, List
+from typing import Tuple, Dict, Collection, List, Callable
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs import FactorNode, FactorValue, AbstractNode
+from autofit.message_passing.factor_graphs import FactorValue, AbstractNode
 from autofit.message_passing.factor_graphs.factor import Factor
 from autofit.message_passing.factor_graphs.variable import Variable, Plate
 from autofit.message_passing.utils import add_arrays
 
 
-class DeterministicFactorNode(FactorNode):
+class DeterministicFactorNode(Factor):
     def __init__(
             self,
-            factor: Factor,
+            factor: Callable,
             variable: Variable,
             *args: Variable,
             **kwargs: Variable
@@ -94,7 +94,7 @@ class DeterministicFactorNode(FactorNode):
 class FactorGraph(AbstractNode):
     def __init__(
             self,
-            factors: Collection[FactorNode],
+            factors: Collection[Factor],
     ):
         """
         A graph relating factors
@@ -204,7 +204,7 @@ class FactorGraph(AbstractNode):
             (self._variables.keys() - self._deterministic_variables.keys())
         }
 
-    def _get_call_sequence(self) -> List[List[FactorNode]]:
+    def _get_call_sequence(self) -> List[List[Factor]]:
         """
         Compute the order in which the factors must be evaluated. This is done by checking whether
         all variables required to call a factor are present in the set of variables encapsulated
@@ -309,7 +309,7 @@ class FactorGraph(AbstractNode):
 
         if isinstance(other, FactorGraph):
             factors += other.factors
-        elif isinstance(other, FactorNode):
+        elif isinstance(other, Factor):
             factors += (other,)
         else:
             raise TypeError(
@@ -323,9 +323,9 @@ class FactorGraph(AbstractNode):
         return f"({factors_str})"
 
     @property
-    def factors(self) -> Tuple[FactorNode, ...]:
+    def factors(self) -> Tuple[Factor, ...]:
         return self._factors
 
     @property
-    def factor_all_variables(self) -> Dict[FactorNode, str]:
+    def factor_all_variables(self) -> Dict[Factor, str]:
         return self._factor_all_variables

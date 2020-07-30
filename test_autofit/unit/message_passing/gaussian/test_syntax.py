@@ -26,7 +26,6 @@ def test_gaussian():
         name="observations"
     )
 
-    # TODO: Can we derive variables by looking at function argument names?
     x_ = mp.Variable(
         "x", observations
     )
@@ -38,31 +37,26 @@ def test_gaussian():
     )
 
     gaussian = mp.Factor(
-        _gaussian
-    )(
+        _gaussian,
         x=x_
     ) == z
     likelihood = mp.Factor(
-        _likelihood
-    )(
+        _likelihood,
         z=z,
         y=y_
     )
 
     # TODO: Can priors look like autofit priors? Could mp objects derive promise functionality from autofit?
     prior_centre = mp.Factor(
-        prior
-    )(
+        prior,
         x=gaussian.centre
     )
     prior_intensity = mp.Factor(
-        prior
-    )(
+        prior,
         x=gaussian.intensity
     )
     prior_sigma = mp.Factor(
-        prior
-    )(
+        prior,
         x=gaussian.sigma
     )
 

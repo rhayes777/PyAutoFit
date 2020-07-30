@@ -5,7 +5,7 @@ from typing import NamedTuple, Tuple, Dict, Optional, List
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs import FactorNode
+from autofit.message_passing.factor_graphs import Factor
 from autofit.message_passing.messages.abstract import AbstractMessage
 from .mean_field import MeanFieldApproximation, FactorApproximation, Status
 from .messages import map_dists
@@ -127,7 +127,7 @@ class ImportanceSampler(AbstractSampler):
 
     @staticmethod
     def _weight_samples(
-            factor: "FactorNode",
+            factor: "Factor",
             samples: Dict[str, np.ndarray],
             det_vars: Dict[str, np.ndarray],
             log_factor: np.ndarray,
@@ -235,7 +235,7 @@ def project_factor_approx_sample(
 
 def project_model(
         model_approx: MeanFieldApproximation,
-        factor: FactorNode,
+        factor: Factor,
         sampler: AbstractSampler,
         delta: float = 0.5,
         **kwargs

@@ -1,6 +1,6 @@
 from inspect import getfullargspec
 from itertools import chain, repeat
-from typing import Tuple, Dict, Any, Union, Set, NamedTuple, Callable, Optional
+from typing import Tuple, Dict, Any, Union, Set, NamedTuple, Callable
 
 import numpy as np
 
@@ -18,76 +18,12 @@ class FactorValue(NamedTuple):
     deterministic_values: Dict[str, np.ndarray]
 
 
-class Factor:
+class Factor(AbstractNode):
     def __init__(
             self,
             factor: Callable,
-            name: Optional[str] = None,
-            vectorised: bool = True
-    ):
-        """
-        A factor in the model. This is a function that has been decomposed
-        from the overall model.
-
-        Parameters
-        ----------
-        factor
-            Some callable
-        name
-            The name of this factor (defaults to the name of the callable)
-        vectorised
-            Can this factor be computed in a vectorised manner?
-        """
-        self.factor = factor
-        self.name = name or factor.__name__
-        self.vectorised = vectorised
-
-    def call_factor(self, *args, **kwargs):
-        """
-        Call the underlying function and return its value for some set of
-        arguments
-        """
-        try:
-            return self.factor(*args, **kwargs)
-        except TypeError:
-            pass
-
-    def __call__(self, **kwargs: Variable):
-        from autofit.message_passing.factor_graphs import FactorNode
-        """
-        Create a node in the graph from this factor by passing it the variables
-        it uses.
-
-        Parameters
-        ----------
-        args
-            The variables with which this factor is associated
-
-        Returns
-        -------
-        A node in the factor graph
-        """
-        args = getfullargspec(self.factor).args
-        kwargs = {
-            **kwargs,
-            **{
-                arg: Variable(arg)
-                for arg
-                in args
-                if arg not in kwargs and arg != "self"
-            }
-        }
-        return FactorNode(self, **kwargs)
-
-    def __hash__(self):
-        return hash((self.name, self.factor))
-
-
-class FactorNode(AbstractNode):
-    def __init__(
-            self,
-            factor: Factor,
-            *args: Variable,
+            name=None,
+            vectorised=False,
             **kwargs: Variable
     ):
         """
@@ -102,15 +38,33 @@ class FactorNode(AbstractNode):
         kwargs
             Variables representing keyword arguments for the function
         """
-        self.__function_shape = None
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        self._name = name or factor.__name__
+        self.vectorised = vectorised
+
         self._factor = factor
         self._deterministic_variables = dict()
 
+        args = getfullargspec(self._factor).args
+        kwargs = {
+            **kwargs,
+            **{
+                arg: Variable(arg)
+                for arg
+                in args
+                if arg not in kwargs and arg != "self"
+            }
+        }
+
+        self.__function_shape = None
+        super().__init__(
+            **kwargs
+        )
+
     jacobian = numerical_jacobian
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     @property
     def _args_dims(self) -> Tuple[int]:
@@ -265,8 +219,8 @@ class FactorNode(AbstractNode):
             **kwargs
         )
 
-        if self._factor.vectorised:
-            return self._factor.call_factor(*args, **kws)
+        if self.vectorised:
+            return self._factor(*args, **kws)
         return self._py_vec_call(*args, **kws)
 
     def _py_vec_call(
@@ -292,7 +246,7 @@ class FactorNode(AbstractNode):
                 self._args_dims == arg_dims and
                 all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
         if direct_call:
-            return self._factor.call_factor(*args, **kwargs)
+            return self._factor(*args, **kwargs)
 
         # Check dimensions of inputs match plates + 1
         vectorised = (
@@ -333,7 +287,7 @@ class FactorNode(AbstractNode):
 
         # TODO this loop can also be parallelised for increased performance
         res = np.array([
-            self._factor.call_factor(*args, **kws)
+            self._factor(*args, **kws)
             for args, kws in zip(zip_args, gen_kwargs())])
 
         return res
@@ -410,12 +364,12 @@ class FactorNode(AbstractNode):
         moved = np.moveaxis(value, inds, np.sort(inds))
         return agg_func(moved, axis=dropaxes)
 
-    def __eq__(self, other: Union["FactorNode", Variable]):
+    def __eq__(self, other: Union["Factor", Variable]):
         """
         If set equal to a variable that variable is taken to be deterministic and
         so a DeterministicFactorNode is generated.
         """
-        if isinstance(other, FactorNode):
+        if isinstance(other, Factor):
             if isinstance(other, type(self)):
                 return (
                         (self._factor == other._factor)
@@ -448,7 +402,7 @@ class FactorNode(AbstractNode):
         args = ", ".join(chain(
             self.arg_names,
             map("{0[0]}={0[1]}".format, self._kwargs.items())))
-        return f"Factor({self._factor.name})({args})"
+        return f"Factor({self.name})({args})"
 
     @property
     def variables(self) -> Dict[str, Variable]:
@@ -463,13 +417,6 @@ class FactorNode(AbstractNode):
         Dictionary mapping the names of deterministic variables to those variables
         """
         return self._deterministic_variables
-
-    @property
-    def name(self):
-        """
-        The name of this factor
-        """
-        return self._factor.name
 
     def variables_difference(
             self,

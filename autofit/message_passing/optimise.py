@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
 
 from autofit.message_passing import FixedMessage
-from autofit.message_passing.factor_graphs import FactorNode
+from autofit.message_passing.factor_graphs import Factor
 from .mean_field import FactorApproximation, MeanFieldApproximation, Status
 from .utils import propagate_uncertainty, FlattenArrays
 
@@ -204,7 +204,7 @@ class LaplaceOptimiser:
 
     def laplace_factor_approx(
             self,
-            factor: FactorNode,
+            factor: Factor,
             opt_kws: Optional[Dict[str, Any]] = None
     ):
         factor_approx = self.model_approx.factor_approximation(factor)
@@ -351,7 +351,7 @@ class LeastSquaresOpt:
 
 def lstsq_laplace_factor_approx(
         model_approx: MeanFieldApproximation,
-        factor: FactorNode,
+        factor: Factor,
         delta: float = 0.5,
         opt_kws: Optional[Dict[str, Any]] = None):
     """

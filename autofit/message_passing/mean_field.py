@@ -6,9 +6,7 @@ from typing import (
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs import (
-    FactorNode
-)
+from autofit.message_passing.factor_graphs import Factor
 from autofit.message_passing.factor_graphs.graph import FactorGraph
 from autofit.message_passing.messages import FixedMessage
 from autofit.message_passing.messages.abstract import AbstractMessage
@@ -17,7 +15,7 @@ from .messages import (
 )
 from .utils import prod, add_arrays
 
-VariableFactorDist = Dict[str, Dict[FactorNode, AbstractMessage]]
+VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
 
 
@@ -100,7 +98,7 @@ def project_on_to_factor_approx(
 
 
 class FactorApproximation(NamedTuple):
-    factor: FactorNode
+    factor: Factor
     cavity_dist: Dict[str, AbstractMessage]
     deterministic_dist: Dict[str, AbstractMessage]
     factor_dist: Dict[str, AbstractMessage]
@@ -150,7 +148,7 @@ class MeanFieldApproximation:
             self,
             factor_graph: FactorGraph,
             variable_factor_dist: VariableFactorDist,
-            factor_evidence: Optional[Dict[FactorNode, float]] = None
+            factor_evidence: Optional[Dict[Factor, float]] = None
     ):
         self._factor_graph = factor_graph
         self._variable_factor_dist = variable_factor_dist
@@ -162,16 +160,16 @@ class MeanFieldApproximation:
     def __getitem__(self, item):
         if isinstance(item, str):
             return self.approx[item]
-        elif isinstance(item, FactorNode):
+        elif isinstance(item, Factor):
             return self.factor_approximation(item)
         else:
             raise TypeError(
-                f"type passed {(type(item))} is not `str` or `FactorNode`")
+                f"type passed {(type(item))} is not `str` or `Factor`")
 
     @classmethod
     def from_approx_dists(cls, factor_graph: FactorGraph,
                           approx_dists: Dict[str, Type[AbstractMessage]],
-                          factor_evidence: Optional[Dict[FactorNode, float]] = None,
+                          factor_evidence: Optional[Dict[Factor, float]] = None,
                           ) -> "MeanFieldApproximation":
 
         variable_factor_dist = {}
@@ -188,7 +186,7 @@ class MeanFieldApproximation:
     def from_kws(
             cls,
             factor_graph: FactorGraph,
-            factor_evidence: Optional[Dict[FactorNode, float]] = None,
+            factor_evidence: Optional[Dict[Factor, float]] = None,
             **kws
     ) -> "MeanFieldApproximation":
         return cls.from_approx_dists(
@@ -231,7 +229,7 @@ class MeanFieldApproximation:
         return self._factor_graph
 
     def _variable_cavity_dist(self, variable: str,
-                              cavity_factor: FactorNode
+                              cavity_factor: Factor
                               ) -> Optional[AbstractMessage]:
         dists = [dist for factor, dist in
                  self._variable_factor_dist[variable].items()
@@ -240,7 +238,7 @@ class MeanFieldApproximation:
             return prod(dists)
         return None
 
-    def factor_approximation(self, factor: FactorNode) -> FactorApproximation:
+    def factor_approximation(self, factor: Factor) -> FactorApproximation:
         var_cavity = ((v, self._variable_cavity_dist(v, factor))
                       for v in factor.variables)
         # Some variables may only appear once in the factor graph
