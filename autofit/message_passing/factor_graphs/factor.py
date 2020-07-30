@@ -1,3 +1,4 @@
+from inspect import getfullargspec
 from itertools import chain, repeat
 from typing import Tuple, Dict, Any, Union, Set, NamedTuple, Callable, Optional
 
@@ -51,7 +52,7 @@ class Factor:
         except TypeError:
             pass
 
-    def __call__(self, *args: Variable, **kwargs: Variable):
+    def __call__(self, **kwargs: Variable):
         from autofit.message_passing.factor_graphs import FactorNode
         """
         Create a node in the graph from this factor by passing it the variables
@@ -66,7 +67,17 @@ class Factor:
         -------
         A node in the factor graph
         """
-        return FactorNode(self, *args, **kwargs)
+        args = getfullargspec(self.factor).args
+        kwargs = {
+            **kwargs,
+            **{
+                arg: Variable(arg)
+                for arg
+                in args
+                if arg not in kwargs and arg != "self"
+            }
+        }
+        return FactorNode(self, **kwargs)
 
     def __hash__(self):
         return hash((self.name, self.factor))
