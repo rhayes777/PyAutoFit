@@ -15,7 +15,7 @@ class FactorValue(NamedTuple):
     """
 
     log_value: np.ndarray
-    deterministic_values: Dict[str, np.ndarray]
+    deterministic_values: Dict[Variable, np.ndarray]
 
 
 class Factor(AbstractNode):
