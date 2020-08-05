@@ -280,13 +280,11 @@ class FactorGraph(AbstractNode):
         for calls in self._call_sequence:
             # TODO parallelise this part?
             for factor in calls:
-                ret = factor(**variables)
+                ret = factor(variables)
                 ret_value = self.broadcast_plates(factor.plates, ret.log_value)
                 log_value = add_arrays(log_value, ret_value)
                 det_values.update(ret.deterministic_values)
-                variables.update({
-                    variable.name: array for variable, array in ret.deterministic_values.items()
-                })
+                variables.update(ret.deterministic_values)
 
         return FactorValue(log_value, det_values)
 

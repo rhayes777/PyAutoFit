@@ -111,7 +111,7 @@ class ImportanceSampler(AbstractSampler):
             ).sample(n_samples=n_samples)
             for v in factor.variables
         }
-        log_factor, det_vars = factor(**{variable.name: array for variable, array in samples.items()})
+        log_factor, det_vars = factor(samples)
         log_factor = log_factor + np.zeros(
             (n_samples,) + tuple(1 for _ in range(factor.ndim)))
 

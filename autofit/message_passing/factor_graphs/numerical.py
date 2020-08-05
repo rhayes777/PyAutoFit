@@ -48,7 +48,7 @@ def numerical_jacobian(
     """
     # copy the input array
     p0 = {v: np.array(x, dtype=float) for v, x in kwargs.items()}
-    f0 = factor(**{variable.name: array for variable, array in p0.items()})
+    f0 = factor(p0)
     log_f0 = f0.log_value
     det_vars0 = f0.deterministic_values
 
@@ -73,7 +73,7 @@ def numerical_jacobian(
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
-                f = factor(**{variable.name: array for variable, array in p0.items()})
+                f = factor(p0)
                 x0[ind] -= _eps
 
                 jac_f[v][ind] = (f.log_value - log_f0) / _eps
@@ -84,7 +84,7 @@ def numerical_jacobian(
                             (val - det_vars0[det]) / _eps
         else:
             p0[v] += _eps
-            f = factor(**{variable.name: array for variable, array in p0.items()})
+            f = factor(p0)
             p0[v] -= _eps
 
             jac_f[v] = (f.log_value - log_f0) / _eps

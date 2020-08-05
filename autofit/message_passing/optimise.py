@@ -170,7 +170,7 @@ def find_factor_mode(
         # TODO implement numerical Hessian
 
     # find the values of the deterministic variables at the mode
-    f = factor(**{variable.name: array for variable, array in mode.items()})
+    f = factor(mode)
     mode.update(f.deterministic_values)
 
     if return_cov:
@@ -308,7 +308,7 @@ class LeastSquaresOpt:
     def __call__(self, arr):
         p0 = self.param_shapes.unflatten(arr)
         log_value, det_vars = self.factor_approx.factor(
-            **{variable.name: array for variable, array in {**p0, **self.fixed_kws}.items()}
+            {**p0, **self.fixed_kws}
         )
         vals = {**p0, **det_vars}
         residuals = {
@@ -328,7 +328,7 @@ class LeastSquaresOpt:
 
         sol = self.param_shapes.unflatten(res.x)
         _, det_vars = self.factor_approx.factor(
-            **{variable.name: array for variable, array in {**sol, **self.fixed_kws}.items()}
+            {**sol, **self.fixed_kws}
         )
 
         jac = {
