@@ -183,7 +183,6 @@ class Factor(AbstractNode):
 
     def _call_factor(
             self,
-            *args: Tuple[np.ndarray, ...],
             **kwargs: Dict[str, np.ndarray]
     ) -> np.ndarray:
         """
@@ -201,18 +200,15 @@ class Factor(AbstractNode):
         Value returned by the factor
         """
         args, kws = self._resolve_args(
-            *args,
             **kwargs
         )
 
         if self.vectorised:
-            return self._factor(*args, **kws)
-        return self._py_vec_call(*args, **kws)
+            return self._factor(**kws)
+        return self._py_vec_call(**kws)
 
     def _py_vec_call(
             self,
-            *args:
-            Tuple[np.ndarray, ...],
             **kwargs: np.ndarray
     ) -> np.ndarray:
         """Some factors may not be vectorised to broadcast over
@@ -225,41 +221,34 @@ class Factor(AbstractNode):
 
         If the other inputs do not match then it raises ValueError
         """
-        arg_dims = tuple(map(np.ndim, args))
         kwargs_dims = {k: np.ndim(a) for k, a in kwargs.items()}
         # Check dimensions of inputs directly match plates
         direct_call = (
             all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
         if direct_call:
-            return self._factor(*args, **kwargs)
+            return self._factor(**kwargs)
 
         # Check dimensions of inputs match plates + 1
         vectorised = (
-                (tuple(d + 1 for d in self._args_dims) == arg_dims) and
-                all(dim + 1 == kwargs_dims[k]
-                    for k, dim in self._kwargs_dims.items()))
+            all(dim + 1 == kwargs_dims[k]
+                for k, dim in self._kwargs_dims.items()))
 
         if not vectorised:
             raise ValueError(
                 "input dimensions do not match required dims"
-                f"input: *args={arg_dims}, **kwargs={kwargs_dims}"
-                f"required: *args={self._args_dims}, "
+                f"input: **kwargs={kwargs_dims}"
+                f"required: "
                 f"**kwargs={self._kwargs_dims}")
 
-        lens = [len(a) for a in args]
         kw_lens = {k: len(a) for k, a in kwargs.items()}
 
         # checking 1st dimensions match
-        sizes = set(chain(lens, kw_lens.values()))
+        sizes = set(kw_lens.values())
         dim0 = max(sizes)
         if sizes.difference({1, dim0}):
             raise ValueError(
                 f"size mismatch first dimensions passed: {sizes}")
 
-        # teeing up iterators to generate arguments to factor calls
-        zip_args = zip(*(
-            a if length == dim0 else repeat(a[0])
-            for a, length in zip(args, lens)))
         iter_kws = {
             k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
             for k, a in kwargs.items()}
@@ -272,8 +261,8 @@ class Factor(AbstractNode):
 
         # TODO this loop can also be parallelised for increased performance
         res = np.array([
-            self._factor(*args, **kws)
-            for args, kws in zip(zip_args, gen_kwargs())])
+            self._factor(**kws)
+            for kws in gen_kwargs()])
 
         return res
 
@@ -296,7 +285,7 @@ class Factor(AbstractNode):
         -------
         Object encapsulating the result of the function call
         """
-        val = self._call_factor(*args, **kwargs)
+        val = self._call_factor(**kwargs)
         return FactorValue(
             val.reshape(
                 self._function_shape(
