@@ -1,6 +1,6 @@
 from inspect import getfullargspec
 from itertools import chain, repeat
-from typing import Tuple, Dict, Any, Union, Set, NamedTuple, Callable
+from typing import Tuple, Dict, Union, Set, NamedTuple, Callable
 
 import numpy as np
 
@@ -105,9 +105,8 @@ class Factor(AbstractNode):
 
     def _resolve_args(
             self,
-            *args: np.ndarray,
             **kwargs: np.ndarray
-    ) -> Tuple[Any, dict]:
+    ) -> dict:
         """
         Transforms in the input arguments to match the arguments
         specified for the factor.
@@ -122,14 +121,14 @@ class Factor(AbstractNode):
 
         """
         kws = {n: kwargs[v.name] for n, v in self._kwargs.items()}
-        return args, kws
+        return kws
 
-    def _function_shape(self, *args, **kwargs) -> Tuple[int, ...]:
+    def _function_shape(self, **kwargs) -> Tuple[int, ...]:
         """
         Calculates the expected function shape based on the variables
         """
         if self.__function_shape is None:
-            args, kws = self._resolve_args(*args, **kwargs)
+            kws = self._resolve_args(**kwargs)
             variables = dict(
                 (self._kwargs[k], x) for k, x in kws.items())
             var_shapes = {v: np.shape(x) for v, x in variables.items()}
@@ -199,7 +198,7 @@ class Factor(AbstractNode):
         -------
         Value returned by the factor
         """
-        args, kws = self._resolve_args(
+        kws = self._resolve_args(
             **kwargs
         )
 
@@ -268,7 +267,6 @@ class Factor(AbstractNode):
 
     def __call__(
             self,
-            *args: np.ndarray,
             **kwargs: np.ndarray
     ) -> FactorValue:
         """
@@ -289,7 +287,6 @@ class Factor(AbstractNode):
         return FactorValue(
             val.reshape(
                 self._function_shape(
-                    *args,
                     **kwargs
                 )
             ), {}

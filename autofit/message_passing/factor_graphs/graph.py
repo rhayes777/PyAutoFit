@@ -43,7 +43,6 @@ class DeterministicFactorNode(Factor):
 
     def __call__(
             self,
-            *args: np.ndarray,
             **kwargs: np.ndarray
     ) -> FactorValue:
         """
@@ -60,8 +59,8 @@ class DeterministicFactorNode(Factor):
         -------
         An object encapsulating the value for the factor
         """
-        res = self._call_factor(*args, **kwargs)
-        shape = self._function_shape(*args, **kwargs)
+        res = self._call_factor(**kwargs)
+        shape = self._function_shape(**kwargs)
         shift = len(shape) - self.ndim
         plate_dim = dict(zip(self.plates, shape[shift:]))
 
