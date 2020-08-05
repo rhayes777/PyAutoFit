@@ -30,7 +30,12 @@ def make_model(
     name="model_approx"
 )
 def make_model_approx(
-        model
+        model,
+        a_,
+        b_,
+        z_,
+        x_,
+        y_,
 ):
     a = np.array([[-1.3], [0.7]])
     b = np.array([-0.5])
@@ -58,15 +63,20 @@ def make_model_approx(
 
     return mp.MeanFieldApproximation.from_kws(
         model,
-        a=message_a,
-        b=message_b,
-        z=message_z,
-        x=mp.FixedMessage(x),
-        y=mp.FixedMessage(y))
+        {
+            a_: message_a,
+            b_: message_b,
+            z_: message_z,
+            x_: mp.FixedMessage(x),
+            y_: mp.FixedMessage(y)
+        }
+    )
 
 
 def test_laplace(
-        model_approx
+        model_approx,
+        a_,
+        b_
 ):
     opt = mp.optimise.LaplaceOptimiser(
         model_approx,
@@ -74,8 +84,8 @@ def test_laplace(
     )
     opt.run()
 
-    q_a = opt.model_approx['a']
-    q_b = opt.model_approx['b']
+    q_a = opt.model_approx[a_]
+    q_b = opt.model_approx[b_]
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
@@ -86,7 +96,9 @@ def test_laplace(
 
 def test_importance_sampling(
         model,
-        model_approx
+        model_approx,
+        a_,
+        b_
 ):
     sampler = mp.ImportanceSampler(n_samples=500)
 
@@ -107,8 +119,8 @@ def test_importance_sampling(
             # save and print current approximation
             history[i, factor] = model_approx
 
-    q_a = model_approx['a']
-    q_b = model_approx['b']
+    q_a = model_approx[a_]
+    q_b = model_approx[b_]
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(7.13, rel=1)

@@ -102,25 +102,25 @@ def make_y_(obs, dims):
 def make_linear_factor(
         x_, a_, b_, z_
 ):
-    return mp.Factor(linear)(x_, a_, b_) == z_
+    return mp.Factor(linear, x=x_, a=a_, b=b_) == z_
 
 
 @pytest.fixture(
     name="prior_a"
 )
 def make_prior_a(prior, a_):
-    return mp.Factor(prior)(a_)
+    return mp.Factor(prior, x=a_)
 
 
 @pytest.fixture(
     name="prior_b"
 )
 def make_prior_b(prior, b_):
-    return mp.Factor(prior)(b_)
+    return mp.Factor(prior, x=b_)
 
 
 @pytest.fixture(
     name="likelihood_factor"
 )
 def make_likelihood_factor(likelihood, z_, y_):
-    return mp.Factor(likelihood)(z_, y_)
+    return mp.Factor(likelihood, z=z_, y=y_)
