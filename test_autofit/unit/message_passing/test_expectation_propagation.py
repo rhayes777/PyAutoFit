@@ -124,9 +124,9 @@ def test_looped_importance_sampling(
 
             # save and print current approximation
             history.append(model_approx)
-            print(i, factor, model_approx['x'])
+            print(i, factor, model_approx[x])
 
-    result = history[-1]['x']
+    result = history[-1][x]
 
     assert result.mu == pytest.approx(-0.243, rel=0.1)
     assert result.sigma == pytest.approx(0.466, rel=0.1)

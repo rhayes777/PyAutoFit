@@ -105,13 +105,13 @@ class ImportanceSampler(AbstractSampler):
         proposal_dist = factor_approx.model_dist
 
         samples = {
-            v.name: proposal_dist.get(
+            v: proposal_dist.get(
                 v,
                 cavity_dist.get(v)
             ).sample(n_samples=n_samples)
             for v in factor.variables
         }
-        log_factor, det_vars = factor(**samples)
+        log_factor, det_vars = factor(**{variable.name: array for variable, array in samples.items()})
         log_factor = log_factor + np.zeros(
             (n_samples,) + tuple(1 for _ in range(factor.ndim)))
 
