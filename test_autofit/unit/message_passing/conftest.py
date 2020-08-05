@@ -20,5 +20,6 @@ def make_probit_factor(x):
         stats.norm(
             loc=0.,
             scale=1.
-        ).logcdf
-    )(x)
+        ).logcdf,
+        x=x
+    )

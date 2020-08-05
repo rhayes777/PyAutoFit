@@ -14,8 +14,9 @@ def make_normal_factor(x):
         stats.norm(
             loc=-0.5,
             scale=0.5
-        ).logpdf
-    )(x)
+        ).logpdf,
+        x=x
+    )
 
 
 @pytest.fixture(
@@ -32,11 +33,12 @@ def make_model(
     name="model_approx"
 )
 def make_model_approx(
-        model
+        model,
+        x
 ):
     return mp.MeanFieldApproximation.from_kws(
         model,
-        x=autofit.message_passing.messages.normal.NormalMessage(0, 1)
+        {x: autofit.message_passing.messages.normal.NormalMessage(0, 1)}
     )
 
 
@@ -54,38 +56,40 @@ def make_probit_approx(
 
 def test_approximations(
         probit_approx,
-        model_approx
+        model_approx,
+        x
 ):
     opt_probit = mp.OptFactor.from_approx(probit_approx)
-    result = opt_probit.maximise(x=0.)
+    result = opt_probit.maximise({x: 0.})
 
     probit_model = autofit.message_passing.messages.normal.NormalMessage.from_mode(
-        result.mode['x'],
-        covariance=result.inv_hessian['x']
+        result.mode[x],
+        covariance=result.inv_hessian[x]
     )
 
-    probit_model_dist = {'x': probit_model}
+    probit_model_dist = {x: probit_model}
 
     # get updated factor approximation
     probit_project, status = probit_approx.project(
         probit_model_dist, delta=1.
     )
 
-    assert probit_project.model_dist['x'].mu == pytest.approx(0.506, rel=0.1)
-    assert probit_project.model_dist['x'].sigma == pytest.approx(0.814, rel=0.1)
+    assert probit_project.model_dist[x].mu == pytest.approx(0.506, rel=0.1)
+    assert probit_project.model_dist[x].sigma == pytest.approx(0.814, rel=0.1)
 
-    assert probit_project.factor_dist['x'].mu == pytest.approx(1.499, rel=0.1)
-    assert probit_project.factor_dist['x'].sigma == pytest.approx(1.401, rel=0.1)
+    assert probit_project.factor_dist[x].mu == pytest.approx(1.499, rel=0.1)
+    assert probit_project.factor_dist[x].sigma == pytest.approx(1.401, rel=0.1)
 
 
 def test_looped_importance_sampling(
         model,
         normal_factor,
-        probit_factor
+        probit_factor,
+        x
 ):
     model_approx = mp.MeanFieldApproximation.from_kws(
         model,
-        x=autofit.message_passing.messages.normal.NormalMessage(0, 1)
+        {x: autofit.message_passing.messages.normal.NormalMessage(0, 1)}
     )
 
     np.random.seed(1)
