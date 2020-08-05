@@ -166,9 +166,11 @@ class ImportanceSampler(AbstractSampler):
             n_samples=n_samples
         )
 
-    def reweight_sample(self,
-                        factor_approx: "FactorApproximation",
-                        sampling_result: SamplingResult) -> SamplingResult:
+    def reweight_sample(
+            self,
+            factor_approx: "FactorApproximation",
+            sampling_result: SamplingResult
+    ) -> SamplingResult:
         return self._weight_samples(
             factor=factor_approx.factor,
             samples=sampling_result.samples,
