@@ -47,49 +47,52 @@ def test_gaussian():
     )
 
     gaussian = mp.Factor(
-        _gaussian
-    )(
+        _gaussian,
         x=x_,
         centre=centre,
         intensity=intensity,
         sigma=sigma
     ) == z
     likelihood = mp.Factor(
-        _likelihood
-    )(
+        _likelihood,
         z=z,
         y=y_
     )
 
     # TODO: Can priors look like autofit priors? Could mp objects derive promise functionality from autofit?
     prior_centre = mp.Factor(
-        prior
-    )(x=centre)
+        prior,
+        x=centre
+    )
     prior_intensity = mp.Factor(
-        prior
-    )(x=intensity)
+        prior,
+        x=intensity
+    )
     prior_sigma = mp.Factor(
-        prior
-    )(x=sigma)
+        prior,
+        x=sigma
+    )
 
     model = likelihood * gaussian * prior_centre * prior_sigma * prior_intensity
 
     model_approx = mp.MeanFieldApproximation.from_kws(
         model,
-        centre=mp.NormalMessage.from_prior(
-            prior
-        ),
-        intensity=mp.NormalMessage.from_prior(
-            prior
-        ),
-        sigma=mp.NormalMessage.from_prior(
-            prior
-        ),
-        x=mp.FixedMessage(x),
-        y=mp.FixedMessage(y),
-        z=mp.NormalMessage.from_mode(
-            np.zeros(n_observations), 100
-        ),
+        {
+            centre: mp.NormalMessage.from_prior(
+                prior
+            ),
+            intensity: mp.NormalMessage.from_prior(
+                prior
+            ),
+            sigma: mp.NormalMessage.from_prior(
+                prior
+            ),
+            x_: mp.FixedMessage(x),
+            y_: mp.FixedMessage(y),
+            z: mp.NormalMessage.from_mode(
+                np.zeros(n_observations), 100
+            ),
+        }
     )
 
     opt = mp.optimise.LaplaceOptimiser(
@@ -98,5 +101,5 @@ def test_gaussian():
     )
     opt.run()
 
-    for string in ("centre", "intensity", "sigma"):
-        print(f"{string} = {opt.model_approx[string].mu}")
+    for variable in centre, intensity, sigma:
+        print(f"{variable.name} = {opt.model_approx[variable].mu}")
