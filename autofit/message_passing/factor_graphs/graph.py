@@ -108,17 +108,6 @@ class FactorGraph(AbstractNode):
 
         self._factors = tuple(factors)
 
-        self._variables = set()
-        self._deterministic_variables = set()
-
-        for f in self._factors:
-            self._deterministic_variables.update(
-                f.deterministic_variables
-            )
-            self._variables.update(
-                f.variables
-            )
-
         self._factor_all_variables = {
             f: f.all_variables for f in self._factors
         }
@@ -184,6 +173,26 @@ class FactorGraph(AbstractNode):
                 f"Deterministic variables {det_var_counts} appear in "
                 "multiple factors"
             )
+
+    @property
+    def _variables(self):
+        return {
+            variable
+            for factor
+            in self.factors
+            for variable
+            in factor.variables
+        }
+
+    @property
+    def _deterministic_variables(self):
+        return {
+            variable
+            for factor
+            in self.factors
+            for variable
+            in factor.deterministic_variables
+        }
 
     @property
     def variables(self):

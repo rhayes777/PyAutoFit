@@ -15,7 +15,6 @@ prior = af.GaussianPrior(
 
 
 def make_model(
-        number: int,
         observations: mp.Plate,
         intensity: mp.Variable
 ) -> mp.FactorGraph:
@@ -26,8 +25,6 @@ def make_model(
 
     Parameters
     ----------
-    number
-        The number of the model
     observations
         A plate representing the observations dimension (1 for our 1D gaussian)
     intensity
@@ -40,22 +37,22 @@ def make_model(
 
     # x and y represent the data
     x_ = mp.Variable(
-        f"x_{number}", observations
+        f"x", observations
     )
     y_ = mp.Variable(
-        f"y_{number}", observations
+        f"y", observations
     )
 
     # z is a deterministic variable. It's because the fitness function ought to be a function of a function.
     # Instead, we can make it a function of z and set z as a deterministic variable for that function
     z = mp.Variable(
-        f"z_{number}", observations
+        f"z", observations
     )
     centre = mp.Variable(
-        f"centre_{number}"
+        f"centre"
     )
     sigma = mp.Variable(
-        f"sigma_{number}"
+        f"sigma"
     )
 
     # Wraps the function that creates data from the gaussian so it can be a factor in the graph. I'd quite
@@ -90,7 +87,7 @@ def make_model(
 
 
 def make_message_dict(
-        number: int,
+        model,
         gaussian: Gaussian
 ) -> Dict[str, mp.AbstractMessage]:
     """
@@ -98,8 +95,7 @@ def make_message_dict(
 
     Parameters
     ----------
-    number
-        The number of the model
+    model
     gaussian
         The true gaussian
 
@@ -114,15 +110,15 @@ def make_message_dict(
 
     return {
         # Oh look you can make a message from a prior!?
-        f"centre_{number}": mp.NormalMessage.from_prior(
+        model.centre: mp.NormalMessage.from_prior(
             prior
         ),
-        f"sigma_{number}": mp.NormalMessage.from_prior(
+        model.sigma: mp.NormalMessage.from_prior(
             prior
         ),
-        f"x_{number}": mp.FixedMessage(x),
-        f"y_{number}": mp.FixedMessage(y),
-        f"z_{number}": mp.NormalMessage.from_mode(
+        model.x: mp.FixedMessage(x),
+        model.y: mp.FixedMessage(y),
+        model.z: mp.NormalMessage.from_mode(
             np.zeros(n_observations), 100
         )
     }
@@ -155,7 +151,7 @@ def test_gaussian():
 
     # As such we only have one message associated with intensity
     message_dict = {
-        f"intensity": mp.NormalMessage.from_prior(
+        intensity_: mp.NormalMessage.from_prior(
             prior
         )
     }
@@ -166,33 +162,34 @@ def test_gaussian():
         {"centre": 30.0, "sigma": 20.0},
         {"centre": 0.0, "sigma": 50.0},
     ]
+    models = list()
 
-    for number, kwargs in enumerate(kwarg_list):
+    for kwargs in kwarg_list:
         # Extend our factor graph with the model for one gaussian
-        model *= make_model(
-            number,
+        new_model = make_model(
             observations,
             intensity_
         )
-
-        assert len(model.variables) == 16
+        models.append(new_model)
+        model *= new_model
 
         # Update our initial messages with messages for one gaussian
         message_dict.update(
             make_message_dict(
-                number,
+                new_model,
                 Gaussian(
                     intensity=intensity,
                     **kwargs
                 )
             )
         )
+    assert len(model.variables) == 13
 
     # Create a mean field approximation from the model. That's where we represent factors distributions and the model
     # as the product of those distributions
     model_approx = mp.MeanFieldApproximation.from_kws(
         model,
-        **message_dict
+        message_dict
     )
 
     # Run the optimiser. This needs updating so that execution terminates with a condition based on the evidence
@@ -205,11 +202,11 @@ def test_gaussian():
 
     # Finally we print some stuff to check how everything turned out. Still not convinced we're achieving a better
     # accuracy for intensity with the combined model though?
-    def print_factor(name):
-        print(f"{name} = {opt.model_approx[name].mu}")
+    def print_factor(variable):
+        print(f"{variable.name} = {opt.model_approx[variable].mu}")
 
-    print_factor("intensity")
+    print_factor(intensity_)
 
-    for number in range(len(kwarg_list)):
-        for string in (f"centre_{number}", f"sigma_{number}"):
-            print_factor(string)
+    for model in models:
+        for variable_ in model.variables:
+            print_factor(variable_)

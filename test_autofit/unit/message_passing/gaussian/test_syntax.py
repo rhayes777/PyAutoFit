@@ -51,7 +51,6 @@ def test_gaussian():
         y=y_
     )
 
-    # TODO: Can priors look like autofit priors? Could mp objects derive promise functionality from autofit?
     prior_centre = mp.Factor(
         prior,
         x=centre

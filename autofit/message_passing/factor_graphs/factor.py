@@ -44,6 +44,8 @@ class Factor(AbstractNode):
         self._factor = factor
         self._deterministic_variables = set()
 
+        self._variables = set(kwargs.values())
+
         args = getfullargspec(self._factor).args
         kwargs = {
             **kwargs,
@@ -397,20 +399,3 @@ class Factor(AbstractNode):
         Dictionary mapping the names of deterministic variables to those variables
         """
         return self._deterministic_variables
-
-    def variables_difference(
-            self,
-            **kwargs: np.ndarray
-    ) -> Set[str]:
-        """
-        Compute which variables are missing when determining the sequence of calls
-
-        Parameters
-        ----------
-        kwargs
-
-        Returns
-        -------
-
-        """
-        return self._variables.keys().difference(kwargs)

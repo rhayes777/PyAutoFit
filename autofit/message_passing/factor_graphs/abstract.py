@@ -23,7 +23,6 @@ class AbstractNode(ABC):
         kwargs
             Key word arguments passed to the value
         """
-        self._variables = set(kwargs.values())
         self._kwargs = kwargs
 
     @property
@@ -41,10 +40,13 @@ class AbstractNode(ABC):
 
     def __getattr__(self, item):
         try:
-            return self._kwargs[
+            return self._kwargs.get(
                 item
-            ]
+            )
         except KeyError:
+            for variable in self._variables | self._deterministic_variables:
+                if variable.name == item:
+                    return variable
             raise AttributeError
 
     @property
