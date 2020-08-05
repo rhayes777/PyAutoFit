@@ -5,8 +5,8 @@ from .mean_field import MeanFieldApproximation
 from .messages import NormalMessage, AbstractMessage
 
 
-class VariableGroup:
-    def __init__(self, variable, prior):
+class PriorVariable:
+    def __init__(self, prior, variable):
         self.variable = variable
         self.factor = Factor(
             prior,
@@ -27,16 +27,16 @@ class MeanFieldPriorModel:
         self._variable_groups = dict()
 
         for name, item in kwargs.items():
-            if isinstance(item, VariableGroup):
+            if isinstance(item, PriorVariable):
                 group = item
             else:
                 variable = getattr(
                     model,
                     name
                 )
-                group = VariableGroup(
-                    variable,
-                    item
+                group = PriorVariable(
+                    item,
+                    variable
                 )
             self._variable_groups[
                 name
