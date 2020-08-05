@@ -4,6 +4,7 @@ from typing import Tuple, Dict, Collection, List, Callable
 import numpy as np
 
 from autofit.message_passing.factor_graphs import FactorValue, AbstractNode
+from autofit.message_passing.factor_graphs.abstract import accept_variable_dict
 from autofit.message_passing.factor_graphs.factor import Factor
 from autofit.message_passing.factor_graphs.variable import Variable, Plate
 from autofit.message_passing.utils import add_arrays
@@ -41,6 +42,7 @@ class DeterministicFactorNode(Factor):
             variable
         }
 
+    @accept_variable_dict
     def __call__(
             self,
             **kwargs: np.ndarray
@@ -236,6 +238,7 @@ class FactorGraph(AbstractNode):
 
         return call_sequence
 
+    @accept_variable_dict
     def __call__(
             self,
             **kwargs: np.ndarray

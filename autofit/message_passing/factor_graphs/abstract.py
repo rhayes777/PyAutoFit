@@ -1,9 +1,27 @@
 from abc import ABC, abstractmethod
+from functools import wraps
 from typing import List, Tuple, cast, Collection, Set
 
 import numpy as np
 
 from autofit.message_passing.factor_graphs.variable import Variable, Plate
+
+
+def accept_variable_dict(func):
+    @wraps(func)
+    def wrapper(self, variable_dict=None, **kwargs):
+        if variable_dict is not None:
+            kwargs = {
+                variable.name: array
+                for variable, array
+                in variable_dict.items()
+            }
+        return func(
+            self,
+            **kwargs
+        )
+
+    return wrapper
 
 
 class AbstractNode(ABC):
@@ -158,3 +176,7 @@ class AbstractNode(ABC):
         An array of plate indices
         """
         return np.array([self.plates.index(p) for p in plates], dtype=int)
+
+    @abstractmethod
+    def __call__(self, **kwargs):
+        pass

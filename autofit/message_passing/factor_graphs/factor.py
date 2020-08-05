@@ -4,7 +4,7 @@ from typing import Tuple, Dict, Union, Set, NamedTuple, Callable
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.abstract import AbstractNode
+from autofit.message_passing.factor_graphs.abstract import AbstractNode, accept_variable_dict
 from autofit.message_passing.factor_graphs.numerical import numerical_jacobian
 from autofit.message_passing.factor_graphs.variable import Variable
 
@@ -120,8 +120,7 @@ class Factor(AbstractNode):
         -------
 
         """
-        kws = {n: kwargs[v.name] for n, v in self._kwargs.items()}
-        return kws
+        return {n: kwargs[v.name] for n, v in self._kwargs.items()}
 
     def _function_shape(self, **kwargs) -> Tuple[int, ...]:
         """
@@ -265,6 +264,7 @@ class Factor(AbstractNode):
 
         return res
 
+    @accept_variable_dict
     def __call__(
             self,
             **kwargs: np.ndarray

@@ -123,13 +123,7 @@ class FactorApproximation(NamedTuple):
         return all(d.is_valid for d in dists if isinstance(d, AbstractMessage))
 
     def __call__(self, kwargs: Dict[Variable, np.ndarray]) -> np.ndarray:
-        log_result, det_vars = self.factor(
-            **{
-                variable.name: array
-                for variable, array
-                in kwargs.items()
-            }
-        )
+        log_result, det_vars = self.factor(kwargs)
 
         # refactor as a mapreduce?
         for res in chain(map_dists(self.cavity_dist, kwargs),
