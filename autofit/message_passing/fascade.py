@@ -6,40 +6,41 @@ from .messages import NormalMessage, AbstractMessage
 
 
 class VariableGroup:
-    def __init__(self, variable, factor, message):
+    def __init__(self, variable, prior):
         self.variable = variable
-        self.factor = factor
-        self.message = message
+        self.factor = Factor(
+            prior,
+            x=variable
+        )
+        self.message = NormalMessage.from_prior(
+            prior
+        )
 
 
 class MeanFieldPriorModel:
     def __init__(
             self,
             model,
-            **priors
+            **kwargs
     ):
         self._model = model
         self._variable_groups = dict()
 
-        for name, prior in priors.items():
-            variable = getattr(
-                model,
-                name
-            )
-            factor = Factor(
-                prior,
-                x=variable
-            )
-            message = NormalMessage.from_prior(
-                prior
-            )
+        for name, item in kwargs.items():
+            if isinstance(item, VariableGroup):
+                group = item
+            else:
+                variable = getattr(
+                    model,
+                    name
+                )
+                group = VariableGroup(
+                    variable,
+                    item
+                )
             self._variable_groups[
                 name
-            ] = VariableGroup(
-                variable,
-                factor,
-                message
-            )
+            ] = group
 
     @property
     def model(self):
