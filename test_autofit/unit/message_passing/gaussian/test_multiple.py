@@ -203,10 +203,14 @@ def test_gaussian():
     # Finally we print some stuff to check how everything turned out. Still not convinced we're achieving a better
     # accuracy for intensity with the combined model though?
     def print_factor(variable):
-        print(f"{variable.name} = {opt.model_approx[variable].mu}")
+        message = opt.model_approx[variable]
+        try:
+            print(f"{variable.name} = {message.mu}")
+        except AttributeError:
+            pass
 
-    print_factor(intensity_)
-
-    for model in models:
+    for i, model in enumerate(models):
+        print()
+        print(f"model {i}")
         for variable_ in model.variables:
             print_factor(variable_)

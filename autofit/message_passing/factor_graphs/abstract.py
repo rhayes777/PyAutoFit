@@ -40,9 +40,9 @@ class AbstractNode(ABC):
 
     def __getattr__(self, item):
         try:
-            return self._kwargs.get(
+            return self._kwargs[
                 item
-            )
+            ]
         except KeyError:
             for variable in self._variables | self._deterministic_variables:
                 if variable.name == item:

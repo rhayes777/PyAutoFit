@@ -313,5 +313,5 @@ class FactorGraph(AbstractNode):
         return self._factors
 
     @property
-    def factor_all_variables(self) -> Dict[Factor, str]:
+    def factor_all_variables(self) -> Dict[Factor, List[Variable]]:
         return self._factor_all_variables

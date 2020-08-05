@@ -1,7 +1,7 @@
 from collections import ChainMap
 from itertools import chain
 from typing import (
-    Dict, Tuple, Optional, Type, NamedTuple
+    Dict, Tuple, Optional, NamedTuple
 )
 
 import numpy as np
@@ -177,7 +177,7 @@ class MeanFieldApproximation:
     def from_approx_dists(
             cls,
             factor_graph: FactorGraph,
-            approx_dists: Dict[str, Type[AbstractMessage]],
+            approx_dists: Dict[Variable, AbstractMessage],
             factor_evidence: Optional[Dict[Factor, float]] = None,
     ) -> "MeanFieldApproximation":
         variable_factor_dist = {}
@@ -196,7 +196,7 @@ class MeanFieldApproximation:
     def from_kws(
             cls,
             factor_graph: FactorGraph,
-            approx_dists,
+            approx_dists: Dict[Variable, AbstractMessage],
             factor_evidence: Optional[Dict[Factor, float]] = None,
     ) -> "MeanFieldApproximation":
         return cls.from_approx_dists(
