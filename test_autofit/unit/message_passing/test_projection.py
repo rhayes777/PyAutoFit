@@ -58,20 +58,20 @@ def test_importance_sampling(
     assert mean == pytest.approx(0.318, rel=0.1)
 
 
-def test_laplace_method(probit_factor, q_cavity):
+def test_laplace_method(probit_factor, q_cavity, x):
     probit_approx = mp.FactorApproximation(
         factor=probit_factor,
-        cavity_dist={'x': q_cavity},
+        cavity_dist={x: q_cavity},
         deterministic_dist={},
         factor_dist={},
-        model_dist={'x': q_cavity})
+        model_dist={x: q_cavity})
 
     opt_probit = mp.OptFactor.from_approx(probit_approx)
-    result = opt_probit.maximise(x=0.)
+    result = opt_probit.maximise({x: 0.})
 
     q_probit_laplace = autofit.message_passing.messages.normal.NormalMessage.from_mode(
-        result.mode['x'],
-        covariance=result.inv_hessian['x']
+        result.mode[x],
+        covariance=result.inv_hessian[x]
     )
 
     assert q_probit_laplace.mu == pytest.approx(-0.258, rel=0.01)
