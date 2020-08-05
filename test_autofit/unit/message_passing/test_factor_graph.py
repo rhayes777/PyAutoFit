@@ -1,5 +1,3 @@
-from operator import sub
-
 import numpy as np
 import pytest
 
@@ -75,7 +73,7 @@ def make_flat_compound(
     g = plus == y
     phi = mp.Factor(
         log_phi,
-        y=y
+        x=y
     )
     return phi * g * sigmoid
 
@@ -122,30 +120,35 @@ class TestFactorGraph:
             self,
             flat_compound
     ):
+        print(flat_compound)
         assert str(
             flat_compound
-        ) == "(Factor(log_phi)(y=y, x=x) * (Factor(plus_two)(x=x) == (y)) * Factor(log_sigmoid)(x=x))"
+        ) == "(Factor(log_phi)(x=y) * (Factor(plus_two)(x=x) == (y)) * Factor(log_sigmoid)(x=x))"
 
     def test_deterministic_variable_value(
             self,
-            flat_compound
+            flat_compound,
+            y
     ):
         x = 3
         value = flat_compound(x=x)
 
         assert value.log_value == -13.467525884778414
         assert value.deterministic_values == {
-            "y": 5
+            y: 5
         }
 
     def test_plates(self):
         obs = mp.Plate(name='obs')
         dims = mp.Plate(name='dims')
 
-        x = mp.Variable('x', obs, dims)
-        y = mp.Variable('y', dims)
+        def sub(a, b):
+            return a - b
 
-        subtract = mp.Factor(sub)(x, y)
+        x = mp.Variable('a', obs, dims)
+        y = mp.Variable('b', dims)
+
+        subtract = mp.Factor(sub, a=x, b=y)
 
         x = np.array(
             [[1, 2, 3],
@@ -153,7 +156,7 @@ class TestFactorGraph:
         )
         y = np.array([1, 2, 1])
 
-        value = subtract(x, y).log_value
+        value = subtract(a=x, b=y).log_value
 
         assert (value == np.array(
             [[0, 0, 2],
@@ -166,10 +169,11 @@ class TestFactorGraph:
     )
     def test_jacobian(self, x, coefficient):
         factor = mp.Factor(
-            lambda p: coefficient * p
-        )(x)
+            lambda p: coefficient * p,
+            p=x
+        )
 
         assert factor.jacobian(
-            'x',
-            x=2
-        ).log_value['x'] == pytest.approx(coefficient)
+            [x],
+            {x: 2}
+        ).log_value[x] == pytest.approx(coefficient)
