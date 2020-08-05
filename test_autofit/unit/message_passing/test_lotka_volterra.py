@@ -83,17 +83,22 @@ def test():
 
     ## Specifying factors
 
-    likelihood = mp.Factor(_likelihood)(y_obs_, y_)
-    prior_A = mp.Factor(_prior.logpdf, 'prior_A')(A_)
-    prior_r = mp.Factor(_prior.logpdf, 'prior_r')(r_)
-    prior_y0 = mp.Factor(_prior_exp.logpdf, 'prior_y0')(y0_)
+    likelihood = mp.Factor(_likelihood, y_obs=y_obs_, y=y_)
+    prior_A = mp.Factor(_prior.logpdf, 'prior_A', x=A_)
+    prior_r = mp.Factor(_prior.logpdf, 'prior_r', x=r_)
+    prior_y0 = mp.Factor(_prior_exp.logpdf, 'prior_y0', x=y0_)
 
     # calc_lotka_volterra does not vectorise over
     # multiple inputs, see `FactorNode._py_vec_call`
     LV = mp.Factor(
         calc_lotka_volterra, 'LV',
-        vectorised=False
-    )(y0_, r_, A_, K_, t_obs_) == y_
+        vectorised=False,
+        y0=y0_,
+        r=r_,
+        A=A_,
+        K=K_,
+        t_obs=t_obs_
+    ) == y_
 
     ## Defining model
     priors = prior_A * prior_r * prior_y0
@@ -102,13 +107,16 @@ def test():
 
     model_approx = mp.MeanFieldApproximation.from_kws(
         LV_model,
-        A=autofit.message_passing.messages.normal.NormalMessage.from_mode(A, 100.),
-        r=autofit.message_passing.messages.normal.NormalMessage.from_mode(r, 100.),
-        y0=autofit.message_passing.messages.gamma.GammaMessage.from_mode(np.ones_like(y0), 1),
-        y=autofit.message_passing.messages.normal.NormalMessage.from_mode(y, 1),
-        K=autofit.message_passing.messages.fixed.FixedMessage(1),
-        y_obs=autofit.message_passing.messages.fixed.FixedMessage(y),
-        t_obs=autofit.message_passing.messages.fixed.FixedMessage(t_obs), )
+        {
+            A_: autofit.message_passing.messages.normal.NormalMessage.from_mode(A, 100.),
+            r_: autofit.message_passing.messages.normal.NormalMessage.from_mode(r, 100.),
+            y0_: autofit.message_passing.messages.gamma.GammaMessage.from_mode(np.ones_like(y0), 1),
+            y_: autofit.message_passing.messages.normal.NormalMessage.from_mode(y, 1),
+            K_: autofit.message_passing.messages.fixed.FixedMessage(1),
+            y_obs_: autofit.message_passing.messages.fixed.FixedMessage(y),
+            t_obs_: autofit.message_passing.messages.fixed.FixedMessage(t_obs)
+        },
+    )
 
     history = {}
     n_iter = 1
@@ -137,7 +145,7 @@ def test():
             )
             history[i, factor] = model_approx
 
-    model_mean = {v: d.mean for v, d in model_approx.approx.items()}
-    y_pred = LV_model(**model_mean).deterministic_values['y']
+    model_mean = {v.name: d.mean for v, d in model_approx.approx.items()}
+    y_pred = LV_model(**model_mean).deterministic_values[y_]
     assert y_pred.min() > 0.02
     assert y_pred.max() < 4

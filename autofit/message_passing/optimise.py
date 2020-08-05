@@ -308,26 +308,28 @@ class LeastSquaresOpt:
     def __call__(self, arr):
         p0 = self.param_shapes.unflatten(arr)
         log_value, det_vars = self.factor_approx.factor(
-            **p0, **self.fixed_kws)
+            **{variable.name: array for variable, array in {**p0, **self.fixed_kws}.items()}
+        )
         vals = {**p0, **det_vars}
         residuals = {
             v: (vals[v] - mean) / self.resid_scales[v]
             for v, mean in self.resid_means.items()
         }
-        return self.resid_shapes.flatten(**residuals)
+        return self.resid_shapes.flatten(residuals)
 
-    def least_squares(self, **kwargs):
+    def least_squares(self):
         p0 = {
             v: self.factor_approx.model_dist[v].sample(1)[0]
-            for v in self.param_shapes.keys() - kwargs}
-        arr = self.param_shapes.flatten(**kwargs, **p0)
+            for v in self.param_shapes.keys()}
+        arr = self.param_shapes.flatten(p0)
 
         res = least_squares(
             self, arr, bounds=self.bounds, **self.opt_params)
 
         sol = self.param_shapes.unflatten(res.x)
         _, det_vars = self.factor_approx.factor(
-            **sol, **self.fixed_kws)
+            **{variable.name: array for variable, array in {**sol, **self.fixed_kws}.items()}
+        )
 
         jac = {
             (d, k): b
