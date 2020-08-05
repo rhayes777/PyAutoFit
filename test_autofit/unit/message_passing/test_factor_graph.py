@@ -3,7 +3,6 @@ from operator import sub
 import numpy as np
 import pytest
 
-
 from autofit import message_passing as mp
 
 
@@ -31,8 +30,9 @@ def make_y():
 )
 def make_sigmoid(x):
     return mp.Factor(
-        log_sigmoid
-    )(x)
+        log_sigmoid,
+        x=x
+    )
 
 
 @pytest.fixture(
@@ -40,8 +40,9 @@ def make_sigmoid(x):
 )
 def make_phi(x):
     return mp.Factor(
-        log_phi
-    )(x)
+        log_phi,
+        x=x
+    )
 
 
 @pytest.fixture(
@@ -57,7 +58,10 @@ def make_compound(
     name="plus"
 )
 def make_plus(x):
-    return mp.Factor(plus_two)(x)
+    return mp.Factor(
+        plus_two,
+        x=x
+    )
 
 
 @pytest.fixture(
@@ -69,7 +73,10 @@ def make_flat_compound(
         sigmoid
 ):
     g = plus == y
-    phi = mp.Factor(log_phi)(y)
+    phi = mp.Factor(
+        log_phi,
+        y=y
+    )
     return phi * g * sigmoid
 
 
@@ -92,9 +99,9 @@ class TestFactorGraph:
     ):
         x = 5
 
-        assert sigmoid(x).log_value == -0.006715348489118068
-        assert phi(x).log_value == -13.418938533204672
-        assert compound(x).log_value == -13.42565388169379
+        assert sigmoid(x=x).log_value == -0.006715348489118068
+        assert phi(x=x).log_value == -13.418938533204672
+        assert compound(x=x).log_value == -13.42565388169379
 
     def test_broadcast(
             self,
@@ -102,7 +109,7 @@ class TestFactorGraph:
     ):
         length = 2 ** 10
         array = np.linspace(-5, 5, length)
-        result = compound(array)
+        result = compound(x=array)
         log_value = result.log_value
 
         assert isinstance(
@@ -115,7 +122,9 @@ class TestFactorGraph:
             self,
             flat_compound
     ):
-        assert str(flat_compound) == "(Factor(log_phi)(y) * (Factor(plus_two)(x) == (y)) * Factor(log_sigmoid)(x))"
+        assert str(
+            flat_compound
+        ) == "(Factor(log_phi)(y=y, x=x) * (Factor(plus_two)(x=x) == (y)) * Factor(log_sigmoid)(x=x))"
 
     def test_deterministic_variable_value(
             self,
