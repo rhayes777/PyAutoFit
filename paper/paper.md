@@ -13,7 +13,7 @@ authors:
   - name: Richard G. Hayes
     affiliation: 1
 affiliations:
-  - name: Institute for Computational Cosmology, Stockton Rd, Durham DH1 3LE
+  - name: Institute for Computational Cosmology, Stockton Rd, Durham, United Kingdom, DH1 3LE
     index: 1
 date: 17 July 2020
 codeRepository: https://github.com/rhayes777/PyAutoFit

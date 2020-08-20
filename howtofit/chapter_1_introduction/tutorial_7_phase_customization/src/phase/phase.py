@@ -12,7 +12,7 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.me
     MetaDataset,
 )
 from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.settings import (
-    PhaseSettings,
+    SettingsPhase,
 )
 
 
@@ -46,7 +46,7 @@ class Phase(af.AbstractPhase):
             The model components (e.g. Gaussian, Exponenial) fitted by this phase.
         search: class
             The class of a non_linear search
-        settings : PhaseSettings
+        settings : SettingsPhase
             The collection of settings of the phase used to augment the data that is fitted and tag the output path.
         """
 

@@ -312,7 +312,7 @@ def as_grid_search(phase_class, parallel=False):
     return GridSearchExtension
 
 
-class AbstractPhaseSettings:
+class AbstractSettingsPhase:
 
     def __init__(self, log_likelihood_cap=None):
 

@@ -17,6 +17,7 @@ def set_config_path():
         output_path=os.path.join(directory, "files/emcee/output"),
     )
 
+
 class TestEmceeConfig:
     def test__loads_from_config_file_correct(self):
 
@@ -69,13 +70,16 @@ class TestEmceeConfig:
     def test__samples_from_model(self):
 
         emcee = af.Emcee(paths=af.Paths())
-        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
+        shutil.copy(
+            f"{directory}/files/emcee.hdf",
+            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+        )
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model)
+        samples = emcee.samples_via_sampler_from_model(model=model)
 
         assert isinstance(samples.parameters, list)
         assert isinstance(samples.parameters[0], list)
@@ -99,13 +103,16 @@ class TestEmceeOutput:
     def test__median_pdf_parameters(self):
 
         emcee = af.Emcee(paths=af.Paths())
-        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
+        shutil.copy(
+            f"{directory}/files/emcee.hdf",
+            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+        )
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model)
+        samples = emcee.samples_via_sampler_from_model(model=model)
 
         assert samples.median_pdf_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
@@ -114,13 +121,16 @@ class TestEmceeOutput:
     def test__vector_at_sigma__uses_output_files(self):
 
         emcee = af.Emcee(paths=af.Paths())
-        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
+        shutil.copy(
+            f"{directory}/files/emcee.hdf",
+            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+        )
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model)
+        samples = emcee.samples_via_sampler_from_model(model=model)
 
         parameters = samples.vector_at_sigma(sigma=3.0)
 
@@ -133,13 +143,16 @@ class TestEmceeOutput:
     def test__autocorrelation_times(self):
 
         emcee = af.Emcee(paths=af.Paths())
-        shutil.copy(f"{directory}/files/emcee.hdf", f"{directory}/files/emcee/output/emcee__nwalkers_50/samples")
+        shutil.copy(
+            f"{directory}/files/emcee.hdf",
+            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+        )
         emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = emcee.samples_from_model(model=model)
+        samples = emcee.samples_via_sampler_from_model(model=model)
 
         assert samples.previous_auto_correlation_times == pytest.approx(
             [31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4

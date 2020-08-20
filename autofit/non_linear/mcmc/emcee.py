@@ -84,7 +84,9 @@ class Emcee(AbstractMCMC):
         self.nwalkers = (
             self._config("search", "nwalkers", int) if nwalkers is None else nwalkers
         )
-        self.nsteps = self._config("search", "nsteps", int) if nsteps is None else nsteps
+        self.nsteps = (
+            self._config("search", "nsteps", int) if nsteps is None else nsteps
+        )
 
         self.auto_correlation_check_for_convergence = (
             self._config("auto_correlation", "check_for_convergence", bool)
@@ -176,7 +178,7 @@ class Emcee(AbstractMCMC):
         try:
 
             emcee_state = emcee_sampler.get_last_sample()
-            samples = self.samples_from_model(model=model)
+            samples = self.samples_via_sampler_from_model(model=model)
 
             total_iterations = emcee_sampler.iteration
 
@@ -276,11 +278,11 @@ class Emcee(AbstractMCMC):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_from_model,
+            samples_from_model=self.samples_via_sampler_from_model,
             pool_ids=pool_ids,
         )
 
-    def samples_from_model(self, model):
+    def samples_via_sampler_from_model(self, model):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For Emcee, all quantities are extracted via the hdf5 backend of results.
@@ -318,7 +320,7 @@ class Emcee(AbstractMCMC):
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
-            time=self.timer.time
+            time=self.timer.time,
         )
 
     @property

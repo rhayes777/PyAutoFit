@@ -53,9 +53,9 @@ class TestSamplesTable:
             [0.0, 1.0, 2.0, 3.0, 5.0, 0.0, 5.0, 1.0],
         ]
 
-    def test_write_table(self, samples):
-        filename = "table.csv"
-        samples.write_table(filename)
+    def test__write_table(self, samples):
+        filename = "samples.csv"
+        samples.write_table(filename=filename)
 
         assert os.path.exists(filename)
         os.remove(filename)
@@ -182,6 +182,19 @@ class TestOptimizerSamples:
 
 
 class TestPDFSamples:
+
+    def test__from_csv_table(self, samples):
+        filename = "samples.csv"
+        samples.write_table(filename=filename)
+
+        samples = af.NestSamples.from_table(filename=filename, model=samples.model)
+
+        assert samples.parameters == [[0.0, 1.0, 2.0, 3.0], [0.0, 1.0, 2.0, 3.0], [0.0, 1.0, 2.0, 3.0], [21.0, 22.0, 23.0, 24.0], [0.0, 1.0, 2.0, 3.0]]
+        assert samples.log_likelihoods == [1.0, 2.0, 3.0, 10.0, 5.0]
+        assert samples.log_priors == [0.0, 0.0, 0.0, 0.0, 0.0]
+        assert samples.log_posteriors == [1.0, 2.0, 3.0, 10.0, 5.0]
+        assert samples.weights == [1.0, 1.0, 1.0, 1.0, 1.0]
+
     def test__converged__median_pdf_vector_and_instance(self):
         parameters = [
             [1.0, 2.0],
@@ -476,6 +489,7 @@ class TestPDFSamples:
 
 
 class TestNestSamples:
+
     def test__acceptance_ratio_is_correct(self):
         model = af.ModelMapper(mock_class_1=MockClassx4)
 

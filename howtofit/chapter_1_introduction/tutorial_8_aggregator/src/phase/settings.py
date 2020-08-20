@@ -3,7 +3,7 @@ import autofit as af
 # The 'settings.py' module is identical to the previous tutorial.
 
 
-class PhaseSettings(af.AbstractPhaseSettings):
+class SettingsPhase(af.AbstractSettingsPhase):
     def __init__(self, data_trim_left=None, data_trim_right=None):
 
         super().__init__()

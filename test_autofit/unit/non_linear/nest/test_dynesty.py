@@ -312,7 +312,7 @@ class TestDynestyConfig:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = dynesty.samples_from_model(model=model)
+        samples = dynesty.samples_via_sampler_from_model(model=model)
 
         assert isinstance(samples.parameters, list)
         assert isinstance(samples.parameters[0], list)

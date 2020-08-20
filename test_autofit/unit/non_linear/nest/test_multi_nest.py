@@ -222,7 +222,7 @@ class TestMulitNest:
             paths=multi_nest.paths,
             analysis=None,
             model=model,
-            samples_from_model=multi_nest.samples_from_model,
+            samples_from_model=multi_nest.samples_via_sampler_from_model,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.0,
             stagger_resampling_likelihood=False,
@@ -375,7 +375,7 @@ class TestMulitNest:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-        samples = multi_nest.samples_from_model(model=model)
+        samples = multi_nest.samples_via_sampler_from_model(model=model)
 
         assert samples.parameters == [
             [1.1, 2.1, 3.1, 4.1],

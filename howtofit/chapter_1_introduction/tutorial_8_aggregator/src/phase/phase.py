@@ -12,7 +12,7 @@ from howtofit.chapter_1_introduction.tutorial_8_aggregator.src.phase.meta_datase
     MetaDataset,
 )
 from howtofit.chapter_1_introduction.tutorial_8_aggregator.src.phase.settings import (
-    PhaseSettings,
+    SettingsPhase,
 )
 
 

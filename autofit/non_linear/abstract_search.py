@@ -62,6 +62,10 @@ class NonLinearSearch(ABC):
         self.skip_completed = conf.instance.general.get(
             "output", "skip_completed", bool
         )
+        self.force_pickle_overwrite = conf.instance.general.get(
+            "output", "force_pickle_overwrite", bool
+        )
+
         self.log_file = conf.instance.general.get("output", "log_file", str).replace(
             " ", ""
         )
@@ -216,7 +220,7 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
+        if (not os.path.exists(self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
             self.save_parameter_names_file(model=model)
@@ -225,6 +229,9 @@ class NonLinearSearch(ABC):
             self.save_search()
             self.save_model(model=model)
             self.move_pickle_files(pickle_files=pickle_files)
+
+        if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
+
             # TODO : Better way to handle?
             self.timer.paths = self.paths
             self.timer.start()
@@ -239,7 +246,8 @@ class NonLinearSearch(ABC):
         else:
 
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
-            samples = self.samples_from_model(model=model)
+            samples = self.samples_via_csv_json_from_model(model=model)
+            self.save_samples(samples=samples)
 
         self.paths.backup_zip_remove()
 
@@ -330,8 +338,10 @@ class NonLinearSearch(ABC):
 
         self.timer.update()
 
-        samples = self.samples_from_model(model=model)
+        samples = self.samples_via_sampler_from_model(model=model)
         samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
+        samples.info_to_json(filename=f"{self.paths.sym_path}/info.json")
+
         self.save_samples(samples=samples)
 
         try:
@@ -453,7 +463,10 @@ class NonLinearSearch(ABC):
             f"{key}={value or ''}" for key, value in {**self._default_metadata}.items()
         )
 
-    def samples_from_model(self, model):
+    def samples_via_sampler_from_model(self, model):
+        raise NotImplementedError()
+
+    def samples_via_csv_json_from_model(self, model):
         raise NotImplementedError()
 
     def make_pool(self):

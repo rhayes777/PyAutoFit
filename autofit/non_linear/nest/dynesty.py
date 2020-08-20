@@ -167,7 +167,9 @@ class AbstractDynesty(AbstractNest):
         )
 
         self.bound = self._config("search", "bound", str) if bound is None else bound
-        self.sample = self._config("search", "sample", str) if sample is None else sample
+        self.sample = (
+            self._config("search", "sample", str) if sample is None else sample
+        )
         self.bootstrap = (
             self._config("search", "bootstrap", int) if bootstrap is None else bootstrap
         )
@@ -199,7 +201,9 @@ class AbstractDynesty(AbstractNest):
             else vol_check
         )
         self.walks = self._config("search", "walks", int) if walks is None else walks
-        self.slices = self._config("search", "slices", int) if slices is None else slices
+        self.slices = (
+            self._config("search", "slices", int) if slices is None else slices
+        )
         self.fmove = self._config("search", "fmove", float) if fmove is None else fmove
         self.max_move = (
             self._config("search", "max_move", int) if max_move is None else max_move
@@ -388,7 +392,7 @@ class AbstractDynesty(AbstractNest):
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
 
-    def samples_from_model(self, model):
+    def samples_via_sampler_from_model(self, model):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For Dynesty, all information that we need is available from the instance of the dynesty sampler.
@@ -401,7 +405,6 @@ class AbstractDynesty(AbstractNest):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
         """
-
         sampler = self.load_sampler
         parameters = sampler.results.samples.tolist()
         log_priors = [
@@ -410,9 +413,11 @@ class AbstractDynesty(AbstractNest):
         log_likelihoods = list(sampler.results.logl)
 
         try:
-            weights = list(np.exp(np.asarray(sampler.results.logwt) - sampler.results.logz[-1]))
+            weights = list(
+                np.exp(np.asarray(sampler.results.logwt) - sampler.results.logz[-1])
+            )
         except:
-            weights = sampler.results['weights']
+            weights = sampler.results["weights"]
 
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
@@ -426,7 +431,7 @@ class AbstractDynesty(AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=sampler.results.nlive,
-            time=self.timer.time
+            time=self.timer.time,
         )
 
     @property
@@ -1011,7 +1016,9 @@ class DynestyDynamic(AbstractDynesty):
             model=model, fitness_function=fitness_function
         )
 
-        logger.info("No DynestyDynamic samples found, beginning new non-linear search. ")
+        logger.info(
+            "No DynestyDynamic samples found, beginning new non-linear search. "
+        )
 
         # These hacks are necessary to be able to pickle the sampler.
 
@@ -1063,7 +1070,7 @@ class DynestyDynamic(AbstractDynesty):
 
         self.timer.update()
 
-        samples = self.samples_from_model(model=model, sampler=sampler)
+        samples = self.samples_via_sampler_from_model(model=model, sampler=sampler)
         samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
         self.save_samples(samples=samples)
 
@@ -1080,13 +1087,15 @@ class DynestyDynamic(AbstractDynesty):
                 during_analysis=during_analysis,
             )
 
-            samples_text.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
+            samples_text.search_summary_to_file(
+                samples=samples, filename=self.paths.file_search_summary
+            )
 
         self.paths.backup_zip_remove()
 
         return samples
 
-    def samples_from_model(self, model, sampler):
+    def samples_via_sampler_from_model(self, model, sampler):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For Dynesty, all information that we need is available from the instance of the dynesty sampler.
@@ -1107,9 +1116,11 @@ class DynestyDynamic(AbstractDynesty):
         log_likelihoods = list(sampler.results.logl)
 
         try:
-            weights = list(np.exp(np.asarray(sampler.results.logwt) - sampler.results.logz[-1]))
+            weights = list(
+                np.exp(np.asarray(sampler.results.logwt) - sampler.results.logz[-1])
+            )
         except:
-            weights = sampler.results['weights']
+            weights = sampler.results["weights"]
 
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
@@ -1123,5 +1134,5 @@ class DynestyDynamic(AbstractDynesty):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,
-            time=self.timer.time
+            time=self.timer.time,
         )

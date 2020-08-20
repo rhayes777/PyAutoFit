@@ -12,7 +12,7 @@ from test_autofit.integration.src.phase.meta_dataset import (
     MetaDataset,
 )
 from test_autofit.integration.src.phase.settings import (
-    PhaseSettings,
+    SettingsPhase,
 )
 
 import numpy as np
@@ -28,7 +28,7 @@ class Phase(af.AbstractPhase):
 
     @af.convert_paths
     def __init__(
-        self, paths, *, profiles, settings=PhaseSettings(), search=af.Emcee
+        self, paths, *, profiles, settings=SettingsPhase(), search=af.Emcee
     ):
         """
         A phase which fits a model composed of multiple line profiles (Gaussian, Exponential) using a non-linear search.

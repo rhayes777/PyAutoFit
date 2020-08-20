@@ -82,5 +82,5 @@ def test_convert_formatter():
         unit_test_directory.parent.parent / "autofit"
     )
     result = converter.convert(string)
-    print(result)
+
     assert "from autofit" in result

@@ -297,14 +297,14 @@ class AbstractPySwarms(AbstractOptimizer):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_from_model,
+            samples_from_model=self.samples_via_sampler_from_model,
             pool_ids=pool_ids,
         )
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         raise NotImplementedError()
 
-    def samples_from_model(self, model):
+    def samples_via_sampler_from_model(self, model):
         """Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
 
         For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
