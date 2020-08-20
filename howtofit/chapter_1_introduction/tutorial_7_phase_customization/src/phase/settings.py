@@ -10,7 +10,7 @@ This module create tags for phases settings that customize the analysis. We tag 
 """
 
 
-class PhaseSettings(af.AbstractPhaseSettings):
+class SettingsPhase(af.AbstractSettingsPhase):
     def __init__(self, data_trim_left=None, data_trim_right=None):
 
         super().__init__()

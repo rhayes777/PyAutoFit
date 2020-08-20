@@ -70,7 +70,7 @@ CollectionPriorModel to do this).
 phase = htf.Phase(
     phase_name="phase_t7",
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
-    settings=htf.PhaseSettings(data_trim_left=None, data_trim_right=None),
+    settings=htf.SettingsPhase(data_trim_left=None, data_trim_right=None),
     search=af.Emcee(),
 )
 
@@ -105,11 +105,11 @@ There is a small change to this directory compared to tutorial 6, there is a new
 results are stored. It'll be clear why this is in a moment.
 
 Next, we're going to customize and run a phase using the data_trim_left and right parameters. First, we create a 
-PhaseSettings object using our input values of these parameters. 
+SettingsPhase object using our input values of these parameters. 
 """
 
 # %%
-settings = htf.PhaseSettings(data_trim_left=20, data_trim_right=30)
+settings = htf.SettingsPhase(data_trim_left=20, data_trim_right=30)
 
 # %%
 """

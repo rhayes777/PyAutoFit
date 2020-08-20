@@ -182,7 +182,9 @@ class MultiNest(abstract_nest.AbstractNest):
             else write_output
         )
         self.log_zero = (
-            self._config("settings", "log_zero", float) if log_zero is None else log_zero
+            self._config("settings", "log_zero", float)
+            if log_zero is None
+            else log_zero
         )
         self.init_MPI = (
             self._config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
@@ -322,7 +324,7 @@ class MultiNest(abstract_nest.AbstractNest):
         copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
         return copy
 
-    def samples_from_model(self, model: AbstractPriorModel):
+    def samples_via_sampler_from_model(self, model: AbstractPriorModel):
         """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
@@ -373,7 +375,7 @@ class MultiNest(abstract_nest.AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,
-            time=self.timer.time
+            time=self.timer.time,
         )
 
 

@@ -60,7 +60,7 @@ By writing a *Pipeline*, we can break the model-fit down into 3 phases:
             phase_name="phase_1__left_gaussian",
             folders=folders,
             profiles=af.CollectionPriorModel(gaussian_0=gaussian_0),
-            settings=PhaseSettings(trim_data_left=50), # Remove the right-hand side of the data.
+            settings=SettingsPhase(trim_data_left=50), # Remove the right-hand side of the data.
             search=af.DynestyStatic(), # Use an optimizer for fast non-linear sampling.
         )
 
@@ -83,7 +83,7 @@ By writing a *Pipeline*, we can break the model-fit down into 3 phases:
                 gaussian_0=phase1.result.instance.profiles.gaussian_0,  # <- Use the Gaussian fitted in phase 1
                 gaussian_1=gaussian_1,
             ),
-            settings=PhaseSettings(trim_data_right=50), # Remove the left-hand side of the data.
+            settings=SettingsPhase(trim_data_right=50), # Remove the left-hand side of the data.
             search=af.PySwarms(), # Use an optimizer for fast non-linear sampling.
         )
 

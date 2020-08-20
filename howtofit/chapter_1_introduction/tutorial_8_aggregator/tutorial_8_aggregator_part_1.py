@@ -112,7 +112,7 @@ for index in range(len(datas)):
         phase_name="phase_t8",
         folders=[dataset_names[index]],
         profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
-        settings=htf.PhaseSettings(),
+        settings=htf.SettingsPhase(),
         search=af.Emcee(),
     )
 
@@ -192,7 +192,7 @@ results. This is useful if you fit a large sample of data where:
 
  - Multiple results, corresponding to different phases and model-fits are stored in the same path.
  
- - Different runs using different _PhaseSettings_ are in the same path.
+ - Different runs using different _SettingsPhase_ are in the same path.
  
  - Fits using different non-linear searches, with different settings, are contained in the same path.
 

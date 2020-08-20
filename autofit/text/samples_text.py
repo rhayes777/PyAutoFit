@@ -98,7 +98,6 @@ def results_to_file(samples, filename, during_analysis):
         file=filename, list_of_strings=results
     )
 
-
 def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> [str]:
     """Return the results of the non-linear search at an input sigma value as a string that is formated for simple
     copy and pasting in a LaTex document.
@@ -136,7 +135,6 @@ def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> 
 
     return line
 
-
 def search_summary_from_samples(samples) -> [str]:
 
     line = [f"Total Samples = {samples.total_samples}\n"]
@@ -163,5 +161,3 @@ def format_str() -> str:
         "output", "model_results_decimal_places", int
     )
     return f"{{:.{decimal_places}f}}"
-
-

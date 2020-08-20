@@ -13,7 +13,7 @@ class MetaDataset:
 
         Parameters
         ----------
-        settings : PhaseSettings
+        settings : SettingsPhase
             The collection of settings of the phase used to augment the data that is fitted and tag the output path.
         """
 

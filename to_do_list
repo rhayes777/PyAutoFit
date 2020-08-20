@@ -1,5 +1,7 @@
 Paper:
 
+    - removoe Analysis super or update docs.
+    - Doc how pyproj root behaves.
     - Preprint format.
 
 Features:

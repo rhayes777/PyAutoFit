@@ -81,6 +81,8 @@ Now we've defined our model, we need to tell **PyAutoFit** how to fit the model 
 
         def __init__(self, data, noise_map):
 
+            super().__init__()
+
             self.data = data
             self.noise_map = noise_map
 
