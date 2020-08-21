@@ -19,9 +19,7 @@ These new features have lead to an additional module in the 'phase' package not 
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
-    src as htf,
-)
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking import src as htf
 
 import numpy as np
 from pyprojroot import here

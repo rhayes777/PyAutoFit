@@ -21,9 +21,7 @@ generate the model-data we generate it as the sum of all individual profiles in 
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_6_complex_models import (
-    src as htf,
-)
+from howtofit.chapter_1_introduction.tutorial_6_complex_models import src as htf
 
 import numpy as np
 

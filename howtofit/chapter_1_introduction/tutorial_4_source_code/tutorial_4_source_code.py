@@ -64,9 +64,7 @@ you can design an API that makes takes like plotting results more intuitive.
 """
 
 # %%
-from howtofit.chapter_1_introduction.tutorial_4_source_code import (
-    src as htf,
-)
+from howtofit.chapter_1_introduction.tutorial_4_source_code import src as htf
 
 # %%
 """
