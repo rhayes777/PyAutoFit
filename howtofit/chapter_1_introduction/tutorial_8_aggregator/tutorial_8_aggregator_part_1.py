@@ -15,9 +15,7 @@ different data-sets. Each dataset is a single Gaussian and we'll fit them using 
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_8_aggregator import (
-    src as htf,
-)
+from howtofit.chapter_1_introduction.tutorial_8_aggregator import src as htf
 
 import numpy as np
 from pyprojroot import here
@@ -132,7 +130,7 @@ To load these results with the aggregator, we simply point it to the path of the
 """
 
 # %%
-output_path = f"{workspace_path}/output/howtofit"
+output_path = f"{workspace_path}/howtofit/output"
 
 agg = af.Aggregator(directory=str(output_path))
 
@@ -337,7 +335,7 @@ marginalization, whereby instead of using the median of the histogram (e.g. the 
 histogram) the values at a specified sigma interval are used. For 3 sigma, these confidence intervals are at 0.3% and
 99.7%.
 
-# Here, I use "ue3" to signify this is an upper error at 3 sigma confidence,, and "le3" for the lower error.
+Here, I use "ue3" to signify this is an upper error at 3 sigma confidence,, and "le3" for the lower error.
 """
 
 # %%

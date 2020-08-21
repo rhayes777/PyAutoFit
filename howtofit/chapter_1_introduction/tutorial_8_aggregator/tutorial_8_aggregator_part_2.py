@@ -13,9 +13,7 @@ makes it easy to use these results to plot results and data.
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_8_aggregator import (
-    src as htf,
-)
+from howtofit.chapter_1_introduction.tutorial_8_aggregator import src as htf
 
 from pyprojroot import here
 

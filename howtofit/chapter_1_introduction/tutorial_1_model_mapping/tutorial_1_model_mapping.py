@@ -209,7 +209,7 @@ How are priors set? In this example, we did not specify priors, so they default 
 we'll show how to customize priors, and in a later tutorial we'll explain how for a given model component we can 
 define config files that specify the default priors.
 
-### How Are Priors Used? ###
+__How Are Priors Used?__
 
 Priors are used to create model instances from a unit-vector, which is a vector defined in the same way as the vector 
 above but with values spanning from 0 -> 1.

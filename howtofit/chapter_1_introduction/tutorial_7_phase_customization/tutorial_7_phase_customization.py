@@ -25,9 +25,7 @@ from autoconf import conf
 import autofit as af
 import numpy as np
 
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
-    src as htf,
-)
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization import src as htf
 
 from pyprojroot import here
 
