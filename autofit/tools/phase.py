@@ -300,6 +300,10 @@ def as_grid_search(phase_class, parallel=False):
             )
 
         def run_analysis(self, analysis, **kwargs):
+
+            self.search.search.paths = self.paths
+            self.search.paths = self.paths
+
             return self.search.fit(model=self.model, analysis=analysis, grid_priors=self.grid_priors)
 
         @property

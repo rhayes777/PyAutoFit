@@ -108,7 +108,7 @@ class AbstractPriorModel(AbstractModel):
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every PriorModel attributed to this instance.
+        to every _PriorModel_ attributed to this instance.
         This method takes as input a unit vector of parameter values, converting each to
         physical values via their priors.
         Parameters
@@ -254,7 +254,7 @@ class AbstractPriorModel(AbstractModel):
     ):
         """
         Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every PriorModel attributed to this instance.
+        to every _PriorModel_ attributed to this instance.
         This method takes as input a physical vector of parameter values, thus omitting
         the use of priors.
         Parameters
