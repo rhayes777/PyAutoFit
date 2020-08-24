@@ -189,7 +189,6 @@ class GridSearch:
         self.number_of_cores = conf.instance.non_linear.config_for("GridSearch").get(
             "general", "number_of_cores", int
         )
-        self.phase_tag_input = paths.tag
 
         self.number_of_steps = number_of_steps
         self.search = search
@@ -429,7 +428,7 @@ class GridSearch:
 
         name_path = "{}/{}/{}/{}".format(
             self.paths.name,
-            self.phase_tag_input,
+            self.paths.tag,
             self.paths.non_linear_tag,
             "_".join(labels),
         )
