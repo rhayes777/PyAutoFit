@@ -125,7 +125,7 @@ class CompoundMeanFieldPriorModel(AbstractMeanFieldPriorModel):
         self.mean_field_prior_models = mean_field_prior_models
 
     @property
-    def prior_variables(self) -> List[PriorVariable]:
+    def prior_variables(self) -> List[Variable]:
         """
         Combine the prior-variables of the underlying models
         """
