@@ -50,17 +50,9 @@
         "message_passing": {
             "gaussian.model.Gaussian": {
                 "sigma": {
-                    "type": "Uniform",
+                    "type": "Gaussian",
                     "lower_limit": 0.0,
-                    "upper_limit": 1.0,
-                    "width_modifier": {
-                        "type": "Absolute",
-                        "value": 0.2
-                    },
-                    "gaussian_limits": {
-                        "lower": 0.0,
-                        "upper": 1.0
-                    }
+                    "upper_limit": 1.0
                 },
                 "intensity": {
                     "type": "Uniform",
@@ -93,43 +85,19 @@
         "expectation_propagation": {
             "gaussian.model.Gaussian": {
                 "sigma": {
-                    "type": "Uniform",
-                    "lower_limit": 0.0,
-                    "upper_limit": 1.0,
-                    "width_modifier": {
-                        "type": "Absolute",
-                        "value": 0.2
-                    },
-                    "gaussian_limits": {
-                        "lower": 0.0,
-                        "upper": 1.0
-                    }
+                    "type": "Gaussian",
+                    "mean": 10.0,
+                    "sigma": 10.0
                 },
                 "intensity": {
-                    "type": "Uniform",
-                    "lower_limit": 0.0,
-                    "upper_limit": 1.0,
-                    "width_modifier": {
-                        "type": "Absolute",
-                        "value": 0.2
-                    },
-                    "gaussian_limits": {
-                        "lower": 0.0,
-                        "upper": 1.0
-                    }
+                    "type": "Gaussian",
+                    "mean": 10.0,
+                    "sigma": 10.0
                 },
                 "centre": {
-                    "type": "Uniform",
-                    "lower_limit": 0.0,
-                    "upper_limit": 1.0,
-                    "width_modifier": {
-                        "type": "Absolute",
-                        "value": 0.2
-                    },
-                    "gaussian_limits": {
-                        "lower": 0.0,
-                        "upper": 1.0
-                    }
+                    "type": "Gaussian",
+                    "mean": 10.0,
+                    "sigma": 10.0
                 }
             }
         }

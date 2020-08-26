@@ -8,40 +8,6 @@ from autofit.expectation_propagation.factor_graphs import FactorValue
 from .model import Gaussian, make_data
 
 
-class MessagePassingPriorModel(ep.MeanFieldPriorModel):
-    def __init__(
-            self,
-            cls,
-            image_function
-    ):
-        prior_model = af.PriorModel(cls)
-
-        super().__init__(
-            cls,
-            **dict(
-                prior_model.prior_tuples
-            )
-        )
-
-    @property
-    def priors(self):
-        return [
-            prior_variable.factor
-            for prior_variable
-            in self.prior_variables
-        ]
-
-
-class PriorVariable(ep.Variable):
-    def __init__(
-            self,
-            name: str,
-            prior: af.Prior
-    ):
-        super().__init__(name)
-        self.prior = prior
-
-
 class ModelFactor(ep.Factor):
     def __init__(
             self,
@@ -98,6 +64,41 @@ class ModelFactor(ep.Factor):
         )
 
 
+class MessagePassingPriorModel(ep.MeanFieldPriorModel):
+    def __init__(
+            self,
+            prior_model,
+            image_function
+    ):
+        super().__init__(
+            ModelFactor(
+                prior_model,
+                image_function
+            ),
+            **dict(
+                prior_model.prior_tuples
+            )
+        )
+
+    @property
+    def priors(self):
+        return [
+            prior_variable.factor
+            for prior_variable
+            in self.prior_variables
+        ]
+
+
+class PriorVariable(ep.Variable):
+    def __init__(
+            self,
+            name: str,
+            prior: af.Prior
+    ):
+        super().__init__(name)
+        self.prior = prior
+
+
 def test_model_factor():
     def image_function(
             instance
@@ -127,8 +128,11 @@ def test_model_factor():
 
 
 def test_declarative_model():
+    prior_model = af.PriorModel(
+        Gaussian
+    )
     model = MessagePassingPriorModel(
-        Gaussian,
+        prior_model,
         make_data
     )
 
