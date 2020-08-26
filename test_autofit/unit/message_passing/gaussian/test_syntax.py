@@ -116,10 +116,7 @@ def test_multiple():
         prior_model_ = mp.MeanFieldPriorModel(
             likelihood * gaussian,
             centre=prior,
-            intensity=mp.PriorVariable(
-                prior,
-                intensity
-            ),
+            intensity=prior,
             sigma=prior
         )
         message_dict = {
@@ -147,6 +144,8 @@ def test_multiple():
     )
 
     prior_model = prior_model_0 * prior_model_1
+
+    assert len(set(prior_model.prior_variables)) == 5
 
     model_approx = prior_model.mean_field_approximation({
         x_: mp.FixedMessage(x),
