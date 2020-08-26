@@ -32,7 +32,7 @@
 
    howtofit/howtofit
    howtofit/chapter_1_introduction/index
-   howtofit/chapter_2_results/index
+   howtofit/chapter_2_results/index 
 
 .. toctree::
    :caption: API Reference:
