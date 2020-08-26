@@ -35,6 +35,13 @@ class FactorModel:
             for prior, path in unique_priors.items()
         ]
 
+        """
+        - Probably need to make an intermediate class for retaining variable state
+        - Each prior model factor should be combined with a unique fitness factor
+        - That means creating y and z variables, with fitness being a function of y and z and prior model factor == z
+        - Also need to generate a dictionary mapping each of the prior variables to an initial message
+        """
+
         graph = ep.ModelFactor(
             self.prior_models[0],
             self.image_function,
