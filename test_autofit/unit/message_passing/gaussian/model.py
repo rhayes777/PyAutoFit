@@ -73,11 +73,10 @@ class Gaussian(Profile):
 
 def make_data(
         gaussian,
-        n_observations
+        x
 ):
-    x = np.arange(n_observations)
     model_line = gaussian(xvalues=x)
     signal_to_noise_ratio = 25.0
-    noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, n_observations)
+    noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, len(x))
     y = model_line + noise
-    return x, y
+    return y

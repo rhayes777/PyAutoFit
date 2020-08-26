@@ -103,9 +103,10 @@ def make_message_dict(
     -------
     A dictionary of initial messages
     """
-    x, y = make_data(
+    x = np.arange(n_observations)
+    y = make_data(
         gaussian,
-        n_observations
+        x
     )
 
     return {

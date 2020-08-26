@@ -13,13 +13,14 @@ prior = af.GaussianPrior(
 
 
 def test_gaussian():
-    x, y = make_data(
+    x = np.arange(n_observations)
+    y = make_data(
         Gaussian(
             centre=50.0,
             intensity=25.0,
             sigma=10.0
         ),
-        n_observations
+        x
     )
 
     observations = mp.Plate(
