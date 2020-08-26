@@ -72,7 +72,7 @@ class DownhillSimplex(AbstractOptimizer):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_fom_model=self.samples_from_model,
+            samples_fom_model=self.samples_via_sampler_from_model,
         )
 
         logger.info("Running DownhillSimplex...")
@@ -89,5 +89,5 @@ class DownhillSimplex(AbstractOptimizer):
         self.paths.backup_zip_remove()
         return res
 
-    def samples_from_model(self, model):
+    def samples_via_sampler_from_model(self, model):
         pass

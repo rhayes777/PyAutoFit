@@ -1,12 +1,15 @@
 import numpy as np
+import json
 
 from autoconf import conf
 from autofit.non_linear.initializer import InitializerPrior
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.paths import Paths
+from autofit.non_linear import samples as samp
 
 from autofit import exc
+
 
 class AbstractNest(NonLinearSearch):
     def __init__(
@@ -196,11 +199,30 @@ class AbstractNest(NonLinearSearch):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_from_model,
+            samples_from_model=self.samples_via_sampler_from_model,
             stagger_resampling_likelihood=self.stagger_resampling_likelihood,
             terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=self.acceptance_ratio_threshold,
         )
 
-    def samples_from_model(self, model):
-        raise NotImplementedError()
+    def samples_via_csv_json_from_model(self, model):
+
+        parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
+            filename=f"{self.paths.samples_path}/samples.csv", model=model
+        )
+
+        with open(f"{self.paths.samples_path}/info.json") as infile:
+            samples_info = json.load(infile)
+
+        return samp.NestSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            log_evidence=samples_info["log_evidence"],
+            total_samples=samples_info["total_samples"],
+            unconverged_sample_size=samples_info["unconverged_sample_size"],
+            number_live_points=samples_info["number_live_points"],
+            time=samples_info["time"],
+        )

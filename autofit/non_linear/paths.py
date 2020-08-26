@@ -4,6 +4,7 @@ import shutil
 import zipfile
 from configparser import NoSectionError
 from functools import wraps
+import copy
 
 from autoconf import conf
 from autofit.mapper import link

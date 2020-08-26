@@ -86,6 +86,9 @@ class MockSamples(af.PDFSamples):
     def write_table(self, filename: str):
         pass
 
+    def info_to_json(self, filename):
+        pass
+
 
 class MockSearch(af.NonLinearSearch):
     def __init__(self, paths=None, samples=None):
@@ -108,6 +111,7 @@ class MockSearch(af.NonLinearSearch):
                 # Return Chi squared
                 return -2 * log_likelihood
 
+
         fitness_function = Fitness(model.instance_from_vector)
         fitness_function(model.prior_count * [0.5])
 
@@ -122,9 +126,13 @@ class MockSearch(af.NonLinearSearch):
         return "mock"
 
     def perform_update(self, model, analysis, during_analysis):
+        self.save_samples(samples=self.samples)
         return self.samples
 
-    def samples_from_model(self, model):
+    def samples_via_csv_json_from_model(self, model):
+        return self.samples
+
+    def samples_via_sampler_from_model(self, model):
         return self.samples
 
 

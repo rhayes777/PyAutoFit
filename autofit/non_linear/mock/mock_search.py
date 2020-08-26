@@ -92,7 +92,10 @@ class MockSearch(NonLinearSearch):
             ]
         )
 
-    def samples_from_model(self, model):
+    def samples_via_sampler_from_model(self, model):
+        return MockSamples()
+
+    def samples_via_csv_json_from_model(self, model):
         return MockSamples()
 
     @property

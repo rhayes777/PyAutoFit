@@ -15,9 +15,7 @@ different data-sets. Each dataset is a single Gaussian and we'll fit them using 
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_8_aggregator import (
-    src as htf,
-)
+from howtofit.chapter_1_introduction.tutorial_8_aggregator import src as htf
 
 import numpy as np
 from pyprojroot import here
@@ -112,7 +110,7 @@ for index in range(len(datas)):
         phase_name="phase_t8",
         folders=[dataset_names[index]],
         profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
-        settings=htf.PhaseSettings(),
+        settings=htf.SettingsPhase(),
         search=af.Emcee(),
     )
 
@@ -132,7 +130,7 @@ To load these results with the aggregator, we simply point it to the path of the
 """
 
 # %%
-output_path = f"{workspace_path}/output/howtofit"
+output_path = f"{workspace_path}/howtofit/output"
 
 agg = af.Aggregator(directory=str(output_path))
 
@@ -192,7 +190,7 @@ results. This is useful if you fit a large sample of data where:
 
  - Multiple results, corresponding to different phases and model-fits are stored in the same path.
  
- - Different runs using different _PhaseSettings_ are in the same path.
+ - Different runs using different _SettingsPhase_ are in the same path.
  
  - Fits using different non-linear searches, with different settings, are contained in the same path.
 
@@ -337,7 +335,7 @@ marginalization, whereby instead of using the median of the histogram (e.g. the 
 histogram) the values at a specified sigma interval are used. For 3 sigma, these confidence intervals are at 0.3% and
 99.7%.
 
-# Here, I use "ue3" to signify this is an upper error at 3 sigma confidence,, and "le3" for the lower error.
+Here, I use "ue3" to signify this is an upper error at 3 sigma confidence,, and "le3" for the lower error.
 """
 
 # %%

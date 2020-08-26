@@ -359,7 +359,7 @@ provide an even better fit?
 Of course, there is a much better way to perform model-fitting, and in the next tutorial we'll take you through how
 to do such fitting in PyAutoFit, using a 'non-linear search'.
 
-### Your Model ###
+__Your Model__
 
 To end, its worth quickly thinking about the model you ultimately want to fit with PyAutoFit. In this example,
 we extended the Gaussian class to contain the function we needed to generate an image of the Gaussian and thus
