@@ -90,7 +90,7 @@ class AbstractMeanFieldPriorModel(ABC):
 
     @property
     @abstractmethod
-    def prior_variables(self):
+    def variables(self):
         pass
 
 
@@ -125,7 +125,7 @@ class CompoundMeanFieldPriorModel(AbstractMeanFieldPriorModel):
         self.mean_field_prior_models = mean_field_prior_models
 
     @property
-    def prior_variables(self) -> List[Variable]:
+    def variables(self) -> List[Variable]:
         """
         Combine the prior-variables of the underlying models
         """
@@ -134,7 +134,7 @@ class CompoundMeanFieldPriorModel(AbstractMeanFieldPriorModel):
             for model
             in self.mean_field_prior_models
             for prior_variable
-            in model.prior_variables
+            in model.variables
         ]
 
 
@@ -155,20 +155,19 @@ class MeanFieldPriorModel(AbstractMeanFieldPriorModel):
             Additional model components, such as priors
         """
         self._model = model
-        self._variable_groups = dict()
+        self.prior_variables = list()
 
         for name, item in kwargs.items():
             variable = getattr(
                 model,
                 name
             )
-            group = PriorVariable(
-                item,
-                variable
+            self.prior_variables.append(
+                PriorVariable(
+                    item,
+                    variable
+                )
             )
-            self._variable_groups[
-                name
-            ] = group
 
     @property
     def model(self) -> FactorGraph:
@@ -176,7 +175,7 @@ class MeanFieldPriorModel(AbstractMeanFieldPriorModel):
         Create a factor graph by combining the underlying model with any additional factors
         """
         model = self._model
-        for group in self._variable_groups.values():
+        for group in self.prior_variables:
             model *= group.factor
         return model
 
@@ -188,16 +187,16 @@ class MeanFieldPriorModel(AbstractMeanFieldPriorModel):
         return {
             group.variable: group.message
             for group
-            in self._variable_groups.values()
+            in self.prior_variables
         }
 
     @property
-    def prior_variables(self) -> List[Variable]:
+    def variables(self) -> List[Variable]:
         """
         A list of variables contained in this model
         """
         return [
             group.variable
             for group
-            in self._variable_groups.values()
+            in self.prior_variables
         ]

@@ -70,7 +70,7 @@ def test_gaussian():
 
     opt.run()
 
-    for variable in prior_model.prior_variables:
+    for variable in prior_model.variables:
         print(f"{variable.name} = {opt.model_approx[variable].mu}")
 
 
@@ -145,7 +145,7 @@ def test_multiple():
 
     prior_model = prior_model_0 * prior_model_1
 
-    assert len(set(prior_model.prior_variables)) == 5
+    assert len(set(prior_model.variables)) == 5
 
     model_approx = prior_model.mean_field_approximation({
         x_: mp.FixedMessage(x),
@@ -160,5 +160,5 @@ def test_multiple():
 
     opt.run()
 
-    for variable in prior_model.prior_variables:
+    for variable in prior_model.variables:
         print(f"{variable.name} = {opt.model_approx[variable].mu}")

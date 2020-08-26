@@ -183,7 +183,7 @@ class Factor(AbstractNode):
 
     def _call_factor(
             self,
-            **kwargs: Dict[str, np.ndarray]
+            **kwargs: np.ndarray
     ) -> np.ndarray:
         """
         Call the underlying function
