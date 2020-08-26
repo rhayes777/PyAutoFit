@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Union, Tuple
 
 import numpy as np
+from scipy import stats
 from scipy.special import erfcinv
 
 from autoconf import conf
@@ -286,10 +287,23 @@ class Prior(ModelObject, ABC, ArithmeticMixin):
 class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
 
+    __name__ = "gaussian_prior"
+
     def __init__(self, mean, sigma, lower_limit=-math.inf, upper_limit=math.inf):
         super().__init__(lower_limit, upper_limit)
         self.mean = float(mean)
         self.sigma = float(sigma)
+
+    @property
+    def norm(self):
+        return stats.norm(loc=0, scale=20.)
+
+    @property
+    def logpdf(self):
+        return self.norm.logpdf
+
+    def __call__(self, x):
+        return self.logpdf(x)
 
     def value_for(self, unit):
         """
@@ -424,7 +438,6 @@ class LogUniformPrior(UniformPrior):
         value : float
             The physical value of this prior's corresponding parameter in a non-linear search sample."""
         return 1.0 / value
-
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""

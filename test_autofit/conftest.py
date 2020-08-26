@@ -1,5 +1,7 @@
-from os import path
+import os
 import shutil
+from os import path
+
 import pytest
 
 import autofit as af
@@ -8,6 +10,17 @@ from test_autofit import mock
 
 
 directory = path.dirname(path.realpath(__file__))
+
+
+@pytest.fixture(
+    autouse=True
+)
+def remove_reports():
+    yield
+    for d, _, files in os.walk(directory):
+        for file in files:
+            if file == "report.log":
+                os.remove(f"{d}/{file}")
 
 
 @pytest.fixture(autouse=True)
