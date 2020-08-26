@@ -1,10 +1,10 @@
 import numpy as np
 from scipy import integrate, stats
 
-import autofit.message_passing.messages.fixed
-import autofit.message_passing.messages.gamma
-import autofit.message_passing.messages.normal
-from autofit import message_passing as mp
+import autofit.expectation_propagation.messages.fixed
+import autofit.expectation_propagation.messages.gamma
+import autofit.expectation_propagation.messages.normal
+from autofit import expectation_propagation as mp
 
 
 def test():
@@ -108,13 +108,13 @@ def test():
     model_approx = mp.MeanFieldApproximation.from_kws(
         LV_model,
         {
-            A_: autofit.message_passing.messages.normal.NormalMessage.from_mode(A, 100.),
-            r_: autofit.message_passing.messages.normal.NormalMessage.from_mode(r, 100.),
-            y0_: autofit.message_passing.messages.gamma.GammaMessage.from_mode(np.ones_like(y0), 1),
-            y_: autofit.message_passing.messages.normal.NormalMessage.from_mode(y, 1),
-            K_: autofit.message_passing.messages.fixed.FixedMessage(1),
-            y_obs_: autofit.message_passing.messages.fixed.FixedMessage(y),
-            t_obs_: autofit.message_passing.messages.fixed.FixedMessage(t_obs)
+            A_: autofit.expectation_propagation.messages.normal.NormalMessage.from_mode(A, 100.),
+            r_: autofit.expectation_propagation.messages.normal.NormalMessage.from_mode(r, 100.),
+            y0_: autofit.expectation_propagation.messages.gamma.GammaMessage.from_mode(np.ones_like(y0), 1),
+            y_: autofit.expectation_propagation.messages.normal.NormalMessage.from_mode(y, 1),
+            K_: autofit.expectation_propagation.messages.fixed.FixedMessage(1),
+            y_obs_: autofit.expectation_propagation.messages.fixed.FixedMessage(y),
+            t_obs_: autofit.expectation_propagation.messages.fixed.FixedMessage(t_obs)
         },
     )
 

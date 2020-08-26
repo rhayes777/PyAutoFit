@@ -1,8 +1,8 @@
 import numpy as np
 from scipy import special
 
-from autofit.message_passing.messages.abstract import AbstractMessage
-from autofit.message_passing.utils import invpsilog
+from autofit.expectation_propagation.messages.abstract import AbstractMessage
+from autofit.expectation_propagation.utils import invpsilog
 
 
 class GammaMessage(AbstractMessage):

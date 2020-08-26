@@ -5,8 +5,8 @@ from typing import NamedTuple, Tuple, Dict, Optional, List
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs import Factor
-from autofit.message_passing.messages.abstract import AbstractMessage
+from autofit.expectation_propagation.factor_graphs import Factor
+from autofit.expectation_propagation.messages.abstract import AbstractMessage
 from .mean_field import MeanFieldApproximation, FactorApproximation, Status
 from .messages import map_dists
 from .utils import add_arrays

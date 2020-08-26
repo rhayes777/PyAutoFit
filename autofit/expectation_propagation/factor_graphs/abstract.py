@@ -4,7 +4,7 @@ from typing import List, Tuple, cast, Collection, Set
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.variable import Variable, Plate
+from autofit.expectation_propagation.factor_graphs.variable import Variable, Plate
 
 
 def accept_variable_dict(func):

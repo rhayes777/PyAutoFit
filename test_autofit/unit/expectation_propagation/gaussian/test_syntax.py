@@ -1,7 +1,7 @@
 import numpy as np
 
 import autofit as af
-from autofit import message_passing as mp
+from autofit import expectation_propagation as mp
 from .model import Gaussian, make_data, _gaussian, _likelihood
 
 n_observations = 100

@@ -3,11 +3,11 @@ from typing import Tuple, Dict, Collection, List, Callable
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs import FactorValue, AbstractNode
-from autofit.message_passing.factor_graphs.abstract import accept_variable_dict
-from autofit.message_passing.factor_graphs.factor import Factor
-from autofit.message_passing.factor_graphs.variable import Variable, Plate
-from autofit.message_passing.utils import add_arrays
+from autofit.expectation_propagation.factor_graphs import FactorValue, AbstractNode
+from autofit.expectation_propagation.factor_graphs.abstract import accept_variable_dict
+from autofit.expectation_propagation.factor_graphs.factor import Factor
+from autofit.expectation_propagation.factor_graphs.variable import Variable, Plate
+from autofit.expectation_propagation.utils import add_arrays
 
 
 class DeterministicFactorNode(Factor):

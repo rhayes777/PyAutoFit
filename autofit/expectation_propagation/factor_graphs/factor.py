@@ -4,9 +4,9 @@ from typing import Tuple, Dict, Union, Set, NamedTuple, Callable
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.abstract import AbstractNode, accept_variable_dict
-from autofit.message_passing.factor_graphs.numerical import numerical_jacobian
-from autofit.message_passing.factor_graphs.variable import Variable
+from autofit.expectation_propagation.factor_graphs.abstract import AbstractNode, accept_variable_dict
+from autofit.expectation_propagation.factor_graphs.numerical import numerical_jacobian
+from autofit.expectation_propagation.factor_graphs.variable import Variable
 
 
 class FactorValue(NamedTuple):
@@ -355,7 +355,7 @@ class Factor(AbstractNode):
             else:
                 return False
 
-        from autofit.message_passing.factor_graphs import DeterministicFactorNode
+        from autofit.expectation_propagation.factor_graphs import DeterministicFactorNode
         return DeterministicFactorNode(
             self._factor,
             other,
@@ -366,7 +366,7 @@ class Factor(AbstractNode):
         """
         When two factors are multiplied together this creates a graph
         """
-        from autofit.message_passing.factor_graphs.graph import FactorGraph
+        from autofit.expectation_propagation.factor_graphs.graph import FactorGraph
         return FactorGraph([self]) * other
 
     def __repr__(self) -> str:

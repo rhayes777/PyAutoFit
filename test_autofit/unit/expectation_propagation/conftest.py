@@ -2,7 +2,7 @@ import pytest
 from scipy import stats
 
 
-from autofit import message_passing as mp
+from autofit import expectation_propagation as mp
 
 
 @pytest.fixture(

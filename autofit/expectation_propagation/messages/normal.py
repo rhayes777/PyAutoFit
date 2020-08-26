@@ -1,6 +1,6 @@
 import numpy as np
 
-from autofit.message_passing.messages.abstract import AbstractMessage
+from autofit.expectation_propagation.messages.abstract import AbstractMessage
 
 
 class NormalMessage(AbstractMessage):

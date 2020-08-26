@@ -2,7 +2,7 @@ from typing import Tuple, Dict, NamedTuple
 
 import numpy as np
 
-from autofit.message_passing.factor_graphs.variable import Variable
+from autofit.expectation_propagation.factor_graphs.variable import Variable
 
 
 class JacobianValue(NamedTuple):

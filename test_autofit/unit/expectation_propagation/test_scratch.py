@@ -1,6 +1,6 @@
 import numpy as np
 
-from autofit import message_passing as mp
+from autofit import expectation_propagation as mp
 
 
 def func(x):
