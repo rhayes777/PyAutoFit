@@ -11,22 +11,18 @@ class ModelFactor(ep.Factor):
     def __init__(
             self,
             prior_model: af.PriorModel,
-            image_function: Callable
+            image_function: Callable,
+            prior_variables
     ):
-        instance_variable_dict = dict()
-        for path, prior in prior_model.path_priors_tuples:
-            name = "_".join(path)
-            instance_variable_dict[
-                name
-            ] = PriorVariable(
-                name,
-                prior
-            )
-
+        prior_variable_dict = dict()
+        for prior_variable in prior_variables:
+            prior_variable_dict[
+                prior_variable.name
+            ] = prior_variable
         super().__init__(
             image_function,
             instance=ep.Variable("instance"),
-            **instance_variable_dict
+            **prior_variable_dict
         )
         self.image_function = image_function
         self.prior_model = prior_model
@@ -61,31 +57,6 @@ class ModelFactor(ep.Factor):
         return self.image_function(
             instance
         )
-
-
-class MessagePassingPriorModel(ep.MeanFieldPriorModel):
-    def __init__(
-            self,
-            prior_model,
-            image_function
-    ):
-        super().__init__(
-            ModelFactor(
-                prior_model,
-                image_function
-            ),
-            **dict(
-                prior_model.prior_tuples
-            )
-        )
-
-    @property
-    def priors(self):
-        return [
-            prior_variable.factor
-            for prior_variable
-            in self.prior_variables
-        ]
 
 
 class PriorVariable(ep.Variable):
