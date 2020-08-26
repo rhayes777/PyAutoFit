@@ -32,12 +32,6 @@ The chapter contains the following tutorials:
 `Tutorial 7: Phase Customization <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_7_phase_customization.html>`_
 - Augmenting the data and customizing the likelihood function of a model-fit.
 
-`Tutorial 8a: Aggregator <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_8_aggregator_part_1.html>`_
-- Loading large suites of model-fitting results output by **PyAutoFit**.
-
-`Tutorial 8b: Aggregator <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_8_aggregator_part_2.html>`_
-- Tools for managing large suites of model-fitting results.
-
 .. toctree::
    :caption: Tutorials:
    :maxdepth: 1
@@ -50,5 +44,3 @@ The chapter contains the following tutorials:
    tutorial_5_visualization_masking
    tutorial_6_complex_models
    tutorial_7_phase_customization
-   tutorial_8_aggregator_part_1
-   tutorial_8_aggregator_part_2
