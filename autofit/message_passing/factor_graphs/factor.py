@@ -44,8 +44,6 @@ class Factor(AbstractNode):
         self._factor = factor
         self._deterministic_variables = set()
 
-        self._variables = set(kwargs.values())
-
         args = getfullargspec(self._factor).args
         kwargs = {
             **kwargs,
@@ -63,6 +61,10 @@ class Factor(AbstractNode):
         )
 
     jacobian = numerical_jacobian
+
+    @property
+    def _variables(self):
+        return set(self._kwargs.values())
 
     @property
     def name(self) -> str:
