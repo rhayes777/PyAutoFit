@@ -15,7 +15,7 @@ class Analysis(af.Analysis):
 
         super().__init__()
 
-        """The masked dataset and visualizer are created in the same way as tutorial 6."""
+        """The _MaskedDataset_ and visualizer are created in the same way as tutorial 6."""
 
         self.masked_dataset = masked_dataset
 
@@ -35,7 +35,7 @@ class Analysis(af.Analysis):
         Returns
         -------
         fit : Fit.log_likelihood
-            The log likelihood value indicating how well this model fit the masked dataset.
+            The log likelihood value indicating how well this model fit the _MaskedDataset_.
         """
         model_data = self.model_data_from_instance(instance=instance)
         fit = self.fit_from_model_data(model_data=model_data)

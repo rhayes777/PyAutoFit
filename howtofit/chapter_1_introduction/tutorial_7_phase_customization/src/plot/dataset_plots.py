@@ -6,12 +6,12 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot imp
 
 
 def data(dataset, output_path=None, output_filename=None, output_format="show"):
-    """Plot the data values of a Line dataset.
+    """Plot the data values of a Line _Dataset_.
 
     Parameters
     -----------
-    Line : dataset.Line
-        The observed Line dataset whose data is plotted.
+    Line : _Dataset_.Line
+        The observed Line _Dataset_ whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,
@@ -24,12 +24,12 @@ def data(dataset, output_path=None, output_filename=None, output_format="show"):
 
 
 def noise_map(dataset, output_path=None, output_filename=None, output_format="show"):
-    """Plot the noise-map of a Line dataset.
+    """Plot the noise-map of a Line _Dataset_.
 
     Parameters
     -----------
-    Line : dataset.Line
-        The observed Line dataset whose data is plotted.
+    Line : _Dataset_.Line
+        The observed Line _Dataset_ whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,

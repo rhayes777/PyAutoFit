@@ -1,7 +1,7 @@
 import numpy as np
 
 """
-In tutorial 5, we perform modeling using multiple profiles, in particular the Gaussian profile from the previous
+In tutorial 5, we perform modeling using multiple profiles, in particular the _Gaussian_ profile from the previous
 tutorials and an Exponential profile. In analysis.py, we will edit how model-data is generated from profiles such
 that it is the sum of all profiles in our model.
 
@@ -41,7 +41,7 @@ class Profile:
 
 
 """
-The inclusioon of (Profile) in the Gaussian below instructs Python that the Gaussian class is going to inherit from
+The inclusioon of (Profile) in the _Gaussian_ below instructs Python that the _Gaussian_ class is going to inherit from
 the Profile class.
 """
 
@@ -53,7 +53,7 @@ class Gaussian(Profile):
         intensity=0.1,  # <- are the Gaussian's model parameters.
         sigma=0.01,
     ):
-        """Represents a 1D Gaussian profile, which may be treated as a model-component of PyAutoFit the
+        """Represents a 1D _Gaussian_ profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a non-linear search.
 
         Parameters
@@ -61,13 +61,13 @@ class Gaussian(Profile):
         centre : float
             The x coordinate of the profile centre.
         intensity : float
-            Overall intensity normalisation of the Gaussian profile.
+            Overall intensity normalisation of the _Gaussian_ profile.
         sigma : float
             The sigma value controlling the size of the Gaussian.
         """
 
         """
-        Writing (Profile) above does not mean the Gaussian class will call the Profile class's __init__ method. To
+        Writing (Profile) above does not mean the _Gaussian_ class will call the Profile class's __init__ method. To
         achieve this we have the call the 'super' method following the format below.
         """
 
@@ -116,7 +116,7 @@ class Exponential(Profile):
         centre : float
             The x coordinate of the profile centre.
         intensity : float
-            Overall intensity normalisation of the Gaussian profile.
+            Overall intensity normalisation of the _Gaussian_ profile.
         ratw : float
             The decay rate controlling has fast the Exponential declines.
         """

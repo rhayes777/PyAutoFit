@@ -37,5 +37,4 @@ class AbstractMCMC(NonLinearSearch):
             total_walkers=samples_info["total_walkers"],
             total_steps=samples_info["total_steps"],
             time=samples_info["time"],
-            backend=None,
         )

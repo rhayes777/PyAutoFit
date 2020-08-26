@@ -1,6 +1,7 @@
 import autofit as af
 from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset.dataset import (
     Dataset,
+    MaskedDataset,
 )
 from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.result import (
     Result,
@@ -8,16 +9,13 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.re
 from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.analysis import (
     Analysis,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.meta_dataset import (
-    MetaDataset,
-)
 from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.settings import (
     SettingsPhase,
 )
 
 
 """
-The phase module has new features not included in tutorial 6, which customize the dataset that is fitted and tag
+The phase module has new features not included in tutorial 6, which customize the _Dataset_ that is fitted and tag
 the output path of the results.
 """
 
@@ -51,9 +49,9 @@ class Phase(af.AbstractPhase):
         """
 
         """
-        Here, we create a 'tag' for our phase. If we use an optional phase setting to alter the dataset we fit (here,
+        Here, we create a 'tag' for our phase. If we use an optional phase setting to alter the _Dataset_ we fit (here,
         a data_trim_ variable), we want to 'tag' the phase such that results are output to a unique
-        directory whose names makes it explicit how the dataset was changed.
+        directory whose names makes it explicit how the _Dataset_ was changed.
 
         If this setting is off, the tag is an empty string and thus the directory structure is not changed.
         """
@@ -62,25 +60,17 @@ class Phase(af.AbstractPhase):
 
         super().__init__(paths=paths, search=search)
 
+        self.settings = settings
         self.profiles = profiles
-
-        """
-        Phase settings alter the dataset that is fitted, however a phase does not have access to the dataset until it
-        is run (e.g. the run method below is passed the dataset). In order for a phase to use its input phase
-        settings to create the dataset it fits, these settings are stored in the 'meta_dataset' attribute and used
-        when the 'run' and 'make_analysis' methods are called.
-        """
-
-        self.meta_dataset = MetaDataset(settings=settings)
 
     def run(self, dataset: Dataset, mask):
         """
-        Pass a dataset to the phase, running the phase and non-linear search.
+        Pass a _Dataset_ to the phase, running the phase and non-linear search.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The dataset fitted by the phase, as defined in the 'dataset.py' module.
+            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
         mask: Mask
             The mask used for the analysis.
 
@@ -98,12 +88,12 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the dataset and contains the functions which perform the fit.
+        Create an Analysis object, which creates the _Dataset_ and contains the functions which perform the fit.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The dataset fitted by the phase, as defined in the 'dataset.py' module.
+            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
 
         Returns
         -------
@@ -113,14 +103,16 @@ class Phase(af.AbstractPhase):
         """
 
         """
-        Here, the meta_dataset is used to create the masked dataset that is fitted. If the data_trim_left and / or
-        data_trim_right settings are passed into the phase, the function below uses them to alter the masked dataset.
+        Here, the _SettingsPhase_ are used to create the _MaskedDataset_ that is fitted. 
+        
+        If the data_trim_left and / or data_trim_right settings are passed into the _SettingsPhase_, the function 
+        below uses them to alter the _MaskedDataset_.
 
-        Checkout 'meta_dataset.py' for more details.
+        Checkout 'dataset/dataset.py' for more details.
         """
 
-        masked_dataset = self.meta_dataset.masked_dataset_from_dataset_and_mask(
-            dataset=dataset, mask=mask
+        masked_dataset = MaskedDataset(
+            dataset=dataset, mask=mask, settings=self.settings.settings_masked_dataset
         )
 
         return Analysis(

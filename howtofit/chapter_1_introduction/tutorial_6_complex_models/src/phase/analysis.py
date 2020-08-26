@@ -16,7 +16,7 @@ class Analysis(af.Analysis):
 
         super().__init__()
 
-        """The masked dataset and visualizer are created in the same way as tutorial 5."""
+        """The _MaskedDataset_ and visualizer are created in the same way as tutorial 5."""
 
         self.masked_dataset = masked_dataset
 
@@ -36,11 +36,11 @@ class Analysis(af.Analysis):
         Returns
         -------
         fit : Fit.log_likelihood
-            The log likelihood value indicating how well this model fit the masked dataset.
+            The log likelihood value indicating how well this model fit the _MaskedDataset_.
         """
 
         """
-        In tutorials 3 & 4, the instance was an instance of a single Gaussian profile. PyAutoFit knew this instance
+        In tutorials 3 & 4, the instance was an instance of a single _Gaussian_ profile. PyAutoFit knew this instance
         would contain just one Gaussian, because when the phase was created we used a _PriorModel_ object in PyAutoFit
         to make the Gaussian. This meant we could create the model data using the line:
 

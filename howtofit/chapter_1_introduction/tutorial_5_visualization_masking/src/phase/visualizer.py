@@ -22,7 +22,7 @@ class AbstractVisualizer:
 class Visualizer(AbstractVisualizer):
     def __init__(self, masked_dataset, image_path):
 
-        """When the Visualizer is instantiated, the masked dataset is passed to it and visualized."""
+        """When the Visualizer is instantiated, the _MaskedDataset_ is passed to it and visualized."""
 
         super().__init__(image_path)
 
@@ -49,7 +49,7 @@ class Visualizer(AbstractVisualizer):
         The fit is visualized during the model-fit, thus it requires its own method which is called by the non-linear
         search every set number of intervals.
 
-        Unlike the dataset plots above, the fit 'data' and 'noise-map' are masked.
+        Unlike the _Dataset_ plots above, the fit 'data' and 'noise-map' are masked.
         """
 
         fit_plots.data(

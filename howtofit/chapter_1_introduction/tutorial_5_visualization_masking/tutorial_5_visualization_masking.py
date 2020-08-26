@@ -3,10 +3,10 @@
 Tutorial 5: Visualization & Masking
 ===================================
 
-In the previous tutorial, we wrote source code which used PyAutoFit to fit a 1D Gaussian model to a dataset. In this
+In the previous tutorial, we wrote source code which used PyAutoFit to fit a 1D _Gaussian_ model to a _Dataset_. In this
 tutorial, we'll extend this source code's phase package to perform a number of additional tasks:
 
- - Masking: The phase is passed a mask such that regions of the dataset are omitted by the log likelihood function.
+ - Masking: The phase is passed a mask such that regions of the _Dataset_ are omitted by the log likelihood function.
 
  - Visualization: Images showing the model fit are output on-the-fly during the non-linear search.
 
@@ -35,12 +35,12 @@ Setup the configs as we did in the previous tutorial, as well as the output fold
 # %%
 conf.instance = conf.Config(
     config_path=f"{workspace_path}/howtofit/config",
-    output_path=f"{workspace_path}/howtofit/output",
+    output_path=f"{workspace_path}/howtofit/output/chapter_1",
 )
 
 # %%
 """
-Import the simulator module and set up the dataset.
+Import the simulator module and set up the _Dataset_.
 """
 
 # %%
@@ -53,8 +53,8 @@ dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 Before fitting data, we may want to mask it, removing regions of the data we know are defective or where there is no
 signal.
 
-To facilitate this we have added a new class to the module 'dataset.py'. This takes our dataset and a mask and combines 
-the two to create a masked dataset. The fit.py module has also been updated to use a mask during the fit. Check them 
+To facilitate this we have added a new class to the module 'dataset.py'. This takes our _Dataset_ and a mask and combines 
+the two to create a _MaskedDataset_. The fit.py module has also been updated to use a mask during the fit. Check them 
 both out now to see how the mask is used! 
 
 As mentioned in tutorial 4, if your model-fitting problem involves fitting masked data, you should be able to copy and 
@@ -73,7 +73,7 @@ mask[-30:] = True
 
 # %%
 """
-Lets now reperform the fit from tutorial 4, but with a masked dataset and visualization.
+Lets now reperform the fit from tutorial 4, but with a _MaskedDataset_ and visualization.
 """
 
 # %%
@@ -100,11 +100,11 @@ print("Emcee has finished run - you may now continue the notebook.")
 # %%
 """
 Lets check that this phase did indeed perform visualization. Navigate to the folder 'image' in the directory
-above. You should now see a set of folders containing visualization of the dataset and fit. As promised, our phase is
+above. You should now see a set of folders containing visualization of the _Dataset_ and fit. As promised, our phase is
 now taking care of the visualization of our model.
 
 Visualization happens 'on-the-fly', such that during Emcee these images are output using the current maximum likelihood
-model Emcee has found. For models more complex than our 1D Gaussian this is useful, as it means we can check
+model Emcee has found. For models more complex than our 1D _Gaussian_ this is useful, as it means we can check
 that Emcee has found reasonable solutions during a run and can thus cancel it early if it has ended up with an
 incorrect solution.
 

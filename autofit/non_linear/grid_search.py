@@ -530,7 +530,7 @@ class Process(multiprocessing.Process):
         self.job_queue = job_queue
         self.queue = multiprocessing.Queue()
         self.count = 0
-        self.max_count = 5
+        self.max_count = 250
 
     def run(self):
         logger.info("starting process {}".format(self.name))

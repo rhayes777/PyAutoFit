@@ -3,15 +3,15 @@
 Tutorial 6: Complex Models
 ==========================
 
-Up to now, we've fitted a very simple model - a single 1D Gaussian with just 3 free parameters. In this tutorial,
+Up to now, we've fitted a very simple model - a single 1D _Gaussian_ with just 3 free parameters. In this tutorial,
 we'll look at how PyAutoFit allows us to compose and fit models of arbitrary complexity.
 
 To begin, you should check out the module 'tutorial_6_complex_models/model/profiles.py'. In previous tutorials this
-module was called 'gaussian.py' and it contained only the Gaussian class we fitted to data. The module now includes
-a second profile, 'Exponential', which like the Gaussian class is a model-component that can be fitted to data.
+module was called 'gaussian.py' and it contained only the _Gaussian_ class we fitted to data. The module now includes
+a second profile, 'Exponential', which like the _Gaussian_ class is a model-component that can be fitted to data.
 
-Up to now, our data has always been generated using a single Gaussian profile. Thus, we have only needed to fit
-it with a single Gaussian. In this tutorial, our dataset is now a superpositions of multiple profiles (e.g a
+Up to now, our data has always been generated using a single _Gaussian_ profile. Thus, we have only needed to fit
+it with a single Gaussian. In this tutorial, our _Dataset_ is now a superpositions of multiple profiles (e.g a
 Gaussians + Exponential). The models we compose and fit are therefore composed of multiple profiles, such that when we
 generate the model-data we generate it as the sum of all individual profiles in our model.
 """
@@ -38,19 +38,19 @@ Setup the configs as we did in the previous tutorial, as well as the output fold
 # %%
 conf.instance = conf.Config(
     config_path=f"{workspace_path}/howtofit/config",
-    output_path=f"{workspace_path}/howtofit/output",
+    output_path=f"{workspace_path}/howtofit/output/chapter_1",
 )
 
 # %%
 """
-Lets quickly recap tutorial 1, where using PriorModels we created a Gaussian as a model component and used it to map a
+Lets quickly recap tutorial 1, where using PriorModels we created a _Gaussian_ as a model component and used it to map a
 list of parameters to a model instance.
 """
 
 # %%
 model = af.PriorModel(htf.profiles.Gaussian)
 
-print("PriorModel Gaussian object: \n")
+print("PriorModel _Gaussian_ object: \n")
 print(model)
 
 instance = model.instance_from_vector(vector=[0.1, 0.2, 0.3])
@@ -77,7 +77,7 @@ model = af.CollectionPriorModel(
 # %%
 """
 A CollectionPriorModel behaves like a _PriorModel_ but contains a collection of model components. For example, it can
-create a model instance by mapping a list of parameters, which in this case is 6 (3 for the Gaussian [centre,
+create a model instance by mapping a list of parameters, which in this case is 6 (3 for the _Gaussian_ [centre,
 intensity, sigma] and 3 for the Exponential [centre, intensity, rate]).
 """
 
@@ -123,7 +123,7 @@ print("sigma (Exponential) = ", instance.rich.rate)
 
 # %%
 """
-Now we can create a model composed of multiple components, lets fit it to a dataset. To do this, we updated this 
+Now we can create a model composed of multiple components, lets fit it to a _Dataset_. To do this, we updated this 
 tutorial's phase package, spefically its 'Analysis' class such that it creates model data as a super position of all of 
 the model's individual profiles. For example, in the model above, the model data is the sum of the Gaussian's 
 individual profile and Exponential's individual profile.
@@ -133,7 +133,7 @@ Checkout 'phase.py' and 'analysis.py' now, for a description of how this has bee
 
 # %%
 """
-Import the simulator module and set up the dataset. This uses a new dataset that is generated as a sum of a Gaussian 
+Import the simulator module and set up the _Dataset_. This uses a new _Dataset_ that is generated as a sum of a _Gaussian_ 
 and Exponential profile.
 """
 
@@ -216,11 +216,11 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
-We can fully custommize the model that we fit. Lets suppose we have a dataset that consists of three Gaussian line
+We can fully custommize the model that we fit. Lets suppose we have a _Dataset_ that consists of three _Gaussian_ line
 profiles, but we also know the following information about the dataset:
 
 - All 3 Gaussians are centrally aligned.
-- The sigma of one Gaussian is equal to 1.0.
+- The sigma of one _Gaussian_ is equal to 1.0.
 
 We can edit our CollectionPriorModel to meet these constraints accordingly:
 """
@@ -243,7 +243,7 @@ model.gaussian_1.centre = model.gaussian_2.centre
 
 # %%
 """
-This fixes the sigma value of one Gaussian to 1.0, further reducing the dimensionality from N=7 to N=6.
+This fixes the sigma value of one _Gaussian_ to 1.0, further reducing the dimensionality from N=7 to N=6.
 """
 
 # %%

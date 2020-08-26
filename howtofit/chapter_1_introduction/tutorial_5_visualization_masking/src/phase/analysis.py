@@ -25,7 +25,7 @@ class Analysis(af.Analysis):
         self.masked_dataset = masked_dataset
 
         """
-        The visualizer is the tool that we'll use the visualize a phase's unmasked dataset (before the model-fitting
+        The visualizer is the tool that we'll use the visualize a phase's unmasked _Dataset_ (before the model-fitting
         begins) and the best-fit solution found by the model-fit (during and after the model-fitting).
 
         Check out 'visualizer.py' for more details.
@@ -36,17 +36,17 @@ class Analysis(af.Analysis):
         )
 
     def log_likelihood_function(self, instance):
-        """Determine the log likelihood of a fit of a Gaussian to the dataset, using the model instance of a Gaussian.
+        """Determine the log likelihood of a fit of a _Gaussian_ to the dataset, using the model instance of a Gaussian.
 
         Parameters
         ----------
         instance
-            The Gaussian model instance.
+            The _Gaussian_ model instance.
 
         Returns
         -------
         fit : Fit.log_likelihood
-            The log likelihood value indicating how well this model fit the masked dataset.
+            The log likelihood value indicating how well this model fit the _MaskedDataset_.
         """
         model_data = self.model_data_from_instance(instance=instance)
         fit = self.fit_from_model_data(model_data=model_data)

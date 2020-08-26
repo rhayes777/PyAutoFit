@@ -1,5 +1,9 @@
 import autofit as af
 
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset import (
+    dataset as ds,
+)
+
 """
 This module create tags for phases settings that customize the analysis. We tag phases for two reasons:
 
@@ -7,59 +11,34 @@ This module create tags for phases settings that customize the analysis. We tag 
 
     2) Tags create unique output paths, ensuring that if you run multiple phases on the same data with different settings
        each non-linear search (e.g. Emcee) won't inadvertently use results generated via a different analysis method.
+       
+The settings of a _SettingsPhase_ use the settings objects of individual parts of the code. For example, below, it uses
+as input a _SettingsMaskedDataset_ object, which in the module 'dataset/dataset.py' can be seen contains the inputs and
+tags required for trimming data.
+
+You may be surprised to see us using classes like _SettingsMaskedDataset_ and _SettingsPhase_, as the use of a class
+may appear somewhat uncessary. We will discuss the use of classes and structure of the code at the end of the tutorial 
+script.
 """
 
 
 class SettingsPhase(af.AbstractSettingsPhase):
-    def __init__(self, data_trim_left=None, data_trim_right=None):
+    def __init__(self, settings_masked_dataset=ds.SettingsMaskedDataset()):
 
         super().__init__()
 
-        self.data_trim_left = data_trim_left
-        self.data_trim_right = data_trim_right
+        self.settings_masked_dataset = settings_masked_dataset
+
+    """
+    This function generates a string we'll use to 'tag' a phase which uses this setting, thus ensuring results are
+    output to a unique path.
+    
+    It uses the tag of the _SettingsMaskedDataset_ to do this.
+    """
 
     @property
     def tag(self):
 
         """You may well have many more tags which appear here."""
 
-        return (
-            "settings"  # For every tag you add, you'll add it to this return statement
-            + self.data_trim_left_tag
-            + self.data_trim_right_tag
-            # e.g. + your_own_tag
-        )
-
-    """
-    This function generates a string we'll use to 'tag' a phase which uses this setting, thus ensuring results are
-    output to a unique path.
-    """
-
-    @property
-    def data_trim_left_tag(self):
-        """Generate a data trim left tag, to customize phase names based on how much of the dataset is trimmed to 
-        its left.
-    
-        This changes the phase name 'settings' as follows:
-    
-        data_trim_left = None -> settings
-        data_trim_left = 2 -> settings__trim_left_2
-        data_trim_left = 10 -> settings__trim_left_10
-        """
-        if self.data_trim_left is None:
-            return ""
-        return "__trim_left_" + str(self.data_trim_left)
-
-    @property
-    def data_trim_right_tag(self):
-        """Generate a data trim right tag, to customize phase names based on how much of the dataset is trimmed to its right.
-    
-        This changes the phase name 'settings' as follows:
-    
-        data_trim_right = None -> settings
-        data_trim_right = 2 -> settings__trim_right_2
-        data_trim_right = 10 -> settings__trim_right_10
-        """
-        if self.data_trim_right is None:
-            return ""
-        return "__trim_right_" + str(self.data_trim_right)
+        return "settings" + self.settings_masked_dataset.tag

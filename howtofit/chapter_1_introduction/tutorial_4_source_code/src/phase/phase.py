@@ -10,7 +10,7 @@ from howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.analysis i
 )
 
 """
-The phase package combines a data-set, model and non-linear search, allowing us to fit the dataset with the model. It
+The phase package combines a data-set, model and non-linear search, allowing us to fit the _Dataset_ with the model. It
 essentially acts as the 'meeting point' between the other packages in the project (dataset, fit, plot) and modules
 in the phase package (phase.py, analysis.py, result.py).
 """
@@ -36,18 +36,18 @@ class Phase(af.AbstractPhase):
     def __init__(
         self,
         paths,
-        gaussian,  # <- The user inputs a model -> gaussian.py -> Gaussian class here.
+        gaussian,  # <- The user inputs a model -> gaussian.py -> _Gaussian_ class here.
         search,  # <- This specifies the default non-linear search used by the phase.
     ):
         """
-        A phase which fits a Gaussian model using a non-linear search.
+        A phase which fits a _Gaussian_ model using a non-linear search.
 
         Parameters
         ----------
         paths : af.Paths
             Handles the output directory structure.
         gaussian : model.gaussians.Gaussian
-            The model component Gaussian class fitted by this phase.
+            The model component _Gaussian_ class fitted by this phase.
         search: class
             The class of a non_linear search
         """
@@ -55,12 +55,12 @@ class Phase(af.AbstractPhase):
         self.gaussian = gaussian
 
     def run(self, dataset: Dataset):
-        """ Pass a dataset to the phase, running the phase and non-linear search.
+        """ Pass a _Dataset_ to the phase, running the phase and non-linear search.
 
         Parameters
         ----------
-        dataset : dataset.Dataset
-            The dataset fitted by the phase, which is specified in the module 'dataset/dataset.py'
+        _Dataset_ : _Dataset_.Dataset
+            The _Dataset_ fitted by the phase, which is specified in the module 'dataset/dataset.py'
 
         Returns
         -------
@@ -89,12 +89,12 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset):
         """
-        Create an Analysis object, which uses the dataset with functions to perform a fit.
+        Create an Analysis object, which uses the _Dataset_ with functions to perform a fit.
 
         Parameters
         ----------
-        dataset : dataset.Dataset
-            The dataset fitted by the phase, which is specified in the module 'dataset/dataset.py'
+        _Dataset_ : _Dataset_.Dataset
+            The _Dataset_ fitted by the phase, which is specified in the module 'dataset/dataset.py'
 
         Returns
         -------

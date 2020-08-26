@@ -8,7 +8,7 @@ class Gaussian:
         intensity=0.1,  # <- are the Gaussian's model parameters.
         sigma=0.01,
     ):
-        """Represents a 1D Gaussian profile, which may be treated as a model-component of PyAutoFit the
+        """Represents a 1D _Gaussian_ profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a non-linear search.
 
         Parameters
@@ -16,7 +16,7 @@ class Gaussian:
         centre : float
             The x coordinate of the profile centre.
         intensity : float
-            Overall intensity normalisation of the Gaussian profile.
+            Overall intensity normalisation of the _Gaussian_ profile.
         sigma : float
             The sigma value controlling the size of the Gaussian.
         """

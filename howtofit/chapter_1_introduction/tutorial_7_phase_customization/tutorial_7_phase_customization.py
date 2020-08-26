@@ -13,9 +13,9 @@ path of the phase's results, such that every time a phase is run with a differen
 unique results are stored for those settings. For a given data-set we are thus able to fit it multiple times using
 different settings to compare the results.
 
-These new features have led to additional modules in the 'phase' package called 'meta_dataset.py' and 'settings.py'.
-Before looking at these modules, lets first perform a series of Emcee fits to see how they change the behaviour
-of PyAutoFit.
+These new features have led to an additional module in the 'phase' package called 'settings.py', as well as extensions
+to the 'dataset.py' module. Before looking at these modules, lets first perform a series of Emcee fits to see how
+they change the behaviour of PyAutoFit.
 """
 
 # %%
@@ -40,41 +40,50 @@ Setup the configs as we did in the previous tutorial, as well as the output fold
 # %%
 conf.instance = conf.Config(
     config_path=f"{workspace_path}/howtofit/config",
-    output_path=f"{workspace_path}/howtofit/output",
+    output_path=f"{workspace_path}/howtofit/output/chapter_1",
 )
 
 # %%
 """
 We're now going to perform multiple fits, where each fit trims the data-set that is fitted.
-To do this, we'll set up phases with the phase-settings 'data_trim_left' and 'data_trim_right'.
+
+To do this, we'll set up phases with a new class called _SettingsMaskedDataset_, which contains the settings that 
+customize how a _MaskedDataset_ is created. This has two inputs, 'data_trim_left' and 'data_trim_right':
 
 - data_trim_left:
 
   The dataset's image and noise-map are trimmed and removed from the left (e.g. 1d index values from 0).
-  For example, if the dataset has shape (100,) and we set data_trim_left=10, the dataset that is fitted will have
-  shape (90,). The mask is trimmed in the same way.
+  
+  For example, if the _Dataset_ has shape (100,) and we set data_trim_left=10, the _MaskedDataset_ that is fitted will 
+  have shape (90,). The mask is trimmed in the same way.
 
 - data_trim_right:
 
   This behaves the same as data_trim_left, however data is removed from the right (e.g. 1D index values from the
-  shape of the 1D data).
+  shape[0] value of the 1D data).
 
-For our first phase, we will omit both the phase setting (by setting it to None) and perform the fit from tutorial
-4 where we fit a single Gaussian profile to data composed of a single Gaussian (unlike tutorial 4, we'll use a
+For our first phase, we will omit both of these settings (by setting them to None) and perform the fit from tutorial
+4 where we fit a single _Gaussian_ profile to data composed of a single _Gaussian_ (unlike tutorial 4, we'll use a
 CollectionPriorModel to do this).
 """
 
 # %%
+settings_masked_dataset = htf.SettingsMaskedDataset(
+    data_trim_left=None, data_trim_right=None
+)
+
+settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
+
 phase = htf.Phase(
     phase_name="phase_t7",
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
-    settings=htf.SettingsPhase(data_trim_left=None, data_trim_right=None),
+    settings=settings,
     search=af.Emcee(),
 )
 
 # %%
 """
-Import the simulator module, set up the Dataset and mask and set up the dataset.
+Import the simulator module, set up the _Dataset_ and mask and set up the _Dataset_.
 """
 
 # %%
@@ -102,12 +111,16 @@ Okay, lets look at what happened differently in this phase. To begin, lets note 
 There is a small change to this directory compared to tutorial 6, there is a new folder 'settings' within which the
 results are stored. It'll be clear why this is in a moment.
 
-Next, we're going to customize and run a phase using the data_trim_left and right parameters. First, we create a 
-SettingsPhase object using our input values of these parameters. 
+Next, we're going to customize and run a phase using the *data_trim_left* and *data_trim_right* parameters. First, we 
+create a _SettingsMaskedDataset_ and _SettingsPhase_ object using our input values of these parameters. 
 """
 
 # %%
-settings = htf.SettingsPhase(data_trim_left=20, data_trim_right=30)
+settings_masked_dataset = htf.SettingsMaskedDataset(
+    data_trim_left=20, data_trim_right=30
+)
+
+settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
 
 # %%
 """
@@ -142,18 +155,26 @@ You'll note the results are now in a slightly different directory to the fit per
 By customizing the phase's settings, PyAutoFit has changed it output path using a tag for this phase. There are two
 reasons PyAutoFit does this:
 
- 1) Tags describes the analysis, making it explicit what was done to the dataset for the fit.
+ 1) Tags describes the analysis, making it explicit what was done to the _Dataset_ for the fit.
 
  2) Tags create a unique output path, allowing you to compare results of phases that use different settings. Equally,
- if you run multiple phases with different settings this ensures the non-linear search (e.g. Emcee) won't
- inadvertantly use results generated via a different analysis method.
+    if you run multiple phases with different settings this ensures the non-linear search (e.g. Emcee) won't
+    use results generated via a different analysis method.
 
-You should now check out the 'settings.py' and 'meta_dataset.py' modules in the 'phase' package, to see how we 
-implemented this.
+You should now check out the 'settings.py' and 'dataset.py' modules, to see how we implemented this.
 
-In this tutorial, the phase setting changed the data-set that was fitted. However, phase settings do not necessarily
-need to customize the data-set. For example, they could control some aspect of the model, for example the precision
-by which the model image is numerically calculated. For more complex fitting procedures, settings could control
+
+When reading through this tutorial's example source code, you may have felt it was a bit clunky having multiple 
+_Settings_ classes each of which we needed to set up to customize the _MaskedDataset_ or the _Phase_. 
+
+For the source code, it actually is quite clunky and could certainly be refactored to make the source code more clean. 
+However, through experience we have found this design creates a much better API for a user when choosing settings, 
+which will be seen in the next tutorial. Thus, we recommend you adopt the same settings API for your project!
+
+
+In this tutorial, the phase setting changed the _MaskedDataset_ that was fitted. However, phase settings do not 
+necessarily need to customize the dataset. For example, they could control some aspect of the model, for example the 
+precision by an aspect of the model is numerically calculated. For more complex fitting procedures, settings may control
 whether certain features are used, which when turned on / off reduce the accuracy of the model at the expensive of
 greater computational run-time.
 

@@ -20,7 +20,7 @@ class Phase(af.AbstractPhase):
     Because we now have multiple profiles in our model, we have renamed 'gaussian' to 'profiles'. As before,
     PyAutoFit uses this information to map the input Profile classes to a model instance when performing a fit.
 
-    Whereas the 'gaussian' variable took a single Gaussian object in the previous tutorials, the 'profiles' variable
+    Whereas the 'gaussian' variable took a single _Gaussian_ object in the previous tutorials, the 'profiles' variable
     is a list of model component objects. The PhaseProperty class below accounts for this, such that the instance
     object passed into the log likelihood function can be iterated over like a list.
     """
@@ -50,12 +50,12 @@ class Phase(af.AbstractPhase):
 
     def run(self, dataset: Dataset, mask):
         """
-        Pass a dataset to the phase, running the phase and non-linear search.
+        Pass a _Dataset_ to the phase, running the phase and non-linear search.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The dataset fitted by the phase, as defined in the 'dataset.py' module.
+            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
         mask: Mask
             The mask used for the analysis.
 
@@ -73,12 +73,12 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the dataset and contains the functions which perform the fit.
+        Create an Analysis object, which creates the _Dataset_ and contains the functions which perform the fit.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The dataset fitted by the phase, as defined in the 'dataset.py' module.
+            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
 
         Returns
         -------

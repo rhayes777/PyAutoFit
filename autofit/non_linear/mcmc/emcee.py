@@ -2,9 +2,12 @@ import os
 import emcee
 import numpy as np
 
+from typing import List
+
 from autofit import exc
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
+from autofit.mapper.model_mapper import ModelMapper
 
 from autofit.non_linear.log import logger
 
@@ -307,7 +310,7 @@ class Emcee(AbstractMCMC):
         total_walkers = len(self.backend.get_chain()[0, :, 0])
         total_steps = len(self.backend.get_log_prob())
 
-        return MCMCSamples(
+        return EmceeSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -337,3 +340,66 @@ class Emcee(AbstractMCMC):
                 "The file emcee.hdf does not exist at the path "
                 + self.paths.samples_path
             )
+
+
+class EmceeSamples(MCMCSamples):
+
+    def __init__(
+        self,
+        model: ModelMapper,
+        parameters: List[List[float]],
+        log_likelihoods: List[float],
+        log_priors: List[float],
+        weights: List[float],
+        auto_correlation_times: np.ndarray,
+        auto_correlation_check_size: int,
+        auto_correlation_required_length: int,
+        auto_correlation_change_threshold: float,
+        total_walkers: int,
+        total_steps: int,
+        backend: emcee.backends.HDFBackend,
+        unconverged_sample_size: int = 100,
+        time: float = None,
+    ):
+        """
+        Attributes
+        ----------
+        total_walkers : int
+            The total number of walkers used by this MCMC non-linear search.
+        total_steps : int
+            The total number of steps taken by each walker of this MCMC non-linear search (the total samples is equal
+            to the total steps * total walkers).
+        """
+
+        super().__init__(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            auto_correlation_times=auto_correlation_times,
+            auto_correlation_check_size=auto_correlation_check_size,
+            auto_correlation_required_length=auto_correlation_required_length,
+            auto_correlation_change_threshold=auto_correlation_change_threshold,
+            total_walkers=total_walkers,
+            total_steps=total_steps,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+        self.backend = backend
+
+    @property
+    def samples_after_burn_in(self) -> [list]:
+        """The emcee samples with the initial burn-in samples removed.
+
+        The burn-in period is estimated using the auto-correlation times of the parameters."""
+        discard = int(3.0 * np.max(self.auto_correlation_times))
+        thin = int(np.max(self.auto_correlation_times) / 2.0)
+        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+
+    @property
+    def previous_auto_correlation_times(self) -> [float]:
+        return emcee.autocorr.integrated_time(
+            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
+        )

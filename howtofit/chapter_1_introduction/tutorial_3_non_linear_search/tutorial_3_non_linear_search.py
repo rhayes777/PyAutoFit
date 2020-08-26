@@ -5,7 +5,7 @@ Tutorial 3: Non-linear Search
 
 Okay, so its finally time to take our model and fit it to data, hurrah!
 
-So, how do we infer the parameters for the 1D Gaussian that give a good fit to our data?  In the last tutorial, we
+So, how do we infer the parameters for the 1D _Gaussian_ that give a good fit to our data?  In the last tutorial, we
 tried a very basic approach, randomly guessing models until we found one that gave a good fit and high log_likelihood.
 
 We discussed that this wasn't really a viable strategy for more complex models, and it isn't. However, this is the
@@ -68,7 +68,7 @@ Nevertheless, setting the paths explicitly within the code is good practise.
 # %%
 conf.instance = conf.Config(
     config_path=f"{workspace_path}/howtofit/config",
-    output_path=f"{workspace_path}/howtofit/output",  # <- This sets up where the non-linear search's outputs go.
+    output_path=f"{workspace_path}/howtofit/output/chapter_1",  # <- This sets up where the non-linear search's outputs go.
 )
 
 # %%
@@ -103,7 +103,7 @@ plot_line(xvalues=xvalues, line=data, ylabel="Data")
 
 # %%
 """
-Lets remake the Gaussian class for this tutorial, which is the model we will fit using the non-linear search.
+Lets remake the _Gaussian_ class for this tutorial, which is the model we will fit using the non-linear search.
 """
 
 # %%
@@ -147,7 +147,7 @@ The non-linear search requires an *Analysis* class, which:
  - Passes this log likelihood to the non-linear search so that it can determine parameter values for the the next model 
  that it samples.
 
-For our 1D Gaussian model-fitting example, here is our *Analysis* class:
+For our 1D _Gaussian_ model-fitting example, here is our *Analysis* class:
 """
 
 # %%
@@ -162,7 +162,7 @@ class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
 
         """
-        The 'instance' that comes into this method is an instance of the Gaussian class above, with the parameters
+        The 'instance' that comes into this method is an instance of the _Gaussian_ class above, with the parameters
         set to values chosen by the non-linear search. (These are commented out to pretent excessive print statements
         when we run the non-linear search).
 
@@ -174,7 +174,7 @@ class Analysis(af.Analysis):
             print("Intensity = ", instance.intensity)
             print("Sigma = ", instance.sigma)
 
-        Below, we fit the data with the Gaussian instance, using its "profile_from_xvalues" function to create the
+        Below, we fit the data with the _Gaussian_ instance, using its "profile_from_xvalues" function to create the
         model data.
         """
 
@@ -293,19 +293,19 @@ print(result.samples.log_likelihoods)
 
 # %%
 """
-We can also use it to get a model instance of the "most probable" model, which is the model where each parameter is
+We can also use it to get a model instance of the "median pdf" model, which is the model where each parameter is
 the value estimated from the probability distribution of parameter space.
 """
 
 # %%
 mp_instance = result.samples.median_pdf_instance
 print()
-print("Most Probable Model:\n")
+print("Median PDF Model:\n")
 print("Centre = ", mp_instance.centre)
 print("Intensity = ", mp_instance.intensity)
 print("Sigma = ", mp_instance.sigma)
 
 # %%
 """
-We'll come back to look at Samples objects in more detail tutorial 8!
+We'll come back to look at Samples objects in more detail in chapter 2!
 """

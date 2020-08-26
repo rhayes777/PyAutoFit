@@ -3,7 +3,6 @@ import json
 import math
 from typing import List
 
-import corner
 import emcee
 import numpy as np
 
@@ -269,7 +268,7 @@ class PDFSamples(OptimizerSamples):
         as a list of values."""
         if self.pdf_converged:
             return [
-                corner.quantile(x=params, q=0.5, weights=self.weights)[0]
+                quantile(x=params, q=0.5, weights=self.weights)[0]
                 for params in self.parameters_extract
             ]
         return self.max_log_likelihood_vector
@@ -304,12 +303,12 @@ class PDFSamples(OptimizerSamples):
             limit = math.erf(0.5 * sigma * math.sqrt(2))
 
             lower_errors = [
-                corner.quantile(x=params, q=1.0 - limit, weights=self.weights)[0]
+                quantile(x=params, q=1.0 - limit, weights=self.weights)[0]
                 for params in self.parameters_extract
             ]
 
             upper_errors = [
-                corner.quantile(x=params, q=limit, weights=self.weights)[0]
+                quantile(x=params, q=limit, weights=self.weights)[0]
                 for params in self.parameters_extract
             ]
 
@@ -648,7 +647,6 @@ class MCMCSamples(PDFSamples):
         auto_correlation_change_threshold: float,
         total_walkers: int,
         total_steps: int,
-        backend: emcee.backends.HDFBackend,
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
@@ -679,7 +677,6 @@ class MCMCSamples(PDFSamples):
         self.auto_correlation_required_length = auto_correlation_required_length
         self.auto_correlation_change_threshold = auto_correlation_change_threshold
         self.log_evidence = None
-        self.backend = backend
 
     @classmethod
     def from_table(self, filename: str, model, number_live_points=None):
@@ -736,15 +733,11 @@ class MCMCSamples(PDFSamples):
         """The emcee samples with the initial burn-in samples removed.
 
         The burn-in period is estimated using the auto-correlation times of the parameters."""
-        discard = int(3.0 * np.max(self.auto_correlation_times))
-        thin = int(np.max(self.auto_correlation_times) / 2.0)
-        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+        raise NotImplementedError()
 
     @property
     def previous_auto_correlation_times(self) -> [float]:
-        return emcee.autocorr.integrated_time(
-            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
-        )
+        raise NotImplementedError()
 
     @property
     def relative_auto_correlation_times(self) -> [float]:
@@ -897,3 +890,51 @@ class NestSamples(PDFSamples):
     def acceptance_ratio(self) -> float:
         """The ratio of accepted samples to total samples."""
         return self.total_accepted_samples / self.total_samples
+
+
+def quantile(x, q, weights=None):
+    """
+    Copied from corner.py
+
+    Compute sample quantiles with support for weighted samples.
+    Note
+    ----
+    When ``weights`` is ``None``, this method simply calls numpy's percentile
+    function with the values of ``q`` multiplied by 100.
+    Parameters
+    ----------
+    x : array_like[nsamples,]
+       The samples.
+    q : array_like[nquantiles,]
+       The list of quantiles to compute. These should all be in the range
+       ``[0, 1]``.
+    weights : Optional[array_like[nsamples,]]
+        An optional weight corresponding to each sample. These
+    Returns
+    -------
+    quantiles : array_like[nquantiles,]
+        The sample quantiles computed at ``q``.
+    Raises
+    ------
+    ValueError
+        For invalid quantiles; ``q`` not in ``[0, 1]`` or dimension mismatch
+        between ``x`` and ``weights``.
+    """
+    x = np.atleast_1d(x)
+    q = np.atleast_1d(q)
+
+    if np.any(q < 0.0) or np.any(q > 1.0):
+        raise ValueError("Quantiles must be between 0 and 1")
+
+    if weights is None:
+        return np.percentile(x, list(100.0 * q))
+    else:
+        weights = np.atleast_1d(weights)
+        if len(x) != len(weights):
+            raise ValueError("Dimension mismatch: len(weights) != len(x)")
+        idx = np.argsort(x)
+        sw = weights[idx]
+        cdf = np.cumsum(sw)[:-1]
+        cdf /= cdf[-1]
+        cdf = np.append(0, cdf)
+        return np.interp(q, cdf, x[idx]).tolist()

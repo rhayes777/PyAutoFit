@@ -36,7 +36,6 @@ def make_samples():
         total_walkers=5,
         total_steps=6,
         time=7,
-        backend=None,
     )
 
 
