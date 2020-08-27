@@ -1,10 +1,9 @@
 import numpy as np
-
 import pytest
 
 import autofit as af
 import autofit.expectation_propagation as ep
-from .model import Gaussian, make_data
+from test_autofit.unit.expectation_propagation.gaussian.model import Gaussian, make_data
 
 
 class FactorModel:
@@ -32,6 +31,17 @@ class FactorModel:
                 prior
             )
             for prior, path in unique_priors.items()
+        ]
+        self.prior_factors = [
+            ep.Factor(
+                prior,
+                x=variable
+            )
+            for prior, variable
+            in zip(
+                unique_priors.keys(),
+                self._prior_variables
+            )
         ]
 
     def _node_for_prior_model(
@@ -76,6 +86,8 @@ class FactorModel:
             graph *= self._graph_for_prior_model(
                 prior_model
             )
+        for prior_factor in self.prior_factors:
+            graph *= prior_factor
         return graph
 
 
@@ -112,6 +124,13 @@ def make_factor_model(
         image_function=image_function,
         likelihood_function=likelihood_function
     )
+
+
+def test_graph(
+        factor_model
+):
+    graph = factor_model.graph
+    assert len(graph.factors) == 5
 
 
 def test_prior_model_node(
