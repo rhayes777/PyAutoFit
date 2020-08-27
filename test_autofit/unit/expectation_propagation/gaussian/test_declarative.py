@@ -123,6 +123,13 @@ class FactorModel:
             graph *= prior_factor
         return graph
 
+    @property
+    def mean_field_approximation(self):
+        return ep.MeanFieldApproximation.from_kws(
+            self.graph,
+            self.message_dict
+        )
+
 
 @pytest.fixture(
     name="prior_model"
