@@ -3,7 +3,7 @@ import pytest
 
 import autofit as af
 import autofit.expectation_propagation as ep
-from test_autofit.unit.expectation_propagation.gaussian.model import Gaussian, make_data
+from test_autofit.unit.expectation_propagation.gaussian.model import Gaussian, make_data, _likelihood
 
 
 class FactorModel:
@@ -32,8 +32,14 @@ class FactorModel:
             )
             for prior, path in self._unique_priors.items()
         ]
+
         self._deterministic_variables = {
-            prior_model: ep.Variable("z")
+            prior_model: ep.Variable(
+                "z",
+                ep.Plate(
+                    "observations"
+                )
+            )
             for prior_model
             in prior_models
         }
@@ -129,6 +135,63 @@ class FactorModel:
             self.graph,
             self.message_dict
         )
+
+
+def test_gaussian():
+    n_observations = 100
+    x = np.arange(n_observations)
+    y = make_data(
+        Gaussian(
+            centre=50.0,
+            intensity=25.0,
+            sigma=10.0
+        ),
+        x
+    )
+
+    prior_model = af.PriorModel(
+        Gaussian,
+        centre=af.GaussianPrior(
+            mean=50,
+            sigma=20
+        ),
+        intensity=af.GaussianPrior(
+            mean=20,
+            sigma=10
+        ),
+        sigma=af.GaussianPrior(
+            mean=20,
+            sigma=10
+        )
+    )
+
+    def image_function(
+            instance
+    ):
+        return make_data(
+            instance,
+            x
+        )
+
+    def likelihood_function(z):
+        return _likelihood(z, y)
+
+    factor_model = FactorModel(
+        prior_model,
+        image_function=image_function,
+        likelihood_function=likelihood_function
+    )
+    mean_field_approximation = factor_model.mean_field_approximation
+
+    opt = ep.optimise.LaplaceOptimiser(
+        mean_field_approximation,
+        n_iter=3
+    )
+
+    opt.run()
+
+    # for variable in prior_model.variables:
+    #     print(f"{variable.name} = {opt.model_approx[variable].mu}")
 
 
 @pytest.fixture(
