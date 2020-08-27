@@ -16,7 +16,7 @@ class FactorModel:
         self._prior_models = prior_models
         self._image_function = image_function
         self._likelihood_function = likelihood_function
-        unique_priors = {
+        self._unique_priors = {
             prior: path
             for model
             in self._prior_models
@@ -30,19 +30,50 @@ class FactorModel:
                 ),
                 prior
             )
-            for prior, path in unique_priors.items()
+            for prior, path in self._unique_priors.items()
         ]
-        self.prior_factors = [
+        self._deterministic_variables = {
+            prior_model: ep.Variable("z")
+            for prior_model
+            in prior_models
+        }
+
+    @property
+    def prior_factors(self):
+        return [
             ep.Factor(
-                prior,
+                variable.prior,
                 x=variable
             )
-            for prior, variable
-            in zip(
-                unique_priors.keys(),
-                self._prior_variables
-            )
+            for variable
+            in self._prior_variables
         ]
+
+    @property
+    def shape(self):
+        return self._image_function(
+            self._prior_models[0].instance_from_prior_medians()
+        ).shape
+
+    @property
+    def message_dict(self):
+        return {
+            **{
+                variable: ep.NormalMessage.from_mode(
+                    np.zeros(self.shape),
+                    100
+                )
+                for variable
+                in self._deterministic_variables.values()
+            },
+            **{
+                variable: ep.NormalMessage.from_prior(
+                    variable.prior
+                )
+                for variable
+                in self._prior_variables
+            }
+        }
 
     def _node_for_prior_model(
             self,
@@ -56,9 +87,11 @@ class FactorModel:
 
     def _graph_for_prior_model(
             self,
-            prior_model
+            prior_model,
     ):
-        z = ep.Variable("z")
+        z = self._deterministic_variables[
+            prior_model
+        ]
         likelihood_factor = ep.Factor(
             self._likelihood_function,
             z=z
@@ -124,6 +157,12 @@ def make_factor_model(
         image_function=image_function,
         likelihood_function=likelihood_function
     )
+
+
+def test_messages(
+        factor_model
+):
+    assert len(factor_model.message_dict) == 4
 
 
 def test_graph(
