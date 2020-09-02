@@ -267,9 +267,7 @@ class AbstractPySwarms(AbstractOptimizer):
         social_tag = f"{self._config('tag', 'social')}_{self.social}"
         inertia_tag = f"{self._config('tag', 'inertia')}_{self.inertia}"
 
-        return (
-            f"{name_tag}__{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}"
-        )
+        return f"{name_tag}[{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}]"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.

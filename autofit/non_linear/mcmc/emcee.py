@@ -251,7 +251,7 @@ class Emcee(AbstractMCMC):
         name_tag = self._config("tag", "name")
         nwalkers_tag = f"{self._config('tag', 'nwalkers')}_{self.nwalkers}"
 
-        return f"{name_tag}__{nwalkers_tag}"
+        return f"{name_tag}[{nwalkers_tag}]"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the emcee non-linear search with all associated attributes.

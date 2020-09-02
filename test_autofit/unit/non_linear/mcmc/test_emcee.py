@@ -65,7 +65,7 @@ class TestEmceeConfig:
 
         emcee = af.Emcee(nwalkers=11)
 
-        assert emcee.tag == "emcee__nwalkers_11"
+        assert emcee.tag == "emcee[nwalkers_11]"
 
     def test__samples_from_model(self):
 

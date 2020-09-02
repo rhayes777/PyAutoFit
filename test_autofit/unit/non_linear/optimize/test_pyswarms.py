@@ -111,13 +111,13 @@ class TestPySwarmsGlobalConfig:
             n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
         )
 
-        assert pso.tag == "pyswarms_global__particles_51_c_0.4_s_0.5_i_0.6"
+        assert pso.tag == "pyswarms_global[particles_51_c_0.4_s_0.5_i_0.6]"
 
         pso = af.PySwarmsLocal(
             n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
         )
 
-        assert pso.tag == "pyswarms_local__particles_51_c_0.4_s_0.5_i_0.6"
+        assert pso.tag == "pyswarms_local[particles_51_c_0.4_s_0.5_i_0.6]"
 
     def test__samples_from_model(self):
 

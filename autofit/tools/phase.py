@@ -335,8 +335,5 @@ class AbstractSettingsPhase:
         """
         if self.log_likelihood_cap is None:
             return ""
-        return (
-            "__"
-            + conf.instance.tag.get("phase", "log_likelihood_cap", str)
-            + "_{0:.1f}".format(self.log_likelihood_cap)
-        )
+        return f"_{conf.instance.settings_tag.get('phase', 'log_likelihood_cap')}" \
+                + "_{0:.1f}".format(self.log_likelihood_cap)

@@ -242,7 +242,7 @@ class TestMulitNest:
             importance_nested_sampling=False,
         )
 
-        assert multi_nest.tag == "multinest__nlive_40_eff_0.5"
+        assert multi_nest.tag == "multinest[nlive_40_eff_0.5]"
 
         multi_nest = af.MultiNest(
             n_live_points=41,
@@ -252,7 +252,7 @@ class TestMulitNest:
             importance_nested_sampling=True,
         )
 
-        assert multi_nest.tag == "multinest__nlive_41_eff_0.6_const_mm_is"
+        assert multi_nest.tag == "multinest[nlive_41_eff_0.6_const_mm_is]"
 
     @staticmethod
     def assert_non_linear_attributes_equal(copy):

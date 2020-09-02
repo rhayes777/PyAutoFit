@@ -455,7 +455,7 @@ class AbstractDynesty(AbstractNest):
             bound_tag = f"{bound_tag}_{bound_multi_tag}"
 
         if self.sample in "auto":
-            return f"{name_tag}__{n_live_points_tag}__{bound_tag}__{enlarge_tag}__{sample_tag}"
+            return f"{name_tag}[{n_live_points_tag}__{bound_tag}__{enlarge_tag}__{sample_tag}]"
 
         walks_tag = f"{self._config('tag', 'walks')}_{self.walks}"
         facc_tag = f"{self._config('tag', 'facc')}_{self.facc}"
@@ -473,7 +473,7 @@ class AbstractDynesty(AbstractNest):
 
         dynesty_tag = f"{bound_tag}__{enlarge_tag}__{sample_tag}{method_tag}"
 
-        return f"{name_tag}__{n_live_points_tag}__{dynesty_tag}"
+        return f"{name_tag}[{n_live_points_tag}__{dynesty_tag}]"
 
     def initial_live_points_from_model_and_fitness_function(
         self, model, fitness_function

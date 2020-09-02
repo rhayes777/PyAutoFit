@@ -291,7 +291,7 @@ class MultiNest(abstract_nest.AbstractNest):
         else:
             importance_nested_sampling_tag = ""
 
-        return f"{name_tag}__{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}"
+        return f"{name_tag}[{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}]"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the multinest non-linear search with all associated attributes.
