@@ -7,11 +7,11 @@ from autofit import expectation_propagation as ep
 from autofit.expectation_propagation.factor_graphs import FactorValue
 
 
-class ModelFactor(ep.Factor):
+class ModelFactor(ep.AbstractFactor):
     def __init__(
             self,
             prior_model: af.PriorModel,
-            image_function: Callable,
+            likelihood_function: Callable,
             prior_variables
     ):
         prior_variable_dict = dict()
@@ -20,11 +20,9 @@ class ModelFactor(ep.Factor):
                 prior_variable.name
             ] = prior_variable
         super().__init__(
-            image_function,
-            instance=ep.Variable("instance"),
             **prior_variable_dict
         )
-        self.image_function = image_function
+        self.likelihood_function = likelihood_function
         self.prior_model = prior_model
 
     def __call__(

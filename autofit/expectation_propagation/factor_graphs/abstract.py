@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import List, Tuple, cast, Collection, Set
+from itertools import count
 
 import numpy as np
 
@@ -29,6 +30,7 @@ def accept_variable_dict(func):
 
 class AbstractNode(ABC):
     _deterministic_variables: Set[Variable]
+    _id = count()
 
     def __init__(
             self,
@@ -45,6 +47,12 @@ class AbstractNode(ABC):
             Key word arguments passed to the value
         """
         self._kwargs = kwargs
+        self.id = next(self._id)
+
+    @property
+    @abstractmethod
+    def variables(self):
+        pass
 
     @property
     def variable_names(self):
@@ -65,10 +73,12 @@ class AbstractNode(ABC):
                 item
             ]
         except KeyError:
-            for variable in self._variables | self._deterministic_variables:
+            for variable in self.variables | self._deterministic_variables:
                 if variable.name == item:
                     return variable
-            raise AttributeError
+            raise AttributeError(
+                f"No attribute {item}"
+            )
 
     @property
     @abstractmethod
@@ -109,7 +119,7 @@ class AbstractNode(ABC):
         """
         A dictionary of variables associated with this node
         """
-        return self._variables | self._deterministic_variables
+        return self.variables | self._deterministic_variables
 
     def _broadcast(
             self,

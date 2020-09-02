@@ -1,3 +1,4 @@
+from abc import ABC
 from inspect import getfullargspec
 from itertools import chain, repeat
 from typing import Tuple, Dict, Union, Set, NamedTuple, Callable
@@ -18,57 +19,40 @@ class FactorValue(NamedTuple):
     deterministic_values: Dict[Variable, np.ndarray]
 
 
-class Factor(AbstractNode):
+class AbstractFactor(AbstractNode, ABC):
     def __init__(
             self,
-            factor: Callable,
             name=None,
-            vectorised=False,
-            **kwargs: Variable
+            **kwargs: Variable,
     ):
-        """
-        A node in a graph representing a factor
-
-        Parameters
-        ----------
-        factor
-            A wrapper around some callable
-        args
-            Variables representing positional arguments for the function
-        kwargs
-            Variables representing keyword arguments for the function
-        """
-        self._name = name or factor.__name__
-        self.vectorised = vectorised
-
-        self._factor = factor
+        super().__init__(**kwargs)
+        self._name = name or f"factor_{self.id}"
         self._deterministic_variables = set()
 
-        args = getfullargspec(self._factor).args
-        kwargs = {
-            **kwargs,
-            **{
-                arg: Variable(arg)
-                for arg
-                in args
-                if arg not in kwargs and arg != "self"
-            }
-        }
-
-        self.__function_shape = None
-        super().__init__(
-            **kwargs
-        )
-
-    jacobian = numerical_jacobian
-
     @property
-    def _variables(self):
-        return set(self._kwargs.values())
+    def deterministic_variables(self) -> Set[Variable]:
+        """
+        Dictionary mapping the names of deterministic variables to those variables
+        """
+        return self._deterministic_variables
 
     @property
     def name(self) -> str:
         return self._name
+
+    def __mul__(self, other):
+        """
+        When two factors are multiplied together this creates a graph
+        """
+        from autofit.expectation_propagation.factor_graphs.graph import FactorGraph
+        return FactorGraph([self]) * other
+
+    @property
+    def variables(self) -> Set[Variable]:
+        """
+        Dictionary mapping the names of variables to those variables
+        """
+        return set(self._kwargs.values())
 
     @property
     def _kwargs_dims(self) -> Dict[str, int]:
@@ -102,8 +86,8 @@ class Factor(AbstractNode):
         """
         return len(self._deterministic_variables)
 
-    def __hash__(self) -> int:
-        return hash(self._factor)
+    def __hash__(self):
+        return self.id
 
     def _resolve_args(
             self,
@@ -123,6 +107,54 @@ class Factor(AbstractNode):
 
         """
         return {n: kwargs[v.name] for n, v in self._kwargs.items()}
+
+
+class Factor(AbstractFactor):
+    def __init__(
+            self,
+            factor: Callable,
+            name=None,
+            vectorised=False,
+            **kwargs: Variable
+    ):
+        """
+        A node in a graph representing a factor
+
+        Parameters
+        ----------
+        factor
+            A wrapper around some callable
+        args
+            Variables representing positional arguments for the function
+        kwargs
+            Variables representing keyword arguments for the function
+        """
+        self.vectorised = vectorised
+
+        self._factor = factor
+
+        args = getfullargspec(self._factor).args
+        kwargs = {
+            **kwargs,
+            **{
+                arg: Variable(arg)
+                for arg
+                in args
+                if arg not in kwargs and arg != "self"
+            }
+        }
+
+        self.__function_shape = None
+        super().__init__(
+            **kwargs,
+            name=name or factor.__name__
+        )
+
+    jacobian = numerical_jacobian
+
+    def __hash__(self) -> int:
+        # TODO: might this break factor repetition somewhere?
+        return hash(self._factor)
 
     def _function_shape(self, **kwargs) -> Tuple[int, ...]:
         """
@@ -362,28 +394,7 @@ class Factor(AbstractNode):
             **self._kwargs
         )
 
-    def __mul__(self, other):
-        """
-        When two factors are multiplied together this creates a graph
-        """
-        from autofit.expectation_propagation.factor_graphs.graph import FactorGraph
-        return FactorGraph([self]) * other
-
     def __repr__(self) -> str:
         args = ", ".join(chain(
             map("{0[0]}={0[1]}".format, self._kwargs.items())))
         return f"Factor({self.name})({args})"
-
-    @property
-    def variables(self) -> Set[Variable]:
-        """
-        Dictionary mapping the names of variables to those variables
-        """
-        return self._variables
-
-    @property
-    def deterministic_variables(self) -> Set[Variable]:
-        """
-        Dictionary mapping the names of deterministic variables to those variables
-        """
-        return self._deterministic_variables
