@@ -34,12 +34,11 @@ class AbstractPhase:
             The class of a non_linear search
         """
 
-        self.search = deepcopy(search)
+        self.search = search
         self.model = model or ModelMapper()
 
         self.pipeline_name = None
         self.pipeline_tag = None
-        self.meta_dataset = None
 
     @property
     def paths(self):
@@ -98,20 +97,6 @@ class AbstractPhase:
         """
         with open(f"{self.paths.pickle_path}/mask.pickle", "wb") as f:
             dill.dump(mask, f)
-
-    def save_meta_dataset(self, meta_dataset):
-        with open(
-                f"{self.paths.pickle_path}/meta_dataset.pickle",
-                "wb+"
-        ) as f:
-            try:
-                pickle.dump(
-                    meta_dataset, f
-                )
-            except AttributeError:
-                pickle.dump(
-                    meta_dataset, f
-                )
 
     def save_settings(self, settings):
         with open(
@@ -335,5 +320,5 @@ class AbstractSettingsPhase:
         """
         if self.log_likelihood_cap is None:
             return ""
-        return f"_{conf.instance.settings_tag.get('phase', 'log_likelihood_cap')}" \
+        return f"__{conf.instance.settings_tag.get('phase', 'log_likelihood_cap')}" \
                 + "_{0:.1f}".format(self.log_likelihood_cap)
