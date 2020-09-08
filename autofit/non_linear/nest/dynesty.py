@@ -327,13 +327,26 @@ class AbstractDynesty(AbstractNest):
 
             if iterations > 0:
 
-                sampler.run_nested(
-                    maxcall=iterations,
-                    dlogz=self.evidence_tolerance,
-                    logl_max=self.logl_max,
-                    n_effective=self.n_effective,
-                    print_progress=not self.silence,
-                )
+                for i in range(10):
+
+                    try:
+                        sampler.run_nested(
+                            maxcall=iterations,
+                            dlogz=self.evidence_tolerance,
+                            logl_max=self.logl_max,
+                            n_effective=self.n_effective,
+                            print_progress=not self.silence,
+                        )
+
+                        if i == 9:
+                            raise ValueError("Dynesty crashed due to repeated bounding errors")
+
+                        break
+
+                    except ValueError:
+
+                        continue
+
 
             sampler_pickle = sampler
             sampler_pickle.loglikelihood = None

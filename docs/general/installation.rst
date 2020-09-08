@@ -40,15 +40,18 @@ autofit_workspace, reducing the download size):
 
 .. code-block:: bash
 
-   cd /path/where/you/want/autofit_workspace
+   cd /example/path/autofit_workspace
    git clone https://github.com/Jammy2211/autofit_workspace --depth 1
-   export WORKSPACE=/path/to/autofit_workspace/
+   export WORKSPACE=/example/path/autofit_workspace/
 
-Set PYTHONPATH to include the autofit_workspace directory:
+Set PYTHONPATH to include the directory containing the autofit_workspace folder:
 
 .. code-block:: bash
 
-    export PYTHONPATH=/path/to/autofit_workspace
+    export PYTHONPATH=/example/path
+
+NOTE: As shown above, the PYTHONPATH points to the directory containing the 'autofit_workspace' folder but does not
+contain the 'autofit_workspace' in the path itself.
 
 Matplotlib uses the default backend on your computer, as set in the config file:
 
@@ -119,21 +122,23 @@ Install autofit:
 
     pip install autofit
 
-
-Clone the autofit workspace & set WORKSPACE environment model:
-
-.. code-block:: bash
-
-    cd /path/where/you/want/autofit_workspace
-    git clone https://github.com/Jammy2211/autofit_workspace
-    export WORKSPACE=/path/to/autofit_workspace/
-
-
-Set PYTHONPATH to include the autofit_workspace directory:
+Clone autofit workspace & set WORKSPACE environment model ('--depth 1' clones only the most recent branch on the
+autofit_workspace, reducing the download size):
 
 .. code-block:: bash
 
-    export PYTHONPATH=/path/to/autofit_workspace/
+   cd /example/path/autofit_workspace
+   git clone https://github.com/Jammy2211/autofit_workspace --depth 1
+   export WORKSPACE=/example/path/autofit_workspace/
+
+Set PYTHONPATH to include the directory containing the autofit_workspace folder:
+
+.. code-block:: bash
+
+    export PYTHONPATH=/example/path
+
+NOTE: As shown above, the PYTHONPATH points to the directory containing the 'autofit_workspace' folder but does not
+contain the 'autofit_workspace' in the path itself.
 
 Matplotlib uses the default backend on your computer, as set in the config file:
 

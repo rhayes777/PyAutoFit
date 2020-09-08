@@ -222,7 +222,7 @@ class TestCase:
         assert result is None
 
     def test_optional_in_sub(self, collection, phase):
-        promise = phase.result.hyper.model.optional.heart
+        promise = phase.result.setup_hyper.model.optional.heart
         result = promise.populate(collection)
         assert result is None
 
