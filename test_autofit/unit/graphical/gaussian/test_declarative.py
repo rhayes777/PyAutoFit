@@ -127,8 +127,12 @@ def test_shared_intensity():
     """
     Et voila! 
     """
-    for variable in factor_model.priors:
-        print(f"{variable.name} = {opt.model_approx[variable].mu}")
+    assert 25.0 == pytest.approx(
+        opt.model_approx[
+            intensity_prior
+        ].mu,
+        rel=0.1
+    )
 
 
 def test_gaussian():
