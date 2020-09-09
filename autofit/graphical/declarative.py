@@ -127,15 +127,6 @@ class LikelihoodModelCollection:
 
     @property
     def graph(self):
-        """
-        - Test graph with associated fitness function
-        - Test running an actual fit for a Gaussian
-        - Test creating a graph with multiple gaussians and shared priors
-        - Also need to generate a dictionary mapping each of the prior variables to an initial message
-        - Can multiple instances of this class be combined? That would allow customisation of image and likelihood
-        functions
-        """
-
         likelihood_model = self.likelihood_models[0]
         graph = ModelFactor(
             likelihood_model.prior_model,
