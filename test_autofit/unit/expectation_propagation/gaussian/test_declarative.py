@@ -97,6 +97,7 @@ class FactorModel:
         graph = self._node_for_likelihood_model(
             self.likelihood_models[0],
         )
+
         for likelihood_model in self.likelihood_models[1:]:
             graph *= self._node_for_likelihood_model(
                 likelihood_model
@@ -134,7 +135,7 @@ def test_gaussian():
     x = np.arange(n_observations)
     y = make_data(
         Gaussian(
-            centre=100.0,
+            centre=50.0,
             intensity=25.0,
             sigma=10.0
         ),
@@ -144,7 +145,7 @@ def test_gaussian():
     prior_model = af.PriorModel(
         Gaussian,
         centre=af.GaussianPrior(
-            mean=100,
+            mean=50,
             sigma=20
         ),
         intensity=af.GaussianPrior(
@@ -158,12 +159,10 @@ def test_gaussian():
     )
 
     def likelihood_function(instance):
+        y_model = instance(x)
         return np.mean(
             _likelihood(
-                make_data(
-                    instance,
-                    x
-                ),
+                y_model,
                 y
             )
         )
