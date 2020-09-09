@@ -1,5 +1,6 @@
 from typing import Callable
 from typing import List
+import numpy as np
 
 from autofit.expectation_propagation.factor_graphs.factor import Factor, Variable
 from autofit.expectation_propagation.mean_field import MeanFieldApproximation
@@ -14,13 +15,28 @@ class ModelFactor(Factor):
             likelihood_function: Callable,
             prior_variables
     ):
+        """
+        A factor in the graph that actually computes the likelihood of a model
+        given values for each variable that model contains
+
+        Parameters
+        ----------
+        prior_model
+            A model with some dimensionality
+        likelihood_function
+            A function that evaluates how well an instance of the model fits some data
+        prior_variables
+            A collection of variables created by a larger model relevant to this model
+        """
         prior_variable_dict = dict()
         for prior_variable in prior_variables:
             prior_variable_dict[
                 prior_variable.name
             ] = prior_variable
 
-        def _factor(**kwargs):
+        def _factor(
+                **kwargs: np.ndarray
+        ) -> int:
             arguments = dict()
             for name, array in kwargs.items():
                 prior_id = int(name.split("_")[1])

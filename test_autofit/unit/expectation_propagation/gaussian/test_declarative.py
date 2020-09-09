@@ -43,7 +43,7 @@ def test_shared_intensity():
 
         def likelihood_function(instance):
             y_model = instance(x)
-            return np.mean(
+            return np.sum(
                 _likelihood(
                     y_model,
                     y
@@ -109,7 +109,7 @@ def test_gaussian():
 
     def likelihood_function(instance):
         y_model = instance(x)
-        return np.mean(
+        return np.sum(
             _likelihood(
                 y_model,
                 y
