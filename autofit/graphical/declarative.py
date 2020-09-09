@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, cast, Set, List
+from typing import Callable, cast, Set, List, Dict
 
 import numpy as np
 
@@ -15,7 +15,9 @@ class AbstractModelFactor(ABC):
     @property
     @abstractmethod
     def model_factors(self) -> List["ModelFactor"]:
-        pass
+        """
+        A list of factors that comprise a PriorModel and corresponding fitness function
+        """
 
     @property
     def priors(self) -> Set[Prior]:
@@ -31,7 +33,11 @@ class AbstractModelFactor(ABC):
         }
 
     @property
-    def prior_factors(self):
+    def prior_factors(self) -> List[Factor]:
+        """
+        A list of factors that act as priors on latent variables. One factor exists
+        for each unique prior.
+        """
         return [
             Factor(
                 prior,
@@ -42,7 +48,12 @@ class AbstractModelFactor(ABC):
         ]
 
     @property
-    def message_dict(self):
+    def message_dict(self) -> Dict[Prior, NormalMessage]:
+        """
+        Dictionary mapping priors to messages.
+
+        TODO: should support more than just GaussianPriors/NormalMessages
+        """
         return {
             prior: NormalMessage.from_prior(
                 prior
@@ -53,6 +64,9 @@ class AbstractModelFactor(ABC):
 
     @property
     def graph(self) -> FactorGraph:
+        """
+        The complete graph made by combining all factors and priors
+        """
         return cast(
             FactorGraph,
             np.prod(
