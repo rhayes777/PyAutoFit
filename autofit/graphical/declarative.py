@@ -1,8 +1,9 @@
-from typing import Callable, cast
-from typing import List
+from abc import ABC, abstractmethod
+from typing import Callable, cast, Set, List
 
 import numpy as np
 
+from autofit import Prior
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanFieldApproximation
@@ -10,7 +11,67 @@ from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior_model.prior_model import PriorModel
 
 
-class ModelFactor(Factor):
+class AbstractModelFactor(ABC):
+    @property
+    @abstractmethod
+    def model_factors(self) -> List["ModelFactor"]:
+        pass
+
+    @property
+    def priors(self) -> Set[Prior]:
+        """
+        A set of all priors encompassed by the contained likelihood models
+        """
+        return {
+            prior
+            for model
+            in self.model_factors
+            for prior
+            in model.prior_model.priors
+        }
+
+    @property
+    def prior_factors(self):
+        return [
+            Factor(
+                prior,
+                x=prior
+            )
+            for prior
+            in self.priors
+        ]
+
+    @property
+    def message_dict(self):
+        return {
+            prior: NormalMessage.from_prior(
+                prior
+            )
+            for prior
+            in self.priors
+        }
+
+    @property
+    def graph(self) -> FactorGraph:
+        return cast(
+            FactorGraph,
+            np.prod(
+                [
+                    model
+                    for model
+                    in self.model_factors
+                ] + self.prior_factors
+            )
+        )
+
+    def mean_field_approximation(self):
+        return MeanFieldApproximation.from_kws(
+            self.graph,
+            self.message_dict
+        )
+
+
+class ModelFactor(Factor, AbstractModelFactor):
     def __init__(
             self,
             prior_model: PriorModel,
@@ -68,92 +129,18 @@ class ModelFactor(Factor):
         self.likelihood_function = likelihood_function
         self.prior_model = prior_model
 
-
-class LikelihoodModelCollection:
-    def __init__(
-            self,
-            likelihood_models: List["LikelihoodModel"]
-    ):
+    def __mul__(self, other):
         """
-        A collection of likelihood models. Used to conveniently construct a mean field prior
-        model with a graph of the class used to fit data.
-
-        Parameters
-        ----------
-        likelihood_models
-            A collection of models each of which comprises a model and a fit
+        When two factors are multiplied together this creates a graph
         """
-        self.likelihood_models = likelihood_models
+        return LikelihoodModelCollection([self]) * other
 
     @property
-    def priors(self):
-        return {
-            prior
-            for model
-            in self.likelihood_models
-            for prior
-            in model.prior_model.priors
-        }
+    def model_factors(self):
+        return [self]
 
+
+class LikelihoodModelCollection(FactorGraph, AbstractModelFactor):
     @property
-    def prior_factors(self):
-        return [
-            Factor(
-                prior,
-                x=prior
-            )
-            for prior
-            in self.priors
-        ]
-
-    @property
-    def message_dict(self):
-        return {
-            prior: NormalMessage.from_prior(
-                prior
-            )
-            for prior
-            in self.priors
-        }
-
-    @property
-    def graph(self) -> FactorGraph:
-        return cast(
-            FactorGraph,
-            np.prod(
-                [
-                    model.factor
-                    for model
-                    in self.likelihood_models
-                ] + self.prior_factors
-            )
-        )
-
-    def mean_field_approximation(self):
-        return MeanFieldApproximation.from_kws(
-            self.graph,
-            self.message_dict
-        )
-
-    def __mul__(self, other: "LikelihoodModelCollection"):
-        return LikelihoodModelCollection(
-            other.likelihood_models + self.likelihood_models
-        )
-
-
-class LikelihoodModel(LikelihoodModelCollection):
-    def __init__(
-            self,
-            prior_model,
-            likelihood_function
-    ):
-        self.prior_model = prior_model
-        self.likelihood_function = likelihood_function
-        super().__init__([self])
-
-    @property
-    def factor(self):
-        return ModelFactor(
-            self.prior_model,
-            self.likelihood_function
-        )
+    def model_factors(self):
+        return self.factors

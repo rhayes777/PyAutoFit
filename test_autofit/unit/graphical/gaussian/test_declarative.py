@@ -25,7 +25,7 @@ def test_shared_intensity():
     def make_factor_model(
             centre: float,
             sigma: float
-    ) -> ep.LikelihoodModel:
+    ) -> ep.ModelFactor:
         """
         We'll make a LikelihoodModel for each Gaussian we're fitting.
 
@@ -80,7 +80,7 @@ def test_shared_intensity():
         factor - this will be converted into a ModelFactor which is like any other factor in the
         factor graph.
         """
-        return ep.LikelihoodModel(
+        return ep.ModelFactor(
             prior_model,
             likelihood_function=likelihood_function
         )
@@ -165,7 +165,7 @@ def test_gaussian():
             )
         )
 
-    factor_model = ep.LikelihoodModel(
+    factor_model = ep.ModelFactor(
         prior_model,
         likelihood_function=likelihood_function
     )
@@ -210,7 +210,7 @@ def make_factor_model(
     ):
         return 1
 
-    return ep.LikelihoodModel(
+    return ep.ModelFactor(
         prior_model,
         likelihood_function=likelihood_function
     )
