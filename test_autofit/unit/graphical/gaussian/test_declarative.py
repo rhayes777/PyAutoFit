@@ -124,7 +124,7 @@ def test_shared_intensity():
     """
     Et voila! 
     """
-    for variable in factor_model.prior_variables:
+    for variable in factor_model.priors:
         print(f"{variable.name} = {opt.model_approx[variable].mu}")
 
 
@@ -179,9 +179,9 @@ def test_gaussian():
     opt.run()
 
     prior_value_dict = dict()
-    for variable in factor_model.prior_variables:
+    for variable in factor_model.priors:
         name = prior_model.path_for_prior(
-            variable.prior
+            variable
         )[0]
         prior_value_dict[name] = opt.model_approx[variable].mu
 

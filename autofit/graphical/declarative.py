@@ -4,18 +4,16 @@ from typing import List
 import numpy as np
 
 from autofit.graphical.factor_graphs.factor import Factor
-from autofit.mapper.variable import Variable
 from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
-from autofit.mapper.prior_model.prior_model import Prior, PriorModel
+from autofit.mapper.prior_model.prior_model import PriorModel
 
 
 class ModelFactor(Factor):
     def __init__(
             self,
             prior_model: PriorModel,
-            likelihood_function: Callable,
-            prior_variables
+            likelihood_function: Callable
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -27,14 +25,12 @@ class ModelFactor(Factor):
             A model with some dimensionality
         likelihood_function
             A function that evaluates how well an instance of the model fits some data
-        prior_variables
-            A collection of variables created by a larger model relevant to this model
         """
-        prior_variable_dict = dict()
-        for prior_variable in prior_variables:
-            prior_variable_dict[
-                prior_variable.name
-            ] = prior_variable
+        prior_variable_dict = {
+            prior.name: prior
+            for prior
+            in prior_model.priors
+        }
 
         def _factor(
                 **kwargs: np.ndarray
@@ -72,16 +68,6 @@ class ModelFactor(Factor):
         self.prior_model = prior_model
 
 
-class PriorVariable(Variable):
-    def __init__(
-            self,
-            name: str,
-            prior: Prior
-    ):
-        super().__init__(name)
-        self.prior = prior
-
-
 class LikelihoodModelCollection:
     def __init__(
             self,
@@ -105,21 +91,10 @@ class LikelihoodModelCollection:
             for prior
             in prior_model.priors
         }
-        self._prior_variables = [
-            PriorVariable(
-                f"prior_{prior.id}",
-                prior
-            )
-            for prior in self._unique_priors
-        ]
-        self._prior_variable_map = {
-            prior_variable.prior: prior_variable
-            for prior_variable in self._prior_variables
-        }
 
     @property
-    def prior_variables(self):
-        return self._prior_variables
+    def priors(self):
+        return self._unique_priors
 
     @property
     def prior_models(self):
@@ -133,39 +108,22 @@ class LikelihoodModelCollection:
     def prior_factors(self):
         return [
             Factor(
-                variable.prior,
-                x=variable
+                prior,
+                x=prior
             )
-            for variable
-            in self._prior_variables
+            for prior
+            in self.priors
         ]
 
     @property
     def message_dict(self):
         return {
-            variable: NormalMessage.from_prior(
-                variable.prior
-            )
-            for variable
-            in self._prior_variables
-        }
-
-    def _node_for_likelihood_model(
-            self,
-            likelihood_model: "LikelihoodModel"
-    ):
-        prior_variables = [
-            self._prior_variable_map[
+            prior: NormalMessage.from_prior(
                 prior
-            ]
+            )
             for prior
-            in likelihood_model.prior_model.priors
-        ]
-        return ModelFactor(
-            likelihood_model.prior_model,
-            likelihood_model.likelihood_function,
-            prior_variables
-        )
+            in self.priors
+        }
 
     @property
     def graph(self):
@@ -178,13 +136,16 @@ class LikelihoodModelCollection:
         functions
         """
 
-        graph = self._node_for_likelihood_model(
-            self.likelihood_models[0],
+        likelihood_model = self.likelihood_models[0]
+        graph = ModelFactor(
+            likelihood_model.prior_model,
+            likelihood_model.likelihood_function
         )
 
         for likelihood_model in self.likelihood_models[1:]:
-            graph *= self._node_for_likelihood_model(
-                likelihood_model
+            graph *= ModelFactor(
+                likelihood_model.prior_model,
+                likelihood_model.likelihood_function
             )
         for prior_factor in self.prior_factors:
             graph *= prior_factor
