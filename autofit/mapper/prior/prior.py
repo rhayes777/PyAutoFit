@@ -296,7 +296,7 @@ class GaussianPrior(Prior):
 
     @property
     def norm(self):
-        return stats.norm(loc=0, scale=20.)
+        return stats.norm(loc=self.mean, scale=self.sigma)
 
     @property
     def logpdf(self):
