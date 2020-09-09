@@ -180,8 +180,16 @@ def test_gaussian():
 
     opt.run()
 
+    prior_value_dict = dict()
     for variable in factor_model.prior_variables:
-        print(f"{variable.name} = {opt.model_approx[variable].mu}")
+        name = prior_model.path_for_prior(
+            variable.prior
+        )[0]
+        prior_value_dict[name] = opt.model_approx[variable].mu
+
+    assert prior_value_dict["centre"] == pytest.approx(50, rel=0.1)
+    assert prior_value_dict["intensity"] == pytest.approx(25, rel=0.1)
+    assert prior_value_dict["sigma"] == pytest.approx(10, rel=0.1)
 
 
 @pytest.fixture(
