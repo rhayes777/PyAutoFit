@@ -158,12 +158,14 @@ def test_gaussian():
     )
 
     def likelihood_function(instance):
-        return _likelihood(
-            make_data(
-                instance,
-                x
-            ),
-            y
+        return np.mean(
+            _likelihood(
+                make_data(
+                    instance,
+                    x
+                ),
+                y
+            )
         )
 
     factor_model = LikelihoodModel(
@@ -174,7 +176,7 @@ def test_gaussian():
 
     opt = ep.optimise.LaplaceOptimiser(
         mean_field_approximation,
-        n_iter=9
+        n_iter=3
     )
 
     opt.run()
