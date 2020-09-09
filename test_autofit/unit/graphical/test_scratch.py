@@ -1,5 +1,6 @@
 import numpy as np
 
+import autofit.mapper.variable
 from autofit import graphical as mp
 
 
@@ -8,7 +9,7 @@ def func(x):
 
 
 def test_():
-    x = mp.Variable("x")
+    x = autofit.mapper.variable.Variable("x")
     factor = mp.Factor(
         func,
         x=x

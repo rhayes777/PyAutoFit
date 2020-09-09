@@ -1,7 +1,7 @@
 import pytest
 from scipy import stats
 
-
+import autofit.mapper.variable
 from autofit import graphical as mp
 
 
@@ -9,7 +9,7 @@ from autofit import graphical as mp
     name="x"
 )
 def make_x():
-    return mp.Variable("x")
+    return autofit.mapper.variable.Variable("x")
 
 
 @pytest.fixture(

@@ -4,6 +4,7 @@ from scipy import integrate, stats
 import autofit.graphical.messages.fixed
 import autofit.graphical.messages.gamma
 import autofit.graphical.messages.normal
+import autofit.mapper.variable
 from autofit import graphical as mp
 
 
@@ -55,24 +56,24 @@ def test():
     y = y_true + noise * np.random.randn(n_species, n_obs)
 
     ## Specifying dimensions of problem
-    obs = mp.Plate(name='obs')
-    species = mp.Plate(name='species')
+    obs = autofit.mapper.variable.Plate(name='obs')
+    species = autofit.mapper.variable.Plate(name='species')
     # Need to specify a second plate for species because
     # A is (species, species) and we need a second plate
     # to unique specify the second dimension
-    speciesA = mp.Plate(name='species')
-    dims = mp.Plate(name='dims')
+    speciesA = autofit.mapper.variable.Plate(name='species')
+    dims = autofit.mapper.variable.Plate(name='dims')
 
     ## Specifying variables
-    r_ = mp.Variable('r', species)
-    A_ = mp.Variable('A', species, speciesA)
-    K_ = mp.Variable('K')
+    r_ = autofit.mapper.variable.Variable('r', species)
+    A_ = autofit.mapper.variable.Variable('A', species, speciesA)
+    K_ = autofit.mapper.variable.Variable('K')
 
-    y0_ = mp.Variable('y0', species)
-    y_ = mp.Variable('y', species, obs)
+    y0_ = autofit.mapper.variable.Variable('y0', species)
+    y_ = autofit.mapper.variable.Variable('y', species, obs)
 
-    y_obs_ = mp.Variable('y_obs', species, obs)
-    t_obs_ = mp.Variable('t_obs', obs)
+    y_obs_ = autofit.mapper.variable.Variable('y_obs', species, obs)
+    t_obs_ = autofit.mapper.variable.Variable('t_obs', obs)
 
     _norm = stats.norm(loc=0, scale=noise)
     _prior = stats.norm(loc=0, scale=10)

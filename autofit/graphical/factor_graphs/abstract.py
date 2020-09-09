@@ -5,7 +5,7 @@ from itertools import count
 
 import numpy as np
 
-from autofit.graphical.factor_graphs.variable import Variable, Plate
+from autofit.mapper.variable import Variable, Plate
 
 
 def accept_variable_dict(func):

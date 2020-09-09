@@ -6,7 +6,8 @@ from typing import (
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import Factor, Variable
+from autofit.graphical.factor_graphs import Factor
+from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import FixedMessage
 from autofit.graphical.messages.abstract import AbstractMessage

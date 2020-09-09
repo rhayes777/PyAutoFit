@@ -7,7 +7,7 @@ import numpy as np
 
 from autofit.graphical.factor_graphs.abstract import AbstractNode, accept_variable_dict
 from autofit.graphical.factor_graphs.numerical import numerical_jacobian
-from autofit.graphical.factor_graphs.variable import Variable
+from autofit.mapper.variable import Variable
 
 
 class FactorValue(NamedTuple):

@@ -3,7 +3,8 @@ from typing import List
 
 import numpy as np
 
-from autofit.graphical.factor_graphs.factor import Factor, Variable
+from autofit.graphical.factor_graphs.factor import Factor
+from autofit.mapper.variable import Variable
 from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior_model.prior_model import Prior, PriorModel

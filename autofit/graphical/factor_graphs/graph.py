@@ -6,7 +6,7 @@ import numpy as np
 from autofit.graphical.factor_graphs import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.abstract import accept_variable_dict
 from autofit.graphical.factor_graphs.factor import Factor
-from autofit.graphical.factor_graphs.variable import Variable, Plate
+from autofit.mapper.variable import Variable, Plate
 from autofit.graphical.utils import add_arrays
 
 

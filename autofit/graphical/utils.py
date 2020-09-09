@@ -7,7 +7,7 @@ from typing import (
 import numpy as np
 from scipy import special
 
-from autofit.graphical.factor_graphs.variable import Variable
+from autofit.mapper.variable import Variable
 
 
 class FlattenArrays(dict):

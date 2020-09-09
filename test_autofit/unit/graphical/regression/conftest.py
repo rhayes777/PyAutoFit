@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from scipy import stats
 
+import autofit.mapper.variable
 from autofit import graphical as mp
 
 
@@ -44,56 +45,56 @@ def linear(x, a, b):
     name="obs"
 )
 def make_obs():
-    return mp.Plate(name='obs')
+    return autofit.mapper.variable.Plate(name='obs')
 
 
 @pytest.fixture(
     name="features"
 )
 def make_features():
-    return mp.Plate(name='features')
+    return autofit.mapper.variable.Plate(name='features')
 
 
 @pytest.fixture(
     name="dims"
 )
 def make_dims():
-    return mp.Plate(name='dims')
+    return autofit.mapper.variable.Plate(name='dims')
 
 
 @pytest.fixture(
     name="x_"
 )
 def make_x_(obs, features):
-    return mp.Variable('x', obs, features)
+    return autofit.mapper.variable.Variable('x', obs, features)
 
 
 @pytest.fixture(
     name="a_"
 )
 def make_a_(features, dims):
-    return mp.Variable('a', features, dims)
+    return autofit.mapper.variable.Variable('a', features, dims)
 
 
 @pytest.fixture(
     name="b_"
 )
 def make_b_(dims):
-    return mp.Variable('b', dims)
+    return autofit.mapper.variable.Variable('b', dims)
 
 
 @pytest.fixture(
     name="z_"
 )
 def make_z_(obs, dims):
-    return mp.Variable('z', obs, dims)
+    return autofit.mapper.variable.Variable('z', obs, dims)
 
 
 @pytest.fixture(
     name="y_"
 )
 def make_y_(obs, dims):
-    return mp.Variable('y', obs, dims)
+    return autofit.mapper.variable.Variable('y', obs, dims)
 
 
 @pytest.fixture(

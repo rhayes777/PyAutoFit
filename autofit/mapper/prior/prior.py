@@ -10,7 +10,6 @@ from scipy.special import erfcinv
 
 from autoconf import conf
 from autofit import exc
-from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior_model.attribute_pair import (
@@ -18,6 +17,7 @@ from autofit.mapper.prior_model.attribute_pair import (
     PriorNameValue,
     InstanceNameValue,
 )
+from autofit.mapper.variable import Variable
 
 
 class WidthModifier:
@@ -155,7 +155,7 @@ class TuplePrior:
         return self.prior_tuples[item][1]
 
 
-class Prior(ModelObject, ABC, ArithmeticMixin):
+class Prior(Variable, ABC, ArithmeticMixin):
     def __init__(self, lower_limit=0.0, upper_limit=1.0):
         """
         An object used to mappers a unit value to an attribute value for a specific

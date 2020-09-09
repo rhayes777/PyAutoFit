@@ -4,7 +4,8 @@ from typing import Optional, Dict, Tuple, NamedTuple, Any
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
 
-from autofit.graphical import FixedMessage, Variable
+from autofit.graphical import FixedMessage
+from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs import Factor
 from .mean_field import FactorApproximation, MeanFieldApproximation, Status
 from .utils import propagate_uncertainty, FlattenArrays

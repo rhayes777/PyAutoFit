@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import autofit.mapper.variable
 from autofit import graphical as mp
 
 
@@ -20,7 +21,7 @@ def plus_two(x):
     name="y"
 )
 def make_y():
-    return mp.Variable('y')
+    return autofit.mapper.variable.Variable('y')
 
 
 @pytest.fixture(
@@ -139,14 +140,14 @@ class TestFactorGraph:
         }
 
     def test_plates(self):
-        obs = mp.Plate(name='obs')
-        dims = mp.Plate(name='dims')
+        obs = autofit.mapper.variable.Plate(name='obs')
+        dims = autofit.mapper.variable.Plate(name='dims')
 
         def sub(a, b):
             return a - b
 
-        x = mp.Variable('a', obs, dims)
-        y = mp.Variable('b', dims)
+        x = autofit.mapper.variable.Variable('a', obs, dims)
+        y = autofit.mapper.variable.Variable('b', dims)
 
         subtract = mp.Factor(sub, a=x, b=y)
 
