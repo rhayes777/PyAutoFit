@@ -1,5 +1,6 @@
 from typing import Callable
 from typing import List
+
 import numpy as np
 
 from autofit.expectation_propagation.factor_graphs.factor import Factor, Variable
@@ -36,7 +37,20 @@ class ModelFactor(Factor):
 
         def _factor(
                 **kwargs: np.ndarray
-        ) -> int:
+        ) -> float:
+            """
+            Creates an instance of the prior model and evaluates it, forming
+            a factor.
+
+            Parameters
+            ----------
+            kwargs
+                Arguments with names that are unique for each prior.
+
+            Returns
+            -------
+            Calculated likelihood
+            """
             arguments = dict()
             for name, array in kwargs.items():
                 prior_id = int(name.split("_")[1])
@@ -67,25 +81,35 @@ class PriorVariable(Variable):
         self.prior = prior
 
 
-class FactorModel:
+class LikelihoodModelCollection:
     def __init__(
             self,
             likelihood_models: List["LikelihoodModel"]
     ):
+        """
+        A collection of likelihood models. Used to conveniently construct a mean field prior
+        model with a graph of the class used to fit data.
+
+        Parameters
+        ----------
+        likelihood_models
+            A collection of models each of which comprises a model and a fit
+        """
+
         self.likelihood_models = likelihood_models
         self._unique_priors = {
-            prior: path
+            prior
             for prior_model
             in self.prior_models
-            for path, prior
-            in prior_model.path_priors_tuples
+            for prior
+            in prior_model.priors
         }
         self._prior_variables = [
             PriorVariable(
                 f"prior_{prior.id}",
                 prior
             )
-            for prior, path in self._unique_priors.items()
+            for prior in self._unique_priors
         ]
         self._prior_variable_map = {
             prior_variable.prior: prior_variable
@@ -172,13 +196,13 @@ class FactorModel:
             self.message_dict
         )
 
-    def __mul__(self, other: "FactorModel"):
-        return FactorModel(
+    def __mul__(self, other: "LikelihoodModelCollection"):
+        return LikelihoodModelCollection(
             other.likelihood_models + self.likelihood_models
         )
 
 
-class LikelihoodModel(FactorModel):
+class LikelihoodModel(LikelihoodModelCollection):
     def __init__(
             self,
             prior_model,
