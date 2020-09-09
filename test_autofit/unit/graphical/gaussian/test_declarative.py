@@ -110,7 +110,7 @@ def test_shared_intensity():
     """
     A mean field approximation can be generated from the model
     """
-    mean_field_approximation = factor_model.mean_field_approximation
+    mean_field_approximation = factor_model.mean_field_approximation()
 
     """
     We optimise that...
@@ -169,7 +169,7 @@ def test_gaussian():
         prior_model,
         likelihood_function=likelihood_function
     )
-    mean_field_approximation = factor_model.mean_field_approximation
+    mean_field_approximation = factor_model.mean_field_approximation()
 
     opt = ep.optimise.LaplaceOptimiser(
         mean_field_approximation,

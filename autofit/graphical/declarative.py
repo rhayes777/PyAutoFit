@@ -83,27 +83,17 @@ class LikelihoodModelCollection:
         likelihood_models
             A collection of models each of which comprises a model and a fit
         """
-
         self.likelihood_models = likelihood_models
-        self._unique_priors = {
-            prior
-            for prior_model
-            in self.prior_models
-            for prior
-            in prior_model.priors
-        }
 
     @property
     def priors(self):
-        return self._unique_priors
-
-    @property
-    def prior_models(self):
-        return [
-            model.prior_model
+        return {
+            prior
             for model
             in self.likelihood_models
-        ]
+            for prior
+            in model.prior_model.priors
+        }
 
     @property
     def prior_factors(self):
@@ -139,7 +129,6 @@ class LikelihoodModelCollection:
             )
         )
 
-    @property
     def mean_field_approximation(self):
         return MeanFieldApproximation.from_kws(
             self.graph,
