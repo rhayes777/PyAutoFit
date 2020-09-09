@@ -1,3 +1,4 @@
+import logging
 from abc import ABC
 from inspect import getfullargspec
 from itertools import chain, repeat
@@ -8,6 +9,10 @@ import numpy as np
 from autofit.expectation_propagation.factor_graphs.abstract import AbstractNode, accept_variable_dict
 from autofit.expectation_propagation.factor_graphs.numerical import numerical_jacobian
 from autofit.expectation_propagation.factor_graphs.variable import Variable
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class FactorValue(NamedTuple):
@@ -318,12 +323,18 @@ class Factor(AbstractFactor):
         Object encapsulating the result of the function call
         """
         val = self._call_factor(**kwargs)
-        return FactorValue(
-            val.reshape(
+        try:
+            val = val.reshape(
                 self._function_shape(
                     **kwargs
                 )
-            ), {}
+            )
+        except ValueError:
+            logger.debug(
+                "Could not reshape value"
+            )
+        return FactorValue(
+            val, {}
         )
 
     def broadcast_variable(
