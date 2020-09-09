@@ -6,6 +6,79 @@ import autofit.expectation_propagation as ep
 from test_autofit.unit.expectation_propagation.gaussian.model import Gaussian, make_data, _likelihood
 
 
+def test_shared_intensity():
+    n_observations = 100
+    x = np.arange(n_observations)
+
+    intensity = 25.0
+    intensity_prior = af.GaussianPrior(
+        mean=25,
+        sigma=10
+    )
+
+    def make_factor_model(
+            centre,
+            sigma
+    ):
+        y = make_data(
+            Gaussian(
+                centre=centre,
+                intensity=intensity,
+                sigma=sigma
+            ),
+            x
+        )
+        prior_model = af.PriorModel(
+            Gaussian,
+            centre=af.GaussianPrior(
+                mean=50,
+                sigma=20
+            ),
+            intensity=intensity_prior,
+            sigma=af.GaussianPrior(
+                mean=10,
+                sigma=10
+            )
+        )
+
+        def likelihood_function(instance):
+            y_model = instance(x)
+            return np.mean(
+                _likelihood(
+                    y_model,
+                    y
+                )
+            )
+
+        return ep.LikelihoodModel(
+            prior_model,
+            likelihood_function=likelihood_function
+        )
+
+    factor_model = make_factor_model(
+        centre=40,
+        sigma=10
+    ) * make_factor_model(
+        centre=60,
+        sigma=15
+    )
+
+    assert len(factor_model.message_dict) == 5
+    assert len(factor_model.graph.factors) == 7
+
+    mean_field_approximation = factor_model.mean_field_approximation
+
+    opt = ep.optimise.LaplaceOptimiser(
+        mean_field_approximation,
+        n_iter=3
+    )
+
+    opt.run()
+
+    for variable in factor_model.prior_variables:
+        print(f"{variable.name} = {opt.model_approx[variable].mu}")
+
+
 def test_gaussian():
     n_observations = 100
     x = np.arange(n_observations)
