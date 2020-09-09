@@ -34,6 +34,10 @@ class FactorModel:
         }
 
     @property
+    def prior_variables(self):
+        return self._prior_variables
+
+    @property
     def prior_models(self):
         return [
             model.prior_model
@@ -130,7 +134,7 @@ def test_gaussian():
     x = np.arange(n_observations)
     y = make_data(
         Gaussian(
-            centre=50.0,
+            centre=100.0,
             intensity=25.0,
             sigma=10.0
         ),
@@ -140,15 +144,15 @@ def test_gaussian():
     prior_model = af.PriorModel(
         Gaussian,
         centre=af.GaussianPrior(
-            mean=50,
+            mean=100,
             sigma=20
         ),
         intensity=af.GaussianPrior(
-            mean=20,
+            mean=25,
             sigma=10
         ),
         sigma=af.GaussianPrior(
-            mean=20,
+            mean=10,
             sigma=10
         )
     )
@@ -170,13 +174,13 @@ def test_gaussian():
 
     opt = ep.optimise.LaplaceOptimiser(
         mean_field_approximation,
-        n_iter=3
+        n_iter=9
     )
 
     opt.run()
 
-    # for variable in prior_model.variables:
-    #     print(f"{variable.name} = {opt.model_approx[variable].mu}")
+    for variable in factor_model.prior_variables:
+        print(f"{variable.name} = {opt.model_approx[variable].mu}")
 
 
 @pytest.fixture(
