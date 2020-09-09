@@ -7,9 +7,15 @@ from test_autofit.unit.expectation_propagation.gaussian.model import Gaussian, m
 
 
 def test_shared_intensity():
+    """
+    Here's a good example in which we have two Gaussians fit with a shared variable
+    """
     n_observations = 100
     x = np.arange(n_observations)
 
+    """
+    We have a shared intensity value and a shared intensity prior
+    """
     intensity = 25.0
     intensity_prior = af.GaussianPrior(
         mean=25,
@@ -17,9 +23,16 @@ def test_shared_intensity():
     )
 
     def make_factor_model(
-            centre,
-            sigma
-    ):
+            centre: float,
+            sigma: float
+    ) -> ep.LikelihoodModel:
+        """
+        We'll make a LikelihoodModel for each Gaussian we're fitting.
+
+        First we'll make the actual data to be fit.
+
+        Note that the intensity value is shared.
+        """
         y = make_data(
             Gaussian(
                 centre=centre,
@@ -28,6 +41,12 @@ def test_shared_intensity():
             ),
             x
         )
+
+        """
+        Next we need a prior model.
+        
+        Note that the intensity prior is shared.
+        """
         prior_model = af.PriorModel(
             Gaussian,
             centre=af.GaussianPrior(
@@ -41,7 +60,13 @@ def test_shared_intensity():
             )
         )
 
-        def likelihood_function(instance):
+        def likelihood_function(
+                instance: Gaussian
+        ) -> np.array:
+            """
+            This function takes an instance created by the PriorModel and computes the
+            likelihood that it fits the data.
+            """
             y_model = instance(x)
             return np.sum(
                 _likelihood(
@@ -50,11 +75,22 @@ def test_shared_intensity():
                 )
             )
 
+        """
+        Finally we combine the likelihood function with the prior model to produce a likelihood
+        factor - this will be converted into a ModelFactor which is like any other factor in the
+        factor graph.
+        """
         return ep.LikelihoodModel(
             prior_model,
             likelihood_function=likelihood_function
         )
 
+    """
+    Multiplying together multiple LikelihoodModels gives us a factor model.
+    
+    The factor model can compute all the variables and messages required as well as construct
+    a factor graph representing a fit on the ensemble.
+    """
     factor_model = make_factor_model(
         centre=40,
         sigma=10
@@ -63,18 +99,31 @@ def test_shared_intensity():
         sigma=15
     )
 
+    """
+    There are:
+    - 5 messages - one for each prior 
+    - 7 factors - one for each prior plus one for each likelihood
+    """
     assert len(factor_model.message_dict) == 5
     assert len(factor_model.graph.factors) == 7
 
+    """
+    A mean field approximation can be generated from the model
+    """
     mean_field_approximation = factor_model.mean_field_approximation
 
+    """
+    We optimise that...
+    """
     opt = ep.optimise.LaplaceOptimiser(
         mean_field_approximation,
         n_iter=3
     )
-
     opt.run()
 
+    """
+    Et voila! 
+    """
     for variable in factor_model.prior_variables:
         print(f"{variable.name} = {opt.model_approx[variable].mu}")
 
