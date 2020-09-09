@@ -1,9 +1,10 @@
-from typing import Callable
+from typing import Callable, cast
 from typing import List
 
 import numpy as np
 
 from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior_model.prior_model import PriorModel
@@ -126,21 +127,17 @@ class LikelihoodModelCollection:
         }
 
     @property
-    def graph(self):
-        likelihood_model = self.likelihood_models[0]
-        graph = ModelFactor(
-            likelihood_model.prior_model,
-            likelihood_model.likelihood_function
-        )
-
-        for likelihood_model in self.likelihood_models[1:]:
-            graph *= ModelFactor(
-                likelihood_model.prior_model,
-                likelihood_model.likelihood_function
+    def graph(self) -> FactorGraph:
+        return cast(
+            FactorGraph,
+            np.prod(
+                [
+                    model.factor
+                    for model
+                    in self.likelihood_models
+                ] + self.prior_factors
             )
-        for prior_factor in self.prior_factors:
-            graph *= prior_factor
-        return graph
+        )
 
     @property
     def mean_field_approximation(self):
@@ -164,3 +161,10 @@ class LikelihoodModel(LikelihoodModelCollection):
         self.prior_model = prior_model
         self.likelihood_function = likelihood_function
         super().__init__([self])
+
+    @property
+    def factor(self):
+        return ModelFactor(
+            self.prior_model,
+            self.likelihood_function
+        )
