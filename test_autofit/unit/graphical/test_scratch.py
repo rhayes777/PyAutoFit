@@ -1,6 +1,6 @@
 import numpy as np
 
-from autofit import expectation_propagation as mp
+from autofit import graphical as mp
 
 
 def func(x):

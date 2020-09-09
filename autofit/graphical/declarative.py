@@ -3,9 +3,9 @@ from typing import List
 
 import numpy as np
 
-from autofit.expectation_propagation.factor_graphs.factor import Factor, Variable
-from autofit.expectation_propagation.mean_field import MeanFieldApproximation
-from autofit.expectation_propagation.messages import NormalMessage
+from autofit.graphical.factor_graphs.factor import Factor, Variable
+from autofit.graphical.mean_field import MeanFieldApproximation
+from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior_model.prior_model import Prior, PriorModel
 
 

@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from scipy import stats
 
-import autofit.expectation_propagation.messages.normal
-from autofit import expectation_propagation as mp
+import autofit.graphical.messages.normal
+from autofit import graphical as mp
 
 
 @pytest.fixture(
@@ -38,7 +38,7 @@ def make_model_approx(
 ):
     return mp.MeanFieldApproximation.from_kws(
         model,
-        {x: autofit.expectation_propagation.messages.normal.NormalMessage(0, 1)}
+        {x: autofit.graphical.messages.normal.NormalMessage(0, 1)}
     )
 
 
@@ -62,7 +62,7 @@ def test_approximations(
     opt_probit = mp.OptFactor.from_approx(probit_approx)
     result = opt_probit.maximise({x: 0.})
 
-    probit_model = autofit.expectation_propagation.messages.normal.NormalMessage.from_mode(
+    probit_model = autofit.graphical.messages.normal.NormalMessage.from_mode(
         result.mode[x],
         covariance=result.inv_hessian[x]
     )
@@ -89,7 +89,7 @@ def test_looped_importance_sampling(
 ):
     model_approx = mp.MeanFieldApproximation.from_kws(
         model,
-        {x: autofit.expectation_propagation.messages.normal.NormalMessage(0, 1)}
+        {x: autofit.graphical.messages.normal.NormalMessage(0, 1)}
     )
 
     np.random.seed(1)

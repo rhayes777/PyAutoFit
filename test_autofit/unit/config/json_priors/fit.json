@@ -82,7 +82,7 @@
                 }
             }
         },
-        "expectation_propagation": {
+        "graphical": {
             "gaussian.model.Gaussian": {
                 "sigma": {
                     "type": "Gaussian",

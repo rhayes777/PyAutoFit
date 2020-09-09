@@ -86,7 +86,7 @@
         }
     },
     "unit": {
-        "expectation_propagation.gaussian.model.Gaussian": {
+        "graphical.gaussian.model.Gaussian": {
                 "sigma": {
                     "type": "Gaussian",
                     "mean": 10.0,

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from autofit import expectation_propagation as mp
+from autofit import graphical as mp
 
 
 @pytest.fixture(

@@ -6,10 +6,10 @@ from typing import (
 
 import numpy as np
 
-from autofit.expectation_propagation.factor_graphs import Factor, Variable
-from autofit.expectation_propagation.factor_graphs.graph import FactorGraph
-from autofit.expectation_propagation.messages import FixedMessage
-from autofit.expectation_propagation.messages.abstract import AbstractMessage
+from autofit.graphical.factor_graphs import Factor, Variable
+from autofit.graphical.factor_graphs.graph import FactorGraph
+from autofit.graphical.messages import FixedMessage
+from autofit.graphical.messages.abstract import AbstractMessage
 from .messages import (
     map_dists
 )

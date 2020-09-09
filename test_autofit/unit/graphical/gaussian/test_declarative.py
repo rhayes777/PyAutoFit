@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import autofit as af
-import autofit.expectation_propagation as ep
-from test_autofit.unit.expectation_propagation.gaussian.model import Gaussian, make_data, _likelihood
+import autofit.graphical as ep
+from test_autofit.unit.graphical.gaussian.model import Gaussian, make_data, _likelihood
 
 
 def test_shared_intensity():
