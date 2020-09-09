@@ -1,13 +1,10 @@
-from typing import Dict, Callable
-
-import numpy as np
+from typing import Callable
 
 import autofit as af
 from autofit import expectation_propagation as ep
-from autofit.expectation_propagation.factor_graphs import FactorValue
 
 
-class ModelFactor(ep.AbstractFactor):
+class ModelFactor(ep.Factor):
     def __init__(
             self,
             prior_model: af.PriorModel,
@@ -19,42 +16,26 @@ class ModelFactor(ep.AbstractFactor):
             prior_variable_dict[
                 prior_variable.name
             ] = prior_variable
+
+        def _factor(**kwargs):
+            arguments = dict()
+            for name, array in kwargs.items():
+                prior_id = int(name.split("_")[1])
+                prior = prior_model.prior_with_id(
+                    prior_id
+                )
+                arguments[prior] = array
+            instance = prior_model.instance_for_arguments(
+                arguments
+            )
+            return likelihood_function(instance)
+
         super().__init__(
+            _factor,
             **prior_variable_dict
         )
         self.likelihood_function = likelihood_function
         self.prior_model = prior_model
-
-    def __call__(
-            self,
-            variable_dict: Dict[ep.Variable, np.array]
-    ) -> FactorValue:
-        """
-        Call the underlying factor
-
-        Parameters
-        ----------
-        variable_dict
-
-        Returns
-        -------
-        Object encapsulating the result of the function call
-        """
-        arguments = {
-            variable.prior: array
-            for variable, array
-            in variable_dict.items()
-            if isinstance(
-                variable,
-                PriorVariable
-            )
-        }
-        instance = self.prior_model.instance_for_arguments(
-            arguments
-        )
-        return self.image_function(
-            instance
-        )
 
 
 class PriorVariable(ep.Variable):

@@ -23,9 +23,7 @@ class FactorModel:
         }
         self._prior_variables = [
             ep.declarative.PriorVariable(
-                "_".join(
-                    path
-                ),
+                f"prior_{prior.id}",
                 prior
             )
             for prior, path in self._unique_priors.items()
@@ -208,16 +206,16 @@ def make_factor_model(
 
 
 def test_messages(
-        factor_model
+        likelihood_model
 ):
-    assert len(factor_model.message_dict) == 4
+    assert len(likelihood_model.message_dict) == 3
 
 
 def test_graph(
-        factor_model
+        likelihood_model
 ):
-    graph = factor_model.graph
-    assert len(graph.factors) == 5
+    graph = likelihood_model.graph
+    assert len(graph.factors) == 4
 
 
 def test_prior_model_node(
@@ -226,12 +224,12 @@ def test_prior_model_node(
     prior_model_node = likelihood_model.graph
 
     result = prior_model_node({
-        prior_model_node.centre: 1.0,
-        prior_model_node.intensity: 0.5,
-        prior_model_node.sigma: 0.5
+        variable: np.array([0.5])
+        for variable
+        in prior_model_node.variables
     })
 
     assert isinstance(
         result,
-        np.ndarray
+        ep.FactorValue
     )

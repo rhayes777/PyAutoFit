@@ -1,4 +1,4 @@
-from .factor_graphs import Plate, Variable, Factor, FactorGraph, AbstractFactor
+from .factor_graphs import Plate, Variable, Factor, FactorGraph, AbstractFactor, FactorValue
 from .fascade import MeanFieldPriorModel, PriorVariable
 from .declarative import ModelFactor
 from .mean_field import FactorApproximation, MeanFieldApproximation
