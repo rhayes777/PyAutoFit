@@ -91,12 +91,15 @@ def test_shared_intensity():
     The factor model can compute all the variables and messages required as well as construct
     a factor graph representing a fit on the ensemble.
     """
-    factor_model = make_factor_model(
-        centre=40,
-        sigma=10
-    ) * make_factor_model(
-        centre=60,
-        sigma=15
+    factor_model = ep.ModelFactorCollection(
+        make_factor_model(
+            centre=40,
+            sigma=10
+        ),
+        make_factor_model(
+            centre=60,
+            sigma=15
+        )
     )
 
     """

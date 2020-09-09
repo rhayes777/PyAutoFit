@@ -1,4 +1,4 @@
-from .declarative import ModelFactor, LikelihoodModelCollection
+from .declarative import ModelFactor, ModelFactorCollection
 from .factor_graphs import Factor, FactorGraph, AbstractFactor, FactorValue
 from .mean_field import FactorApproximation, MeanFieldApproximation
 from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage

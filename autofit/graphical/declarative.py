@@ -78,7 +78,10 @@ class AbstractModelFactor(ABC):
             )
         )
 
-    def mean_field_approximation(self):
+    def mean_field_approximation(self) -> MeanFieldApproximation:
+        """
+        Create a MeanFieldApproximation of the factor graph
+        """
         return MeanFieldApproximation.from_kws(
             self.graph,
             self.message_dict
@@ -143,18 +146,25 @@ class ModelFactor(Factor, AbstractModelFactor):
         self.likelihood_function = likelihood_function
         self.prior_model = prior_model
 
-    def __mul__(self, other):
-        """
-        When two factors are multiplied together this creates a graph
-        """
-        return LikelihoodModelCollection([self]) * other
-
     @property
-    def model_factors(self):
+    def model_factors(self) -> List["ModelFactor"]:
         return [self]
 
 
-class LikelihoodModelCollection(FactorGraph, AbstractModelFactor):
+class ModelFactorCollection(AbstractModelFactor):
+    def __init__(self, *model_factors: ModelFactor):
+        """
+        A collection of factors that describe models, which can be
+        used to create a graph and messages.
+
+        If the models have shared priors then the graph has shared variables
+
+        Parameters
+        ----------
+        model_factors
+        """
+        self._model_factors = model_factors
+
     @property
     def model_factors(self):
-        return self.factors
+        return self._model_factors
