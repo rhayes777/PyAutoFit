@@ -35,6 +35,16 @@ def make_sigmoid(x):
 
 
 @pytest.fixture(
+    name="vectorised_sigmoid"
+)
+def make_vectorised_sigmoid(x):
+    return mp.Factor(
+        log_sigmoid,
+        vectorised=True,
+        x=x
+    )
+
+@pytest.fixture(
     name="phi"
 )
 def make_phi(x):
@@ -113,7 +123,16 @@ class TestFactorGraph:
         assert sigmoid(x=x).log_value[0] == -0.006715348489118068
         assert phi(x=x).log_value[0] == -13.418938533204672
         assert compound(x=x).log_value[0] == -13.42565388169379
-            
+
+    def test_vectorisation(
+            self, 
+            sigmoid,
+            vectorised_sigmoid
+    ):
+        x = np.full(1000, 5.)
+        assert np.allclose(
+            sigmoid(x=x).log_value, 
+            vectorised_sigmoid(x=x).log_value)
 
     def test_broadcast(
             self,
