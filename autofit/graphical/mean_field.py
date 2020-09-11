@@ -41,7 +41,7 @@ def project_on_to_factor_approx(
     assert 0 < delta <= 1
 
     factor_projection = {}
-    log_norm = 0.
+#     log_norm = 0.
     for v, q_fit in model_dist.items():
         q_cavity = factor_approx.all_cavity_dist.get(v)
         if isinstance(q_fit, FixedMessage):
@@ -74,8 +74,8 @@ def project_on_to_factor_approx(
             factor_projection[v] = q_f1
 
             #             if isinstance(q_cavity, AbstractMessage):
-            log_norm += (np.sum(q_fit.log_norm)
-                         - np.sum(q_f1.log_normalisation(q_cavity)))
+#             log_norm += (np.sum(q_fit.log_norm)
+#                          - np.sum(q_f1.log_normalisation(q_cavity)))
         else:
             success = False
             messages += (
@@ -91,7 +91,7 @@ def project_on_to_factor_approx(
         *factor_approx[:3],
         factor_dist=factor_projection,
         model_dist=model_dist,
-        log_norm=log_norm
+#         log_norm=log_norm
     )
     status = Status(success, messages)
 
