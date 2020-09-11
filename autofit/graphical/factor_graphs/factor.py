@@ -2,7 +2,7 @@ from abc import ABC
 from inspect import getfullargspec
 from itertools import chain, repeat
 from typing import Tuple, Dict, Union, Set, NamedTuple, Callable
-
+from functools import lru_cache
 import numpy as np
 
 from autofit.graphical.factor_graphs.abstract import AbstractNode, accept_variable_dict
@@ -144,7 +144,6 @@ class Factor(AbstractFactor):
             }
         }
 
-        self.__function_shape = None
         super().__init__(
             **kwargs,
             name=name or factor.__name__
@@ -160,58 +159,67 @@ class Factor(AbstractFactor):
         """
         Calculates the expected function shape based on the variables
         """
-        if self.__function_shape is None:
-            kws = self._resolve_args(**kwargs)
-            variables = dict(
-                (self._kwargs[k], x) for k, x in kws.items())
-            var_shapes = {v: np.shape(x) for v, x in variables.items()}
-            var_dims_diffs = {
-                v: len(s) - v.ndim
-                for v, s in var_shapes.items()
-            }
-            """
-            If all the passed variables have an extra dimension then 
-            we assume we're evaluating multiple instances of the function at the 
-            same time
+        var_shapes = {
+            k: np.shape(x) for k, x in self._resolve_args(**kwargs).items()}
+        return self._var_shape(**var_shapes)
     
-            otherwise an error is raised
-            """
-            if set(var_dims_diffs.values()) == {1}:
-                # Check if we're passing multiple values e.g. for sampling
-                shift = 1
-            elif set(var_dims_diffs.values()) == {0}:
-                shift = 0
-            else:
-                raise ValueError("dimensions of passed inputs do not match")
+    @lru_cache(maxsize=8)
+    def _var_shape(self, **kwargs: Tuple[int, ...]) -> Tuple[int, ...]:
+        """This is called by _function_shape
+        
+        caches result so that does not have to be recalculated each call
+        
+        lru_cache caches f(x=1, y=2) to f(y=2, x=1), but in this case
+        it should be find as the order of kwargs is set by self._kwargs
+        which should be stable
+        """
+        var_shapes = {self._kwargs[k]: v for k, v in kwargs.items()}
+        var_dims_diffs = {
+            v: len(s) - v.ndim
+            for v, s in var_shapes.items()
+        }
+        """
+        If all the passed variables have an extra dimension then 
+        we assume we're evaluating multiple instances of the function at the 
+        same time
 
-            """
-            Updating shape of output array to match input arrays
-    
-            singleton dimensions are always assumed to match as in
-            standard array broadcasting
-    
-            e.g. (1, 2, 3) == (3, 2, 1)
-            """
-            shape = np.ones(self.ndim + shift, dtype=int)
-            for v, vs in var_shapes.items():
-                ind = self._variable_plates[v] + shift
-                vshape = vs[shift:]
-                if shift:
-                    ind = np.r_[0, ind]
-                    vshape = (vs[0],) + vshape
+        otherwise an error is raised
+        """
+        if set(var_dims_diffs.values()) == {1}:
+            # Check if we're passing multiple values e.g. for sampling
+            shift = 1
+        elif set(var_dims_diffs.values()) == {0}:
+            shift = 0
+        else:
+            raise ValueError("dimensions of passed inputs do not match")
 
-                if shape.size:
-                    if not (
-                            np.equal(shape[ind], 1) |
-                            np.equal(shape[ind], vshape) |
-                            np.equal(vshape, 1)).all():
-                        raise AssertionError(
-                            "Shapes do not match"
-                        )
-                    shape[ind] = np.maximum(shape[ind], vshape)
+        """
+        Updating shape of output array to match input arrays
 
-            self.__function_shape = tuple(shape)
-        return self.__function_shape
+        singleton dimensions are always assumed to match as in
+        standard array broadcasting
+
+        e.g. (1, 2, 3) == (3, 2, 1)
+        """
+        shape = np.ones(self.ndim + shift, dtype=int)
+        for v, vs in var_shapes.items():
+            ind = self._variable_plates[v] + shift
+            vshape = vs[shift:]
+            if shift:
+                ind = np.r_[0, ind]
+                vshape = (vs[0],) + vshape
+
+            if shape.size:
+                if not (
+                        np.equal(shape[ind], 1) |
+                        np.equal(shape[ind], vshape) |
+                        np.equal(vshape, 1)).all():
+                    raise AssertionError(
+                        "Shapes do not match"
+                    )
+                shape[ind] = np.maximum(shape[ind], vshape)
+        
+        return tuple(shape)
 
     def _call_factor(
             self,

@@ -101,6 +101,19 @@ class TestFactorGraph:
         assert sigmoid(x=x).log_value == -0.006715348489118068
         assert phi(x=x).log_value == -13.418938533204672
         assert compound(x=x).log_value == -13.42565388169379
+        
+    def test_factor_shape(
+            self,
+            sigmoid,
+            phi,
+            compound
+    ):
+        x = [5]
+
+        assert sigmoid(x=x).log_value[0] == -0.006715348489118068
+        assert phi(x=x).log_value[0] == -13.418938533204672
+        assert compound(x=x).log_value[0] == -13.42565388169379
+            
 
     def test_broadcast(
             self,
