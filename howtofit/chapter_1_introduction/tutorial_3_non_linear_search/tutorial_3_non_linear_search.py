@@ -67,8 +67,8 @@ Nevertheless, setting the paths explicitly within the code is good practise.
 
 # %%
 conf.instance = conf.Config(
-    config_path=f"{workspace_path}/howtofit/config",
-    output_path=f"{workspace_path}/howtofit/output/chapter_1",  # <- This sets up where the non-linear search's outputs go.
+    config_path=f"{workspace_path}/config",
+    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the non-linear search's outputs go.
 )
 
 # %%

@@ -30,8 +30,8 @@ Setup the configs and output folder for our non-linear search.
 
 # %%
 conf.instance = conf.Config(
-    config_path=f"{workspace_path}/howtofit/config",
-    output_path=f"{workspace_path}/howtofit/output",
+    config_path=f"{workspace_path}/config",
+    output_path=f"{workspace_path}/output",
 )
 
 # %%
@@ -47,7 +47,7 @@ results which are in the middle of a non-linear will be omitted and not loaded i
 """
 
 # %%
-output_path = f"{workspace_path}/howtofit/output"
+output_path = f"{workspace_path}/output"
 
 agg = af.Aggregator(directory=str(output_path), completed_only=True)
 

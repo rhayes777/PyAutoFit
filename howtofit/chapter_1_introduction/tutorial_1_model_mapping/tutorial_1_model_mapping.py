@@ -56,7 +56,7 @@ Nevertheless, setting the paths explicitly within the code is good practise.
 """
 
 # %%
-conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
+conf.instance = conf.Config(config_path=f"{workspace_path}/config")
 
 # %%
 """
