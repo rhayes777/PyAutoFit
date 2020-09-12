@@ -1,11 +1,11 @@
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.dataset.dataset import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.dataset.dataset import (
     Dataset,
 )
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.result import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.result import (
     Result,
 )
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.analysis import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.analysis import (
     Analysis,
 )
 

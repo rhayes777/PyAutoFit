@@ -1,7 +1,9 @@
 import autofit as af
 
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.fit import fit as f
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models.src.fit import (
+    fit as f,
+)
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase import (
     visualizer,
 )
 

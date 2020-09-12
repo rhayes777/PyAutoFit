@@ -210,8 +210,8 @@ class TestSum:
 
         result = galaxy_1 + galaxy_2
 
-        assert result.components_1mass == galaxy_1.components_1.pipeline_mass
-        assert result.components_0.setup_light == galaxy_2.components_0.setup_light
+        assert result.components_1.mass == galaxy_1.components_1.mass
+        assert result.components_0.light == galaxy_2.components_0.light
 
 
 class TestFloatAnnotation:

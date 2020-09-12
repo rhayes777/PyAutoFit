@@ -7,7 +7,41 @@ straightforwardly integrated into scientific modeling software. **PyAutoFit** sp
 - **Black box** models with complex and expensive log likelihood functions. 
 - Composing, fitting and comparing **many different model-fits** to a data-set.
 - Modeling **extremely large-datasets** with a homogenous fitting procedure. 
-- Automating complex model-fitting tasks via **transdimensional model-fitting pipelines**.
+- Automating complex model-fitting tasks via **transdimensional pipelines**.
+
+Installation
+------------
+
+**PyAutoFit** requires Python 3.6+ and you can install it via pip or conda (see
+`this link <https://pyautofit.readthedocs.io/en/latest/general/installation.html#installation-with-conda>`_
+for conda instructions).
+
+.. code-block:: bash
+
+    pip install autofit
+
+Next, clone the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_, which includes **PyAutoFit**
+configuration files, example scripts and more!
+
+.. code-block:: bash
+
+   cd /path/on/your/computer/you/want/to/put/the/autofit_workspace
+   git clone https://github.com/Jammy2211/autofit_workspace --depth 1
+   cd autofit_workspace
+
+Finally, run *welcome.py* in the *autofit_workspace* to get started!
+
+.. code-block:: bash
+
+   python3 welcome.py
+
+If your installation had an error, please check the
+`troubleshooting section <https://pyautofit.readthedocs.io/en/latest/general/installation.html#trouble-shooting>`_ on
+our readthedocs.
+
+If you would prefer to Fork / Clone the **PyAutoFit** GitHub repo, please read the
+`cloning section <https://pyautofit.readthedocs.io/en/latest/general/installation.html#forking-cloning>`_ on our
+readthedocs first.
 
 API Overview
 ------------

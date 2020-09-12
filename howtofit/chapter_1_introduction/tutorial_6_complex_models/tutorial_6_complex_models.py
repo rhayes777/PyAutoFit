@@ -21,13 +21,15 @@ generate the model-data we generate it as the sum of all individual profiles in 
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_6_complex_models import src as htf
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models import (
+    src as htf,
+)
 
 import numpy as np
 
-from pyprojroot import here
+import os
 
-workspace_path = str(here())
+workspace_path = os.environ["WORKSPACE"]
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -138,7 +140,7 @@ and Exponential profile.
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x1_exponential_x1
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1_exponential_x1
 
 dataset = htf.Dataset(
     data=gaussian_x1_exponential_x1.data, noise_map=gaussian_x1_exponential_x1.noise_map
@@ -188,7 +190,7 @@ Lets fit a model composed of two Gaussians and and an Exponential, which will ha
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x2_exponential_x1
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x2_exponential_x1
 
 dataset = htf.Dataset(
     data=gaussian_x2_exponential_x1.data, noise_map=gaussian_x2_exponential_x1.noise_map
@@ -255,7 +257,7 @@ We can now fit this model using a phase as per usual.
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x3
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x3
 
 dataset = htf.Dataset(data=gaussian_x3.data, noise_map=gaussian_x3.noise_map)
 

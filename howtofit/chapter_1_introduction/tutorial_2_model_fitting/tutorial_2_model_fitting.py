@@ -13,9 +13,9 @@ from autoconf import conf
 import autofit as af
 import matplotlib.pyplot as plt
 import numpy as np
-from pyprojroot import here
+import os
 
-workspace_path = str(here())
+workspace_path = os.environ["WORKSPACE"]
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -32,7 +32,7 @@ To create the Dataset, we import the simulator module and use it to generate the
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x1
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
 data = gaussian_x1.data
 noise_map = gaussian_x1.noise_map

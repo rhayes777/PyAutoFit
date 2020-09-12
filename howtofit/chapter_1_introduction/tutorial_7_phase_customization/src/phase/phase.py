@@ -1,15 +1,15 @@
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset.dataset import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset.dataset import (
     Dataset,
     MaskedDataset,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.result import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.result import (
     Result,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.analysis import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.analysis import (
     Analysis,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.settings import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.settings import (
     SettingsPhase,
 )
 

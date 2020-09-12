@@ -15,12 +15,12 @@ We'll fit 3 different dataset's, each with a single _Gaussian_ model.
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_2_results import src as htf
+from autofit_workspace.howtofit.chapter_2_results import src as htf
 
 import numpy as np
-from pyprojroot import here
+import os
 
-workspace_path = str(here())
+workspace_path = os.environ["WORKSPACE"]
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -47,7 +47,11 @@ figures we make via the aggregator.
 """
 
 # %%
-from howtofit.simulators.chapter_2 import gaussian_x1_0, gaussian_x1_1, gaussian_x1_2
+from autofit_workspace.howtofit.simulators.chapter_2 import (
+    gaussian_x1_0,
+    gaussian_x1_1,
+    gaussian_x1_2,
+)
 
 dataset_names = ["gaussian_x1_0", "gaussian_x1_1", "gaussian_x1_2"]
 datas = [gaussian_x1_0.data, gaussian_x1_1.data, gaussian_x1_2.data]

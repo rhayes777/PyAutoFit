@@ -1,3 +1,6 @@
+from autofit.conf import check_workspace_path
+check_workspace_path()
+
 from . import conf
 from . import exc
 from .aggregator import Aggregator
@@ -69,4 +72,4 @@ from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
 
-__version__ = '0.67.3'
+__version__ = '0.67.4'
