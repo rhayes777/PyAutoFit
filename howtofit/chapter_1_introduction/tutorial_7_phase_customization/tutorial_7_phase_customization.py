@@ -25,11 +25,13 @@ from autoconf import conf
 import autofit as af
 import numpy as np
 
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization import src as htf
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
+    src as htf,
+)
 
-from pyprojroot import here
+import os
 
-workspace_path = str(here())
+workspace_path = os.environ["WORKSPACE"]
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -87,7 +89,7 @@ Import the simulator module, set up the _Dataset_ and mask and set up the _Datas
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x1
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
 dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 mask = np.full(fill_value=False, shape=dataset.data.shape)

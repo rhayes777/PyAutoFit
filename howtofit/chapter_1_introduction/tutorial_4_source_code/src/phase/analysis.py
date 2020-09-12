@@ -1,5 +1,7 @@
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.fit import fit as f
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.fit import (
+    fit as f,
+)
 
 """
 The 'analysis.py' module contains the Anasys class we introduced in tutorial 3. Whereas before this class took the

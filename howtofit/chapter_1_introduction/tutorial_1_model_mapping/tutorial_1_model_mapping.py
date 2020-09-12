@@ -17,25 +17,30 @@ import matplotlib.pyplot as plt
 
 # %%
 """
-The tutorials need to know the path to your autolens_workspace folder, in order to:
+The tutorials need to know the path to your autofit_workspace folder, in order to:
 
  - Load configuration settings from the config files.
  - Load example data.
  - Output the results of models fits to your hard-disk. 
 
-Unfortunately, Jupyter notebooks cannot use relative paths, therefore we use the library 'pyprojroot' to do instead. Its
-'here' function provides the path to the GitHub project directory, which is the autolens_workspace. For example on my 
-computer the here() function returns:
+If you don't have an autofit_workspace (perhaps you cloned / forked the **PyAutoLens** GitHub repository?) you can
+download it here:
+ 
+ ttps://github.com/Jammy2211/autofit_workspace
 
- '/home/jammy/PycharmProjects/PyAuto/autolens_workspace'
+Make sure to set up your WORKSPACE environment variable correctly, using either the "setup_environment.py" script 
+supplied in the workspace or as described in the installation instructions:
 
-Throughout these tutorials, we will use this workspace_path. 
+https://pyautofit.readthedocs.io/en/latest/general/installation.html
+    
+This WORKSPACE enviroment variable is used in each tutorial to determine the path to the autofit_workspace, 
+as shown below. 
 """
 
 # %%
-from pyprojroot import here
+import os
 
-workspace_path = str(here())
+workspace_path = os.environ["WORKSPACE"]
 print("Workspace Path: ", workspace_path)
 
 # %%
@@ -44,7 +49,7 @@ You're going to see a line like the one below (with 'conf.instance =') in every 
 following property:
 
  - The path to the configuration files used by PyAutoFit. You need to give the path to your autofit_workspace, so 
- the configuration files in the workspace are used (e.g. '/path/to/autolens_workspace/config'). 
+ the configuration files in the workspace are used (e.g. '/path/to/autofit_workspace/config'). 
 
 (These will work autommatically if the WORKSPACE environment variable was set up correctly during installation. 
 Nevertheless, setting the paths explicitly within the code is good practise.
@@ -57,7 +62,7 @@ conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
 """
 Below, you'll notice the command:
 
- 'from howtofit.simulators.chapter_1.gaussian_x1'
+ 'from autofit_workspace.howtofit.simulators.chapter_1.gaussian_x1'
 
 This will crop up in nearly every tutorial from here on. This imports a module that simulates the _Dataset_ we plot in
 this tutorialt. Feel free to check out the simulator scripts to see how this is done!
@@ -67,7 +72,7 @@ this tutorialt. Feel free to check out the simulator scripts to see how this is 
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x1
+from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
 
 data = gaussian_x1.data
 noise_map = gaussian_x1.noise_map

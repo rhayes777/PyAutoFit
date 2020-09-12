@@ -1,4 +1,7 @@
-from howtofit.chapter_2_results.src.plot import dataset_plots, fit_plots
+from autofit_workspace.howtofit.chapter_2_results.src.plot import (
+    dataset_plots,
+    fit_plots,
+)
 
 # The 'visualizer.py' module is unchanged from the previous tutorial.
 

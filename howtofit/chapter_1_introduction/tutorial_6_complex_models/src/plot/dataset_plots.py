@@ -1,4 +1,4 @@
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.plot import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models.src.plot import (
     line_plots,
 )
 

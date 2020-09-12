@@ -1,4 +1,3 @@
-
 def create_path(path, folders):
     """ For a given path, create a directory structure composed of a set of folders and return the path to the \
     inner-most folder.

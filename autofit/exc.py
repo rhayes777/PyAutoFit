@@ -1,6 +1,10 @@
 from autoconf.exc import PriorException
 
 
+class EnvironmentException(Exception):
+    pass
+
+
 class MultiNestException(Exception):
     pass
 

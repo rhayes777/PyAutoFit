@@ -1,4 +1,6 @@
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.plot import line_plots
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.plot import (
+    line_plots,
+)
 
 """
 These functions are simple matplotlib calls that plot components of our Line class, specifically its data and

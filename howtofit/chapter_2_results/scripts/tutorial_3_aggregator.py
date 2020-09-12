@@ -15,12 +15,12 @@ for using _Result_'s follow closely tutorial 1 of this chapter.
 
 from autoconf import conf
 import autofit as af
-from howtofit.chapter_2_results import src as htf
+from autofit_workspace.howtofit.chapter_2_results import src as htf
 
 import numpy as np
-from pyprojroot import here
+import os
 
-workspace_path = str(here())
+workspace_path = os.environ["WORKSPACE"]
 print("Workspace Path: ", workspace_path)
 
 # %%

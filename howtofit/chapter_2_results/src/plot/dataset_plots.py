@@ -1,4 +1,4 @@
-from howtofit.chapter_2_results.src.plot import line_plots
+from autofit_workspace.howtofit.chapter_2_results.src.plot import line_plots
 
 """The 'dataset_plots.py' module is unchanged from the previous tutorial."""
 
