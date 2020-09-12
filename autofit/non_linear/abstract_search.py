@@ -376,6 +376,10 @@ class NonLinearSearch(ABC):
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
 
+    @property
+    def samples_cls(self):
+        raise NotImplementedError()
+
     def save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
         with open(self.paths.file_model_info, "w+") as f:

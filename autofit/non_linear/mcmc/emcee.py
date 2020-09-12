@@ -1,6 +1,8 @@
 import os
 import emcee
 import numpy as np
+import json
+from autofit.non_linear import samples as samp
 
 from typing import List
 
@@ -324,6 +326,37 @@ class Emcee(AbstractMCMC):
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
             time=self.timer.time,
+        )
+
+    def samples_via_csv_json_from_model(self, model):
+
+        # TODO : Better design to remove repetition.
+
+        parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
+            filename=f"{self.paths.samples_path}/samples.csv", model=model
+        )
+
+        with open(f"{self.paths.samples_path}/info.json") as infile:
+            samples_info = json.load(infile)
+
+        return EmceeSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            auto_correlation_times=self.backend.get_autocorr_time(tol=0),
+            auto_correlation_check_size=samples_info["auto_correlation_check_size"],
+            auto_correlation_required_length=samples_info[
+                "auto_correlation_required_length"
+            ],
+            auto_correlation_change_threshold=samples_info[
+                "auto_correlation_change_threshold"
+            ],
+            total_walkers=samples_info["total_walkers"],
+            total_steps=samples_info["total_steps"],
+            time=samples_info["time"],
+            backend=self.backend
         )
 
     @property

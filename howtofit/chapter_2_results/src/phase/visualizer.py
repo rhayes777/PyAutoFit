@@ -1,4 +1,4 @@
-from autofit_workspace.howtofit.chapter_2_results.src.plot import (
+from howtofit.chapter_2_results.src.plot import (
     dataset_plots,
     fit_plots,
 )

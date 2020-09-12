@@ -15,7 +15,7 @@ the _Aggregator_'s filter tool, which filters the results and provides us with o
 
 from autoconf import conf
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results import src as htf
+from howtofit.chapter_2_results import src as htf
 
 import numpy as np
 import os

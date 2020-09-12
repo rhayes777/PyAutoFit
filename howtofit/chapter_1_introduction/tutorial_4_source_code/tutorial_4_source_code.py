@@ -64,7 +64,7 @@ you can design an API that makes takes like plotting results more intuitive.
 """
 
 # %%
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code import (
+from howtofit.chapter_1_introduction.tutorial_4_source_code import (
     src as htf,
 )
 
@@ -78,7 +78,7 @@ To create the Dataset, we import the simulator module and use it to generate the
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
+from howtofit.simulators.chapter_1 import gaussian_x1
 
 dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 
@@ -219,7 +219,7 @@ phase = htf.Phase(
 
 print(
     "Emcee has begun running - checkout the autofit_workspace/howtofit/chapter_1_introduction/output/phase_t4/emcee"
-    "folder for live output of the results."
+    " folder for live output of the results."
     "This Jupyter notebook cell with progress once Emcee has completed - this could take a few minutes!"
 )
 

@@ -1,5 +1,5 @@
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.fit import (
+from howtofit.chapter_1_introduction.tutorial_4_source_code.src.fit import (
     fit as f,
 )
 

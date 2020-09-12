@@ -1,5 +1,5 @@
-from autofit_workspace.howtofit.chapter_2_results.src.dataset import dataset as ds
-from autofit_workspace.howtofit.chapter_2_results.src.fit import fit as f
+from howtofit.chapter_2_results.src.dataset import dataset as ds
+from howtofit.chapter_2_results.src.fit import fit as f
 
 from functools import partial
 

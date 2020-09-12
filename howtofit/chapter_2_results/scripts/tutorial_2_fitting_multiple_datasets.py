@@ -15,7 +15,7 @@ We'll fit 3 different dataset's, each with a single _Gaussian_ model.
 
 from autoconf import conf
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results import src as htf
+from howtofit.chapter_2_results import src as htf
 
 import numpy as np
 import os
@@ -47,7 +47,7 @@ figures we make via the aggregator.
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_2 import (
+from howtofit.simulators.chapter_2 import (
     gaussian_x1_0,
     gaussian_x1_1,
     gaussian_x1_2,

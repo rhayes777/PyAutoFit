@@ -20,7 +20,7 @@ about how results in **PyAutoFit** work before covering more advanced material.
 
 from autoconf import conf
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results import src as htf
+from howtofit.chapter_2_results import src as htf
 
 import numpy as np
 import os
@@ -45,7 +45,7 @@ Now, lets create a _Dataset_ and fit it using a _Phase_, in an identical fashion
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_2 import gaussian_x1
+from howtofit.simulators.chapter_2 import gaussian_x1
 
 # %%
 """
