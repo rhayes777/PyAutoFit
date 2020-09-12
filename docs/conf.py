@@ -22,7 +22,7 @@ import shutil
 sys.path.insert(0, os.path.abspath('.'))
 
 os.environ['WORKSPACE'] = f"{str(workspace_path)}"
-shutil.copytree(f"{workspace_path}/howtolens/config", workspace_path)
+shutil.copytree(f"{workspace_path}/../howtolens/config", workspace_path)
 
 # -- Project information -----------------------------------------------------
 
