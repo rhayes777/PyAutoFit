@@ -62,7 +62,7 @@ conf.instance = conf.Config(config_path=f"{workspace_path}/howtofit/config")
 """
 Below, you'll notice the command:
 
- 'from autofit_workspace.howtofit.simulators.chapter_1.gaussian_x1'
+ 'from howtofit.simulators.chapter_1.gaussian_x1'
 
 This will crop up in nearly every tutorial from here on. This imports a module that simulates the _Dataset_ we plot in
 this tutorialt. Feel free to check out the simulator scripts to see how this is done!
@@ -72,7 +72,7 @@ this tutorialt. Feel free to check out the simulator scripts to see how this is 
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
+from howtofit.simulators.chapter_1 import gaussian_x1
 
 data = gaussian_x1.data
 noise_map = gaussian_x1.noise_map

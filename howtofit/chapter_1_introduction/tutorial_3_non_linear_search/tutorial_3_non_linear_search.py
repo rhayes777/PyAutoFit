@@ -77,7 +77,7 @@ To create the Dataset, we import the simulator module and use it to generate the
 """
 
 # %%
-from autofit_workspace.howtofit.simulators.chapter_1 import gaussian_x1
+from howtofit.simulators.chapter_1 import gaussian_x1
 
 data = gaussian_x1.data
 noise_map = gaussian_x1.noise_map
@@ -233,7 +233,7 @@ result = emcee.fit(model=model, analysis=analysis)
 
 print(
     "Emcee has begun running - checkout the autofit_workspace/howtofit/chapter_1_introduction/output/phase_t3"
-    "folder for live output of the results."
+    " folder for live output of the results."
     "This Jupyter notebook cell with progress once Emcee has completed - this could take a few minutes!"
 )
 

@@ -14,7 +14,7 @@ inspect, interpret and plot the results of the model-fit, including refitting th
 
 from autoconf import conf
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results import src as htf
+from howtofit.chapter_2_results import src as htf
 
 import os
 
@@ -197,7 +197,7 @@ fits = [
 
 # %%
 """
-We can now plot different components of the fit (again benefiting from autofit_workspace.how we set up the 'fit_plots.py' module)!
+We can now plot different components of the fit (again benefiting from how we set up the 'fit_plots.py' module)!
 """
 
 # %%

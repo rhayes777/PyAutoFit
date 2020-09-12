@@ -15,7 +15,7 @@ for using _Result_'s follow closely tutorial 1 of this chapter.
 
 from autoconf import conf
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results import src as htf
+from howtofit.chapter_2_results import src as htf
 
 import numpy as np
 import os
