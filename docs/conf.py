@@ -19,7 +19,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 
-os.environ['WORKSPACE'] = f"{str(workspace_path)}/howtofit"
+os.environ['WORKSPACE'] = f"{str(workspace_path)}"
 
 # -- Project information -----------------------------------------------------
 
