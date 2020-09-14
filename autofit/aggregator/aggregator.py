@@ -158,6 +158,8 @@ class AbstractAggregator:
         phases = self.phases
         for predicate in predicates:
             phases = predicate.filter(phases)
+        phases = list(phases)
+        print(f"Filter found a total of {str(len(phases))} results")
         return AbstractAggregator(phases=list(phases))
 
     def values(self, name: str) -> Iterator:
@@ -255,6 +257,11 @@ class Aggregator(AbstractAggregator):
             If True only phases with a .completed file (indicating the phase was completed)
             are included in the aggregator.
         """
+
+        # TODO : Progress bar here
+
+        print("Aggregator loading phases... could take some time.")
+
         self._directory = directory
         phases = []
 
@@ -272,6 +279,7 @@ class Aggregator(AbstractAggregator):
         if len(phases) == 0:
             print(f"\nNo phases found in {directory}\n")
         else:
-            paths_string = "\n".join(phase.directory for phase in phases)
-            print(f"\nPhases were found in these directories:\n\n{paths_string}\n")
+        #    paths_string = "\n".join(phase.directory for phase in phases)
+        #    print(f"\nPhases were found in these directories:\n\n{paths_string}\n")
+            print(f"\n A total of {str(len(phases))} phases and results were found.")
         super().__init__(phases)
