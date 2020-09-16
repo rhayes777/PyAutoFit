@@ -124,6 +124,37 @@ class TestFactorGraph:
         assert phi(x=x).log_value[0] == -13.418938533204672
         assert compound(x=x).log_value[0] == -13.42565388169379
 
+    def test_multivariate_message(
+            self):
+        p1, p2, p3 = mp.Plate(), mp.Plate(), mp.Plate()
+        x_ = mp.Variable('x', p3, p1)
+        y_ = mp.Variable('y', p1, p2)
+        z_ = mp.Variable('z', p2, p3)
+        
+        n1, n2, n3 = shape = (2, 3, 4)
+
+        def sumxyz(x, y, z):
+            return (
+                np.moveaxis(x[:, :, None], 0, 2) + y[:, :, None] + z[None])
+
+        factor = mp.Factor(sumxyz, x=x_, y=y_, z=z_)
+
+        x = np.arange(n3 * n1).reshape(n3, n1) * 0.1
+        y = np.arange(n1 * n2).reshape(n1, n2) * 0.2
+        z = np.arange(n2 * n3).reshape(n2, n3) * 0.3
+        sumxyz(x, y, z)
+
+        variables = {x_: x, y_: y, z_: z}
+        factor(variables)
+
+        model_dist = mp.MeanField({
+            x_: mp.NormalMessage(x, 1*np.ones_like(x)),
+            y_: mp.NormalMessage(y, 1*np.ones_like(y)),
+            z_: mp.NormalMessage(z, 1*np.ones_like(z)),
+        })
+        
+        assert model_dist(variables).log_value.shape == shape
+        
     def test_vectorisation(
             self, 
             sigmoid,

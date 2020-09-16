@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import List, Tuple, cast, Collection, Set
+from typing import List, Tuple, Dict, cast, Collection, Set
 from itertools import count
 
 import numpy as np
@@ -55,11 +55,10 @@ class AbstractNode(ABC):
         pass
 
     @property
-    def variable_names(self):
+    def variable_names(self) -> Dict[str, Variable]:
         return {
-            variable.name
-            for variable
-            in self.variable_names
+            variable.name: variable
+            for variable in self.variables
         }
 
     @property
@@ -193,3 +192,9 @@ class AbstractNode(ABC):
     @abstractmethod
     def __call__(self, **kwargs):
         pass
+    
+    def __hash__(self):
+        return hash((
+            self._factor, 
+            frozenset(self.variable_names.items()),
+            self.self._deterministic_variables,))

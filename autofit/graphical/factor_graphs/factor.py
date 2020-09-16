@@ -107,7 +107,7 @@ class AbstractFactor(AbstractNode, ABC):
 
         """
         return {n: kwargs[v.name] for n, v in self._kwargs.items()}
-
+    
 
 class Factor(AbstractFactor):
     def __init__(
@@ -155,7 +155,9 @@ class Factor(AbstractFactor):
         # TODO: might this break factor repetition somewhere?
         return hash(self._factor)
 
-    def _function_shape(self, **kwargs) -> Tuple[int, ...]:
+    def _function_shape(
+            self, 
+            **kwargs: np.ndarray) -> Tuple[int, ...]:
         """
         Calculates the expected function shape based on the variables
         """
