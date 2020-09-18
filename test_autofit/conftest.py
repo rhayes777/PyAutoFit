@@ -8,7 +8,6 @@ import autofit as af
 from autoconf import conf
 from test_autofit import mock
 
-
 directory = path.dirname(path.realpath(__file__))
 
 
@@ -21,6 +20,7 @@ def remove_reports():
         for file in files:
             if file == "report.log":
                 os.remove(f"{d}/{file}")
+
 
 @pytest.fixture(autouse=True)
 def set_config_path():
