@@ -122,7 +122,6 @@ def value_with_limits_string(
     value = format_str.format(value)
 
     if values_at_sigma is None:
-        print(value)
         return f"{value}{unit}"
 
     lower_value_at_sigma = format_str.format(values_at_sigma[0])
@@ -160,3 +159,12 @@ def output_list_of_strings_to_file(file, list_of_strings):
     file = open(file, "w")
     file.write("".join(list_of_strings))
     file.close()
+
+
+def within_radius_label_value_and_unit_string(
+    prefix, radius, unit_length, value, unit_value, whitespace
+):
+    label = prefix + "_within_{:.2f}_{}".format(radius, unit_length)
+    return parameter_result_string_from(
+        parameter_name=label, value=value, unit=unit_value, whitespace=whitespace
+    )
