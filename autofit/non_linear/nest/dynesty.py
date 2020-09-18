@@ -1,46 +1,47 @@
 import os
-import sys
 import pickle
+import sys
+
 import numpy as np
 from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import NestSamples
-from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.abstract_search import Result
-from autofit.text import samples_text
-from autofit import exc
 from autofit.non_linear.log import logger
+from autofit.non_linear.nest.abstract_nest import AbstractNest
+from autofit.non_linear.paths import convert_paths
+from autofit.non_linear.samples import NestSamples
+from autofit.text import samples_text
 
 
 class AbstractDynesty(AbstractNest):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_live_points=None,
-        facc=None,
-        evidence_tolerance=None,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        maxiter=None,
-        maxcall=None,
-        logl_max=None,
-        n_effective=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_live_points=None,
+            facc=None,
+            evidence_tolerance=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         A Dynesty non-linear search.
@@ -347,7 +348,6 @@ class AbstractDynesty(AbstractNest):
 
                         continue
 
-
             sampler_pickle = sampler
             sampler_pickle.loglikelihood = None
 
@@ -361,8 +361,8 @@ class AbstractDynesty(AbstractNest):
             iterations_after_run = np.sum(sampler.results.ncall)
 
             if (
-                total_iterations == iterations_after_run
-                or total_iterations == self.maxcall
+                    total_iterations == iterations_after_run
+                    or total_iterations == self.maxcall
             ):
                 finished = True
 
@@ -489,7 +489,7 @@ class AbstractDynesty(AbstractNest):
         return f"{name_tag}[{n_live_points_tag}__{dynesty_tag}]"
 
     def initial_live_points_from_model_and_fitness_function(
-        self, model, fitness_function
+            self, model, fitness_function
     ):
 
         unit_parameters, parameters, log_likelihoods = self.initializer.initial_samples_from_model(
@@ -512,32 +512,33 @@ class AbstractDynesty(AbstractNest):
 
 
 class DynestyStatic(AbstractDynesty):
+    @convert_paths
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_live_points=None,
-        facc=None,
-        evidence_tolerance=None,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        maxiter=None,
-        maxcall=None,
-        logl_max=None,
-        n_effective=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_live_points=None,
+            facc=None,
+            evidence_tolerance=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         A Dynesty non-linear search using a static number of live points.
@@ -724,31 +725,31 @@ class DynestyStatic(AbstractDynesty):
 
 class DynestyDynamic(AbstractDynesty):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_live_points=None,
-        evidence_tolerance=None,
-        facc=None,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        maxiter=None,
-        maxcall=None,
-        logl_max=None,
-        n_effective=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_live_points=None,
+            evidence_tolerance=None,
+            facc=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         A Dynesty non-linear search, using a dynamically changing number of live points.
@@ -1071,8 +1072,8 @@ class DynestyDynamic(AbstractDynesty):
             iterations_after_run = np.sum(sampler.results.ncall)
 
             if (
-                total_iterations == iterations_after_run
-                or total_iterations == self.maxcall
+                    total_iterations == iterations_after_run
+                    or total_iterations == self.maxcall
             ):
                 finished = True
 
