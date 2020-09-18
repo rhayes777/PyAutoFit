@@ -110,11 +110,6 @@ def test_shared_intensity():
     assert len(factor_model.message_dict) == 5
     assert len(factor_model.graph.factors) == 7
 
-    # """
-    # A mean field approximation can be generated from the model
-    # """
-    # mean_field_approximation = factor_model.mean_field_approximation()
-
     """
     We optimise that...
     """
@@ -127,7 +122,7 @@ def test_shared_intensity():
     )
 
     """
-    Et voila!
+    And what we get back is actually a PriorModelCollection
     """
     assert 25.0 == pytest.approx(
         results[0].intensity.mean,

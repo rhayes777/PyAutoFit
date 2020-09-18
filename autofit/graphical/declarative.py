@@ -170,14 +170,28 @@ class ModelFactorCollection(AbstractModelFactor):
     def model_factors(self):
         return self._model_factors
 
-    def optimise(self, optimiser):
-        mean_field_approximation = self.mean_field_approximation()
+    def optimise(self, optimiser) -> CollectionPriorModel:
+        """
+        Use an EP Optimiser to optimise the graph associated with this collection
+        of factors and create a Collection to represent the results.
+
+        Parameters
+        ----------
+        optimiser
+            An optimiser that acts on graphs
+
+        Returns
+        -------
+        A collection of prior models
+        """
         updated_model = optimiser.run(
-            mean_field_approximation
+            self.mean_field_approximation()
         )
 
         collection = CollectionPriorModel([
-            factor.prior_model for factor in self.model_factors
+            factor.prior_model
+            for factor
+            in self.model_factors
         ])
         arguments = {
             prior: updated_model[
