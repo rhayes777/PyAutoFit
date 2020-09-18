@@ -190,6 +190,18 @@ class ModelFactor(Factor, AbstractModelFactor):
         return [self]
 
     def optimise(self, optimiser) -> PriorModel:
+        """
+        Optimise this factor on its own returning a PriorModel
+        representing the final state of the messages.
+
+        Parameters
+        ----------
+        optimiser
+
+        Returns
+        -------
+        A PriorModel representing the optimised factor
+        """
         return super().optimise(
             optimiser
         )[0]
