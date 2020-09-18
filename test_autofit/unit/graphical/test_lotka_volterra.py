@@ -127,7 +127,6 @@ def test():
     np.random.seed(1)
 
     opt = mp.optimise.LaplaceOptimiser(
-        model_approx,
         n_iter=n_iter
     )
 
@@ -137,11 +136,11 @@ def test():
             model_approx,
             LV
         )
-        opt.model_approx = model_approx
 
         # perform laplace non linear fit for other factors
         for factor in factors:
             model_approx, status = opt.laplace_factor_approx(
+                model_approx,
                 factor
             )
             history[i, factor] = model_approx
