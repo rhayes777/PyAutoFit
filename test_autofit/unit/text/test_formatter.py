@@ -13,119 +13,149 @@ text_path = "{}/files/text/".format(os.path.dirname(os.path.realpath(__file__)))
 
 @pytest.fixture(scope="session", autouse=True)
 def do_something():
-    conf.instance = conf.Config(
-        config_path="{}/files/config/text".format(directory)
+    conf.instance = conf.Config(config_path="{}/files/config/text".format(directory))
+
+
+def test__add_whitespace_between_strings():
+    str0 = af.text.formatter.add_whitespace(str0="param0", str1="mass", whitespace=10)
+
+    assert str0 == "param0    mass"
+
+    str0 = af.text.formatter.add_whitespace(str0="param0", str1="mass", whitespace=20)
+
+    assert str0 == "param0              mass"
+
+
+def test__parameter_name_and_value_string():
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0", value=2.0, whitespace=10
+    )
+    assert str0 == "param0    2.00"
+
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param11", value=3.00, whitespace=20
     )
 
+    assert str0 == "param11             3.0000"
 
-def test__label_and_label_string():
-    string0 = af.text.formatter.label_and_label_string(
-        label0="param0", label1="mass", whitespace=10
-    )
-    string1 = af.text.formatter.label_and_label_string(
-        label0="param00", label1="mass0", whitespace=10
-    )
-    string2 = af.text.formatter.label_and_label_string(
-        label0="param000", label1="mass111", whitespace=10
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param12", value=3.00, whitespace=15
     )
 
-    assert string0 == "param0    mass"
-    assert string1 == "param00   mass0"
-    assert string2 == "param000  mass111"
+    assert str0 == "param12        3.00e+00"
 
-    string0 = af.text.formatter.label_and_label_string(
-        label0="param0", label1="mass", whitespace=20
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0", value=3.00, whitespace=15, name_to_label=True
     )
 
-    assert string0 == "param0              mass"
+    assert str0 == "p0             3.00"
 
 
-def test__label_and_value_string():
-    string0 = af.text.formatter.label_and_value_string(
-        label="param0", value=2.0, whitespace=10
+def test__parameter_name_value_and_limits_string():
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0", value=2.0, values_at_sigma=(1.5, 2.5), whitespace=10
     )
-    string1 = af.text.formatter.label_and_value_string(
-        label="param00", value=2.0, whitespace=10
-    )
-    string2 = af.text.formatter.label_and_value_string(
-        label="param000", value=2.0, whitespace=10
-    )
+    assert str0 == "param0    2.00 (1.50, 2.50)"
 
-    assert string0 == "param0    2.00"
-    assert string1 == "param00   2.00"
-    assert string2 == "param000  2.00"
-
-    string = af.text.formatter.label_and_value_string(
-        label="param11", value=3.00, whitespace=20
-    )
-
-    assert string == "param11             3.0000"
-
-    string = af.text.formatter.label_and_value_string(
-        label="param12", value=3.00, whitespace=15
-    )
-
-    assert string == "param12        3.00e+00"
-
-
-def test__label_value_and_limits_string():
-    string0 = af.text.formatter.label_value_and_limits_string(
-        label="param0", value=2.0, upper_limit=2.5, lower_limit=1.5, whitespace=10
-    )
-    string1 = af.text.formatter.label_value_and_limits_string(
-        label="param00", value=2.0, upper_limit=2.7, lower_limit=1.3, whitespace=10
-    )
-    string2 = af.text.formatter.label_value_and_limits_string(
-        label="param000", value=2.0, upper_limit=2.9, lower_limit=1.1, whitespace=10
-    )
-
-    assert string0 == "param0    2.00 (1.50, 2.50)"
-    assert string1 == "param00   2.00 (1.30, 2.70)"
-    assert string2 == "param000  2.00 (1.10, 2.90)"
-
-    string = af.text.formatter.label_value_and_limits_string(
-        label="param11",
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param11",
         value=3.00,
-        upper_limit=40000.0,
-        lower_limit=0.0001,
+        values_at_sigma=(0.0001, 40000.0),
         whitespace=20,
     )
 
-    assert string == "param11             3.0000 (0.0001, 40000.0000)"
+    assert str0 == "param11             3.0000 (0.0001, 40000.0000)"
 
-    string = af.text.formatter.label_value_and_limits_string(
-        label="param12", value=3.00, upper_limit=500.0, lower_limit=1.0, whitespace=15
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param12",
+        value=3.00,
+        values_at_sigma=(1.0, 500.0),
+        whitespace=15,
     )
 
-    assert string == "param12        3.00e+00 (1.00e+00, 5.00e+02)"
+    assert str0 == "param12        3.00e+00 (1.00e+00, 5.00e+02)"
 
-
-def test__label_value_and_unit_string():
-    string0 = af.text.formatter.label_value_and_unit_string(
-        label="param0", value=2.0, unit="arcsec", whitespace=10
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0",
+        value=2.0,
+        values_at_sigma=(1.5, 2.5),
+        whitespace=10,
+        name_to_label=True,
     )
-    string1 = af.text.formatter.label_value_and_unit_string(
-        label="param00", value=2.0, unit="mass", whitespace=10
-    )
-    string2 = af.text.formatter.label_value_and_unit_string(
-        label="param000", value=2.0, unit="kg", whitespace=10
-    )
+    assert str0 == "p0        2.00 (1.50, 2.50)"
 
-    assert string0 == "param0    2.00 arcsec"
-    assert string1 == "param00   2.00 mass"
-    assert string2 == "param000  2.00 kg"
 
-    string = af.text.formatter.label_value_and_unit_string(
-        label="param11", value=3.00, unit="kg", whitespace=20
-    )
-
-    assert string == "param11             3.0000 kg"
-
-    string = af.text.formatter.label_value_and_unit_string(
-        label="param12", value=3.00, unit="kgs", whitespace=15
+def test__parameter_name_with_subscript_value_and_limits_string():
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0",
+        subscript="a",
+        value=2.0,
+        values_at_sigma=(1.5, 2.5),
+        whitespace=10,
     )
 
-    assert string == "param12        3.00e+00 kgs"
+    assert str0 == "param0_a  2.00 (1.50, 2.50)"
+
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param11",
+        value=3.00,
+        values_at_sigma=(0.0001, 40000.0),
+        subscript="d",
+        whitespace=20,
+    )
+
+    assert str0 == "param11_d           3.0000 (0.0001, 40000.0000)"
+
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param12",
+        value=3.00,
+        values_at_sigma=(1.0, 500.0),
+        subscript="e",
+        whitespace=15,
+    )
+
+    assert str0 == "param12_e      3.00e+00 (1.00e+00, 5.00e+02)"
+
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0",
+        subscript="a",
+        value=2.0,
+        values_at_sigma=(1.5, 2.5),
+        whitespace=10,
+        name_to_label=True,
+    )
+
+    assert str0 == "p0_a      2.00 (1.50, 2.50)"
+
+
+def test__parameter_name_value_and_unit_string():
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0", value=2.0, unit="arcsec", whitespace=10
+    )
+
+    assert str0 == "param0    2.00 arcsec"
+
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param11", value=3.00, unit="kg", whitespace=20
+    )
+
+    assert str0 == "param11             3.0000 kg"
+
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param12", value=3.00, unit="kgs", whitespace=15
+    )
+
+    assert str0 == "param12        3.00e+00 kgs"
+
+    str0 = af.text.formatter.parameter_result_string_from(
+        parameter_name="param0",
+        value=2.0,
+        unit="arcsec",
+        whitespace=10,
+        name_to_label=True,
+    )
+
+    assert str0 == "p0        2.00 arcsec"
 
 
 def test__output_list_of_strings_to_file():
@@ -144,56 +174,22 @@ def test__output_list_of_strings_to_file():
     assert file.readlines() == ["hi\n", "hello"]
 
 
-def test__within_radius_label_value_and_unit_string():
-    string0 = af.text.formatter.within_radius_label_value_and_unit_string(
-        prefix="mass",
-        radius=1.0,
-        unit_length="arcsec",
-        value=30.0,
-        unit_value="solMass",
-        whitespace=40,
-    )
-
-    string1 = af.text.formatter.within_radius_label_value_and_unit_string(
-        prefix="mass",
-        radius=1.0,
-        unit_length="arcsec",
-        value=30.0,
-        unit_value="solMass",
-        whitespace=35,
-    )
-
-    string2 = af.text.formatter.within_radius_label_value_and_unit_string(
-        prefix="mass",
-        radius=1.0,
-        unit_length="arcsec",
-        value=30.0,
-        unit_value="solMass",
-        whitespace=30,
-    )
-
-    assert string0 == "mass_within_1.00_arcsec                 mass_value 30.0"
-    assert string1 == "mass_within_1.00_arcsec            mass_value 30.0"
-    assert string2 == "mass_within_1.00_arcsec       mass_value 30.0"
-
-    string = af.text.formatter.within_radius_label_value_and_unit_string(
-        prefix="mass",
-        radius=1.0,
-        unit_length="arcsec2",
-        value=40.0,
-        unit_value="solMass2",
-        whitespace=40,
-    )
-
-    assert string == "mass_within_1.00_arcsec2                mass_value 40.0"
-
-
 def test_string():
-    assert af.text.formatter.format_string_for_label("radius_value") == "radius_value"
-    assert af.text.formatter.format_string_for_label("mass_value") == "mass_value"
+    assert (
+        af.text.formatter.format_string_for_parameter_name("radius_value")
+        == "radius_value"
+    )
+    assert (
+        af.text.formatter.format_string_for_parameter_name("mass_value") == "mass_value"
+    )
 
 
 def test_substring():
-    assert af.text.formatter.format_string_for_label("einstein_radius") == "radius_value"
-    assert af.text.formatter.format_string_for_label("mass_value_something") == "mass_value"
-
+    assert (
+        af.text.formatter.format_string_for_parameter_name("einstein_radius")
+        == "radius_value"
+    )
+    assert (
+        af.text.formatter.format_string_for_parameter_name("mass_value_something")
+        == "mass_value"
+    )

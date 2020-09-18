@@ -6,7 +6,7 @@ from random import random
 from typing import Tuple, Optional
 
 import numpy as np
-
+from autoconf import conf
 from autofit import exc
 from autofit.mapper import model
 from autofit.mapper import model_mapper
@@ -21,6 +21,7 @@ from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorName
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text.formatter import TextFormatter
+from autofit.text import formatter as frm
 
 
 def check_assertions(func):
@@ -773,9 +774,9 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
-    def parameter_names(self) -> [str]:
+    def model_component_and_parameter_names(self) -> [str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
-        for *GetDist* visualization.
+        for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
         return [
@@ -786,6 +787,48 @@ class AbstractPriorModel(AbstractModel):
             in self.prior_tuples_ordered_by_id
         ]
 
+    @property
+    def parameter_names(self) -> [str]:
+        """The param_names vector is a list each parameter's analysis_path, and is used
+        for *corner.py* visualization.
+        The parameter names are determined from the class instance names of the
+        model_mapper. Latex tags are properties of each model class."""
+        return [parameter_name[-1] for parameter_name in self.unique_prior_paths]
+
+    @property
+    def parameter_labels(self) -> [str]:
+        """Returns a list of the label of every parameter in a model.
+
+        This is used for displaying model results as text and for visualization with *corner.py*.
+
+        The parameter labels are defined for every parameter of every model component in the config files label.ini and
+        label_format.ini.
+        """
+
+        parameter_labels = []
+
+        for parameter_name in self.parameter_names:
+            parameter_label = frm.convert_name_to_label(parameter_name=parameter_name, name_to_label=True)
+            parameter_labels.append(parameter_label)
+
+        return parameter_labels
+
+    @property
+    def subscripts(self) -> [str]:
+        """Returns a list of the model component subscripts of every parameter in a model.
+
+        This is used for displaying model results as text and for visualization with *corner.py*.
+
+        The class subscript labels are defined for every model component in the config file notation/label.ini.
+        """
+
+        subscripts = []
+
+        for prior_name, prior in self.prior_tuples_ordered_by_id:
+            cls = self.prior_class_dict[prior]
+            subscripts.append(conf.instance.label.subscript(cls))
+
+        return subscripts
 
 def transfer_classes(instance, mapper, model_classes=None):
     """

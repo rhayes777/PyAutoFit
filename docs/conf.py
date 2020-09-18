@@ -19,8 +19,11 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('.'))
+os.system("git clone https://github.com/Jammy2211/autofit_workspace --depth 1")
+os.system("cp -r autofit_workspace/config .")
+os.system("rm -rf autofit_workspace")
 
-os.environ['WORKSPACE'] = f"{str(workspace_path)}/howtofit"
+os.environ['WORKSPACE'] = f"{str(workspace_path)}"
 
 # -- Project information -----------------------------------------------------
 

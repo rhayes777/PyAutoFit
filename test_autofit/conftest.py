@@ -22,7 +22,6 @@ def remove_reports():
             if file == "report.log":
                 os.remove(f"{d}/{file}")
 
-
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance = conf.Config(

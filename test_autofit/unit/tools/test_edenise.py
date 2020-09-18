@@ -73,7 +73,7 @@ class Test:
 
 def test_convert_formatter():
     unit_test_directory = Path(__file__).parent.parent
-    test_path = unit_test_directory / "text/test_model_text.py"
+    test_path = unit_test_directory / "text/test_samples_text.py"
     with open(test_path) as f:
         string = f.read()
     converter = Converter.from_prefix_and_source_directory(

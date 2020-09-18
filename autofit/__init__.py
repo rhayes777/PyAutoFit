@@ -59,7 +59,6 @@ from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
 from .non_linear.grid_search import GridSearch as NonLinearSearchGridSearch
 from .non_linear.grid_search import GridSearchResult
-from .text import Model
 from .text import formatter
 from .text import samples_text
 from .tools import util

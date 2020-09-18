@@ -62,20 +62,6 @@ class TestSamplesTable:
 
 
 class TestOptimizerSamples:
-    def test__parameter_names_and_labels(self, samples):
-        assert samples.parameter_names == [
-            "mock_class_1_one",
-            "mock_class_1_two",
-            "mock_class_1_three",
-            "mock_class_1_four",
-        ]
-
-        assert samples.parameter_labels == [
-            r"x4p0_{\mathrm{a}}",
-            r"x4p1_{\mathrm{a}}",
-            r"x4p2_{\mathrm{a}}",
-            r"x4p3_{\mathrm{a}}",
-        ]
 
     def test__max_log_likelihood_vector_and_instance(self, samples):
         assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
