@@ -21,7 +21,7 @@ def median_pdf_with_errors_at_sigma_summary(samples, sigma) -> str:
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
 
-        value = frm.value_with_limits_string(
+        value = frm.parameter_result_string_from(
             parameter_name=samples.model.parameter_names[i],
             value=samples.median_pdf_vector[i],
             values_at_sigma=values_at_sigma[i],
@@ -55,10 +55,38 @@ def median_pdf_with_errors_at_sigma_table(samples, sigma, name_to_label=True) ->
             value=samples.median_pdf_vector[i],
             values_at_sigma=values_at_sigma[i],
             subscript=samples.model.subscripts[i],
-            whitespace=12,
             name_to_label=name_to_label,
         )
-        table.append(f"{label_value} | ")
+        table.append(f"{label_value} & ")
+
+    table = "".join(table)[:-3]
+
+    return "\n\nMedian PDF model Table ({} sigma limits):\n\n{}".format(sigma, table)
+
+def median_pdf_with_errors_at_sigma_latex(samples, sigma, name_to_label=True) -> str:
+    """ Create a string summarizing the results of the non-linear search at an input sigma value.
+
+    This function is used for creating the model.results files of a non-linear search.
+
+    Parameters
+    ----------
+    sigma : float
+        The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+
+    values_at_sigma = samples.vector_at_sigma(sigma=sigma)
+
+    table = []
+
+    for i, prior_path in enumerate(samples.model.unique_prior_paths):
+
+        label_value = frm.parameter_result_latex_from(
+            parameter_name=samples.model.parameter_names[i],
+            value=samples.median_pdf_vector[i],
+            values_at_sigma=values_at_sigma[i],
+            subscript=samples.model.subscripts[i],
+            name_to_label=name_to_label,
+        )
+        table.append(f"{label_value}")
 
     table = "".join(table)[:-3]
 
@@ -79,20 +107,13 @@ def results_to_file(samples, filename, during_analysis):
 
     if hasattr(samples, "log_evidence"):
         if samples.log_evidence is not None:
-            results += frm.parameter_result_string_from(
-                parameter_name="Bayesian Evidence ",
-                value=samples.log_evidence,
-                whitespace=90,
-                format_string="{:.8f}",
-            )
+
+            value = "{:.8f}".format(samples.log_evidence)
+            results += [frm.add_whitespace(str0="Bayesian Evidence ", str1=value, whitespace=90)]
             results += ["\n"]
 
-    results += frm.parameter_result_string_from(
-        parameter_name="Maximum Likelihood ",
-        value=max(samples.log_likelihoods),
-        whitespace=90,
-        format_string="{:.8f}",
-    )
+    value = "{:.8f}".format(max(samples.log_likelihoods))
+    results += [frm.add_whitespace(str0="Maximum Likelihood ", str1=value, whitespace=90)]
     results += ["\n\n"]
 
     results += ["Maximum Log Likelihood Model:\n\n"]

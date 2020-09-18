@@ -29,20 +29,14 @@ def make_samples(model):
     )
 
 
-def test__median_pdf_at_sigma_from_sigma_summary(samples):
+def test__median_pdf_at_sigma_from_sigma(samples):
     results_at_sigma = samples_text.median_pdf_with_errors_at_sigma_summary(
         samples=samples, sigma=3.0
     )
 
     assert "Median PDF model Summary (3.0 sigma limits):" in results_at_sigma
-    assert (
-        "one                                           "
-        "                                        1.00 (1.00, 1.20)" in results_at_sigma
-    )
-    assert (
-        "two                                      "
-        "                                             2.10 (2.00, 2.20)"
-    )
+    assert "one 1.00 (1.00, 1.20)" in results_at_sigma
+    assert "two 2.10 (2.00, 2.20)"
 
     results_at_sigma = samples_text.median_pdf_with_errors_at_sigma_table(
         samples=samples, sigma=3.0
@@ -50,7 +44,18 @@ def test__median_pdf_at_sigma_from_sigma_summary(samples):
 
     assert "Median PDF model Table (3.0 sigma limits):" in results_at_sigma
     assert (
-        "one_label_a 1.00 (1.00, 1.20) | two_label_a 2.00 (2.00, 2.20)"
+        "one_label_a 1.00 (1.00, 1.20) & two_label_a 2.00 (2.00, 2.20)"
+        in results_at_sigma
+    )
+
+    results_at_sigma = samples_text.median_pdf_with_errors_at_sigma_latex(
+        samples=samples, sigma=3.0,
+    )
+
+    assert "Median PDF model Table (3.0 sigma limits):" in results_at_sigma
+    assert (
+        r"one_label_{\mathrm{a}} = 1.00^{+1.20}_{-1.00} & "
+        r"two_label_{\mathrm{a}} = 2.00^{+2.20}_{-2.00}"
         in results_at_sigma
     )
 

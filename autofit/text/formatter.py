@@ -109,62 +109,78 @@ def add_whitespace(str0, str1, whitespace):
     return f"{str0}{str1.rjust(whitespace - len(str0) + len(str1))}"
 
 
-def value_with_limits_string(
-    parameter_name, value, values_at_sigma, unit=None, format_string=None
-):
-
-    if unit is not None:
-        unit = f" {unit}"
-    else:
-        unit = ""
-
-    format_str = format_string or format_string_for_parameter_name(parameter_name)
-    value = format_str.format(value)
-
-    if values_at_sigma is None:
-        return f"{value}{unit}"
-
-    lower_value_at_sigma = format_str.format(values_at_sigma[0])
-    upper_value_at_sigma = format_str.format(values_at_sigma[1])
-    return f"{value} ({lower_value_at_sigma}, {upper_value_at_sigma}){unit}"
-
-
 def parameter_result_string_from(
     parameter_name,
     value,
-    whitespace,
     values_at_sigma=None,
     subscript=None,
     unit=None,
     format_string=None,
     name_to_label=False,
 ):
-    value = value_with_limits_string(
-        parameter_name=parameter_name,
-        value=value,
-        values_at_sigma=values_at_sigma,
-        unit=unit,
-        format_string=format_string,
+
+    format_str = format_string or format_string_for_parameter_name(parameter_name)
+    value = format_str.format(value)
+
+    parameter_tag = convert_name_to_label(
+        parameter_name=parameter_name, name_to_label=name_to_label
     )
+
+    if unit is not None:
+        unit = f" {unit}"
+    else:
+        unit = ""
+
+    if values_at_sigma is None:
+        parameter_result = f"{value}{unit}"
+    else:
+        lower_value_at_sigma = format_str.format(values_at_sigma[0])
+        upper_value_at_sigma = format_str.format(values_at_sigma[1])
+        parameter_result = f"{value} ({lower_value_at_sigma}, {upper_value_at_sigma}){unit}"
+
+    if subscript is None:
+        return f"{parameter_tag} {parameter_result}"
+    return f"{parameter_tag}_{subscript} {parameter_result}"
+
+
+def parameter_result_latex_from(
+    parameter_name,
+    value,
+    values_at_sigma=None,
+    subscript=None,
+    unit=None,
+    format_string=None,
+    name_to_label=False,
+):
+
+    format_str = format_string or format_string_for_parameter_name(parameter_name)
+    value = format_str.format(value)
 
     str0 = convert_name_to_label(
         parameter_name=parameter_name, name_to_label=name_to_label
     )
+
+    if unit is not None:
+        unit = f" {unit}"
+    else:
+        unit = ""
+
     if subscript is None:
-        return add_whitespace(str0=str0, str1=value, whitespace=whitespace)
-    return add_whitespace(str0=f"{str0}_{subscript}", str1=value, whitespace=whitespace)
+        subscript = ""
+    else:
+        subscript = f"_{{\mathrm{{{subscript}}}}}"
+
+    if values_at_sigma is None:
+        return f"{str0}{subscript} = {value}{unit} & "
+    else:
+        lower_value_at_sigma = format_str.format(values_at_sigma[0])
+        upper_value_at_sigma = format_str.format(values_at_sigma[1])
+        return f"{str0}{subscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit} & "
+
+
 
 
 def output_list_of_strings_to_file(file, list_of_strings):
     file = open(file, "w")
     file.write("".join(list_of_strings))
     file.close()
-
-
-def within_radius_label_value_and_unit_string(
-    prefix, radius, unit_length, value, unit_value, whitespace
-):
-    label = prefix + "_within_{:.2f}_{}".format(radius, unit_length)
-    return parameter_result_string_from(
-        parameter_name=label, value=value, unit=unit_value, whitespace=whitespace
-    )
