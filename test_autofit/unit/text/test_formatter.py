@@ -180,7 +180,7 @@ def test_string():
         == "radius_value"
     )
     assert (
-        af.text.formatter.format_string_for_parameter_name("mass_value") == "mass_value"
+        af.text.formatter.format_string_for_parameter_name("mass_value") == "{:.2f}"
     )
 
 
@@ -191,7 +191,7 @@ def test_substring():
     )
     assert (
         af.text.formatter.format_string_for_parameter_name("mass_value_something")
-        == "mass_value"
+        == "{:.2f}"
     )
 
 
