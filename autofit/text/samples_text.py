@@ -6,7 +6,7 @@ from autofit.text import formatter as frm
 logger = logging.getLogger(__name__)
 
 
-def median_pdf_with_errors_at_sigma_summary(samples, sigma) -> str:
+def parameter_results_at_sigma_summary(samples, sigma) -> str:
     """ Create a string summarizing the results of the non-linear search at an input sigma value.
 
     This function is used for creating the model.results files of a non-linear search.
@@ -34,7 +34,7 @@ def median_pdf_with_errors_at_sigma_summary(samples, sigma) -> str:
     )
 
 
-def median_pdf_with_errors_at_sigma_table(samples, sigma, name_to_label=True) -> str:
+def parameter_results_at_sigma_table(samples, sigma, name_to_label=True) -> str:
     """ Create a string summarizing the results of the non-linear search at an input sigma value.
 
     This function is used for creating the model.results files of a non-linear search.
@@ -48,7 +48,7 @@ def median_pdf_with_errors_at_sigma_table(samples, sigma, name_to_label=True) ->
 
     table = []
 
-    for i, prior_path in enumerate(samples.model.unique_prior_paths):
+    for i in range(samples.model.prior_count):
 
         label_value = frm.parameter_result_string_from(
             parameter_name=samples.model.parameter_names[i],
@@ -63,7 +63,8 @@ def median_pdf_with_errors_at_sigma_table(samples, sigma, name_to_label=True) ->
 
     return "\n\nMedian PDF model Table ({} sigma limits):\n\n{}".format(sigma, table)
 
-def median_pdf_with_errors_at_sigma_latex(samples, sigma, name_to_label=True) -> str:
+
+def parameter_results_at_sigma_latex(samples, sigma, name_to_label=True) -> str:
     """ Create a string summarizing the results of the non-linear search at an input sigma value.
 
     This function is used for creating the model.results files of a non-linear search.
@@ -73,20 +74,22 @@ def median_pdf_with_errors_at_sigma_latex(samples, sigma, name_to_label=True) ->
     sigma : float
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
-    values_at_sigma = samples.vector_at_sigma(sigma=sigma)
+    errors_at_sigma = samples.error_vector_at_sigma(sigma=sigma)
 
     table = []
 
-    for i, prior_path in enumerate(samples.model.unique_prior_paths):
+    for i in range(samples.model.prior_count):
 
         label_value = frm.parameter_result_latex_from(
             parameter_name=samples.model.parameter_names[i],
             value=samples.median_pdf_vector[i],
-            values_at_sigma=values_at_sigma[i],
+            errors=errors_at_sigma[i],
             subscript=samples.model.subscripts[i],
             name_to_label=name_to_label,
         )
+
         table.append(f"{label_value}")
+
 
     table = "".join(table)[:-3]
 
@@ -130,11 +133,11 @@ def results_to_file(samples, filename, during_analysis):
 
         if samples.pdf_converged:
 
-            results += median_pdf_with_errors_at_sigma_summary(
+            results += parameter_results_at_sigma_summary(
                 samples=samples, sigma=3.0
             )
             results += ["\n"]
-            results += median_pdf_with_errors_at_sigma_summary(
+            results += parameter_results_at_sigma_summary(
                 samples=samples, sigma=1.0
             )
 
@@ -144,7 +147,7 @@ def results_to_file(samples, filename, during_analysis):
                 "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
                 "The model below over estimates errors. \n\n"
             ]
-            results += median_pdf_with_errors_at_sigma_summary(
+            results += parameter_results_at_sigma_summary(
                 samples=samples, sigma=1.0
             )
 
@@ -158,40 +161,6 @@ def results_to_file(samples, filename, during_analysis):
     results += ["\n" + formatter.text]
 
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=results)
-
-
-def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> [str]:
-    """Return the results of the non-linear search at an input sigma value as a string that is formated for simple
-    copy and pasting in a LaTex document.
-
-    Parameters
-    ----------
-    sigma : float
-        The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-    format_str : str
-        The formatting of the parameter string, e.g. how many decimal points to which the parameter is written.
-    """
-
-    labels = samples.model.parameter_labels
-    subscripts = samples.model.subscripts
-    labels = [
-        f"{label}_{{\\mathrm{{{subscript}}}}}"
-        for label, subscript in zip(labels, subscripts)
-    ]
-    median_pdfs = samples.median_pdf_vector
-    uppers = samples.vector_at_upper_sigma(sigma=sigma)
-    lowers = samples.vector_at_lower_sigma(sigma=sigma)
-
-    line = []
-
-    for i in range(len(labels)):
-        median_pdf = format_str.format(median_pdfs[i])
-        upper = format_str.format(uppers[i])
-        lower = format_str.format(lowers[i])
-
-        line += [f"{labels[i]} = {median_pdf}^{{+{upper}}}_{{-{lower}}} & "]
-
-    return line
 
 
 def search_summary_from_samples(samples) -> [str]:

@@ -146,7 +146,7 @@ def parameter_result_string_from(
 def parameter_result_latex_from(
     parameter_name,
     value,
-    values_at_sigma=None,
+    errors=None,
     subscript=None,
     unit=None,
     format_string=None,
@@ -170,11 +170,11 @@ def parameter_result_latex_from(
     else:
         subscript = f"_{{\mathrm{{{subscript}}}}}"
 
-    if values_at_sigma is None:
+    if errors is None:
         return f"{str0}{subscript} = {value}{unit} & "
     else:
-        lower_value_at_sigma = format_str.format(values_at_sigma[0])
-        upper_value_at_sigma = format_str.format(values_at_sigma[1])
+        lower_value_at_sigma = format_str.format(errors[0])
+        upper_value_at_sigma = format_str.format(errors[1])
         return f"{str0}{subscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit} & "
 
 

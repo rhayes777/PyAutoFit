@@ -30,7 +30,7 @@ def make_samples(model):
 
 
 def test__median_pdf_at_sigma_from_sigma(samples):
-    results_at_sigma = samples_text.median_pdf_with_errors_at_sigma_summary(
+    results_at_sigma = samples_text.parameter_results_at_sigma_summary(
         samples=samples, sigma=3.0
     )
 
@@ -38,7 +38,7 @@ def test__median_pdf_at_sigma_from_sigma(samples):
     assert "one 1.00 (1.00, 1.20)" in results_at_sigma
     assert "two 2.10 (2.00, 2.20)"
 
-    results_at_sigma = samples_text.median_pdf_with_errors_at_sigma_table(
+    results_at_sigma = samples_text.parameter_results_at_sigma_table(
         samples=samples, sigma=3.0
     )
 
@@ -48,28 +48,17 @@ def test__median_pdf_at_sigma_from_sigma(samples):
         in results_at_sigma
     )
 
-    results_at_sigma = samples_text.median_pdf_with_errors_at_sigma_latex(
-        samples=samples, sigma=3.0,
-    )
+def test__parameter_results_at_sigma_latex(samples):
 
-    assert "Median PDF model Table (3.0 sigma limits):" in results_at_sigma
-    assert (
-        r"one_label_{\mathrm{a}} = 1.00^{+1.20}_{-1.00} & "
-        r"two_label_{\mathrm{a}} = 2.00^{+2.20}_{-2.00}"
-        in results_at_sigma
-    )
-
-
-def test__results_latex_from_sigma(samples):
-    latex_results_at_sigma = samples_text.latex_results_at_sigma_from_samples(
+    latex_results_at_sigma = samples_text.parameter_results_at_sigma_latex(
         samples=samples, sigma=3.0
     )
 
     assert (
-        latex_results_at_sigma[0] == "one_label_{\\mathrm{a}} = 1.00^{+1.20}_{-1.00} & "
+        r"one_label_{\mathrm{a}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
     )
     assert (
-        latex_results_at_sigma[1] == "two_label_{\\mathrm{a}} = 2.00^{+2.20}_{-2.00} & "
+        r"two_label_{\mathrm{a}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma
     )
 
 

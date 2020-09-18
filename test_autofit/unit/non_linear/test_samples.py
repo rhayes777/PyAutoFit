@@ -383,7 +383,7 @@ class TestPDFSamples:
 
         assert samples.pdf_converged == True
 
-        errors = samples.error_vector_at_sigma(sigma=3.0)
+        errors = samples.error_magnitude_vector_at_sigma(sigma=3.0)
 
         assert errors == pytest.approx([0.19514, 0.19514], 1e-1)
 
@@ -395,7 +395,11 @@ class TestPDFSamples:
 
         assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-        errors = samples.error_vector_at_sigma(sigma=1.0)
+        errors = samples.error_vector_at_sigma(sigma=3.0)
+        assert errors[0] == pytest.approx((0.09757, 0.09757), 1e-1)
+        assert errors[1] == pytest.approx((0.09757, 0.09757), 1e-1)
+
+        errors = samples.error_magnitude_vector_at_sigma(sigma=1.0)
 
         assert errors == pytest.approx([0.0, 0.0], 1e-1)
 

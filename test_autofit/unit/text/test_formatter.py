@@ -80,12 +80,12 @@ def test__parameter_result_latex():
     assert str0 == r"param0 = 2.00 & "
 
     str0 = af.text.formatter.parameter_result_latex_from(
-        parameter_name="param0", value=2.0, values_at_sigma=(0.1, 0.2),
+        parameter_name="param0", value=2.0, errors=(0.1, 0.2),
     )
     assert str0 == r"param0 = 2.00^{+0.20}_{-0.10} & "
 
     str0 = af.text.formatter.parameter_result_latex_from(
-        parameter_name="param0", value=3.00, subscript="a", values_at_sigma=(0.1, 0.2)
+        parameter_name="param0", value=3.00, subscript="a", errors=(0.1, 0.2)
     )
 
     assert str0 == r"param0_{\mathrm{a}} = 3.00^{+0.20}_{-0.10} & "
