@@ -168,3 +168,39 @@ class ModelFactorCollection(AbstractModelFactor):
     @property
     def model_factors(self):
         return self._model_factors
+
+    def optimise(self, optimiser):
+        mean_field_approximation = self.mean_field_approximation()
+        updated_model = optimiser.run(
+            mean_field_approximation
+        )
+
+        results = list()
+
+        for factor in self.model_factors:
+            prior_model = factor.prior_model
+            arguments = {
+                prior: updated_model[
+                    prior
+                ].as_prior()
+                for prior
+                in prior_model.priors
+            }
+            results.append(
+                Result(
+                    prior_model.gaussian_prior_model_for_arguments(
+                        arguments
+                    )
+                )
+            )
+
+        return results
+
+
+class Result:
+    def __init__(self, model: PriorModel):
+        self.model = model
+
+    @property
+    def instance(self):
+        return self.model.instance_from_prior_medians()

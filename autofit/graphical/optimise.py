@@ -195,33 +195,34 @@ def find_factor_mode(
 class LaplaceOptimiser:
     def __init__(
             self,
-            model_approx,
             n_iter=4,
             delta=1.
     ):
-        self.model_approx = model_approx
-        self.model = model_approx.factor_graph
         self.history = dict()
         self.n_iter = n_iter
         self.delta = delta
 
-    def run(self):
+    def run(self, model_approx):
+        model = model_approx.factor_graph
         for i in range(self.n_iter):
-            for factor in self.model.factors:
+            for factor in model.factors:
                 # We have reduced the entire EP step into a single function
-                self.model_approx, status = self.laplace_factor_approx(
+                model_approx, status = self.laplace_factor_approx(
+                    model_approx,
                     factor
                 )
 
                 # save and print current approximation
-                self.history[i, factor] = self.model_approx
+                self.history[i, factor] = model_approx
+        return model_approx
 
     def laplace_factor_approx(
             self,
+            model_approx,
             factor: Factor,
             opt_kws: Optional[Dict[str, Any]] = None
     ):
-        factor_approx = self.model_approx.factor_approximation(factor)
+        factor_approx = model_approx.factor_approximation(factor)
 
         opt_kws = {} if opt_kws is None else opt_kws
         mode, covars, status, _ = find_factor_mode(
@@ -244,7 +245,7 @@ class LaplaceOptimiser:
             status=status
         )
 
-        return self.model_approx.project(
+        return model_approx.project(
             projection,
             status=status
         )

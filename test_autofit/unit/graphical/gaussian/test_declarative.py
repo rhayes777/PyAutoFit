@@ -110,29 +110,31 @@ def test_shared_intensity():
     assert len(factor_model.message_dict) == 5
     assert len(factor_model.graph.factors) == 7
 
-    """
-    A mean field approximation can be generated from the model
-    """
-    mean_field_approximation = factor_model.mean_field_approximation()
+    # """
+    # A mean field approximation can be generated from the model
+    # """
+    # mean_field_approximation = factor_model.mean_field_approximation()
 
     """
     We optimise that...
     """
     opt = ep.optimise.LaplaceOptimiser(
-        mean_field_approximation,
         n_iter=3
     )
-    opt.run()
+
+    results = factor_model.optimise(
+        opt
+    )
 
     """
-    Et voila! 
+    Et voila!
     """
     assert 25.0 == pytest.approx(
-        opt.model_approx[
-            intensity_prior
-        ].mu,
+        results[0].instance.intensity,
         rel=0.1
     )
+    assert results[0].instance.intensity == results[1].instance.intensity
+    assert results[0].model.intensity is results[1].model.intensity
 
 
 def test_gaussian():
