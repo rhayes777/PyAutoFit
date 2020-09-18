@@ -665,6 +665,19 @@ class AbstractPriorModel(AbstractModel):
     def priors(self):
         return [prior_tuple.prior for prior_tuple in self.prior_tuples]
 
+    @property
+    def _prior_id_map(self):
+        return {
+            prior.id: prior
+            for prior
+            in self.priors
+        }
+
+    def prior_with_id(self, prior_id):
+        return self._prior_id_map[
+            prior_id
+        ]
+
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.direct_prior_model_tuples:
             prior_name = prior_model.name_for_prior(prior)
