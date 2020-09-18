@@ -180,7 +180,7 @@ def test_string():
         == "radius_value"
     )
     assert (
-        af.text.formatter.format_string_for_parameter_name("mass_value") == "mass_value"
+        af.text.formatter.format_string_for_parameter_name("mass_value") == "{:.2f}"
     )
 
 
@@ -191,5 +191,18 @@ def test_substring():
     )
     assert (
         af.text.formatter.format_string_for_parameter_name("mass_value_something")
-        == "mass_value"
+        == "{:.2f}"
     )
+
+
+def test__within_radius_label_value_and_unit_string():
+    str0 = af.text.formatter.within_radius_label_value_and_unit_string(
+        prefix="mass",
+        radius=1.0,
+        unit_length="arcsec",
+        value=30.0,
+        unit_value="solMass",
+        whitespace=40,
+    )
+
+    assert str0 == "mass_within_1.00_arcsec                 30.00 solMass"
