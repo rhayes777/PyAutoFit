@@ -1,6 +1,6 @@
 from autofit import exc
-from autofit.mapper.prior import Prior
 from autofit.mapper.model import ModelInstance
+from autofit.mapper.prior import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
 
@@ -32,6 +32,12 @@ class CollectionPriorModel(AbstractPriorModel):
 
     def __len__(self):
         return len(self.values)
+
+    def __str__(self):
+        return ", ".join(map(str, self))
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
 
     @property
     def dict(self):

@@ -8,6 +8,7 @@ from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
+from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 
 
@@ -175,32 +176,17 @@ class ModelFactorCollection(AbstractModelFactor):
             mean_field_approximation
         )
 
-        results = list()
+        collection = CollectionPriorModel([
+            factor.prior_model for factor in self.model_factors
+        ])
+        arguments = {
+            prior: updated_model[
+                prior
+            ].as_prior()
+            for prior
+            in collection.priors
+        }
 
-        for factor in self.model_factors:
-            prior_model = factor.prior_model
-            arguments = {
-                prior: updated_model[
-                    prior
-                ].as_prior()
-                for prior
-                in prior_model.priors
-            }
-            results.append(
-                Result(
-                    prior_model.gaussian_prior_model_for_arguments(
-                        arguments
-                    )
-                )
-            )
-
-        return results
-
-
-class Result:
-    def __init__(self, model: PriorModel):
-        self.model = model
-
-    @property
-    def instance(self):
-        return self.model.instance_from_prior_medians()
+        return collection.gaussian_prior_model_for_arguments(
+            arguments
+        )

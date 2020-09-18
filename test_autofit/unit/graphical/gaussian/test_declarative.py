@@ -130,11 +130,10 @@ def test_shared_intensity():
     Et voila!
     """
     assert 25.0 == pytest.approx(
-        results[0].instance.intensity,
+        results[0].intensity.mean,
         rel=0.1
     )
-    assert results[0].instance.intensity == results[1].instance.intensity
-    assert results[0].model.intensity is results[1].model.intensity
+    assert results[0].intensity is results[1].intensity
 
 
 def test_gaussian():
