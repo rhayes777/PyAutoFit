@@ -95,9 +95,10 @@ class TestGenerateModelInfo:
         mm = af.ModelMapper()
         mm.promise = af.prior.Promise(
             af.Phase(
-                phase_name="phase",
                 analysis_class=None,
-                search=af.MockSearch()
+                search=af.MockSearch(
+                    "phase"
+                )
             ),
             "path",
             result_path=[],

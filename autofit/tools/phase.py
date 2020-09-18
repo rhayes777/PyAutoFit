@@ -16,10 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractPhase:
-    @convert_paths
     def __init__(
             self,
-            paths: Paths,
             *,
             search,
             model=None,
@@ -33,7 +31,6 @@ class AbstractPhase:
         search: class
             The class of a non_linear search
         """
-
         self.search = search
         self.model = model or ModelMapper()
 
@@ -176,16 +173,14 @@ class Dataset(ABC):
 
 
 class Phase(AbstractPhase):
-    @convert_paths
     def __init__(
             self,
-            paths,
             *,
             analysis_class,
             search,
             model=None,
     ):
-        super().__init__(paths=paths, search=search, model=model)
+        super().__init__(search=search, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
@@ -245,17 +240,15 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
-        @convert_paths
         def __init__(
                 self,
-                paths,
                 *,
                 search,
                 number_of_steps=4,
                 **kwargs,
         ):
 
-            super().__init__(paths, search=search, **kwargs)
+            super().__init__(search=search, **kwargs)
 
             self.search = grid_search.GridSearch(
                 paths=self.paths,

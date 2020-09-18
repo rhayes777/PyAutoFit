@@ -15,11 +15,7 @@ def make_path(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         full_path = func(*args, **kwargs)
-        if not os.path.exists(full_path):
-            try:
-                os.makedirs(full_path)
-            except FileExistsError:
-                pass
+        os.makedirs(full_path, exist_ok=True)
         return full_path
 
     return wrapper

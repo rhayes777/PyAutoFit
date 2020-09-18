@@ -9,9 +9,12 @@ from test_autofit import mock
 )
 def make_phase():
     return af.AbstractPhase(
-        phase_name="phase_name",
-        phase_tag="phase_tag",
-        search=mock.MockSearch()
+        search=mock.MockSearch(
+            paths=af.Paths(
+                name="phase_name",
+                tag="phase_tag"
+            )
+        )
     )
 
 
