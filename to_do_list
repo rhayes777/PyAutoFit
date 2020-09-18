@@ -9,7 +9,7 @@ Features:
     - Remove sym link in most searches.
     - Loading a Samples instance from a csv.
     - Implement LBFGS.
-    - Visualization, corner and remove GetDist.
+    - Visualization, corner and remove corner.py.
     - Covariance intiialization tansform search space using tchileveky decomposition of cov matrix?
     - Use importance sampling to generate initial saples with well defined priors?
 

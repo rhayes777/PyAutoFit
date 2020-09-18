@@ -171,13 +171,27 @@ class TestRegression:
 
         mm.one.one.id = mm.two.three.id + 1
 
-        assert mm.parameter_names == [
+        assert mm.model_component_and_parameter_names == [
             "one_two",
             "one_three",
             "two_one",
             "two_two",
             "two_three",
             "one_one",
+        ]
+
+    def test_parameter_name_list(self):
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassRelativeWidth
+
+        assert mm.parameter_names == [
+            "one",
+            "two",
+            "three",
+            "one",
+            "two",
+            "three",
         ]
 
     def test_parameter_name_distinction(self):
@@ -188,13 +202,41 @@ class TestRegression:
                 af.PriorModel(mock.MockClassRelativeWidth),
             ]
         )
-        assert mm.parameter_names == [
+        assert mm.model_component_and_parameter_names == [
             "ls_0_one",
             "ls_0_two",
             "ls_0_three",
             "ls_1_one",
             "ls_1_two",
             "ls_1_three",
+        ]
+
+    def test__parameter_labels(self):
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassRelativeWidth
+
+        assert mm.parameter_labels == [
+            "one_label",
+            "two_label",
+            "three_label",
+            "one_label",
+            "two_label",
+            "three_label",
+        ]
+
+    def test__subscripts_of_parameters(self):
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassRelativeWidth
+
+        assert mm.subscripts == [
+            "r",
+            "r",
+            "r",
+            "r",
+            "r",
+            "r",
         ]
 
     def test_name_for_prior(self):

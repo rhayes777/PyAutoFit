@@ -8,7 +8,6 @@ import numpy as np
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
-from autofit.text import model_text
 
 
 def load_from_table(filename, model):
@@ -65,10 +64,6 @@ class OptimizerSamples:
         self.time = time
 
     @property
-    def parameter_names(self):
-        return self.model.parameter_names
-
-    @property
     def parameters_extract(self):
         return [
             [params[i] for params in self.parameters]
@@ -80,7 +75,7 @@ class OptimizerSamples:
         """
         Headers for the samples table
         """
-        return self.parameter_names + [
+        return self.model.model_component_and_parameter_names + [
             "log_likelihood",
             "log_prior",
             "log_posterior",
@@ -121,10 +116,6 @@ class OptimizerSamples:
 
         with open(filename, 'w') as outfile:
             json.dump(info, outfile)
-
-    @property
-    def parameter_labels(self):
-        return model_text.parameter_labels_from_model(model=self.model)
 
     @property
     def max_log_likelihood_index(self) -> int:
@@ -238,7 +229,7 @@ class PDFSamples(OptimizerSamples):
     @property
     def unconverged_sample_size(self):
         """If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
-        an alternative to GetDist.
+        an alternative to corner.py.
 
         These use a subset of samples spanning the range from the most recent sample to the valaue of the
         unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
@@ -290,7 +281,7 @@ class PDFSamples(OptimizerSamples):
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
-        For *Dynesty*, this is estimated using *GetDist* if the samples have converged, by sampling the density
+        For *Dynesty*, this is estimated using *corner.py* if the samples have converged, by sampling the density
         function at an input PDF %. If not converged, a crude estimate using the range of values of the current
         physical live points is used.
 
@@ -582,7 +573,7 @@ class PDFSamples(OptimizerSamples):
     def output_pdf_plots(self):
         """Output plots of the probability density functions of the non-linear seach.
 
-        This uses *GetDist* to plot:
+        This uses *corner.py* to plot:
 
          - The marginalize 1D PDF of every parameter.
          - The marginalized 2D PDF of every parameter pair.
@@ -601,7 +592,7 @@ class PDFSamples(OptimizerSamples):
         #     matplotlib.use("Agg")
         # import matplotlib.pyplot as plt
         #
-        # pdf_plot = getdist.plots.GetDistPlotter()
+        # pdf_plot = getdist.plots.corner.pyPlotter()
         #
         # plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
         #
@@ -716,11 +707,11 @@ class MCMCSamples(PDFSamples):
 
     @property
     def pdf_converged(self):
-        """ To analyse and visualize samples using *GetDist*, the analysis must be sufficiently converged to produce
+        """ To analyse and visualize samples using *corner.py*, the analysis must be sufficiently converged to produce
         smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
-        converged for *GetDist* use.
+        converged for *corner.py* use.
 
-        Emcee samples can be analysed by GetDist irrespective of how long the sampler has run, albeit low run times
+        Emcee samples can be analysed by corner.py irrespective of how long the sampler has run, albeit low run times
         will likely produce inaccurate results."""
         try:
             self.samples_after_burn_in

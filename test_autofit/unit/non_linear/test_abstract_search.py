@@ -127,13 +127,13 @@ def test_nlo_wrong_info():
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)
-        assert ["one", "two", "three", "four"] == model.parameter_names
+        assert ["one", "two", "three", "four"] == model.model_component_and_parameter_names
 
     def test_label_config(self):
-        assert conf.instance.label.label("one") == "x4p0"
-        assert conf.instance.label.label("two") == "x4p1"
-        assert conf.instance.label.label("three") == "x4p2"
-        assert conf.instance.label.label("four") == "x4p3"
+        assert conf.instance.label.label("one") == "one_label"
+        assert conf.instance.label.label("two") == "two_label"
+        assert conf.instance.label.label("three") == "three_label"
+        assert conf.instance.label.label("four") == "four_label"
 
 test_path = "{}/files/phase".format(os.path.dirname(os.path.realpath(__file__)))
 

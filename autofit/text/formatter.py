@@ -5,6 +5,7 @@ from autoconf import conf
 
 logger = logging.getLogger(__name__)
 
+
 class TextFormatter:
     def __init__(self, line_length=90, indent=4):
         self.dict = dict()
@@ -52,14 +53,14 @@ class TextFormatter:
         return "\n".join(self.list)
 
 
-def format_string_for_label(label: str) -> str:
+def format_string_for_parameter_name(parameter_name: str) -> str:
     """
     Get the format for the label. Attempts to extract the key string associated with
     the dimension. Seems dodgy.
 
     Parameters
     ----------
-    label
+    parameter_name
         A string label
 
     Returns
@@ -76,56 +77,86 @@ def format_string_for_label(label: str) -> str:
             key=lambda item: len(item[0]),
             reverse=True,
         ):
-            if key in label:
+            if key in parameter_name:
                 return value
     except KeyError:
         pass
     raise configparser.NoSectionError(
-        "Could not find format for label {} in config at path {}".format(
-            label, label_conf.path
+        "Could not find an entry for the parameter {} in the label_format.iniconfig at path {}".format(
+            parameter_name, label_conf.path
         )
     )
 
 
-def label_and_label_string(label0, label1, whitespace):
-    return label0 + label1.rjust(whitespace - len(label0) + len(label1))
+def convert_name_to_label(parameter_name, name_to_label):
+
+    if not name_to_label:
+        return parameter_name
+
+    label_conf = conf.instance.label
+
+    try:
+        return conf.instance.label.label(name=parameter_name)
+    except KeyError:
+        raise configparser.NoSectionError(
+            "Could not find an entry for the parameter {} in the label_format.iniconfig at path {}".format(
+                parameter_name, label_conf.path
+            )
+        )
 
 
-def label_and_value_string(label, value, whitespace, format_string=None):
-    format_str = format_string or format_string_for_label(label)
-    value = format_str.format(value)
-    return label + value.rjust(whitespace - len(label) + len(value))
+def add_whitespace(str0, str1, whitespace):
+    return f"{str0}{str1.rjust(whitespace - len(str0) + len(str1))}"
 
 
-def label_value_and_limits_string(
-    label, value, lower_limit, upper_limit, whitespace, format_string=None
+def value_with_limits_string(
+    parameter_name, value, values_at_sigma, unit=None, format_string=None
 ):
-    format_str = format_string or format_string_for_label(label)
+
+    if unit is not None:
+        unit = f" {unit}"
+    else:
+        unit = ""
+
+    format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
-    upper_limit = format_str.format(upper_limit)
-    lower_limit = format_str.format(lower_limit)
-    value = value + " (" + lower_limit + ", " + upper_limit + ")"
-    return label + value.rjust(whitespace - len(label) + len(value))
+
+    if values_at_sigma is None:
+        print(value)
+        return f"{value}{unit}"
+
+    lower_value_at_sigma = format_str.format(values_at_sigma[0])
+    upper_value_at_sigma = format_str.format(values_at_sigma[1])
+    return f"{value} ({lower_value_at_sigma}, {upper_value_at_sigma}){unit}"
 
 
-def label_value_and_unit_string(label, value, unit, whitespace, format_string=None):
-    format_str = format_string or format_string_for_label(label)
-    value = (format_str + " {}").format(value, unit)
-    return label + value.rjust(whitespace - len(label) + len(value))
+def parameter_result_string_from(
+    parameter_name,
+    value,
+    whitespace,
+    values_at_sigma=None,
+    subscript=None,
+    unit=None,
+    format_string=None,
+    name_to_label=False,
+):
+    value = value_with_limits_string(
+        parameter_name=parameter_name,
+        value=value,
+        values_at_sigma=values_at_sigma,
+        unit=unit,
+        format_string=format_string,
+    )
+
+    str0 = convert_name_to_label(
+        parameter_name=parameter_name, name_to_label=name_to_label
+    )
+    if subscript is None:
+        return add_whitespace(str0=str0, str1=value, whitespace=whitespace)
+    return add_whitespace(str0=f"{str0}_{subscript}", str1=value, whitespace=whitespace)
 
 
 def output_list_of_strings_to_file(file, list_of_strings):
     file = open(file, "w")
     file.write("".join(list_of_strings))
     file.close()
-
-
-def within_radius_label_value_and_unit_string(
-    prefix, radius, unit_length, value, unit_value, whitespace
-):
-    label = prefix + "_within_{:.2f}_{}".format(radius, unit_length)
-    return label_value_and_unit_string(
-        label=label, value=value, unit=unit_value, whitespace=whitespace
-    )
-
-

@@ -16,7 +16,6 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.non_linear.timer import Timer
 from autofit.text import formatter
-from autofit.text import model_text
 from autofit.text import samples_text
 
 
@@ -386,19 +385,21 @@ class NonLinearSearch(ABC):
             f.write(model.info)
 
     def save_parameter_names_file(self, model):
-        """Create the param_names file listing every parameter's label and Latex tag, which is used for *GetDist*
+        """Create the param_names file listing every parameter's label and Latex tag, which is used for *corner.py*
         visualization.
 
         The parameter labels are determined using the label.ini and label_format.ini config files."""
 
-        paramnames_names = model.parameter_names
-        paramnames_labels = model_text.parameter_labels_from_model(model=model)
+        parameter_names = model.model_component_and_parameter_names
+        parameter_labels = model.parameter_labels
+        subscripts = model.subscripts
+        parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in zip(parameter_labels, subscripts)]
 
         parameter_name_and_label = []
 
         for i in range(model.prior_count):
-            line = formatter.label_and_label_string(
-                label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
+            line = formatter.add_whitespace(
+                str0=parameter_names[i], str1=parameter_labels_with_subscript[i], whitespace=70
             )
             parameter_name_and_label += [f"{line}\n"]
 
