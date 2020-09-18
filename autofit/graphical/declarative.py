@@ -41,7 +41,10 @@ class AbstractModelFactor(ABC):
         """
         return [
             Factor(
-                prior,
+                cast(
+                    Callable,
+                    prior
+                ),
                 x=prior
             )
             for prior
