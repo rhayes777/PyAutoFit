@@ -1,5 +1,7 @@
+
 .envr
 test_autofit/test_files/
+test_autofit/samples.csv
 __MACOSX
 *.swp
 test/autofit/test_fit
