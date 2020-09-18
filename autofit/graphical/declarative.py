@@ -91,6 +91,41 @@ class AbstractModelFactor(ABC):
             self.message_dict
         )
 
+    def optimise(self, optimiser) -> CollectionPriorModel:
+        """
+        Use an EP Optimiser to optimise the graph associated with this collection
+        of factors and create a Collection to represent the results.
+
+        Parameters
+        ----------
+        optimiser
+            An optimiser that acts on graphs
+
+        Returns
+        -------
+        A collection of prior models
+        """
+        updated_model = optimiser.run(
+            self.mean_field_approximation()
+        )
+
+        collection = CollectionPriorModel([
+            factor.prior_model
+            for factor
+            in self.model_factors
+        ])
+        arguments = {
+            prior: updated_model[
+                prior
+            ].as_prior()
+            for prior
+            in collection.priors
+        }
+
+        return collection.gaussian_prior_model_for_arguments(
+            arguments
+        )
+
 
 class ModelFactor(Factor, AbstractModelFactor):
     def __init__(
@@ -154,6 +189,11 @@ class ModelFactor(Factor, AbstractModelFactor):
     def model_factors(self) -> List["ModelFactor"]:
         return [self]
 
+    def optimise(self, optimiser) -> PriorModel:
+        return super().optimise(
+            optimiser
+        )[0]
+
 
 class ModelFactorCollection(AbstractModelFactor):
     def __init__(self, *model_factors: ModelFactor):
@@ -172,38 +212,3 @@ class ModelFactorCollection(AbstractModelFactor):
     @property
     def model_factors(self):
         return self._model_factors
-
-    def optimise(self, optimiser) -> CollectionPriorModel:
-        """
-        Use an EP Optimiser to optimise the graph associated with this collection
-        of factors and create a Collection to represent the results.
-
-        Parameters
-        ----------
-        optimiser
-            An optimiser that acts on graphs
-
-        Returns
-        -------
-        A collection of prior models
-        """
-        updated_model = optimiser.run(
-            self.mean_field_approximation()
-        )
-
-        collection = CollectionPriorModel([
-            factor.prior_model
-            for factor
-            in self.model_factors
-        ])
-        arguments = {
-            prior: updated_model[
-                prior
-            ].as_prior()
-            for prior
-            in collection.priors
-        }
-
-        return collection.gaussian_prior_model_for_arguments(
-            arguments
-        )
