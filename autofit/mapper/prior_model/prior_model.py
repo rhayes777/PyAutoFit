@@ -23,6 +23,13 @@ class PriorModel(AbstractPriorModel):
     def name(self):
         return self.cls.__name__
 
+    def __str__(self):
+        prior_string = ", ".join(map(str, self.prior_tuples))
+        return f"{self.name} {prior_string}"
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
+
     def as_model(self):
         return PriorModel(self.cls)
 
