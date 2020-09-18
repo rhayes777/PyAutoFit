@@ -7,10 +7,10 @@ from typing import (
 import numpy as np
 
 from autofit.graphical.factor_graphs import Factor
-from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import FixedMessage
 from autofit.graphical.messages.abstract import AbstractMessage
+from autofit.mapper.variable import Variable
 from .messages import (
     map_dists
 )
@@ -183,8 +183,11 @@ class MeanFieldApproximation:
                     factor, approx_dists[variable]
                 )
 
-        return cls(factor_graph, variable_factor_dist,
-                   factor_evidence=factor_evidence)
+        return cls(
+            factor_graph,
+            variable_factor_dist,
+            factor_evidence=factor_evidence
+        )
 
     @classmethod
     def from_kws(

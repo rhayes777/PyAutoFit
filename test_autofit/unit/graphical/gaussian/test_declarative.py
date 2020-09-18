@@ -111,28 +111,23 @@ def test_shared_intensity():
     assert len(factor_model.graph.factors) == 7
 
     """
-    A mean field approximation can be generated from the model
-    """
-    mean_field_approximation = factor_model.mean_field_approximation()
-
-    """
     We optimise that...
     """
     opt = ep.optimise.LaplaceOptimiser(
-        mean_field_approximation,
         n_iter=3
     )
-    opt.run()
+    collection = factor_model.optimise(
+        opt
+    )
 
     """
-    Et voila! 
+    And what we get back is actually a PriorModelCollection
     """
     assert 25.0 == pytest.approx(
-        opt.model_approx[
-            intensity_prior
-        ].mu,
+        collection[0].intensity.mean,
         rel=0.1
     )
+    assert collection[0].intensity is collection[1].intensity
 
 
 def test_gaussian():
@@ -176,25 +171,15 @@ def test_gaussian():
         prior_model,
         likelihood_function=likelihood_function
     )
-    mean_field_approximation = factor_model.mean_field_approximation()
 
     opt = ep.optimise.LaplaceOptimiser(
-        mean_field_approximation,
         n_iter=3
     )
+    model = factor_model.optimise(opt)
 
-    opt.run()
-
-    prior_value_dict = dict()
-    for variable in factor_model.priors:
-        name = prior_model.path_for_prior(
-            variable
-        )[0]
-        prior_value_dict[name] = opt.model_approx[variable].mu
-
-    assert prior_value_dict["centre"] == pytest.approx(50, rel=0.1)
-    assert prior_value_dict["intensity"] == pytest.approx(25, rel=0.1)
-    assert prior_value_dict["sigma"] == pytest.approx(10, rel=0.1)
+    assert model.centre.mean == pytest.approx(50, rel=0.1)
+    assert model.intensity.mean == pytest.approx(25, rel=0.1)
+    assert model.sigma.mean == pytest.approx(10, rel=0.1)
 
 
 @pytest.fixture(

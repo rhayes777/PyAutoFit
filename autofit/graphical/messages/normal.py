@@ -1,6 +1,7 @@
 import numpy as np
 
 from autofit.graphical.messages.abstract import AbstractMessage
+from autofit.mapper.prior.prior import GaussianPrior
 
 
 class NormalMessage(AbstractMessage):
@@ -34,6 +35,12 @@ class NormalMessage(AbstractMessage):
         return NormalMessage(
             mu=prior.mean,
             sigma=prior.sigma
+        )
+
+    def as_prior(self):
+        return GaussianPrior(
+            mean=self.mu,
+            sigma=self.sigma
         )
 
     @property
