@@ -31,45 +31,15 @@ def make_samples(model):
 
 def test__summary(samples):
 
-    results_at_sigma = samples_text.summary(
-        samples=samples, sigma=3.0
-    )
+    results_at_sigma = samples_text.summary(samples=samples, sigma=3.0)
 
-    assert "Median PDF model Summary (3.0 sigma limits):" in results_at_sigma
-    assert "one_label 1.00 (1.00, 1.20)" in results_at_sigma
-    assert "two_label 2.10 (2.00, 2.20)"
-
-    results_at_sigma = samples_text.summary(
-        samples=samples, sigma=3.0, name_to_label=False
-    )
-
-    assert "Median PDF model Summary (3.0 sigma limits):" in results_at_sigma
-    assert "one 1.00 (1.00, 1.20)" in results_at_sigma
-    assert "two 2.10 (2.00, 2.20)"
-
-def test__table(samples):
-
-    results_at_sigma = samples_text.table(
-        samples=samples, sigma=3.0
-    )
-
-    assert "Median PDF model Table (3.0 sigma limits):" in results_at_sigma
-    assert (
-        "one_label_a 1.00 (1.00, 1.20) & two_label_a 2.00 (2.00, 2.20)"
-        in results_at_sigma
-    )
+    assert "one       1.00 (1.00, 1.20)" in results_at_sigma
+    assert "two       2.00 (2.00, 2.20)" in results_at_sigma
 
 
 def test__latex(samples):
 
-    latex_results_at_sigma = samples_text.latex(
-        samples=samples, sigma=3.0
-    )
+    latex_results_at_sigma = samples_text.latex(samples=samples, sigma=3.0)
 
-    assert (
-        r"one_label_{\mathrm{a}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
-    )
-    assert (
-        r"two_label_{\mathrm{a}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma
-    )
-
+    assert r"one_label_{\mathrm{a}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
+    assert r"two_label_{\mathrm{a}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma

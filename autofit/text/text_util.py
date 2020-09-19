@@ -3,6 +3,7 @@ import logging
 from autoconf import conf
 from autofit.text import formatter as frm, samples_text
 
+
 def results_to_file(samples, filename, during_analysis):
     """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
@@ -19,11 +20,15 @@ def results_to_file(samples, filename, during_analysis):
         if samples.log_evidence is not None:
 
             value = "{:.8f}".format(samples.log_evidence)
-            results += [frm.add_whitespace(str0="Bayesian Evidence ", str1=value, whitespace=90)]
+            results += [
+                frm.add_whitespace(str0="Bayesian Evidence ", str1=value, whitespace=90)
+            ]
             results += ["\n"]
 
     value = "{:.8f}".format(max(samples.log_likelihoods))
-    results += [frm.add_whitespace(str0="Maximum Likelihood ", str1=value, whitespace=90)]
+    results += [
+        frm.add_whitespace(str0="Maximum Likelihood ", str1=value, whitespace=90)
+    ]
     results += ["\n\n"]
 
     results += ["Maximum Log Likelihood Model:\n\n"]
@@ -40,13 +45,9 @@ def results_to_file(samples, filename, during_analysis):
 
         if samples.pdf_converged:
 
-            results += samples_text.summary(
-                samples=samples, sigma=3.0
-            )
+            results += samples_text.summary(samples=samples, sigma=3.0)
             results += ["\n"]
-            results += samples_text.summary(
-                samples=samples, sigma=1.0
-            )
+            results += samples_text.summary(samples=samples, sigma=1.0)
 
         else:
 
@@ -54,9 +55,7 @@ def results_to_file(samples, filename, during_analysis):
                 "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
                 "The model below over estimates errors. \n\n"
             ]
-            results += samples_text.summary(
-                samples=samples, sigma=1.0
-            )
+            results += samples_text.summary(samples=samples, sigma=1.0)
 
         results += ["\n\ninstances\n"]
 

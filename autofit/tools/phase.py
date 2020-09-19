@@ -276,6 +276,7 @@ def as_grid_search(phase_class, parallel=False):
         # noinspection PyMethodMayBeStatic,PyUnusedLocal
         def make_result(self, result, analysis):
             self.save_grid_search_result(grid_search_result=result)
+            open(self.paths.has_completed_path, "w+").close()
 
             return self.Result(
                 samples=result.samples,

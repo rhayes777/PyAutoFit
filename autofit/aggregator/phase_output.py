@@ -85,8 +85,11 @@ class PhaseOutput:
         The search object that was used in this phase
         """
         if self.__search is None:
-            with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
-                self.__search = pickle.loads(f.read())
+            try:
+                with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
+                    self.__search = pickle.loads(f.read())
+            except FileNotFoundError:
+                pass
         return self.__search
 
     @property
