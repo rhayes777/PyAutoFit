@@ -9,8 +9,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.abstract_search import Result
-from autofit.text import samples_text
-from autofit import exc
+from autofit.text import text_util
 from autofit.non_linear.log import logger
 
 
@@ -995,7 +994,7 @@ class DynestyDynamic(AbstractDynesty):
 
         return Result(samples=samples, previous_model=model, search=self)
 
-    def _fit(self, model: AbstractPriorModel, analysis) -> Result:
+    def _fit(self, model: AbstractPriorModel, analysis) -> NestSamples:
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the non-linear search seeks to maximize.
@@ -1094,13 +1093,13 @@ class DynestyDynamic(AbstractDynesty):
 
         if self.should_output_model_results() or not during_analysis:
 
-            samples_text.results_to_file(
+            text_util.results_to_file(
                 samples=samples,
                 filename=self.paths.file_results,
                 during_analysis=during_analysis,
             )
 
-            samples_text.search_summary_to_file(
+            text_util.search_summary_to_file(
                 samples=samples, filename=self.paths.file_search_summary
             )
 

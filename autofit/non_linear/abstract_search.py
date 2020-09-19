@@ -16,7 +16,7 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.non_linear.timer import Timer
 from autofit.text import formatter
-from autofit.text import samples_text
+from autofit.text import text_util
 
 
 class NonLinearSearch(ABC):
@@ -353,13 +353,13 @@ class NonLinearSearch(ABC):
 
         if self.should_output_model_results() or not during_analysis:
 
-            samples_text.results_to_file(
+            text_util.results_to_file(
                 samples=samples,
                 filename=self.paths.file_results,
                 during_analysis=during_analysis,
             )
 
-            samples_text.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
+            text_util.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
 
         return samples
 

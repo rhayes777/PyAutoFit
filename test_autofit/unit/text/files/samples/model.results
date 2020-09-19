@@ -14,8 +14,8 @@ mock_class
 Median PDF model Summary (1.0 sigma limits):
 
 mock_class
-    one                                                                                   one 1.00 (1.00, 1.20)
-    two                                                                                   two 2.00 (2.00, 2.20)
+    one                                                                                   one_label 1.00 (1.00, 1.20)
+    two                                                                                   two_label 2.00 (2.00, 2.20)
 
 instances
 
