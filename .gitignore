@@ -129,3 +129,4 @@ docs/_static
 docs/_templates
 docs/generated
 docs/api/generated
+test_autofit/unit/samples.csv
