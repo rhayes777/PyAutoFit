@@ -137,7 +137,7 @@ class Paths:
         self.non_linear_tag_function = non_linear_tag_function
 
         try:
-            self.remove_files = conf.instance.general.get("output", "remove_files", bool)
+            self.remove_files = conf.instance["general"]["output"]["remove_files"]
 
             if conf.instance.general.get("hpc", "hpc_mode", bool):
                 self.remove_files = True
