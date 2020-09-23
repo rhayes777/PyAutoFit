@@ -26,7 +26,7 @@ class ModelMapper(CollectionPriorModel):
         mapper.gaussian = al.lp.EllipticalGaussian
         mapper.any_class = SomeClass
 
-        # A _PriorModel_ instance is created each time we add a class to the mapper. We
+        # A `PriorModel` instance is created each time we add a class to the mapper. We
         can access those models using # the mapper attributes:
 
         sersic_model = mapper.sersic

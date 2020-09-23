@@ -18,7 +18,7 @@ tasks and I recommend your model-fitting project close adopts this structure!
 For example, the code which handles the model is completely separate from the code which handles the analysis class.
 The model thus never interfaces directly with PyAutoFit, ensuring good code design by removing dependencies between
 parts of the code that do not need them! Its the same for the part of the code that stores data ('dataset')
-and fits a model to a _Dataset_ ('fit') - by keeping them separate its clear which part of the code do what task.
+and fits a model to a `Dataset` ('fit') - by keeping them separate its clear which part of the code do what task.
 
 This is a principle aspect of object oriented design and software engineering called 'separation of concerns' and all
 templates we provide in the HowToFit series will adhere to it.
@@ -86,11 +86,11 @@ dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 """
 Previously, we manually specified how to plot the _Dataset_. These plotting functions are now in our source code, in the
 'plot' package - check them out now! You'll note we have separate modules for plotting lines (e.g. anything which is 
-line, the data, a residual-map, etc.), parts of the _Dataset_ or the results of a fit.
+line, the data, a residual-map, etc.), parts of the `Dataset` or the results of a fit.
 
 You should take note of two things:  
 
- - The _Dataset_ plot functions take instances of the _Dataset_ class, meaning we we don't have to manually the part of 
+ - The `Dataset` plot functions take instances of the `Dataset` class, meaning we we don't have to manually the part of 
  our data we want to pass to the function, making for a more concise API.
  
  - In plot/__init__.py we have imported the 'dataset_plots', 'fit_plots' and 'line_plots' modules as their 
@@ -107,8 +107,8 @@ htf.plot.Dataset.noise_map(dataset=dataset)
 
 # %%
 """
-Next, look at the 'model' package, which contains the module 'gaussian.py'. This contains the _Gaussian_ class we have
-used previous to compose the 1D _Gaussian_ model that we fit.
+Next, look at the 'model' package, which contains the module 'gaussian.py'. This contains the `Gaussian` class we have
+used previous to compose the 1D `Gaussian` model that we fit.
 
 By packaging all the model components into a single package, this will make it straight forward to add new model
 components to the source code.
@@ -126,7 +126,7 @@ chi-squared map, log likelihood and so forth.
 Again, take note of how the fit plot functions take an instance of the FitDataset class and were imported as 
 'FitDataset', making for a clean API where it is intuitive how to plot the fit.
 
-Below, I used the _Gaussian_ model above to illustrate how we can easily plot different aspects of a fit. 
+Below, I used the `Gaussian` model above to illustrate how we can easily plot different aspects of a fit. 
 """
 
 # %%
@@ -170,9 +170,9 @@ phase.py -> contains the Phase class:
 
 analysis.py -> contains the Analysis class (is a restructred version of the the previous tutorial's Analysis class):
 
- - Prepares the _Dataset_ for fitting.
+ - Prepares the `Dataset` for fitting.
  
- - Fits this _Dataset_ with a model instance to compute a log likelihood for every iteration of the non-linear search.
+ - Fits this `Dataset` with a model instance to compute a log likelihood for every iteration of the non-linear search.
 
 result.py -> contains the Result class:
 
@@ -195,13 +195,13 @@ performs the following tasks (which we performed manually in the previous tutori
  
  - Returns the results. including the non-linear search's samples and the maximum likelihood fit.
 
-In the previous tutorial, after we composed our model using the _PriorModel_ object we had to manually specify its
+In the previous tutorial, after we composed our model using the `PriorModel` object we had to manually specify its
 priors. However, now we are using a source code, the priors are instead loaded from config files, specifically the
 config file found at 'autofit_workspace/howtofit/config/json_piors/gaussian.json'. If you inspect this file, you'll 
 see the priors are set up using the same values as the previous tutorial.
 
 It is worth noting that the name of this config file, 'gaussian.json', is not a conincedence. It is named after the
-module we imported to create the _PriorModel_, the 'gaussian.py' module. Thus, our the json_config files we use to
+module we imported to create the `PriorModel`, the 'gaussian.py' module. Thus, our the json_config files we use to
 set up the default priors of different model components share the name of the module they are in! 
 
 Although we don't in this tutorial, we could of course over write the priors with new priors as we did in the previous

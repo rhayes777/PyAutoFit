@@ -11,7 +11,7 @@ class Analysis(af.Analysis):
 
         super().__init__()
 
-        # The _MaskedDataset_ and visualizer are created in the same way as tutorial 4.
+        # The `MaskedDataset` and visualizer are created in the same way as tutorial 4.
 
         self.masked_dataset = masked_dataset
 

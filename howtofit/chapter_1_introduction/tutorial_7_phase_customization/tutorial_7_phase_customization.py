@@ -49,14 +49,14 @@ conf.instance = conf.Config(
 """
 We're now going to perform multiple fits, where each fit trims the data-set that is fitted.
 
-To do this, we'll set up phases with a new class called _SettingsMaskedDataset_, which contains the settings that 
-customize how a _MaskedDataset_ is created. This has two inputs, 'data_trim_left' and 'data_trim_right':
+To do this, we'll set up phases with a new class called `SettingsMaskedDataset`, which contains the settings that 
+customize how a `MaskedDataset` is created. This has two inputs, 'data_trim_left' and 'data_trim_right':
 
 - data_trim_left:
 
   The dataset's image and noise-map are trimmed and removed from the left (e.g. 1d index values from 0).
   
-  For example, if the _Dataset_ has shape (100,) and we set data_trim_left=10, the _MaskedDataset_ that is fitted will 
+  For example, if the `Dataset` has shape (100,) and we set data_trim_left=10, the `MaskedDataset` that is fitted will 
   have shape (90,). The mask is trimmed in the same way.
 
 - data_trim_right:
@@ -65,7 +65,7 @@ customize how a _MaskedDataset_ is created. This has two inputs, 'data_trim_left
   shape[0] value of the 1D data).
 
 For our first phase, we will omit both of these settings (by setting them to None) and perform the fit from tutorial
-4 where we fit a single _Gaussian_ profile to data composed of a single _Gaussian_ (unlike tutorial 4, we'll use a
+4 where we fit a single `Gaussian` profile to data composed of a single `Gaussian` (unlike tutorial 4, we'll use a
 CollectionPriorModel to do this).
 """
 
@@ -85,7 +85,7 @@ phase = htf.Phase(
 
 # %%
 """
-Import the simulator module, set up the _Dataset_ and mask and set up the _Dataset_.
+Import the simulator module, set up the `Dataset` and mask and set up the _Dataset_.
 """
 
 # %%
@@ -114,7 +114,7 @@ There is a small change to this directory compared to tutorial 6, there is a new
 results are stored. It'll be clear why this is in a moment.
 
 Next, we're going to customize and run a phase using the *data_trim_left* and *data_trim_right* parameters. First, we 
-create a _SettingsMaskedDataset_ and _SettingsPhase_ object using our input values of these parameters. 
+create a `SettingsMaskedDataset` and `SettingsPhase` object using our input values of these parameters. 
 """
 
 # %%
@@ -157,7 +157,7 @@ You'll note the results are now in a slightly different directory to the fit per
 By customizing the phase's settings, PyAutoFit has changed it output path using a tag for this phase. There are two
 reasons PyAutoFit does this:
 
- 1) Tags describes the analysis, making it explicit what was done to the _Dataset_ for the fit.
+ 1) Tags describes the analysis, making it explicit what was done to the `Dataset` for the fit.
 
  2) Tags create a unique output path, allowing you to compare results of phases that use different settings. Equally,
     if you run multiple phases with different settings this ensures the non-linear search (e.g. Emcee) won't
@@ -167,14 +167,14 @@ You should now check out the 'settings.py' and 'dataset.py' modules, to see how 
 
 
 When reading through this tutorial's example source code, you may have felt it was a bit clunky having multiple 
-_Settings_ classes each of which we needed to set up to customize the _MaskedDataset_ or the _Phase_. 
+_Settings_ classes each of which we needed to set up to customize the `MaskedDataset` or the _Phase_. 
 
 For the source code, it actually is quite clunky and could certainly be refactored to make the source code more clean. 
 However, through experience we have found this design creates a much better API for a user when choosing settings, 
 which will be seen in the next tutorial. Thus, we recommend you adopt the same settings API for your project!
 
 
-In this tutorial, the phase setting changed the _MaskedDataset_ that was fitted. However, phase settings do not 
+In this tutorial, the phase setting changed the `MaskedDataset` that was fitted. However, phase settings do not 
 necessarily need to customize the dataset. For example, they could control some aspect of the model, for example the 
 precision by an aspect of the model is numerically calculated. For more complex fitting procedures, settings may control
 whether certain features are used, which when turned on / off reduce the accuracy of the model at the expensive of

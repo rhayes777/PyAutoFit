@@ -11,7 +11,7 @@ def data(dataset, output_path=None, output_filename=None, output_format="show"):
     Parameters
     -----------
     Line : _Dataset_.Line
-        The observed Line _Dataset_ whose data is plotted.
+        The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,
@@ -29,7 +29,7 @@ def noise_map(dataset, output_path=None, output_filename=None, output_format="sh
     Parameters
     -----------
     Line : _Dataset_.Line
-        The observed Line _Dataset_ whose data is plotted.
+        The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,

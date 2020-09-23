@@ -24,7 +24,7 @@ xvalues = np.arange(pixels)
 
 # %%
 """
-Evaluate this _Gaussian_ model instance at every xvalues to create its model profile.
+Evaluate this `Gaussian` model instance at every xvalues to create its model profile.
 """
 
 # %%

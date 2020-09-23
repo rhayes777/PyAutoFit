@@ -7,12 +7,12 @@ class FitDataset:
 
     # noinspection PyUnresolvedReferences
     def __init__(self, masked_dataset, model_data):
-        """Class to fit a _Dataset_ with model data.
+        """Class to fit a `Dataset` with model data.
 
         Parameters
         -----------
         masked_data : ndarray
-            The observed _MaskedDataset_ that is fitted.
+            The observed `MaskedDataset` that is fitted.
         model_data : ndarray
             The model data the data is fitted with.
 
@@ -78,7 +78,7 @@ class FitDataset:
 
     @property
     def signal_to_noise_map(self):
-        """The signal-to-noise_map of the _Dataset_ and noise-map which are fitted."""
+        """The signal-to-noise_map of the `Dataset` and noise-map which are fitted."""
         signal_to_noise_map = np.divide(self.data, self.noise_map)
         signal_to_noise_map[signal_to_noise_map < 0] = 0
         return signal_to_noise_map
@@ -103,7 +103,7 @@ class FitDataset:
 
 
 def residual_map_from_data_model_data_and_mask(data, mask, model_data):
-    """Compute the residual-map between a _MaskedDataset_ and model data, where:
+    """Compute the residual-map between a `MaskedDataset` and model data, where:
 
     Residuals = (Data - Model_Data).
 
@@ -124,7 +124,7 @@ def residual_map_from_data_model_data_and_mask(data, mask, model_data):
 def normalized_residual_map_from_residual_map_noise_map_and_mask(
     residual_map, noise_map, mask
 ):
-    """Compute the normalized residual-map between a _MaskedDataset_ and model data, where:
+    """Compute the normalized residual-map between a `MaskedDataset` and model data, where:
 
     Normalized_Residual = (Data - Model_Data) / Noise
 

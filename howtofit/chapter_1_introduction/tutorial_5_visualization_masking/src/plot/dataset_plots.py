@@ -4,7 +4,7 @@ from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot i
 
 """
 To visualize images during a phase, we need to be able to output them to hard-disk as a file (e.g a .png'). The line
-plot function and _Dataset_ plot functions below have been extended to provide this functionality.
+plot function and `Dataset` plot functions below have been extended to provide this functionality.
 
 The benefit of writing our visualization methods in this style, as separate functions in a specific 'plot' module is
 now more clear. In 'visualizer.py', this makes it a lot more straight forward to plot each component of the _Dataset_.
@@ -18,7 +18,7 @@ def data(dataset, output_path=None, output_filename=None, output_format="show"):
     Parameters
     -----------
     Line : _Dataset_.Line
-        The observed Line _Dataset_ whose data is plotted.
+        The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,
@@ -36,7 +36,7 @@ def noise_map(dataset, output_path=None, output_filename=None, output_format="sh
     Parameters
     -----------
     Line : _Dataset_.Line
-        The observed Line _Dataset_ whose data is plotted.
+        The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,

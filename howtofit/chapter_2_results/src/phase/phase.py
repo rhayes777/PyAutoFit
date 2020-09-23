@@ -47,12 +47,12 @@ class Phase(af.AbstractPhase):
 
     def run(self, dataset: Dataset, mask, info=None):
         """
-        Pass a _Dataset_ to the phase, running the phase and non-linear search.
+        Pass a `Dataset` to the phase, running the phase and non-linear search.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
         mask: Mask
             The mask used for the analysis.
 
@@ -83,12 +83,12 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the _Dataset_ and contains the functions which perform the fit.
+        Create an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
 
         Returns
         -------

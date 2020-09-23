@@ -3,7 +3,7 @@
 Tutorial 1: Results
 ===================
 
-In this tutorial, we'll cover all of the output that comes from a _Phase_ in the form of a _Result_ object.
+In this tutorial, we'll cover all of the output that comes from a `Phase` in the form of a `Result` object.
 
 We'll use the same problem of fitting 1D profiles to noisy data, with the source code we use to do this in chapter 2
 an adaption of the source code we completed chapter 1 using. It has new funtionality which we'll cover throughout this
@@ -41,7 +41,7 @@ conf.instance = conf.Config(
 
 # %%
 """
-Now, lets create a _Dataset_ and fit it using a _Phase_, in an identical fashion to the previous chapter.
+Now, lets create a `Dataset` and fit it using a `Phase`, in an identical fashion to the previous chapter.
 """
 
 # %%
@@ -60,7 +60,7 @@ settings_masked_dataset = htf.SettingsMaskedDataset(
 settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
 
 # %%
-"""The code below creates the _Dataset_ and mask as per usual."""
+"""The code below creates the `Dataset` and mask as per usual."""
 
 # %%
 data = gaussian_x1.data
@@ -110,7 +110,7 @@ print(samples.parameters[9][1], "\n")
 
 # %%
 """
-The _Samples_ class also contains the log likelihood, log prior, log posterior and weights of every accepted sample, 
+The `Samples` class also contains the log likelihood, log prior, log posterior and weights of every accepted sample, 
 where:
 
  - The log likelihood is the value evaluated from the likelihood function (e.g. -0.5 * chi_squared + the noise 
@@ -154,7 +154,7 @@ print(max_log_posterior_vector, "\n")
 This provides us with lists of all model parameters. However, this isn't that much use - which values correspond to 
 which parameters?
 
-The list of parameter names are available as a property of the  _Samples_ , as are parameter labels which can be used 
+The list of parameter names are available as a property of the  `Samples` , as are parameter labels which can be used 
 for labeling figures.
 """
 
@@ -165,7 +165,7 @@ print("\n")
 
 # %%
 """
-It is more useful to return the _Result_'s as an instance, which is an instance of the model using the Python classes 
+It is more useful to return the `Result`'s as an instance, which is an instance of the model using the Python classes 
 used to compose it.
 """
 
@@ -183,18 +183,18 @@ print(max_log_likelihood_instance.profiles.gaussian)
 
 # %%
 """
-We can unpack the parameters of the _Gaussian_ to reveal the maximum log likelihood parameters.
+We can unpack the parameters of the `Gaussian` to reveal the maximum log likelihood parameters.
 """
 
 # %%
-print("Max Log Likelihood _Gaussian_ Instance:")
+print("Max Log Likelihood `Gaussian` Instance:")
 print("Centre = ", max_log_likelihood_instance.profiles.gaussian.centre)
 print("Intensity = ", max_log_likelihood_instance.profiles.gaussian.intensity)
 print("Sigma = ", max_log_likelihood_instance.profiles.gaussian.sigma, "\n")
 
 # %%
 """
-For our example problem of fitting a 1D _Gaussian_ profile, this makes it straight forward to plot the maximum
+For our example problem of fitting a 1D `Gaussian` profile, this makes it straight forward to plot the maximum
 likelihood model:
 """
 
@@ -207,7 +207,7 @@ import matplotlib.pyplot as plt
 
 plt.plot(range(data.shape[0]), data)
 plt.plot(range(data.shape[0]), model_data)
-plt.title("Illustrative model fit to 1D _Gaussian_ profile data.")
+plt.title("Illustrative model fit to 1D `Gaussian` profile data.")
 plt.xlabel("x values of profile")
 plt.ylabel("Profile intensity")
 plt.show()
@@ -228,7 +228,7 @@ print("Median PDF Vector:")
 print(median_pdf_vector, "\n")
 
 median_pdf_instance = samples.median_pdf_instance
-print("Median PDF _Gaussian_ Instance:")
+print("Median PDF `Gaussian` Instance:")
 print("Centre = ", median_pdf_instance.profiles.gaussian.centre)
 print("Intensity = ", median_pdf_instance.profiles.gaussian.intensity)
 print("Sigma = ", median_pdf_instance.profiles.gaussian.sigma, "\n")
@@ -236,7 +236,7 @@ print("Sigma = ", median_pdf_instance.profiles.gaussian.sigma, "\n")
 
 # %%
 """
-The _Samples_ class also provides methods for computing the error estimates of all parameters at an input sigma 
+The `Samples` class also provides methods for computing the error estimates of all parameters at an input sigma 
 confidence limit, which can be returned at the values of the parameters including their errors or the size of the 
 errors on each parameter:
 """
@@ -283,7 +283,7 @@ print("Sigma = ", instance.profiles.gaussian.sigma, "\n")
 
 # %%
 """
-Because _DynestyStatic_, a nested sampling *non-linear search* was used, the evidence of the model is also available 
+Because `DynestyStatic`, a nested sampling *non-linear search* was used, the evidence of the model is also available 
 which enables Bayesian model comparison to be performed.
 """
 
@@ -292,11 +292,11 @@ log_evidence = samples.log_evidence
 
 # %%
 """
-Finally, lets remind ourselves of the _Result_ class in the module:
+Finally, lets remind ourselves of the `Result` class in the module:
 
  'chapter_2_results/src/phase/result.py' 
  
-Here, we extended the _Result_ class with two additional methods:
+Here, we extended the `Result` class with two additional methods:
 
  - max_log_likelihood_model_data
  - max_log_likelihood_fit

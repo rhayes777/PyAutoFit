@@ -7,7 +7,7 @@ import numpy as np
 """
 __Gaussian X1 + Exponential x1__
 
-Create a model instance of the _Gaussian_ and Exponential model components.
+Create a model instance of the `Gaussian` and Exponential model components.
 """
 
 # %%
@@ -26,7 +26,7 @@ xvalues = np.arange(pixels)
 
 # %%
 """
-Evaluate the _Gaussian_ and Exponential model instances at every xvalues to create their model profile and sum
+Evaluate the `Gaussian` and Exponential model instances at every xvalues to create their model profile and sum
 them together to create the overall model profile.
 """
 

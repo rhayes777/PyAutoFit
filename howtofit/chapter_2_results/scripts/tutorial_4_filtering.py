@@ -3,11 +3,11 @@
 Tutorial 4: Filtering
 =====================
 
-In the previous tutorials, the _Aggregator_ has always loaded all of the results of all 3 fits.
+In the previous tutorials, the `Aggregator` has always loaded all of the results of all 3 fits.
 
 However, suppose we had the results of other fits in the 'output' folder and we *only* wanted fits which used
 a certain phase. Or, imagine we want the results of a fit to 1 specific data. In this tutorial, we'll learn how to use
-the _Aggregator_'s filter tool, which filters the results and provides us with only the results we want.
+the `Aggregator`'s filter tool, which filters the results and provides us with only the results we want.
 """
 
 # %%
@@ -39,7 +39,7 @@ conf.instance = conf.Config(
 When we load the aggregator, in this tutorial the output_path does not include the '/chapter2/aggregator' on the end, 
 like it did in the previous tutorial. 
 
-This means that, without filters, the _Aggregator_ will load all results in the output folder, including those from 
+This means that, without filters, the `Aggregator` will load all results in the output folder, including those from 
 chapter 1 and the previous tutorials in this chapter.
 
 We can first filter results to only include completed results. By including the *completed_only* input below, any 
@@ -53,7 +53,7 @@ agg = af.Aggregator(directory=str(output_path), completed_only=True)
 
 # %%
 """
-First, lets print the number of _Samples_ objects the _Aggregator_ finds. Now we are pointing the _Aggregator_ to the
+First, lets print the number of `Samples` objects the `Aggregator` finds. Now we are pointing the `Aggregator` to the
 output folder, depending on what results are there this should find in excess of 3 sets of results, corresponding to
 results from chapter 1 and tutorial 1 of chapter 2.
 """
@@ -75,7 +75,7 @@ agg_filter = agg.filter(agg.phase == phase_name)
 
 # %%
 """
-This filtered _Aggregator_ should now produce just 3 _Samples_ objects.
+This filtered `Aggregator` should now produce just 3 `Samples` objects.
 """
 print("Total Samples Objects = ", len(list(agg.values("samples"))), "\n")
 samples_gen = agg_filter.values("samples")
@@ -87,7 +87,7 @@ results. This is useful if you fit a large sample of data where:
 
  - Multiple results, corresponding to different phases and model-fits are stored in the same path.
  
- - Different runs using different _SettingsPhase_ are in the same path.
+ - Different runs using different `SettingsPhase` are in the same path.
  
  - Fits using different non-linear searches, with different settings, are contained in the same path.
 

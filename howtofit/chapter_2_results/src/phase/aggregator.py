@@ -14,7 +14,7 @@ def masked_dataset_generator_from_aggregator(aggregator, settings_masked_dataset
     *MaskedDataset* objects for every set of results loaded in the aggregator.
 
     This is performed by mapping the *masked_dataset_from_agg_obj* with the aggregator, which sets up each masked
-    _Dataset_ using only generators ensuring that manipulating the _MaskedDataset_ objects of large sets of results is
+    `Dataset` using only generators ensuring that manipulating the `MaskedDataset` objects of large sets of results is
     done in a memory efficient way.
 
     Parameters

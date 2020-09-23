@@ -23,14 +23,14 @@ class Phase(af.AbstractPhase):
     @af.convert_paths
     def __init__(self, paths, gaussian, search):
         """
-        A phase which fits a _Gaussian_ model using a non-linear search.
+        A phase which fits a `Gaussian` model using a non-linear search.
 
         Parameters
         ----------
         paths : af.Paths
             Handles the output directory structure.
         gaussian : gaussians.Gaussian
-            The model component _Gaussian_ class fitted by this phase.
+            The model component `Gaussian` class fitted by this phase.
         search: class
             The class of a non_linear search
         """
@@ -46,12 +46,12 @@ class Phase(af.AbstractPhase):
 
     def run(self, dataset: Dataset, mask):
         """
-        Pass a _Dataset_ to the phase, running the phase and non-linear search.
+        Pass a `Dataset` to the phase, running the phase and non-linear search.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
         mask: Mask
             The mask used for the analysis.
 
@@ -69,12 +69,12 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the _Dataset_ and contains the functions which perform the fit.
+        Create an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
 
         Returns
         -------
@@ -83,7 +83,7 @@ class Phase(af.AbstractPhase):
             instance.
         """
 
-        """To mask the _Dataset_ we simply pass both to the MaskedDataset class."""
+        """To mask the `Dataset` we simply pass both to the MaskedDataset class."""
 
         masked_dataset = MaskedDataset(dataset=dataset, mask=mask)
 

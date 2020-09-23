@@ -5,7 +5,7 @@ from howtofit.chapter_1_introduction.tutorial_4_source_code.src.fit import (
 
 """
 The 'analysis.py' module contains the Anasys class we introduced in tutorial 3. Whereas before this class took the
-data and noise-map separately, we now pass it an instance of the _Dataset_ class. We have also restructured the code
+data and noise-map separately, we now pass it an instance of the `Dataset` class. We have also restructured the code
 performs the model-fit, so that we can reuse it in the 'result.py' module.
 """
 
@@ -22,13 +22,13 @@ class Analysis(af.Analysis):
 
     """
     In the log_likelihood_function below, 'instance' is an instance of our model, which in this tutorial we have
-    defined as _Gaussian_ class in 'model.py'. This instance is a unit vector mapper via each parameters prior using
+    defined as `Gaussian` class in 'model.py'. This instance is a unit vector mapper via each parameters prior using
     unit values determined by the non-linear. Crucially, this gives us the instance of our model we need to fit our
     data!
     """
 
     """
-    The reason a _Gaussian_ is mapped to an instance in this way is because of the following line in 'phase.py':
+    The reason a `Gaussian` is mapped to an instance in this way is because of the following line in 'phase.py':
 
         gaussian = af.PhaseProperty("gaussian")
 
@@ -38,12 +38,12 @@ class Analysis(af.Analysis):
 
     def log_likelihood_function(self, instance):
         """
-        Determine the log likelihood of a fit of a _Gaussian_ to the dataset, using a model instance of the Gaussian.
+        Determine the log likelihood of a fit of a `Gaussian` to the dataset, using a model instance of the Gaussian.
 
         Parameters
         ----------
         instance : model.Gaussian
-            The _Gaussian_ model instance.
+            The `Gaussian` model instance.
 
         Returns
         -------

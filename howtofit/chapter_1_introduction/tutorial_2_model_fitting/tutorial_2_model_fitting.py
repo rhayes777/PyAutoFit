@@ -3,7 +3,7 @@
 Tutorial 2: Model Fitting
 =========================
 
-In this tutorial, we'll fit the 1D _Gaussian_ model from the previous tutorial to the data we loaded.
+In this tutorial, we'll fit the 1D `Gaussian` model from the previous tutorial to the data we loaded.
 """
 
 # %%
@@ -39,7 +39,7 @@ noise_map = gaussian_x1.noise_map
 
 # %%
 """
-The shape of the data gives us its xvalues - the x coordinates we evaluate our model 1D _Gaussian_ on.
+The shape of the data gives us its xvalues - the x coordinates we evaluate our model 1D `Gaussian` on.
 """
 
 # %%
@@ -66,8 +66,8 @@ plt.clf()
 
 # %%
 """
-So, how do we actually go about fitting our _Gaussian_ model to this data? First, we need to be able to generate
-an image of our 1D _Gaussian_ model. As we did in tutorial 1, we define the _Gaussian_ as a Python class with the format 
+So, how do we actually go about fitting our `Gaussian` model to this data? First, we need to be able to generate
+an image of our 1D `Gaussian` model. As we did in tutorial 1, we define the `Gaussian` as a Python class with the format 
 required for PyAutoFit to use it as a model-component.
 """
 
@@ -103,11 +103,11 @@ class Gaussian:
 
 # %%
 """
-We've extended the _Gaussian_ class to have a method "profile_from_xvalues". Given an input set of x coordinates
-this computes the intensity of the _Gaussian_ at every point. We've already seen how the data contains the xvalues we 
+We've extended the `Gaussian` class to have a method "profile_from_xvalues". Given an input set of x coordinates
+this computes the intensity of the `Gaussian` at every point. We've already seen how the data contains the xvalues we 
 use, which are a 1D NumPy array spanning values 0 to 100.
 
-If we pass these values to an instance of the _Gaussian_ class, we can create a line of the gaussian's values.
+If we pass these values to an instance of the `Gaussian` class, we can create a line of the gaussian's values.
 """
 
 # %%
@@ -134,11 +134,11 @@ values above to see this behaviour.
 
 # %%
 """
-Okay, so lets recap. We've defined a model which is a 1D _Gaussian_ and given a set of parameters for that model
-(x, I, sigma) we can create 'model_data' of the Gaussian. And, we have some data of a 1D _Gaussian_ we want to
+Okay, so lets recap. We've defined a model which is a 1D `Gaussian` and given a set of parameters for that model
+(x, I, sigma) we can create 'model_data' of the Gaussian. And, we have some data of a 1D `Gaussian` we want to
 fit this model with, so as to determine the values of (x, I, sigma) from which it was created. So how do we do that?
 
-Simple, we take the image from our data and our model_image of the _Gaussian_ and subtract the two to get a
+Simple, we take the image from our data and our model_image of the `Gaussian` and subtract the two to get a
 'residual-map'.
 """
 
@@ -258,9 +258,9 @@ So to recap the previous tutorial and this one:
  format.
  
  - The model component's parameters each have priors, which given a unit vector can be mapped to an instance of the
- _Gaussian_ class.
+ `Gaussian` class.
  
- - We can use this model instance to create model data of our _Gaussian_ and compare it to data and quantify the
+ - We can use this model instance to create model data of our `Gaussian` and compare it to data and quantify the
  goodness-of-fit via a log likelihood.
 
 Thus we have everything we need to fit our model to our data! So, how do we go about finding the best-fit model?
@@ -269,8 +269,8 @@ That is, the model which maximizes the log likelihood.
 The most simple thing we can do is guess parameters, and when we guess parameters that give a good fit, guess another
 set of parameters near those values. We can then repeat this process, over and over, until we find a really good model!
 
-For our _Gaussian_ this works pretty well, below I've fitted 5 diferent _Gaussian_ models and ended up landing on
-the best-fit model (the model I used to create the _Dataset_ in the first place!).
+For our `Gaussian` this works pretty well, below I've fitted 5 diferent `Gaussian` models and ended up landing on
+the best-fit model (the model I used to create the `Dataset` in the first place!).
 
 For convenience, I've create functions which compute the chi-squared-map and log likelihood of a model-fit, alongside a
 method to plot a profile, residual-map or chi-squared-map.
@@ -362,7 +362,7 @@ to do such fitting in PyAutoFit, using a 'non-linear search'.
 __Your Model__
 
 To end, its worth quickly thinking about the model you ultimately want to fit with PyAutoFit. In this example,
-we extended the _Gaussian_ class to contain the function we needed to generate an image of the _Gaussian_ and thus
+we extended the `Gaussian` class to contain the function we needed to generate an image of the `Gaussian` and thus
 generate the model-image we need to fit our data. For your model fitting problem can you do something similar?
 Or is your model-fitting task a bit more complicated than this? Maybe there are more model component you want to
 combine or there is an inter-dependency between models?

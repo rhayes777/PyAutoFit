@@ -17,7 +17,7 @@ def data(fit):
     Parameters
     -----------
     Fit : fit.Fit
-        The observed Fit _Dataset_ whose data is plotted.
+        The observed Fit `Dataset` whose data is plotted.
     """
     line_plots.line(xvalues=fit.xvalues, line=fit.data, ylabel="Data Values")
 

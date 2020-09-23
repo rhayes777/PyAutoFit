@@ -18,7 +18,7 @@ class Analysis(af.Analysis):
 
         super().__init__()
 
-        """The _MaskedDataset_ and visualizer are created in the same way as tutorial 5."""
+        """The `MaskedDataset` and visualizer are created in the same way as tutorial 5."""
 
         self.masked_dataset = masked_dataset
 
@@ -42,8 +42,8 @@ class Analysis(af.Analysis):
         """
 
         """
-        In tutorials 3 & 4, the instance was an instance of a single _Gaussian_ profile. PyAutoFit knew this instance
-        would contain just one Gaussian, because when the phase was created we used a _PriorModel_ object in PyAutoFit
+        In tutorials 3 & 4, the instance was an instance of a single `Gaussian` profile. PyAutoFit knew this instance
+        would contain just one Gaussian, because when the phase was created we used a `PriorModel` object in PyAutoFit
         to make the Gaussian. This meant we could create the model data using the line:
 
             model_data = instance.gaussian.profile_from_xvalues(xvalues=self.masked_dataset.xvalues)

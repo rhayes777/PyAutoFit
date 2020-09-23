@@ -4,10 +4,10 @@ Tutorial 2: Dataset Sample
 ==========================
 
 In this tutorial, we'll fit a multiple datasets with the same phase, producing multiple sets of results on our
-hard-disk. In the following tutorials, we then use these results and the _Aggregator_ to load the results into
+hard-disk. In the following tutorials, we then use these results and the `Aggregator` to load the results into
 our Jupyter notebook to interpret, inspect and plot the output results.
 
-We'll fit 3 different dataset's, each with a single _Gaussian_ model.
+We'll fit 3 different dataset's, each with a single `Gaussian` model.
 """
 
 # %%
@@ -36,12 +36,12 @@ conf.instance = conf.Config(
 
 # %%
 """
-Here, for each _Dataset_ we are going to set up the correct path, load it, create its mask and fit it using a phase.
+Here, for each `Dataset` we are going to set up the correct path, load it, create its mask and fit it using a phase.
 
-We want our results to be in a folder specific to the _Dataset_. We'll use the _Dataset_'s name string to do this. Lets
-create a list of all 3 of our _Dataset_ names.
+We want our results to be in a folder specific to the _Dataset_. We'll use the `Dataset`'s name string to do this. Lets
+create a list of all 3 of our `Dataset` names.
 
-We'll also pass these names to the _Dataset_ when we create it - the name will be used by the _Aggregator_ to name the 
+We'll also pass these names to the `Dataset` when we create it - the name will be used by the `Aggregator` to name the 
 file the data is stored. More importantly, the name will be accessible to the aggregator, and we will use it to label 
 figures we make via the aggregator.
 """
@@ -62,7 +62,7 @@ noise_maps = [gaussian_x1_0.noise_map, gaussian_x1_1.noise_map, gaussian_x1_2.no
 We can also attach information to the model-fit, by setting up an info dictionary. 
 
 Information about our model-fit (e.g. the data of osbervation) that isn't part of the model-fit is made accessible to 
-the _Aggregator_. For example, below we write info on the _Dataset_'s data of observation and exposure time.
+the _Aggregator_. For example, below we write info on the `Dataset`'s data of observation and exposure time.
 """
 
 # %%
@@ -70,13 +70,13 @@ info = {"date_of_observation": "01-02-18", "exposure_time": 1000.0}
 
 # %%
 """
-This for loop runs over every _Dataset_, checkout the comments below for how we set up the path structure.
+This for loop runs over every `Dataset`, checkout the comments below for how we set up the path structure.
 """
 
 # %%
 for index in range(len(datas)):
 
-    """The code below creates the _Dataset_ and mask as per usual."""
+    """The code below creates the `Dataset` and mask as per usual."""
 
     dataset = htf.Dataset(data=datas[index], noise_map=noise_maps[index])
 
@@ -96,7 +96,7 @@ for index in range(len(datas)):
 
         '/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/'
 
-    Below, we use the data_name, so our results go in a folder specific to the _Dataset_, e.g:
+    Below, we use the data_name, so our results go in a folder specific to the `Dataset`, e.g:
 
         '/path/to/autofit_workspace/output/gaussian_x1_0/phase_t2/'
     """
@@ -122,8 +122,8 @@ for index in range(len(datas)):
 
 # %%
 """
-Checkout the output folder - you should see three new sets of results corresponding to our 3 _Gaussian_ datasets.
+Checkout the output folder - you should see three new sets of results corresponding to our 3 `Gaussian` datasets.
 
-Unlike previous tutorials, these folders in the output folder are named after the _Dataset_ and contain the folder
+Unlike previous tutorials, these folders in the output folder are named after the `Dataset` and contain the folder
 with the phase's name, as opposed to just the phase-name folder.
 """

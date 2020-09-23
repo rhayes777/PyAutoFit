@@ -30,12 +30,12 @@ class MaskedDataset:
         Parameters
         ----------
         dataset: im.Dataset
-            The _Dataset_ (the image, noise-map, etc.)
+            The `Dataset` (the image, noise-map, etc.)
         mask: msk.Mask
             The 1D mask that is applied to the _Dataset_.
         """
 
-        """We store the unmasked _Dataset_ in the masked-dataset, incase we need it for anything."""
+        """We store the unmasked `Dataset` in the masked-dataset, incase we need it for anything."""
         self.dataset = dataset
 
         self.mask = mask

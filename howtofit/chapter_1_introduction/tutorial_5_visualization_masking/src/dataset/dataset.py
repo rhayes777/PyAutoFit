@@ -1,6 +1,6 @@
 import numpy as np
 
-"""The _Dataset_ class of the 'dataset.py' module is unchanged from the previous tutorial."""
+"""The `Dataset` class of the 'dataset.py' module is unchanged from the previous tutorial."""
 
 
 class Dataset:
@@ -23,7 +23,7 @@ class Dataset:
 
 
 """
-Here, we create _MaskedDataset_ that is fitted by our phase. This class takes an unmasked _Dataset_ (e.g. an image and
+Here, we create `MaskedDataset` that is fitted by our phase. This class takes an unmasked `Dataset` (e.g. an image and
 noise-map) and applies a mask to them, such that all entries where the mask is True are omitted from the fit and
 log_likelihood calution.
 
@@ -42,12 +42,12 @@ class MaskedDataset:
         Parameters
         ----------
         dataset: im.Dataset
-            The _Dataset_ (the image, noise-map, etc.)
+            The `Dataset` (the image, noise-map, etc.)
         mask: msk.Mask
             The 1D mask that is applied to the _Dataset_.
         """
 
-        """We store the unmasked _Dataset_ in the masked-dataset, incase we need it for anything."""
+        """We store the unmasked `Dataset` in the masked-dataset, incase we need it for anything."""
         self.dataset = dataset
 
         self.mask = mask
