@@ -1,4 +1,7 @@
+import pytest
+
 import autofit as af
+from test_autofit.mock import MockPhaseOutput
 
 
 def test_completed_aggregator(
@@ -29,6 +32,76 @@ class TestLoading:
         assert list(path_aggregator.values(
             "nonsense"
         ))[0] is None
+
+
+@pytest.fixture(
+    name="aggregator_2"
+)
+def make_aggregator_2():
+    aggregator = af.Aggregator("")
+    aggregator.phases = [
+        MockPhaseOutput(
+            "directory/number/one",
+            "apipeline1",
+            "phase1",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/number/two",
+            "pipeline1",
+            "bphase2",
+            "dataset1"
+        ),
+        MockPhaseOutput(
+            "directory/letter/a",
+            "pipeline2",
+            "phase2",
+            "dataset2"
+        ),
+    ]
+    return aggregator
+
+
+class TestIntersection:
+    def test_on_pipeline(
+            self,
+            aggregator,
+            aggregator_2
+    ):
+        aggregator, aggregator_2 = aggregator.homogenize(
+            aggregator_2,
+            on="pipeline"
+        )
+        assert list(
+            aggregator.values(
+                "phase"
+            )
+        ) == ["phase1", "phase2", "phase2"]
+        assert list(
+            aggregator_2.values(
+                "phase"
+            )
+        ) == ["bphase2", "phase2"]
+
+    def test_on_phase(
+            self,
+            aggregator,
+            aggregator_2
+    ):
+        aggregator, aggregator_2 = aggregator.homogenize(
+            aggregator_2,
+            on="phase"
+        )
+        assert list(
+            aggregator.values(
+                "pipeline"
+            )
+        ) == ["pipeline1", "pipeline1", "pipeline2"]
+        assert list(
+            aggregator_2.values(
+                "pipeline"
+            )
+        ) == ["apipeline1", "pipeline2"]
 
 
 class TestOperations:
