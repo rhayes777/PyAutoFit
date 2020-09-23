@@ -4,9 +4,9 @@ Model Composition & Customization
 ---------------------------------
 
 Lets extend our example of fitting a 1D Gaussian profile to noisy data, to a problem where the data contains signals
-from multiple profiles. Specifically, it contains signals from a 1D *Gaussian* and 1D symmetric *Exponential* profile.
+from multiple profiles. Specifically, it contains signals from a 1D ``Gaussian`` and 1D symmetric *Exponential* profile.
 
-Example data (blue), including the model-fit we'll perform (orange) and individual *Gaussian* (red dashed) and
+Example data (blue), including the model-fit we'll perform (orange) and individual ``Gaussian`` (red dashed) and
 *Exponential* (green dashed) components are shown below:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit_x2.png
@@ -72,7 +72,7 @@ but instead uses the *CollectionPriorModel object:
     model = af.CollectionPriorModel(gaussian=m.Gaussian, exponential=m.Exponential)
 
 The *CollectionPriorModel* allows us to *compose* models using multiple classes, in the example above using both the
-*Gaussian* and *Exponential* classes. The model is defined with 6 free parameters (3 for the *Gaussian*, 3 for the
+``Gaussian`` and *Exponential* classes. The model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
 *Exponential*), thus the dimensionality of non-linear parameter space is 6.
 
 The *model components* given to the *CollectionPriorModel* are also given names, in this case, 'gaussian' and
@@ -123,7 +123,7 @@ class:
             return log_likelihood
 
 Performing the *model-fit* uses the same steps as the previous example, whereby we  *compose* our *model* (now using a
-*CollectionPriorModel*), instantiate the *Analysis* and pass them a *non-linear search*. In this example, we'll use
+*CollectionPriorModel*), instantiate the *Analysis* and pass them a ``NonLinearSearch``. In this example, we'll use
 the nested sampling algorithm *Dynesty*
 
 .. code-block:: bash
@@ -137,13 +137,13 @@ the nested sampling algorithm *Dynesty*
     result = dynesty.fit(model=model, analysis=analysis)
 
 Now, lets consider how we *customize* the models that we *compose*. To begin, lets *compose* a model using a single
-*Gaussian* with the *PriorModel* object:
+``Gaussian`` with the *PriorModel* object:
 
 .. code-block:: bash
 
     model = af.PriorModel(m.Gaussian)
 
-By default, the priors on the *Gaussian*'s parameters ae loaded from configuration files. If you have downloaded the
+By default, the priors on the ``Gaussian``'s parameters ae loaded from configuration files. If you have downloaded the
 *autofit_workspace* you can find these files at the path *autofit_workspace/config/json_priors*. Alternatively,
 you can check them out at this `link <https://github.com/Jammy2211/autofit_workspace/tree/master/config>`_.
 
@@ -155,11 +155,11 @@ Priors can be manually specified as follows:
     model.intensity = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
     model.sigma = af.GaussianPrior(mean=10.0, sigma=5.0, lower_limit=0.0, upper_limit=np.inf)
 
-These priors will be used by the *non-linear search* to determine how it samples parameter space. The lower and upper
-limits on the *GaussianPrior* set the physical limits of values of the parameter, specifying that the *sigma* value of
-the *Gaussian* cannot be negative.
+These priors will be used by the ``NonLinearSearch`` to determine how it samples parameter space. The lower and upper
+limits on the *GaussianPrior* set the physical limits of values of the parameter, specifying that the ``sigma`` value of
+the ``Gaussian`` cannot be negative.
 
-We can fit this model, with all new priors, using a *non-linear search* as we did before:
+We can fit this model, with all new priors, using a ``NonLinearSearch`` as we did before:
 
 .. code-block:: bash
 
@@ -190,7 +190,7 @@ The model can be *customized* to fix any *parameter* of the model to an input va
 
     model.gaussian.sigma = 0.5
 
-This fixes the *Gaussian*'s *sigma* value to 0.5, reducing the number of free parameters and therefore dimensionality
+This fixes the ``Gaussian``'s ``sigma`` value to 0.5, reducing the number of free parameters and therefore dimensionality
 of *non-linear parameter space* by 1.
 
 We can also link two parameters, such that they always share the same value:
@@ -199,7 +199,7 @@ We can also link two parameters, such that they always share the same value:
 
     model.gaussian.centre = model.exponential.centre
 
-In this model, the *Gaussian* and *Exponential* will always be centrally aligned. Again, this reduces the number of
+In this model, the ``Gaussian`` and *Exponential* will always be centrally aligned. Again, this reduces the number of
 free *parameters* by 1.
 
 Finally, assertions can be made on parameters that remove values that do not meet those assertions from *non-linear
@@ -210,5 +210,5 @@ parameter space*:
     model.add_assertion(model.gaussian.sigma > 5.0)
     model.add_assertion(model.gaussian.intensity > model.exponential.intensity)
 
-Here, the *Gaussian*'s *sigma* value must always be greater than 5.0 and its *intensity* is greater than that of the
+Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``intensity`` is greater than that of the
 *Exponential*.

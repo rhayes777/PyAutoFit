@@ -1,11 +1,11 @@
 import numpy as np
 
-"""The 'dataset.py' module has been extended to give the `Dataset` a name and metadata."""
+"""The `dataset.py` module has been extended to give the `Dataset` a name and metadata."""
 
 
 class Dataset:
     def __init__(self, data, noise_map, name=None):
-        """A class containing the data and noise-map of a 1D line _Dataset_.
+        """A class containing the data and noise-map of a 1D line `Dataset`.
 
         Parameters
         ----------
@@ -28,7 +28,7 @@ class Dataset:
 
     def with_left_trimmed(self, data_trim_left):
 
-        """Here, we use the existing `MaskedDataset` to create a trimmed _Dataset_."""
+        """Here, we use the existing `MaskedDataset` to create a trimmed `Dataset`."""
 
         data_trimmed = self.data[data_trim_left:]
         noise_map_trimmed = self.noise_map[data_trim_left:]
@@ -76,7 +76,7 @@ class SettingsMaskedDataset:
         """Generate a data trim left tag, to customize phase names based on how much of the `Dataset` is trimmed to
         its left.
 
-        This changes the phase name 'settings' as follows:
+        This changes the phase name `settings` as follows:
 
         data_trim_left = None -> settings
         data_trim_left = 2 -> settings__trim_left_2
@@ -90,7 +90,7 @@ class SettingsMaskedDataset:
     def data_trim_right_tag(self):
         """Generate a data trim right tag, to customize phase names based on how much of the `Dataset` is trimmed to its right.
 
-        This changes the phase name 'settings' as follows:
+        This changes the phase name `settings` as follows:
 
         data_trim_right = None -> settings
         data_trim_right = 2 -> settings__trim_right_2
@@ -110,8 +110,8 @@ class MaskedDataset:
         ----------
         dataset: im.Dataset
             The `Dataset` (the image, noise-map, etc.)
-        mask: msk.Mask
-            The 1D mask that is applied to the _Dataset_.
+        mask: msk.Mask2D
+            The 1D mask that is applied to the `Dataset`.
         """
 
         if settings.data_trim_left is not None:

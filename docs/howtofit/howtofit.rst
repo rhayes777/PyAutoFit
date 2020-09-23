@@ -4,7 +4,7 @@ HowToFit Lectures
 =================
 
 To build a **PyAutoFit** project, the best starting point is the **HowToFit** lecture series, which could be found in
-the `autofit workspace <https://github.com/Jammy2211/autofit_workspace>`_.
+the `autofit ``WORKSPACE`` <https://github.com/Jammy2211/autofit_workspace>`_.
 
 The lectures are provided as Jupyter notebooks, and they can be browsed on this readthedocs. Of course, I'd recommend
 you do them on your own computer by installation **PyAutoFit** and downloading the notebooks.

@@ -1,6 +1,6 @@
 import numpy as np
 
-# The 'profiles.py' module is unchanged from the previous tutorial.
+# The `profiles.py` module is unchanged from the previous tutorial.
 
 
 class Profile:
@@ -23,11 +23,11 @@ class Gaussian(Profile):
     def __init__(
         self,
         centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-        intensity=0.1,  # <- are the Gaussian's model parameters.
+        intensity=0.1,  # <- are the Gaussian`s model parameters.
         sigma=0.01,
     ):
         """Represents a 1D `Gaussian` profile, which may be treated as a model-component of PyAutoFit the
-        parameters of which are fitted for by a non-linear search.
+        parameters of which are fitted for by a `NonLinearSearch`.
 
         Parameters
         ----------
@@ -69,7 +69,7 @@ class Exponential(Profile):
         rate=0.01,
     ):
         """Represents a 1D Exponential profile, which may be treated as a model-component of PyAutoFit the
-        parameters of which are fitted for by a non-linear search.
+        parameters of which are fitted for by a `NonLinearSearch`.
 
         Parameters
         ----------

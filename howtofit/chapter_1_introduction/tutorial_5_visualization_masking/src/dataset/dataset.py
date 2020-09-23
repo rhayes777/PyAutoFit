@@ -1,11 +1,11 @@
 import numpy as np
 
-"""The `Dataset` class of the 'dataset.py' module is unchanged from the previous tutorial."""
+"""The `Dataset` class of the `dataset.py` module is unchanged from the previous tutorial."""
 
 
 class Dataset:
     def __init__(self, data, noise_map):
-        """A class containing the data and noise-map of a 1D line _Dataset_.
+        """A class containing the data and noise-map of a 1D line `Dataset`.
 
         Parameters
         ----------
@@ -28,9 +28,9 @@ noise-map) and applies a mask to them, such that all entries where the mask is T
 log_likelihood calution.
 
 This could be done using NumPy masked array functionality, by for simplicity we will simply set all masked entries
-to zero instead (and not included them in the fit as seen in the 'fit.py' module).
+to zero instead (and not included them in the fit as seen in the `fit.py` module).
 
-If your model-fitting problem requires masking you'll want a module something very similar to this one!
+If your model-fitting problem requires masking you`ll want a module something very similar to this one!
 """
 
 
@@ -43,8 +43,8 @@ class MaskedDataset:
         ----------
         dataset: im.Dataset
             The `Dataset` (the image, noise-map, etc.)
-        mask: msk.Mask
-            The 1D mask that is applied to the _Dataset_.
+        mask: msk.Mask2D
+            The 1D mask that is applied to the `Dataset`.
         """
 
         """We store the unmasked `Dataset` in the masked-dataset, incase we need it for anything."""

@@ -8,7 +8,7 @@ from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase import 
 )
 
 """
-The 'analysis.py' module in this tutorial is changed from tutorial 5, such that the fit function now assumes multiple
+The `analysis.py` module in this tutorial is changed from tutorial 5, such that the fit function now assumes multiple
 profiles are passed to it rather than a single Gaussian, see the comments below!
 """
 
@@ -38,7 +38,7 @@ class Analysis(af.Analysis):
         Returns
         -------
         fit : Fit.log_likelihood
-            The log likelihood value indicating how well this model fit the _MaskedDataset_.
+            The log likelihood value indicating how well this model fit the `MaskedDataset`.
         """
 
         """
@@ -75,8 +75,8 @@ class Analysis(af.Analysis):
 
         A CollectionPriorModel allows us to name our model components whatever we want!
 
-        In this tutorial, we want our 'fit' function to fit the data with a profile which is the summed profile
-        of all individual profiles in the model. Look at 'model_data_from_instance' to see how we do this.
+        In this tutorial, we want our `fit` function to fit the data with a profile which is the summed profile
+        of all individual profiles in the model. Look at `model_data_from_instance` to see how we do this.
         """
 
         model_data = self.model_data_from_instance(instance=instance)
@@ -98,7 +98,7 @@ class Analysis(af.Analysis):
         )
 
         """
-        For those not familiar with list comprehensions, below I've included how one would use the instance to create
+        For those not familiar with list comprehensions, below I`ve included how one would use the instance to create
         the summed profile using a more simple for loop.
         
             model_data = np.zeros(shape=self.masked_dataset.xvalues.shape[0])
@@ -116,7 +116,7 @@ class Analysis(af.Analysis):
 
         """
         It is worth noting here why we create specific methods for creating the model_data and fit in an analysis.
-        By doing so, the code in our visualize function (and also in the 'result.py' module) do not need changing
+        By doing so, the code in our visualize function (and also in the `result.py` module) do not need changing
         even though we are now using a model with more components, requiring to sum their individual profiles.
         """
 

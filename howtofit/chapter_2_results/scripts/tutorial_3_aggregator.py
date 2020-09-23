@@ -3,11 +3,11 @@
 Tutorial 3: Aggregator
 ======================
 
-In the previous tutorial, we fitted 3 `Datasets` with an identical phase, outputting the results of each to a unique
+In the previous tutorial, we fitted 3 `Datasets` with an identical `Phase`, outputting the results of each to a unique
 folder on our hard disk.
 
-However, lets use the `Aggregator` to load the `Result`'s and manipulate / plot them using our Jupyter notebook. The API
-for using `Result`'s follow closely tutorial 1 of this chapter.
+However, lets use the `Aggregator` to load the `Result``s and manipulate / plot them using our Jupyter notebook. The API
+for using `Result``s follow closely tutorial 1 of this chapter.
 """
 
 # %%
@@ -25,7 +25,7 @@ print("Workspace Path: ", workspace_path)
 
 # %%
 """
-Setup the configs as we did in the previous tutorial, as well as the output folder for our non-linear search.
+Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
 """
 
 # %%
@@ -51,17 +51,17 @@ To begin, let me quickly explain what a generator is in Python, for those unawar
 iterates over a function when it is called. The `Aggregator` creates all objects as generators, rather than lists, or 
 dictionaries, or whatever.
 
-Why? Because lists and dictionaries store every entry in memory simultaneously. If you fit many _Dataset_'s, you'll 
+Why? Because lists and dictionaries store every entry in memory simultaneously. If you fit many `Dataset`s, you`ll 
 have lots of results and therefore use a lot of memory. This will crash your laptop! On the other hand, a generator 
 only stores the object in memory when it runs the function; it is free to overwrite it afterwards. Thus, your laptop 
-won't crash!
+won`t crash!
 
 There are two things to bare in mind with generators:
 
  1) A generator has no length, thus to determine how many entries of data it corresponds to you first must turn it to a 
     list.
 
- 2) Once we use a generator, we cannot use it again - we'll need to remake it. For this reason, we typically avoid 
+ 2) Once we use a generator, we cannot use it again and we'll need to remake it. For this reason, we typically avoid 
     storing the generator as a variable and instead use the `Aggregator` to create them on use.
 
 We can now create a `Samples` generator of every fit. This creates instances of the `Samples` class we manipulated in
@@ -74,7 +74,7 @@ samples_gen = agg.values("samples")
 
 # %%
 """
-When we print this list of outputs you should see over 3 different NestSamples instances, corresponding to the 3
+When we print this list of outputs you should see over 3 different `NestSamples` instances, corresponding to the 3
 model-fits we performed in the previous tutorial.
 """
 
@@ -86,8 +86,8 @@ print("Total Samples Objects = ", len(list(samples_gen)), "\n")
 
 # %%
 """
-We've encountered the `Samples` class in previous tutorials. As we saw in tutorial 1, the Samples class contains all 
-the accepted parameter samples of the non-linear search, which is a list of lists where:
+We`ve encountered the `Samples` class in previous tutorials. As we saw in tutorial 1, the `Samples` class contains all 
+the accepted parameter samples of the `NonLinearSearch`, which is a list of lists where:
 
  - The outer list is the size of the total number of samples.
  - The inner list is the size of the number of free parameters in the fit.
@@ -100,13 +100,13 @@ its `Result` object.
 for samples in agg.values("samples"):
     print("All parameters of the very first sample")
     print(samples.parameters[0])
-    print("The tenth sample's third parameter")
+    print("The tenth sample`s third parameter")
     print(samples.parameters[9][2])
     print()
 
 # %%
 """
-We can use the `Aggregator` to get information on the likelihoods, priors, weights, etc. of every fit.
+We can use the `Aggregator` to get information on the `log_likelihoods`, log_priors`, `weights`, etc. of every fit.
 """
 
 # %%
@@ -120,7 +120,7 @@ for samples in agg.values("samples"):
 
 # %%
 """
-We can use the `Sample`'s to create a list of the maximum log likelihood model of each fit to our three images.
+We can use the `Sample``s to create a list of the `max_log_likelihood_vector` of each fit to our three images.
 """
 
 # %%
@@ -130,10 +130,10 @@ print(vector, "\n")
 
 # %%
 """
-As discussed in tutorial 1, using vectors isn't too much use, as we can't be sure which values correspond to which 
+As discussed in tutorial 1, using vectors isn`t too much use, as we can`t be sure which values correspond to which 
 parameters.
 
-We can use the `Aggregator` to create the maximum log likelihood model instance of every fit.
+We can use the `Aggregator` to create the `max_log_likelihood_instance` of every fit.
 """
 
 # %%
@@ -143,8 +143,8 @@ print(instances, "\n")
 
 # %%
 """
-The model instance contains all the model components of our fit which for the fits above was a single gaussian
-profile (the word 'gaussian' comes from what we called it in the CollectionPriorModel when making the phase above).
+The model instance contains all the model components of our fit which for the fits above was a single `Gaussian`
+profile (the word `gaussian` comes from what we called it in the `CollectionPriorModel` above).
 """
 
 # %%
@@ -154,8 +154,8 @@ print(instances[2].profiles.gaussian)
 
 # %%
 """
-This, of course, gives us access to any individual parameter of our maximum log likelihood model. Below, we see that 
-the 3 Gaussians were simulated using sigma values of 1.0, 5.0 and 10.0.
+This, of course, gives us access to any individual parameter of our maximum log likelihood `instance`. Below, we see 
+that the 3 `Gaussian`s were simulated using `sigma` values of 1.0, 5.0 and 10.0.
 """
 
 # %%
@@ -165,7 +165,7 @@ print(instances[2].profiles.gaussian.sigma)
 
 # %%
 """
-We can also access the 'median pdf' model via the `Aggregator`, as we saw for the `Samples` object in tutorial 1.
+We can also access the `median_pdf` model via the `Aggregator`, as we saw for the `Samples` object in tutorial 1.
 """
 
 # %%
@@ -179,7 +179,7 @@ print(mp_instances, "\n")
 
 # %%
 """
-We can also print the "model_results" of all phases, which is string that summarizes every fit's model providing
+We can also print the `model_results` of all phases, which is string that summarizes every fit`s model providing
 quick inspection of all results.
 """
 
@@ -190,8 +190,8 @@ print(results, "\n")
 
 # %%
 """
-Lets end the tutorial with something more ambitious. Lets create a plot of the inferred sigma values vs intensity of 
-each `Gaussian` profile, including error bars at 3 sigma confidence.
+Lets end the tutorial with something more ambitious. Lets create a plot of the inferred `sigma` values vs `intensity` 
+of each `Gaussian` profile, including error bars at $3\sigma$ confidence.
 """
 
 # %%

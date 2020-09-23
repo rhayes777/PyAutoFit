@@ -3,11 +3,11 @@
 Tutorial 2: Dataset Sample
 ==========================
 
-In this tutorial, we'll fit a multiple datasets with the same phase, producing multiple sets of results on our
+In this tutorial, we'll fit a multiple `Dataset`s with the same phase, producing multiple sets of results on our
 hard-disk. In the following tutorials, we then use these results and the `Aggregator` to load the results into
 our Jupyter notebook to interpret, inspect and plot the output results.
 
-We'll fit 3 different dataset's, each with a single `Gaussian` model.
+we'll fit 3 different `Dataset`s, each with a single `Gaussian` model.
 """
 
 # %%
@@ -25,7 +25,7 @@ print("Workspace Path: ", workspace_path)
 
 # %%
 """
-Setup the configs as we did in the previous tutorial, as well as the output folder for our non-linear search.
+Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
 """
 
 # %%
@@ -36,14 +36,14 @@ conf.instance = conf.Config(
 
 # %%
 """
-Here, for each `Dataset` we are going to set up the correct path, load it, create its mask and fit it using a phase.
+Here, for each `Dataset` we are going to set up the correct path, load it, create its `mask` and fit it using a `Phase`.
 
-We want our results to be in a folder specific to the _Dataset_. We'll use the `Dataset`'s name string to do this. Lets
+We want our results to be in a folder specific to the `Dataset`. we'll use the `Dataset``s name string to do this. Lets
 create a list of all 3 of our `Dataset` names.
 
-We'll also pass these names to the `Dataset` when we create it - the name will be used by the `Aggregator` to name the 
-file the data is stored. More importantly, the name will be accessible to the aggregator, and we will use it to label 
-figures we make via the aggregator.
+we'll also pass these names to the `Dataset` when we create it, the name will be used by the `Aggregator` to name the 
+file the data is stored. More importantly, the name will be accessible to the `Aggregator`, and we will use it to label 
+figures we make via the `Aggregator`.
 """
 
 # %%
@@ -61,8 +61,8 @@ noise_maps = [gaussian_x1_0.noise_map, gaussian_x1_1.noise_map, gaussian_x1_2.no
 """
 We can also attach information to the model-fit, by setting up an info dictionary. 
 
-Information about our model-fit (e.g. the data of osbervation) that isn't part of the model-fit is made accessible to 
-the _Aggregator_. For example, below we write info on the `Dataset`'s data of observation and exposure time.
+Information about our model-fit (e.g. the data of observation) that isn`t part of the model-fit is made accessible to 
+the `Aggregator`. For example, below we write info on the `Dataset``s data of observation and exposure time.
 """
 
 # %%
@@ -76,29 +76,29 @@ This for loop runs over every `Dataset`, checkout the comments below for how we 
 # %%
 for index in range(len(datas)):
 
-    """The code below creates the `Dataset` and mask as per usual."""
+    """The code below creates the `Dataset` and `mask` as per usual."""
 
     dataset = htf.Dataset(data=datas[index], noise_map=noise_maps[index])
 
     mask = np.full(fill_value=False, shape=dataset.data.shape)
 
     """
-    Here, we create a phase as normal. However, we also include an input parameter 'folders'. The phase folders
-    define the names of folders that the phase goes in. For example, if a phase goes to the path:
+    Here, we create a `Phase` as normal. However, we also include an input parameter `folders`. This defines the 
+    names of any folders that the `Phase` outputs results to. For example, if a `Phase` outputs to the path:
 
-        '/path/to/autofit_workspace/output/phase_name/'
+        `/path/to/autofit_workspace/output/phase_name/`
 
-    A phase folder with the input 'phase_folder' edits this path to:
+    A `Phase` with the input `folders=[`phase_folder`]` edits this path to:
 
-        '/path/to/autofit_workspace/output/phase_folder/phase_name/'
+        `/path/to/autofit_workspace/output/phase_folder/phase_name/`
 
-    You can input multiple phase folders, for example 'folders=['folder_0', 'folder_1'] would create the path:
+    You can input multiple `phase folders`, for example `folders=[`folder_0`, `folder_1`]` would create the path:
 
-        '/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/'
+        `/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/`
 
-    Below, we use the data_name, so our results go in a folder specific to the `Dataset`, e.g:
+    Below, we use the `data_name`, so our results go in a folder specific to the `Dataset`, e.g:
 
-        '/path/to/autofit_workspace/output/gaussian_x1_0/phase_t2/'
+        `/path/to/autofit_workspace/output/gaussian_x1_0/phase_t2/`
     """
 
     print(
@@ -116,7 +116,7 @@ for index in range(len(datas)):
         search=af.DynestyStatic(),
     )
 
-    """Note that we pass the info to the phase when we run it, so that the aggregator can make it accessible."""
+    """Note that we pass the info to the `phase` when we run it, so that the `Aggregator` can make it accessible."""
 
     phase.run(dataset=dataset, mask=mask, info=info)
 
@@ -125,5 +125,5 @@ for index in range(len(datas)):
 Checkout the output folder - you should see three new sets of results corresponding to our 3 `Gaussian` datasets.
 
 Unlike previous tutorials, these folders in the output folder are named after the `Dataset` and contain the folder
-with the phase's name, as opposed to just the phase-name folder.
+with the phase`s name, as opposed to just the phase-name folder.
 """

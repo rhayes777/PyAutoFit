@@ -30,9 +30,9 @@ def masked_dataset_generator_from_aggregator(aggregator, settings_masked_dataset
 
 
 def masked_dataset_from_agg_obj(agg_obj, settings_masked_dataset=None):
-    """Compute a *MaskedDataset* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe 
-     that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator's generator 
-     outputs such that the function can use the *Aggregator*'s map function to to create a *MaskedDataset* generator.
+    """Compute a *MaskedDataset* object from an aggregator`s *PhaseOutput* class, which we call an `agg_obj` to describe 
+     that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator`s generator 
+     outputs such that the function can use the *Aggregator*`s map function to to create a *MaskedDataset* generator.
 
      The *MaskedDataset* is created following the same method as the *Phase* classes, including using the
      *meta_dataset* instance output by the phase to load inputs of the *MaskedDataset* (e.g. data_trim_left). 
@@ -40,7 +40,7 @@ def masked_dataset_from_agg_obj(agg_obj, settings_masked_dataset=None):
     Parameters
     ----------
     agg_obj : af.PhaseOutput
-        A PyAutoFit aggregator's PhaseOutput object containing the generators of the results of model-fits.
+        A PyAutoFit aggregator`s PhaseOutput object containing the generators of the results of model-fits.
     """
 
     dataset = agg_obj.dataset
@@ -76,17 +76,17 @@ def model_data_generator_from_aggregator(aggregator, settings_masked_dataset=Non
 
 
 def model_data_from_agg_obj(agg_obj, settings_masked_dataset=None):
-    """Compute model data as a 1D ndarray from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to 
-    describe that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator's 
-    generator outputs such that the function can use the *Aggregator*'s map function to to create a model-data generator.
+    """Compute model data as a 1D ndarray from an aggregator`s *PhaseOutput* class, which we call an `agg_obj` to 
+    describe that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator`s 
+    generator outputs such that the function can use the *Aggregator*`s map function to to create a model-data generator.
 
      The model-data is created following the same method as the *Analysis* classes using an instance of the maximum 
-     log likelihood model's profiles.
+     log likelihood model`s profiles.
 
     Parameters
     ----------
     agg_obj : af.PhaseOutput
-        A PyAutoFit aggregator's PhaseOutput object containing the generators of the results of model-fits.
+        A PyAutoFit aggregator`s PhaseOutput object containing the generators of the results of model-fits.
     """
 
     masked_dataset = masked_dataset_from_agg_obj(
@@ -118,16 +118,16 @@ def fit_generator_from_aggregator(aggregator, settings_masked_dataset=None):
 
 
 def fit_from_agg_obj(agg_obj, settings_masked_dataset=None):
-    """Compute a *Fit* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe  that it
-    acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator's generator outputs such
-    that the function can use the *Aggregator*'s map function to to create a *Fit* generator.
+    """Compute a *Fit* object from an aggregator`s *PhaseOutput* class, which we call an `agg_obj` to describe  that it
+    acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator`s generator outputs such
+    that the function can use the *Aggregator*`s map function to to create a *Fit* generator.
 
      The *Fit* is created following the same method as the PyAutoGalaxy *Phase* classes. 
 
     Parameters
     ----------
     agg_obj : af.PhaseOutput
-        A PyAutoFit aggregator's PhaseOutput object containing the generators of the results of PyAutoGalaxy model-fits.
+        A PyAutoFit aggregator`s PhaseOutput object containing the generators of the results of PyAutoGalaxy model-fits.
     """
     masked_dataset = masked_dataset_from_agg_obj(
         agg_obj=agg_obj, settings_masked_dataset=settings_masked_dataset

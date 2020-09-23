@@ -3,7 +3,7 @@
 Transdimensional Pipelines
 ==========================
 
-In **PyAutoFit**, a pipeline is a sequence of non-linear searches (or *Phase*'s) which fit different models to a
+In **PyAutoFit**, a pipeline is a sequence of ``NonLinearSearch``es (or *Phase*'s) which fit different models to a
 dataset. The different *Phase*'s compose and fit many different models, whereby the initial phases fit simplified
 realizations of the model whose results are used to initialize model-fits using more complex models in later phases.
 
@@ -32,7 +32,7 @@ By writing a *Pipeline*, we can break the model-fit down into 3 phases:
 
 1) Fit only the left Gaussian.
 2) Fit only the right Gaussian, using the model of the left Gaussian from phase 1 to reduce blending.
-3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the non-linear search
+3) Fit both Gaussians simultaneously, using the results of phase 1 & 2 to initialize where the ``NonLinearSearch``
    searches parameter space.
 
 .. code-block:: python
@@ -111,7 +111,7 @@ The resulting model-fits of phases 1, 2 and 3 are shown below:
 
 In the first two phases we only required a 1D Gaussian that fitted their half of the data *reasonably well*, to act as
 initialization for phase 3. Therefore, we first trimmed the half of the data we were not fitting, speeding up the
-model-fitting process. These phases also used the *PySwarms* optimizer to fit the model, a non-linear search which
+model-fitting process. These phases also used the *PySwarms* optimizer to fit the model, a ``NonLinearSearch`` which
 quickly maximizes the fit likelihood (but does not provide model error estimates).
 
 In phase 3, we want a *robust* fit to the complete dataset with model error estimation, therefore we did not trim the
@@ -126,7 +126,7 @@ Although this illustrative example is somewhat trivial, using *Pipeline*'s to ex
 has proven crucial for the project `PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_, which fits images of
 gravitationally lensed galaxies. This example pipeline fits a complex 28 parameter model for a galaxies light and
 mass distributions by breaking the model-fit down into 5 distinct phases - a model we would be unable to fit in a
-**fully automated** manner using just one non-linear search!
+**fully automated** manner using just one ``NonLinearSearch``!
 
 If you think the use of *Pipeline*'s suits you model-fitting problem, we recommend you checkout the relevant tutorials
 in chapter 2 of the **HowToFit** lectures. These explain how to implement the functionality in your source code and

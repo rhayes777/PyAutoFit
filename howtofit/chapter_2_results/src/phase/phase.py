@@ -6,7 +6,7 @@ from howtofit.chapter_2_results.src.dataset.dataset import (
 from howtofit.chapter_2_results.src.phase.result import Result
 from howtofit.chapter_2_results.src.phase.analysis import Analysis
 
-# The 'phase.py' module is mostly unchanged from the previous tutorial, however the 'run' function has been updated.
+# The `phase.py` module is mostly unchanged from the previous tutorial, however the `run` function has been updated.
 
 
 class Phase(af.AbstractPhase):
@@ -18,7 +18,7 @@ class Phase(af.AbstractPhase):
     @af.convert_paths
     def __init__(self, paths, *, profiles, settings, search):
         """
-        A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a non-linear search.
+        A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a `NonLinearSearch`.
 
         Parameters
         ----------
@@ -47,25 +47,25 @@ class Phase(af.AbstractPhase):
 
     def run(self, dataset: Dataset, mask, info=None):
         """
-        Pass a `Dataset` to the phase, running the phase and non-linear search.
+        Pass a `Dataset` to the phase, running the phase and `NonLinearSearch`.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
-        mask: Mask
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
+        mask: Mask2D
             The mask used for the analysis.
 
         Returns
         -------
         result: AbstractPhase.Result
-            A result object comprising information on the non-linear search and the maximum likelihood model.
+            A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
 
-        # These functions save the objects we will later access using the aggregator. They are saved via the 'pickle'
+        # These functions save the objects we will later access using the aggregator. They are saved via the `pickle`
         # module in Python, which serializes the data on to the hard-disk.
 
-        # See the 'dataset.py' module for a description of what the metadata is.
+        # See the `dataset.py` module for a description of what the metadata is.
 
         self.save_metadata(dataset=dataset)
         self.save_dataset(dataset=dataset)
@@ -88,12 +88,12 @@ class Phase(af.AbstractPhase):
         Parameters
         ----------
         dataset: aa.Dataset
-            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
 
         Returns
         -------
         analysis : Analysis
-            An analysis object that the non-linear search calls to determine the fit log_likelihood for a given model
+            An analysis object that the `NonLinearSearch` calls to determine the fit log_likelihood for a given model
             instance.
         """
 

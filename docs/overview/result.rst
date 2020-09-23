@@ -3,7 +3,7 @@
 Results & Samples
 -----------------
 
-A *non-linear search*'s fit function returns a *Result* object:
+A ``NonLinearSearch``'s fit function returns a *Result* object:
 
 .. code-block:: bash
 
@@ -29,7 +29,7 @@ It also contains a *Samples* object, which contains information on the non-linea
     samples = result.samples
     print(samples.parameters)
 
-The parameters are a list of lists of all accepted parameter values sampled by the non-linear search. Also available
+The parameters are a list of lists of all accepted parameter values sampled by the ``NonLinearSearch``. Also available
 are lists of the likelihood, prior, posterior and weight values associated with every sample:
 
 .. code-block:: bash
@@ -49,7 +49,7 @@ have removed the burn-in phase):
     median_pdf_vector = [float(np.percentile(samples[:, i], [50])) for i in range(model.prior_count)]
 
 The most probable vector is readily available from the *Samples* object for you convenience (and if a nested sampling
-*non-linear search* is used, it will use an appropriate method to estimate the parameters):
+``NonLinearSearch`` is used, it will use an appropriate method to estimate the parameters):
 
 .. code-block:: bash
 
@@ -127,7 +127,7 @@ An instance of any accepted sample can be created:
 
     instance = samples.instance_from_sample_index(sample_index=500)
 
-If a nested sampling *non-linear search* is used, the evidence of the model is also available which enables Bayesian
+If a nested sampling ``NonLinearSearch`` is used, the evidence of the model is also available which enables Bayesian
 model comparison to be performed:
 
 .. code-block:: bash

@@ -11,7 +11,7 @@ from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.
 )
 
 
-"""The Phase class __init__ method is unchanged from the previous tutorial, however other methods are changed."""
+"""The Phase class ``.nit__ method is unchanged from the previous tutorial, however other methods are changed."""
 
 
 class Phase(af.AbstractPhase):
@@ -23,7 +23,7 @@ class Phase(af.AbstractPhase):
     @af.convert_paths
     def __init__(self, paths, gaussian, search):
         """
-        A phase which fits a `Gaussian` model using a non-linear search.
+        A phase which fits a `Gaussian` model using a `NonLinearSearch`.
 
         Parameters
         ----------
@@ -40,25 +40,25 @@ class Phase(af.AbstractPhase):
         self.gaussian = gaussian
 
     """
-    The run method is slightly different, as it now passed a mask in addition to the _Dataset_. These are used to set up
-    the masked-dataset in the 'analysis.py' module.
+    The run method is slightly different, as it now passed a mask in addition to the `Dataset`. These are used to set up
+    the masked-dataset in the `analysis.py` module.
     """
 
     def run(self, dataset: Dataset, mask):
         """
-        Pass a `Dataset` to the phase, running the phase and non-linear search.
+        Pass a `Dataset` to the phase, running the phase and `NonLinearSearch`.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
-        mask: Mask
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
+        mask: Mask2D
             The mask used for the analysis.
 
         Returns
         -------
         result: AbstractPhase.Result
-            A result object comprising information on the non-linear search and the maximum likelihood model.
+            A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
 
         analysis = self.make_analysis(dataset=dataset, mask=mask)
@@ -74,12 +74,12 @@ class Phase(af.AbstractPhase):
         Parameters
         ----------
         dataset: aa.Dataset
-            The `Dataset` fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
 
         Returns
         -------
         analysis : Analysis
-            An analysis object that the non-linear search calls to determine the fit log_likelihood for a given model
+            An analysis object that the `NonLinearSearch` calls to determine the fit log_likelihood for a given model
             instance.
         """
 
@@ -88,8 +88,8 @@ class Phase(af.AbstractPhase):
         masked_dataset = MaskedDataset(dataset=dataset, mask=mask)
 
         """
-        The 'image_path' is where visualizatiion of the model fit is output. Below, we direct it to the same path as
-        the non-linear search output, but with an additional folder 'image' at the end. This path should be used
+        The `image_path` is where visualizatiion of the model fit is output. Below, we direct it to the same path as
+        the `NonLinearSearch` output, but with an additional folder `image` at the end. This path should be used
         for pretty much any project.
         """
 

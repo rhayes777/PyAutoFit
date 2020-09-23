@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 """
-To visualize images during a phase, we need to be able to output them to hard-disk as a file (e.g a .png'). The line
+To visualize images during a phase, we need to be able to output them to hard-disk as a file (e.g a .png`). The line
 plot function below has been extended to provide this functionality.
 """
 

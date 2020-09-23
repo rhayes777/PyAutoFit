@@ -6,10 +6,10 @@ tutorials and an Exponential profile. In analysis.py, we will edit how model-dat
 that it is the sum of all profiles in our model.
 
 In this module, we thus now have two classes following the PyAutoFit model component format. We have renamed the
-module from 'gaussian.py' to 'profiles.py' to reflect this. We have created an abstract base class 'Profile' from
+module from `gaussian.py` to `profiles.py` to reflect this. We have created an abstract base class `Profile` from
 which all profiles inherit.
 
-If you are not familiar with Python classes, in particular inheritance and the 'super' method below, you may
+If you are not familiar with Python classes, in particular inheritance and the `super` method below, you may
 be unsure what the classes are doing below. I have included comments describing what these command do.
 
 The Profile class is a base class from which all profiles we add (e.g Gaussian, Exponential, additional profiles
@@ -31,9 +31,9 @@ class Profile:
         """
 
         """
-        Every profile class we add below (e.g. Gaussian, Exponential) will call this __init__ method of the Profile
+        Every profile class we add below (e.g. Gaussian, Exponential) will call this ``.nit__ method of the Profile
         base class. Given that every profile will have a centre and intensity, this means we can set these parameters
-        in the Profile class's init method instead of repeating the two lines of code for every individual profile.
+        in the Profile class`s init method instead of repeating the two lines of code for every individual profile.
         """
 
         self.centre = centre
@@ -50,11 +50,11 @@ class Gaussian(Profile):
     def __init__(
         self,
         centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-        intensity=0.1,  # <- are the Gaussian's model parameters.
+        intensity=0.1,  # <- are the Gaussian`s model parameters.
         sigma=0.01,
     ):
         """Represents a 1D `Gaussian` profile, which may be treated as a model-component of PyAutoFit the
-        parameters of which are fitted for by a non-linear search.
+        parameters of which are fitted for by a `NonLinearSearch`.
 
         Parameters
         ----------
@@ -67,14 +67,14 @@ class Gaussian(Profile):
         """
 
         """
-        Writing (Profile) above does not mean the `Gaussian` class will call the Profile class's __init__ method. To
-        achieve this we have the call the 'super' method following the format below.
+        Writing (Profile) above does not mean the `Gaussian` class will call the Profile class`s ``.nit__ method. To
+        achieve this we have the call the `super` method following the format below.
         """
 
         super(Gaussian, self).__init__(centre=centre, intensity=intensity)
 
         """
-        This super method calls the __init__ method of the Profile class above, which means we do not need
+        This super method calls the ``.nit__ method of the Profile class above, which means we do not need
         to write the two lines of code below (which are commented out given they are not necessary).
         """
 
@@ -109,7 +109,7 @@ class Exponential(Profile):
         rate=0.01,
     ):
         """Represents a 1D Exponential profile, which may be treated as a model-component of PyAutoFit the
-        parameters of which are fitted for by a non-linear search.
+        parameters of which are fitted for by a `NonLinearSearch`.
 
         Parameters
         ----------

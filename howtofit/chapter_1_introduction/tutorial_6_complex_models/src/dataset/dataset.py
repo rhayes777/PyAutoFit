@@ -1,11 +1,11 @@
 import numpy as np
 
-"""The 'dataset.py' module is unchanged from the previous tutorial."""
+"""The `dataset.py` module is unchanged from the previous tutorial."""
 
 
 class Dataset:
     def __init__(self, data, noise_map):
-        """A class containing the data and noise-map of a 1D line _Dataset_.
+        """A class containing the data and noise-map of a 1D line `Dataset`.
 
         Parameters
         ----------
@@ -31,8 +31,8 @@ class MaskedDataset:
         ----------
         dataset: im.Dataset
             The `Dataset` (the image, noise-map, etc.)
-        mask: msk.Mask
-            The 1D mask that is applied to the _Dataset_.
+        mask: msk.Mask2D
+            The 1D mask that is applied to the `Dataset`.
         """
 
         """We store the unmasked `Dataset` in the masked-dataset, incase we need it for anything."""

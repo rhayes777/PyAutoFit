@@ -16,7 +16,7 @@ modeling software. The phase API provides a simple and concise interface for per
 
  .. code-block:: bash
 
-    # Set up a phase, which takes a name, the model and a non-linear search.
+    # Set up a phase, which takes a name, the model and a ``NonLinearSearch``.
     # The phase contains Analysis class 'behind the scenes', as well as taking
     # care of results output, visualization, etc.
 

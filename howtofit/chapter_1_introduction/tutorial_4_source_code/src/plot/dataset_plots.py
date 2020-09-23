@@ -12,22 +12,22 @@ when it comes to inspecting the results of a model-fit after they have been comp
 
 
 def data(dataset):
-    """Plot the data values of a Line _Dataset_.
+    """Plot the data values of a Line `Dataset`.
 
     Parameters
     -----------
-    Line : _Dataset_.Line
+    Line : `Dataset`.Line
         The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(xvalues=dataset.xvalues, line=dataset.data, ylabel="Data Values")
 
 
 def noise_map(dataset):
-    """Plot the noise-map of a Line _Dataset_.
+    """Plot the noise-map of a Line `Dataset`.
 
     Parameters
     -----------
-    Line : _Dataset_.Line
+    Line : `Dataset`.Line
         The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(xvalues=dataset.xvalues, line=dataset.noise_map, ylabel="Noise-Map")

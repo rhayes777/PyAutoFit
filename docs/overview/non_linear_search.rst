@@ -1,22 +1,22 @@
 .. _non_linear_search:
 
-Non-linear Searches
+``NonLinearSearch``es
 -------------------
 
-**PyAutoFit** currently supports three types of non-linear search algorithms:
+**PyAutoFit** currently supports three types of ``NonLinearSearch`` algorithms:
 
 - **Optimizers**: *PySwarms*.
 - **MCMC**: *emcee*.
 - **Nested Samplers**: *Dynesty* and *PyMultiNest* (*PyMultiNest* requires users to manually install it and is omitted from this example).
 
 **PyAutoFit** extends *non-linear* search functionality to ensure that they always perform the following tasks, even if
-the *non-linear search* package itself does not:
+the ``NonLinearSearch`` package itself does not:
 
-- Stores the results of the non-linear search to the hard-disk, writing the results to human-readable files.
-- Allows the non-linear search to be resumed if a previous run was finished.
+- Stores the results of the ``NonLinearSearch`` to the hard-disk, writing the results to human-readable files.
+- Allows the ``NonLinearSearch`` to be resumed if a previous run was finished.
 - Backs up results and associated metadata in .zip files, with the option to remove all other outputs for computing on
   HPCs where there may be file number quotas.
-- Extends the functionality of the non-linear searches, for example providing auto-correlation analysis and stopping
+- Extends the functionality of the ``NonLinearSearch``es, for example providing auto-correlation analysis and stopping
   criteria for MCMC algorithms.
 
 We've seen that we can call a *non-linear* search as follows:
@@ -100,8 +100,8 @@ the **PyAutoFit** parent project **PyAutoConf** and the following command:
 
    conf.instance = conf.Config(output_path="path/to/output")
 
-The path structure within this folder of a given *non-linear search* can be chosen using the *Paths* class when the
-*non-linear search* is instantiated. For fits to many data-sets, this is important in ensuring results are clearly
+The path structure within this folder of a given ``NonLinearSearch`` can be chosen using the *Paths* class when the
+``NonLinearSearch`` is instantiated. For fits to many data-sets, this is important in ensuring results are clearly
 labeled and the path where outputs occur do not clash.
 
 The example code below would output the results to the path '/path/to/output/folder_0/folder_1/name/emcee':
@@ -111,7 +111,7 @@ The example code below would output the results to the path '/path/to/output/fol
    paths=af.Paths(folders=["folder_0", "folder_1"], name="name", non_linear_name="emcee")
 
 Both *Emcee* and *Dynesty* support parallel analysis using the Python *multiprocessing* module. This distributes the
-*non-linear search* analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used. To
+``NonLinearSearch`` analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used. To
 use this functionality in **PyAutoFit** you simply specifc the *number_of_cores* parameter (which is also found in the
 default config files):
 
@@ -135,5 +135,5 @@ default config files):
 
    result = dynesty.fit(model=model, analysis=analysis)
 
-An immediate goal of **PyAutoFit** development is to add more *non-linear search* packages to the library. If you are
+An immediate goal of **PyAutoFit** development is to add more ``NonLinearSearch`` packages to the library. If you are
 the developer of a package and would like it to get it implemented into **PyAutoFit** please contact us!

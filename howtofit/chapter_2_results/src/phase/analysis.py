@@ -3,7 +3,7 @@ import autofit as af
 from howtofit.chapter_2_results.src.fit import fit as f
 from howtofit.chapter_2_results.src.phase import visualizer
 
-# The 'analysis.py' module is unchanged from the previous tutorial.
+# The `analysis.py` module is unchanged from the previous tutorial.
 
 
 class Analysis(af.Analysis):
@@ -31,7 +31,7 @@ class Analysis(af.Analysis):
         Returns
         -------
         fit : Fit.log_likelihood
-            The log likelihood value indicating how well this model fit the _MaskedDataset_.
+            The log likelihood value indicating how well this model fit the `MaskedDataset`.
         """
         model_data = self.model_data_from_instance(instance=instance)
         fit = self.fit_from_model_data(model_data=model_data)

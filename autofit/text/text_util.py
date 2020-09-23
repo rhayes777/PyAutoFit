@@ -45,9 +45,9 @@ def results_to_file(samples, filename, during_analysis):
 
         if samples.pdf_converged:
 
-            results += samples_text.summary(samples=samples, sigma=3.0)
+            results += samples_text.summary(samples=samples, sigma=3.0, indent=4, line_length=90)
             results += ["\n"]
-            results += samples_text.summary(samples=samples, sigma=1.0)
+            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=90)
 
         else:
 
@@ -55,7 +55,7 @@ def results_to_file(samples, filename, during_analysis):
                 "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
                 "The model below over estimates errors. \n\n"
             ]
-            results += samples_text.summary(samples=samples, sigma=1.0)
+            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=90)
 
         results += ["\n\ninstances\n"]
 

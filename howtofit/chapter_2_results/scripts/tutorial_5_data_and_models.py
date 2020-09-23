@@ -3,7 +3,7 @@
 Tutorial 5: Data and Models
 ===========================
 
-Up to now, we've used used the `Aggregator` to load and inspect the `Samples` of 3 model-fits..
+Up to now, we`ve used used the `Aggregator` to load and inspect the `Samples` of 3 model-fits.
 
 In this tutorial, we'll look at how the way we designed our source code makes it easy to use the `Aggregator` to
 inspect, interpret and plot the results of the model-fit, including refitting the best models to our data.
@@ -23,7 +23,7 @@ print("Workspace Path: ", workspace_path)
 
 # %%
 """
-Setup the configs as we did in the previous tutorial, as well as the output folder for our non-linear search.
+Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
 """
 
 # %%
@@ -35,7 +35,7 @@ conf.instance = conf.Config(
 # %%
 """
 To load these results with the `Aggregator`, we again point it to the path of the results we want it to inspect, with
-our path straight to the `Aggregator` results ensuring w don't need to filter our `Aggregator` in this tutorial.
+our path straight to the `Aggregator` results ensuring we don`t need to filter our `Aggregator` in this tutorial.
 """
 
 # %%
@@ -44,11 +44,11 @@ agg = af.Aggregator(directory=str(output_path))
 
 # %%
 """
-We can use the `Aggregator` to load a generator of every fit's dataset, by changing the 'output' attribute to the 
-'dataset' attribute at the end of the aggregator.
+We can use the `Aggregator` to load a generator of every fit`s dataset, by changing the `output` attribute to the 
+`dataset` attribute at the end of the aggregator.
 
-Note that in the source code for chapter 2, specifically in the 'phase.py' module, we specified that the the `Dataset` 
-object would be saved too hard-disk such that the `Aggregator` can load it.
+Note that in the source code for chapter 2, specifically in the `phase.py` module, we specified that the the `Dataset` 
+object would be saved to hard-disk such that the `Aggregator` can load it.
 """
 
 # %%
@@ -58,8 +58,8 @@ print(list(dataset_gen), "\n")
 
 # %%
 """
-It is here the object-oriented design of our plot module comes into its own. We have the `Dataset` objects loaded, 
-meaning we can easily plot each `Dataset` using the 'dataset_plot.py' module.
+It is here the object-oriented design of our `plot.py` module comes into its own. We have the `Dataset` objects loaded, 
+meaning we can easily plot each `Dataset` using the `dataset_plot.py` module.
 """
 
 # %%
@@ -68,7 +68,7 @@ for dataset in agg.values("dataset"):
 
 # %%
 """
-The `Dataset` names are available, either as part of the `Dataset` or via the aggregator's dataset_names method.
+The `Dataset` names are available as part of the `Dataset`.
 """
 
 # %%
@@ -77,7 +77,7 @@ for dataset in agg.values("dataset"):
 
 # %%
 """
-The info dictionary we input into the pipeline is also available.
+The `info` dictionary we input into the `Phase` is also available.
 """
 
 # %%
@@ -86,7 +86,7 @@ for info in agg.values("info"):
 
 # %%
 """
-We can repeat the same trick to get the mask of every fit.
+We can repeat the same trick to get the `mask` of every fit.
 """
 
 # %%
@@ -97,14 +97,14 @@ print(list(mask_gen), "\n")
 
 # %%
 """
-We're going to refit each dataset with the maximum log likelihood model-fit of each phase. To do this, we'll need 
-each phase's masked dataset.
+We`re going to refit each `Dataset` with the `max_log_likelihood_instance` of each model-fit. To do this, we'll need 
+each `Phase``s `MaskedDataset`.
 
-(If you are unsure what the 'zip' is doing below, it essentially combines the'datasets' and 'masks' lists in such
-a way that we can iterate over the two simultaneously to create each MaskedDataset).
+(If you are unsure what the `zip` is doing below, it essentially combines the `dataset_gen`, `mask_gen` and 
+`settings_gen` into one list such that we can iterate over all three simultaneously to create each `MaskedDataset`).
 
-The `MaskedDataset` may have been altered by the *data_trim_left* and *data_trim_right* custom phase settings. We can 
-load the `SettingsPhase` via the `Aggregator` to use these settings when we create the _MaskedDataset_.
+The `MaskedDataset` may have been altered by the `data_trim_left` and `data_trim_right` `SettingsPhase`. We can 
+load the `SettingsPhase` via the `Aggregator` to use these settings when we create the `MaskedDataset`.
 """
 
 # %%
@@ -121,7 +121,7 @@ masked_datasets = [
 
 # %%
 """
-There is a problem with how we set up the `MaskedDataset`'s above, can you guess what it is?
+There is a problem with how we set up the `MaskedDataset`s above, can you guess what it is?
 
 We used lists! If we had fit a large sample of data, the above object would store the `MaskedDataset` of all objects
 simultaneously in memory on our hard-disk, likely crashing our laptop! To avoid this, we must write functions that
@@ -143,9 +143,9 @@ def masked_dataset_from_agg_obj(agg_obj):
 
 # %%
 """
-To manipulate this function as a generator using the `Aggregator`, we apply it to the `Aggregator`'s map function.
+To manipulate this function as a generator using the `Aggregator`, we apply it to the `Aggregator``s `map` function.
 
-The *masked_dataset_gen* below ensures that we avoid representing all `MaskeddDataset`'s simultaneously in memory.
+The `masked_dataset_gen` below ensures that we avoid representing all `MaskedDataset``s simultaneously in memory.
 """
 
 # %%
@@ -154,7 +154,7 @@ print(list(masked_dataset_gen))
 
 # %%
 """
-Lets get the the maximum likelihood model instances, as we did in tutorial 3.
+Lets get the `max_log_likelihood_instance`s, as we did in tutorial 3.
 """
 
 # %%
@@ -162,9 +162,9 @@ instances = [samps.max_log_likelihood_instance for samps in agg.values("samples"
 
 # %%
 """
-Okay, we want to inspect the fit of each maximum log likelihood model. To do this, we reperform each fit.
+Okay, we want to inspect the fit of each `max_log_likelihood_instance`. To do this, we reperform each fit.
 
-First, we need to create the model-data of every maximum log likelihood model instance. Lets begin by creating a list 
+First, we need to create the `model_data` of every `max_log_likelihood_instance`. Lets begin by creating a list 
 of profiles of every phase.
 """
 
@@ -173,8 +173,8 @@ profiles = [instance.profiles for instance in instances]
 
 # %%
 """
-We can use these to create the model data of each set of profiles (Which in this case is just 1 Gaussian, but had
-we included more profiles in the model would consist of multiple `Gaussian`'s / _Exponential_'s).
+We can use these to create the `model_data` of each set of profiles (which in this case is just 1 `Gaussian`, but had
+we included more profiles in the model would consist of multiple `Gaussian`s / `Exponential`s.).
 """
 
 # %%
@@ -185,7 +185,7 @@ model_datas = [
 
 # %%
 """
-And, as we did in tutorial 2, we can combine the `MaskedDataset`'s and model_datas in a `Fit` object to create the
+And, as we did in tutorial 2, we can combine the `MaskedDataset`s and `model_data`s in a `Fit` object to create the
 maximum likelihood fit of each phase!
 """
 
@@ -197,7 +197,7 @@ fits = [
 
 # %%
 """
-We can now plot different components of the fit (again benefiting from how we set up the 'fit_plots.py' module)!
+We can now plot different components of the `Fit` (again benefiting from how we set up the `fit_plots.py` module)!
 """
 
 # %%
@@ -209,7 +209,7 @@ for fit in fits:
 # %%
 """
 Again, the code above does not use generators and could prove memory intensive for large datasets. Below is how we 
-would perform the above task with generator functions, using the *masked_dataset_gen* above for the _MaskedDataset_.
+would perform the above task with generator functions, using the `masked_dataset_gen` above for the `MaskedDataset`.
 """
 
 # %%
@@ -239,12 +239,13 @@ for fit in fit_gen:
 
 # %%
 """
-Setting up the above objects (the masked_datasets, model datas, fits) was a bit of work. It wasn't too many lines of 
-code, but for something our users will want to do many times it'd be nice to have a short cut to setting them up, right?
+Setting up the above objects (the `masked_dataset`s, `model data`s, `fit`s) was a bit of work. It wasn`t too many 
+lines of code, but for something our users will want to do many times it`d be nice to have a short cut to setting them 
+up, right?
 
-In the source code module 'aggregator.py' we've set up exactly such a short-cut. This module simply contains the 
-generator functions above such that the generator can be created by passing the _Aggregator_. This provides us with 
-convenience methods for quickly creating the `MaskedDataset`, model data and `Fit`'s using a single line of code:
+In the source code module `aggregator.py` we`ve set up exactly such a short-cut. This module simply contains the 
+generator functions above such that the generator can be created by passing the `Aggregator`. This provides us with 
+convenience methods for quickly creating the `MaskedDataset`, `model_data` and `Fit``s using a single line of code:
 """
 
 # %%
@@ -257,9 +258,9 @@ htf.plot.FitDataset.residual_map(fit=list(fit_gen)[0])
 
 # %%
 """
-The methods in 'aggregator.py' actually allow us to go one step further: they all us to create the `MaskedDataset` and
-_Fit_ objects using an input _SettingsMaskedDataset_. This means we can fit a `Dataset` with a `Phase` and then see how
-the model-fits change if we set the `Dataset` in different ways.
+The methods in `aggregator.py` actually allow us to go one step further: they all us to create the `MaskedDataset` and
+`Fit` objects using an input `SettingsMaskedDataset`. This means we can fit a `Dataset` with a `Phase` and then see how
+the model-fits change if we customize the `Dataset` in different ways.
 
 Below, we create and plot a `Fit` where the `MaskedDataset` is trimmed from the left and right.
 """
@@ -277,7 +278,7 @@ htf.plot.FitDataset.residual_map(fit=list(fit_gen)[0])
 
 # %%
 """
-For your model-fitting project, you'll need to update the 'aggregator.py' module in the same way. This is why we have 
-emphasised the object-oriented design of our model-fitting project through. This design makes it very easy to inspect 
-results via the `Aggregator` later on!
+For your model-fitting project, you`ll need to update the `aggregator.py` module in the same way. This is why we have 
+emphasised the object-oriented design of our model-fitting project throughout. This design makes it very easy to 
+inspect results via the `Aggregator` later on!
 """

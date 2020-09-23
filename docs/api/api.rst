@@ -5,7 +5,7 @@ API Reference
 .. currentmodule:: autofit
 
 -------------------
-Non-linear Searches
+``NonLinearSearch``es
 -------------------
 
 **Nested Samplers:**

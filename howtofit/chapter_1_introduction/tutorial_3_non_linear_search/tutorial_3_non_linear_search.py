@@ -8,16 +8,16 @@ Okay, so its finally time to take our model and fit it to data, hurrah!
 So, how do we infer the parameters for the 1D `Gaussian` that give a good fit to our data?  In the last tutorial, we
 tried a very basic approach, randomly guessing models until we found one that gave a good fit and high log_likelihood.
 
-We discussed that this wasn't really a viable strategy for more complex models, and it isn't. However, this is the
+We discussed that this wasn`t really a viable strategy for more complex models, and it isn`t. However, this is the
 basis of how model fitting actually works! Basically, our model-fitting algorithm guesses lots of models, tracking
 the log likelihood of these models. As the algorithm progresses, it begins to guess more models using parameter
 combinations that gave higher log_likelihood solutions previously. If a set of parameters provided a good fit to the
 data previously, a model with similar values probably will too.
 
-This is called a 'non-linear search' and its a fairly common problem faced by scientists. We're going to use a
-non-linear search algorithm called 'Emcee', which for those familiar with statistic inference is a Markov Chain Monte
+This is called a `_NonLinearSearch_` and its a fairly common problem faced by scientists. We`re going to use a
+_NonLinearSearch_ algorithm called `Emcee`, which for those familiar with statistic inference is a Markov Chain Monte
 Carlo (MCMC) method. For now, lets not worry about the details of how Emcee actually works. Instead, just picture that
-a non-linear search in PyAutoFit operates as follows:
+a `NonLinearSearch` in **PyAutoFit** operates as follows:
 
  1) Randomly guess a model, mapping their parameters via the priors to instances of the model, in this case a
  Gaussian.
@@ -26,13 +26,13 @@ a non-linear search in PyAutoFit operates as follows:
  likelihood.
 
  3) Repeat this many times, choosing models whose parameter values are near those of the model which currently has
- the highest log likelihood value. If the new model's log likelihood is higher than the previous model, new
+ the highest log likelihood value. If the new model`s log likelihood is higher than the previous model, new
  models will thus be chosen with parameters nearer this model.
 
-The idea is that if we keep guessing models with higher log-likelihood values, we'll inevitably 'climb' up the gradient
+The idea is that if we keep guessing models with higher log-likelihood values, we'll inevitably `climb` up the gradient
 of the log likelihood in parameter space until we eventually hit the highest log likelihood models.
 
-To be clear, this overly simplfied description of an MCMC algorithm is not how the *non-linear search* really works and
+To be clear, this overly simplfied description of an MCMC algorithm is not how the *_NonLinearSearch_* really works and
 omits the details of how our priors inpact our inference or why an MCMC algorithm can provide reliable errors on our
 parameter estimates.
 
@@ -55,11 +55,10 @@ print("Workspace Path: ", workspace_path)
 
 # %%
 """
-The line conf.instance is now used to set up a second property of the configuration:
 
- - The path to the PyAutoFit output folder, which is where the results of the non-linear search are written to 
- on your hard-disk, alongside visualization and other properties of the fit 
- (e.g. '/path/to/autolens_workspace/output/howtolens')
+The line `conf.instance` is now used to set up a second property of the configuration; the path to the **PyAutoFit** 
+output folder, which is where the results of the `NonLinearSearch` are written to on your hard-disk, alongside 
+visualization and other properties of the fit (e.g. `/path/to/autolens_workspace/output/howtolens`)
 
 (These will work autommatically if the WORKSPACE environment variable was set up correctly during installation. 
 Nevertheless, setting the paths explicitly within the code is good practise.
@@ -68,12 +67,12 @@ Nevertheless, setting the paths explicitly within the code is good practise.
 # %%
 conf.instance = conf.Config(
     config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the non-linear search's outputs go.
+    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the `NonLinearSearch``s outputs go.
 )
 
 # %%
 """
-To create the Dataset, we import the simulator module and use it to generate the Dataset's data and noise-map. 
+To create the `Dataset`, we import the simulator module and use it to generate the `Dataset``s data and noise-map. 
 """
 
 # %%
@@ -84,7 +83,7 @@ noise_map = gaussian_x1.noise_map
 
 # %%
 """
-Lets remind ourselves what the data looks like, using the plot_lint convenience method fom the previous tutorial.
+Lets remind ourselves what the data looks like, using the `plot_line` convenience method fom the previous tutorial.
 """
 
 # %%
@@ -103,15 +102,15 @@ plot_line(xvalues=xvalues, line=data, ylabel="Data")
 
 # %%
 """
-Lets remake the `Gaussian` class for this tutorial, which is the model we will fit using the non-linear search.
+Lets remake the `Gaussian` class for this tutorial, which is the model we will fit using the `NonLinearSearch`.
 """
 
 # %%
 class Gaussian:
     def __init__(
         self,
-        centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-        intensity=0.1,  # <- are the Gaussian's model parameters.
+        centre=0.0,  # <- **PyAutoFit** recognises these constructor arguments
+        intensity=0.1,  # <- are the Gaussian`s model parameters.
         sigma=0.01,
     ):
         self.centre = centre
@@ -138,13 +137,13 @@ class Gaussian:
 
 # %%
 """
-The non-linear search requires an *Analysis* class, which:
+The `NonLinearSearch` requires an *Analysis* class, which:
 
  - Receives the data to be fitted and prepares it so the model can fit it.
  
- - Defines the 'log_likelihood_function' used to compute the log likelihood from a model instance. 
+ - Defines the `log_likelihood_function` used to compute the log likelihood from a model instance. 
  
- - Passes this log likelihood to the non-linear search so that it can determine parameter values for the the next model 
+ - Passes this log likelihood to the `NonLinearSearch` so that it can determine parameter values for the the next model 
  that it samples.
 
 For our 1D `Gaussian` model-fitting example, here is our *Analysis* class:
@@ -162,11 +161,11 @@ class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
 
         """
-        The 'instance' that comes into this method is an instance of the `Gaussian` class above, with the parameters
-        set to values chosen by the non-linear search. (These are commented out to pretent excessive print statements
-        when we run the non-linear search).
+        The `instance` that comes into this method is an instance of the `Gaussian` class above, with the parameters
+        set to values chosen by the `NonLinearSearch`. (These are commented out to pretent excessive print statements
+        when we run the `NonLinearSearch`..
 
-        This instance's parameter values are chosen by the non-linear search based on the previous model with the
+        This instance`s parameter values are chosen by the `NonLinearSearch` based on the previous model with the
         highest likelihood result.
 
             print("Gaussian Instance:")
@@ -192,8 +191,8 @@ class Analysis(af.Analysis):
 
 # %%
 """
-To perform the non-linear search using Emcee, we simply compose our model using a PriorModel, instantiate the Analysis
-class and pass them to an instance of the Emcee class.
+To perform the `NonLinearSearch` using `Emcee`, we simply compose our model using a `PriorModel`, instantiate the 
+_Analysis_ class and pass them to an instance of the `Emcee` class.
 
 We manually set the priors on the model, in the next tutorial we'll cover how this can be performed automatically.
 """
@@ -210,22 +209,22 @@ emcee = af.Emcee()
 
 # %%
 """
-We begin the non-linear search by calling its fit method, it  will take a minute or so to run (which is very fast for a 
-model-fit). Whilst you're waiting, checkout the folder:
+We begin the `NonLinearSearch` by calling its `fit` method, it  will take a minute or so to run (which is very fast 
+for a model-fit). Whilst you`re waiting, checkout the folder:
 
-'autofit_workspace/howtofit/chapter_1_introduction/output/emcee'
+`autofit_workspace/howtofit/chapter_1_introduction/output/emcee`
 
 Here, the results of the model-fit are output to your hard-disk (on-the-fly) and you can inspect them as the non-linear
-search runs. In particular, you'll find:
+search runs. In particular, you`ll find:
 
- - model.info: A file listing every model component, parameter and prior in your model-fit.
+ - `model.info`: A file listing every model component, parameter and prior in your model-fit.
 
- - model.results: A file giving the latest best-fit model, parameter estimates and errors of the fit.
+ - `model.results`: A file giving the latest best-fit model, parameter estimates and errors of the fit.
  
- - search: A folder containing the Emcee output in hdf5 format.txt (you'll probably never need to look at these, but
-   its good to know what they are).
+ - `search`: A folder containing the `Emcee` output in hdf5 format.txt (you`ll probably never need to look at these, 
+   but its good to know what they are).
  
- - Other metadata which you can ignore for now.
+ - Other `metadata` which you can ignore for now.
 """
 
 # %%
@@ -241,11 +240,13 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
-Once completed, the non-linear search returns a Result object, which contains lots of information about the non-linear. 
-A full description of the *Results* object can be found at:
+Once completed, the `NonLinearSearch` returns a `Result` object, which contains lots of information about the 
+_NonLinearSearch_.
  
-'autofit_workspace/examples/simple/results'
-'autofit_workspace/examples/complex/results'. 
+A full description of the `Results` object can be found at:
+ 
+`autofit_workspace/examples/simple/results`
+`autofit_workspace/examples/complex/results`.
 
 In this tutorial, lets use it to inspect the maximum likelihood model instance.
 """
@@ -275,7 +276,7 @@ plt.close()
 
 # %%
 """
-Above, we used the results 'Samples' property, which in this case is a MCMCSamples object:
+Above, we used the `Result``s `samples` property, which in this case is a `MCMCSamples` object:
 """
 
 # %%
@@ -283,7 +284,7 @@ print(result.samples)
 
 # %%
 """
-This object acts as an interface between the Emcee output results on your hard-disk and this Python code. For
+This object acts as an interface between the `Emcee` output results on your hard-disk and this Python code. For
 example, we can use it to get the parameters and log likelihood of every accepted emcee sample.
 """
 
@@ -293,7 +294,7 @@ print(result.samples.log_likelihoods)
 
 # %%
 """
-We can also use it to get a model instance of the "median pdf" model, which is the model where each parameter is
+We can also use it to get a model instance of the `median_pdf` model, which is the model where each parameter is
 the value estimated from the probability distribution of parameter space.
 """
 
@@ -307,5 +308,5 @@ print("Sigma = ", mp_instance.sigma)
 
 # %%
 """
-We'll come back to look at Samples objects in more detail in chapter 2!
+we'll come back to look at `Samples` objects in more detail in chapter 2!
 """

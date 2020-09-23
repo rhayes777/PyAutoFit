@@ -3,14 +3,14 @@
 Aggregator
 ----------
 
-In the previous example, we discussed the *Results* object, which contains information on the *non-linear search*
+In the previous example, we discussed the *Results* object, which contains information on the ``NonLinearSearch``
 samples, the best-fit model and parameter estimates and errors. If you are fitting a model to only one dataset, this
 object suffices, but what if you are fitting the model to many datasets? How do you analyse, interpret and combine the
 results?
 
 Lets extend our example of fitting a 1D Gaussian line profile and pretend we've fitted 100 independent datasets
-containing 1D Gaussians, such that the results of every *non-linear search* are in an ordered path structure on our
-hard-disk. We can use the *Aggregator* to load the results of all 100 *non-linear searches*:
+containing 1D Gaussians, such that the results of every ``NonLinearSearch`` are in an ordered path structure on our
+hard-disk. We can use the *Aggregator* to load the results of all 100 *``NonLinearSearch``es*:
 
 .. code-block:: bash
 
@@ -98,7 +98,7 @@ results of completed fits:
     output_path = "/path/to/gaussian_x100_fits"
     agg = af.Aggregator(directory=str(output_path), completed_only=True)
 
-In the non-linear search API example, we discussed how *model-fit* results can be stored as .zip files to reduce the
+In the ``NonLinearSearch`` API example, we discussed how *model-fit* results can be stored as .zip files to reduce the
 number of files used, which may be important for HPC use which often have file use limits. The downside of this is it
 means all results are contained in .zip which the user must unzip to access.
 

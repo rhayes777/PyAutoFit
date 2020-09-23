@@ -2,7 +2,7 @@ import autofit as af
 
 from howtofit.chapter_2_results.src.dataset import dataset as ds
 
-# The 'settings.py' module is identical to the previous tutorial.
+# The `settings.py` module is identical to the previous tutorial.
 
 
 class SettingsPhase(af.AbstractSettingsPhase):

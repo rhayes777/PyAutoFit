@@ -10,7 +10,7 @@ The `Dataset` is trimmed by an input number of pixels to the left and / or right
 
 class Dataset:
     def __init__(self, data, noise_map):
-        """A class containing the data and noise-map of a 1D line _Dataset_.
+        """A class containing the data and noise-map of a 1D line `Dataset`.
 
         Parameters
         ----------
@@ -29,12 +29,12 @@ class Dataset:
     """
     The `MaskedDataset` that is fitted by an analysis is created using the method below.
 
-    If the data_trim attributes are not None, they are used to trim the `Dataset` before creating the _MaskedDataset_.
+    If the data_trim attributes are not None, they are used to trim the `Dataset` before creating the `MaskedDataset`.
     """
 
     def with_left_trimmed(self, data_trim_left):
 
-        """Here, we use the existing `MaskedDataset` to create a trimmed _Dataset_."""
+        """Here, we use the existing `MaskedDataset` to create a trimmed `Dataset`."""
 
         data_trimmed = self.data[data_trim_left:]
         noise_map_trimmed = self.noise_map[data_trim_left:]
@@ -55,7 +55,7 @@ class Dataset:
 We use a `SettingsMaskedDataset` class to choose the settings of how our `MaskedDataset` is setup for the model-fit,
 specifically whether it is trimmed from the right and left.
 
-This class includes tags, which customize the folders of the output of the phase. See the new module, 'settings.py'
+This class includes tags, which customize the folders of the output of the phase. See the new module, `settings.py`
 for a more complete description of tagging.
 """
 
@@ -91,7 +91,7 @@ class SettingsMaskedDataset:
         """Generate a data trim left tag, to customize phase names based on how much of the `Dataset` is trimmed to
         its left.
 
-        This changes the phase name 'settings' as follows:
+        This changes the phase name `settings` as follows:
 
         data_trim_left = None -> settings
         data_trim_left = 2 -> settings__trim_left_2
@@ -105,7 +105,7 @@ class SettingsMaskedDataset:
     def data_trim_right_tag(self):
         """Generate a data trim right tag, to customize phase names based on how much of the `Dataset` is trimmed to its right.
 
-        This changes the phase name 'settings' as follows:
+        This changes the phase name `settings` as follows:
 
         data_trim_right = None -> settings
         data_trim_right = 2 -> settings__trim_right_2
@@ -131,13 +131,13 @@ class MaskedDataset:
         ----------
         dataset: im.Dataset
             The `Dataset` (the image, noise-map, etc.)
-        mask: msk.Mask
-            The 1D mask that is applied to the _Dataset_.
+        mask: msk.Mask2D
+            The 1D mask that is applied to the `Dataset`.
         """
 
         """
         If the settings include a left trim, the function below trims the `Dataset` and mask before 
-        settings up the _MaskedDataset_.
+        settings up the `MaskedDataset`.
         """
 
         if settings.data_trim_left is not None:

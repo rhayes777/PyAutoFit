@@ -3,7 +3,7 @@ from howtofit.chapter_2_results.src.plot import (
     fit_plots,
 )
 
-# The 'visualizer.py' module is unchanged from the previous tutorial.
+# The `visualizer.py` module is unchanged from the previous tutorial.
 
 
 class AbstractVisualizer:

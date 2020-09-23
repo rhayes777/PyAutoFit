@@ -6,11 +6,11 @@ from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.plot import (
 
 
 def data(dataset, output_path=None, output_filename=None, output_format="show"):
-    """Plot the data values of a Line _Dataset_.
+    """Plot the data values of a Line `Dataset`.
 
     Parameters
     -----------
-    Line : _Dataset_.Line
+    Line : `Dataset`.Line
         The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(
@@ -24,11 +24,11 @@ def data(dataset, output_path=None, output_filename=None, output_format="show"):
 
 
 def noise_map(dataset, output_path=None, output_filename=None, output_format="show"):
-    """Plot the noise-map of a Line _Dataset_.
+    """Plot the noise-map of a Line `Dataset`.
 
     Parameters
     -----------
-    Line : _Dataset_.Line
+    Line : `Dataset`.Line
         The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(

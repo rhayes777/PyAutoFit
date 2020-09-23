@@ -26,7 +26,7 @@
         Whether MultiNest uses multi-modal sampling, whereby the parameter space search will 'split' into multiple modes
         if it detects there are multiple peaks in log_likelihood space.
     importance_nested_sampling -> bool
-        Importance nested sampling mode uses information from the rejected points to improve the non-linear search.
+        Importance nested sampling mode uses information from the rejected points to improve the `NonLinearSearch`.
     max_modes -> int
         If multimodal sampling is True, the maximum number of models MultiNest can split into.
     mode_tolerance -> float

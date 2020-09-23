@@ -14,8 +14,8 @@ mock_class
 Summary (1.0 sigma limits):
 
 mock_class
- one       1.00 (1.00, 1.20)
- two       2.00 (2.00, 2.20)
+    one                                                                                   1.00 (1.00, 1.20)
+    two                                                                                   2.00 (2.00, 2.20)
 
 instances
 
