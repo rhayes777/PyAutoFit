@@ -119,7 +119,7 @@ class MockSearch(af.NonLinearSearch):
 
     @property
     def config_type(self):
-        return conf.instance.mock
+        return conf.instance["non_linear"]["mock"]
 
     @property
     def tag(self):

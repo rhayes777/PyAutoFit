@@ -1,25 +1,25 @@
-import numpy as np
 import json
 
-from autoconf import conf
-from autofit.non_linear.initializer import InitializerPrior
-from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.abstract_search import IntervalCounter
-from autofit.non_linear.paths import Paths
-from autofit.non_linear import samples as samp
+import numpy as np
 
+from autoconf import conf
 from autofit import exc
+from autofit.non_linear import samples as samp
+from autofit.non_linear.abstract_search import IntervalCounter
+from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.initializer import InitializerPrior
+from autofit.non_linear.paths import Paths
 
 
 class AbstractNest(NonLinearSearch):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        iterations_per_update=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        stagger_resampling_likelihood=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            iterations_per_update=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            stagger_resampling_likelihood=None,
     ):
         """
         Abstract class of a nested sampling non-linear search (e.g. MultiNest, Dynesty).
@@ -76,14 +76,14 @@ class AbstractNest(NonLinearSearch):
 
     class Fitness(NonLinearSearch.Fitness):
         def __init__(
-            self,
-            paths,
-            analysis,
-            model,
-            samples_from_model,
-            stagger_resampling_likelihood,
-            terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold,
+                self,
+                paths,
+                analysis,
+                model,
+                samples_from_model,
+                stagger_resampling_likelihood,
+                terminate_at_acceptance_ratio,
+                acceptance_ratio_threshold,
         ):
 
             super().__init__(
@@ -168,7 +168,7 @@ class AbstractNest(NonLinearSearch):
                 try:
 
                     if (
-                        samples.acceptance_ratio < self.acceptance_ratio_threshold
+                            samples.acceptance_ratio < self.acceptance_ratio_threshold
                     ) or self.terminate_has_begun:
 
                         self.terminate_has_begun = True
@@ -181,7 +181,7 @@ class AbstractNest(NonLinearSearch):
 
     @property
     def config_type(self):
-        return conf.instance.nest
+        return conf.instance["non_linear"]["nest"]
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(

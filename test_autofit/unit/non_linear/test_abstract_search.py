@@ -1,7 +1,8 @@
 import os
-import numpy as np
-import shutil
 import pickle
+import shutil
+
+import numpy as np
 import pytest
 
 import autofit as af
@@ -123,19 +124,20 @@ def test_nlo_wrong_info():
     return nlo_wrong_info_path
 
 
-
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)
         assert ["one", "two", "three", "four"] == model.model_component_and_parameter_names
 
     def test_label_config(self):
-        assert conf.instance.label.label("one") == "one_label"
-        assert conf.instance.label.label("two") == "two_label"
-        assert conf.instance.label.label("three") == "three_label"
-        assert conf.instance.label.label("four") == "four_label"
+        assert conf.instance["notation"]["label"]["label"]["one"] == "one_label"
+        assert conf.instance["notation"]["label"]["label"]["two"] == "two_label"
+        assert conf.instance["notation"]["label"]["label"]["three"] == "three_label"
+        assert conf.instance["notation"]["label"]["label"]["four"] == "four_label"
+
 
 test_path = "{}/files/phase".format(os.path.dirname(os.path.realpath(__file__)))
+
 
 class TestMovePickleFiles:
 

@@ -93,10 +93,10 @@ def convert_name_to_label(parameter_name, name_to_label):
     if not name_to_label:
         return parameter_name
 
-    label_conf = conf.instance.label
+    label_conf = conf.instance["notation"]["label"]
 
     try:
-        return conf.instance.label.label(name=parameter_name)
+        return label_conf["label"][parameter_name]
     except KeyError:
         raise configparser.NoSectionError(
             "Could not find an entry for the parameter {} in the label_format.iniconfig at path {}".format(
