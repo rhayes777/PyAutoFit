@@ -174,7 +174,6 @@ def latex_results_at_sigma_from_samples(samples, sigma, format_str="{:.2f}") -> 
 
 
 def search_summary_from_samples(samples) -> [str]:
-
     line = [f"Total Samples = {samples.total_samples}\n"]
     if hasattr(samples, "total_accepted_samples"):
         line.append(f"Total Accepted Samples = {samples.total_accepted_samples}\n")
@@ -185,7 +184,6 @@ def search_summary_from_samples(samples) -> [str]:
 
 
 def search_summary_to_file(samples, filename):
-
     summary = search_summary_from_samples(samples=samples)
 
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)
@@ -195,7 +193,5 @@ def format_str() -> str:
     """The format string for the model.results file, describing to how many decimal points every parameter
     estimate is output in the model.results file.
     """
-    decimal_places = conf.instance.general.get(
-        "output", "model_results_decimal_places", int
-    )
+    decimal_places = conf.instance["general"]["output"]["model_results_decimal_places"]
     return f"{{:.{decimal_places}f}}"

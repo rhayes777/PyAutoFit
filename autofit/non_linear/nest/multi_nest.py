@@ -1,37 +1,36 @@
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import NestSamples
-from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear import abstract_search
-
 from autofit.non_linear.log import logger
+from autofit.non_linear.nest import abstract_nest
+from autofit.non_linear.samples import NestSamples
 
 
 class MultiNest(abstract_nest.AbstractNest):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_live_points=None,
-        sampling_efficiency=None,
-        const_efficiency_mode=None,
-        multimodal=None,
-        importance_nested_sampling=None,
-        evidence_tolerance=None,
-        max_modes=None,
-        mode_tolerance=None,
-        max_iter=None,
-        n_iter_before_update=None,
-        null_log_evidence=None,
-        seed=None,
-        verbose=None,
-        resume=None,
-        context=None,
-        write_output=None,
-        log_zero=None,
-        init_MPI=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        stagger_resampling_likelihood=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_live_points=None,
+            sampling_efficiency=None,
+            const_efficiency_mode=None,
+            multimodal=None,
+            importance_nested_sampling=None,
+            evidence_tolerance=None,
+            max_modes=None,
+            mode_tolerance=None,
+            max_iter=None,
+            n_iter_before_update=None,
+            null_log_evidence=None,
+            seed=None,
+            verbose=None,
+            resume=None,
+            context=None,
+            write_output=None,
+            log_zero=None,
+            init_MPI=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            stagger_resampling_likelihood=None,
     ):
         """
         A MultiNest non-linear search.
@@ -187,7 +186,7 @@ class MultiNest(abstract_nest.AbstractNest):
             else log_zero
         )
         self.init_MPI = (
-            self._config("settings", "init_MPI", bool) if init_MPI is None else init_MPI
+            self._config("settings", "init_MPI") if init_MPI is None else init_MPI
         )
 
         super().__init__(
@@ -381,7 +380,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
 
 def parameters_from_file_weighted_samples(
-    file_weighted_samples, prior_count
+        file_weighted_samples, prior_count
 ) -> [[float]]:
     """Open the file "multinest.txt" and extract the parameter values of every accepted live point as a list
     of lists."""

@@ -8,7 +8,7 @@ from autofit.non_linear import samples as samp
 class AbstractOptimizer(NonLinearSearch):
     @property
     def config_type(self):
-        return conf.instance.optimize
+        return conf.instance["non_linear"]["optimize"]
 
     def samples_via_csv_json_from_model(self, model):
 
