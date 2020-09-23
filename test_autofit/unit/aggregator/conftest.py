@@ -3,29 +3,7 @@ import os
 import pytest
 
 import autofit as af
-
-
-class MedianPDFInstance:
-    def __init__(self, name):
-        self.name = name
-
-
-class MockPhaseOutput:
-    def __init__(self, directory, pipeline, phase, dataset):
-        self.directory = directory
-        self.pipeline = pipeline
-        self.phase = phase
-        self.dataset = dataset
-
-    @property
-    def median_pdf_instance(self):
-        return MedianPDFInstance(
-            self.phase
-        )
-
-    @property
-    def output(self):
-        return self
+from test_autofit.mock import MockPhaseOutput
 
 
 @pytest.fixture(
