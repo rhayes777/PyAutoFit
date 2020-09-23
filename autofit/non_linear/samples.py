@@ -585,10 +585,10 @@ class PDFSamples(OptimizerSamples):
         # import getdist.plots
         # import matplotlib
         #
-        # backend = conf.instance.visualize_general.get("general", "backend", str)
+        # backend = conf.instance["visualize"]["general"]["general"]["backend"]
         # if not backend in "default":
         #     matplotlib.use(backend)
-        # if conf.instance.general.get("hpc", "hpc_mode", bool):
+        # if conf.instance["general"]["hpc"]["hpc_mode"]:
         #     matplotlib.use("Agg")
         # import matplotlib.pyplot as plt
         #
@@ -606,7 +606,7 @@ class PDFSamples(OptimizerSamples):
         #
         # plt.close()
         #
-        # plot_pdf_triangle = conf.instance.visualize_plots.get("pdf", "triangle", bool)
+        # plot_pdf_triangle = conf.instance["visualize"]["plots"]["pdf"]["triangle"]
         #
         # if plot_pdf_triangle:
         #
