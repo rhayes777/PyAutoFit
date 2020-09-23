@@ -154,7 +154,7 @@ class AbstractDynesty(AbstractNest):
         """
 
         self.n_live_points = (
-            self._config("search", "n_live_points", int)
+            self._config("search", "n_live_points")
             if n_live_points is None
             else n_live_points
         )
@@ -162,24 +162,24 @@ class AbstractDynesty(AbstractNest):
         self.evidence_tolerance = evidence_tolerance
 
         self.facc = (
-            self._config("search", "sampling_efficiency", float)
+            self._config("search", "sampling_efficiency")
             if facc is None
             else facc
         )
 
-        self.bound = self._config("search", "bound", str) if bound is None else bound
+        self.bound = self._config("search", "bound") if bound is None else bound
         self.sample = (
-            self._config("search", "sample", str) if sample is None else sample
+            self._config("search", "sample") if sample is None else sample
         )
         self.bootstrap = (
-            self._config("search", "bootstrap", int) if bootstrap is None else bootstrap
+            self._config("search", "bootstrap") if bootstrap is None else bootstrap
         )
         self.enlarge = (
-            self._config("search", "enlarge", float) if enlarge is None else enlarge
+            self._config("search", "enlarge") if enlarge is None else enlarge
         )
 
         self.update_interval = (
-            self._config("search", "update_interval", float)
+            self._config("search", "update_interval")
             if update_interval is None
             else update_interval
         )
@@ -194,39 +194,39 @@ class AbstractDynesty(AbstractNest):
                 self.enlarge = 1.25
 
         self.vol_dec = (
-            self._config("search", "vol_dec", float) if vol_dec is None else vol_dec
+            self._config("search", "vol_dec") if vol_dec is None else vol_dec
         )
         self.vol_check = (
-            self._config("search", "vol_check", float)
+            self._config("search", "vol_check")
             if vol_check is None
             else vol_check
         )
-        self.walks = self._config("search", "walks", int) if walks is None else walks
+        self.walks = self._config("search", "walks") if walks is None else walks
         self.slices = (
-            self._config("search", "slices", int) if slices is None else slices
+            self._config("search", "slices") if slices is None else slices
         )
-        self.fmove = self._config("search", "fmove", float) if fmove is None else fmove
+        self.fmove = self._config("search", "fmove") if fmove is None else fmove
         self.max_move = (
-            self._config("search", "max_move", int) if max_move is None else max_move
+            self._config("search", "max_move") if max_move is None else max_move
         )
 
         self.maxiter = (
-            self._config("search", "maxiter", int) if maxiter is None else maxiter
+            self._config("search", "maxiter") if maxiter is None else maxiter
         )
         if self.maxiter <= 0:
             self.maxiter = sys.maxsize
         self.maxcall = (
-            self._config("search", "maxcall", int) if maxcall is None else maxcall
+            self._config("search", "maxcall") if maxcall is None else maxcall
         )
         self.no_limit = False
         if self.maxcall <= 0:
             self.maxcall = sys.maxsize
             self.no_limit = True
         self.logl_max = (
-            self._config("search", "logl_max", float) if logl_max is None else logl_max
+            self._config("search", "logl_max") if logl_max is None else logl_max
         )
         self.n_effective = (
-            self._config("search", "n_effective", int)
+            self._config("search", "n_effective")
             if n_effective is None
             else n_effective
         )
@@ -242,7 +242,7 @@ class AbstractDynesty(AbstractNest):
         )
 
         self.number_of_cores = (
-            self._config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores")
             if number_of_cores is None
             else number_of_cores
         )
@@ -452,7 +452,7 @@ class AbstractDynesty(AbstractNest):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self._config("tag", "name", str)
+        name_tag = self._config("tag", "name")
         n_live_points_tag = (
             f"{self._config('tag', 'n_live_points')}_{self.n_live_points}"
         )
@@ -649,13 +649,13 @@ class DynestyStatic(AbstractDynesty):
         """
 
         self.n_live_points = (
-            self._config("search", "n_live_points", int)
+            self._config("search", "n_live_points")
             if n_live_points is None
             else n_live_points
         )
 
         evidence_tolerance = (
-            self._config("search", "evidence_tolerance", float)
+            self._config("search", "evidence_tolerance")
             if evidence_tolerance is None
             else evidence_tolerance
         )
@@ -860,7 +860,7 @@ class DynestyDynamic(AbstractDynesty):
         """
 
         n_live_points = (
-            self._config("search", "n_live_points", int)
+            self._config("search", "n_live_points")
             if n_live_points is None
             else n_live_points
         )
@@ -869,7 +869,7 @@ class DynestyDynamic(AbstractDynesty):
             n_live_points = 500
 
         evidence_tolerance = (
-            self._config("search", "evidence_tolerance", float)
+            self._config("search", "evidence_tolerance")
             if evidence_tolerance is None
             else evidence_tolerance
         )

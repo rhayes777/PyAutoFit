@@ -57,19 +57,19 @@ class AbstractNest(NonLinearSearch):
         )
 
         self.terminate_at_acceptance_ratio = (
-            self._config("settings", "terminate_at_acceptance_ratio", bool)
+            self._config("settings", "terminate_at_acceptance_ratio")
             if terminate_at_acceptance_ratio is None
             else terminate_at_acceptance_ratio
         )
 
         self.acceptance_ratio_threshold = (
-            self._config("settings", "acceptance_ratio_threshold", float)
+            self._config("settings", "acceptance_ratio_threshold")
             if acceptance_ratio_threshold is None
             else acceptance_ratio_threshold
         )
 
         self.stagger_resampling_likelihood = (
-            self._config("settings", "stagger_resampling_likelihood", bool)
+            self._config("settings", "stagger_resampling_likelihood")
             if stagger_resampling_likelihood is None
             else stagger_resampling_likelihood
         )

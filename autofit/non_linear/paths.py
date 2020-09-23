@@ -139,7 +139,7 @@ class Paths:
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
 
-            if conf.instance.general.get("hpc", "hpc_mode", bool):
+            if conf.instance["general"]["hpc"]["hpc_mode"]:
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)

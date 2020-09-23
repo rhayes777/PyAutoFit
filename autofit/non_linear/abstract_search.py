@@ -2,10 +2,11 @@ import logging
 import multiprocessing as mp
 import os
 import pickle
+import shutil
 from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
-import shutil
+
 import numpy as np
 
 from autoconf import conf
@@ -58,14 +59,10 @@ class NonLinearSearch(ABC):
 
         self.timer = Timer(paths=paths)
 
-        self.skip_completed = conf.instance.general.get(
-            "output", "skip_completed", bool
-        )
-        self.force_pickle_overwrite = conf.instance.general.get(
-            "output", "force_pickle_overwrite", bool
-        )
+        self.skip_completed = conf.instance["general"]["output"]["skip_completed"]
+        self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
-        self.log_file = conf.instance.general.get("output", "log_file", str).replace(
+        self.log_file = conf.instance["general"]["output"]["log_file"].replace(
             " ", ""
         )
 
@@ -75,22 +72,18 @@ class NonLinearSearch(ABC):
             self.initializer = initializer
 
         self.iterations_per_update = (
-            self._config("updates", "iterations_per_update", int)
+            self._config("updates", "iterations_per_update")
             if iterations_per_update is None
             else iterations_per_update
         )
 
-        if conf.instance.general.get("hpc", "hpc_mode", bool):
-            self.iterations_per_update = conf.instance.general.get("hpc", "iterations_per_update", float)
+        if conf.instance["general"]["hpc"]["hpc_mode"]:
+            self.iterations_per_update = conf.instance["general"]["hpc"]["iterations_per_update"]
 
-        self.log_every_update = self._config("updates", "log_every_update", int)
-        self.backup_every_update = self._config("updates", "backup_every_update", int)
-        self.visualize_every_update = self._config(
-            "updates", "visualize_every_update", int
-        )
-        self.model_results_every_update = self._config(
-            "updates", "model_results_every_update", int
-        )
+        self.log_every_update = self._config("updates", "log_every_update")
+        self.backup_every_update = self._config("updates", "backup_every_update")
+        self.visualize_every_update = self._config("updates", "visualize_every_update")
+        self.model_results_every_update = self._config("updates", "model_results_every_update")
 
         self.iterations = 0
         self.should_log = IntervalCounter(self.log_every_update)
@@ -100,9 +93,9 @@ class NonLinearSearch(ABC):
             self.model_results_every_update
         )
 
-        self.silence = self._config("printing", "silence", bool)
+        self.silence = self._config("printing", "silence")
 
-        if conf.instance.general.get("hpc", "hpc_mode", bool):
+        if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.silence = True
 
         self.number_of_cores = number_of_cores
@@ -219,7 +212,8 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if (not os.path.exists(self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
+        if (not os.path.exists(
+                self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
             self.save_parameter_names_file(model=model)
@@ -286,7 +280,7 @@ class NonLinearSearch(ABC):
     def config_type(self):
         raise NotImplementedError()
 
-    def _config(self, section, attribute_name, attribute_type=str):
+    def _config(self, section, attribute_name):
         """
         Get a config field from this search's section in non_linear.ini by a key and value type.
 
@@ -294,17 +288,13 @@ class NonLinearSearch(ABC):
         ----------
         attribute_name: str
             The analysis_path of the field
-        attribute_type: type
-            The type of the value
 
         Returns
         -------
         attribute
             An attribute for the key with the specified type.
         """
-        return self.config_type.config_for(self.__class__.__name__).get(
-            section, attribute_name, attribute_type
-        )
+        return self.config_type[self.__class__.__name__][section][attribute_name]
 
     def perform_update(self, model, analysis, during_analysis):
         """Perform an update of the non-linear search results, which occurs every *iterations_per_update* of the
@@ -365,7 +355,7 @@ class NonLinearSearch(ABC):
 
     def setup_log_file(self):
 
-        if conf.instance.general.get("output", "log_to_file", bool):
+        if conf.instance["general"]["output"]["log_to_file"]:
 
             if len(self.log_file) == 0:
                 raise ValueError("In general.ini log_to_file is True, but log_file is an empty string. "
@@ -393,7 +383,8 @@ class NonLinearSearch(ABC):
         parameter_names = model.model_component_and_parameter_names
         parameter_labels = model.parameter_labels
         subscripts = model.subscripts
-        parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in zip(parameter_labels, subscripts)]
+        parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in
+                                           zip(parameter_labels, subscripts)]
 
         parameter_name_and_label = []
 
@@ -535,8 +526,6 @@ class Result:
         ----------
         previous_model
             The model mapper from the stage that produced this result
-        prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         """
 
         self.samples = samples
@@ -722,9 +711,9 @@ class PriorPasser:
     @classmethod
     def from_config(cls, config):
         """Load the PriorPasser from a non_linear config file."""
-        sigma = config("prior_passer", "sigma", float)
-        use_errors = config("prior_passer", "use_errors", bool)
-        use_widths = config("prior_passer", "use_widths", bool)
+        sigma = config("prior_passer", "sigma")
+        use_errors = config("prior_passer", "use_errors")
+        use_widths = config("prior_passer", "use_widths")
         return PriorPasser(sigma=sigma, use_errors=use_errors, use_widths=use_widths)
 
 
@@ -737,4 +726,4 @@ def f(x):
     global idx
     process = mp.current_process()
     sleep(1)
-    return (idx, process.pid, x * x)
+    return idx, process.pid, x * x

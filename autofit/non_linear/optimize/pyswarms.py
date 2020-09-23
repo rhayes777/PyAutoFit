@@ -93,24 +93,24 @@ class AbstractPySwarms(AbstractOptimizer):
         """
 
         self.n_particles = (
-            self._config("search", "n_particles", int)
+            self._config("search", "n_particles")
             if n_particles is None
             else n_particles
         )
-        self.iters = self._config("search", "iters", int) if iters is None else iters
+        self.iters = self._config("search", "iters") if iters is None else iters
 
         self.cognitive = (
-            self._config("search", "cognitive", float)
+            self._config("search", "cognitive")
             if cognitive is None
             else cognitive
         )
         self.social = (
-            self._config("search", "social", float) if social is None else social
+            self._config("search", "social") if social is None else social
         )
         self.inertia = (
-            self._config("search", "inertia", float) if inertia is None else inertia
+            self._config("search", "inertia") if inertia is None else inertia
         )
-        self.ftol = self._config("search", "ftol", float) if ftol is None else ftol
+        self.ftol = self._config("search", "ftol") if ftol is None else ftol
 
         super().__init__(
             paths=paths,
@@ -120,7 +120,7 @@ class AbstractPySwarms(AbstractOptimizer):
         )
 
         self.number_of_cores = (
-            self._config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores")
             if number_of_cores is None
             else number_of_cores
         )
@@ -261,7 +261,7 @@ class AbstractPySwarms(AbstractOptimizer):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self._config("tag", "name", str)
+        name_tag = self._config("tag", "name")
         n_particles_tag = f"{self._config('tag', 'n_particles')}_{self.n_particles}"
         cognitive_tag = f"{self._config('tag', 'cognitive')}_{self.cognitive}"
         social_tag = f"{self._config('tag', 'social')}_{self.social}"
@@ -561,13 +561,13 @@ class PySwarmsLocal(AbstractPySwarms):
         """
 
         self.number_of_k_neighbors = (
-            self._config("search", "number_of_k_neighbors", int)
+            self._config("search", "number_of_k_neighbors")
             if number_of_k_neighbors is None
             else number_of_k_neighbors
         )
 
         self.minkowski_p_norm = (
-            self._config("search", "minkowski_p_norm", int)
+            self._config("search", "minkowski_p_norm")
             if minkowski_p_norm is None
             else minkowski_p_norm
         )
