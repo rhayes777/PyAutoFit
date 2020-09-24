@@ -56,7 +56,7 @@ class MaskedDataset:
         ----------
         dataset: im.Dataset
             The dataset (the image, noise-map, etc.)
-        mask: msk.Mask
+        mask: msk.Mask2D
             The 1D mask that is applied to the dataset.
         """
 

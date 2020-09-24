@@ -9,8 +9,8 @@ example is somewhat trivial (we could achieve almost the same effect with maskin
 `Phase` customization.
 
 When we customize a `Phase`, we'll use `SettingsPhase` to perform `tagging`. Here, we `tag` the output
-path of the `Phase``s `Result``., such that every time a `Phase` is run with a different customization a new set of
-unique `Result``s are stored for those `PhaseSetting``.. For a given `Dataset` we are thus able to fit it multiple
+path of the `Phase`'s `Result``., such that every time a `Phase` is run with a different customization a new set of
+unique `Result`'s are stored for those `PhaseSetting``.. For a given `Dataset` we are thus able to fit it multiple
 times using different settings to compare the results.
 
 These new features have led to an additional module in the `phase` package called `settings.py`, as well as extensions
@@ -54,7 +54,7 @@ customize how a `MaskedDataset` is created. This has two inputs, `data_trim_left
 
 - `data_trim_left`:
 
-  The `Dataset``s `image` and `noise_map` are trimmed and removed from the left (e.g. 1d index values from 0).
+  The `Dataset`'s `image` and `noise_map` are trimmed and removed from the left (e.g. 1d index values from 0).
   
   For example, if the `Dataset` has shape (100,) and we set `data_trim_left=10`, the `MaskedDataset` that is fitted 
   will have shape (90,). The `mask` is trimmed in the same way.
@@ -159,8 +159,8 @@ By customizing the `PhaseSetting``., **PyAutoFit** has changed the output path u
 
  1) Tags describes the analysis, making it explicit what was done to the `Dataset` for the fit.
 
- 2) Tags create a unique output path, allowing you to compare results of `Phase``s that use different `SettingsPhase`. 
-    Equally if you run multiple phases with different `PhaseSetting``s this ensures the `NonLinearSearch` won`t
+ 2) Tags create a unique output path, allowing you to compare results of `Phase`'s that use different `SettingsPhase`. 
+    Equally if you run multiple phases with different `PhaseSetting`'s this ensures the `NonLinearSearch` won`t
     use results generated via a different analysis method.
 
 You should now check out the `settings.py` and `dataset.py` modules, to see how we implemented this.
@@ -174,7 +174,7 @@ However, through experience we have found this design creates a much better API 
 which will be seen in the next tutorial. Thus, we recommend you adopt the same settings API for your project!
 
 
-In this tutorial, the `PhaseSetting``s changed the `MaskedDataset` that was fitted. However, `PhaseSetting``s do not 
+In this tutorial, the `PhaseSetting`'s changed the `MaskedDataset` that was fitted. However, `PhaseSetting`'s do not 
 necessarily need to customize the `Dataset`. For example, they could control some aspect of the model, for example the 
 precision with which an aspect of the model is numerically calculated. For more complex fitting procedures, they may 
 control whether certain features are used, which when turned on / off reduce the accuracy of the model at the expense 
@@ -183,6 +183,6 @@ of greater computational run-time.
 _PhaseSetting_s are project specific and it could well be your modeling problem is simple enough not to need them.
 However, if it does, remember that `PhaseSetting`. are a powerful means to fit models in different ways and compare 
 whether this changes the model inferred. In later chapters, we'll discuss more complex model-fitting procedures that 
-use `fast` less accurate `PhaseSetting``s to initialize the model-fit, but switch to slower more accurate 
+use `fast` less accurate `PhaseSetting`'s to initialize the model-fit, but switch to slower more accurate 
 _PhaseSetting_`s later on.
 """

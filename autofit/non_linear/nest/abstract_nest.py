@@ -84,6 +84,7 @@ class AbstractNest(NonLinearSearch):
             stagger_resampling_likelihood,
             terminate_at_acceptance_ratio,
             acceptance_ratio_threshold,
+            pool_ids=None
         ):
 
             super().__init__(
@@ -91,6 +92,7 @@ class AbstractNest(NonLinearSearch):
                 analysis=analysis,
                 model=model,
                 samples_from_model=samples_from_model,
+                pool_ids=pool_ids
             )
 
             self.stagger_resampling_likelihood = stagger_resampling_likelihood
@@ -193,7 +195,7 @@ class AbstractNest(NonLinearSearch):
         copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
         return copy
 
-    def fitness_function_from_model_and_analysis(self, model, analysis):
+    def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
 
         return self.__class__.Fitness(
             paths=self.paths,
@@ -203,6 +205,7 @@ class AbstractNest(NonLinearSearch):
             stagger_resampling_likelihood=self.stagger_resampling_likelihood,
             terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=self.acceptance_ratio_threshold,
+            pool_ids=pool_ids
         )
 
     def samples_via_csv_json_from_model(self, model):

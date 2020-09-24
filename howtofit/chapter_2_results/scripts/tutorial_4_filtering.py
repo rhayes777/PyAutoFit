@@ -7,7 +7,7 @@ In the previous tutorials, the `Aggregator` has always loaded all of the results
 
 However, suppose we had the results of other fits in the output folder and we *only* wanted fits which used
 a certain phase. Or, imagine we want the results of a fit to 1 specific data. In this tutorial, we'll learn how to use
-the `Aggregator``s `filter` tool, which filters the results and provides us with only the results we want.
+the `Aggregator`'s `filter` tool, which filters the results and provides us with only the results we want.
 """
 
 # %%
@@ -65,7 +65,7 @@ print("Total Samples Objects = ", len(list(agg.values("samples"))), "\n")
 # %%
 """
 To remove the fits of previous tutorials and just keep the `MCMCSamples` of the 3 `Dataset`s fitted in this tutorial 
-we can use the `Aggregator``s `filter` tool. Below, we use the `phase_name` of the results, `phase_t2` which is 
+we can use the `Aggregator`'s `filter` tool. Below, we use the `phase_name` of the results, `phase_t2` which is 
 unique to all 3  fits, to filter our results as desired.
 """
 

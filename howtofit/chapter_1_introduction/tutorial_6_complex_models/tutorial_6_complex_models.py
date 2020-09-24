@@ -128,7 +128,7 @@ print("sigma (Exponential) = ", instance.rich.rate)
 Now we can create a model composed of multiple components, lets fit it to a `Dataset`. To do this, we updated this 
 tutorial`s `phase` package, spefically its `Analysis` class such that it creates `model_data` as a super position of 
 all the model`s individual `Profile``.. For example, in the model above, the `model_data` is the sum of the 
-_Gaussian_`s  individual profile and `Exponential``s individual profile.
+_Gaussian_`s  individual profile and `Exponential`'s individual profile.
 
 Checkout `phase.py` and `analysis.py` now, for a description of how this has been implemented.
 """
@@ -158,7 +158,7 @@ mask = np.full(fill_value=False, shape=dataset.data.shape)
 # %%
 """
 Lets now perform the fit using our model which is composed of two _Profile`_s. You`ll note that the _Emcee_
-dimensionality has increased from N=3 to N=6, given that we are now fitting two `Profile``s each with 3 free parameters.
+dimensionality has increased from N=3 to N=6, given that we are now fitting two `Profile`'s each with 3 free parameters.
 """
 
 # %%
@@ -182,7 +182,7 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
-Quickly inspect the `Result``s of the fit, which you may have noticed takes a bit longer to run than the fits performed
+Quickly inspect the `Result`'s of the fit, which you may have noticed takes a bit longer to run than the fits performed
 in previous tutorials. This is because the dimensionality of the model we are fitted increased from 3 to 6.
 
 With the `CollectionPriorModel`, **PyAutoFit** provides all the tools needed to compose and fit any model imaginable!
@@ -236,7 +236,7 @@ model = af.CollectionPriorModel(
 
 # %%
 """
-This aligns the `centre``s of the 3 `Gaussian`., reducing the dimensionality of the model from N=9 to N=7
+This aligns the `centre`'s of the 3 `Gaussian`., reducing the dimensionality of the model from N=9 to N=7
 """
 
 # %%

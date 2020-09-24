@@ -32,7 +32,7 @@ API Reference
    DownhillSimplex
    PySwarmsGlobal
 
-**GridSearch**:
+*`GridSearch`*:
 
 .. autosummary::
    :toctree: generated/

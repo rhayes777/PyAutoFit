@@ -6,8 +6,8 @@ Tutorial 3: Aggregator
 In the previous tutorial, we fitted 3 `Datasets` with an identical `Phase`, outputting the results of each to a unique
 folder on our hard disk.
 
-However, lets use the `Aggregator` to load the `Result``s and manipulate / plot them using our Jupyter notebook. The API
-for using `Result``s follow closely tutorial 1 of this chapter.
+However, lets use the `Aggregator` to load the `Result`'s and manipulate / plot them using our Jupyter notebook. The API
+for using `Result`'s follow closely tutorial 1 of this chapter.
 """
 
 # %%
@@ -120,7 +120,7 @@ for samples in agg.values("samples"):
 
 # %%
 """
-We can use the `Sample``s to create a list of the `max_log_likelihood_vector` of each fit to our three images.
+We can use the `Sample`'s to create a list of the `max_log_likelihood_vector` of each fit to our three images.
 """
 
 # %%
