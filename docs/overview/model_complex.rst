@@ -3,17 +3,17 @@
 Model Composition & Customization
 ---------------------------------
 
-Lets extend our example of fitting a 1D Gaussian profile to noisy data, to a problem where the data contains signals
-from multiple profiles. Specifically, it contains signals from a 1D ``Gaussian`` and 1D symmetric *Exponential* profile.
+Lets extend our example of fitting a 1D ``Gaussian`` profile to noisy data, to a problem where the data contains signals
+from multiple profiles. Specifically, it contains signals from a 1D ``Gaussian`` and 1D symmetric ``Exponential`` profile.
 
-Example data (blue), including the model-fit we'll perform (orange) and individual ``Gaussian`` (red dashed) and
-*Exponential* (green dashed) components are shown below:
+Example ``data`` (blue), including the model-fit we'll perform (orange) and individual ``Gaussian`` (red dashed) and
+``Exponential`` (green dashed) components are shown below:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit_x2.png
   :width: 600
   :alt: Alternative text
 
-we again define our 1D Gaussian line profile as a *model component* in **PyAutoFit**:
+we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFit**:
 
 .. code-block:: bash
 
@@ -38,7 +38,7 @@ we again define our 1D Gaussian line profile as a *model component* in **PyAutoF
                 np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
             )
 
-Now lets define a new *model component*, a 1D *Exponential*, using the same Python class format:
+Now lets define a new *model component*, a 1D ``Exponential``, using the same Python class format:
 
 .. code-block:: bash
 
@@ -62,21 +62,21 @@ Now lets define a new *model component*, a 1D *Exponential*, using the same Pyth
                 self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
             )
 
-Before looking at the *Analysis* class, lets look at how we *compose* the *model* that we fit the data with.
+Before looking at the ``Analysis`` class, lets look at how we *compose* the *model* that we fit the ``data`` with.
 
-Because we now fit multiple *model compoentns*, we do not use the *PriorModel* object used in the previous example,
-but instead uses the *CollectionPriorModel object:
+Because we now fit multiple *model compoentns*, we do not use the ``PriorModel`` object used in the previous example,
+but instead uses the ``CollectionPriorModel`` object:
 
 .. code-block:: bash
 
     model = af.CollectionPriorModel(gaussian=m.Gaussian, exponential=m.Exponential)
 
-The *CollectionPriorModel* allows us to *compose* models using multiple classes, in the example above using both the
-``Gaussian`` and *Exponential* classes. The model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
-*Exponential*), thus the dimensionality of non-linear parameter space is 6.
+The ``CollectionPriorModel`` allows us to *compose* models using multiple classes, in the example above using both the
+``Gaussian`` and ``Exponential`` classes. The model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
+``Exponential``), thus the dimensionality of non-linear parameter space is 6.
 
-The *model components* given to the *CollectionPriorModel* are also given names, in this case, 'gaussian' and
-'exponential'. You can choose whatever name you want and the names are used by the *instance* passed to the *Analysis*
+The *model components* given to the ``CollectionPriorModel`` are also given names, in this case, 'gaussian' and
+'exponential'. You can choose whatever name you want and the names are used by the ``instance`` passed to the ``Analysis``
 class:
 
 .. code-block:: bash
@@ -105,16 +105,16 @@ class:
             print("Intensity = ", instance.exponential.intensity)
             print("Rate = ", instance.exponential.rate)
 
-            # Get the range of x-values the data is defined on, to evaluate the model of the line profiles.
+            # Get the range of x-values the ``data`` is defined on, to evaluate the model of the line profiles.
 
             xvalues = np.arange(self.data.shape[0])
 
-            # The *instance* variable is a list of our model components. We can iterate over this list, calling their
+            # The ``instance`` variable is a list of our model components. We can iterate over this list, calling their
             # profile_from_xvalues and summing the result to compute the summed line profile of our model.
 
             model_data = sum([line.profile_from_xvalues(xvalues=xvalues) for line in instance])
 
-            # Fit the model line profile data to the observed data, computing the residuals and chi-squareds.
+            # Fit the model line profile ``data`` to the observed data, computing the residuals and chi-squareds.
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -123,8 +123,8 @@ class:
             return log_likelihood
 
 Performing the *model-fit* uses the same steps as the previous example, whereby we  *compose* our *model* (now using a
-*CollectionPriorModel*), instantiate the *Analysis* and pass them a ``NonLinearSearch``. In this example, we'll use
-the nested sampling algorithm *Dynesty*
+``CollectionPriorModel``), instantiate the ``Analysis`` and pass them a ``NonLinearSearch``. In this example, we'll use
+the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
 .. code-block:: bash
 
@@ -132,19 +132,19 @@ the nested sampling algorithm *Dynesty*
 
     analysis = a.Analysis(data=data, noise_map=noise_map)
 
-    dynesty = af.Dynesty()
+    dynesty = af.DynestyStatic()
 
     result = dynesty.fit(model=model, analysis=analysis)
 
 Now, lets consider how we *customize* the models that we *compose*. To begin, lets *compose* a model using a single
-``Gaussian`` with the *PriorModel* object:
+``Gaussian`` with the ``PriorModel`` object:
 
 .. code-block:: bash
 
     model = af.PriorModel(m.Gaussian)
 
-By default, the priors on the ``Gaussian``'s parameters ae loaded from configuration files. If you have downloaded the
-*autofit_workspace* you can find these files at the path *autofit_workspace/config/json_priors*. Alternatively,
+By default, the priors on the ``Gaussian``'s parameters are loaded from configuration files. If you have downloaded the
+``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/json_priors``. Alternatively,
 you can check them out at this `link <https://github.com/Jammy2211/autofit_workspace/tree/master/config>`_.
 
 Priors can be manually specified as follows:
@@ -155,9 +155,9 @@ Priors can be manually specified as follows:
     model.intensity = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
     model.sigma = af.GaussianPrior(mean=10.0, sigma=5.0, lower_limit=0.0, upper_limit=np.inf)
 
-These priors will be used by the ``NonLinearSearch`` to determine how it samples parameter space. The lower and upper
-limits on the *GaussianPrior* set the physical limits of values of the parameter, specifying that the ``sigma`` value of
-the ``Gaussian`` cannot be negative.
+These priors will be used by the ``NonLinearSearch`` to determine how it samples parameter space. The ``lower_limit``
+and ``upper_limit`` on the ``GaussianPrior`` set the physical limits of values of the parameter, specifying that the
+``sigma`` value of the ``Gaussian`` cannot be negative.
 
 We can fit this model, with all new priors, using a ``NonLinearSearch`` as we did before:
 
@@ -171,7 +171,7 @@ We can fit this model, with all new priors, using a ``NonLinearSearch`` as we di
 
     result = emcee.fit(model=model, analysis=analysis)
 
-We can *compose* and *customize* a *CollectionPriorModel* as follows:
+We can *compose* and *customize* a ``CollectionPriorModel`` as follows:
 
 .. code-block:: bash
 
@@ -190,8 +190,8 @@ The model can be *customized* to fix any *parameter* of the model to an input va
 
     model.gaussian.sigma = 0.5
 
-This fixes the ``Gaussian``'s ``sigma`` value to 0.5, reducing the number of free parameters and therefore dimensionality
-of *non-linear parameter space* by 1.
+This fixes the ``Gaussian``'s ``sigma`` value to 0.5, reducing the number of free parameters and therefore
+dimensionality of *non-linear parameter space* by 1.
 
 We can also link two parameters, such that they always share the same value:
 
@@ -199,16 +199,21 @@ We can also link two parameters, such that they always share the same value:
 
     model.gaussian.centre = model.exponential.centre
 
-In this model, the ``Gaussian`` and *Exponential* will always be centrally aligned. Again, this reduces the number of
-free *parameters* by 1.
+In this model, the ``Gaussian`` and ``Exponential`` will always be centrally aligned. Again, this reduces
+the number of free *parameters* by 1.
 
-Finally, assertions can be made on parameters that remove values that do not meet those assertions from *non-linear
-parameter space*:
+Finally, assertions can be made on parameters that remove values that do not meet those assertions
+from *non-linear parameter space*:
 
 .. code-block:: bash
 
     model.add_assertion(model.gaussian.sigma > 5.0)
     model.add_assertion(model.gaussian.intensity > model.exponential.intensity)
 
-Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``intensity`` is greater than that of the
-*Exponential*.
+Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``intensity`` is greater
+than that of the ``Exponential``.
+
+If you'd like to perform the fit shown in this script, checkout the
+`complex examples <https://github.com/Jammy2211/autofit_workspace/tree/master/examples/complex>`_ on the
+``autofit_workspace``. We provide more details **PyAutoFit** works in the tutorials 5 and 6 of
+the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_

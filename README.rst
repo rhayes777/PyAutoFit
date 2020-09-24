@@ -33,7 +33,7 @@ configuration files, example scripts and more!
    git clone https://github.com/Jammy2211/autofit_workspace --depth 1
    cd autofit_workspace
 
-Finally, run *welcome.py* in the *autofit_workspace* to get started!
+Finally, run *welcome.py* in the ``autofit_workspace`` to get started!
 
 .. code-block:: bash
 
@@ -51,7 +51,7 @@ API Overview
 ------------
 
 To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
-noisy 1D data. Here's an example of the data (blue) and the model we'll fit (orange):
+noisy 1D data. Here's an example of the ``data`` (blue) and the model we'll fit (orange):
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/toy_model_fit.png
   :width: 400
@@ -76,7 +76,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
     """
     An instance of the Gaussian class will be available during model fitting.
 
-    This method will be used to fit the model to data and compute a likelihood.
+    This method will be used to fit the model to ``data`` and compute a likelihood.
     """
 
     def profile_from_xvalues(self, xvalues):
@@ -89,8 +89,8 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
 a non-linear search like `emcee <https://github.com/dfm/emcee>`_.
 
-To fit this Gaussian to the data we create an Analysis object, which gives **PyAutoFit** the data and a likelihood
-function describing how to fit the data with the model:
+To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a likelihood
+function describing how to fit the ``data`` with the model:
 
 .. code-block:: python
 
@@ -114,7 +114,7 @@ function describing how to fit the data with the model:
             print("Sigma = ", instance.sigma)
 
             """
-            We fit the data with the Gaussian instance, using its
+            We fit the ``data`` with the Gaussian instance, using its
             "profile_from_xvalues" function to create the model data.
             """
 
@@ -127,7 +127,7 @@ function describing how to fit the data with the model:
 
             return log_likelihood
 
-We can now fit data to the model using a non-linear search of our choice.
+We can now fit ``data`` to the model using a non-linear search of our choice.
 
 .. code-block:: python
 

@@ -61,7 +61,7 @@ noise_maps = [gaussian_x1_0.noise_map, gaussian_x1_1.noise_map, gaussian_x1_2.no
 """
 We can also attach information to the model-fit, by setting up an info dictionary. 
 
-Information about our model-fit (e.g. the data of observation) that isn`t part of the model-fit is made accessible to 
+Information about our model-fit (e.g. the data of observation) that isn't part of the model-fit is made accessible to 
 the `Aggregator`. For example, below we write info on the `Dataset`'s data of observation and exposure time.
 """
 

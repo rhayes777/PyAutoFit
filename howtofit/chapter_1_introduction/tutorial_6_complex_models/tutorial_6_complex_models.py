@@ -3,7 +3,7 @@
 Tutorial 6: Complex Models
 ==========================
 
-Up to now, we`ve fitted a very simple model, a 1D `Gaussian` with 3 free parameters. In this tutorial, we'll look at
+Up to now, we've fitted a very simple model, a 1D `Gaussian` with 3 free parameters. In this tutorial, we'll look at
 how **PyAutoFit** allows us to compose and fit models of arbitrary complexity.
 
 To begin, you should check out the module `tutorial_6_complex_models/model/profiles.py`. In previous tutorials this
@@ -127,7 +127,7 @@ print("sigma (Exponential) = ", instance.rich.rate)
 """
 Now we can create a model composed of multiple components, lets fit it to a `Dataset`. To do this, we updated this 
 tutorial`s `phase` package, spefically its `Analysis` class such that it creates `model_data` as a super position of 
-all the model`s individual `Profile``.. For example, in the model above, the `model_data` is the sum of the 
+all the model`s individual `Profile`'s. For example, in the model above, the `model_data` is the sum of the 
 _Gaussian_`s  individual profile and `Exponential`'s individual profile.
 
 Checkout `phase.py` and `analysis.py` now, for a description of how this has been implemented.
@@ -287,5 +287,5 @@ In this tutorial, all components of our model did the same thing, represent a 1D
 have model components that represent different parts of your model, which need to be combined in more complicated ways
 in order to create your model-fit. In such circumstances, the `fit` method in your `Analysis` class may be 
 significantly more complex than the example shown in this tutorial. Nevertheless, you now have all the tools you need 
-to define, compose and fit very complex models, there isn`t much left for you to learn on your journey through **PyAutoFit**!
+to define, compose and fit very complex models, there isn't much left for you to learn on your journey through **PyAutoFit**!
 """

@@ -151,7 +151,7 @@ print(max_log_posterior_vector, "\n")
 
 # %%
 """
-This provides us with lists of all model parameters. However, this isn`t that much use - which values correspond to 
+This provides us with lists of all model parameters. However, this isn't that much use - which values correspond to 
 which parameters?
 
 The list of parameter names are available as a property of the `Samples`, as are labels which can be used for 

@@ -34,7 +34,7 @@ to the ``output`` folder where the results of a ``NonLinearSearch`` are stored i
         config_path=f"{workspace_path}/config", output_path=f"{workspace_path}/output"
     )
 
-This manual setting of the config files is used in every example script in the autofit ``WORKSPACE`` *example* folder,
+This manual setting of the config files is used in every example script in the autofit_workspace`` *example* folder,
 alongsie the **HowToFit** lectures. If the ``WORKSPACE`` environment variable does not seem to set the config path
 correct we recommend you try manually setting the config files as shown above.
 
@@ -163,7 +163,7 @@ json_priors
 These config files are found at ``autofit_workspace/config/json_priors`` and they contain the default priors and related
 variables for every model-component in a project, using ``.json`` format files (as opposed to ``.ini`` for most config files).
 
-The autofit ``WORKSPACE`` contains example ``json_prior`` files for the 1D data fitting problem. An example entry of the
+The autofit_workspace`` contains example ``json_prior`` files for the 1D ``data`` fitting problem. An example entry of the
 json configs for the ``sigma`` parameter of the ``Gaussian`` class is as follows:
 
 .. code-block:: bash
@@ -205,7 +205,7 @@ notation
 
 The notation configs define the labels of every model-component parameter and its derived quantities, which are
 used when visualizing results (for example labeling the axis of the PDF triangle plots output by a ``NonLinearSearch``).
-Two examples using the 1D data fitting example for the config file **label.ini** are:
+Two examples using the 1D ``data`` fitting example for the config file **label.ini** are:
 
 [label]
     centre -> str

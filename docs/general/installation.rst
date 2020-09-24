@@ -10,11 +10,11 @@ This guide installs **PyAutoFit** with the following dependencies:
 
 **PyAutoConf** https://github.com/rhayes777/PyAutoConf
 
-**Dynesty** https://github.com/joshspeagle/dynesty
+*``dynesty``* https://github.com/joshspeagle/dynesty
 
-**emcee** https://github.com/dfm/emcee
+*``emcee``* https://github.com/dfm/emcee
 
-**PySwarms** https://github.com/ljvmiranda921/pyswarms
+*``PySwarms``* https://github.com/ljvmiranda921/pyswarms
 
 **astropy** https://www.astropy.org/
 
@@ -35,7 +35,7 @@ The simplest way to install **PyAutoFit** is via `pip`:
 
     pip install autofit
 
-Clone autofit ``WORKSPACE`` & set ``WORKSPACE`` environment model (``--depth 1`` clones only the most recent branch on the
+Clone autofit_workspace`` & set ``WORKSPACE`` environment model (``--depth 1`` clones only the most recent branch on the
 autofit_workspace, reducing the download size):
 
 .. code-block:: bash
@@ -122,7 +122,7 @@ Therefore, if you fork or clone the **PyAutoFit** repository, you must also clon
    git clone https://github.com/Jammy2211/autofit_workspace --depth 1
    cd autofit_workspace
 
-Once your fork of **PyAutoFit** is setup, I recommend you run the ``welcome.py`` script in the *autofit_workspace*
+Once your fork of **PyAutoFit** is setup, I recommend you run the ``welcome.py`` script in the ``autofit_workspace``
 for an introduction to **PyAutoFit**.
 
 .. code-block:: bash

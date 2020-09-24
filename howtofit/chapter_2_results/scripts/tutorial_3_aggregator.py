@@ -86,7 +86,7 @@ print("Total Samples Objects = ", len(list(samples_gen)), "\n")
 
 # %%
 """
-We`ve encountered the `Samples` class in previous tutorials. As we saw in tutorial 1, the `Samples` class contains all 
+We've encountered the `Samples` class in previous tutorials. As we saw in tutorial 1, the `Samples` class contains all 
 the accepted parameter samples of the `NonLinearSearch`, which is a list of lists where:
 
  - The outer list is the size of the total number of samples.
@@ -130,7 +130,7 @@ print(vector, "\n")
 
 # %%
 """
-As discussed in tutorial 1, using vectors isn`t too much use, as we can`t be sure which values correspond to which 
+As discussed in tutorial 1, using vectors isn't too much use, as we can`t be sure which values correspond to which 
 parameters.
 
 We can use the `Aggregator` to create the `max_log_likelihood_instance` of every fit.
