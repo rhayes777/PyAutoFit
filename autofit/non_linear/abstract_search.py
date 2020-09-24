@@ -219,11 +219,6 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if self.force_pickle_overwrite:
-            filelist = [f for f in os.listdir(self.paths.pickle_path) if f.endswith(".pickle")]
-            for f in filelist:
-                os.remove(os.path.join(self.paths.pickle_path, f))
-
         if (not os.path.exists(self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
@@ -416,28 +411,40 @@ class NonLinearSearch(ABC):
         """
         Save the dataset associated with the phase
         """
-        with open("{}/info.pickle".format(self.paths.pickle_path), "wb") as f:
+        file_path = "{}/info.pickle".format(self.paths.pickle_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "wb") as f:
             pickle.dump(info, f)
 
     def save_search(self):
         """
         Save the seawrch associated with the phase as a pickle
         """
-        with open(self.paths.make_search_pickle_path(), "w+b") as f:
+        file_path = self.paths.make_search_pickle_path()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "w+b") as f:
             f.write(pickle.dumps(self))
 
     def save_model(self, model):
         """
         Save the model associated with the phase as a pickle
         """
-        with open(self.paths.make_model_pickle_path(), "w+b") as f:
+        file_path = self.paths.make_model_pickle_path()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "w+b") as f:
             f.write(pickle.dumps(model))
 
     def save_samples(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        with open(self.paths.make_samples_pickle_path(), "w+b") as f:
+        file_path = self.paths.make_samples_pickle_path()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "w+b") as f:
             f.write(pickle.dumps(samples))
 
     def save_metadata(self):
@@ -445,7 +452,10 @@ class NonLinearSearch(ABC):
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open("{}/metadata".format(self.paths.make_path()), "a") as f:
+        file_path = "{}/metadata".format(self.paths.make_path())
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "a") as f:
             f.write(self.make_metadata_text())
 
     def move_pickle_files(self, pickle_files):
