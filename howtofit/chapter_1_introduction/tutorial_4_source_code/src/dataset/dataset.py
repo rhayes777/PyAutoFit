@@ -13,7 +13,7 @@ In these tutorials we are calling our `Dataset` class `Dataset`, as opposed to s
 (e.g. `Line`). We advise that the `Dataset` class is give a more specific name (e.g., if your `Dataset` is imaging data,
 the class may be called `Imaging`. If your `Dataset` is a spectrum, you may use `Spectrum`).
 
-However, to make the tutorials clear, we`ve stuck with the name `Dataset` for clarity. The example project at the
+However, to make the tutorials clear, we've stuck with the name `Dataset` for clarity. The example project at the
 end of the chapter will adopt a more specific `Dataset` naming convention.
 """
 

@@ -3,7 +3,7 @@
 Tutorial 5: Data and Models
 ===========================
 
-Up to now, we`ve used used the `Aggregator` to load and inspect the `Samples` of 3 model-fits.
+Up to now, we've used used the `Aggregator` to load and inspect the `Samples` of 3 model-fits.
 
 In this tutorial, we'll look at how the way we designed our source code makes it easy to use the `Aggregator` to
 inspect, interpret and plot the results of the model-fit, including refitting the best models to our data.
@@ -35,7 +35,7 @@ conf.instance = conf.Config(
 # %%
 """
 To load these results with the `Aggregator`, we again point it to the path of the results we want it to inspect, with
-our path straight to the `Aggregator` results ensuring we don`t need to filter our `Aggregator` in this tutorial.
+our path straight to the `Aggregator` results ensuring we don't need to filter our `Aggregator` in this tutorial.
 """
 
 # %%
@@ -243,7 +243,7 @@ Setting up the above objects (the `masked_dataset`s, `model data`s, `fit`s) was 
 lines of code, but for something our users will want to do many times it`d be nice to have a short cut to setting them 
 up, right?
 
-In the source code module `aggregator.py` we`ve set up exactly such a short-cut. This module simply contains the 
+In the source code module `aggregator.py` we've set up exactly such a short-cut. This module simply contains the 
 generator functions above such that the generator can be created by passing the `Aggregator`. This provides us with 
 convenience methods for quickly creating the `MaskedDataset`, `model_data` and `Fit`'s using a single line of code:
 """

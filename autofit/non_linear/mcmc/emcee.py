@@ -288,7 +288,7 @@ class Emcee(AbstractMCMC):
         )
 
     def samples_via_sampler_from_model(self, model):
-        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Emcee, all quantities are extracted via the hdf5 backend of results.
 

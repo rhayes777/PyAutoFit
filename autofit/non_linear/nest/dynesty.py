@@ -405,7 +405,7 @@ class AbstractDynesty(AbstractNest):
         return NotImplementedError()
 
     def samples_via_sampler_from_model(self, model):
-        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Dynesty, all information that we need is available from the instance of the dynesty sampler.
 
@@ -1108,7 +1108,7 @@ class DynestyDynamic(AbstractDynesty):
         return samples
 
     def samples_via_sampler_from_model(self, model, sampler):
-        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Dynesty, all information that we need is available from the instance of the dynesty sampler.
 

@@ -326,7 +326,7 @@ class MultiNest(abstract_nest.AbstractNest):
         return copy
 
     def samples_via_sampler_from_model(self, model: AbstractPriorModel):
-        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
 

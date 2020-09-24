@@ -8,7 +8,7 @@ Okay, so its finally time to take our model and fit it to data, hurrah!
 So, how do we infer the parameters for the 1D `Gaussian` that give a good fit to our data?  In the last tutorial, we
 tried a very basic approach, randomly guessing models until we found one that gave a good fit and high log_likelihood.
 
-We discussed that this wasn`t really a viable strategy for more complex models, and it isn`t. However, this is the
+We discussed that this wasn`t really a viable strategy for more complex models, and it isn't. However, this is the
 basis of how model fitting actually works! Basically, our model-fitting algorithm guesses lots of models, tracking
 the log likelihood of these models. As the algorithm progresses, it begins to guess more models using parameter
 combinations that gave higher log_likelihood solutions previously. If a set of parameters provided a good fit to the
@@ -137,7 +137,7 @@ class Gaussian:
 
 # %%
 """
-The `NonLinearSearch` requires an *Analysis* class, which:
+The `NonLinearSearch` requires an `Analysis` class, which:
 
  - Receives the data to be fitted and prepares it so the model can fit it.
  
@@ -146,7 +146,7 @@ The `NonLinearSearch` requires an *Analysis* class, which:
  - Passes this log likelihood to the `NonLinearSearch` so that it can determine parameter values for the the next model 
  that it samples.
 
-For our 1D `Gaussian` model-fitting example, here is our *Analysis* class:
+For our 1D `Gaussian` model-fitting example, here is our `Analysis` class:
 """
 
 # %%

@@ -3,7 +3,7 @@ from howtofit.chapter_2_results.src.fit import fit as f
 
 from functools import partial
 
-# This module contains convenience methods for computing standard objects from an *Aggregator* as generators.
+# This module contains convenience methods for computing standard objects from an `Aggregator` as generators.
 
 # You should read this class in detail once you come to th end of part of tutorial 8, as the functions are written in a
 # specific way such that they can be used as generators will become clear once the tutorial is completed.
@@ -31,8 +31,8 @@ def masked_dataset_generator_from_aggregator(aggregator, settings_masked_dataset
 
 def masked_dataset_from_agg_obj(agg_obj, settings_masked_dataset=None):
     """Compute a *MaskedDataset* object from an aggregator`s *PhaseOutput* class, which we call an `agg_obj` to describe 
-     that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator`s generator 
-     outputs such that the function can use the *Aggregator*`s map function to to create a *MaskedDataset* generator.
+     that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator`s generator
+     outputs such that the function can use the `Aggregator``s map function to to create a *MaskedDataset* generator.
 
      The *MaskedDataset* is created following the same method as the *Phase* classes, including using the
      *meta_dataset* instance output by the phase to load inputs of the *MaskedDataset* (e.g. data_trim_left). 
@@ -77,10 +77,10 @@ def model_data_generator_from_aggregator(aggregator, settings_masked_dataset=Non
 
 def model_data_from_agg_obj(agg_obj, settings_masked_dataset=None):
     """Compute model data as a 1D ndarray from an aggregator`s *PhaseOutput* class, which we call an `agg_obj` to 
-    describe that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator`s 
-    generator outputs such that the function can use the *Aggregator*`s map function to to create a model-data generator.
+    describe that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator`s
+    generator outputs such that the function can use the `Aggregator``s map function to to create a model-data generator.
 
-     The model-data is created following the same method as the *Analysis* classes using an instance of the maximum 
+     The model-data is created following the same method as the `Analysis` classes using an instance of the maximum
      log likelihood model`s profiles.
 
     Parameters
@@ -119,8 +119,8 @@ def fit_generator_from_aggregator(aggregator, settings_masked_dataset=None):
 
 def fit_from_agg_obj(agg_obj, settings_masked_dataset=None):
     """Compute a *Fit* object from an aggregator`s *PhaseOutput* class, which we call an `agg_obj` to describe  that it
-    acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator`s generator outputs such
-    that the function can use the *Aggregator*`s map function to to create a *Fit* generator.
+    acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator`s generator outputs such
+    that the function can use the `Aggregator``s map function to to create a *Fit* generator.
 
      The *Fit* is created following the same method as the PyAutoGalaxy *Phase* classes. 
 

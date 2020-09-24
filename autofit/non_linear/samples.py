@@ -43,7 +43,7 @@ class OptimizerSamples:
         weights: List[float],
         time: float = None,
     ):
-        """The *Samples* of a non-linear search, specifically the samples of an search which only provides
+        """The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
 
@@ -148,7 +148,7 @@ class OptimizerSamples:
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
+        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
          - The mean is given by maximum log likelihood model values.
@@ -185,7 +185,7 @@ class PDFSamples(OptimizerSamples):
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
-        """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
+        """The `Samples` of a non-linear search, specifically the samples of a non-linear search which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
         Parameters
@@ -516,7 +516,7 @@ class PDFSamples(OptimizerSamples):
         )
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
+        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
          - The mean is given by their most-probable values (using *median_pdf_vector*).

@@ -103,8 +103,8 @@ class Gaussian:
 
 # %%
 """
-We`ve extended the `Gaussian` class to have a method `profile_from_xvalues`. Given an input set of x coordinates
-this computes the intensity of the `Gaussian` at every point. We`ve already seen how the data contains the xvalues we 
+We've extended the `Gaussian` class to have a method `profile_from_xvalues`. Given an input set of x coordinates
+this computes the intensity of the `Gaussian` at every point. We've already seen how the data contains the xvalues we 
 use, which are a 1D NumPy array spanning values 0 to 100.
 
 If we pass these values to an instance of the `Gaussian` class, we can create a line of the gaussian`s values.
@@ -134,7 +134,7 @@ values above to see this behaviour.
 
 # %%
 """
-Okay, so lets recap. We`ve defined a model which is a 1D `Gaussian` and given a set of parameters for that model
+Okay, so lets recap. We've defined a model which is a 1D `Gaussian` and given a set of parameters for that model
 $(x, I, \sigma)$ we can create `model_data` of the `Gaussian`. And, we have some data of a 1D `Gaussian` we want to
 fit this model with, so as to determine the values of $(x, I, \sigma)$ from which it was created. So how do we do that?
 
@@ -152,7 +152,7 @@ plt.clf()
 
 # %%
 """
-Clearly, this model isn`t a good fit to the data - which was to be expected as they looked nothing alike!
+Clearly, this model isn't a good fit to the data - which was to be expected as they looked nothing alike!
 
 Next, we want to quantify how good (or bad) the fit actually was, via some goodness-of-fit measure. This measure
 needs to account for noise in the data - after all if we fit a pixel badly simply because it was very noisy we want

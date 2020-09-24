@@ -90,7 +90,7 @@ line, the data, a residual-map, etc.), parts of the `Dataset` or the `Result`'s 
 
 You should take note of two things:  
 
- - The `Dataset` plot functions take instances of the `Dataset` class, meaning we we don`t have to manually the part of 
+ - The `Dataset` plot functions take instances of the `Dataset` class, meaning we we don't have to manually the part of 
  our data we want to pass to the function, making for a more concise API.
  
  - In `plot/__init__.py` we have imported the `dataset_plots`, `fit_plots` and `line_plots` modules as their 
@@ -205,7 +205,7 @@ It is worth noting that the name of this config file, `gaussian.json`. It is nam
 create the `PriorModel`, the `gaussian.py` module. Thus, our the json_config files we use to set up the default priors 
 of different model components share the name of the module they are in! 
 
-Although we don`t in this tutorial, we could over write the priors with new priors as we did in the previous tutorial.
+Although we don't in this tutorial, we could over write the priors with new priors as we did in the previous tutorial.
 
 Lets instantiate and run a phase, which reduces the task of performing a model-fit in **PyAutoFit** to just two lines. 
 The results are output to the path `autofit_workspace/howtofit/chapter_1_introduction/output/phase_t4/emcee`, which in 

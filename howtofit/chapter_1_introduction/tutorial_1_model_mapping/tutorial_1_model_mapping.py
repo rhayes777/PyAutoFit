@@ -23,7 +23,7 @@ The tutorials need to know the path to your autofit_workspace folder, in order t
  - Load example data.
  - Output the results of models fits to your hard-disk. 
 
-If you don`t have an autofit_workspace (perhaps you cloned / forked the **PyAutoLens** GitHub repository?) you can
+If you don't have an autofit_workspace (perhaps you cloned / forked the **PyAutoLens** GitHub repository?) you can
 download it here:
  
  ttps://github.com/Jammy2211/autofit_workspace
