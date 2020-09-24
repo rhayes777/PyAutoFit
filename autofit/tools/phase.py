@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Dict
 import dill
+import os
 
 from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
@@ -77,7 +78,10 @@ class AbstractPhase:
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
+        file_path = "{}/metadata".format(self.paths.make_path())
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "w+") as f:
             f.write(
                 self.make_metadata_text(
                     dataset.name
@@ -88,19 +92,28 @@ class AbstractPhase:
         """
         Save the dataset associated with the phase
         """
-        with open(f"{self.paths.pickle_path}/dataset.pickle", "wb") as f:
+        file_path = f"{self.paths.pickle_path}/dataset.pickle"
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "wb") as f:
             pickle.dump(dataset, f)
 
     def save_mask(self, mask):
         """
         Save the mask associated with the phase
         """
-        with open(f"{self.paths.pickle_path}/mask.pickle", "wb") as f:
+        file_path = f"{self.paths.pickle_path}/mask.pickle"
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "wb") as f:
             dill.dump(mask, f)
 
     def save_settings(self, settings):
+        file_path = f"{self.paths.pickle_path}/settings.pickle"
+        if os.path.exists(file_path):
+            os.remove(file_path)
         with open(
-                f"{self.paths.pickle_path}/settings.pickle",
+                file_path,
                 "wb+"
         ) as f:
             pickle.dump(
@@ -108,8 +121,11 @@ class AbstractPhase:
             )
 
     def save_phase_attributes(self, phase_attributes):
+        file_path = f"{self.paths.pickle_path}/phase_attributes.pickle"
+        if os.path.exists(file_path):
+            os.remove(file_path)
         with open(
-                f"{self.paths.pickle_path}/phase_attributes.pickle",
+                file_path,
                 "wb+"
         ) as f:
             pickle.dump(
