@@ -219,6 +219,11 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
+        if self.force_pickle_overwrite:
+            filelist = [f for f in os.listdir(self.paths.pickle_path) if f.endswith(".pickle")]
+            for f in filelist:
+                os.remove(os.path.join(self.paths.pickle_path, f))
+
         if (not os.path.exists(self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
