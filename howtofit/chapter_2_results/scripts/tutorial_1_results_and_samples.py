@@ -165,7 +165,7 @@ print("\n")
 
 # %%
 """
-It is more useful to return the `Result``s as an `instance`, which is an instance of the `model` using the Python 
+It is more useful to return the `Result`'s as an `instance`, which is an instance of the `model` using the Python 
 classes used to compose it.
 """
 
@@ -312,7 +312,7 @@ The Probability Density Functions (PDF`s) of the results can be plotted using th
 
  `corner.py`: https://corner.readthedocs.io/en/latest/
 
-(In built visualization for PDF`s and `NonLinearSearch``s is a future feature of **PyAutoFit**, but for now you`ll 
+(In built visualization for PDF`s and `NonLinearSearch`'s is a future feature of **PyAutoFit**, but for now you`ll 
 have to use the libraries yourself!).
 """
 

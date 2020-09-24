@@ -38,7 +38,7 @@ print("Workspace Path: ", workspace_path)
 # %%
 conf.instance = conf.Config(
     config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the `NonLinearSearch``s outputs go.
+    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the `NonLinearSearch`'s outputs go.
 )
 
 # %%
@@ -74,7 +74,7 @@ To begin, in the `src` folder checkout the `data` package, which contains one mo
 had arrays which separately contained the `data` and `noise_map`, from here on we'll combine them into a `Dataset` class, 
 which can be easily extended if our model-fitting problem has additional data components.
 
-To create the `Dataset`, we import the simulator module and use it to generate the `Dataset``s `data` and `noise-map`. 
+To create the `Dataset`, we import the simulator module and use it to generate the `Dataset`'s `data` and `noise-map`. 
 """
 
 # %%
@@ -86,7 +86,7 @@ dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
 """
 Previously, we manually specified how to plot the `Dataset`. These plotting functions are now in our source code, in the
 `plot` package, check them out now! You`ll note we have separate modules for plotting lines (e.g. anything which is 
-line, the data, a residual-map, etc.), parts of the `Dataset` or the `Result``s of a fit.
+line, the data, a residual-map, etc.), parts of the `Dataset` or the `Result`'s of a fit.
 
 You should take note of two things:  
 
@@ -177,7 +177,7 @@ An over view of each is as follows:
 
 `result.py` -> contains the `Result` class:
 
- - Stores the `Samples` object containing information on the `NonLinearSearch``s samples.
+ - Stores the `Samples` object containing information on the `NonLinearSearch`'s samples.
  
  - Has functions to create the `model-image`, `residual-map`, `chi_squared_map` and so forth of the 
  maximum log likelihood model etc.
@@ -194,7 +194,7 @@ Performing a `NonLinearSearch` in **PyAutoFit** now only requires that we instan
  
  - Contains the `Analysis` class that defines the `log_likelihood_function`.
  
- - Returns the `Result``., including the `NonLinearSearch``s `Samples``s and the maximum likelihood fit.
+ - Returns the `Result``., including the `NonLinearSearch`'s `Samples`'s and the maximum likelihood fit.
 
 In the previous tutorial, after we composed our model using the `PriorModel` object we had to manually specify its
 priors. However, now we are using a source code, the priors are instead loaded from config files, specifically the
@@ -240,7 +240,7 @@ print(result.max_log_likelihood_fit)
 # %%
 """
 Another benefit of writing our `plot` functions so that their input is instances of class they plot is now clear. We can 
-visualize our `Result``s by simply passing the instance which is readily available in the results to our `plot` functions!
+visualize our `Result`'s by simply passing the instance which is readily available in the results to our `plot` functions!
 """
 
 # %%

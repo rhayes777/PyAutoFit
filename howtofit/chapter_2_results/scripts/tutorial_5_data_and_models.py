@@ -98,7 +98,7 @@ print(list(mask_gen), "\n")
 # %%
 """
 We`re going to refit each `Dataset` with the `max_log_likelihood_instance` of each model-fit. To do this, we'll need 
-each `Phase``s `MaskedDataset`.
+each `Phase`'s `MaskedDataset`.
 
 (If you are unsure what the `zip` is doing below, it essentially combines the `dataset_gen`, `mask_gen` and 
 `settings_gen` into one list such that we can iterate over all three simultaneously to create each `MaskedDataset`).
@@ -143,9 +143,9 @@ def masked_dataset_from_agg_obj(agg_obj):
 
 # %%
 """
-To manipulate this function as a generator using the `Aggregator`, we apply it to the `Aggregator``s `map` function.
+To manipulate this function as a generator using the `Aggregator`, we apply it to the `Aggregator`'s `map` function.
 
-The `masked_dataset_gen` below ensures that we avoid representing all `MaskedDataset``s simultaneously in memory.
+The `masked_dataset_gen` below ensures that we avoid representing all `MaskedDataset`'s simultaneously in memory.
 """
 
 # %%
@@ -245,7 +245,7 @@ up, right?
 
 In the source code module `aggregator.py` we`ve set up exactly such a short-cut. This module simply contains the 
 generator functions above such that the generator can be created by passing the `Aggregator`. This provides us with 
-convenience methods for quickly creating the `MaskedDataset`, `model_data` and `Fit``s using a single line of code:
+convenience methods for quickly creating the `MaskedDataset`, `model_data` and `Fit`'s using a single line of code:
 """
 
 # %%

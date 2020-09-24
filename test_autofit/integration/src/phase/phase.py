@@ -67,7 +67,7 @@ class Phase(af.AbstractPhase):
         ----------
         dataset: aa.Dataset
             The dataset fitted by the phase, as defined in the 'dataset.py' module.
-        mask: Mask
+        mask: Mask2D
             The mask used for the analysis.
 
         Returns

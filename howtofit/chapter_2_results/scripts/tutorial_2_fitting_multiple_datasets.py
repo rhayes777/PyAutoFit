@@ -38,7 +38,7 @@ conf.instance = conf.Config(
 """
 Here, for each `Dataset` we are going to set up the correct path, load it, create its `mask` and fit it using a `Phase`.
 
-We want our results to be in a folder specific to the `Dataset`. we'll use the `Dataset``s name string to do this. Lets
+We want our results to be in a folder specific to the `Dataset`. we'll use the `Dataset`'s name string to do this. Lets
 create a list of all 3 of our `Dataset` names.
 
 we'll also pass these names to the `Dataset` when we create it, the name will be used by the `Aggregator` to name the 
@@ -62,7 +62,7 @@ noise_maps = [gaussian_x1_0.noise_map, gaussian_x1_1.noise_map, gaussian_x1_2.no
 We can also attach information to the model-fit, by setting up an info dictionary. 
 
 Information about our model-fit (e.g. the data of observation) that isn`t part of the model-fit is made accessible to 
-the `Aggregator`. For example, below we write info on the `Dataset``s data of observation and exposure time.
+the `Aggregator`. For example, below we write info on the `Dataset`'s data of observation and exposure time.
 """
 
 # %%

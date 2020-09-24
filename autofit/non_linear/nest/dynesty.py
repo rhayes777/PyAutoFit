@@ -278,7 +278,7 @@ class AbstractDynesty(AbstractNest):
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+            model=model, analysis=analysis, pool_ids=pool_ids
         )
 
         if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
@@ -1016,7 +1016,7 @@ class DynestyDynamic(AbstractDynesty):
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+            model=model, analysis=analysis, pool_ids=pool_ids
         )
 
         try:

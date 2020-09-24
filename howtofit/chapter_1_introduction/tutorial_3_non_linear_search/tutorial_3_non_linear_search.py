@@ -67,12 +67,12 @@ Nevertheless, setting the paths explicitly within the code is good practise.
 # %%
 conf.instance = conf.Config(
     config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the `NonLinearSearch``s outputs go.
+    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the `NonLinearSearch`'s outputs go.
 )
 
 # %%
 """
-To create the `Dataset`, we import the simulator module and use it to generate the `Dataset``s data and noise-map. 
+To create the `Dataset`, we import the simulator module and use it to generate the `Dataset`'s data and noise-map. 
 """
 
 # %%
@@ -276,7 +276,7 @@ plt.close()
 
 # %%
 """
-Above, we used the `Result``s `samples` property, which in this case is a `MCMCSamples` object:
+Above, we used the `Result`'s `samples` property, which in this case is a `MCMCSamples` object:
 """
 
 # %%
