@@ -3,11 +3,12 @@
 Model Composition & Customization
 ---------------------------------
 
-Lets extend our example of fitting a 1D ``Gaussian`` profile to noisy data, to a problem where the data contains signals
-from multiple profiles. Specifically, it contains signals from a 1D ``Gaussian`` and 1D symmetric ``Exponential`` profile.
+Lets extend our example of fitting a 1D ``Gaussian`` profile to noisy data, to a problem where the
+data contains a signal from two profiles. Specifically, it contains signals from a 1D ``Gaussian`` signal
+and 1D symmetric ``Exponential`` signal.
 
-Example ``data`` (blue), including the model-fit we'll perform (orange) and individual ``Gaussian`` (red dashed) and
-``Exponential`` (green dashed) components are shown below:
+The example ``data`` with errors (black), including the model-fit we'll perform (red) and individual
+``Gaussian`` (blue dashed) and ``Exponential`` (orange dashed) components are shown below:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit_x2.png
   :width: 600

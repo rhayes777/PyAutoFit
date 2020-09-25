@@ -154,13 +154,13 @@ print(max_log_posterior_vector, "\n")
 This provides us with lists of all model parameters. However, this isn't that much use - which values correspond to 
 which parameters?
 
-The list of parameter names are available as a property of the `Samples`, as are labels which can be used for 
-labeling figures.
+The list of parameter names are available as a property of the `Model` included with the `Samples`, as are labels 
+which can be used for  labeling figures.
 """
 
 # %%
-print(samples.model_component_and_parameter_names)
-print(samples.parameter_labels)
+print(samples.model.parameter_names)
+print(samples.model.parameter_labels)
 print("\n")
 
 # %%

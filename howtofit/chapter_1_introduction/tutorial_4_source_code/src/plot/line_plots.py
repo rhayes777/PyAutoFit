@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 """This function plots a line of 1D data, and was already introduce in tutorial 2."""
 
 
-def line(xvalues, line, ylabel=None):
+def line(xvalues, line, title=None, color="k", errors=None, ylabel=None):
     """Plot a 1D line of data on a plot of x versus y, where the x-axis is the x coordinate of the line and the y-axis
     is the intensity of the line at that coordinate.
 
@@ -17,8 +17,11 @@ def line(xvalues, line, ylabel=None):
         The y-label of the plot.
     """
 
-    plt.plot(xvalues, line)
-    plt.xlabel("x")
+    plt.errorbar(
+        x=xvalues, y=line, yerr=errors, color=color, ecolor="k", elinewidth=1, capsize=2
+    )
+    plt.title(title)
+    plt.xlabel("x value of profile")
     plt.ylabel(ylabel)
     plt.show()
     plt.clf()

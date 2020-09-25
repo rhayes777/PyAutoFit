@@ -23,7 +23,10 @@ def data(dataset, output_path=None, output_filename=None, output_format="show"):
     line_plots.line(
         xvalues=dataset.xvalues,
         line=dataset.data,
+        errors=dataset.noise_map,
+        title="Data",
         ylabel="Data Values",
+        color="k",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -41,7 +44,9 @@ def noise_map(dataset, output_path=None, output_filename=None, output_format="sh
     line_plots.line(
         xvalues=dataset.xvalues,
         line=dataset.noise_map,
+        title="Noise-Map",
         ylabel="Noise-Map",
+        color="k",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,

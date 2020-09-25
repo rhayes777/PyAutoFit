@@ -87,10 +87,13 @@ Lets remind ourselves what the data looks like, using the `plot_line` convenienc
 """
 
 # %%
-def plot_line(xvalues, line, ylabel=None):
+def plot_line(xvalues, line, title=None, errors=None, ylabel=None):
 
-    plt.plot(xvalues, line)
-    plt.xlabel("x")
+    plt.errorbar(
+        x=xvalues, y=line, yerr=errors, color="k", ecolor="k", elinewidth=1, capsize=2
+    ),
+    plt.title(title)
+    plt.xlabel("x value of profile")
     plt.ylabel(ylabel)
     plt.show()
     plt.clf()
@@ -98,7 +101,7 @@ def plot_line(xvalues, line, ylabel=None):
 
 xvalues = np.arange(data.shape[0])
 
-plot_line(xvalues=xvalues, line=data, ylabel="Data")
+plot_line(xvalues=xvalues, line=data, errors=noise_map, title="Data", ylabel="Data")
 
 # %%
 """
@@ -267,13 +270,15 @@ We can use this to plot the maximum log likelihood fit over the data:
 model_data = result.max_log_likelihood_instance.profile_from_xvalues(
     xvalues=np.arange(data.shape[0])
 )
-plt.plot(range(data.shape[0]), data)
-plt.plot(range(data.shape[0]), model_data)
-plt.xlabel("x")
-plt.ylabel("Intensity")
+plt.errorbar(
+    x=xvalues, y=data, yerr=noise_map, color="k", ecolor="k", elinewidth=1, capsize=2
+)
+plt.plot(xvalues, model_data, color="r")
+plt.title("Emcee model fit to 1D Gaussian dataset.")
+plt.xlabel("x values of profile")
+plt.ylabel("Profile intensity")
 plt.show()
 plt.close()
-
 # %%
 """
 Above, we used the `Result`'s `samples` property, which in this case is a `MCMCSamples` object:

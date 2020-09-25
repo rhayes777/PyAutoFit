@@ -52,15 +52,12 @@ Lets plot the data and noise-map we`re going to fit.
 """
 
 # %%
-plt.plot(xvalues, data)
-plt.xlabel("x")
-plt.ylabel("Intensity")
-plt.show()
-plt.clf()
-
-plt.plot(xvalues, noise_map)
-plt.xlabel("x")
-plt.ylabel("Intensity")
+plt.errorbar(
+    xvalues, data, yerr=noise_map, color="k", ecolor="k", elinewidth=1, capsize=2
+)
+plt.title("1D Gaussian dataset.")
+plt.xlabel("x values of profile")
+plt.ylabel("Profile Intensity")
 plt.show()
 plt.clf()
 
@@ -120,11 +117,27 @@ gaussian = model.instance_from_vector(vector=[60.0, 20.0, 15.0])
 
 model_data = gaussian.profile_from_xvalues(xvalues=xvalues)
 
-plt.plot(xvalues, model_data)
-plt.xlabel("x")
-plt.ylabel("Intensity")
+plt.plot(xvalues, model_data, color="r")
+plt.title("1D Gaussian model.")
+plt.xlabel("x values of profile")
+plt.ylabel("Profile Intensity")
 plt.show()
 plt.clf()
+
+# %%
+"""
+It is often more infomative to plot the `data` and `model_data` on the same plot for comparison.
+"""
+
+plt.errorbar(
+    x=xvalues, y=data, yerr=noise_map, color="k", ecolor="k", elinewidth=1, capsize=2
+)
+plt.plot(xvalues, model_data, color="r")
+plt.title("Model-data fit to 1D Gaussian data.")
+plt.xlabel("x values of profile")
+plt.ylabel("Profile intensity")
+plt.show()
+plt.close()
 
 # %%
 """
@@ -144,8 +157,9 @@ Simple, we take the image from our data and our model_image of the `Gaussian` an
 
 # %%
 residual_map = data - model_data
-plt.plot(xvalues, model_data)
-plt.xlabel("x")
+plt.plot(xvalues, residual_map, color="r")
+plt.title("Residuals of model-data fit to 1D Gaussian data.")
+plt.xlabel("x values of profile")
 plt.ylabel("Residuals")
 plt.show()
 plt.clf()
@@ -163,8 +177,9 @@ To account for noise, we take our residual-map and divide it by the noise-map, t
 
 # %%
 normalized_residual_map = residual_map / noise_map
-plt.plot(xvalues, model_data)
-plt.xlabel("x")
+plt.plot(xvalues, normalized_residual_map, color="r")
+plt.title("Normalized residuals of model-data fit to 1D Gaussian data.")
+plt.xlabel("x values of profile")
 plt.ylabel("Normalized Residuals")
 plt.show()
 plt.clf()
@@ -181,8 +196,9 @@ positive values both positive and thus defines them on a common overall scale.
 
 # %%
 chi_squared_map = (normalized_residual_map) ** 2
-plt.plot(xvalues, model_data)
-plt.xlabel("x")
+plt.plot(xvalues, chi_squared_map, color="r")
+plt.title("Chi-Squareds of model-data fit to 1D Gaussian data.")
+plt.xlabel("x values of profile")
 plt.ylabel("Chi-Squareds")
 plt.show()
 plt.clf()
@@ -295,10 +311,13 @@ def log_likelihood_from_data_and_model_data(data, noise_map, model_data):
     return log_likelihood
 
 
-def plot_line(xvalues, line, ylabel=None):
+def plot_line(xvalues, line, color="k", errors=None, ylabel=None):
 
-    plt.plot(xvalues, line)
-    plt.xlabel("x")
+    plt.errorbar(
+        x=xvalues, y=line, yerr=errors, color=color, ecolor="k", elinewidth=1, capsize=2
+    )
+    plt.title("Chi-Squared of model-data fit to 1D Gaussian data.")
+    plt.xlabel("x values of profile")
     plt.ylabel(ylabel)
     plt.show()
     plt.clf()
@@ -310,7 +329,7 @@ model_data = gaussian.profile_from_xvalues(xvalues=xvalues)
 chi_squared_map = chi_squared_map_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
+plot_line(xvalues=xvalues, line=chi_squared_map, color="r", ylabel="Chi-Squareds")
 
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
@@ -323,7 +342,7 @@ model_data = gaussian.profile_from_xvalues(xvalues=xvalues)
 chi_squared_map = chi_squared_map_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
+plot_line(xvalues=xvalues, line=chi_squared_map, color="r", ylabel="Chi-Squareds")
 
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
@@ -336,7 +355,7 @@ model_data = gaussian.profile_from_xvalues(xvalues=xvalues)
 chi_squared_map = chi_squared_map_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data
 )
-plot_line(xvalues=xvalues, line=chi_squared_map, ylabel="Chi-Squareds")
+plot_line(xvalues=xvalues, line=chi_squared_map, color="r", ylabel="Chi-Squareds")
 
 log_likelihood = log_likelihood_from_data_and_model_data(
     data=data, noise_map=noise_map, model_data=model_data

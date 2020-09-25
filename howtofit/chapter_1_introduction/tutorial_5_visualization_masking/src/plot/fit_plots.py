@@ -23,7 +23,9 @@ def data(fit, output_path=None, output_filename=None, output_format="show"):
     line_plots.line(
         xvalues=fit.xvalues,
         line=fit.data,
+        title="Data",
         ylabel="Data Values",
+        color="k",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -41,7 +43,9 @@ def noise_map(fit, output_path=None, output_filename=None, output_format="show")
     line_plots.line(
         xvalues=fit.xvalues,
         line=fit.noise_map,
+        title="Noise-Map",
         ylabel="Noise Map",
+        color="k",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -61,7 +65,9 @@ def signal_to_noise_map(
     line_plots.line(
         xvalues=fit.xvalues,
         line=fit.signal_to_noise_map,
+        title="Signal-To_Noise Map",
         ylabel="Signal-To-Noise Map",
+        color="k",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -79,7 +85,9 @@ def model_data(fit, output_path=None, output_filename=None, output_format="show"
     line_plots.line(
         xvalues=fit.xvalues,
         line=fit.model_data,
+        title="Model Data",
         ylabel="Model Data",
+        color="r",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -97,7 +105,9 @@ def residual_map(fit, output_path=None, output_filename=None, output_format="sho
     line_plots.line(
         xvalues=fit.xvalues,
         line=fit.residual_map,
-        ylabel="Residual Map",
+        title="Residual-Map",
+        ylabel="Residual-Map",
+        color="r",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -117,7 +127,9 @@ def normalized_residual_map(
     line_plots.line(
         xvalues=fit.xvalues,
         line=fit.normalized_residual_map,
-        ylabel="Normalized Residual Map",
+        title="Normalized Residual-Map",
+        ylabel="Normalized Residual-Map",
+        color="r",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -135,7 +147,9 @@ def chi_squared_map(fit, output_path=None, output_filename=None, output_format="
     line_plots.line(
         xvalues=fit.xvalues,
         line=fit.chi_squared_map,
+        title="Chi-Squared Map",
         ylabel="Chi-Squared Map",
+        color="r",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,

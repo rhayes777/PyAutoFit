@@ -84,8 +84,8 @@ which can be used for labeling figures:
 
 .. code-block:: bash
 
-    samples.parameter_names
-    samples.parameter_labels
+    samples.model.parameter_names
+    samples.model.parameter_labels
 
 ``Result``'s can instead be returned as an ``instance``, which is an instance of the model using the Python
 classes used to compose it:

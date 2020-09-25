@@ -87,7 +87,31 @@ These xvalues will be used in later tutorials to create and fit Gaussians to the
 
 # %%
 xvalues = np.arange(data.shape[0])
-plt.plot(xvalues, data)
+plt.plot(xvalues, data, color="k")
+plt.title("1D Gaussian dataset.")
+plt.xlabel("x values of profile")
+plt.ylabel("Profile Intensity")
+plt.show()
+
+# %%
+"""
+We can also plot its ``noise_map`` (which in this example are all constant values) as a standalone 1D plot or
+as error bars on the ``data``.
+"""
+
+# %%
+plt.plot(xvalues, noise_map, color="k")
+plt.title("Noise-map")
+plt.xlabel("x values of noise-map")
+plt.ylabel("Noise-map value (Root mean square error)")
+plt.show()
+
+plt.errorbar(
+    xvalues, data, yerr=noise_map, color="k", ecolor="k", elinewidth=1, capsize=2
+)
+plt.title("1D Gaussian dataset with errors from the noise-map.")
+plt.xlabel("x values of profile")
+plt.ylabel("Profile Intensity")
 plt.show()
 
 # %%

@@ -19,7 +19,14 @@ def data(dataset):
     Line : `Dataset`.Line
         The observed Line `Dataset` whose data is plotted.
     """
-    line_plots.line(xvalues=dataset.xvalues, line=dataset.data, ylabel="Data Values")
+    line_plots.line(
+        xvalues=dataset.xvalues,
+        line=dataset.data,
+        title="Data",
+        color="k",
+        errors=dataset.noise_map,
+        ylabel="Data Values",
+    )
 
 
 def noise_map(dataset):
@@ -30,4 +37,10 @@ def noise_map(dataset):
     Line : `Dataset`.Line
         The observed Line `Dataset` whose data is plotted.
     """
-    line_plots.line(xvalues=dataset.xvalues, line=dataset.noise_map, ylabel="Noise-Map")
+    line_plots.line(
+        xvalues=dataset.xvalues,
+        line=dataset.noise_map,
+        title="Noise-Map",
+        color="k",
+        ylabel="Noise-Map",
+    )

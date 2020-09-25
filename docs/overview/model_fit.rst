@@ -3,9 +3,10 @@
 Fitting a Model
 ---------------
 
-To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to noisy data.
+To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to
+noisy data.
 
-Example ``data`` (blue), including the model-fit we'll perform (orange), are shown below:
+The example ``data`` with errors (black) and the model-fit we'll perform (red), are shown below:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit.png
   :width: 600
