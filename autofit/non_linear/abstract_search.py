@@ -411,40 +411,28 @@ class NonLinearSearch(ABC):
         """
         Save the dataset associated with the phase
         """
-        file_path = "{}/info.pickle".format(self.paths.pickle_path)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        with open(file_path, "wb") as f:
+        with open("{}/info.pickle".format(self.paths.pickle_path), "wb") as f:
             pickle.dump(info, f)
 
     def save_search(self):
         """
         Save the seawrch associated with the phase as a pickle
         """
-        file_path = self.paths.make_search_pickle_path()
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        with open(file_path, "w+b") as f:
+        with open(self.paths.make_search_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self))
 
     def save_model(self, model):
         """
         Save the model associated with the phase as a pickle
         """
-        file_path = self.paths.make_model_pickle_path()
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        with open(file_path, "w+b") as f:
+        with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(model))
 
     def save_samples(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        file_path = self.paths.make_samples_pickle_path()
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        with open(file_path, "w+b") as f:
+        with open(self.paths.make_samples_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(samples))
 
     def save_metadata(self):
@@ -452,10 +440,7 @@ class NonLinearSearch(ABC):
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        file_path = "{}/metadata".format(self.paths.make_path())
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        with open(file_path, "a") as f:
+        with open("{}/metadata".format(self.paths.make_path()), "a") as f:
             f.write(self.make_metadata_text())
 
     def move_pickle_files(self, pickle_files):
