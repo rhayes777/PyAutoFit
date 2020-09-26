@@ -131,7 +131,7 @@ class AbstractPredicate(ABC):
 
     def __invert__(self) -> "NotPredicate":
         """
-        A predicate that evaluates to True when this predicate evaluates
+        A predicate that evaluates to ``True`` when this predicate evaluates
         to False
         """
         return NotPredicate(
@@ -190,7 +190,7 @@ class OrPredicate(CombinationPredicate):
 
         Returns
         -------
-        True if either predicate is True for the phase
+        True if either predicate is ``True`` for the phase
         """
         return self.one(phase) or self.two(phase)
 
@@ -207,7 +207,7 @@ class AndPredicate(CombinationPredicate):
 
         Returns
         -------
-        True if both predicates are True for the phase
+        True if both predicates are ``True`` for the phase
         """
         return self.one(phase) and self.two(phase)
 
@@ -344,8 +344,8 @@ class NotPredicate(AbstractPredicate):
         """
         Negates the output of a predicate.
 
-        If the predicate would have returned True for a given phase
-        it now returns False and vice-versa.
+        If the predicate would have returned ``True`` for a given phase
+        it now returns ``False`` and vice-versa.
 
         Parameters
         ----------

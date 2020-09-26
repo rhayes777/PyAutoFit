@@ -36,7 +36,8 @@ class Analysis(af.Analysis):
         )
 
     def log_likelihood_function(self, instance):
-        """Determine the log likelihood of a fit of a `Gaussian` to the dataset, using the model instance of a Gaussian.
+        """
+    Returns the log likelihood of a fit of a `Gaussian` to the dataset, using the model instance of a Gaussian.
 
         Parameters
         ----------

@@ -20,7 +20,7 @@ class Gaussian:
 
         Parameters
         ----------
-        xvalues : ndarray
+        xvalues : np.ndarray
             The x coordinates in the original reference frame of the data.
         """
         transformed_xvalues = np.subtract(xvalues, self.centre)

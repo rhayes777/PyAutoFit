@@ -51,7 +51,7 @@ API Overview
 ------------
 
 To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
-noisy 1D data. Here's an example of the ``data`` (blue) and the model we'll fit (orange):
+noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/toy_model_fit.png
   :width: 400
@@ -89,8 +89,8 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
 a non-linear search like `emcee <https://github.com/dfm/emcee>`_.
 
-To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a likelihood
-function describing how to fit the ``data`` with the model:
+To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a
+``log_likelihood_function`` describing how to fit the ``data`` with the model:
 
 .. code-block:: python
 
@@ -127,7 +127,7 @@ function describing how to fit the ``data`` with the model:
 
             return log_likelihood
 
-We can now fit ``data`` to the model using a non-linear search of our choice.
+We can now fit our model to the ``data`` using a ``NonLinearSearch``:
 
 .. code-block:: python
 
@@ -139,7 +139,7 @@ We can now fit ``data`` to the model using a non-linear search of our choice.
 
     result = emcee.fit(model=model, analysis=analysis)
 
-The result object contains information on the model-fit, for example the parameter samples, maximum log likelihood
+The ``result`` contains information on the model-fit, for example the parameter samples, maximum log likelihood
 model and marginalized probability density functions.
 
 Getting Started
@@ -149,11 +149,13 @@ To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
 where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
 tutorials and detailed API documentation.
 
-Slack
------
+Support
+-------
 
-We're building a **PyAutoFit** community on Slack, so you should contact us on our
-`Slack channel <https://pyautofit.slack.com/>`_ before getting started. Here, I give the latest updates on the
-software & can discuss how best to use **PyAutoFit** for your science case.
+Support for installation issues and integrating your modeling software with **PyAutoFit** is available by
+`raising an issue on the autofit_workspace GitHub page <https://github.com/Jammy2211/autofit_workspace/issues>`_. or
+joining the **PyAutoFit** `Slack channel <https://pyautofit.slack.com/>`_, where we also provide the latest updates on
+**PyAutoFit**.
 
-Unfortunately, Slack is invitation-only, so first send me an `email <https://github.com/Jammy2211>`_ requesting an invite.
+Slack is invitation-only, so if you'd like to join send an `email <https://github.com/Jammy2211>`_ requesting an
+invite.

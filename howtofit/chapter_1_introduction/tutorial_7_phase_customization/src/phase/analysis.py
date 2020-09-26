@@ -24,7 +24,8 @@ class Analysis(af.Analysis):
         )
 
     def log_likelihood_function(self, instance):
-        """Determine the fit of a list of Profiles (Gaussians, Exponentials, etc.) to the dataset, using a
+        """
+    Returns the fit of a list of Profiles (Gaussians, Exponentials, etc.) to the dataset, using a
         model instance.
 
         Parameters

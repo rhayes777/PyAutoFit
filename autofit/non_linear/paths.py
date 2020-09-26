@@ -131,7 +131,7 @@ class Paths:
         non_linear_name : str
             The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
         remove_files : bool
-            If *True*, all output results except their backup .zip files are removed. If *False* they are not removed.
+            If *True*, all output results except their backup .zip files are removed. If ``False`` they are not removed.
         """
 
         self.path_prefix = path_prefix or "/".join(folders)

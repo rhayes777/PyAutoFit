@@ -10,7 +10,8 @@ from test_autofit.integration.src.fit import fit as f
 
 
 def masked_dataset_generator_from_aggregator(aggregator):
-    """Compute a generator of *MaskedDataset* objects from an input aggregator, which generates a list of the 
+    """
+    Returns a generator of *MaskedDataset* objects from an input aggregator, which generates a list of the
     *MaskedDataset* objects for every set of results loaded in the aggregator.
 
     This is performed by mapping the *masked_dataset_from_agg_obj* with the aggregator, which sets up each masked
@@ -25,7 +26,8 @@ def masked_dataset_generator_from_aggregator(aggregator):
 
 
 def masked_dataset_from_agg_obj(agg_obj):
-    """Compute a *MaskedDataset* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe 
+    """
+    Returns a *MaskedDataset* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe
      that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's generator
      outputs such that the function can use the `Aggregator`'s map function to to create a *MaskedDataset* generator.
 
@@ -56,7 +58,8 @@ def masked_dataset_from_agg_obj(agg_obj):
 
 
 def model_data_generator_from_aggregator(aggregator):
-    """Compute a generator of the model data arrays of the 1D line profile models from an input aggregator, which
+    """
+    Returns a generator of the model data arrays of the 1D line profile models from an input aggregator, which
     generates a list of 1D ndarrays every set of results loaded in the aggregator.
 
     This is performed by mapping the *model_data_from_agg_obj* with the aggregator, which sets up each model data array
@@ -71,7 +74,8 @@ def model_data_generator_from_aggregator(aggregator):
 
 
 def model_data_from_agg_obj(agg_obj):
-    """Compute model data as a 1D ndarray from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to 
+    """
+    Returns model data as a 1D ndarray from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to
     describe that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's
     generator outputs such that the function can use the `Aggregator`'s map function to to create a model-data generator.
 
@@ -94,7 +98,8 @@ def model_data_from_agg_obj(agg_obj):
 
 
 def fit_generator_from_aggregator(aggregator):
-    """Compute a generator of *FitDataset* objects from an input aggregator, which generates a list of the
+    """
+    Returns a generator of *FitDataset* objects from an input aggregator, which generates a list of the
     *FitDataset* objects for every set of results loaded in the aggregator.
 
     This is performed by mapping the *fit_from_agg_obj* with the aggregator, which sets up each fit using
@@ -108,7 +113,8 @@ def fit_generator_from_aggregator(aggregator):
 
 
 def fit_from_agg_obj(agg_obj):
-    """Compute a *Fit* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe  that it
+    """
+    Returns a *Fit* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe  that it
     acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's generator outputs such
     that the function can use the `Aggregator`'s map function to to create a *Fit* generator.
 

@@ -263,7 +263,7 @@ class AbstractPriorModel(AbstractModel):
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
         assert_priors_in_limits
-            If True it is checked that the physical values of priors are within set limits
+            If ``True`` it is checked that the physical values of priors are within set limits
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
@@ -343,7 +343,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         no_limits
-            If True generated priors have infinite limits
+            If ``True`` generated priors have infinite limits
         r
             The relative width to be assigned to gaussian priors
         a
@@ -810,7 +810,8 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def parameter_labels(self) -> [str]:
-        """Returns a list of the label of every parameter in a model.
+        """
+    Returns a list of the label of every parameter in a model.
 
         This is used for displaying model results as text and for visualization with *corner.py*.
 
@@ -828,7 +829,8 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def subscripts(self) -> [str]:
-        """Returns a list of the model component subscripts of every parameter in a model.
+        """
+    Returns a list of the model component subscripts of every parameter in a model.
 
         This is used for displaying model results as text and for visualization with *corner.py*.
 

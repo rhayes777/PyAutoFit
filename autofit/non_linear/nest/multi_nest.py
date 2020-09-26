@@ -93,7 +93,7 @@ class MultiNest(abstract_nest.AbstractNest):
         verbose : bool
             Whether MultiNest prints messages.
         resume : bool
-            If True and existing results are found at the output path, MultiNest will resume that run. If False,
+            If ``True`` and existing results are found at the output path, MultiNest will resume that run. If False,
             MultiNest will start a new run.
         context : None
             Not used by PyAutoFit.

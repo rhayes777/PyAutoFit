@@ -9,9 +9,9 @@ def line(xvalues, line, title=None, color="k", errors=None, ylabel=None):
 
     Parameters
     ----------
-    xvalues : ndarray
+    xvalues : np.ndarray
         The x-coordinates the profile is defined on.
-    line : ndarray
+    line : np.ndarray
         The intensity values of the profile which are plotted.
     ylabel : str
         The y-label of the plot.

@@ -66,7 +66,7 @@ class Emcee(AbstractMCMC):
         auto_correlation_check_for_convergence : bool
             Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
             If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
-            been performed. If *False* nstep samples will be taken.
+            been performed. If ``False`` nstep samples will be taken.
         auto_correlation_check_size : int
             The length of the samples used to check the auto-correlation lengths (from the latest sample backwards).
             For convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
