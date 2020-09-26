@@ -62,60 +62,6 @@ class AbstractPhase:
             "pipeline_tag": self.pipeline_tag,
         }
 
-    def make_metadata_text(self, dataset_name):
-        return "\n".join(
-            f"{key}={value or ''}"
-            for key, value
-            in {
-                **self._default_metadata,
-                "dataset_name": dataset_name
-            }.items()
-        )
-
-    def save_metadata(self, dataset):
-        """
-        Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the dataset being fit
-        """
-        with open("{}/metadata".format(self.paths.make_path()), "w+") as f:
-            f.write(
-                self.make_metadata_text(
-                    dataset.name
-                )
-            )
-
-    def save_dataset(self, dataset):
-        """
-        Save the dataset associated with the phase
-        """
-        with open(f"{self.paths.pickle_path}/dataset.pickle", "wb") as f:
-            pickle.dump(dataset, f)
-
-    def save_mask(self, mask):
-        """
-        Save the mask associated with the phase
-        """
-        with open(f"{self.paths.pickle_path}/mask.pickle", "wb") as f:
-            dill.dump(mask, f)
-
-    def save_settings(self, settings):
-        with open(
-                f"{self.paths.pickle_path}/settings.pickle",
-                "wb+"
-        ) as f:
-            pickle.dump(
-                settings, f
-            )
-
-    def save_phase_attributes(self, phase_attributes):
-        with open(
-                f"{self.paths.pickle_path}/phase_attributes.pickle",
-                "wb+"
-        ) as f:
-            pickle.dump(
-                phase_attributes, f
-            )
-
     def __str__(self):
         return self.search.paths.name
 
@@ -135,7 +81,7 @@ class AbstractPhase:
 
         return self.search.fit(model=self.model, analysis=analysis, info=info, pickle_files=pickle_files)
 
-    def make_phase_attributes(self, analysis):
+    def make_attributes(self, analysis):
         raise NotImplementedError()
 
     def make_result(self, result, analysis):
@@ -211,8 +157,6 @@ class Phase(AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising the best fit model and other hyper_galaxies.
         """
-        self.save_metadata(dataset=dataset)
-        self.save_dataset(dataset=dataset)
 
         self.model = self.model.populate(results)
 

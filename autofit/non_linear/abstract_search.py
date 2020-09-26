@@ -228,6 +228,7 @@ class NonLinearSearch(ABC):
             self.save_search()
             self.save_model(model=model)
             self.move_pickle_files(pickle_files=pickle_files)
+            analysis.save_for_aggregator(paths=self.paths)
 
         if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
 
@@ -521,6 +522,8 @@ class Analysis:
     def visualize(self, instance, during_analysis):
         pass
 
+    def save_for_aggregator(self, paths : Paths):
+        pass
 
 class Result:
     """

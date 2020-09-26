@@ -111,8 +111,8 @@ as ``Python`` generators, ensuring the ``Aggregator`` can be used to interpret l
 efficient way. **PyAutoFit** is therefore suited to 'big data' problems where independent fits to large homogeneous
 data-sets using an identical model-fitting procedure are performed.
 
-Model Abstract and Composition
-==============================
+Model Abstraction and Composition
+=================================
 
 For many modeling problems the model comprises abstract model components representing objects or processes in a
 physical system. For example, our child project `PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_,  which uses
@@ -134,10 +134,10 @@ compare many similar (but slightly different) models to a single dataset, with t
 facilitate this.
 
 To see this in action, checkout the `overview section <https://pyautofit.readthedocs.io/en/latest/overview/model_fit.html>`_
-of our readthedocs and the `HowToFit lectures <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_ for
-guide on how to integrate **PyAutoFit** into your modeling software. More statistically minded readers may be interested
+of our readthedocs and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
+on how to integrate **PyAutoFit** into your modeling software. More statistically minded readers may be interested
 in **PyAutoFit**'s advanced statistical methods, such
-as `transdimensional pipieline <https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html>`_.
+as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html>`_.
 
 .. toctree::
    :caption: General:

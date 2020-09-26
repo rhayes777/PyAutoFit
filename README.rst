@@ -147,7 +147,8 @@ Getting Started
 
 To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
 where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
-tutorials and detailed API documentation.
+tutorials, detailed API documentation and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
+on how to integrate **PyAutoFit** into your modeling software.
 
 Support
 -------
