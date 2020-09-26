@@ -24,7 +24,7 @@ We've seen that we can call a ``NonLinearSearch`` as follows:
 
 .. code-block:: bash
 
-   analysis = a.Analysis(data=data, noise_map=noise_map)
+   analysis = Analysis(data=data, noise_map=noise_map)
 
    emcee = af.Emcee()
 
@@ -39,7 +39,7 @@ Of course, we can instead manually specify all of the parameters:
 
 .. code-block:: bash
 
-   analysis = a.Analysis(data=data, noise_map=noise_map)
+   analysis = Analysis(data=data, noise_map=noise_map)
 
    emcee = af.Emcee(
        nwalkers=50,
@@ -72,7 +72,7 @@ The nested sampling algorithm ``dynesty`` has its own config file for default se
 
 .. code-block:: bash
 
-   analysis = a.Analysis(data=data, noise_map=noise_map)
+   analysis = Analysis(data=data, noise_map=noise_map)
 
    dynesty = af.DynestyStatic(
        n_live_points=150,
@@ -119,7 +119,7 @@ found in the default config files):
 
 .. code-block:: bash
 
-   analysis = a.Analysis(data=data, noise_map=noise_map)
+   analysis = Analysis(data=data, noise_map=noise_map)
 
    emcee = af.Emcee(
        number_of_cores=4
@@ -129,7 +129,7 @@ found in the default config files):
 
 .. code-block:: bash
 
-   analysis = a.Analysis(data=data, noise_map=noise_map)
+   analysis = Analysis(data=data, noise_map=noise_map)
 
    dynesty = af.DynestyStatic(
        number_of_cores=4

@@ -70,7 +70,7 @@ but instead uses the ``CollectionPriorModel`` object:
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian=m.Gaussian, exponential=m.Exponential)
+    model = af.CollectionPriorModel(gaussian=Gaussian, exponential=Exponential)
 
 The ``CollectionPriorModel`` allows us to *compose* models using multiple classes, in the example above using both the
 ``Gaussian`` and ``Exponential`` classes. The model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
@@ -129,9 +129,9 @@ the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian=m.Gaussian, exponential=m.Exponential)
+    model = af.CollectionPriorModel(gaussian=Gaussian, exponential=Exponential)
 
-    analysis = a.Analysis(data=data, noise_map=noise_map)
+    analysis = Analysis(data=data, noise_map=noise_map)
 
     dynesty = af.DynestyStatic()
 
@@ -142,7 +142,7 @@ Now, lets consider how we *customize* the models that we *compose*. To begin, le
 
 .. code-block:: bash
 
-    model = af.PriorModel(m.Gaussian)
+    model = af.PriorModel(Gaussian)
 
 By default, the priors on the ``Gaussian``'s parameters are loaded from configuration files. If you have downloaded the
 ``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/json_priors``. Alternatively,
@@ -164,7 +164,7 @@ We can fit this model, with all new priors, using a ``NonLinearSearch`` as we di
 
 .. code-block:: bash
 
-    analysis = a.Analysis(data=data, noise_map=noise_map)
+    analysis = Analysis(data=data, noise_map=noise_map)
 
     emcee = af.Emcee()
 
@@ -176,7 +176,7 @@ We can *compose* and *customize* a ``CollectionPriorModel`` as follows:
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian=m.Gaussian, exponential=m.Exponential)
+    model = af.CollectionPriorModel(gaussian=Gaussian, exponential=Exponential)
 
     model.gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
     model.gaussian.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)

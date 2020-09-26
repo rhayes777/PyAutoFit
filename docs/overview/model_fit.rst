@@ -12,11 +12,12 @@ The example ``data`` with errors (black) and the model-fit we'll perform (red), 
   :width: 600
   :alt: Alternative text
 
-To begin, lets import ``autofit`` using the convention below:
+To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
 
 .. code-block:: bash
 
     import autofit as af
+    import numpy as np
 
 we need to define our 1D Gaussian profile as a **PyAutoFit** *model-component*. A *model component* is a component
 of the model we fit to the ``data`` and it is has associated with it a set of *parameters* that can be varied for during
@@ -130,9 +131,9 @@ Next, we *compose* our model, set up our ``Analysis`` and fit the model to the `
 
 .. code-block:: bash
 
-    model = af.PriorModel(m.Gaussian)
+    model = af.PriorModel(Gaussian)
 
-    analysis = a.Analysis(data=data, noise_map=noise_map)
+    analysis = Analysis(data=data, noise_map=noise_map)
 
     emcee = af.Emcee()
 

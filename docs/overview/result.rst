@@ -7,7 +7,7 @@ A ``NonLinearSearch``'s fit function returns a ``Result`` object:
 
 .. code-block:: bash
 
-   analysis = a.Analysis(data=data, noise_map=noise_map)
+   analysis = Analysis(data=data, noise_map=noise_map)
 
    emcee = af.Emcee(
        number_of_cores=4
