@@ -20,8 +20,8 @@ To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
     import numpy as np
 
 we need to define our 1D Gaussian profile as a **PyAutoFit** *model-component*. A *model component* is a component
-of the model we fit to the ``data`` and it is has associated with it a set of *parameters* that can be varied for during
-*model-fitting*.
+of the model we fit to the ``data`` and it is has associated with it a set of *parameters* that can be varied for
+during *model-fitting*.
 
 *Model components* are defined using Python classes using the format below, where the class name is the *model
 component* name and the constructor arguments are its *parameters*.
