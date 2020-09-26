@@ -133,7 +133,7 @@ We can now fit our model to the ``data`` using a ``NonLinearSearch``:
 
     model = af.PriorModel(Gaussian)
 
-    analysis = a.Analysis(data=data, noise_map=noise_map)
+    analysis = Analysis(data=data, noise_map=noise_map)
 
     emcee = af.Emcee(nwalkers=50, nsteps=2000)
 
