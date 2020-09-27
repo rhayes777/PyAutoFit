@@ -16,8 +16,6 @@ profiles are passed to it rather than a single Gaussian, see the comments below!
 class Analysis(af.Analysis):
     def __init__(self, masked_dataset, image_path=None):
 
-        super().__init__()
-
         """The `MaskedDataset` and visualizer are created in the same way as tutorial 5."""
 
         self.masked_dataset = masked_dataset

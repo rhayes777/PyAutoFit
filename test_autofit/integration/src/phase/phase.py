@@ -57,7 +57,7 @@ class Phase(af.AbstractPhase):
 
     @property
     def folders(self):
-        return self.search.folders
+        return self.search.path_prefix
 
     def run(self, dataset: Dataset, info=None, results=None):
         """

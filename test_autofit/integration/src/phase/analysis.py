@@ -9,8 +9,6 @@ from test_autofit.integration.src.phase import visualizer
 class Analysis(af.Analysis):
     def __init__(self, masked_dataset, image_path=None):
 
-        super().__init__()
-
         # The masked dataset and visualizer are created in the same way as tutorial 4.
 
         self.masked_dataset = masked_dataset

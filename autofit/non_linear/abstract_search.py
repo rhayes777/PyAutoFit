@@ -276,7 +276,6 @@ class NonLinearSearch(ABC):
             paths=Paths(
                 name=name,
                 tag=tag,
-                folders=self.paths.folders,
                 path_prefix=self.paths.path_prefix,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
@@ -517,9 +516,6 @@ class NonLinearSearch(ABC):
 
 
 class Analysis:
-    def __init__(self):
-
-        pass
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()

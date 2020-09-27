@@ -41,10 +41,6 @@ class Phase(af.AbstractPhase):
         self.profiles = profiles
         self.settings = settings
 
-    @property
-    def folders(self):
-        return self.search.folders
-
     def run(self, dataset: Dataset, mask, info=None):
         """
         Pass a `Dataset` to the phase, running the phase and `NonLinearSearch`.
@@ -61,16 +57,6 @@ class Phase(af.AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
-
-        # These functions save the objects we will later access using the aggregator. They are saved via the `pickle`
-        # module in Python, which serializes the data on to the hard-disk.
-
-        # See the `dataset.py` module for a description of what the metadata is.
-
-        self.save_metadata(dataset=dataset)
-        self.save_dataset(dataset=dataset)
-        self.save_mask(mask=mask)
-        self.save_settings(settings=self.settings)
 
         # This saves the search information of the phase, meaning that we can use the search instance
         # (e.g. Emcee) to interpret our results in the aggregator.
@@ -102,7 +88,7 @@ class Phase(af.AbstractPhase):
         )
 
         return Analysis(
-            masked_dataset=masked_dataset, image_path=self.search.paths.image_path
+            masked_dataset=masked_dataset, settings=self.settings, image_path=self.search.paths.image_path
         )
 
     def make_result(self, result, analysis):

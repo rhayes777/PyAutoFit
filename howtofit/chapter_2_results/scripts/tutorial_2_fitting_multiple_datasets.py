@@ -3,7 +3,7 @@
 Tutorial 2: Dataset Sample
 ==========================
 
-In this tutorial, we'll fit a multiple `Dataset`s with the same phase, producing multiple sets of results on our
+In this tutorial, we'll fit multiple `Dataset`s with the same phase, producing multiple sets of results on our
 hard-disk. In the following tutorials, we then use these results and the `Aggregator` to load the results into
 our Jupyter notebook to interpret, inspect and plot the output results.
 
@@ -83,16 +83,16 @@ for index in range(len(datas)):
     mask = np.full(fill_value=False, shape=dataset.data.shape)
 
     """
-    Here, we create a `Phase` as normal. However, we also include an input parameter `folders`. This defines the 
-    names of any folders that the `Phase` outputs results to. For example, if a `Phase` outputs to the path:
+    Here, we create a `Phase` as normal. However, we also include an input parameter `prefix_path`. This defines the 
+    folders that the `Phase` outputs results to before the `phase_name`. For example, if a `Phase` outputs to the path:
 
         `/path/to/autofit_workspace/output/phase_name/`
 
-    A `Phase` with the input `folders=[`phase_folder`]` edits this path to:
+    A `Phase` with the `prefix_path='phase_folder' edits this path to:
 
         `/path/to/autofit_workspace/output/phase_folder/phase_name/`
 
-    You can input multiple `phase folders`, for example `folders=[`folder_0`, `folder_1`]` would create the path:
+    You can input multiple folders, for example `prefix_path='folder_0/folder_1' would create the path:
 
         `/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/`
 
@@ -110,7 +110,7 @@ for index in range(len(datas)):
 
     phase = htf.Phase(
         phase_name="phase_t2_agg",
-        folders=["aggregator", dataset_names[index]],
+        path_prefix=f"aggregator/{dataset_names[index]}",
         profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
         settings=htf.SettingsPhase(),
         search=af.DynestyStatic(),

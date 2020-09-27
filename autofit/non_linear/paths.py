@@ -66,8 +66,7 @@ def convert_paths(func):
         paths = Paths(
             name=first_arg,
             tag=kwargs.pop("phase_tag", None),
-            folders=kwargs.pop("folders", tuple()),
-            path_prefix=kwargs.pop("phase_path", None),
+            path_prefix=kwargs.pop("path_prefix", None),
             non_linear_name=search_name,
             non_linear_tag_function=non_linear_tag_function,
         )
@@ -85,7 +84,6 @@ class Paths:
             self,
             name="",
             tag=None,
-            folders=tuple(),
             path_prefix=None,
             non_linear_name=None,
             non_linear_tag_function=lambda: "",
@@ -105,36 +103,30 @@ class Paths:
 
         name = "name"
         tag = "tag"
-        folders = ["folder_0", "folder_1"]
+        path_prefix = "folder_0/folder_1"
         non_linear_name = "emcee"
 
         The output path of the non-linear search results will be:
 
         /path/to/output/folder_0/folder_1/name/tag/emcee
 
-        The folders variable can be omitted for a path_prefix variable, whereby identical behaviour to above can be
-        achieved by inputing path_prefix="/folder_0/folder_1/".
-
         Parameters
         ----------
         name : str
-            The name of the non-linear search, which is used as a folder name after the 'folders' list. For phases this
-            name is the phase_name.
+            The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For phases
+            this name is the ``phase_name``.
         tag : str
             A tag for the non-linear search, typically used for instances where the same data is fitted with the same
             model but with slight variants. For phases this is the phase_tag.
-        folders : [str, str]
-            Prefixed folders that appears after the output_path but beflore the name variable.
         path_prefix : str
-            A prefixed path that appears after the output_path but beflore the name variable (this superseeds the
-            folders variable if both are input.
+            A prefixed path that appears after the output_path but beflore the name variable.
         non_linear_name : str
             The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
         remove_files : bool
             If *True*, all output results except their ``.zip`` files are removed. If ``False`` they are not removed.
         """
 
-        self.path_prefix = path_prefix or "/".join(folders)
+        self.path_prefix = path_prefix or ""
         self.name = name or ""
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
@@ -175,10 +167,6 @@ class Paths:
                 self.non_linear_name == other.non_linear_name,
             ]
         )
-
-    @property
-    def folders(self):
-        return self.path_prefix.split("/")
 
     @property
     def samples_path(self) -> str:

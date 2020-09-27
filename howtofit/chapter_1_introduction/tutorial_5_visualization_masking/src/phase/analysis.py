@@ -18,8 +18,6 @@ The `analysis.py` module in this tutorial has two changes from the previous tuto
 class Analysis(af.Analysis):
     def __init__(self, masked_dataset, image_path=None):
 
-        super().__init__()
-
         """The masked-dataset is created in the `phase.py` module, in the `make_analysis` method."""
 
         self.masked_dataset = masked_dataset
@@ -37,7 +35,7 @@ class Analysis(af.Analysis):
 
     def log_likelihood_function(self, instance):
         """
-    Returns the log likelihood of a fit of a `Gaussian` to the dataset, using the model instance of a Gaussian.
+        Returns the log likelihood of a fit of a `Gaussian` to the dataset, using the model instance of a Gaussian.
 
         Parameters
         ----------
