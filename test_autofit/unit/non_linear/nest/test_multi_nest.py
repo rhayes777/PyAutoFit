@@ -346,16 +346,16 @@ class TestMulitNest:
         multi_nest = af.MultiNest()
 
         log_evidence = mn.log_evidence_from_file_summary(
-            file_summary=f"{multi_nest.paths.path}/multinestsummary.txt",
+            file_summary=f"{multi_nest.paths.samples_from_sym_path}/multinestsummary.txt",
             prior_count=4,
         )
 
         assert log_evidence == -1e99
 
-        create_summary_4_parameters(path=multi_nest.paths.path)
+        create_summary_4_parameters(path=multi_nest.paths.samples_from_sym_path)
 
         log_evidence = mn.log_evidence_from_file_summary(
-            file_summary=f"{multi_nest.paths.path}/multinestsummary.txt",
+            file_summary=f"{multi_nest.paths.samples_from_sym_path}/multinestsummary.txt",
             prior_count=4,
         )
 
@@ -368,9 +368,9 @@ class TestMulitNest:
 
         multi_nest = af.MultiNest()
 
-        create_weighted_samples_4_parameters(path=multi_nest.paths.path)
-        create_resume(path=multi_nest.paths.path)
-        create_summary_4_parameters(path=multi_nest.paths.path)
+        create_weighted_samples_4_parameters(path=multi_nest.paths.samples_from_sym_path)
+        create_resume(path=multi_nest.paths.samples_from_sym_path)
+        create_summary_4_parameters(path=multi_nest.paths.samples_from_sym_path)
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)

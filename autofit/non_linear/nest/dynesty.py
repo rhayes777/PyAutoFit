@@ -365,6 +365,7 @@ class AbstractDynesty(AbstractNest):
             ):
                 finished = True
 
+
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty non-linear search with all associated attributes.
 
@@ -509,6 +510,8 @@ class AbstractDynesty(AbstractNest):
 
         return [init_unit_parameters, init_parameters, init_log_likelihoods]
 
+    def remove_state_files(self):
+        os.remove(f"{self.paths.samples_path}/dynesty.pickle")
 
 class DynestyStatic(AbstractDynesty):
     def __init__(
@@ -536,6 +539,7 @@ class DynestyStatic(AbstractDynesty):
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
         iterations_per_update=None,
+        remove_state_files_at_end=None,
         number_of_cores=None,
     ):
         """
@@ -747,6 +751,7 @@ class DynestyDynamic(AbstractDynesty):
         terminate_at_acceptance_ratio=None,
         acceptance_ratio_threshold=None,
         iterations_per_update=None,
+        remove_state_files_at_end=None,
         number_of_cores=None,
     ):
         """

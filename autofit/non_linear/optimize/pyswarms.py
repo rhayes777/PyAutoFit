@@ -368,6 +368,7 @@ class PySwarmsGlobal(AbstractPySwarms):
         ftol=None,
         initializer=None,
         iterations_per_update=None,
+        remove_state_files_at_end=None,
         number_of_cores=None,
     ):
         """ A PySwarms Particle Swarm Optimizer global non-linear search.
@@ -484,6 +485,7 @@ class PySwarmsLocal(AbstractPySwarms):
         ftol=None,
         initializer=None,
         iterations_per_update=None,
+        remove_state_files_at_end=None,
         number_of_cores=None,
     ):
         """ A PySwarms Particle Swarm Optimizer global non-linear search.

@@ -241,7 +241,7 @@ class MultiNest(abstract_nest.AbstractNest):
             fitness_function,
             prior,
             model.prior_count,
-            outputfiles_basename="{}/samples".format(self.paths.path),
+            outputfiles_basename="{}/multinest".format(self.paths.path),
             n_live_points=self.n_live_points,
             const_efficiency_mode=self.const_efficiency_mode,
             importance_nested_sampling=self.importance_nested_sampling,
@@ -261,6 +261,7 @@ class MultiNest(abstract_nest.AbstractNest):
             max_iter=self.max_iter,
             init_MPI=self.init_MPI,
         )
+        self.paths.copy_from_sym()
 
     @property
     def tag(self):

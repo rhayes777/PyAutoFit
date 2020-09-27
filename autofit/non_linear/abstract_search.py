@@ -90,6 +90,9 @@ class NonLinearSearch(ABC):
         self.model_results_every_update = self._config(
             "updates", "model_results_every_update", int
         )
+        self.remove_state_files_at_end = self._config(
+            "updates", "remove_state_files_at_end", bool
+        )
 
         self.iterations = 0
         self.should_log = IntervalCounter(self.log_every_update)
@@ -357,6 +360,9 @@ class NonLinearSearch(ABC):
 
             text_util.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
 
+        if not during_analysis and self.remove_state_files_at_end:
+            self.remove_state_files()
+
         return samples
 
     def setup_log_file(self):
@@ -463,6 +469,9 @@ class NonLinearSearch(ABC):
         return "\n".join(
             f"{key}={value or ''}" for key, value in {**self._default_metadata}.items()
         )
+
+    def remove_state_files(self):
+        pass
 
     def samples_via_sampler_from_model(self, model):
         raise NotImplementedError()
