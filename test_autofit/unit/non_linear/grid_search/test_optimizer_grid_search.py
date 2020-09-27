@@ -248,7 +248,6 @@ class TestGridNLOBehaviour:
 
         assert search.n_live_points is grid_search.n_live_points
         assert grid_search.paths.path != search.paths.path
-        assert grid_search.paths.backup_path != search.paths.backup_path
         assert grid_search.paths.output_path != search.paths.output_path
 
 

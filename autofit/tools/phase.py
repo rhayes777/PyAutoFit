@@ -77,9 +77,9 @@ class AbstractPhase:
         """
         return PromiseResult(self)
 
-    def run_analysis(self, analysis, info=None, pickle_files=None):
+    def run_analysis(self, analysis, info=None, pickle_files=None, log_likelihood_cap=None):
 
-        return self.search.fit(model=self.model, analysis=analysis, info=info, pickle_files=pickle_files)
+        return self.search.fit(model=self.model, analysis=analysis, info=info, pickle_files=pickle_files, log_likelihood_cap=log_likelihood_cap)
 
     def make_attributes(self, analysis):
         raise NotImplementedError()
@@ -141,7 +141,7 @@ class Phase(AbstractPhase):
     def make_analysis(self, dataset):
         return self.analysis_class(dataset)
 
-    def run(self, dataset: Dataset, results=None, info=None, pickle_files=None):
+    def run(self, dataset: Dataset, results=None, info=None, pickle_files=None, log_likelihood_cap=None):
         """
         Run this phase.
 
@@ -162,7 +162,7 @@ class Phase(AbstractPhase):
 
         analysis = self.make_analysis(dataset=dataset)
 
-        result = self.run_analysis(analysis=analysis, info=info, pickle_files=pickle_files)
+        result = self.run_analysis(analysis=analysis, info=info, pickle_files=pickle_files, log_likelihood_cap=log_likelihood_cap)
 
         return self.make_result(result=result, analysis=None)
 

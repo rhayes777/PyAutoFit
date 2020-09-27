@@ -46,7 +46,7 @@ class MultiNest(abstract_nest.AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         n_live_points : int
@@ -200,7 +200,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
         logger.debug("Creating MultiNest NLO")
 
-    def _fit(self, model: AbstractPriorModel, analysis) -> abstract_search.Result:
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> abstract_search.Result:
         """
         Fit a model using MultiNest and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the non-linear search seeks to maximize.
@@ -261,7 +261,6 @@ class MultiNest(abstract_nest.AbstractNest):
             max_iter=self.max_iter,
             init_MPI=self.init_MPI,
         )
-        self.paths.backup()
 
     @property
     def tag(self):

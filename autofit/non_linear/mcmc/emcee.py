@@ -7,6 +7,7 @@ from autofit.non_linear import samples as samp
 from typing import List
 
 from autofit import exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
 from autofit.mapper.model_mapper import ModelMapper
@@ -53,7 +54,7 @@ class Emcee(AbstractMCMC):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         nwalkers : int
@@ -145,7 +146,7 @@ class Emcee(AbstractMCMC):
             except exc.FitException:
                 raise exc.FitException
 
-    def _fit(self, model, analysis):
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
         Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the non-linear search seeks to maximize.
@@ -277,13 +278,14 @@ class Emcee(AbstractMCMC):
 
         return copy
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
+    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
         return Emcee.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_via_sampler_from_model,
+            log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids,
         )
 
@@ -299,7 +301,7 @@ class Emcee(AbstractMCMC):
             cube values to physical values via the priors.
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
-            backups, etc.
+            etc.
         """
 
         parameters = self.backend.get_chain(flat=True).tolist()

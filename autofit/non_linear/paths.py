@@ -131,7 +131,7 @@ class Paths:
         non_linear_name : str
             The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
         remove_files : bool
-            If *True*, all output results except their backup .zip files are removed. If ``False`` they are not removed.
+            If *True*, all output results except their ``.zip`` files are removed. If ``False`` they are not removed.
         """
 
         self.path_prefix = path_prefix or "/".join(folders)
@@ -186,13 +186,6 @@ class Paths:
         The path to the samples folder.
         """
         return f"{self.output_path}/samples"
-
-    @property
-    def backup_path(self) -> str:
-        """
-        The path to the backed up samples folder.
-        """
-        return f"{self.output_path}/samples_backup"
 
     @property
     def zip_path(self) -> str:
@@ -315,19 +308,19 @@ class Paths:
 
     @property
     def file_summary(self) -> str:
-        return "{}/{}".format(self.backup_path, "multinestsummary.txt")
+        return "{}/{}".format(self.path, "multinestsummary.txt")
 
     @property
     def file_weighted_samples(self):
-        return "{}/{}".format(self.backup_path, "multinest.txt")
+        return "{}/{}".format(self.path, "multinest.txt")
 
     @property
     def file_phys_live(self) -> str:
-        return "{}/{}".format(self.backup_path, "multinestphys_live.points")
+        return "{}/{}".format(self.path, "multinestphys_live.points")
 
     @property
     def file_resume(self) -> str:
-        return "{}/{}".format(self.backup_path, "multinestresume.dat")
+        return "{}/{}".format(self.path, "multinestresume.dat")
 
     @property
     def file_search_summary(self) -> str:
@@ -337,25 +330,10 @@ class Paths:
     def file_results(self):
         return "{}/{}".format(self.output_path, "model.results")
 
-    def backup(self):
-        """
-        Copy files from the sym-linked search folder to the backup folder in the workspace.
-        """
-        try:
-            shutil.rmtree(self.backup_path)
-        except FileNotFoundError:
-            pass
-
-        try:
-            shutil.copytree(self.sym_path, self.backup_path)
-        except shutil.Error as e:
-            logger.exception(e)
-
-    def backup_zip_remove(self):
+    def zip_remove(self):
         """
         Copy files from the sym linked search folder then remove the sym linked folder.
         """
-        self.backup()
         self.zip()
 
         if self.remove_files:
@@ -366,7 +344,7 @@ class Paths:
 
     def restore(self):
         """
-        Copy files from the backup folder to the sym-linked search folder.
+        Copy files from the ``.zip`` file to the samples folder.
         """
 
         if os.path.exists(self.zip_path):
@@ -374,10 +352,6 @@ class Paths:
                 f.extractall(self.output_path)
 
             os.remove(self.zip_path)
-
-        if os.path.exists(self.backup_path):
-            for file in glob.glob(self.backup_path + "/*"):
-                shutil.copy(file, self.path)
 
     def zip(self):
         try:

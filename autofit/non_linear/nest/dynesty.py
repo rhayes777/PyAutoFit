@@ -63,7 +63,7 @@ class AbstractDynesty(AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         facc : float
@@ -256,7 +256,7 @@ class AbstractDynesty(AbstractNest):
              -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
             return -1.0e99
 
-    def _fit(self, model: AbstractPriorModel, analysis) -> Result:
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> Result:
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the non-linear search seeks to maximize.
@@ -278,7 +278,7 @@ class AbstractDynesty(AbstractNest):
         pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids
+            model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
         )
 
         if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
@@ -415,7 +415,7 @@ class AbstractDynesty(AbstractNest):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         """
         sampler = self.load_sampler
         parameters = sampler.results.samples.tolist()
@@ -558,7 +558,7 @@ class DynestyStatic(AbstractDynesty):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         facc : float
@@ -769,7 +769,7 @@ class DynestyDynamic(AbstractDynesty):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         facc : float
@@ -929,11 +929,10 @@ class DynestyDynamic(AbstractDynesty):
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
-        2) Backup the samples.
-        3) Output the model results to the model.reults file.
+        2) Output the model results to the model.reults file.
 
         These task are performed every n updates, set by the relevent *task_every_update* variable, for example
-        *visualize_every_update* and *backup_every_update*.
+        *visualize_every_update*.
 
         Parameters
         ----------
@@ -994,7 +993,7 @@ class DynestyDynamic(AbstractDynesty):
 
         return Result(samples=samples, previous_model=model, search=self)
 
-    def _fit(self, model: AbstractPriorModel, analysis) -> NestSamples:
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> NestSamples:
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the non-linear search seeks to maximize.
@@ -1077,9 +1076,6 @@ class DynestyDynamic(AbstractDynesty):
 
         during_analysis = False
 
-        if self.should_backup() or not during_analysis:
-            self.paths.backup()
-
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model, sampler=sampler)
@@ -1103,7 +1099,7 @@ class DynestyDynamic(AbstractDynesty):
                 samples=samples, filename=self.paths.file_search_summary
             )
 
-        self.paths.backup_zip_remove()
+        self.paths.zip_remove()
 
         return samples
 
@@ -1118,7 +1114,7 @@ class DynestyDynamic(AbstractDynesty):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         """
 
         parameters = sampler.results.samples.tolist()
