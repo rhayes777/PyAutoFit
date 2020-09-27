@@ -448,7 +448,7 @@ class GridSearch:
         paths = Paths(
             name=name_path,
             tag=self.paths.tag,
-            folders=self.paths.folders,
+            path_prefix=self.paths.path_prefix,
             remove_files=self.paths.remove_files,
         )
 

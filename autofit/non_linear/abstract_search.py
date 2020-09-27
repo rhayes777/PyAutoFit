@@ -37,7 +37,7 @@ class NonLinearSearch(ABC):
         Parameters
         ------------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
@@ -84,17 +84,18 @@ class NonLinearSearch(ABC):
             self.iterations_per_update = conf.instance.general.get("hpc", "iterations_per_update", float)
 
         self.log_every_update = self._config("updates", "log_every_update", int)
-        self.backup_every_update = self._config("updates", "backup_every_update", int)
         self.visualize_every_update = self._config(
             "updates", "visualize_every_update", int
         )
         self.model_results_every_update = self._config(
             "updates", "model_results_every_update", int
         )
+        self.remove_state_files_at_end = self._config(
+            "updates", "remove_state_files_at_end", bool
+        )
 
         self.iterations = 0
         self.should_log = IntervalCounter(self.log_every_update)
-        self.should_backup = IntervalCounter(self.backup_every_update)
         self.should_visualize = IntervalCounter(self.visualize_every_update)
         self.should_output_model_results = IntervalCounter(
             self.model_results_every_update
@@ -110,7 +111,7 @@ class NonLinearSearch(ABC):
         self._in_phase = False
 
     class Fitness:
-        def __init__(self, paths, model, analysis, samples_from_model, pool_ids=None):
+        def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None, pool_ids=None):
 
             self.paths = paths
             self.max_log_likelihood = -np.inf
@@ -119,15 +120,16 @@ class NonLinearSearch(ABC):
             self.model = model
             self.samples_from_model = samples_from_model
 
+            self.log_likelihood_cap = log_likelihood_cap
             self.pool_ids = pool_ids
 
         def fit_instance(self, instance):
 
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
-            if self.analysis.log_likelihood_cap is not None:
-                if log_likelihood > self.analysis.log_likelihood_cap:
-                    log_likelihood = self.analysis.log_likelihood_cap
+            if self.log_likelihood_cap is not None:
+                if log_likelihood > self.log_likelihood_cap:
+                    log_likelihood = self.log_likelihood_cap
 
             if log_likelihood > self.max_log_likelihood:
 
@@ -185,7 +187,7 @@ class NonLinearSearch(ABC):
              should be given a likelihood so low that it is discard."""
             return -np.inf
 
-    def fit(self, model, analysis: "Analysis", info=None, pickle_files=None) -> "Result":
+    def fit(self, model, analysis: "Analysis", info=None, pickle_files=None, log_likelihood_cap=None) -> "Result":
         """ Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
 
@@ -228,6 +230,7 @@ class NonLinearSearch(ABC):
             self.save_search()
             self.save_model(model=model)
             self.move_pickle_files(pickle_files=pickle_files)
+            analysis.save_for_aggregator(paths=self.paths)
 
         if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
 
@@ -248,12 +251,12 @@ class NonLinearSearch(ABC):
             samples = self.samples_via_csv_json_from_model(model=model)
             self.save_samples(samples=samples)
 
-        self.paths.backup_zip_remove()
+        self.paths.zip_remove()
 
         return Result(samples=samples, previous_model=model, search=self)
 
     @abstractmethod
-    def _fit(self, model, analysis):
+    def _fit(self, model, analysis, log_likelihood_cap=None):
         pass
 
     @property
@@ -273,7 +276,6 @@ class NonLinearSearch(ABC):
             paths=Paths(
                 name=name,
                 tag=tag,
-                folders=self.paths.folders,
                 path_prefix=self.paths.path_prefix,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
@@ -311,11 +313,10 @@ class NonLinearSearch(ABC):
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
-        2) Backup the samples.
-        3) Output the model results to the model.reults file.
+        2) Output the model results to the model.reults file.
 
         These task are performed every n updates, set by the relevent *task_every_update* variable, for example
-        *visualize_every_update* and *backup_every_update*.
+        *visualize_every_update*
 
         Parameters
         ----------
@@ -331,9 +332,6 @@ class NonLinearSearch(ABC):
 
         self.iterations += self.iterations_per_update
         logger.info(f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.).")
-
-        if self.should_backup() or not during_analysis:
-            self.paths.backup()
 
         self.timer.update()
 
@@ -360,6 +358,9 @@ class NonLinearSearch(ABC):
             )
 
             text_util.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
+
+        if not during_analysis and self.remove_state_files_at_end:
+            self.remove_state_files()
 
         return samples
 
@@ -468,6 +469,9 @@ class NonLinearSearch(ABC):
             f"{key}={value or ''}" for key, value in {**self._default_metadata}.items()
         )
 
+    def remove_state_files(self):
+        pass
+
     def samples_via_sampler_from_model(self, model):
         raise NotImplementedError()
 
@@ -512,13 +516,14 @@ class NonLinearSearch(ABC):
 
 
 class Analysis:
-    def __init__(self, log_likelihood_cap=None):
-        self.log_likelihood_cap = log_likelihood_cap
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
     def visualize(self, instance, during_analysis):
+        pass
+
+    def save_for_aggregator(self, paths : Paths):
         pass
 
 

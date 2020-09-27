@@ -73,18 +73,18 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
             self.intensity = intensity
             self.sigma = sigma
 
-    """
-    An instance of the Gaussian class will be available during model fitting.
+        """
+        An instance of the Gaussian class will be available during model fitting.
 
-    This method will be used to fit the model to ``data`` and compute a likelihood.
-    """
+        This method will be used to fit the model to ``data`` and compute a likelihood.
+        """
 
-    def profile_from_xvalues(self, xvalues):
+        def profile_from_xvalues(self, xvalues):
 
-        transformed_xvalues = xvalues - self.centre
+            transformed_xvalues = xvalues - self.centre
 
-        return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
-                np.exp(-0.5 * transformed_xvalues / self.sigma)
+            return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
+                    np.exp(-0.5 * transformed_xvalues / self.sigma)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
 a non-linear search like `emcee <https://github.com/dfm/emcee>`_.
@@ -147,7 +147,8 @@ Getting Started
 
 To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
 where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
-tutorials and detailed API documentation.
+tutorials, detailed API documentation and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
+on how to integrate **PyAutoFit** into your modeling software.
 
 Support
 -------

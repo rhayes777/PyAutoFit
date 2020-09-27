@@ -13,8 +13,6 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase im
 class Analysis(af.Analysis):
     def __init__(self, masked_dataset, image_path=None):
 
-        super().__init__()
-
         """The `MaskedDataset` and visualizer are created in the same way as tutorial 6."""
 
         self.masked_dataset = masked_dataset
