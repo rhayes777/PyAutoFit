@@ -204,7 +204,7 @@ class Paths:
             filter(
                 len,
                 [
-                    conf.instance.output_path,
+                    str(conf.instance.output_path),
                     self.path_prefix,
                     self.name,
                     self.tag,
