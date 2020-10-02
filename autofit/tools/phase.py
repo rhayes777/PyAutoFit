@@ -169,7 +169,7 @@ class Phase(AbstractPhase):
 
 def as_grid_search(phase_class, parallel=False):
     """
-    Create a grid search phase class from a regular phase class. Instead of the phase
+        Returns a grid search phase class from a regular phase class. Instead of the phase
     being optimised by a single non-linear optimiser, a new optimiser is created for
     each square in a grid.
 

@@ -91,7 +91,7 @@ class ArithmeticMixin:
 
     def __neg__(self):
         """
-        Create an object representing the negation of this
+        Returns an object representing the negation of this
         object.
         """
         from autofit.mapper.prior.compound import NegativePrior

@@ -103,7 +103,7 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the dataset and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the dataset and contains the functions which perform the fit.
 
         Parameters
         ----------

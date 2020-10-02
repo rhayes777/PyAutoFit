@@ -102,7 +102,7 @@ class Gaussian:
 """
 We've extended the `Gaussian` class to have a method `profile_from_xvalues`. Given an input set of x coordinates
 this computes the intensity of the `Gaussian` at every point. We've already seen how the data contains the xvalues we 
-use, which are a 1D NumPy array spanning values 0 to 100.
+use, which are a 1D ndarray spanning values 0 to 100.
 
 If we pass these values to an instance of the `Gaussian` class, we can create a line of the gaussian`s values.
 """
@@ -371,7 +371,7 @@ over again, until we hit a model with a high log_likelihood. Yay!
 Of course, you`re probably thinking, is that really it? Should we really be guessing models to find the best-fit?
 
 Obviously, the answer is no. Imagine our model was more complex, that it had many more parameters than just 4.
-Our approach of guessing parameters won`t work - it could take days, maybe years, to find models with a high
+Our approach of guessing parameters won't work - it could take days, maybe years, to find models with a high
 log_likelihood, and how could you even be sure they ware the best-fit models? Maybe a set of parameters you never tried
 provide an even better fit?
 

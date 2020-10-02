@@ -270,26 +270,26 @@ class Paths:
 
     def make_search_pickle_path(self) -> str:
         """
-        Create the path at which the search pickle should be saved
+        Returns the path at which the search pickle should be saved
         """
         return f"{self.pickle_path}/search.pickle"
 
     def make_model_pickle_path(self):
         """
-        Create the path at which the model pickle should be saved
+        Returns the path at which the model pickle should be saved
         """
         return f"{self.pickle_path}/model.pickle"
 
     def make_samples_pickle_path(self) -> str:
         """
-        Create the path at which the search pickle should be saved
+        Returns the path at which the search pickle should be saved
         """
         return f"{self.pickle_path}/samples.pickle"
 
     @make_path
     def make_path(self) -> str:
         """
-        Create the path to the folder at which the metadata should be saved
+        Returns the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/{}/".format(
             conf.instance.output_path,

@@ -360,7 +360,10 @@ class NonLinearSearch(ABC):
             text_util.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
 
         if not during_analysis and self.remove_state_files_at_end:
-            self.remove_state_files()
+            try:
+                self.remove_state_files()
+            except FileNotFoundError:
+                pass
 
         return samples
 

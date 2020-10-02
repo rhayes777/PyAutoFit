@@ -40,7 +40,7 @@ class AttributePredicate:
 
     def __eq__(self, value):
         """
-        Create a predicate which asks whether the given value is equal to
+        Returns a predicate which asks whether the given value is equal to
         the attribute of a phase.
         """
         return EqualityPredicate(
@@ -88,14 +88,14 @@ class AttributePredicate:
 
     def __ne__(self, other):
         """
-        Create a predicate which asks whether the given value is not equal to
+        Returns a predicate which asks whether the given value is not equal to
         the attribute of a phase.
         """
         return ~(self == other)
 
     def contains(self, value):
         """
-        Create a predicate which asks whether the given is contained within
+        Returns a predicate which asks whether the given is contained within
         the attribute of a phase.
         """
         return ContainsPredicate(

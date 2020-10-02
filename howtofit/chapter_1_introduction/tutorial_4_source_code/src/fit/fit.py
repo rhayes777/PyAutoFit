@@ -133,7 +133,8 @@ def normalized_residual_map_from_residual_map_and_noise_map(residual_map, noise_
 
 
 def chi_squared_map_from_residual_map_and_noise_map(residual_map, noise_map):
-    """Computes the chi-squared-map between a residual-map and noise-map, where:
+    """
+    Returns the chi-squared-map between a residual-map and noise-map, where:
 
     Chi_Squared = ((Residuals) / (Noise)) ** 2.0 = ((Data - Model)**2.0)/(Variances)
 

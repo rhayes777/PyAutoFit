@@ -123,7 +123,7 @@ And with that, we have completed this (fairly short) tutorial. There are two thi
  the _Visualizer-. For your model-fitting project you should aim to adhere to performing all plots in a `plot` 
  module, as more benefits will become clear in chapter 2!
     
- 2) For our very simple 1D case, we used a 1D NumPy array to represent a `mask`. For projects with more complicated
+ 2) For our very simple 1D case, we used a 1D ndarray to represent a `mask`. For projects with more complicated
  datasets, one may require more complicated masks, warranting a `mask` package, `mask.py` module and `Mask2D` class. In 
  tutorial 9 we will show an example of this.
 """

@@ -108,7 +108,7 @@ class AbstractPriorModel(AbstractModel):
 
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
+        Returnss a ModelInstance, which has an attribute and class instance corresponding
         to every `PriorModel` attributed to this instance.
         This method takes as input a unit vector of parameter values, converting each to
         physical values via their priors.
@@ -254,7 +254,7 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=True
     ):
         """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
+        Returnss a ModelInstance, which has an attribute and class instance corresponding
         to every `PriorModel` attributed to this instance.
         This method takes as input a physical vector of parameter values, thus omitting
         the use of priors.
@@ -284,7 +284,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
+        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
         new priors, keeping existing priors where no mapping is provided.
         Parameters
         ----------
@@ -300,7 +300,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_prior_arguments(self, arguments):
         """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
+        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
         new priors.
         Parameters
         ----------
@@ -334,7 +334,7 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
-        Creates a new model mapper from a list of floats describing the mean values
+        Returnss a new model mapper from a list of floats describing the mean values
         of gaussian priors. The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
@@ -424,7 +424,7 @@ class AbstractPriorModel(AbstractModel):
 
     def instance_from_prior_medians(self):
         """
-        Creates a list of physical values from the median values of the priors.
+        Returnss a list of physical values from the median values of the priors.
         Returns
         -------
         physical_values : [float]
@@ -460,7 +460,7 @@ class AbstractPriorModel(AbstractModel):
 
     def random_instance(self):
         """
-        Creates a random instance of the model.
+        Returnss a random instance of the model.
         """
         return self.instance_from_unit_vector(
             unit_vector=[random() for _ in self.prior_tuples]
@@ -621,7 +621,7 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=True
     ):
         """
-        Create an instance of the model for a set of arguments
+        Returns an instance of the model for a set of arguments
         Parameters
         ----------
         assert_priors_in_limits

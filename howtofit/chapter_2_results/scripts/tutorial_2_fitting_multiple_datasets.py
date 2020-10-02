@@ -83,16 +83,16 @@ for index in range(len(datas)):
     mask = np.full(fill_value=False, shape=dataset.data.shape)
 
     """
-    Here, we create a `Phase` as normal. However, we also include an input parameter `prefix_path`. This defines the 
+    Here, we create a `Phase` as normal. However, we also include an input parameter `path_prefix`. This defines the 
     folders that the `Phase` outputs results to before the `phase_name`. For example, if a `Phase` outputs to the path:
 
         `/path/to/autofit_workspace/output/phase_name/`
 
-    A `Phase` with the `prefix_path='phase_folder' edits this path to:
+    A `Phase` with the `path_prefix='phase_folder' edits this path to:
 
         `/path/to/autofit_workspace/output/phase_folder/phase_name/`
 
-    You can input multiple folders, for example `prefix_path='folder_0/folder_1' would create the path:
+    You can input multiple folders, for example `path_prefix='folder_0/folder_1' would create the path:
 
         `/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/`
 

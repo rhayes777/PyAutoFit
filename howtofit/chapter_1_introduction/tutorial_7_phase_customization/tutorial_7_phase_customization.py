@@ -160,7 +160,7 @@ By customizing the `PhaseSetting``., **PyAutoFit** has changed the output path u
  1) Tags describes the analysis, making it explicit what was done to the `Dataset` for the fit.
 
  2) Tags create a unique output path, allowing you to compare results of `Phase`'s that use different `SettingsPhase`. 
-    Equally if you run multiple phases with different `PhaseSetting`'s this ensures the `NonLinearSearch` won`t
+    Equally if you run multiple phases with different `PhaseSetting`'s this ensures the `NonLinearSearch` won't
     use results generated via a different analysis method.
 
 You should now check out the `settings.py` and `dataset.py` modules, to see how we implemented this.

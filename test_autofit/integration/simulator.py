@@ -15,7 +15,7 @@ This script simulates the 1D Gaussians line profile datasets used by the integra
 
 
 def numpy_array_1d_to_fits(array_1d, file_path, overwrite=False):
-    """Write a 1D NumPy array to a .fits file.
+    """Write a 1D ndarray to a .fits file.
 
     Parameters
     ----------
@@ -67,7 +67,7 @@ data_path = f"{dataset_path}/gaussian_x1"
 
 # %%
 """
-Create a model instance of the Gaussian.
+        Returns a model instance of the Gaussian.
 """
 
 # %%

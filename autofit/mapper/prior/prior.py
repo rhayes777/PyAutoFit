@@ -235,7 +235,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
     @classmethod
     def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
         """
-        Create a prior from a JSON representation.
+        Returns a prior from a JSON representation.
 
         Parameters
         ----------
