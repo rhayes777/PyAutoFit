@@ -16,7 +16,6 @@ class TestMixin:
                 return self.run_analysis(analysis)
 
         my_phase = MyPhase(
-            af.Paths(name=""),
             number_of_steps=2,
             search=mock.MockSearch(
                 samples=mock.MockSamples(

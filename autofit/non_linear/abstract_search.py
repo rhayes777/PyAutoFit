@@ -80,15 +80,15 @@ class NonLinearSearch(ABC):
         if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.iterations_per_update = conf.instance["general"]["hpc"]["iterations_per_update"]
 
-        self.log_every_update = self._config("updates", "log_every_update", int)
+        self.log_every_update = self._config("updates", "log_every_update")
         self.visualize_every_update = self._config(
-            "updates", "visualize_every_update", int
+            "updates", "visualize_every_update",
         )
         self.model_results_every_update = self._config(
-            "updates", "model_results_every_update", int
+            "updates", "model_results_every_update",
         )
         self.remove_state_files_at_end = self._config(
-            "updates", "remove_state_files_at_end", bool
+            "updates", "remove_state_files_at_end",
         )
 
         self.iterations = 0
