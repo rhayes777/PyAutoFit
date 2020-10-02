@@ -15,7 +15,7 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.se
 
 
 """
-The phase module has new features not included in tutorial 6, which customize the _Dataset_ that is fitted and tag
+The phase module has new features not included in tutorial 6, which customize the `Dataset` that is fitted and tag
 the output path of the results.
 """
 
@@ -23,7 +23,7 @@ the output path of the results.
 class Phase(af.AbstractPhase):
 
     """
-    Because we now have multiple profiles in our model, we have renamed 'gaussian' to 'profiles'. As before,
+    Because we now have multiple profiles in our model, we have renamed `gaussian` to `profiles`. As before,
     PyAutoFit uses this information to map the input Profile classes to a model instance when performing a fit.
     """
 
@@ -34,7 +34,7 @@ class Phase(af.AbstractPhase):
     @af.convert_paths
     def __init__(self, paths, profiles, settings, search):
         """
-        A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a non-linear search.
+        A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a `NonLinearSearch`.
 
         Parameters
         ----------
@@ -49,9 +49,9 @@ class Phase(af.AbstractPhase):
         """
 
         """
-        Here, we create a 'tag' for our phase. If we use an optional phase setting to alter the _Dataset_ we fit (here,
-        a data_trim_ variable), we want to 'tag' the phase such that results are output to a unique
-        directory whose names makes it explicit how the _Dataset_ was changed.
+        Here, we create a `tag` for our phase. If we use an optional phase setting to alter the `Dataset` we fit (here,
+        a data_trim_ variable), we want to `tag` the phase such that results are output to a unique
+        directory whose names makes it explicit how the `Dataset` was changed.
 
         If this setting is off, the tag is an empty string and thus the directory structure is not changed.
         """
@@ -65,19 +65,19 @@ class Phase(af.AbstractPhase):
 
     def run(self, dataset: Dataset, mask):
         """
-        Pass a _Dataset_ to the phase, running the phase and non-linear search.
+        Pass a `Dataset` to the phase, running the phase and `NonLinearSearch`.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
-        mask: Mask
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
+        mask: Mask2D
             The mask used for the analysis.
 
         Returns
         -------
         result: AbstractPhase.Result
-            A result object comprising information on the non-linear search and the maximum likelihood model.
+            A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
 
         analysis = self.make_analysis(dataset=dataset, mask=mask)
@@ -88,27 +88,27 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the _Dataset_ and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
 
         Returns
         -------
         analysis : Analysis
-            An analysis object that the non-linear search calls to determine the fit log_likelihood for a given model
+            An analysis object that the `NonLinearSearch` calls to determine the fit log_likelihood for a given model
             instance.
         """
 
         """
-        Here, the _SettingsPhase_ are used to create the _MaskedDataset_ that is fitted. 
+        Here, the `SettingsPhase` are used to create the `MaskedDataset` that is fitted. 
         
-        If the data_trim_left and / or data_trim_right settings are passed into the _SettingsPhase_, the function 
-        below uses them to alter the _MaskedDataset_.
+        If the data_trim_left and / or data_trim_right settings are passed into the `SettingsPhase`, the function 
+        below uses them to alter the `MaskedDataset`.
 
-        Checkout 'dataset/dataset.py' for more details.
+        Checkout `dataset/dataset.py` for more details.
         """
 
         masked_dataset = MaskedDataset(

@@ -74,7 +74,6 @@ class TestEmceeConfig:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -107,7 +106,6 @@ class TestEmceeOutput:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -125,7 +123,6 @@ class TestEmceeOutput:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -147,7 +144,6 @@ class TestEmceeOutput:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)

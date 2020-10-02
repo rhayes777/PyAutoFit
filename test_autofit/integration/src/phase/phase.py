@@ -57,7 +57,7 @@ class Phase(af.AbstractPhase):
 
     @property
     def folders(self):
-        return self.search.folders
+        return self.search.path_prefix
 
     def run(self, dataset: Dataset, info=None, results=None):
         """
@@ -67,7 +67,7 @@ class Phase(af.AbstractPhase):
         ----------
         dataset: aa.Dataset
             The dataset fitted by the phase, as defined in the 'dataset.py' module.
-        mask: Mask
+        mask: Mask2D
             The mask used for the analysis.
 
         Returns
@@ -103,7 +103,7 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the dataset and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the dataset and contains the functions which perform the fit.
 
         Parameters
         ----------

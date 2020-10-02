@@ -84,7 +84,7 @@ class AbstractModelFactor(ABC):
 
     def mean_field_approximation(self) -> MeanFieldApproximation:
         """
-        Create a MeanFieldApproximation of the factor graph
+        Returns a MeanFieldApproximation of the factor graph
         """
         return MeanFieldApproximation.from_kws(
             self.graph,
@@ -154,7 +154,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-            Creates an instance of the prior model and evaluates it, forming
+        Returnss an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters

@@ -36,7 +36,7 @@ class AbstractNest(NonLinearSearch):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         terminate_at_acceptance_ratio : bool
@@ -76,14 +76,16 @@ class AbstractNest(NonLinearSearch):
 
     class Fitness(NonLinearSearch.Fitness):
         def __init__(
-                self,
-                paths,
-                analysis,
-                model,
-                samples_from_model,
-                stagger_resampling_likelihood,
-                terminate_at_acceptance_ratio,
-                acceptance_ratio_threshold,
+            self,
+            paths,
+            analysis,
+            model,
+            samples_from_model,
+            stagger_resampling_likelihood,
+            terminate_at_acceptance_ratio,
+            acceptance_ratio_threshold,
+            log_likelihood_cap=None,
+            pool_ids=None
         ):
 
             super().__init__(
@@ -91,6 +93,8 @@ class AbstractNest(NonLinearSearch):
                 analysis=analysis,
                 model=model,
                 samples_from_model=samples_from_model,
+                log_likelihood_cap=log_likelihood_cap,
+                pool_ids=pool_ids
             )
 
             self.stagger_resampling_likelihood = stagger_resampling_likelihood
@@ -193,7 +197,7 @@ class AbstractNest(NonLinearSearch):
         copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
         return copy
 
-    def fitness_function_from_model_and_analysis(self, model, analysis):
+    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
         return self.__class__.Fitness(
             paths=self.paths,
@@ -203,6 +207,8 @@ class AbstractNest(NonLinearSearch):
             stagger_resampling_likelihood=self.stagger_resampling_likelihood,
             terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=self.acceptance_ratio_threshold,
+            log_likelihood_cap=log_likelihood_cap,
+            pool_ids=pool_ids
         )
 
     def samples_via_csv_json_from_model(self, model):

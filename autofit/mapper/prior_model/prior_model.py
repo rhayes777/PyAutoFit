@@ -146,7 +146,7 @@ class PriorModel(AbstractPriorModel):
 
     def make_prior(self, attribute_name):
         """
-        Create a prior for an attribute of a class with a given name. The prior is
+        Returns a prior for an attribute of a class with a given name. The prior is
         created by searching the default prior config for the attribute.
 
         Entries in configuration with a u become uniform priors; with a g become
@@ -223,7 +223,7 @@ class PriorModel(AbstractPriorModel):
     @check_assertions
     def _instance_for_arguments(self, arguments: {ModelObject: object}):
         """
-        Create an instance of the associated class for a set of arguments
+        Returns an instance of the associated class for a set of arguments
 
         Parameters
         ----------
@@ -296,7 +296,7 @@ class PriorModel(AbstractPriorModel):
 
     def gaussian_prior_model_for_arguments(self, arguments):
         """
-        Create a new instance of model mapper with a set of Gaussian priors based on \
+        Returns a new instance of model mapper with a set of Gaussian priors based on \
         tuples provided by a previous nonlinear search.
 
         Parameters

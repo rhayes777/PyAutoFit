@@ -109,8 +109,8 @@ class AbstractPriorModel(AbstractModel):
 
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every _PriorModel_ attributed to this instance.
+        Returnss a ModelInstance, which has an attribute and class instance corresponding
+        to every `PriorModel` attributed to this instance.
         This method takes as input a unit vector of parameter values, converting each to
         physical values via their priors.
         Parameters
@@ -255,8 +255,8 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=True
     ):
         """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every _PriorModel_ attributed to this instance.
+        Returnss a ModelInstance, which has an attribute and class instance corresponding
+        to every `PriorModel` attributed to this instance.
         This method takes as input a physical vector of parameter values, thus omitting
         the use of priors.
         Parameters
@@ -264,7 +264,7 @@ class AbstractPriorModel(AbstractModel):
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
         assert_priors_in_limits
-            If True it is checked that the physical values of priors are within set limits
+            If ``True`` it is checked that the physical values of priors are within set limits
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
@@ -285,7 +285,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
+        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
         new priors, keeping existing priors where no mapping is provided.
         Parameters
         ----------
@@ -301,7 +301,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_prior_arguments(self, arguments):
         """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
+        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
         new priors.
         Parameters
         ----------
@@ -335,7 +335,7 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
-        Creates a new model mapper from a list of floats describing the mean values
+        Returnss a new model mapper from a list of floats describing the mean values
         of gaussian priors. The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
@@ -344,7 +344,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         no_limits
-            If True generated priors have infinite limits
+            If ``True`` generated priors have infinite limits
         r
             The relative width to be assigned to gaussian priors
         a
@@ -425,7 +425,7 @@ class AbstractPriorModel(AbstractModel):
 
     def instance_from_prior_medians(self):
         """
-        Creates a list of physical values from the median values of the priors.
+        Returnss a list of physical values from the median values of the priors.
         Returns
         -------
         physical_values : [float]
@@ -461,7 +461,7 @@ class AbstractPriorModel(AbstractModel):
 
     def random_instance(self):
         """
-        Creates a random instance of the model.
+        Returnss a random instance of the model.
         """
         return self.instance_from_unit_vector(
             unit_vector=[random() for _ in self.prior_tuples]
@@ -622,7 +622,7 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=True
     ):
         """
-        Create an instance of the model for a set of arguments
+        Returns an instance of the model for a set of arguments
         Parameters
         ----------
         assert_priors_in_limits
@@ -811,7 +811,8 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def parameter_labels(self) -> [str]:
-        """Returns a list of the label of every parameter in a model.
+        """
+    Returns a list of the label of every parameter in a model.
 
         This is used for displaying model results as text and for visualization with *corner.py*.
 
@@ -829,7 +830,8 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def subscripts(self) -> [str]:
-        """Returns a list of the model component subscripts of every parameter in a model.
+        """
+    Returns a list of the model component subscripts of every parameter in a model.
 
         This is used for displaying model results as text and for visualization with *corner.py*.
 

@@ -17,10 +17,10 @@ from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase.analysi
 class Phase(af.AbstractPhase):
 
     """
-    Because we now have multiple profiles in our model, we have renamed 'gaussian' to 'profiles'. As before,
+    Because we now have multiple profiles in our model, we have renamed `gaussian` to `profiles`. As before,
     PyAutoFit uses this information to map the input Profile classes to a model instance when performing a fit.
 
-    Whereas the 'gaussian' variable took a single _Gaussian_ object in the previous tutorials, the 'profiles' variable
+    Whereas the `gaussian` variable took a single `Gaussian` object in the previous tutorials, the `profiles` variable
     is a list of model component objects. The PhaseProperty class below accounts for this, such that the instance
     object passed into the log likelihood function can be iterated over like a list.
     """
@@ -32,7 +32,7 @@ class Phase(af.AbstractPhase):
     @af.convert_paths
     def __init__(self, paths, profiles, search):
         """
-        A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a non-linear search.
+        A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a `NonLinearSearch`.
 
         Parameters
         ----------
@@ -50,19 +50,19 @@ class Phase(af.AbstractPhase):
 
     def run(self, dataset: Dataset, mask):
         """
-        Pass a _Dataset_ to the phase, running the phase and non-linear search.
+        Pass a `Dataset` to the phase, running the phase and `NonLinearSearch`.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
-        mask: Mask
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
+        mask: Mask2D
             The mask used for the analysis.
 
         Returns
         -------
         result: AbstractPhase.Result
-            A result object comprising information on the non-linear search and the maximum likelihood model.
+            A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
 
         analysis = self.make_analysis(dataset=dataset, mask=mask)
@@ -73,17 +73,17 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the _Dataset_ and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
 
         Parameters
         ----------
         dataset: aa.Dataset
-            The _Dataset_ fitted by the phase, as defined in the 'dataset.py' module.
+            The `Dataset` fitted by the phase, as defined in the `dataset.py` module.
 
         Returns
         -------
         analysis : Analysis
-            An analysis object that the non-linear search calls to determine the fit log_likelihood for a given model
+            An analysis object that the `NonLinearSearch` calls to determine the fit log_likelihood for a given model
             instance.
         """
 

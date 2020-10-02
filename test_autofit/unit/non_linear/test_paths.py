@@ -6,11 +6,11 @@ class TestPathDecorator:
     def assert_paths_as_expected(paths):
         assert paths.name == "phase_name"
         assert paths.tag == "phase_tag"
-        assert paths.folders == ["folders"]
+        assert paths.path_prefix == ""
 
     def test_with_arguments(self):
         search = af.MockSearch(
-            af.Paths(name="phase_name", tag="phase_tag", folders=("folders",))
+            af.Paths(name="phase_name", tag="phase_tag")
         )
         self.assert_paths_as_expected(search.paths)
 
@@ -22,13 +22,13 @@ class TestPathDecorator:
 
     def test_paths_argument(self):
         search = af.MockSearch(
-            paths=af.Paths(name="phase_name", tag="phase_tag", folders=("folders",))
+            paths=af.Paths(name="phase_name", tag="phase_tag")
         )
         self.assert_paths_as_expected(search.paths)
 
     def test_combination_argument(self):
         search = af.MockSearch(
             "other",
-            paths=af.Paths(name="phase_name", tag="phase_tag", folders=("folders",)),
+            paths=af.Paths(name="phase_name", tag="phase_tag"),
         )
         self.assert_paths_as_expected(search.paths)

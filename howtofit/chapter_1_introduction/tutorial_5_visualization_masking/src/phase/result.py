@@ -1,17 +1,17 @@
 import autofit as af
 
-"""The 'result.py' module is unchanged from the previous tutorial."""
+"""The `result.py` module is unchanged from the previous tutorial."""
 
 
 class Result(af.Result):
     def __init__(self, samples, previous_model, search, analysis):
         """
-        The results of a non-linear search performed by a phase.
+        The results of a `NonLinearSearch` performed by a phase.
 
         Parameters
         ----------
         samples : af.Samples
-            A class containing the samples of the non-linear search, including methods to get the maximum log
+            A class containing the samples of the `NonLinearSearch`, including methods to get the maximum log
             likelihood model, errors, etc.
         analysis : Analysis
             The Analysis class used by this model-fit to fit the model to the data.

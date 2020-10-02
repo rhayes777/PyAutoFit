@@ -2,21 +2,24 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot imp
     line_plots,
 )
 
-"""The 'dataset_plots.py' module is unchanged from the previous tutorial."""
+"""The `dataset_plots.py` module is unchanged from the previous tutorial."""
 
 
 def data(dataset, output_path=None, output_filename=None, output_format="show"):
-    """Plot the data values of a Line _Dataset_.
+    """Plot the data values of a Line `Dataset`.
 
     Parameters
     -----------
-    Line : _Dataset_.Line
-        The observed Line _Dataset_ whose data is plotted.
+    Line : `Dataset`.Line
+        The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,
         line=dataset.data,
+        errors=dataset.noise_map,
+        title="Data",
         ylabel="Data Values",
+        color="k",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,
@@ -24,17 +27,19 @@ def data(dataset, output_path=None, output_filename=None, output_format="show"):
 
 
 def noise_map(dataset, output_path=None, output_filename=None, output_format="show"):
-    """Plot the noise-map of a Line _Dataset_.
+    """Plot the noise-map of a Line `Dataset`.
 
     Parameters
     -----------
-    Line : _Dataset_.Line
-        The observed Line _Dataset_ whose data is plotted.
+    Line : `Dataset`.Line
+        The observed Line `Dataset` whose data is plotted.
     """
     line_plots.line(
         xvalues=dataset.xvalues,
         line=dataset.noise_map,
+        title="Noise-Map",
         ylabel="Noise-Map",
+        color="k",
         output_path=output_path,
         output_filename=output_filename,
         output_format=output_format,

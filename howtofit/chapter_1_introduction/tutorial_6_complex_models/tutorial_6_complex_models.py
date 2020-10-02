@@ -3,17 +3,17 @@
 Tutorial 6: Complex Models
 ==========================
 
-Up to now, we've fitted a very simple model - a single 1D _Gaussian_ with just 3 free parameters. In this tutorial,
-we'll look at how PyAutoFit allows us to compose and fit models of arbitrary complexity.
+Up to now, we've fitted a very simple model, a 1D `Gaussian` with 3 free parameters. In this tutorial, we'll look at
+how **PyAutoFit** allows us to compose and fit models of arbitrary complexity.
 
-To begin, you should check out the module 'tutorial_6_complex_models/model/profiles.py'. In previous tutorials this
-module was called 'gaussian.py' and it contained only the _Gaussian_ class we fitted to data. The module now includes
-a second profile, 'Exponential', which like the _Gaussian_ class is a model-component that can be fitted to data.
+To begin, you should check out the module `tutorial_6_complex_models/model/profiles.py`. In previous tutorials this
+module was called `gaussian.py` and contained only the `Gaussian` class. The module now includes a second profile,
+_Exponential_, which like the `Gaussian` class is a model-component that can be fitted to data.
 
-Up to now, our data has always been generated using a single _Gaussian_ profile. Thus, we have only needed to fit
-it with a single Gaussian. In this tutorial, our _Dataset_ is now a superpositions of multiple profiles (e.g a
-Gaussians + Exponential). The models we compose and fit are therefore composed of multiple profiles, such that when we
-generate the model-data we generate it as the sum of all individual profiles in our model.
+Up to now, our data has always been generated using a single `Gaussian` profile. Thus, we have only needed to fit
+it with a single `Gaussian`. In this tutorial, our `Dataset` is now a superpositions of multiple profiles. The models
+we compose and fit are therefore composed of multiple profiles, such that when we generate the model-data we
+generate it as the sum of all individual profiles in our model.
 """
 
 # %%
@@ -34,7 +34,7 @@ print("Workspace Path: ", workspace_path)
 
 # %%
 """
-Setup the configs as we did in the previous tutorial, as well as the output folder for our non-linear search.
+Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
 """
 
 # %%
@@ -45,14 +45,14 @@ conf.instance = conf.Config(
 
 # %%
 """
-Lets quickly recap tutorial 1, where using PriorModels we created a _Gaussian_ as a model component and used it to map a
-list of parameters to a model instance.
+Lets quickly recap tutorial 1, where using `PriorModels` we created a `Gaussian` as a model component and used it to 
+map a list of parameters to a model `instance`.
 """
 
 # %%
 model = af.PriorModel(htf.profiles.Gaussian)
 
-print("PriorModel _Gaussian_ object: \n")
+print("PriorModel `Gaussian` object: \n")
 print(model)
 
 instance = model.instance_from_vector(vector=[0.1, 0.2, 0.3])
@@ -67,7 +67,7 @@ print("sigma = ", instance.sigma)
 
 # %%
 """
-Defining a model using multiple model components is straight forward in PyAutoFit, using a CollectionPriorModel
+Defining a model using multiple model components is straight forward in **PyAutoFit**, using a _CollectionPriorModel_
 object.
 """
 
@@ -78,9 +78,9 @@ model = af.CollectionPriorModel(
 
 # %%
 """
-A CollectionPriorModel behaves like a _PriorModel_ but contains a collection of model components. For example, it can
-create a model instance by mapping a list of parameters, which in this case is 6 (3 for the _Gaussian_ [centre,
-intensity, sigma] and 3 for the Exponential [centre, intensity, rate]).
+A `CollectionPriorModel` behaves like a `PriorModel` but contains a collection of model components. For example, it can
+create a model instance by mapping a list of parameters, which in this case is 6 (3 for the `Gaussian` `[centre,
+intensity, sigma]` and 3 for the `Exponential` `[centre, intensity, rate]`).
 """
 
 # %%
@@ -88,8 +88,8 @@ instance = model.instance_from_vector(vector=[0.1, 0.2, 0.3, 0.4, 0.5, 0.01])
 
 # %%
 """
-This instance contains each of the model components we defined above, using the input argument name of the
-CollectionoPriorModel to define the attributes in the instance:
+This `instance` contains each of the model components we defined above, using the input argument name of the
+_CollectionoPriorModel_ to define the attributes in the `instance`:
 """
 
 # %%
@@ -103,7 +103,7 @@ print("sigma (Exponential) = ", instance.exponential.rate)
 
 # %%
 """
-We can call the components of a CollectionPriorModel whatever we want, and the mapped instance will use those names.
+We can call the components of a `CollectionPriorModel` whatever we want, and the mapped `instance` will use those names.
 """
 
 # %%
@@ -125,18 +125,18 @@ print("sigma (Exponential) = ", instance.rich.rate)
 
 # %%
 """
-Now we can create a model composed of multiple components, lets fit it to a _Dataset_. To do this, we updated this 
-tutorial's phase package, spefically its 'Analysis' class such that it creates model data as a super position of all of 
-the model's individual profiles. For example, in the model above, the model data is the sum of the Gaussian's 
-individual profile and Exponential's individual profile.
+Now we can create a model composed of multiple components, lets fit it to a `Dataset`. To do this, we updated this 
+tutorial`s `phase` package, spefically its `Analysis` class such that it creates `model_data` as a super position of 
+all the model`s individual `Profile`'s. For example, in the model above, the `model_data` is the sum of the 
+_Gaussian_`s  individual profile and `Exponential`'s individual profile.
 
-Checkout 'phase.py' and 'analysis.py' now, for a description of how this has been implemented.
+Checkout `phase.py` and `analysis.py` now, for a description of how this has been implemented.
 """
 
 # %%
 """
-Import the simulator module and set up the _Dataset_. This uses a new _Dataset_ that is generated as a sum of a _Gaussian_ 
-and Exponential profile.
+Import the `simulators` module and set up the `Dataset`. This uses a new `Dataset` that is generated as a sum of a 
+_Gaussian_ and `Exponential` profile.
 """
 
 # %%
@@ -148,8 +148,8 @@ dataset = htf.Dataset(
 
 # %%
 """
-We again need to create a mask for our data. In this exmample, we'll omit actual masking of the dataset, but still
-need to define a mask to pass the 'phase.run' method.
+We again need to create a `mask` for our data which we pass to the `phase.run` method. In this example, our `mask` is
+only `False` entries meaning that every datapoint is used in the fit.
 """
 
 # %%
@@ -157,8 +157,8 @@ mask = np.full(fill_value=False, shape=dataset.data.shape)
 
 # %%
 """
-Lets now perform the fit using our model which is composed of two profiles. You'll note that the Emcee
-dimensionality has increased from N=3 to N=6, given that we are now fitting two profiles each with 3 free parameters.
+Lets now perform the fit using our model which is composed of two _Profile`_s. You`ll note that the _Emcee_
+dimensionality has increased from N=3 to N=6, given that we are now fitting two `Profile`'s each with 3 free parameters.
 """
 
 # %%
@@ -182,11 +182,11 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
-Quickly inspect the results of this fit, which you may have noticed takes a bit longer to run than the fits performed
+Quickly inspect the `Result`'s of the fit, which you may have noticed takes a bit longer to run than the fits performed
 in previous tutorials. This is because the dimensionality of the model we are fitted increased from 3 to 6.
 
-With the CollectionPriorModel, PyAutoFit gives us all the tools we need to compose and fit any model imaginable!
-Lets fit a model composed of two Gaussians and and an Exponential, which will have a dimensionality of N=9.
+With the `CollectionPriorModel`, **PyAutoFit** provides all the tools needed to compose and fit any model imaginable!
+Lets fit a model composed of two `Gaussian`. and and an `Exponential`, which will have a dimensionality of N=9.
 """
 
 # %%
@@ -218,13 +218,13 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
-We can fully custommize the model that we fit. Lets suppose we have a _Dataset_ that consists of three _Gaussian_ line
+We can fully customize the model that we fit. Lets suppose we have a `Dataset` that consists of three `Gaussian` 
 profiles, but we also know the following information about the dataset:
 
-- All 3 Gaussians are centrally aligned.
-- The sigma of one _Gaussian_ is equal to 1.0.
+- All 3 `Gaussian`.s are centrally aligned.
+- The `sigma` of one `Gaussian` is equal to 1.0.
 
-We can edit our CollectionPriorModel to meet these constraints accordingly:
+We can edit our `CollectionPriorModel` to meet these constraints accordingly:
 """
 
 # %%
@@ -236,7 +236,7 @@ model = af.CollectionPriorModel(
 
 # %%
 """
-This aligns the centres of the 3 Gaussians, reducing the dimensionality of the model from N=9 to N=7
+This aligns the `centre`'s of the 3 `Gaussian`., reducing the dimensionality of the model from N=9 to N=7
 """
 
 # %%
@@ -245,7 +245,7 @@ model.gaussian_1.centre = model.gaussian_2.centre
 
 # %%
 """
-This fixes the sigma value of one _Gaussian_ to 1.0, further reducing the dimensionality from N=7 to N=6.
+This fixes the `sigma` value of one `Gaussian` to 1.0, further reducing the dimensionality from N=7 to N=6.
 """
 
 # %%
@@ -253,7 +253,7 @@ model.gaussian_0.sigma = 1.0
 
 # %%
 """
-We can now fit this model using a phase as per usual.
+We can now fit this model using a `Phase` as per usual.
 """
 
 # %%
@@ -275,16 +275,17 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
-And with that, we are complete. In this tutorial, we learned how to compose complex models in PyAutoFit and adjust our
-'phase.py' and 'analyis.py' modules to fit them. To end, you should think again in more detail about your model
+And with that, we are complete. In this tutorial, we learned how to compose complex models in **PyAutoFit** and adjust 
+our `phase.py` and `analyis.py` modules to fit them. To end, you should think again in more detail about your model
 fitting problem:
 
 Are there many different model components you may wish to define and fit?
-Is your model-data the super position of many different model components, like the profiles in this tutorial?
 
-In this tutorial, all components of our model did the same thing - represent a 'line' of data. In your model, you may
+Is your data the super position of many different model components, like the profiles in this tutorial?
+
+In this tutorial, all components of our model did the same thing, represent a 1D profile. In your model, you may
 have model components that represent different parts of your model, which need to be combined in more complicated ways
-in order to create your model-fit. In such circumstances, the 'fit' method in your 'Analysis' class may be significantly
-more complex than the example shown in this tutorial. Nevertheless, you now have all the tools you need to define,
-compose and fit very complex models - there isn't much left for you to learn on your journey through PyAutoFit!
+in order to create your model-fit. In such circumstances, the `fit` method in your `Analysis` class may be 
+significantly more complex than the example shown in this tutorial. Nevertheless, you now have all the tools you need 
+to define, compose and fit very complex models, there isn't much left for you to learn on your journey through **PyAutoFit**!
 """

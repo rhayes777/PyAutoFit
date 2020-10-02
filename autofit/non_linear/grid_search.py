@@ -140,6 +140,20 @@ class GridSearchResult:
         ]
 
     @property
+    def results_reshaped(self):
+        """
+        Returns
+        -------
+        likelihood_merit_array: np.ndarray
+            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
+            each entry being the figure of merit taken from the optimization performed at that point.
+        """
+        return np.reshape(
+            np.array([result for result in self.results]),
+            tuple(self.side_length for _ in range(self.no_dimensions)),
+        )
+
+    @property
     def max_log_likelihood_values(self):
         """
         Returns
@@ -446,7 +460,7 @@ class GridSearch:
         paths = Paths(
             name=name_path,
             tag=self.paths.tag,
-            folders=self.paths.folders,
+            path_prefix=self.paths.path_prefix,
             remove_files=self.paths.remove_files,
         )
 
@@ -579,7 +593,7 @@ def grid(fitness_function, no_dimensions, step_size):
 
 def make_lists(no_dimensions, step_size, centre_steps=True):
     """
-    Create a list of lists of floats covering every combination across no_dimensions of points of integer step size
+        Returns a list of lists of floats covering every combination across no_dimensions of points of integer step size
     between 0 and 1 inclusive.
 
     Parameters

@@ -1,13 +1,13 @@
 Chapter 1: Introduction
 =======================
 
-In chapter 1, we'll introduce you to the **PyAutoFit** API and describe how to set up your own software project to use
-**PyAutoFit**.
+In chapter 1, we introduce you to the **PyAutoFit** API and describe how to set up your own software
+project to use **PyAutoFit**.
 
-A number of the notebooks require a *non-linear search* to be performed, which can lead the auto-generation of the
-**HowToFit** readthedocs pages to crash. For this reason, all cells which perform a *non-linear search* or use its
-result are commented out. We advise if you want to read through the **HowToFit** lectures in full that you download
-the autofit_workspace and run them from there (where these comments are removed).
+A number of the notebooks require a ``NonLinearSearch`` to be performed, which can lead the auto-generation
+of the **HowToFit** readthedocs pages to crash. For this reason, all cells which perform a ``NonLinearSearch``
+or use its result are commented out. We advise if you want to read through the **HowToFit** lectures in full
+that you download the ``autofit_workspace`` and run them from there (where these comments are removed).
 
 The chapter contains the following tutorials:
 
@@ -30,7 +30,7 @@ The chapter contains the following tutorials:
 - Composing and fitting complex models.
 
 `Tutorial 7: Phase Customization <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_7_phase_customization.html>`_
-- Augmenting the data and customizing the likelihood function of a model-fit.
+- Augmenting the ``data`` and customizing the likelihood function of a model-fit.
 
 .. toctree::
    :caption: Tutorials:

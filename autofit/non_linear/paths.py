@@ -62,8 +62,7 @@ def convert_paths(func):
         paths = Paths(
             name=first_arg,
             tag=kwargs.pop("phase_tag", None),
-            folders=kwargs.pop("folders", tuple()),
-            path_prefix=kwargs.pop("phase_path", None),
+            path_prefix=kwargs.pop("path_prefix", None),
             non_linear_name=search_name,
             non_linear_tag_function=non_linear_tag_function,
         )
@@ -81,7 +80,6 @@ class Paths:
             self,
             name="",
             tag=None,
-            folders=tuple(),
             path_prefix=None,
             non_linear_name=None,
             non_linear_tag_function=lambda: "",
@@ -101,36 +99,30 @@ class Paths:
 
         name = "name"
         tag = "tag"
-        folders = ["folder_0", "folder_1"]
+        path_prefix = "folder_0/folder_1"
         non_linear_name = "emcee"
 
         The output path of the non-linear search results will be:
 
         /path/to/output/folder_0/folder_1/name/tag/emcee
 
-        The folders variable can be omitted for a path_prefix variable, whereby identical behaviour to above can be
-        achieved by inputing path_prefix="/folder_0/folder_1/".
-
         Parameters
         ----------
         name : str
-            The name of the non-linear search, which is used as a folder name after the 'folders' list. For phases this
-            name is the phase_name.
+            The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For phases
+            this name is the ``phase_name``.
         tag : str
             A tag for the non-linear search, typically used for instances where the same data is fitted with the same
             model but with slight variants. For phases this is the phase_tag.
-        folders : [str, str]
-            Prefixed folders that appears after the output_path but beflore the name variable.
         path_prefix : str
-            A prefixed path that appears after the output_path but beflore the name variable (this superseeds the
-            folders variable if both are input.
+            A prefixed path that appears after the output_path but beflore the name variable.
         non_linear_name : str
             The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
         remove_files : bool
-            If *True*, all output results except their backup .zip files are removed. If *False* they are not removed.
+            If *True*, all output results except their ``.zip`` files are removed. If ``False`` they are not removed.
         """
 
-        self.path_prefix = path_prefix or "/".join(folders)
+        self.path_prefix = path_prefix or ""
         self.name = name or ""
         self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
@@ -173,10 +165,6 @@ class Paths:
         )
 
     @property
-    def folders(self):
-        return self.path_prefix.split("/")
-
-    @property
     def samples_path(self) -> str:
         """
         The path to the samples folder.
@@ -184,11 +172,11 @@ class Paths:
         return f"{self.output_path}/samples"
 
     @property
-    def backup_path(self) -> str:
+    def samples_from_sym_path(self) -> str:
         """
-        The path to the backed up samples folder.
+        The path to the samples folder.
         """
-        return f"{self.output_path}/samples_backup"
+        return f"{self.output_path}/samples_from_sym"
 
     @property
     def zip_path(self) -> str:
@@ -278,26 +266,26 @@ class Paths:
 
     def make_search_pickle_path(self) -> str:
         """
-        Create the path at which the search pickle should be saved
+        Returns the path at which the search pickle should be saved
         """
         return f"{self.pickle_path}/search.pickle"
 
     def make_model_pickle_path(self):
         """
-        Create the path at which the model pickle should be saved
+        Returns the path at which the model pickle should be saved
         """
         return f"{self.pickle_path}/model.pickle"
 
     def make_samples_pickle_path(self) -> str:
         """
-        Create the path at which the search pickle should be saved
+        Returns the path at which the search pickle should be saved
         """
         return f"{self.pickle_path}/samples.pickle"
 
     @make_path
     def make_path(self) -> str:
         """
-        Create the path to the folder at which the metadata should be saved
+        Returns the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/{}/".format(
             conf.instance.output_path,
@@ -311,19 +299,19 @@ class Paths:
 
     @property
     def file_summary(self) -> str:
-        return "{}/{}".format(self.backup_path, "multinestsummary.txt")
+        return "{}/{}".format(self.samples_from_sym_path, "multinestsummary.txt")
 
     @property
     def file_weighted_samples(self):
-        return "{}/{}".format(self.backup_path, "multinest.txt")
+        return "{}/{}".format(self.samples_from_sym_path, "multinest.txt")
 
     @property
     def file_phys_live(self) -> str:
-        return "{}/{}".format(self.backup_path, "multinestphys_live.points")
+        return "{}/{}".format(self.samples_from_sym_path, "multinestphys_live.points")
 
     @property
     def file_resume(self) -> str:
-        return "{}/{}".format(self.backup_path, "multinestresume.dat")
+        return "{}/{}".format(self.samples_from_sym_path, "multinestresume.dat")
 
     @property
     def file_search_summary(self) -> str:
@@ -333,25 +321,28 @@ class Paths:
     def file_results(self):
         return "{}/{}".format(self.output_path, "model.results")
 
-    def backup(self):
+    def copy_from_sym(self):
         """
-        Copy files from the sym-linked search folder to the backup folder in the workspace.
+        Copy files from the sym-linked search folder to the samples folder.
         """
         try:
-            shutil.rmtree(self.backup_path)
+            shutil.rmtree(self.samples_from_sym_path)
         except FileNotFoundError:
             pass
 
+     #   print(os.listdir(self.path))
+
+     #   stop
+
         try:
-            shutil.copytree(self.sym_path, self.backup_path)
+            shutil.copytree(self.path, self.samples_from_sym_path)
         except shutil.Error as e:
             logger.exception(e)
 
-    def backup_zip_remove(self):
+    def zip_remove(self):
         """
         Copy files from the sym linked search folder then remove the sym linked folder.
         """
-        self.backup()
         self.zip()
 
         if self.remove_files:
@@ -362,7 +353,7 @@ class Paths:
 
     def restore(self):
         """
-        Copy files from the backup folder to the sym-linked search folder.
+        Copy files from the ``.zip`` file to the samples folder.
         """
 
         if os.path.exists(self.zip_path):
@@ -370,10 +361,6 @@ class Paths:
                 f.extractall(self.output_path)
 
             os.remove(self.zip_path)
-
-        if os.path.exists(self.backup_path):
-            for file in glob.glob(self.backup_path + "/*"):
-                shutil.copy(file, self.path)
 
     def zip(self):
         try:

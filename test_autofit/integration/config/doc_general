@@ -8,21 +8,18 @@ A description of the general.ini config.
         The file name the logged output is written to (in the phase folder).
     log_level : str
         The level of logging.
-    backup_every_update : int
-        The number of new maximum likelihood models that must be sampled for PyAutoLens to backup the
-        results to the samples_backup folder of the phase. A backup_every_update of -1 turns off backups.
     grid_results_interval : int
         For a GridSearch non-linear optimization this interval sets after how many samples on the grid output is
         performed for. A grid_results_interval of -1 turns off output.
     model_results_every_update : int
         The number of new maximum likelihood models that must be sampled for PyAutoLens to output a new model.results
         file using the latest MultiNest samples and thus most up to data PDFs. A model_results_every_update of -1
-        turns off backups.
+        turns off output of model results.
     model_results_decimal_places : int
         The number of decimal places the estimate values and errors of all parameters in the model.results file are
         output to.
     remove_files : bool
-        If True, all output files of a phase (e.g. samples, samples_backup, model.results, images, etc.) are
+        If True, all output files of a phase (e.g. samples, model.results, images, etc.) are
         deleted once the phase has completed.
         A .zip file of all output is always written at the phase before files are removed, thus results are not lost
         with this option turned on. If a PyAutoLens does not find the output files of a phase (because they were

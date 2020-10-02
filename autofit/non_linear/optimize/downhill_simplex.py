@@ -2,6 +2,7 @@ import numpy as np
 import scipy.optimize
 
 from autofit import exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.paths import Paths
 
@@ -64,7 +65,7 @@ class DownhillSimplex(AbstractOptimizer):
                 log_likelihood = -np.inf
             return -2 * log_likelihood
 
-    def _fit(self, model, analysis):
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
 
         initial_vector = model.physical_values_from_prior_medians
 
@@ -86,7 +87,7 @@ class DownhillSimplex(AbstractOptimizer):
         res.model = model
 
         analysis.visualize(instance=res.instance, during_analysis=False)
-        self.paths.backup_zip_remove()
+        self.paths.zip_remove()
         return res
 
     def samples_via_sampler_from_model(self, model):

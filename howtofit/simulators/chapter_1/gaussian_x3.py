@@ -26,7 +26,7 @@ xvalues = np.arange(pixels)
 
 # %%
 """
-Evaluate all three _Gaussian_ model instances at every xvalues to create their model profiles and sum them
+Evaluate all three `Gaussian` model instances at every xvalues to create their model profiles and sum them
 together to create the overall model profile.
 """
 

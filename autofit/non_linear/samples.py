@@ -43,7 +43,7 @@ class OptimizerSamples:
         weights: List[float],
         time: float = None,
     ):
-        """The *Samples* of a non-linear search, specifically the samples of an search which only provides
+        """The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
 
@@ -148,7 +148,7 @@ class OptimizerSamples:
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
+        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
          - The mean is given by maximum log likelihood model values.
@@ -185,7 +185,7 @@ class PDFSamples(OptimizerSamples):
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
-        """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
+        """The `Samples` of a non-linear search, specifically the samples of a non-linear search which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
         Parameters
@@ -270,7 +270,7 @@ class PDFSamples(OptimizerSamples):
         as a model instance."""
         return self.model.instance_from_vector(vector=self.median_pdf_vector)
 
-    def vector_at_sigma(self, sigma) -> [float]:
+    def vector_at_sigma(self, sigma) -> [(float, float)]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
 
@@ -393,19 +393,21 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def error_vector_at_sigma(self, sigma) -> [float]:
-        """ The value of every error after marginalization in 1D at an input sigma value of the probability density
-        function (PDF), returned as two lists of values corresponding to the lower and upper errors.
+    def error_vector_at_sigma(self, sigma) -> [(float, float)]:
+        """The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
+        density function (PDF), returned as a list.
 
-        For example, if sigma is 1.0, the errors marginalized at 31.7% and 68.2% percentiles of each PDF is returned.
+        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
 
         Parameters
-        ----------
+        -----------
         sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
-        uppers = self.vector_at_upper_sigma(sigma=sigma)
-        lowers = self.vector_at_lower_sigma(sigma=sigma)
-        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
+            PDF).
+        """
+        error_vector_lower = self.error_vector_at_lower_sigma(sigma=sigma)
+        error_vector_upper = self.error_vector_at_upper_sigma(sigma=sigma)
+        return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
 
     def error_vector_at_upper_sigma(self, sigma) -> [float]:
         """The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
@@ -449,6 +451,21 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
+    def error_magnitude_vector_at_sigma(self, sigma) -> [float]:
+        """ The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
+        function (PDF), returned as two lists of values corresponding to the lower and upper errors.
+
+        For example, if sigma is 1.0, the difference in the inferred values marginalized at 31.7% and 68.2% percentiles
+        of each PDF is returned.
+
+        Parameters
+        ----------
+        sigma : float
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+        uppers = self.vector_at_upper_sigma(sigma=sigma)
+        lowers = self.vector_at_lower_sigma(sigma=sigma)
+        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
+
     def error_instance_at_sigma(self, sigma) -> ModelInstance:
         """ The error of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper errors.
@@ -460,7 +477,7 @@ class PDFSamples(OptimizerSamples):
         sigma : float
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
         return self.model.instance_from_vector(
-            vector=self.error_vector_at_sigma(sigma=sigma),
+            vector=self.error_magnitude_vector_at_sigma(sigma=sigma),
             assert_priors_in_limits=False,
         )
 
@@ -499,7 +516,7 @@ class PDFSamples(OptimizerSamples):
         )
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
+        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
          - The mean is given by their most-probable values (using *median_pdf_vector*).

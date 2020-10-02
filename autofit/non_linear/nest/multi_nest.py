@@ -45,7 +45,7 @@ class MultiNest(abstract_nest.AbstractNest):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
         n_live_points : int
@@ -92,7 +92,7 @@ class MultiNest(abstract_nest.AbstractNest):
         verbose : bool
             Whether MultiNest prints messages.
         resume : bool
-            If True and existing results are found at the output path, MultiNest will resume that run. If False,
+            If ``True`` and existing results are found at the output path, MultiNest will resume that run. If False,
             MultiNest will start a new run.
         context : None
             Not used by PyAutoFit.
@@ -199,7 +199,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
         logger.debug("Creating MultiNest NLO")
 
-    def _fit(self, model: AbstractPriorModel, analysis) -> abstract_search.Result:
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> abstract_search.Result:
         """
         Fit a model using MultiNest and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the non-linear search seeks to maximize.
@@ -240,7 +240,7 @@ class MultiNest(abstract_nest.AbstractNest):
             fitness_function,
             prior,
             model.prior_count,
-            outputfiles_basename="{}/samples".format(self.paths.path),
+            outputfiles_basename="{}/multinest".format(self.paths.path),
             n_live_points=self.n_live_points,
             const_efficiency_mode=self.const_efficiency_mode,
             importance_nested_sampling=self.importance_nested_sampling,
@@ -260,7 +260,7 @@ class MultiNest(abstract_nest.AbstractNest):
             max_iter=self.max_iter,
             init_MPI=self.init_MPI,
         )
-        self.paths.backup()
+        self.paths.copy_from_sym()
 
     @property
     def tag(self):
@@ -325,7 +325,7 @@ class MultiNest(abstract_nest.AbstractNest):
         return copy
 
     def samples_via_sampler_from_model(self, model: AbstractPriorModel):
-        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
 

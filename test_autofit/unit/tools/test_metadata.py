@@ -29,13 +29,4 @@ def test_metadata_dictionary(phase):
     }
 
 
-def test_datset_name_in_metadata_text(phase):
-    text = phase.make_metadata_text(
-        dataset_name="data"
-    )
-    print(text)
-    assert text == """phase=phase_name
-phase_tag=phase_tag
-pipeline=
-pipeline_tag=
-dataset_name=data"""
+

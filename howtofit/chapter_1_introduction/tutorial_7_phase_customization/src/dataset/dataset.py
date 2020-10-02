@@ -1,16 +1,16 @@
 import numpy as np
 
 """
-In this tutorial, we run phases where the _Dataset_ fitted by the phase is altered before the model-fitting
+In this tutorial, we run phases where the `Dataset` fitted by the phase is altered before the model-fitting
 procedure is run. 
 
-The _Dataset_ is trimmed by an input number of pixels to the left and / or right.
+The `Dataset` is trimmed by an input number of pixels to the left and / or right.
 """
 
 
 class Dataset:
     def __init__(self, data, noise_map):
-        """A class containing the data and noise-map of a 1D line _Dataset_.
+        """A class containing the data and noise-map of a 1D line `Dataset`.
 
         Parameters
         ----------
@@ -27,14 +27,14 @@ class Dataset:
         return np.arange(self.data.shape[0])
 
     """
-    The _MaskedDataset_ that is fitted by an analysis is created using the method below.
+    The `MaskedDataset` that is fitted by an analysis is created using the method below.
 
-    If the data_trim attributes are not None, they are used to trim the _Dataset_ before creating the _MaskedDataset_.
+    If the data_trim attributes are not None, they are used to trim the `Dataset` before creating the `MaskedDataset`.
     """
 
     def with_left_trimmed(self, data_trim_left):
 
-        """Here, we use the existing _MaskedDataset_ to create a trimmed _Dataset_."""
+        """Here, we use the existing `MaskedDataset` to create a trimmed `Dataset`."""
 
         data_trimmed = self.data[data_trim_left:]
         noise_map_trimmed = self.noise_map[data_trim_left:]
@@ -52,10 +52,10 @@ class Dataset:
 
 
 """
-We use a _SettingsMaskedDataset_ class to choose the settings of how our _MaskedDataset_ is setup for the model-fit,
+We use a `SettingsMaskedDataset` class to choose the settings of how our `MaskedDataset` is setup for the model-fit,
 specifically whether it is trimmed from the right and left.
 
-This class includes tags, which customize the folders of the output of the phase. See the new module, 'settings.py'
+This class includes tags, which customize the folders of the output of the phase. See the new module, `settings.py`
 for a more complete description of tagging.
 """
 
@@ -63,7 +63,7 @@ for a more complete description of tagging.
 class SettingsMaskedDataset:
     def __init__(self, data_trim_left=None, data_trim_right=None):
         """
-        The settings of the _MaskedDataset_ class, that in a phase are used to deterimne if the _MaskedDataset_ is
+        The settings of the `MaskedDataset` class, that in a phase are used to deterimne if the `MaskedDataset` is
         trimmed from the left and / or right before model-fitting.
 
         This class includes tags which are used to customize the output folders of a run dependent on the settings.
@@ -71,9 +71,9 @@ class SettingsMaskedDataset:
         Parameters
         ----------
         data_trim_left : int or None
-            The number of pixels in 1D from the left (NumPy index 0) that the _Dataset_ is trimmed.
+            The number of pixels in 1D from the left (NumPy index 0) that the `Dataset` is trimmed.
         data_trim_right : int or None
-            The number of pixels in 1D from the right (NumPy index -1) that the _Dataset_ is trimmed.
+            The number of pixels in 1D from the right (NumPy index -1) that the `Dataset` is trimmed.
         """
 
         self.data_trim_left = data_trim_left
@@ -81,17 +81,17 @@ class SettingsMaskedDataset:
 
     @property
     def tag(self):
-        """Generate a tag describin all settings customizing the _MaskedDataset_, which for this example only describes
+        """Generate a tag describin all settings customizing the `MaskedDataset`, which for this example only describes
         how the dataset it trimmed from the left and right.
         """
         return f"{self.data_trim_left_tag}{self.data_trim_right_tag}"
 
     @property
     def data_trim_left_tag(self):
-        """Generate a data trim left tag, to customize phase names based on how much of the _Dataset_ is trimmed to
+        """Generate a data trim left tag, to customize phase names based on how much of the `Dataset` is trimmed to
         its left.
 
-        This changes the phase name 'settings' as follows:
+        This changes the phase name `settings` as follows:
 
         data_trim_left = None -> settings
         data_trim_left = 2 -> settings__trim_left_2
@@ -103,9 +103,9 @@ class SettingsMaskedDataset:
 
     @property
     def data_trim_right_tag(self):
-        """Generate a data trim right tag, to customize phase names based on how much of the _Dataset_ is trimmed to its right.
+        """Generate a data trim right tag, to customize phase names based on how much of the `Dataset` is trimmed to its right.
 
-        This changes the phase name 'settings' as follows:
+        This changes the phase name `settings` as follows:
 
         data_trim_right = None -> settings
         data_trim_right = 2 -> settings__trim_right_2
@@ -117,8 +117,8 @@ class SettingsMaskedDataset:
 
 
 """
-The _MaskedDataset_ class now has a new input, settings, which are the _SettingsMaskedDataset_ which are used to 
-customize the _MaskedDataset_ that is created.
+The `MaskedDataset` class now has a new input, settings, which are the `SettingsMaskedDataset` which are used to 
+customize the `MaskedDataset` that is created.
 """
 
 
@@ -130,14 +130,14 @@ class MaskedDataset:
         Parameters
         ----------
         dataset: im.Dataset
-            The _Dataset_ (the image, noise-map, etc.)
-        mask: msk.Mask
-            The 1D mask that is applied to the _Dataset_.
+            The `Dataset` (the image, noise-map, etc.)
+        mask: msk.Mask2D
+            The 1D mask that is applied to the `Dataset`.
         """
 
         """
-        If the settings include a left trim, the function below trims the _Dataset_ and mask before 
-        settings up the _MaskedDataset_.
+        If the settings include a left trim, the function below trims the `Dataset` and mask before 
+        settings up the `MaskedDataset`.
         """
 
         if settings.data_trim_left is not None:

@@ -29,7 +29,7 @@ class MetaDataset:
         ----------
         dataset : dataset.Dataset
             The dataset that is masked, trimmed and fitted.
-        mask : ndarray
+        mask : np.ndarray
             The mask applied to the dataset, which is also trimmed.
         """
 
