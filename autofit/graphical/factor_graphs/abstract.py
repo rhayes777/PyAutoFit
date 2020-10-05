@@ -146,8 +146,13 @@ class AbstractNode(ABC):
         newshape = np.ones(self.ndim + shift, dtype=int)
         newshape[:shift] = shape[:shift]
         newshape[shift + plate_inds] = shape[shift:]
-
-        return np.reshape(value, newshape)
+        
+        # reorder axes of value to match ordering of newshape
+        movedvalue = np.moveaxis(
+            value, 
+            np.arange(plate_inds.size) + shift, 
+            np.argsort(plate_inds) + shift)
+        return np.reshape(movedvalue, newshape)
 
     @property
     def plates(self) -> Tuple[Plate]:

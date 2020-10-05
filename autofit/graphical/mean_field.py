@@ -11,10 +11,7 @@ from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import FixedMessage, map_dists
 from autofit.graphical.messages.abstract import AbstractMessage
-# from .messages import (
-#     map_dists
-# )
-from .utils import prod, add_arrays
+from autofit.graphical.utils import prod, add_arrays
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
@@ -97,13 +94,76 @@ def project_on_to_factor_approx(
 
     return projection, status
 
+    
+class MeanField(Dict[Variable, AbstractMessage], Factor):
+    """
+    """
+    def __init__(
+            self, 
+            dists: Dict[Variable, AbstractMessage], 
+            log_norm: np.ndarray = 0.):
+        
+        dict.__init__(self, dists)
+        Factor.__init__(
+            self, self._logpdf, **{v.name: v for v in dists})
+        self.log_norm = log_norm
+        
+    def _logpdf(self, **kwargs: np.ndarray) -> np.ndarray:
+        var_names = self.variable_names
+        return self.logpdf(
+            {var_names[k]: value for k, value in kwargs.items()})
+    
+    def logpdf(
+            self, 
+            values: Dict[Variable, np.ndarray]
+    ) -> np.ndarray:
+        """Calculates the logpdf of the passed values for messages 
+
+        the result is broadcast to the appropriate shape given the variable
+        plates
+        """
+        return sum(
+            self._broadcast(self._variable_plates[v], m.logpdf(values[v])) 
+            for v, m in self.items())
+        
+    def __repr__(self):
+        reprdict = dict.__repr__(self)
+        classname = (type(self).__name__)
+        return f"{classname}({reprdict}, log_norm={self.log_norm})"
+    
+    @property
+    def is_valid(self):
+        return all(d.is_valid for d in self.values())
+    
+    def __mul__(self, other: 'MeanField') -> 'MeanField':
+        return type(self)({
+            k: v * other.get(k, 1) for k, v in self.items()})
+    
+    def prod(self, *approxs: 'MeanField') -> 'MeanField':
+        """
+        """
+        return type(self)({
+            k: m * prod(m.get(k, 1) for m in approxs) 
+            for k, m in self.items()})
+    
+    def __truediv__(self, other: 'MeanField') -> 'MeanField':
+        return type(self)({
+            k: m / other[k] for k, m in self.items()})
+
+    def __pow__(self, other: float) -> 'MeanField':
+        return type(self)({
+            k: m**other for k, m in self.items()})
+
+    __hash__ = Factor.__hash__ 
+    
+
 
 class FactorApproximation(NamedTuple):
     factor: Factor
-    cavity_dist: Dict[str, AbstractMessage]
-    deterministic_dist: Dict[str, AbstractMessage]
-    factor_dist: Dict[str, AbstractMessage]
-    model_dist: Dict[str, AbstractMessage]
+    cavity_dist: MeanField
+    deterministic_dist: MeanField
+    factor_dist: MeanField
+    model_dist: MeanField
     log_norm: float = 0.
 
     @property
@@ -141,51 +201,8 @@ class FactorApproximation(NamedTuple):
         return f"{type(self).__name__}({self.factor}, ...)"
 
     
-class MeanField(Dict[Variable, AbstractMessage], Factor):
-    """
-    """
-    def __init__(
-            self, 
-            dists: Dict[Variable, AbstractMessage], 
-            log_norm: np.ndarray = 0.):
-        
-        dict.__init__(self, dists)
-        Factor.__init__(
-            self, self._factor, **{v.name: v for v in dists})
-        self.log_norm = log_norm
-        
-    def _factor(self, **kwargs: np.ndarray) -> np.ndarray:
-        var_names = self.variable_names
-        return self.logpdf(
-            {var_names[k]: value for k, value in kwargs.items()})
-    
-    def logpdf(
-            self, 
-            values: Dict[Variable, np.ndarray]
-    ) -> np.ndarray:
-        return sum(self._broadcast(self._variable_plates[v], value) 
-            for v, value in self.map(values, "logpdf"))
-
-    def map(
-            self, 
-            values: Dict[Variable, np.ndarray], 
-            _call: str = 'logpdf'
-    ) -> Iterator[Tuple[str, np.ndarray]]:
-        for v, dist in self.items():
-            value = values.get(v, None)
-            if value is not None and isinstance(dist, AbstractMessage):
-                yield v, getattr(dist, _call)(value)
-        
-    def __repr__(self):
-        reprdict = super().__repr__()
-        return f"{(type(self).__name__)}({reprdict}, log_norm={self.log_norm})"
-
-    __hash__ = Factor.__hash__ 
-    
-
 class MeanFieldApproximation:
     '''
-    
     TODO: rename this EP approximation
     '''
     def __init__(

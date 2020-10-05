@@ -297,7 +297,7 @@ class Factor(AbstractFactor):
 
         # iterator to generate keyword arguments
         def gen_kwargs():
-            for i in range(dim0):
+            for _ in range(dim0):
                 yield {
                     k: next(a) for k, a in iter_kws.items()}
 
