@@ -10,6 +10,8 @@ from autofit import graphical as mp
 
 def test():
     ## define parameters of model
+    np.random.seed(1)
+
     alpha, beta, gamma, delta = 2 / 3, 4 / 3, 1, 1
     r = np.array([alpha, - gamma])
     A = np.array([
@@ -148,5 +150,5 @@ def test():
 
     model_mean = {v.name: d.mean for v, d in model_approx.approx.items()}
     y_pred = LV_model(**model_mean).deterministic_values[y_]
-    assert y_pred.min() > 0.02
-    assert y_pred.max() < 4
+    
+    assert np.square(y_pred - y).mean()**0.5 < 2
