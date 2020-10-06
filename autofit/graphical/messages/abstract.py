@@ -3,6 +3,7 @@ from functools import reduce
 from itertools import chain
 from operator import and_
 from typing import Optional, Tuple
+from inspect import getfullargspec
 
 import numpy as np
 
@@ -130,11 +131,26 @@ class AbstractMessage(ABC):
         log_norm = other * self.log_norm
         return self.from_natural_parameters(new_params, log_norm=log_norm)
 
-    def __repr__(self):
-        return f"{type(self).__name__}({self}"
+    def __str__(self) -> str:
+        param_attrs = [
+            (attr, np.asanyarray(getattr(self, attr)))
+            for attr in getfullargspec(self.__init__).args[1:-1]]
+        if self.shape:
+            pad = max(len(attr) for attr, _ in param_attrs)
+            attr_str = "    {:<%d}={}" % pad
+            param_strs = ',\n'.join(
+                attr_str.format(
+                    attr, np.array2string(val, prefix=' '*(pad + 5)))
+                for attr, val in param_attrs)
+            return f"{type(self).__name__}(\n{param_strs})"
+        else:
+            param_strs = ', '.join(
+                attr + '=' + 
+                np.array2string(val, prefix=' '*(len(attr) + 1))
+                for attr, val in param_attrs)
+            return f"{type(self).__name__}({param_strs})"
 
-    def __str__(self):
-        return ""
+    __repr__ = __str__
 
     def logpdf(self, x):
         if np.shape(x) == self.shape:
