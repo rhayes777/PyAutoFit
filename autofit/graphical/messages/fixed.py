@@ -7,7 +7,7 @@ class FixedMessage(AbstractMessage):
     log_base_measure = 0
 
     def __init__(self, value, log_norm=0.):
-        self._value = value
+        self.value = value
         super().__init__(
             (value,),
             log_norm=log_norm
@@ -45,7 +45,7 @@ class FixedMessage(AbstractMessage):
 
     @property
     def mean(self):
-        return self._value
+        return self.value
 
     @property
     def variance(self):
