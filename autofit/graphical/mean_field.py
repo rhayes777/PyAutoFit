@@ -85,7 +85,8 @@ def project_on_to_factor_approx(
                 model_dist[v] = q_model
 
     projection = FactorApproximation(
-        *factor_approx[:3],
+        factor_approx.factor,
+        factor_approx.cavity_dist, 
         factor_dist=factor_projection,
         model_dist=model_dist,
 #         log_norm=log_norm
@@ -161,10 +162,20 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
 class FactorApproximation(NamedTuple):
     factor: Factor
     cavity_dist: MeanField
-    deterministic_dist: MeanField
+    # deterministic_dist: MeanField
     factor_dist: MeanField
     model_dist: MeanField
     log_norm: float = 0.
+
+    @property
+    def deterministic_variables(self):
+        return self.factor.deterministic_variables
+
+    @property
+    def deterministic_dist(self):
+        return MeanField({
+            v: self.cavity_dist[v] 
+            for v in self.deterministic_variables})
 
     @property
     def all_cavity_dist(self):
@@ -186,8 +197,9 @@ class FactorApproximation(NamedTuple):
         log_result, det_vars = self.factor(kwargs)
 
         # refactor as a mapreduce?
-        for res in chain(map_dists(self.cavity_dist, kwargs),
-                         map_dists(self.deterministic_dist, det_vars)):
+        # for res in chain(map_dists(self.cavity_dist, kwargs),
+        #                  map_dists(self.deterministic_dist, det_vars)):
+        for res in map_dists(self.cavity_dist, {**det_vars, **kwargs}):
             # need to add the arrays whilst preserving the sum
             log_result = add_arrays(
                 log_result, self.factor.broadcast_variable(*res))
@@ -304,21 +316,21 @@ class MeanFieldApproximation:
 
     def factor_approximation(self, factor: Factor) -> FactorApproximation:
         var_cavity = ((v, self._variable_cavity_dist(v, factor))
-                      for v in factor.variables)
+                      for v in factor.all_variables)
         # Some variables may only appear once in the factor graph
         # in this case they might not have a cavity distribution
         var_cavity = {
             v: dist for v, dist in var_cavity if dist}
-        det_cavity = {
-            v: self._variable_cavity_dist(v, factor)
-            for v in factor.deterministic_variables}
+        # det_cavity = {
+        #     v: self._variable_cavity_dist(v, factor)
+        #     for v in factor.deterministic_variables}
         factor_dist = {
             v: self._variable_factor_dist[v][factor]
             for v in factor.all_variables}
         model_dist = {
             v: self[v] for v in factor.all_variables}
 
-        return FactorApproximation(factor, var_cavity, det_cavity,
+        return FactorApproximation(factor, var_cavity, #det_cavity,
                                    factor_dist, model_dist)
 
     def __repr__(self) -> str:

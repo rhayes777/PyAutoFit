@@ -62,7 +62,6 @@ def test_laplace_method(probit_factor, q_cavity, x):
     probit_approx = mp.FactorApproximation(
         factor=probit_factor,
         cavity_dist={x: q_cavity},
-        deterministic_dist={},
         factor_dist={},
         model_dist={x: q_cavity})
 
