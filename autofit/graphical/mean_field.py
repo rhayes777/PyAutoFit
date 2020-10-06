@@ -165,7 +165,7 @@ class FactorApproximation(NamedTuple):
     # deterministic_dist: MeanField
     factor_dist: MeanField
     model_dist: MeanField
-    log_norm: float = 0.
+    # log_norm: float = 0.
 
     @property
     def deterministic_variables(self):
@@ -289,7 +289,7 @@ class MeanFieldApproximation:
             for v, dist in factor_projection.items():
                 variable_factor_dist[v][factor] = dist
 
-            factor_evidence[factor] = projection.log_norm
+            # factor_evidence[factor] = projection.log_norm
         else:
             messages += f"projection for {factor} is invalid",
             success = False

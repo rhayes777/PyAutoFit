@@ -142,9 +142,9 @@ class ImportanceSampler(AbstractSampler):
     ) -> SamplingResult:
 
         log_measure = 0.
-        # for res in chain(map_dists(cavity_dist, samples),
-        #                  map_dists(deterministic_dist, det_vars)):
-        for res in map_dists(self.cavity_dist, {**det_vars, **samples}):
+        for res in chain(map_dists(cavity_dist, samples),
+                         map_dists(deterministic_dist, det_vars)):
+        # for res in map_dists(cavity_dist, {**det_vars, **samples}):
             log_measure = add_arrays(
                 log_measure, factor.broadcast_variable(*res))
 
