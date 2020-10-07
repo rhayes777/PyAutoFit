@@ -22,7 +22,7 @@ class AbstractNest(NonLinearSearch):
         stagger_resampling_likelihood=None,
     ):
         """
-        Abstract class of a nested sampling non-linear search (e.g. MultiNest, Dynesty).
+        Abstract class of a nested sampling `NonLinearSearch` (e.g. MultiNest, Dynesty).
 
         **PyAutoFit** allows a nested sampler to automatically terminate when the acceptance ratio falls below an input
         threshold value. When this occurs, all samples are accepted using the current maximum log likelihood value,
@@ -38,7 +38,7 @@ class AbstractNest(NonLinearSearch):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         terminate_at_acceptance_ratio : bool
             If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value.
@@ -116,7 +116,7 @@ class AbstractNest(NonLinearSearch):
                 return self.stagger_resampling_figure_of_merit()
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the non-linear search uses to sample parameter space. All Nested
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
             samplers use the log likelihood.
             """
             try:
@@ -131,7 +131,7 @@ class AbstractNest(NonLinearSearch):
             However, we found that this causes memory issues when running PyMultiNest. Therefore, we 'hack' a solution
             by not returning -np.inf (which leads the sample to be discarded) but instead a large negative float which
             is treated as a real sample (and does not lead too memory issues). The value returned is staggered to avoid
-            all initial samples returning the same log likelihood and the non-linear search terminating."""
+            all initial samples returning the same log likelihood and the `NonLinearSearch` terminating."""
 
             if not self.stagger_resampling_likelihood:
 

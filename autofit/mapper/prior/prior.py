@@ -329,7 +329,7 @@ class GaussianPrior(Prior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
 
     def __str__(self):
@@ -386,7 +386,7 @@ class UniformPrior(Prior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 0.0
 
     @property
@@ -439,7 +439,7 @@ class LogUniformPrior(UniformPrior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 1.0 / value
 
     def __str__(self):

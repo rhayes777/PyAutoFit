@@ -39,7 +39,7 @@ class NonLinearSearch(ABC):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
@@ -152,8 +152,8 @@ class NonLinearSearch(ABC):
             return log_likelihood + sum(log_priors)
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the non-linear search uses to sample parameter space. This varies
-            between different non-linear search algorithms, for example:
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
+            between different `NonLinearSearch`s, for example:
 
                 - The *Optimizer* *PySwarms* uses the chi-squared value, which is the -2.0*log_posterior.
                 - The *MCMC* algorithm *Emcee* uses the log posterior.
@@ -251,6 +251,18 @@ class NonLinearSearch(ABC):
             samples = self.samples_via_csv_json_from_model(model=model)
             self.save_samples(samples=samples)
 
+            if self.remove_state_files_at_end:
+                try:
+                    self.remove_state_files()
+                except FileNotFoundError:
+                    pass
+
+                try:
+                    shutil.rmtree(f"{self.paths.samples_path}_backup")
+                except FileNotFoundError:
+                    pass
+
+
         self.paths.zip_remove()
 
         return Result(samples=samples, previous_model=model, search=self)
@@ -309,7 +321,7 @@ class NonLinearSearch(ABC):
         )
 
     def perform_update(self, model, analysis, during_analysis):
-        """Perform an update of the non-linear search results, which occurs every *iterations_per_update* of the
+        """Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
@@ -324,7 +336,7 @@ class NonLinearSearch(ABC):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
         during_analysis : bool
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
              of updates and only a subset of visualization may be performed.
@@ -482,7 +494,7 @@ class NonLinearSearch(ABC):
         raise NotImplementedError()
 
     def make_pool(self):
-        """Make the pool instance used to parallelize a non-linear search alongside a set of unique ids for every
+        """Make the pool instance used to parallelize a `NonLinearSearch` alongside a set of unique ids for every
         process in the pool. If the specified number of cores is 1, a pool instance is not made and None is returned.
 
         The pool cannot be set as an attribute of the class itself because this prevents pickling, thus it is generated
@@ -544,7 +556,7 @@ class Result:
         previous_model
             The model mapper from the stage that produced this result
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         """
 
         self.samples = samples
@@ -675,7 +687,7 @@ class PriorPasser:
 
                Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
                we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-               phases - fast non-linear search settings, simplified models, etc.
+               phases - fast `NonLinearSearch` settings, simplified models, etc.
 
                Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
                is suspiciously small, we instead use the value specified in the widths file. These values are chosen

@@ -89,7 +89,7 @@ class Paths:
             non_linear_tag_function=lambda: "",
             remove_files=False,
     ):
-        """Manages the path structure for non-linear search output, for analyses both not using and using the phase
+        """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the phase
         API. Use via non-linear searches requires manual input of paths, whereas the phase API manages this using the
         phase attributes.
 
@@ -106,7 +106,7 @@ class Paths:
         path_prefix = "folder_0/folder_1"
         non_linear_name = "emcee"
 
-        The output path of the non-linear search results will be:
+        The output path of the `NonLinearSearch` results will be:
 
         /path/to/output/folder_0/folder_1/name/tag/emcee
 
@@ -208,7 +208,7 @@ class Paths:
     @property
     def has_completed_path(self) -> str:
         """
-        A file indicating that a non-linear search has been completed previously
+        A file indicating that a `NonLinearSearch` has been completed previously
         """
         return f"{self.output_path}/.completed"
 

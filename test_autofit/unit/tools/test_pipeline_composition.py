@@ -12,10 +12,10 @@ conf.instance = conf.Config(
 )
 
 
-def make_pipeline_1(name, folders, search):
+def make_pipeline_1(name, path_prefix, search):
     phase = af.Phase(
         phase_name="phase_1",
-        folders=folders,
+        path_prefix=path_prefix,
         model=af.PriorModel(
             mock.MockComponents,
             parameter=af.GaussianPrior(10.0, 1.0)
@@ -26,10 +26,10 @@ def make_pipeline_1(name, folders, search):
     return af.Pipeline(f"{name}_1", phase)
 
 
-def make_pipeline_2(name, folders, search):
+def make_pipeline_2(name, path_prefix, search):
     phase = af.Phase(
         phase_name="phase_2",
-        folders=folders,
+        path_prefix=path_prefix,
         model=af.PriorModel(
             mock.MockComponents,
             parameter=af.last.model.parameter
@@ -42,7 +42,7 @@ def make_pipeline_2(name, folders, search):
 
 def make_pipeline(
         name,
-        folders=tuple(),
+        path_prefix=tuple(),
         search=MockSearch(
             samples=MockSamples(
                 gaussian_tuples=[(0.5, 0.5)]
@@ -51,12 +51,12 @@ def make_pipeline(
 ):
     pipeline_2 = make_pipeline_2(
         name,
-        folders,
+        path_prefix,
         search
     )
     pipeline_1 = make_pipeline_1(
         name,
-        folders,
+        path_prefix,
         search
     )
 
