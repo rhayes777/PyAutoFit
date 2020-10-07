@@ -188,7 +188,7 @@ An over view of each is as follows:
 Performing a `NonLinearSearch` in **PyAutoFit** now only requires that we instantiate and run a `Phase` object. The 
 `Phase` performs the following tasks (which we performed manually in the previous tutorial):
 
- - Builds the model to be fitted and interfaces it with the `NonLinearSearch` algorithm.
+ - Builds the model to be fitted and interfaces it with the `NonLinearSearch`.
  
  - Receives the data to be fitted and prepares it so the model can fit it.
  

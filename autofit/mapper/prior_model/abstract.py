@@ -351,7 +351,7 @@ class AbstractPriorModel(AbstractModel):
             print(tuples[i][1], width)
             The absolute width to be assigned to gaussian priors
         use_errors : bool
-            If True, the passed errors of the model components estimated in a previous non-linear search (computed
+            If True, the passed errors of the model components estimated in a previous `NonLinearSearch` (computed
             at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
             passed errors are used, the maximum of these two values are used).
         use_widths : bool
@@ -812,7 +812,7 @@ class AbstractPriorModel(AbstractModel):
     @property
     def parameter_labels(self) -> [str]:
         """
-    Returns a list of the label of every parameter in a model.
+        Returns a list of the label of every parameter in a model.
 
         This is used for displaying model results as text and for visualization with *corner.py*.
 
@@ -831,7 +831,7 @@ class AbstractPriorModel(AbstractModel):
     @property
     def subscripts(self) -> [str]:
         """
-    Returns a list of the model component subscripts of every parameter in a model.
+        Returns a list of the model component subscripts of every parameter in a model.
 
         This is used for displaying model results as text and for visualization with *corner.py*.
 

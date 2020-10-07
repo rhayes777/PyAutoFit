@@ -10,7 +10,7 @@ def results_to_file(samples, filename, during_analysis):
     Parameters
     ----------
     during_analysis : bool
-        Whether the model.results are being written during the analysis or after the non-linear search has finished.
+        Whether the model.results are being written during the analysis or after the `NonLinearSearch` has finished.
     """
 
     results = []

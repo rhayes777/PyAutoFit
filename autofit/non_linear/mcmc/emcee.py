@@ -56,11 +56,11 @@ class Emcee(AbstractMCMC):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         nwalkers : int
             The number of walkers in the ensemble used to sample parameter space.
         nsteps : int
-            The number of steps that must be taken by every walker. The non-linear search will thus run for nwalkers *
+            The number of steps that must be taken by every walker. The `NonLinearSearch` will thus run for nwalkers *
             nsteps iterations.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
@@ -138,7 +138,7 @@ class Emcee(AbstractMCMC):
                 return self.resample_figure_of_merit
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the non-linear search uses to sample parameter space. *Emcee*
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. *Emcee*
             uses the log posterior.
             """
             try:
@@ -149,7 +149,7 @@ class Emcee(AbstractMCMC):
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
         Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the non-linear search seeks to maximize.
+        instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
         ----------
@@ -157,7 +157,7 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
 
         Returns
         -------
@@ -257,9 +257,9 @@ class Emcee(AbstractMCMC):
         return f"{name_tag}[{nwalkers_tag}]"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the emcee non-linear search with all associated attributes.
+        """Copy this instance of the emcee `NonLinearSearch` with all associated attributes.
 
-        This is used to set up the non-linear search on phase extensions."""
+        This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
@@ -300,7 +300,7 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
             etc.
         """
 
@@ -402,7 +402,7 @@ class EmceeSamples(MCMCSamples):
         total_walkers : int
             The total number of walkers used by this MCMC non-linear search.
         total_steps : int
-            The total number of steps taken by each walker of this MCMC non-linear search (the total samples is equal
+            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
             to the total steps * total walkers).
         """
 

@@ -47,7 +47,7 @@ class MultiNest(abstract_nest.AbstractNest):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         n_live_points : int
             The number of live points used to sample non-linear parameter space. More points provides a more thorough
             sampling of parameter space, at the expense of taking longer to run. The number of live points required for
@@ -202,7 +202,7 @@ class MultiNest(abstract_nest.AbstractNest):
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> abstract_search.Result:
         """
         Fit a model using MultiNest and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the non-linear search seeks to maximize.
+        instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
         ----------
@@ -210,7 +210,7 @@ class MultiNest(abstract_nest.AbstractNest):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
 
         Returns
         -------
@@ -294,9 +294,9 @@ class MultiNest(abstract_nest.AbstractNest):
         return f"{name_tag}[{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}]"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the multinest non-linear search with all associated attributes.
+        """Copy this instance of the multinest `NonLinearSearch` with all associated attributes.
 
-        This is used to set up the non-linear search on phase extensions."""
+        This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )

@@ -124,12 +124,12 @@ class OptimizerSamples:
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
-        """ The parameters of the maximum log likelihood sample of the non-linear search returned as a list of values."""
+        """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
         return self.parameters[self.max_log_likelihood_index]
 
     @property
     def max_log_likelihood_instance(self) -> ModelInstance:
-        """  The parameters of the maximum log likelihood sample of the non-linear search returned as a model instance."""
+        """  The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
 
     @property
@@ -139,12 +139,12 @@ class OptimizerSamples:
 
     @property
     def max_log_posterior_vector(self) -> [float]:
-        """ The parameters of the maximum log posterior sample of the non-linear search returned as a list of values."""
+        """ The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values."""
         return self.parameters[self.max_log_posterior_index]
 
     @property
     def max_log_posterior_instance(self) -> ModelInstance:
-        """  The parameters of the maximum log posterior sample of the non-linear search returned as a model instance."""
+        """  The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
@@ -185,7 +185,7 @@ class PDFSamples(OptimizerSamples):
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
-        """The `Samples` of a non-linear search, specifically the samples of a non-linear search which maps out the
+        """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
         Parameters
@@ -247,7 +247,7 @@ class PDFSamples(OptimizerSamples):
         if one sample's weight contains > 99% of the weight. If this is the case, it implies the convergence necessary
         for error estimate and visualization has not been met.
 
-        This does not necessarily imply the non-linear search has converged overall, only that errors and visualization
+        This does not necessarily imply the `NonLinearSearch` has converged overall, only that errors and visualization
         can be performed numerically.."""
         if np.max(self.weights) > 0.99:
             return False
@@ -569,7 +569,7 @@ class PDFSamples(OptimizerSamples):
         """ The values of an input_vector offset by the *median_pdf_vector* (the PDF medians).
 
         If the 'true' values of a model are known and input as the *input_vector*, this function returns the results
-        of the non-linear search as values offset from the 'true' model. For example, a value 0.0 means the non-linear
+        of the `NonLinearSearch` as values offset from the 'true' model. For example, a value 0.0 means the non-linear
         search estimated the model parameter value correctly.
 
         Parameters
@@ -633,7 +633,7 @@ class PDFSamples(OptimizerSamples):
         #     except Exception as e:
         #         logger.exception(e)
         #         print(
-        #             "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
+        #             "The PDF triangle of this `NonLinearSearch` could not be plotted. This is most likely due to a "
         #             "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
         #             "parameter evidence_tolerance."
         #         )
@@ -664,7 +664,7 @@ class MCMCSamples(PDFSamples):
         total_walkers : int
             The total number of walkers used by this MCMC non-linear search.
         total_steps : int
-            The total number of steps taken by each walker of this MCMC non-linear search (the total samples is equal
+            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
             to the total steps * total walkers).
         """
 
@@ -843,11 +843,11 @@ class NestSamples(PDFSamples):
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
-        """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
+        """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
-        individual sample by the non-linear search and return information on the likelihoods, errors, etc.
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
         The Bayesian log evidence estimated by the nested sampling algorithm.
 

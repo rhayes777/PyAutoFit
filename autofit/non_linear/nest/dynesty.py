@@ -67,7 +67,7 @@ class AbstractDynesty(AbstractNest):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         facc : float
             The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
             [1. / walks, 1.].
@@ -261,7 +261,7 @@ class AbstractDynesty(AbstractNest):
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> Result:
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the non-linear search seeks to maximize.
+        instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
         ----------
@@ -269,7 +269,7 @@ class AbstractDynesty(AbstractNest):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
 
         Returns
         -------
@@ -368,9 +368,9 @@ class AbstractDynesty(AbstractNest):
 
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the dynesty non-linear search with all associated attributes.
+        """Copy this instance of the dynesty `NonLinearSearch` with all associated attributes.
 
-        This is used to set up the non-linear search on phase extensions."""
+        This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
@@ -544,7 +544,7 @@ class DynestyStatic(AbstractDynesty):
         number_of_cores=None,
     ):
         """
-        A Dynesty non-linear search using a static number of live points.
+        A Dynesty `NonLinearSearch` using a static number of live points.
 
         For a full description of Dynesty, checkout its GitHub and readthedocs webpages:
 
@@ -565,7 +565,7 @@ class DynestyStatic(AbstractDynesty):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         facc : float
             The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
             [1. / walks, 1.].
@@ -776,7 +776,7 @@ class DynestyDynamic(AbstractDynesty):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         facc : float
             The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
             [1. / walks, 1.].
@@ -930,7 +930,7 @@ class DynestyDynamic(AbstractDynesty):
         )
 
     def perform_update(self, model, analysis, during_analysis):
-        """Perform an update of the non-linear search results, which occurs every *iterations_per_update* of the
+        """Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
@@ -945,7 +945,7 @@ class DynestyDynamic(AbstractDynesty):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
         during_analysis : bool
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
              of updates and only a subset of visualization may be performed.
@@ -1001,7 +1001,7 @@ class DynestyDynamic(AbstractDynesty):
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> NestSamples:
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the non-linear search seeks to maximize.
+        instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
         ----------
@@ -1009,7 +1009,7 @@ class DynestyDynamic(AbstractDynesty):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
 
         Returns
         -------
