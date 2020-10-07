@@ -91,7 +91,8 @@ class MockSamples(af.PDFSamples):
 
 
 class MockSearch(af.NonLinearSearch):
-    def __init__(self, paths=None, samples=None):
+    def __init__(self, paths=None, samples=None, phase_name=None):
+        self.phase_name = phase_name
         super().__init__(paths=paths)
 
         self.samples = samples or MockSamples()
@@ -111,7 +112,6 @@ class MockSearch(af.NonLinearSearch):
                 # Return Chi squared
                 return -2 * log_likelihood
 
-
         analysis.save_for_aggregator(paths=self.paths)
 
         fitness_function = Fitness(model.instance_from_vector)
@@ -121,7 +121,7 @@ class MockSearch(af.NonLinearSearch):
 
     @property
     def config_type(self):
-        return conf.instance.mock
+        return conf.instance["non_linear"]["mock"]
 
     @property
     def tag(self):

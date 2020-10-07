@@ -88,29 +88,29 @@ class Emcee(AbstractMCMC):
         """
 
         self.nwalkers = (
-            self._config("search", "nwalkers", int) if nwalkers is None else nwalkers
+            self._config("search", "nwalkers") if nwalkers is None else nwalkers
         )
         self.nsteps = (
-            self._config("search", "nsteps", int) if nsteps is None else nsteps
+            self._config("search", "nsteps") if nsteps is None else nsteps
         )
 
         self.auto_correlation_check_for_convergence = (
-            self._config("auto_correlation", "check_for_convergence", bool)
+            self._config("auto_correlation", "check_for_convergence")
             if auto_correlation_check_for_convergence is None
             else auto_correlation_check_for_convergence
         )
         self.auto_correlation_check_size = (
-            self._config("auto_correlation", "check_size", int)
+            self._config("auto_correlation", "check_size")
             if auto_correlation_check_size is None
             else auto_correlation_check_size
         )
         self.auto_correlation_required_length = (
-            self._config("auto_correlation", "required_length", int)
+            self._config("auto_correlation", "required_length")
             if auto_correlation_required_length is None
             else auto_correlation_required_length
         )
         self.auto_correlation_change_threshold = (
-            self._config("auto_correlation", "change_threshold", float)
+            self._config("auto_correlation", "change_threshold")
             if auto_correlation_change_threshold is None
             else auto_correlation_change_threshold
         )
@@ -123,7 +123,7 @@ class Emcee(AbstractMCMC):
         )
 
         self.number_of_cores = (
-            self._config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores")
             if number_of_cores is None
             else number_of_cores
         )

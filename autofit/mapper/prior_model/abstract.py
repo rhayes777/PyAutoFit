@@ -6,6 +6,7 @@ from random import random
 from typing import Tuple, Optional
 
 import numpy as np
+
 from autoconf import conf
 from autofit import exc
 from autofit.mapper import model
@@ -20,8 +21,8 @@ from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
-from autofit.text.formatter import TextFormatter
 from autofit.text import formatter as frm
+from autofit.text.formatter import TextFormatter
 
 
 def check_assertions(func):
@@ -841,9 +842,10 @@ class AbstractPriorModel(AbstractModel):
 
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
-            subscripts.append(conf.instance.label.subscript(cls))
+            subscripts.append(conf.instance["notation"]["label"]["subscript"].family(cls))
 
         return subscripts
+
 
 def transfer_classes(instance, mapper, model_classes=None):
     """

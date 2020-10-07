@@ -8,7 +8,6 @@ import autofit as af
 from autoconf import conf
 from test_autofit import mock
 
-
 directory = path.dirname(path.realpath(__file__))
 
 
@@ -21,6 +20,7 @@ def remove_reports():
         for file in files:
             if file == "report.log":
                 os.remove(f"{d}/{file}")
+
 
 @pytest.fixture(autouse=True)
 def set_config_path():
@@ -45,8 +45,15 @@ def model():
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase(phase_name="phase name", search=af.MockSearch())
-    phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
+    phase = af.AbstractPhase(
+        search=af.MockSearch(
+            "phase name"
+        )
+    )
+    phase.model.one = af.PriorModel(
+        mock.MockComponents,
+        component=mock.MockClassx2
+    )
     return phase
 
 

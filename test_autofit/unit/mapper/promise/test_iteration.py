@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from test_autofit import mock
 
 
 @pytest.fixture(name="prior_0")
@@ -25,7 +24,12 @@ def make_model(prior_0, prior_1):
 
 @pytest.fixture(name="phase")
 def make_phase(model):
-    return af.AbstractPhase(phase_name="phase name", model=model, search=af.MockSearch())
+    return af.AbstractPhase(
+        model=model,
+        search=af.MockSearch(
+            "phase name"
+        )
+    )
 
 
 @pytest.fixture(name="results_collection")

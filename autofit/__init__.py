@@ -1,6 +1,3 @@
-from autofit.conf import check_workspace_path
-check_workspace_path()
-
 from . import conf
 from . import exc
 from .aggregator import Aggregator

@@ -15,11 +15,7 @@ def make_path(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         full_path = func(*args, **kwargs)
-        if not os.path.exists(full_path):
-            try:
-                os.makedirs(full_path)
-            except FileExistsError:
-                pass
+        os.makedirs(full_path, exist_ok=True)
         return full_path
 
     return wrapper
@@ -133,9 +129,9 @@ class Paths:
         self.non_linear_tag_function = non_linear_tag_function
 
         try:
-            self.remove_files = conf.instance.general.get("output", "remove_files", bool)
+            self.remove_files = conf.instance["general"]["output"]["remove_files"]
 
-            if conf.instance.general.get("hpc", "hpc_mode", bool):
+            if conf.instance["general"]["hpc"]["hpc_mode"]:
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
@@ -196,7 +192,7 @@ class Paths:
             filter(
                 len,
                 [
-                    conf.instance.output_path,
+                    str(conf.instance.output_path),
                     self.path_prefix,
                     self.name,
                     self.tag,

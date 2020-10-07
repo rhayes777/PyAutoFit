@@ -1,25 +1,25 @@
-import numpy as np
 import json
 
-from autoconf import conf
-from autofit.non_linear.initializer import InitializerPrior
-from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.abstract_search import IntervalCounter
-from autofit.non_linear.paths import Paths
-from autofit.non_linear import samples as samp
+import numpy as np
 
+from autoconf import conf
 from autofit import exc
+from autofit.non_linear import samples as samp
+from autofit.non_linear.abstract_search import IntervalCounter
+from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.initializer import InitializerPrior
+from autofit.non_linear.paths import Paths
 
 
 class AbstractNest(NonLinearSearch):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        iterations_per_update=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        stagger_resampling_likelihood=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            iterations_per_update=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            stagger_resampling_likelihood=None,
     ):
         """
         Abstract class of a nested sampling `NonLinearSearch` (e.g. MultiNest, Dynesty).
@@ -57,19 +57,19 @@ class AbstractNest(NonLinearSearch):
         )
 
         self.terminate_at_acceptance_ratio = (
-            self._config("settings", "terminate_at_acceptance_ratio", bool)
+            self._config("settings", "terminate_at_acceptance_ratio")
             if terminate_at_acceptance_ratio is None
             else terminate_at_acceptance_ratio
         )
 
         self.acceptance_ratio_threshold = (
-            self._config("settings", "acceptance_ratio_threshold", float)
+            self._config("settings", "acceptance_ratio_threshold")
             if acceptance_ratio_threshold is None
             else acceptance_ratio_threshold
         )
 
         self.stagger_resampling_likelihood = (
-            self._config("settings", "stagger_resampling_likelihood", bool)
+            self._config("settings", "stagger_resampling_likelihood")
             if stagger_resampling_likelihood is None
             else stagger_resampling_likelihood
         )
@@ -172,7 +172,7 @@ class AbstractNest(NonLinearSearch):
                 try:
 
                     if (
-                        samples.acceptance_ratio < self.acceptance_ratio_threshold
+                            samples.acceptance_ratio < self.acceptance_ratio_threshold
                     ) or self.terminate_has_begun:
 
                         self.terminate_has_begun = True
@@ -185,7 +185,7 @@ class AbstractNest(NonLinearSearch):
 
     @property
     def config_type(self):
-        return conf.instance.nest
+        return conf.instance["non_linear"]["nest"]
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(

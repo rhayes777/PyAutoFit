@@ -4,7 +4,6 @@ import pickle
 import dill
 
 from autofit.non_linear import abstract_search
-from autofit.non_linear.samples import PDFSamples
 
 
 class PhaseOutput:
@@ -69,7 +68,7 @@ class PhaseOutput:
             ) as f:
                 return pickle.load(f)
         except FileNotFoundError:
-        #    print(f"No {item} associated with {self.directory}")
+            #    print(f"No {item} associated with {self.directory}")
             pass
 
     @property

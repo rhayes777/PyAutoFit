@@ -26,7 +26,7 @@ class Initializer:
 
         try:
 
-            initializer = config("initialize", "method", str)
+            initializer = config("initialize", "method")
 
         except configparser.NoSectionError:
 

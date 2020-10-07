@@ -16,9 +16,10 @@ def make_grid_search_promise(phase):
     grid_search_phase = af.as_grid_search(
         af.AbstractPhase
     )(
-        phase_name="phase_name",
-        phase_tag="phase_tag",
-        search=af.MockSearch()
+        search=af.MockSearch(
+            "phase_name",
+            phase_tag="phase_tag",
+        )
     )
     grid_search_phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
     return grid_search_phase.result.model.one.parameter
