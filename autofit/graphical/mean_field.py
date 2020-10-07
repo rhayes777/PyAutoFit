@@ -136,24 +136,39 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
     def is_valid(self):
         return all(d.is_valid for d in self.values())
     
-    def __mul__(self, other: 'MeanField') -> 'MeanField':
-        return type(self)({
-            k: v * other.get(k, 1) for k, v in self.items()})
-    
     def prod(self, *approxs: 'MeanField') -> 'MeanField':
-        """
-        """
         return type(self)({
-            k: m * prod(m.get(k, 1) for m in approxs) 
-            for k, m in self.items()})
+            k: prod((m.get(k, 1) for m in approxs), m) 
+            for k, m in self.items()},
+            sum((m.log_norm for m in approxs), self.log_norm))
+
+    __mul__ = prod
     
     def __truediv__(self, other: 'MeanField') -> 'MeanField':
         return type(self)({
-            k: m / other[k] for k, m in self.items()})
+            k: m / other[k] for k, m in self.items()},
+            self.log_norm - other.log_norm)
 
     def __pow__(self, other: float) -> 'MeanField':
         return type(self)({
-            k: m**other for k, m in self.items()})
+            k: m**other for k, m in self.items()},
+            self.log_norm * other)
+
+    def project_mode(
+            self, 
+            mode: Dict[Variable, np.ndarray],
+            covar: Dict[Variable, np.ndarray], 
+            fun: Optional[float] = None):
+        """
+        Projects mode and covar
+        """
+        projection = MeanField({
+            v: dist.from_mode(mode[v], covar.get(v))
+            for v, dist in mean_field.items()})
+        if fun is not None:
+            projection.log_norm = fun - projection(mode).log_value
+            
+        return projection
 
     __hash__ = Factor.__hash__ 
     
@@ -319,19 +334,19 @@ class MeanFieldApproximation:
                       for v in factor.all_variables)
         # Some variables may only appear once in the factor graph
         # in this case they might not have a cavity distribution
-        var_cavity = {
-            v: dist for v, dist in var_cavity if dist}
+        var_cavity = MeanField({
+            v: dist for v, dist in var_cavity if dist})
         # det_cavity = {
         #     v: self._variable_cavity_dist(v, factor)
         #     for v in factor.deterministic_variables}
-        factor_dist = {
+        factor_dist = MeanField({
             v: self._variable_factor_dist[v][factor]
-            for v in factor.all_variables}
-        model_dist = {
-            v: self[v] for v in factor.all_variables}
+            for v in factor.all_variables})
+        model_dist = MeanField({
+            v: self[v] for v in factor.all_variables})
 
-        return FactorApproximation(factor, var_cavity, #det_cavity,
-                                   factor_dist, model_dist)
+        return FactorApproximation(
+            factor, var_cavity, factor_dist, model_dist)
 
     def __repr__(self) -> str:
         name = type(self).__name__
