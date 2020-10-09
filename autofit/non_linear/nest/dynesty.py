@@ -140,11 +140,11 @@ class AbstractDynesty(AbstractNest):
             Minimum number of effective posterior samples. If the estimated “effective sample size” (ESS) exceeds 
             this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
-            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *Nest* for a full description of this feature).
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *Nest* for a full description of this feature).
+            `True` (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
@@ -638,11 +638,11 @@ class DynestyStatic(AbstractDynesty):
             Minimum number of effective posterior samples. If the estimated “effective sample size” (ESS) exceeds
             this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
-            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *Nest* for a full description of this feature).
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *Nest* for a full description of this feature).
+            `True` (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
@@ -849,11 +849,11 @@ class DynestyDynamic(AbstractDynesty):
             Minimum number of effective posterior samples. If the estimated “effective sample size” (ESS) exceeds
             this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
-            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *Nest* for a full description of this feature).
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *Nest* for a full description of this feature).
+            `True` (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).

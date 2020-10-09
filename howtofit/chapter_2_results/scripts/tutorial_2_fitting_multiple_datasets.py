@@ -84,17 +84,17 @@ for index in range(len(datas)):
 
     """
     Here, we create a `Phase` as normal. However, we also include an input parameter `path_prefix`. This defines the 
-    folders that the `Phase` outputs results to before the `phase_name`. For example, if a `Phase` outputs to the path:
+    folders that the `Phase` outputs results to before the `name`. For example, if a `Phase` outputs to the path:
 
-        `/path/to/autofit_workspace/output/phase_name/`
+        `/path/to/autofit_workspace/output/name/`
 
     A `Phase` with the `path_prefix='phase_folder' edits this path to:
 
-        `/path/to/autofit_workspace/output/phase_folder/phase_name/`
+        `/path/to/autofit_workspace/output/phase_folder/name/`
 
     You can input multiple folders, for example `path_prefix='folder_0/folder_1' would create the path:
 
-        `/path/to/autofit_workspace/output/folder_0/folder_1/phase_name/`
+        `/path/to/autofit_workspace/output/folder_0/folder_1/name/`
 
     Below, we use the `data_name`, so our results go in a folder specific to the `Dataset`, e.g:
 
@@ -109,7 +109,7 @@ for index in range(len(datas)):
     )
 
     phase = htf.Phase(
-        phase_name="phase_t2_agg",
+        name="phase_t2_agg",
         path_prefix=f"aggregator/{dataset_names[index]}",
         profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
         settings=htf.SettingsPhase(),

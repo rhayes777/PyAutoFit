@@ -5,8 +5,8 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit.non_linear import abstract_search
-from test_autofit import mock
-from test_autofit import mock_real
+from autofit import mock
+from autofit import mock_real
 
 directory = os.path.dirname(os.path.realpath(__file__))
 

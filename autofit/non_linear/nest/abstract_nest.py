@@ -40,10 +40,10 @@ class AbstractNest(NonLinearSearch):
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         terminate_at_acceptance_ratio : bool
-            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value.
         acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is *True*.
+            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is `True`.
         """
 
         if paths is None:

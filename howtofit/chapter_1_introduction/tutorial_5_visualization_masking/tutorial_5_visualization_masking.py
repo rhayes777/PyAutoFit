@@ -80,7 +80,7 @@ Lets now perform the fit from tutorial 4, but with a `MaskedDataset` and visuali
 
 # %%
 phase = htf.Phase(
-    phase_name="phase_t5", gaussian=af.PriorModel(htf.Gaussian), search=af.Emcee()
+    name="phase_t5", gaussian=af.PriorModel(htf.Gaussian), search=af.Emcee()
 )
 
 print(

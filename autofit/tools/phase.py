@@ -39,6 +39,22 @@ class AbstractPhase:
     def paths(self):
         return self.search.paths
 
+    @property
+    def folders(self):
+        return self.search.path_prefix
+
+    @property
+    def phase_property_collections(self):
+        """
+        Returns
+        -------
+        phase_property_collections: [PhaseProperty]
+            A list of phase property collections associated with this phase. This is
+            used in automated prior passing and should be overridden for any phase that
+            contains its own PhasePropertys.
+        """
+        return []
+
     def save_model_info(self):
         """Save the model.info file, which summarizes every parameter and prior."""
         with open(self.paths.file_model_info, "w+") as f:
@@ -63,6 +79,12 @@ class AbstractPhase:
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.search.paths.name}>"
 
+    def run(self, dataset, mask, results=None):
+        raise NotImplementedError()
+
+    def modify_search_paths(self):
+        raise NotImplementedError()
+
     @property
     def result(self) -> PromiseResult:
         """
@@ -83,7 +105,7 @@ class AbstractPhase:
         raise NotImplementedError()
 
     @property
-    def phase_name(self):
+    def name(self):
         return self.paths.name
 
 

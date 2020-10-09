@@ -53,7 +53,7 @@ Lets look at an example:
         gaussian_0.add_assertion(gaussian_0.centre < 50)
 
         phase1 = ph.Phase(
-            phase_name="phase_1__left_gaussian",
+            name="phase_1__left_gaussian",
             folders=folders,
             profiles=af.CollectionPriorModel(gaussian_0=gaussian_0),
             search=af.PySwarmsGlobal()
@@ -72,7 +72,7 @@ Lets look at an example:
         gaussian_1.add_assertion(gaussian_1.centre > 50)
 
         phase2 = ph.Phase(
-            phase_name="phase_2__right_gaussian",
+            name="phase_2__right_gaussian",
             folders=folders,
             profiles=af.CollectionPriorModel(
                 gaussian_0=phase1.result.instance.profiles.gaussian_0,  # <- phase1 Gaussian.
@@ -89,7 +89,7 @@ Lets look at an example:
         """
 
         phase3 = ph.Phase(
-            phase_name="phase_3__both_gaussian",
+            name="phase_3__both_gaussian",
             folders=folders,
             profiles=af.CollectionPriorModel(
                 gaussian_0=phase1.result.model.profiles.gaussian_0,  # <- phase1 Gaussian.

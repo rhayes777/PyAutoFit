@@ -8,7 +8,7 @@ import pytest
 import autofit as af
 from autoconf import conf
 from autofit.non_linear.mock.mock_search import MockSamples
-from test_autofit import mock
+from autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -74,10 +74,10 @@ class TestResult:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_copy_with_name_extension(self):
-        search = af.MockSearch(af.Paths("phase_name", tag="tag"))
+        search = af.MockSearch(af.Paths("name", tag="tag"))
         copy = search.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy)

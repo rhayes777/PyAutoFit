@@ -3,7 +3,7 @@ from os import path
 import autofit as af
 from autoconf import conf
 from autofit.non_linear.mock.mock_search import MockSearch, MockAnalysis, MockSamples
-from test_autofit import mock
+from autofit import mock
 
 directory = path.dirname(path.realpath(__file__))
 
@@ -14,7 +14,7 @@ conf.instance = conf.Config(
 
 def make_pipeline_1(name):
     search = MockSearch(
-        phase_name="phase_1",
+        name="phase_1",
         samples=MockSamples(
             gaussian_tuples=[(0.5, 0.5)]
         )
@@ -33,7 +33,7 @@ def make_pipeline_1(name):
 
 def make_pipeline_2(name):
     search = MockSearch(
-        phase_name="phase_2",
+        name="phase_2",
         samples=MockSamples(
             gaussian_tuples=[(0.5, 0.5)]
         )

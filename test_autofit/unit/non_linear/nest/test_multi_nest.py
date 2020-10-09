@@ -7,7 +7,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit.non_linear.nest import multi_nest as mn
-from test_autofit import mock
+from autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -256,10 +256,10 @@ class TestMulitNest:
 
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test__copy_with_name_extension(self):
-        search = af.MultiNest(af.Paths("phase_name"))
+        search = af.MultiNest(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

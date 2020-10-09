@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import autofit as af
-from test_autofit import mock
+from autofit import mock
 
 
 @pytest.fixture(name="model_promise")
@@ -17,7 +17,7 @@ def make_grid_search_promise(phase):
         af.AbstractPhase
     )(
         search=af.MockSearch(
-            "phase_name",
+            "name",
             phase_tag="phase_tag",
         )
     )

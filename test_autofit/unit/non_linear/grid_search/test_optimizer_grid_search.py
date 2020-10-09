@@ -4,8 +4,8 @@ import pytest
 
 import autofit as af
 from autofit import exc
-from test_autofit import mock
-from test_autofit.mock import MockAnalysis
+from autofit import mock
+from autofit.mock import MockAnalysis
 
 
 @pytest.fixture(name="mapper")
@@ -194,7 +194,7 @@ class TestGridNLOBehaviour:
     #     grid_search = af.NonLinearSearchGridSearch(
     #         search=container.MockOptimizer,
     #         number_of_steps=10,
-    #         paths=af.Paths(phase_name="sample_name"),
+    #         paths=af.Paths(name="sample_name"),
     #         parallel=True,
     #     )
     #     result = grid_search.fit(

@@ -3,7 +3,7 @@ import os
 import pytest
 
 import autofit as af
-from test_autofit.mock import MockPhaseOutput
+from autofit.mock import MockPhaseOutput
 
 
 @pytest.fixture(

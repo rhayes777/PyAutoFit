@@ -77,7 +77,7 @@ settings_masked_dataset = htf.SettingsMaskedDataset(
 settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
 
 phase = htf.Phase(
-    phase_name="phase_t7",
+    name="phase_t7",
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
     settings=settings,
     search=af.Emcee(),
@@ -126,13 +126,13 @@ settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
 
 # %%
 """
-We now create a new `Phase` with these settings and run it (note that we haven`t changed the `phase_name` from 
+We now create a new `Phase` with these settings and run it (note that we haven`t changed the `name` from 
 `phase_t7`, which you might think would cause conflicts in the path the results are output to).
 """
 
 # %%
 phase = htf.Phase(
-    phase_name="phase_t7",
+    name="phase_t7",
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
     settings=settings,
     search=af.Emcee(),

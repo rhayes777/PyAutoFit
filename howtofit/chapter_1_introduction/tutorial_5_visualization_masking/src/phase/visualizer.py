@@ -9,7 +9,7 @@ enabling the best-fit model of a `NonLinearSearch` to be output on-the-fly (e.g.
 at the end.
 
 The `image_path` specifies the path where images are output. By default, this is the image_path of the search,
-so the folder `output/phase_name/image`.
+so the folder `output/name/image`.
 """
 
 

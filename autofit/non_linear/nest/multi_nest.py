@@ -103,11 +103,11 @@ class MultiNest(abstract_nest.AbstractNest):
         init_MPI : None
             MPI not supported by PyAutoFit for MultiNest.
         terminate_at_acceptance_ratio : bool
-            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *Nest* for a full description of this feature).
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            *True* (see *Nest* for a full description of this feature).
+            `True` (see *Nest* for a full description of this feature).
         """
 
         self.n_live_points = (

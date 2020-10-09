@@ -163,7 +163,7 @@ dimensionality has increased from N=3 to N=6, given that we are now fitting two 
 
 # %%
 phase = htf.Phase(
-    phase_name="phase_t6_gaussian_x1_exponential_x1",
+    name="phase_t6_gaussian_x1_exponential_x1",
     profiles=af.CollectionPriorModel(
         gaussian=htf.profiles.Gaussian, exponential=htf.profiles.Exponential
     ),
@@ -197,7 +197,7 @@ dataset = htf.Dataset(
 )
 
 phase = htf.Phase(
-    phase_name="phase_t6_gaussian_x2_exponential_x1",
+    name="phase_t6_gaussian_x2_exponential_x1",
     profiles=af.CollectionPriorModel(
         gaussian_0=htf.profiles.Gaussian,
         gaussian_1=htf.profiles.Gaussian,
@@ -261,7 +261,7 @@ from howtofit.simulators.chapter_1 import gaussian_x3
 
 dataset = htf.Dataset(data=gaussian_x3.data, noise_map=gaussian_x3.noise_map)
 
-phase = htf.Phase(phase_name="phase_t6_gaussian_x3", profiles=model, search=af.Emcee())
+phase = htf.Phase(name="phase_t6_gaussian_x3", profiles=model, search=af.Emcee())
 
 print(
     "Emcee has begun running - checkout the autofit_workspace/howtofit/chapter_1_introduction/output/phase_t5_gaussian_x3"

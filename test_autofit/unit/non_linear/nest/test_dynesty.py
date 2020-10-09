@@ -6,7 +6,7 @@ from autoconf import conf
 import autofit as af
 import pickle
 import numpy as np
-from test_autofit import mock
+from autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -337,10 +337,10 @@ class TestDynestyConfig:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_dynesty(self):
-        search = af.DynestyStatic(af.Paths("phase_name"))
+        search = af.DynestyStatic(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
@@ -368,7 +368,7 @@ class TestCopyWithNameExtension:
         assert copy.max_move == search.max_move
         assert copy.number_of_cores == search.number_of_cores
 
-        search = af.DynestyDynamic(af.Paths("phase_name"))
+        search = af.DynestyDynamic(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

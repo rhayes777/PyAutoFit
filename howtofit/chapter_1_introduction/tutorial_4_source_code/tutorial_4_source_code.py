@@ -214,7 +214,7 @@ contrast to the previous tutorial includes the phase name in the path structure.
 
 # %%
 phase = htf.Phase(
-    phase_name="phase_t4", gaussian=af.PriorModel(htf.Gaussian), search=af.Emcee()
+    name="phase_t4", gaussian=af.PriorModel(htf.Gaussian), search=af.Emcee()
 )
 
 print(

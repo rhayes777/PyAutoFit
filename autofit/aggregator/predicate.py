@@ -345,7 +345,7 @@ class NotPredicate(AbstractPredicate):
         Negates the output of a predicate.
 
         If the predicate would have returned ``True`` for a given phase
-        it now returns ``False`` and vice-versa.
+        it now returns `False` and vice-versa.
 
         Parameters
         ----------

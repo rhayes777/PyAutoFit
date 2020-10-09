@@ -1,5 +1,5 @@
 import autofit as af
-from test_autofit import mock
+from autofit import mock
 
 
 class TestMixin:

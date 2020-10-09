@@ -76,7 +76,7 @@ print(
 )
 
 phase = htf.Phase(
-    phase_name="phase_t1",
+    name="phase_t1",
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
     settings=settings,
     search=af.DynestyStatic(),

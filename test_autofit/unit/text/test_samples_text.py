@@ -4,7 +4,7 @@ import pytest
 
 import os
 
-from test_autofit.mock import MockClassx2
+from autofit.mock import MockClassx2
 
 text_path = "{}/files/samples/".format(os.path.dirname(os.path.realpath(__file__)))
 

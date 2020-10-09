@@ -65,13 +65,13 @@ print("Total Samples Objects = ", len(list(agg.values("samples"))), "\n")
 # %%
 """
 To remove the fits of previous tutorials and just keep the `MCMCSamples` of the 3 `Dataset`s fitted in this tutorial 
-we can use the `Aggregator`'s `filter` tool. Below, we use the `phase_name` of the results, `phase_t2` which is 
+we can use the `Aggregator`'s `filter` tool. Below, we use the `name` of the results, `phase_t2` which is 
 unique to all 3  fits, to filter our results as desired.
 """
 
 # %%
-phase_name = "phase_t2_agg"
-agg_filter = agg.filter(agg.phase == phase_name)
+name = "phase_t2_agg"
+agg_filter = agg.filter(agg.phase == name)
 
 # %%
 """

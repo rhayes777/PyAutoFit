@@ -67,7 +67,7 @@ This config file is found at ``autofit_workspace/config/general.ini`` and contai
         If ``True``, and if the results of a ``NonLinearSearch`` were completed in a previous run, then all processing steps
         performed at the end of the ``NonLinearSearch`` (e.g. output of sample results, visualization, etc.) are skipped.
 
-        If ``False``, they are repeated, which can be used for updating visualization or the ``NonLinearSearch`` pickles
+        If `False`, they are repeated, which can be used for updating visualization or the ``NonLinearSearch`` pickles
         to a new version of PyAutoFit.
     grid_results_interval -> int
         For a ``GridSearch`` this interval sets after how many samples on the grid output is

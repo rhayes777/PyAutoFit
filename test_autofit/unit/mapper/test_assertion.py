@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import exc
-from test_autofit import mock
+from autofit import mock
 
 
 @pytest.fixture(name="prior_1")

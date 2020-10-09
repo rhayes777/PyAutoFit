@@ -41,7 +41,7 @@ class AggregatorGroup:
         Parameters
         ----------
         predicates
-            Predicates that evaluate to ``True`` or ``False`` for any given phase.
+            Predicates that evaluate to ``True`` or `False` for any given phase.
 
         Returns
         -------
@@ -148,7 +148,7 @@ class AbstractAggregator:
         Parameters
         ----------
         predicates
-            Objects representing predicates that may evaluate to ``True`` or ``False`` for any
+            Objects representing predicates that may evaluate to ``True`` or `False` for any
             given phase output.
 
         Returns

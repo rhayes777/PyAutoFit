@@ -63,12 +63,12 @@ results of the *model-fit* to the 10th ``Gaussian`` in our dataset:
     )
 
 If users adopt the **PyAutoFit** ``phase`` API, they can use the in-built phase naming structure to ``filter``
-results based on ``phase_name``:
+results based on ``name``:
 
 .. code-block:: bash
 
-    phase_name = "phase__fit_1d_gaussian"
-    agg_filter = agg.filter(agg.phase == phase_name)
+    name = "phase__fit_1d_gaussian"
+    agg_filter = agg.filter(agg.phase == name)
 
 The ``phase`` API also allows the the user to customize the ``Aggregator`` to load model-specific
 results including the dataset, masks and auxiliary information about the data:

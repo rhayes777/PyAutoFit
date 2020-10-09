@@ -37,7 +37,7 @@ def convert_paths(func):
             return func(self, paths=first_arg, **kwargs)
 
         if first_arg is None:
-            first_arg = kwargs.pop("phase_name", None)
+            first_arg = kwargs.pop("name", None)
 
         # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
         # TODO : nicely though.
@@ -110,7 +110,7 @@ class Paths:
         ----------
         name : str
             The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For phases
-            this name is the ``phase_name``.
+            this name is the ``name``.
         tag : str
             A tag for the non-linear search, typically used for instances where the same data is fitted with the same
             model but with slight variants. For phases this is the phase_tag.
@@ -119,7 +119,7 @@ class Paths:
         non_linear_name : str
             The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
         remove_files : bool
-            If *True*, all output results except their ``.zip`` files are removed. If ``False`` they are not removed.
+            If `True`, all output results except their ``.zip`` files are removed. If `False` they are not removed.
         """
 
         self.path_prefix = path_prefix or ""
