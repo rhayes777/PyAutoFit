@@ -30,8 +30,8 @@ Setup the configs and output folder for our `NonLinearSearch`.
 
 # %%
 conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output",
+    config_path=f"config",
+    output_path=f"output",
 )
 
 # %%
@@ -47,7 +47,7 @@ are in the middle of a `NonLinearSearch` will be omitted and not loaded in the `
 """
 
 # %%
-output_path = f"{workspace_path}/output/chapter_2/aggregator"
+output_path = f"output/chapter_2/aggregator"
 
 agg = af.Aggregator(directory=str(output_path), completed_only=True)
 

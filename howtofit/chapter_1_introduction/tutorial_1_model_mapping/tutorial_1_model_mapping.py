@@ -38,12 +38,6 @@ as shown below.
 """
 
 # %%
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-# %%
 """
 You`re going to see a line like the one below (with `conf.instance =`) in every tutorial this chapter. This sets the
 following property:
@@ -56,7 +50,7 @@ Nevertheless, setting the paths explicitly within the code is good practise.
 """
 
 # %%
-conf.instance = conf.Config(config_path=f"{workspace_path}/config")
+conf.instance = conf.Config(config_path=f"config")
 
 # %%
 """

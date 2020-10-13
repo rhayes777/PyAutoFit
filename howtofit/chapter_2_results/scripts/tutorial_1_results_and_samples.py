@@ -35,8 +35,8 @@ Setup the configs as we did in the previous tutorial, as well as the output fold
 
 # %%
 conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_2",
+    config_path=f"config",
+    output_path=f"output/chapter_2",
 )
 
 # %%
@@ -94,7 +94,7 @@ Here, we'll look in detail at what information is contained in the `Result`.
 
 It contains a `Samples` object, which contains information on the `NonLinearSearch`, for example the parameters. 
 
-The parameters are stored as a a list of lists, where:
+The parameters are stored as a list of lists, where:
 
  - The outer list is the size of the total number of samples.
  - The inner list is the size of the number of free parameters in the fit.

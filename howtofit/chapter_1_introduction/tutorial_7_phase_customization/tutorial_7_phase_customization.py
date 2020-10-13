@@ -41,8 +41,8 @@ Setup the configs as we did in the previous tutorial, as well as the output fold
 
 # %%
 conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_1",
+    config_path=f"config",
+    output_path=f"output/chapter_1",
 )
 
 # %%

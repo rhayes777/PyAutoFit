@@ -24,7 +24,7 @@ These setup the configs as we did in the previous tutorial.
 """
 
 # %%
-conf.instance = conf.Config(config_path=f"{workspace_path}/config")
+conf.instance = conf.Config(config_path=f"config")
 
 # %%
 """

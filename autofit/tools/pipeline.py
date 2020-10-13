@@ -111,7 +111,7 @@ class ResultsCollection:
 
 
 class Pipeline:
-    def __init__(self, pipeline_name, *phases):
+    def __init__(self, pipeline_name, path_prefix, *phases):
         """
         A pipeline of phases to be run sequentially. Results are passed between phases. Phases must have unique names.
 
@@ -121,10 +121,14 @@ class Pipeline:
             The name of this pipeline
         """
         self.pipeline_name = pipeline_name
+        self.path_prefix = path_prefix
         self.phases = phases
         self.pipeline_tag = None
 
         for phase in phases:
+
+            phase.search.paths.path_prefix = path_prefix
+
             if phase.pipeline_name is None:
                 phase.pipeline_name = pipeline_name
             if phase.pipeline_tag is None:
@@ -164,7 +168,8 @@ class Pipeline:
                 self.pipeline_name,
                 other.pipeline_name
             ),
-            *(self.phases + other.phases)
+            self.path_prefix,
+            *(self.phases + other.phases),
         )
 
     def run(self, dataset):

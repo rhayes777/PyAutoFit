@@ -344,7 +344,7 @@ class AbstractDynesty(AbstractNest):
 
                         break
 
-                    except ValueError:
+                    except (ValueError, np.linalg.LinAlgError):
 
                         continue
 

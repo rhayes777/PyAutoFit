@@ -17,7 +17,7 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.non_linear.timer import Timer
 from autofit.text import formatter
-from autofit.text import samples_text, text_util
+from autofit.text import text_util
 
 
 class NonLinearSearch(ABC):
@@ -363,7 +363,7 @@ class NonLinearSearch(ABC):
                 during_analysis=during_analysis,
             )
 
-            samples_text.summary(samples=samples, filename=self.paths.file_search_summary)
+            text_util.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
 
         if not during_analysis and self.remove_state_files_at_end:
             try:
