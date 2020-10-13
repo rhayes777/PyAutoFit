@@ -93,7 +93,7 @@ class TestGenerateModelInfo:
 
     def test_with_promise(self):
         mm = af.ModelMapper()
-        mm.promise = af.prior.Promise(
+        mm.promise = af.Promise(
             af.Phase(
                 analysis_class=None,
                 search=af.MockSearch(
@@ -907,7 +907,7 @@ def make_promise_mapper():
     mapper = af.ModelMapper()
     mapper.component = af.PriorModel(
         mock.MockComponents,
-        parameter=af.prior.Promise(
+        parameter=af.Promise(
             None,
             None,
             is_instance=False,

@@ -5,7 +5,7 @@ import logging
 from typing_inspect import is_tuple_type
 
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior import TuplePrior, Prior
+from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.promise import Promise
 from autofit.mapper.prior_model.abstract import AbstractPriorModel

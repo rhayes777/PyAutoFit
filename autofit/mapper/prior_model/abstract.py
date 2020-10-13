@@ -777,7 +777,7 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        from autofit.mapper.prior import AbstractPromise
+        from autofit.mapper.prior.promise import AbstractPromise
         formatter = TextFormatter()
 
         for t in self.path_instance_tuples_for_class((
