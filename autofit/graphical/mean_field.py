@@ -10,16 +10,11 @@ from autofit.graphical.factor_graphs import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import FixedMessage, map_dists
 from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.graphical.utils import prod, add_arrays
+from autofit.graphical.utils import prod, add_arrays, OptResult, Status
 from autofit.mapper.variable import Variable
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
-
-
-class Status(NamedTuple):
-    success: bool = True
-    messages: Tuple[str, ...] = ()
 
 
 def project_on_to_factor_approx(
@@ -154,7 +149,15 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             k: m**other for k, m in self.items()},
             self.log_norm * other)
 
-    def project_mode(
+    def project_mode(self, res: OptResult):
+        projection = type(self)({
+            v: dist.from_mode(res.mode[v], res.inv_hessian.get(v))
+            for v, dist in self.items()})
+        
+        projection.log_norm = res.log_norm - projection(res.mode).log_value
+        return projection
+
+    def _project_mode(
             self, 
             mode: Dict[Variable, np.ndarray],
             covar: Dict[Variable, np.ndarray], 

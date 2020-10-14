@@ -1,13 +1,25 @@
 from functools import reduce
 from operator import mul
 from typing import (
-    Iterable, Tuple, TypeVar, Dict
+    Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional
 )
 
 import numpy as np
 from scipy import special
+from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable
+
+class Status(NamedTuple):
+    success: bool = True
+    messages: Tuple[str, ...] = ()
+
+class OptResult(NamedTuple):
+    mode: Dict[str, np.ndarray]
+    inv_hessian: Dict[str, np.ndarray]
+    log_norm: float
+    result: OptimizeResult
+    status: Optional[Status]
 
 
 class FlattenArrays(dict):

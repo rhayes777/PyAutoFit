@@ -7,16 +7,8 @@ from scipy.optimize import minimize, OptimizeResult, least_squares
 from autofit.graphical import FixedMessage
 from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs import Factor
-from .mean_field import FactorApproximation, MeanFieldApproximation, Status
-from .utils import propagate_uncertainty, FlattenArrays
-
-
-class OptResult(NamedTuple):
-    mode: Dict[str, np.ndarray]
-    inv_hessian: Dict[str, np.ndarray]
-    log_norm: float
-    result: OptimizeResult
-    status: Optional[Status]
+from autofit.graphical.mean_field import FactorApproximation, MeanFieldApproximation, Status
+from autofit.graphical.utils import propagate_uncertainty, FlattenArrays, OptResult
 
 
 class OptFactor:
@@ -99,9 +91,11 @@ class OptFactor:
             "optimise.find_factor_mode: "
             f"nfev={result.nfev}, nit={result.nit}, "
             f"status={result.status}, message={message}",)
+        mode = self.param_shapes.unflatten(result.x)
+        mode.update(self.fixed_kws)
+        covar = self.param_shapes.unflatten(result.hess_inv.todense())
         return OptResult(
-            self.param_shapes.unflatten(result.x),
-            self.param_shapes.unflatten(result.hess_inv.todense()),
+            mode, covar,
             -result.fun, # minimized negative logpdf of factor approximation
             result,
             Status(success, messages))
@@ -121,7 +115,8 @@ class OptFactor:
             arrays_dict={},
             bounds=None,
             constraints=(), tol=None, callback=None,
-            options=None
+            options=None,
+            status=None,
     ):
         self.sign = -1
         p0 = {
@@ -132,12 +127,12 @@ class OptFactor:
             bounds=bounds, constraints=constraints, tol=tol,
             callback=callback, options=options)
         self.sign = 1
-        return self._parse_result(res)
+        return self._parse_result(res, status=status)
 
     minimize = minimise
     maximize = maximise
 
-def update_det_inv_hessian(
+def update_det_cov(
         res: OptResult,
         jacobian: Dict[Variable, np.ndarray]):
     """Calculates the inv hessian of the deterministic variables
@@ -147,8 +142,7 @@ def update_det_inv_hessian(
     covars = res.inv_hessian
     for (det, v), jac in jacobian.deterministic_values.items():
         cov = covars[v]
-        det_cov = propagate_uncertainty(cov, jac)
-        covars[det] += covars.get(det, 0.) + det_cov
+        covars[det] = covars.get(det, 0.) + propagate_uncertainty(cov, jac)
 
     return res
 
@@ -165,62 +159,32 @@ def maximise_factor_approx(
 
 maximize_factor_approx = maximise_factor_approx
 
-
 def find_factor_mode(
         factor_approx: FactorApproximation,
         return_cov: bool = True,
         status: Optional[Status] = None,
         min_iter: int = 2,
+        opt_kws: Optional[dict] = None,
         **kwargs
-):
+    ) -> OptResult:
     """
     """
-    success, messages = Status() if status is None else status
-    factor = factor_approx.factor
+    opt_kws = {} if opt_kws is None else opt_kws 
 
     opt = OptFactor.from_approx(factor_approx, **kwargs)
-    free_vars = opt.free_vars
-    det_vars = factor_approx.deterministic_dist
-    p0 = {
-        v: kwargs.pop(v, factor_approx.model_dist[v].sample(1)[0])
-        for v in free_vars}
-
-    # find the mode of the factor approximation
-    res = opt.maximise(p0)
-    mode = {**res.mode, **opt.fixed_kws}
-
-    result = res.result
-    success = result.success
-    message = result.message.decode()
-    messages += (
-        "optimise.find_factor_mode: "
-        f"nfev={result.nfev}, nit={result.nit}, "
-        f"status={result.status}, message={message}",)
-    if result.nit < min_iter:
-        success = False
-        # TODO implement numerical Hessian
-
-    # find the values of the deterministic variables at the mode
-    f = factor(mode)
-    mode.update(f.deterministic_values)
+    res = opt.maximise(status=status, **opt_kws)
 
     if return_cov:
-        # Calculate covariance of deterministic variables based on
-        # the free variables covariance and Jacobians
-        covars = res.inv_hessian
-        factor_jac = factor.jacobian(free_vars, mode)
-        for det in det_vars:
-            covars[det] = 0.
-            for v in free_vars:
-                cov = covars[v]
-                jac = factor_jac.deterministic_values[det, v]
-                det_cov = propagate_uncertainty(cov, jac)
-                covars[det] += det_cov
-    else:
-        covars = {}
+        # Calculate deterministic values
+        value = factor_approx.factor(res.mode)
+        res.mode.update(value.deterministic_values)
 
-    return mode, covars, Status(success, messages), result
+        # Calculate covariance of deterministic values
+        jacobian = factor_approx.factor.jacobian(
+            opt.free_vars, res.mode)
+        update_det_cov(res, jacobian)
 
+    return res
 
 class LaplaceOptimiser:
     def __init__(
@@ -237,7 +201,7 @@ class LaplaceOptimiser:
         for i in range(self.n_iter):
             for factor in model.factors:
                 # We have reduced the entire EP step into a single function
-                model_approx, status = self.laplace_factor_approx(
+                model_approx, _ = self.laplace_factor_approx(
                     model_approx,
                     factor
                 )
@@ -252,27 +216,28 @@ class LaplaceOptimiser:
             factor: Factor,
             opt_kws: Optional[Dict[str, Any]] = None
     ):
-        factor_approx = model_approx.factor_approximation(factor)
-
         opt_kws = {} if opt_kws is None else opt_kws
-        mode, covars, status, _ = find_factor_mode(
+
+        factor_approx = model_approx.factor_approximation(factor)
+        res = find_factor_mode(
             factor_approx,
             return_cov=True,
             **opt_kws
         )
 
-        model_dist = {
-            v: factor_approx.factor_dist[v].from_mode(
-                mode[v],
-                covars.get(v)
-            )
-            for v in mode
-        }
+        model_dist = factor_approx.model_dist.project_mode(res)
+        # model_dist = {
+        #     v: factor_approx.factor_dist[v].from_mode(
+        #         res.mode[v],
+        #         res.inv_hessian.get(v)
+        #     )
+        #     for v in res.mode
+        # }
 
         projection, status = factor_approx.project(
             model_dist,
             delta=self.delta,
-            status=status
+            status=res.status
         )
 
         return model_approx.project(
@@ -339,7 +304,7 @@ class LeastSquaresOpt:
 
     def __call__(self, arr):
         p0 = self.param_shapes.unflatten(arr)
-        log_value, det_vars = self.factor_approx.factor(
+        _, det_vars = self.factor_approx.factor(
             {**p0, **self.fixed_kws}
         )
         vals = {**p0, **det_vars}
