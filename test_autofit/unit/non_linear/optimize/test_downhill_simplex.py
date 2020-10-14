@@ -60,10 +60,10 @@ def make_downhill_simplex():
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy, search):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_downhill_simplex(self):
-        search = af.DownhillSimplex(Paths("phase_name"), fmin=lambda x: x)
+        search = af.DownhillSimplex(Paths("name"), fmin=lambda x: x)
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy, search)

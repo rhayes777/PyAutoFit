@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from test_autofit import mock
 
 
 @pytest.fixture(name="prior_0")
@@ -25,7 +24,12 @@ def make_model(prior_0, prior_1):
 
 @pytest.fixture(name="phase")
 def make_phase(model):
-    return af.AbstractPhase(phase_name="phase name", model=model, search=af.MockSearch())
+    return af.AbstractPhase(
+        model=model,
+        search=af.MockSearch(
+            "phase name"
+        )
+    )
 
 
 @pytest.fixture(name="results_collection")
@@ -46,8 +50,8 @@ class TestIteration:
         promise_0 = phase.result.model.collection[0]
         promise_1 = phase.result.model.collection[1]
 
-        assert isinstance(promise_0, af.prior.Promise)
-        assert isinstance(promise_1, af.prior.Promise)
+        assert isinstance(promise_0, af.Promise)
+        assert isinstance(promise_1, af.Promise)
 
     def test_index_populate_model(self, phase, prior_0, prior_1, results_collection):
         promise_0 = phase.result.model.collection[0]
@@ -73,4 +77,4 @@ class TestIteration:
         promises = list(phase.result.model.collection)
 
         assert len(promises) == 2
-        assert all([isinstance(promise, af.prior.Promise) for promise in promises])
+        assert all([isinstance(promise, af.Promise) for promise in promises])

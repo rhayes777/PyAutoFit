@@ -1,4 +1,4 @@
-autoconf==0.6.1
+autoconf==0.6.2
 corner>=2.0.1
 decorator>=4.2.1
 dill>=0.3.1.1
@@ -11,4 +11,3 @@ numpydoc>=1.0.0
 pyswarms==1.1.0
 PyYAML>=3.12
 h5py==2.10.0
-pyprojroot>=0.2.0

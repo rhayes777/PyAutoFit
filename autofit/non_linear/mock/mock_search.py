@@ -2,6 +2,7 @@ import math
 
 from autoconf import conf
 from autofit import exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.abstract_search import Analysis
@@ -14,7 +15,6 @@ class MockSearch(NonLinearSearch):
 
     @convert_paths
     def __init__(self, paths=None, samples=None, fit_fast=True):
-
         super().__init__(paths=paths)
 
         self.fit_fast = fit_fast
@@ -40,7 +40,7 @@ class MockSearch(NonLinearSearch):
 
         return fitness_function.result
 
-    def _fit(self, model, analysis):
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         if self.fit_fast:
             result = self._fit_fast(model=model, analysis=analysis)
             return result
@@ -77,7 +77,7 @@ class MockSearch(NonLinearSearch):
 
     @property
     def config_type(self):
-        return conf.instance.mock
+        return conf.instance["non_linear"]["mock"]
 
     @property
     def tag(self):

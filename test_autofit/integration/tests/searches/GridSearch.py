@@ -20,7 +20,7 @@ class GridPhase(af.as_grid_search(phase_class=ph.Phase, parallel=False)):
         ]
 
 phase = GridPhase(
-    phase_name="phase_grid",
+    name="phase_grid",
     profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
         search=af.DynestyStatic(
             n_live_points=40, evidence_tolerance=5.0

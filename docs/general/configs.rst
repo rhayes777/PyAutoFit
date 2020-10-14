@@ -1,14 +1,14 @@
 Configs
 =======
 
-The autofit workspace includes a set of configuration files that customize the behaviour of the non-linear searches,
+The `autofit_workspace` includes configuration files that customize the behaviour of the ``NonLinearSearch``'s,
 visualization and other aspects of **PyAutoFit**. Here, we describe how to configure **PyAutoFit** to use the configs
 and describe every configuration file complete with input parameters.
 
 Setup
 -----
 
-By default, **PyAutoFit** looks for the config files at the path set by the environmental WORKSPACE variable, which
+By default, **PyAutoFit** looks for the config files at the path set by the environmental ``WORKSPACE`` variable, which
 you should have set up during the **PyAutoFit** installation. The variable was set by running the following command
 in your command line:
 
@@ -17,12 +17,12 @@ in your command line:
     export WORKSPACE=/path/to/autofit_workspace/
 
 If you find that **PyAutoFit** originally worked on your laptop, but more recently is raising config related errors,
-this is likely because your WORKSPACE variable has been reset. You can fix this by running the above command again,
+this is likely because your ``WORKSPACE`` variable has been reset. You can fix this by running the above command again,
 however to ensure this does not occur again I would recommend you put the command in your .bashrc file or the
 activate script of your Python virtual enviroment.
 
 The configuration path can also be set manually in a script using **PyAutoConf** and the following command (the path
-to the 'output' folder where the results of a *non-linear search* are stored is also set below):
+to the ``output`` folder where the results of a ``NonLinearSearch`` are stored is also set below):
 
 .. code-block:: bash
 
@@ -31,84 +31,85 @@ to the 'output' folder where the results of a *non-linear search* are stored is 
     workspace_path = "/path/to/user/autofit_workspace"
 
     conf.instance = conf.Config(
-        config_path=f"{workspace_path}/config", output_path=f"{workspace_path}/output"
+        config_path=f"config", output_path=f"output"
     )
 
-This manual setting of the config files is used in every example script in the autofit workspace *example* folder,
-alongsie the **HowToFit** lectures. If the WORKSPACE environment variable does not seem to set the config path
+This manual setting of the config files is used in every example script in the autofit_workspace`` *example* folder,
+alongsie the **HowToFit** lectures. If the ``WORKSPACE`` environment variable does not seem to set the config path
 correct we recommend you try manually setting the config files as shown above.
 
 general.ini
 -----------
 
-This config file is found at 'autofit_workspace/config/general.ini' and contains the following sectioons and variables:
+This config file is found at ``autofit_workspace/config/general.ini`` and contains the following sections and variables:
 
 [output]
     log_file -> str
-        The file name the logged output is written to (in the non-linear search output folder).
+        The file name the logged output is written to (in the ``NonLinearSearch`` output folder).
     log_level -> str
         The level of logging.
     model_results_decimal_places -> int
-        The number of decimal places the estimated values and errors of all parameters in the model.results file are
+        The number of decimal places the estimated values and errors of all parameters in the ``model.results`` file are
         output to.
     remove_files -> bool
-        If True, all output files of a non-linear search (e.g. samples, samples_backup, model.results, images, etc.)
+        If ``True``, all output files of a ``NonLinearSearch`` (e.g. samples, samples_backup, model.results, images, etc.)
         are deleted once the model-fit has completed.
 
         A .zip file of all output is always created before files are removed, thus results are not lost with this
-        option turned on. If PyAutoFit does not find the output files of a model-fit (because they were removed) but
+        option turned on. If **PyAutoFit** does not find the output files of a model-fit (because they were removed) but
         does find this .zip file, it will unzip the contents and continue the analysis as if the files were
         there all along.
 
         This feature was implemented because super-computers often have a limit on the number of files allowed per
-        user and the large number of files output by PyAutoFit can exceed this limit. By removing files the
+        user and the large number of files output by **PyAutoFit** can exceed this limit. By removing files the
         number of files is restricted only to the .zip files.
     skip_completed -> bool
-        If True, and if the results of a non-linear search were completed in a previous run, then all processing steps
-        performed at the end of the non-linear search (e.g. output of sample results, visualization, etc.) are skipped.
+        If ``True``, and if the results of a ``NonLinearSearch`` were completed in a previous run, then all processing steps
+        performed at the end of the ``NonLinearSearch`` (e.g. output of sample results, visualization, etc.) are skipped.
 
-        If False, they are repeated, which can be used for updating visualization or the non-linear search pickles
+        If `False`, they are repeated, which can be used for updating visualization or the ``NonLinearSearch`` pickles
         to a new version of PyAutoFit.
     grid_results_interval -> int
-        For a GridSearch non-linear optimization this interval sets after how many samples on the grid output is
-        performed for. A grid_results_interval of -1 turns off output.
+        For a ``GridSearch`` this interval sets after how many samples on the grid output is
+        performed for. A ``grid_results_interval`` of -1 turns off output.
 
 non_linear
 ----------
 
-These config files are found at 'autofit_workspace/config/non_linear' and they contain the default settings used by
-every non-linear search. The [search], [settings] and [initializ] sections of the non-linear configs contains settings
-specific to certain non-linear searches, and the documentation for these variables should be found by inspecting the
-`API Documentation <https://pyautofit.readthedocs.io/en/latest/api/api.html>`_ of the relevent non-linear search object.
+These config files are found at ``autofit_workspace/config/non_linear`` and they contain the default settings used by
+every ``NonLinearSearch``. The ``[search]``, ``[settings]`` and ``[initialize]`` sections of the non-linear configs
+contains settings specific to certain ``NonLinearSearch``'s, and the documentation for these variables should be found
+by inspecting the`API Documentation <https://pyautofit.readthedocs.io/en/latest/api/api.html>`_ of the relevent
+``NonLinearSearch`` object.
 
-The following config sections and variables are generic across all non-linear search configs (e.g.
-config/non_linear/nest/DynestyStatic.ini, config/non_linear/mcmc/Emcee.ini, etc.):
+The following config sections and variables are generic across all ``NonLinearSearch`` configs (e.g.
+``config/non_linear/nest/DynestyStatic.ini``, ``config/non_linear/mcmc/Emcee.ini``, etc.):
 
 [updates]
    iterations_per_update -> int
-        The number of iterations of the non-linear search performed between every 'update', where an update performs
-        visualization of the maximum log likelihood model, backing-up of the samples, output of the model.results
+        The number of iterations of the ``NonLinearSearch`` performed between every 'update', where an update performs
+        visualization of the maximum log likelihood model, backing-up of the samples, output of the ``model.results``
         file and logging.
    visualize_every_update -> int
-        For every visualize_every_update updates visualization is performed and output to the hard-disk during the
-        non-linear using the maximum log likelihood model. A visualization_interval of -1 turns off on-the-fly
+        For every ``visualize_every_update`` updates visualization is performed and output to the hard-disk during the
+        non-linear using the maximum log likelihood model. A ``visualization_interval`` of -1 turns off on-the-fly
         visualization.
    backup_every_update -> int
-        For every backup_every_update the results of the non-linear search in the samples foler and backed up into the
-        samples_backup folder. A backup_every_update of -1 turns off backups during the non-linear search (it is still
-        performed when the non-linear search terminates).
+        For every ``backup_every_update`` the results of the ``NonLinearSearch`` in the samples foler and backed up into the
+        samples_backup folder. A ``backup_every_update`` of -1 turns off backups during the ``NonLinearSearch`` (it is still
+        performed when the ``NonLinearSearch`` terminates).
    model_results_every_update -> int
-        For every model_results_every_update the model.results file is updated with the maximum log likelihood model
-        and parameter estimates with errors at 1 an 3 sigma confidence. A model_results_every_update of -1 turns off
-        the model.results file being updated during the model-fit (it is still performed when the non-linear search
+        For every ``model_results_every_update`` the model.results file is updated with the maximum log likelihood model
+        and parameter estimates with errors at 1 an 3 sigma confidence. A ``model_results_every_update`` of -1 turns off
+        the model.results file being updated during the model-fit (it is still performed when the ``NonLinearSearch``
         terminates).
    log_every_update -> int
-        For every log_every_update the log file is updated with the output of the Python interpreter. A
-        log_every_update of -1 turns off logging during the model-fit.
+        For every ``log_every_update`` the log file is updated with the output of the Python interpreter. A
+        ``log_every_update`` of -1 turns off logging during the model-fit.
 
 [printing]
     silence -> bool
-        If True, the default print output of the non-linear search is silcened and not printed by the Python
+        If ``True``, the default print output of the ``NonLinearSearch`` is silenced and not printed by the Python
         interpreter.
 
 [prior_passer]
@@ -118,27 +119,27 @@ use_widths=True
 
 [parallel]
     number_of_cores -> int
-        For non-linear searches that support parallel procesing via the Python multiprocesing module, the number of
-        cores the parallel run uses. If number_of_cores=1, the model-fit is performed in serial omitting the use
-        of the multi-processing module.
+        For ``NonLinearSearch``'s that support parallel procesing via the Python ``multiprocesing`` module, the number of
+        cores the parallel run uses. If ``number_of_cores=1``, the model-fit is performed in serial omitting the use
+        of the ``multiprocessing`` module.
 
-The output path of every non-linear search is also 'tagged' using strings based on the [search] setting of the
-non-linear search:
+The output path of every ``NonLinearSearch`` is also 'tagged' using strings based on the ``[search]`` setting of the
+``NonLinearSearch``:
 
 [tag]
     name -> str
-        The name of the non-linear search used to start the tag path of output results. For example for the non-linear
-        search DynestyStatic the default name tag is 'dynesty_static'.
+        The name of the ``NonLinearSearch`` used to start the tag path of output results. For example for the
+        search ``DynestyStatic`` the default name tag is 'dynesty_static'.
 
 visualize
 ---------
 
-These config files are found at 'autofit_workspace/config/visualize' and they contain the default settings used by
-visualization in **PyAutoFit**. The *general.ini* config contains the following sections and variables:
+These config files are found at ``autofit_workspace/config/visualize`` and they contain the default settings used by
+visualization in **PyAutoFit**. The ``general.ini`` config contains the following sections and variables:
 
 [general]
     backend -> str
-        The matploblib backend used for visualization (see
+        The ``matploblib backend`` used for visualization (see
         https://gist.github.com/CMCDragonkai/4e9464d9f32f5893d837f3de2c43daa4 for a description of backends).
 
         If you use an invalid backend for your computer, **PyAutoFit** may crash without an error or reset your machine.
@@ -159,11 +160,11 @@ visualization in **PyAutoFit**. The *general.ini* config contains the following 
 json_priors
 -----------
 
-These config files are found at 'autofit_workspace/config/json_priors' and they contain the default priors and related
-variables for every model-component in a project, using .json format files (as opposed to .ini. for most config files).
+These config files are found at ``autofit_workspace/config/json_priors`` and they contain the default priors and related
+variables for every model-component in a project, using ``.json`` format files (as opposed to ``.ini`` for most config files).
 
-The autofit workspace contains example json_prior files for the 1D data fitting problem. An example entry of the
-json configs for the *sigma* parameter of the *Gaussian* class is as follows:
+The autofit_workspace`` contains example ``json_prior`` files for the 1D ``data`` fitting problem. An example entry of the
+json configs for the ``sigma`` parameter of the ``Gaussian`` class is as follows:
 
 .. code-block:: bash
 
@@ -186,29 +187,29 @@ The sections of this example config set the following:
 
 json config
     type -> Prior
-        The default prior given to this parameter which is used by the *non-linear search*. In the example above, a
-        UniformPrior is used with lower_limit of 0.0 and upper_limit of 30.0. A GaussianPrior could be used by
-        putting "Gaussian" in the "type" box, with "mean" and "sigma" used to set the default values. Any prior can be
+        The default prior given to this parameter which is used by the ``NonLinearSearch``. In the example above, a
+        ``UniformPrior`` is used with ``lower_limit`` of 0.0 and ``upper_limit`` of 30.0. A ``GaussianPrior`` could be used by
+        putting "``Gaussian``" in the "``type``" box, with "``mean``" and "``sigma``" used to set the default values. Any prior can be
         set in an analogous fashion (see the example configs).
     width_modifier
-        When the results of a phase are linked to a subsequent phase to set up the priors of its non-linear search,
-        this entry describes how the Prior is passed. For a full description of prior passing, checkout the examples
-        in 'autofit_workspace/examples/complex/linking'.
+        When the results of a phase are linked to a subsequent phase to set up the priors of its ``NonLinearSearch``,
+        this entry describes how the ``Prior`` is passed. For a full description of prior passing, checkout the examples
+        in ``autofit_workspace/examples/complex/linking``.
     gaussian_limits
-        When the results of a phase are linked to a subsequent phase, they are passed using a GaussianPrior. The
-        gaussian_limits set the physical lower and upper limits of this GaussianPrior, such that parameter samples
+        When the results of a phase are linked to a subsequent phase, they are passed using a ``GaussianPrior``. The
+        ``gaussian_limits`` set the physical lower and upper limits of this ``GaussianPrior``, such that parameter samples
         can not go beyond these limits.
 
 notation
 --------
 
 The notation configs define the labels of every model-component parameter and its derived quantities, which are
-used when visualizing results (for example labeling the axis of the PDF triangle plots output by a non-linear search).
-Two examples using the 1D data fitting example for the config file **label.ini** are:
+used when visualizing results (for example labeling the axis of the PDF triangle plots output by a ``NonLinearSearch``).
+Two examples using the 1D ``data`` fitting example for the config file **label.ini** are:
 
 [label]
     centre -> str
-        The label given to that parameter for non-linear search plots using that parameter, e.g. the PDF plots. For
+        The label given to that parameter for ``NonLinearSearch`` plots using that parameter, e.g. the PDF plots. For
         example, if centre=x, the plot axis will be labeled 'x'.
 
 [subscript]

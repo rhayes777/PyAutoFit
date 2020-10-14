@@ -7,6 +7,7 @@ from typing import Tuple, Optional
 
 import numpy as np
 
+from autoconf import conf
 from autofit import exc
 from autofit.mapper import model
 from autofit.mapper import model_mapper
@@ -20,6 +21,7 @@ from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
+from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
 
 
@@ -107,8 +109,8 @@ class AbstractPriorModel(AbstractModel):
 
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every _PriorModel_ attributed to this instance.
+        Returnss a ModelInstance, which has an attribute and class instance corresponding
+        to every `PriorModel` attributed to this instance.
         This method takes as input a unit vector of parameter values, converting each to
         physical values via their priors.
         Parameters
@@ -253,8 +255,8 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=True
     ):
         """
-        Creates a ModelInstance, which has an attribute and class instance corresponding
-        to every _PriorModel_ attributed to this instance.
+        Returnss a ModelInstance, which has an attribute and class instance corresponding
+        to every `PriorModel` attributed to this instance.
         This method takes as input a physical vector of parameter values, thus omitting
         the use of priors.
         Parameters
@@ -262,7 +264,7 @@ class AbstractPriorModel(AbstractModel):
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
         assert_priors_in_limits
-            If True it is checked that the physical values of priors are within set limits
+            If ``True`` it is checked that the physical values of priors are within set limits
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
@@ -283,7 +285,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
+        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
         new priors, keeping existing priors where no mapping is provided.
         Parameters
         ----------
@@ -299,7 +301,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_prior_arguments(self, arguments):
         """
-        Creates a new model mapper from a dictionary mapping_matrix existing priors to
+        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
         new priors.
         Parameters
         ----------
@@ -333,7 +335,7 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
-        Creates a new model mapper from a list of floats describing the mean values
+        Returnss a new model mapper from a list of floats describing the mean values
         of gaussian priors. The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
@@ -342,14 +344,14 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         no_limits
-            If True generated priors have infinite limits
+            If ``True`` generated priors have infinite limits
         r
             The relative width to be assigned to gaussian priors
         a
             print(tuples[i][1], width)
             The absolute width to be assigned to gaussian priors
         use_errors : bool
-            If True, the passed errors of the model components estimated in a previous non-linear search (computed
+            If True, the passed errors of the model components estimated in a previous `NonLinearSearch` (computed
             at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
             passed errors are used, the maximum of these two values are used).
         use_widths : bool
@@ -423,7 +425,7 @@ class AbstractPriorModel(AbstractModel):
 
     def instance_from_prior_medians(self):
         """
-        Creates a list of physical values from the median values of the priors.
+        Returnss a list of physical values from the median values of the priors.
         Returns
         -------
         physical_values : [float]
@@ -459,7 +461,7 @@ class AbstractPriorModel(AbstractModel):
 
     def random_instance(self):
         """
-        Creates a random instance of the model.
+        Returnss a random instance of the model.
         """
         return self.instance_from_unit_vector(
             unit_vector=[random() for _ in self.prior_tuples]
@@ -620,7 +622,7 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=True
     ):
         """
-        Create an instance of the model for a set of arguments
+        Returns an instance of the model for a set of arguments
         Parameters
         ----------
         assert_priors_in_limits
@@ -775,7 +777,7 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        from autofit.mapper.prior import AbstractPromise
+        from autofit.mapper.prior.promise import AbstractPromise
         formatter = TextFormatter()
 
         for t in self.path_instance_tuples_for_class((
@@ -786,9 +788,9 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
-    def parameter_names(self) -> [str]:
+    def model_component_and_parameter_names(self) -> [str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
-        for *GetDist* visualization.
+        for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
         return [
@@ -798,6 +800,51 @@ class AbstractPriorModel(AbstractModel):
             for _, prior
             in self.prior_tuples_ordered_by_id
         ]
+
+    @property
+    def parameter_names(self) -> [str]:
+        """The param_names vector is a list each parameter's analysis_path, and is used
+        for *corner.py* visualization.
+        The parameter names are determined from the class instance names of the
+        model_mapper. Latex tags are properties of each model class."""
+        return [parameter_name[-1] for parameter_name in self.unique_prior_paths]
+
+    @property
+    def parameter_labels(self) -> [str]:
+        """
+        Returns a list of the label of every parameter in a model.
+
+        This is used for displaying model results as text and for visualization with *corner.py*.
+
+        The parameter labels are defined for every parameter of every model component in the config files label.ini and
+        label_format.ini.
+        """
+
+        parameter_labels = []
+
+        for parameter_name in self.parameter_names:
+            parameter_label = frm.convert_name_to_label(parameter_name=parameter_name, name_to_label=True)
+            parameter_labels.append(parameter_label)
+
+        return parameter_labels
+
+    @property
+    def subscripts(self) -> [str]:
+        """
+        Returns a list of the model component subscripts of every parameter in a model.
+
+        This is used for displaying model results as text and for visualization with *corner.py*.
+
+        The class subscript labels are defined for every model component in the config file notation/label.ini.
+        """
+
+        subscripts = []
+
+        for prior_name, prior in self.prior_tuples_ordered_by_id:
+            cls = self.prior_class_dict[prior]
+            subscripts.append(conf.instance["notation"]["label"]["subscript"].family(cls))
+
+        return subscripts
 
 
 def transfer_classes(instance, mapper, model_classes=None):

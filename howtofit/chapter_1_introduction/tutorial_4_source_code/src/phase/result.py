@@ -1,10 +1,10 @@
 import autofit as af
 
 """
-The Result class stores the results of a non-linear search's, which are inherited from autofit's Result object. In
-tutorial 3 we discussed some of the results that it contains and we will discuss them further in tutorial 8.
+The Result class stores the results of a `NonLinearSearch``., which are inherited from autofit`s Result object. In
+tutorial 3 we discussed some of the results that it contains and we will discuss them further in chapter 2.
 
-By using the PyAutoFit phase API, we are able to extend the Result object returned by a phase's non-linear search to
+By using the PyAutoFit phase API, we are able to extend the Result object returned by a phase`s `NonLinearSearch` to
 include model-specific properties of the fit. Below, we include method that return the model data and fit of the
 maximum log likelihood model, which we use in the main tutorial script to plot the results.
 """
@@ -13,12 +13,12 @@ maximum log likelihood model, which we use in the main tutorial script to plot t
 class Result(af.Result):
     def __init__(self, samples, previous_model, search, analysis):
         """
-        The results of a non-linear search performed by a phase.
+        The results of a `NonLinearSearch` performed by a phase.
 
         Parameters
         ----------
         samples : af.Samples
-            A class containing the samples of the non-linear search, including methods to get the maximum log
+            A class containing the samples of the `NonLinearSearch`, including methods to get the maximum log
             likelihood model, errors, etc.
         analysis : Analysis
             The Analysis class used by this model-fit to fit the model to the data.

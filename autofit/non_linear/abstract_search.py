@@ -2,10 +2,11 @@ import logging
 import multiprocessing as mp
 import os
 import pickle
+import shutil
 from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict
-import shutil
+
 import numpy as np
 
 from autoconf import conf
@@ -16,8 +17,7 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.non_linear.timer import Timer
 from autofit.text import formatter
-from autofit.text import model_text
-from autofit.text import samples_text
+from autofit.text import text_util
 
 
 class NonLinearSearch(ABC):
@@ -38,9 +38,9 @@ class NonLinearSearch(ABC):
         Parameters
         ------------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
@@ -59,14 +59,10 @@ class NonLinearSearch(ABC):
 
         self.timer = Timer(paths=paths)
 
-        self.skip_completed = conf.instance.general.get(
-            "output", "skip_completed", bool
-        )
-        self.force_pickle_overwrite = conf.instance.general.get(
-            "output", "force_pickle_overwrite", bool
-        )
+        self.skip_completed = conf.instance["general"]["output"]["skip_completed"]
+        self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
-        self.log_file = conf.instance.general.get("output", "log_file", str).replace(
+        self.log_file = conf.instance["general"]["output"]["log_file"].replace(
             " ", ""
         )
 
@@ -76,34 +72,35 @@ class NonLinearSearch(ABC):
             self.initializer = initializer
 
         self.iterations_per_update = (
-            self._config("updates", "iterations_per_update", int)
+            self._config("updates", "iterations_per_update")
             if iterations_per_update is None
             else iterations_per_update
         )
 
-        if conf.instance.general.get("hpc", "hpc_mode", bool):
-            self.iterations_per_update = conf.instance.general.get("hpc", "iterations_per_update", float)
+        if conf.instance["general"]["hpc"]["hpc_mode"]:
+            self.iterations_per_update = conf.instance["general"]["hpc"]["iterations_per_update"]
 
-        self.log_every_update = self._config("updates", "log_every_update", int)
-        self.backup_every_update = self._config("updates", "backup_every_update", int)
+        self.log_every_update = self._config("updates", "log_every_update")
         self.visualize_every_update = self._config(
-            "updates", "visualize_every_update", int
+            "updates", "visualize_every_update",
         )
         self.model_results_every_update = self._config(
-            "updates", "model_results_every_update", int
+            "updates", "model_results_every_update",
+        )
+        self.remove_state_files_at_end = self._config(
+            "updates", "remove_state_files_at_end",
         )
 
         self.iterations = 0
         self.should_log = IntervalCounter(self.log_every_update)
-        self.should_backup = IntervalCounter(self.backup_every_update)
         self.should_visualize = IntervalCounter(self.visualize_every_update)
         self.should_output_model_results = IntervalCounter(
             self.model_results_every_update
         )
 
-        self.silence = self._config("printing", "silence", bool)
+        self.silence = self._config("printing", "silence")
 
-        if conf.instance.general.get("hpc", "hpc_mode", bool):
+        if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.silence = True
 
         self.number_of_cores = number_of_cores
@@ -111,7 +108,7 @@ class NonLinearSearch(ABC):
         self._in_phase = False
 
     class Fitness:
-        def __init__(self, paths, model, analysis, samples_from_model, pool_ids=None):
+        def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None, pool_ids=None):
 
             self.paths = paths
             self.max_log_likelihood = -np.inf
@@ -120,15 +117,16 @@ class NonLinearSearch(ABC):
             self.model = model
             self.samples_from_model = samples_from_model
 
+            self.log_likelihood_cap = log_likelihood_cap
             self.pool_ids = pool_ids
 
         def fit_instance(self, instance):
 
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
-            if self.analysis.log_likelihood_cap is not None:
-                if log_likelihood > self.analysis.log_likelihood_cap:
-                    log_likelihood = self.analysis.log_likelihood_cap
+            if self.log_likelihood_cap is not None:
+                if log_likelihood > self.log_likelihood_cap:
+                    log_likelihood = self.log_likelihood_cap
 
             if log_likelihood > self.max_log_likelihood:
 
@@ -151,8 +149,8 @@ class NonLinearSearch(ABC):
             return log_likelihood + sum(log_priors)
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the non-linear search uses to sample parameter space. This varies
-            between different non-linear search algorithms, for example:
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
+            between different `NonLinearSearch`s, for example:
 
                 - The *Optimizer* *PySwarms* uses the chi-squared value, which is the -2.0*log_posterior.
                 - The *MCMC* algorithm *Emcee* uses the log posterior.
@@ -186,7 +184,7 @@ class NonLinearSearch(ABC):
              should be given a likelihood so low that it is discard."""
             return -np.inf
 
-    def fit(self, model, analysis: "Analysis", info=None, pickle_files=None) -> "Result":
+    def fit(self, model, analysis: "Analysis", info=None, pickle_files=None, log_likelihood_cap=None) -> "Result":
         """ Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
 
@@ -220,7 +218,8 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if (not os.path.exists(self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
+        if (not os.path.exists(
+                self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
             self.save_parameter_names_file(model=model)
@@ -229,6 +228,7 @@ class NonLinearSearch(ABC):
             self.save_search()
             self.save_model(model=model)
             self.move_pickle_files(pickle_files=pickle_files)
+            analysis.save_for_aggregator(paths=self.paths)
 
         if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
 
@@ -249,12 +249,24 @@ class NonLinearSearch(ABC):
             samples = self.samples_via_csv_json_from_model(model=model)
             self.save_samples(samples=samples)
 
-        self.paths.backup_zip_remove()
+            if self.remove_state_files_at_end:
+                try:
+                    self.remove_state_files()
+                except FileNotFoundError:
+                    pass
+
+                try:
+                    shutil.rmtree(f"{self.paths.samples_path}_backup")
+                except FileNotFoundError:
+                    pass
+
+
+        self.paths.zip_remove()
 
         return Result(samples=samples, previous_model=model, search=self)
 
     @abstractmethod
-    def _fit(self, model, analysis):
+    def _fit(self, model, analysis, log_likelihood_cap=None):
         pass
 
     @property
@@ -274,7 +286,6 @@ class NonLinearSearch(ABC):
             paths=Paths(
                 name=name,
                 tag=tag,
-                folders=self.paths.folders,
                 path_prefix=self.paths.path_prefix,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
@@ -287,7 +298,7 @@ class NonLinearSearch(ABC):
     def config_type(self):
         raise NotImplementedError()
 
-    def _config(self, section, attribute_name, attribute_type=str):
+    def _config(self, section, attribute_name):
         """
         Get a config field from this search's section in non_linear.ini by a key and value type.
 
@@ -295,28 +306,23 @@ class NonLinearSearch(ABC):
         ----------
         attribute_name: str
             The analysis_path of the field
-        attribute_type: type
-            The type of the value
 
         Returns
         -------
         attribute
             An attribute for the key with the specified type.
         """
-        return self.config_type.config_for(self.__class__.__name__).get(
-            section, attribute_name, attribute_type
-        )
+        return self.config_type[self.__class__.__name__][section][attribute_name]
 
     def perform_update(self, model, analysis, during_analysis):
-        """Perform an update of the non-linear search results, which occurs every *iterations_per_update* of the
+        """Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
-        2) Backup the samples.
-        3) Output the model results to the model.reults file.
+        2) Output the model results to the model.reults file.
 
         These task are performed every n updates, set by the relevent *task_every_update* variable, for example
-        *visualize_every_update* and *backup_every_update*.
+        *visualize_every_update*
 
         Parameters
         ----------
@@ -324,7 +330,7 @@ class NonLinearSearch(ABC):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
         during_analysis : bool
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
              of updates and only a subset of visualization may be performed.
@@ -332,9 +338,6 @@ class NonLinearSearch(ABC):
 
         self.iterations += self.iterations_per_update
         logger.info(f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.).")
-
-        if self.should_backup() or not during_analysis:
-            self.paths.backup()
 
         self.timer.update()
 
@@ -354,19 +357,25 @@ class NonLinearSearch(ABC):
 
         if self.should_output_model_results() or not during_analysis:
 
-            samples_text.results_to_file(
+            text_util.results_to_file(
                 samples=samples,
                 filename=self.paths.file_results,
                 during_analysis=during_analysis,
             )
 
-            samples_text.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
+            text_util.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
+
+        if not during_analysis and self.remove_state_files_at_end:
+            try:
+                self.remove_state_files()
+            except FileNotFoundError:
+                pass
 
         return samples
 
     def setup_log_file(self):
 
-        if conf.instance.general.get("output", "log_to_file", bool):
+        if conf.instance["general"]["output"]["log_to_file"]:
 
             if len(self.log_file) == 0:
                 raise ValueError("In general.ini log_to_file is True, but log_file is an empty string. "
@@ -376,25 +385,32 @@ class NonLinearSearch(ABC):
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
 
+    @property
+    def samples_cls(self):
+        raise NotImplementedError()
+
     def save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
         with open(self.paths.file_model_info, "w+") as f:
             f.write(model.info)
 
     def save_parameter_names_file(self, model):
-        """Create the param_names file listing every parameter's label and Latex tag, which is used for *GetDist*
+        """Create the param_names file listing every parameter's label and Latex tag, which is used for *corner.py*
         visualization.
 
         The parameter labels are determined using the label.ini and label_format.ini config files."""
 
-        paramnames_names = model.parameter_names
-        paramnames_labels = model_text.parameter_labels_from_model(model=model)
+        parameter_names = model.model_component_and_parameter_names
+        parameter_labels = model.parameter_labels
+        subscripts = model.subscripts
+        parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in
+                                           zip(parameter_labels, subscripts)]
 
         parameter_name_and_label = []
 
         for i in range(model.prior_count):
-            line = formatter.label_and_label_string(
-                label0=paramnames_names[i], label1=paramnames_labels[i], whitespace=70
+            line = formatter.add_whitespace(
+                str0=parameter_names[i], str1=parameter_labels_with_subscript[i], whitespace=70
             )
             parameter_name_and_label += [f"{line}\n"]
 
@@ -463,6 +479,9 @@ class NonLinearSearch(ABC):
             f"{key}={value or ''}" for key, value in {**self._default_metadata}.items()
         )
 
+    def remove_state_files(self):
+        pass
+
     def samples_via_sampler_from_model(self, model):
         raise NotImplementedError()
 
@@ -470,7 +489,7 @@ class NonLinearSearch(ABC):
         raise NotImplementedError()
 
     def make_pool(self):
-        """Make the pool instance used to parallelize a non-linear search alongside a set of unique ids for every
+        """Make the pool instance used to parallelize a `NonLinearSearch` alongside a set of unique ids for every
         process in the pool. If the specified number of cores is 1, a pool instance is not made and None is returned.
 
         The pool cannot be set as an attribute of the class itself because this prevents pickling, thus it is generated
@@ -507,13 +526,14 @@ class NonLinearSearch(ABC):
 
 
 class Analysis:
-    def __init__(self, log_likelihood_cap=None):
-        self.log_likelihood_cap = log_likelihood_cap
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
     def visualize(self, instance, during_analysis):
+        pass
+
+    def save_for_aggregator(self, paths : Paths):
         pass
 
 
@@ -530,8 +550,11 @@ class Result:
         ----------
         previous_model
             The model mapper from the stage that produced this result
+<<<<<<< HEAD
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
+=======
+>>>>>>> 73e304fd8ae4aab89840fc8e3f8324f8db904a6d
         """
 
         self.samples = samples
@@ -662,7 +685,7 @@ class PriorPasser:
 
                Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
                we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-               phases - fast non-linear search settings, simplified models, etc.
+               phases - fast `NonLinearSearch` settings, simplified models, etc.
 
                Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
                is suspiciously small, we instead use the value specified in the widths file. These values are chosen
@@ -717,9 +740,9 @@ class PriorPasser:
     @classmethod
     def from_config(cls, config):
         """Load the PriorPasser from a non_linear config file."""
-        sigma = config("prior_passer", "sigma", float)
-        use_errors = config("prior_passer", "use_errors", bool)
-        use_widths = config("prior_passer", "use_widths", bool)
+        sigma = config("prior_passer", "sigma")
+        use_errors = config("prior_passer", "use_errors")
+        use_widths = config("prior_passer", "use_widths")
         return PriorPasser(sigma=sigma, use_errors=use_errors, use_widths=use_widths)
 
 
@@ -732,4 +755,4 @@ def f(x):
     global idx
     process = mp.current_process()
     sleep(1)
-    return (idx, process.pid, x * x)
+    return idx, process.pid, x * x

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 """
-To visualize images during a phase, we need to be able to output them to hard-disk as a file (e.g a .png'). The line
+To visualize images during a phase, we need to be able to output them to hard-disk as a file (e.g a .png`). The line
 plot function below has been extended to provide this functionality.
 """
 
@@ -9,7 +9,10 @@ plot function below has been extended to provide this functionality.
 def line(
     xvalues,
     line,
+    title=None,
     ylabel=None,
+    errors=None,
+    color="k",
     output_path=None,
     output_filename=None,
     output_format="show",
@@ -21,9 +24,9 @@ def line(
 
     Parameters
     ----------
-    xvalues : ndarray
+    xvalues : np.ndarray
         The x-coordinates the profile is defined on.
-    line : ndarray
+    line : np.ndarray
         The intensity values of the profile which are plotted.
     ylabel : str
         The y-label of the plot.
@@ -35,8 +38,11 @@ def line(
         Determines where the plot is displayed on your screen ("show") or output to the hard-disk as a png ("png").
     """
 
-    plt.plot(xvalues, line)
-    plt.xlabel("x")
+    plt.errorbar(
+        x=xvalues, y=line, yerr=errors, color=color, ecolor="k", elinewidth=1, capsize=2
+    )
+    plt.title(title)
+    plt.xlabel("x value of profile")
     plt.ylabel(ylabel)
     if "show" in output_format:
         plt.show()

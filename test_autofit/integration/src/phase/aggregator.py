@@ -3,14 +3,15 @@ from test_autofit.integration.src.dataset import (
 )
 from test_autofit.integration.src.fit import fit as f
 
-# This module contains convenience methods for computing standard objects from an *Aggregator* as generators.
+# This module contains convenience methods for computing standard objects from an `Aggregator` as generators.
 
 # You should read this class in detail once you come to th end of part of tutorial 8, as the functions are written in a
 # specific way such that they can be used as generators will become clear once the tutorial is completed.
 
 
 def masked_dataset_generator_from_aggregator(aggregator):
-    """Compute a generator of *MaskedDataset* objects from an input aggregator, which generates a list of the 
+    """
+    Returns a generator of *MaskedDataset* objects from an input aggregator, which generates a list of the
     *MaskedDataset* objects for every set of results loaded in the aggregator.
 
     This is performed by mapping the *masked_dataset_from_agg_obj* with the aggregator, which sets up each masked
@@ -25,9 +26,10 @@ def masked_dataset_generator_from_aggregator(aggregator):
 
 
 def masked_dataset_from_agg_obj(agg_obj):
-    """Compute a *MaskedDataset* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe 
-     that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator's generator 
-     outputs such that the function can use the *Aggregator*'s map function to to create a *MaskedDataset* generator.
+    """
+    Returns a *MaskedDataset* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe
+     that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's generator
+     outputs such that the function can use the `Aggregator`'s map function to to create a *MaskedDataset* generator.
 
      The *MaskedDataset* is created following the same method as the *Phase* classes, including using the
      *meta_dataset* instance output by the phase to load inputs of the *MaskedDataset* (e.g. data_trim_left). 
@@ -56,7 +58,8 @@ def masked_dataset_from_agg_obj(agg_obj):
 
 
 def model_data_generator_from_aggregator(aggregator):
-    """Compute a generator of the model data arrays of the 1D line profile models from an input aggregator, which
+    """
+    Returns a generator of the model data arrays of the 1D line profile models from an input aggregator, which
     generates a list of 1D ndarrays every set of results loaded in the aggregator.
 
     This is performed by mapping the *model_data_from_agg_obj* with the aggregator, which sets up each model data array
@@ -71,11 +74,12 @@ def model_data_generator_from_aggregator(aggregator):
 
 
 def model_data_from_agg_obj(agg_obj):
-    """Compute model data as a 1D ndarray from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to 
-    describe that it acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator's 
-    generator outputs such that the function can use the *Aggregator*'s map function to to create a model-data generator.
+    """
+    Returns model data as a 1D ndarray from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to
+    describe that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's
+    generator outputs such that the function can use the `Aggregator`'s map function to to create a model-data generator.
 
-     The model-data is created following the same method as the *Analysis* classes using an instance of the maximum 
+     The model-data is created following the same method as the `Analysis` classes using an instance of the maximum
      log likelihood model's profiles.
 
     Parameters
@@ -94,7 +98,8 @@ def model_data_from_agg_obj(agg_obj):
 
 
 def fit_generator_from_aggregator(aggregator):
-    """Compute a generator of *FitDataset* objects from an input aggregator, which generates a list of the
+    """
+    Returns a generator of *FitDataset* objects from an input aggregator, which generates a list of the
     *FitDataset* objects for every set of results loaded in the aggregator.
 
     This is performed by mapping the *fit_from_agg_obj* with the aggregator, which sets up each fit using
@@ -108,9 +113,10 @@ def fit_generator_from_aggregator(aggregator):
 
 
 def fit_from_agg_obj(agg_obj):
-    """Compute a *Fit* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe  that it
-    acts as the aggregator object for one result in the *Aggregator*. This uses the aggregator's generator outputs such
-    that the function can use the *Aggregator*'s map function to to create a *Fit* generator.
+    """
+    Returns a *Fit* object from an aggregator's *PhaseOutput* class, which we call an 'agg_obj' to describe  that it
+    acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's generator outputs such
+    that the function can use the `Aggregator`'s map function to to create a *Fit* generator.
 
      The *Fit* is created following the same method as the PyAutoGalaxy *Phase* classes. 
 

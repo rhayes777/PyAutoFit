@@ -8,6 +8,7 @@ from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
+from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 
 
@@ -40,7 +41,10 @@ class AbstractModelFactor(ABC):
         """
         return [
             Factor(
-                prior,
+                cast(
+                    Callable,
+                    prior
+                ),
                 x=prior
             )
             for prior
@@ -80,11 +84,46 @@ class AbstractModelFactor(ABC):
 
     def mean_field_approximation(self) -> MeanFieldApproximation:
         """
-        Create a MeanFieldApproximation of the factor graph
+        Returns a MeanFieldApproximation of the factor graph
         """
         return MeanFieldApproximation.from_kws(
             self.graph,
             self.message_dict
+        )
+
+    def optimise(self, optimiser) -> CollectionPriorModel:
+        """
+        Use an EP Optimiser to optimise the graph associated with this collection
+        of factors and create a Collection to represent the results.
+
+        Parameters
+        ----------
+        optimiser
+            An optimiser that acts on graphs
+
+        Returns
+        -------
+        A collection of prior models
+        """
+        updated_model = optimiser.run(
+            self.mean_field_approximation()
+        )
+
+        collection = CollectionPriorModel([
+            factor.prior_model
+            for factor
+            in self.model_factors
+        ])
+        arguments = {
+            prior: updated_model[
+                prior
+            ].as_prior()
+            for prior
+            in collection.priors
+        }
+
+        return collection.gaussian_prior_model_for_arguments(
+            arguments
         )
 
 
@@ -115,7 +154,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-            Creates an instance of the prior model and evaluates it, forming
+        Returnss an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters
@@ -149,6 +188,23 @@ class ModelFactor(Factor, AbstractModelFactor):
     @property
     def model_factors(self) -> List["ModelFactor"]:
         return [self]
+
+    def optimise(self, optimiser) -> PriorModel:
+        """
+        Optimise this factor on its own returning a PriorModel
+        representing the final state of the messages.
+
+        Parameters
+        ----------
+        optimiser
+
+        Returns
+        -------
+        A PriorModel representing the optimised factor
+        """
+        return super().optimise(
+            optimiser
+        )[0]
 
 
 class ModelFactorCollection(AbstractModelFactor):

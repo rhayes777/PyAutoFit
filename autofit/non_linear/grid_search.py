@@ -10,16 +10,16 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import Result
+from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths
 
-from autofit.non_linear.log import logger
 
 class GridSearchResult:
     def __init__(
-        self,
-        results: List[Result],
-        lower_limit_lists: List[List[float]],
-        physical_lower_limits_lists: List[List[float]],
+            self,
+            results: List[Result],
+            lower_limit_lists: List[List[float]],
+            physical_lower_limits_lists: List[List[float]],
     ):
         """
         The result of a grid search.
@@ -70,8 +70,8 @@ class GridSearchResult:
         best_result = None
         for result in self.results:
             if (
-                best_result is None
-                or result.log_likelihood > best_result.log_likelihood
+                    best_result is None
+                    or result.log_likelihood > best_result.log_likelihood
             ):
                 best_result = result
         return best_result
@@ -140,6 +140,20 @@ class GridSearchResult:
         ]
 
     @property
+    def results_reshaped(self):
+        """
+        Returns
+        -------
+        likelihood_merit_array: np.ndarray
+            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
+            each entry being the figure of merit taken from the optimization performed at that point.
+        """
+        return np.reshape(
+            np.array([result for result in self.results]),
+            tuple(self.side_length for _ in range(self.no_dimensions)),
+        )
+
+    @property
     def max_log_likelihood_values(self):
         """
         Returns
@@ -186,9 +200,7 @@ class GridSearch:
         self.paths = paths
 
         self.parallel = parallel
-        self.number_of_cores = conf.instance.non_linear.config_for("GridSearch").get(
-            "general", "number_of_cores", int
-        )
+        self.number_of_cores = conf.instance["non_linear"]["GridSearch"]["general"]["number_of_cores"]
 
         self.number_of_steps = number_of_steps
         self.search = search
@@ -232,16 +244,16 @@ class GridSearch:
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
             if (
-                float("-inf") == grid_prior.lower_limit
-                or float("inf") == grid_prior.upper_limit
+                    float("-inf") == grid_prior.lower_limit
+                    or float("inf") == grid_prior.upper_limit
             ):
                 raise exc.PriorException(
                     "Priors passed to the grid search must have definite limits"
                 )
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
             upper_limit = (
-                grid_prior.lower_limit
-                + (value + self.hyper_step_size) * grid_prior.width
+                    grid_prior.lower_limit
+                    + (value + self.hyper_step_size) * grid_prior.width
             )
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
@@ -413,7 +425,7 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-        self, model, analysis, grid_priors, values, index
+            self, model, analysis, grid_priors, values, index
     ):
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
@@ -448,7 +460,7 @@ class GridSearch:
         paths = Paths(
             name=name_path,
             tag=self.paths.tag,
-            folders=self.paths.folders,
+            path_prefix=self.paths.path_prefix,
             remove_files=self.paths.remove_files,
         )
 
@@ -530,7 +542,7 @@ class Process(multiprocessing.Process):
         self.job_queue = job_queue
         self.queue = multiprocessing.Queue()
         self.count = 0
-        self.max_count = 5
+        self.max_count = 250
 
     def run(self):
         logger.info("starting process {}".format(self.name))
@@ -581,7 +593,7 @@ def grid(fitness_function, no_dimensions, step_size):
 
 def make_lists(no_dimensions, step_size, centre_steps=True):
     """
-    Create a list of lists of floats covering every combination across no_dimensions of points of integer step size
+        Returns a list of lists of floats covering every combination across no_dimensions of points of integer step size
     between 0 and 1 inclusive.
 
     Parameters

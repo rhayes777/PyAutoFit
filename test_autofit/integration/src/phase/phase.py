@@ -57,7 +57,7 @@ class Phase(af.AbstractPhase):
 
     @property
     def folders(self):
-        return self.search.folders
+        return self.search.path_prefix
 
     def run(self, dataset: Dataset, info=None, results=None):
         """
@@ -67,13 +67,13 @@ class Phase(af.AbstractPhase):
         ----------
         dataset: aa.Dataset
             The dataset fitted by the phase, as defined in the 'dataset.py' module.
-        mask: Mask
+        mask: Mask2D
             The mask used for the analysis.
 
         Returns
         -------
         result: AbstractPhase.Result
-            A result object comprising information on the non-linear search and the maximum likelihood model.
+            A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
 
         mask = np.full(fill_value=False, shape=dataset.data.shape)
@@ -103,7 +103,7 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the dataset and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the dataset and contains the functions which perform the fit.
 
         Parameters
         ----------
@@ -113,7 +113,7 @@ class Phase(af.AbstractPhase):
         Returns
         -------
         analysis : Analysis
-            An analysis object that the non-linear search calls to determine the fit log_likelihood for a given model
+            An analysis object that the `NonLinearSearch` calls to determine the fit log_likelihood for a given model
             instance.
         """
 

@@ -1,4 +1,4 @@
-from .dataset.dataset import Dataset
+from .dataset.dataset import Dataset, SettingsMaskedDataset, MaskedDataset
 from .model import profiles
 from .fit.fit import FitDataset
 from . import plot

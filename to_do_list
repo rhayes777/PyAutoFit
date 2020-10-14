@@ -1,15 +1,9 @@
-Paper:
-
-    - removoe Analysis super or update docs.
-    - Doc how pyproj root behaves.
-    - Preprint format.
-
 Features:
 
-    - Remove sym link in most searches.
-    - Loading a Samples instance from a csv.
+    - Better Separation of Concerns refactor.
+    - Docs for graphical models.
+    - Visualization + corner.
     - Implement LBFGS.
-    - Visualization, corner and remove GetDist.
     - Covariance intiialization tansform search space using tchileveky decomposition of cov matrix?
     - Use importance sampling to generate initial saples with well defined priors?
 

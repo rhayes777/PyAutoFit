@@ -6,8 +6,7 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from test_autofit import mock
-
+from autofit import mock
 
 directory = path.dirname(path.realpath(__file__))
 
@@ -46,8 +45,15 @@ def model():
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase(phase_name="phase name", search=af.MockSearch())
-    phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
+    phase = af.AbstractPhase(
+        search=af.MockSearch(
+            "phase name"
+        )
+    )
+    phase.model.one = af.PriorModel(
+        mock.MockComponents,
+        component=mock.MockClassx2
+    )
     return phase
 
 

@@ -4,7 +4,7 @@ import pytest
 
 import autofit as af
 from autofit.non_linear.samples import OptimizerSamples, PDFSamples
-from test_autofit.mock import MockClassx2, MockClassx4
+from autofit.mock import MockClassx2, MockClassx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -62,20 +62,6 @@ class TestSamplesTable:
 
 
 class TestOptimizerSamples:
-    def test__parameter_names_and_labels(self, samples):
-        assert samples.parameter_names == [
-            "mock_class_1_one",
-            "mock_class_1_two",
-            "mock_class_1_three",
-            "mock_class_1_four",
-        ]
-
-        assert samples.parameter_labels == [
-            r"x4p0_{\mathrm{a}}",
-            r"x4p1_{\mathrm{a}}",
-            r"x4p2_{\mathrm{a}}",
-            r"x4p3_{\mathrm{a}}",
-        ]
 
     def test__max_log_likelihood_vector_and_instance(self, samples):
         assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
@@ -397,7 +383,7 @@ class TestPDFSamples:
 
         assert samples.pdf_converged == True
 
-        errors = samples.error_vector_at_sigma(sigma=3.0)
+        errors = samples.error_magnitude_vector_at_sigma(sigma=3.0)
 
         assert errors == pytest.approx([0.19514, 0.19514], 1e-1)
 
@@ -409,7 +395,11 @@ class TestPDFSamples:
 
         assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-        errors = samples.error_vector_at_sigma(sigma=1.0)
+        errors = samples.error_vector_at_sigma(sigma=3.0)
+        assert errors[0] == pytest.approx((0.09757, 0.09757), 1e-1)
+        assert errors[1] == pytest.approx((0.09757, 0.09757), 1e-1)
+
+        errors = samples.error_magnitude_vector_at_sigma(sigma=1.0)
 
         assert errors == pytest.approx([0.0, 0.0], 1e-1)
 

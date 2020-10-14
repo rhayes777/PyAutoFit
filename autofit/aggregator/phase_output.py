@@ -4,7 +4,6 @@ import pickle
 import dill
 
 from autofit.non_linear import abstract_search
-from autofit.non_linear.samples import PDFSamples
 
 
 class PhaseOutput:
@@ -69,7 +68,8 @@ class PhaseOutput:
             ) as f:
                 return pickle.load(f)
         except FileNotFoundError:
-            print(f"No {item} associated with {self.directory}")
+            #    print(f"No {item} associated with {self.directory}")
+            pass
 
     @property
     def header(self) -> str:
@@ -84,8 +84,11 @@ class PhaseOutput:
         The search object that was used in this phase
         """
         if self.__search is None:
-            with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
-                self.__search = pickle.loads(f.read())
+            try:
+                with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
+                    self.__search = pickle.loads(f.read())
+            except FileNotFoundError:
+                pass
         return self.__search
 
     @property

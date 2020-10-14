@@ -235,7 +235,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
     @classmethod
     def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
         """
-        Create a prior from a JSON representation.
+        Returns a prior from a JSON representation.
 
         Parameters
         ----------
@@ -320,7 +320,8 @@ class GaussianPrior(Prior):
         return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
 
     def log_prior_from_value(self, value):
-        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        """
+    Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
         This is used by Emcee in the log likelihood function evaluation.
@@ -328,7 +329,7 @@ class GaussianPrior(Prior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
 
     def __str__(self):
@@ -372,7 +373,8 @@ class UniformPrior(Prior):
         return self.lower_limit + unit * (self.upper_limit - self.lower_limit)
 
     def log_prior_from_value(self, value):
-        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        """
+    Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
         This is used by Emcee in the log likelihood function evaluation.
@@ -384,7 +386,7 @@ class UniformPrior(Prior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 0.0
 
     @property
@@ -428,7 +430,8 @@ class LogUniformPrior(UniformPrior):
         )
 
     def log_prior_from_value(self, value):
-        """Compute the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        """
+    Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
         This is used by Emcee in the log likelihood function evaluation.
@@ -436,7 +439,7 @@ class LogUniformPrior(UniformPrior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 1.0 / value
 
     def __str__(self):

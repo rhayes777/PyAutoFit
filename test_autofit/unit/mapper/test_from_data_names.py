@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from test_autofit import mock
+from autofit import mock
 
 names = ["one", "two", "three"]
 

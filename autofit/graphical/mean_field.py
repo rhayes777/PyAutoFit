@@ -7,11 +7,11 @@ from typing import (
 import numpy as np
 
 from autofit.graphical.factor_graphs import Factor
-from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import FixedMessage, map_dists
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import prod, add_arrays
+from autofit.mapper.variable import Variable
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
@@ -164,7 +164,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         """
         projection = MeanField({
             v: dist.from_mode(mode[v], covar.get(v))
-            for v, dist in mean_field.items()})
+            for v, dist in self.items()})
         if fun is not None:
             projection.log_norm = fun - projection(mode).log_value
             
@@ -270,8 +270,11 @@ class MeanFieldApproximation:
                     factor, approx_dists[variable]
                 )
 
-        return cls(factor_graph, variable_factor_dist,
-                   factor_evidence=factor_evidence)
+        return cls(
+            factor_graph,
+            variable_factor_dist,
+            factor_evidence=factor_evidence
+        )
 
     @classmethod
     def from_kws(

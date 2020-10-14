@@ -1,11 +1,11 @@
 import numpy as np
 
-"""The Dataset class of the 'dataset.py' module is unchanged from the previous tutorial."""
+"""The `Dataset` class of the `dataset.py` module is unchanged from the previous tutorial."""
 
 
 class Dataset:
     def __init__(self, data, noise_map):
-        """A class containing the data and noise-map of a 1D line dataset.
+        """A class containing the data and noise-map of a 1D line `Dataset`.
 
         Parameters
         ----------
@@ -23,14 +23,14 @@ class Dataset:
 
 
 """
-Here, we create masked dataset that is fitted by our phase. This class takes an unmasked dataset (e.g. an image and
-noise-map) and applies a mask to them, such that all entries where the mask is True are omitted from the fit and
+Here, we create `MaskedDataset` that is fitted by our phase. This class takes an unmasked `Dataset` (e.g. an image and
+noise-map) and applies a mask to them, such that all entries where the mask is ``True`` are omitted from the fit and
 log_likelihood calution.
 
 This could be done using NumPy masked array functionality, by for simplicity we will simply set all masked entries
-to zero instead (and not included them in the fit as seen in the 'fit.py' module).
+to zero instead (and not included them in the fit as seen in the `fit.py` module).
 
-If your model-fitting problem requires masking you'll want a module something very similar to this one!
+If your model-fitting problem requires masking you`ll want a module something very similar to this one!
 """
 
 
@@ -42,17 +42,17 @@ class MaskedDataset:
         Parameters
         ----------
         dataset: im.Dataset
-            The dataset (the image, noise-map, etc.)
-        mask: msk.Mask
-            The 1D mask that is applied to the dataset.
+            The `Dataset` (the image, noise-map, etc.)
+        mask: msk.Mask2D
+            The 1D mask that is applied to the `Dataset`.
         """
 
-        """We store the unmasked dataset in the masked-dataset, incase we need it for anything."""
+        """We store the unmasked `Dataset` in the masked-dataset, incase we need it for anything."""
         self.dataset = dataset
 
         self.mask = mask
 
-        """We apply the mask, setting all entries where the mask is True to zero."""
+        """We apply the mask, setting all entries where the mask is ``True`` to zero."""
         self.data = dataset.data * np.invert(mask)
 
         """Same for the noise-map"""

@@ -8,27 +8,25 @@ from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase 
 )
 
 """
-The 'analysis.py' module in this tutorial has two changes from the previous tutorial:
+The `analysis.py` module in this tutorial has two changes from the previous tutorial:
 
    - The Analysis class is passed a mask, which is used to mask the data and thus fit only specific regions of it.
-   - The Analysis class has a Visualizer, which performs visualization during and after the non-linear search.
+   - The Analysis class has a Visualizer, which performs visualization during and after the `NonLinearSearch`.
 """
 
 
 class Analysis(af.Analysis):
     def __init__(self, masked_dataset, image_path=None):
 
-        super().__init__()
-
-        """The masked-dataset is created in the 'phase.py' module, in the 'make_analysis' method."""
+        """The masked-dataset is created in the `phase.py` module, in the `make_analysis` method."""
 
         self.masked_dataset = masked_dataset
 
         """
-        The visualizer is the tool that we'll use the visualize a phase's unmasked dataset (before the model-fitting
+        The visualizer is the tool that we'll use the visualize a phase`s unmasked `Dataset` (before the model-fitting
         begins) and the best-fit solution found by the model-fit (during and after the model-fitting).
 
-        Check out 'visualizer.py' for more details.
+        Check out `visualizer.py` for more details.
         """
 
         self.visualizer = visualizer.Visualizer(
@@ -36,17 +34,18 @@ class Analysis(af.Analysis):
         )
 
     def log_likelihood_function(self, instance):
-        """Determine the log likelihood of a fit of a Gaussian to the dataset, using the model instance of a Gaussian.
+        """
+        Returns the log likelihood of a fit of a `Gaussian` to the dataset, using the model instance of a Gaussian.
 
         Parameters
         ----------
         instance
-            The Gaussian model instance.
+            The `Gaussian` model instance.
 
         Returns
         -------
         fit : Fit.log_likelihood
-            The log likelihood value indicating how well this model fit the masked dataset.
+            The log likelihood value indicating how well this model fit the `MaskedDataset`.
         """
         model_data = self.model_data_from_instance(instance=instance)
         fit = self.fit_from_model_data(model_data=model_data)
@@ -62,7 +61,7 @@ class Analysis(af.Analysis):
 
     def visualize(self, instance, during_analysis):
         """
-        During a phase, the 'visualize' method is called throughout the non-linar search. The 'instance' passed into
+        During a phase, the `visualize` method is called throughout the non-linar search. The `instance` passed into
         the visualize method is highest log likelihood solution obtained by the model-fit so far.
 
         In the analysis we use this instance to create the best-fit fit of our model-fit.
@@ -71,6 +70,6 @@ class Analysis(af.Analysis):
         model_data = self.model_data_from_instance(instance=instance)
         fit = self.fit_from_model_data(model_data=model_data)
 
-        """The visualizer now outputs images of the best-fit results to hard-disk (checkout 'visualizer.py')."""
+        """The visualizer now outputs images of the best-fit results to hard-disk (checkout `visualizer.py`)."""
 
         self.visualizer.visualize_fit(fit=fit, during_analysis=during_analysis)

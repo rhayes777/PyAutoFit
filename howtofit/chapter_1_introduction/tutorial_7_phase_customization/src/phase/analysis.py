@@ -7,15 +7,13 @@ from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase im
     visualizer,
 )
 
-"""The 'analysis.py' module in this tutorial is unchanged from the previous tutorial."""
+"""The `analysis.py` module in this tutorial is unchanged from the previous tutorial."""
 
 
 class Analysis(af.Analysis):
     def __init__(self, masked_dataset, image_path=None):
 
-        super().__init__()
-
-        """The masked dataset and visualizer are created in the same way as tutorial 6."""
+        """The `MaskedDataset` and visualizer are created in the same way as tutorial 6."""
 
         self.masked_dataset = masked_dataset
 
@@ -24,7 +22,8 @@ class Analysis(af.Analysis):
         )
 
     def log_likelihood_function(self, instance):
-        """Determine the fit of a list of Profiles (Gaussians, Exponentials, etc.) to the dataset, using a
+        """
+    Returns the fit of a list of Profiles (Gaussians, Exponentials, etc.) to the dataset, using a
         model instance.
 
         Parameters
@@ -35,7 +34,7 @@ class Analysis(af.Analysis):
         Returns
         -------
         fit : Fit.log_likelihood
-            The log likelihood value indicating how well this model fit the masked dataset.
+            The log likelihood value indicating how well this model fit the `MaskedDataset`.
         """
         model_data = self.model_data_from_instance(instance=instance)
         fit = self.fit_from_model_data(model_data=model_data)

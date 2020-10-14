@@ -1,10 +1,16 @@
 import os
 import emcee
 import numpy as np
+import json
+from autofit.non_linear import samples as samp
+
+from typing import List
 
 from autofit import exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.samples import MCMCSamples
+from autofit.mapper.model_mapper import ModelMapper
 
 from autofit.non_linear.log import logger
 
@@ -48,20 +54,20 @@ class Emcee(AbstractMCMC):
         Parameters
         ----------
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         nwalkers : int
             The number of walkers in the ensemble used to sample parameter space.
         nsteps : int
-            The number of steps that must be taken by every walker. The non-linear search will thus run for nwalkers *
+            The number of steps that must be taken by every walker. The `NonLinearSearch` will thus run for nwalkers *
             nsteps iterations.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         auto_correlation_check_for_convergence : bool
             Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
-            If *True*, this option may terminate the Emcee run before the input number of steps, nsteps, has
-            been performed. If *False* nstep samples will be taken.
+            If `True`, this option may terminate the Emcee run before the input number of steps, nsteps, has
+            been performed. If `False` nstep samples will be taken.
         auto_correlation_check_size : int
             The length of the samples used to check the auto-correlation lengths (from the latest sample backwards).
             For convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
@@ -82,29 +88,29 @@ class Emcee(AbstractMCMC):
         """
 
         self.nwalkers = (
-            self._config("search", "nwalkers", int) if nwalkers is None else nwalkers
+            self._config("search", "nwalkers") if nwalkers is None else nwalkers
         )
         self.nsteps = (
-            self._config("search", "nsteps", int) if nsteps is None else nsteps
+            self._config("search", "nsteps") if nsteps is None else nsteps
         )
 
         self.auto_correlation_check_for_convergence = (
-            self._config("auto_correlation", "check_for_convergence", bool)
+            self._config("auto_correlation", "check_for_convergence")
             if auto_correlation_check_for_convergence is None
             else auto_correlation_check_for_convergence
         )
         self.auto_correlation_check_size = (
-            self._config("auto_correlation", "check_size", int)
+            self._config("auto_correlation", "check_size")
             if auto_correlation_check_size is None
             else auto_correlation_check_size
         )
         self.auto_correlation_required_length = (
-            self._config("auto_correlation", "required_length", int)
+            self._config("auto_correlation", "required_length")
             if auto_correlation_required_length is None
             else auto_correlation_required_length
         )
         self.auto_correlation_change_threshold = (
-            self._config("auto_correlation", "change_threshold", float)
+            self._config("auto_correlation", "change_threshold")
             if auto_correlation_change_threshold is None
             else auto_correlation_change_threshold
         )
@@ -117,7 +123,7 @@ class Emcee(AbstractMCMC):
         )
 
         self.number_of_cores = (
-            self._config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores")
             if number_of_cores is None
             else number_of_cores
         )
@@ -132,7 +138,7 @@ class Emcee(AbstractMCMC):
                 return self.resample_figure_of_merit
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the non-linear search uses to sample parameter space. *Emcee*
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. *Emcee*
             uses the log posterior.
             """
             try:
@@ -140,10 +146,10 @@ class Emcee(AbstractMCMC):
             except exc.FitException:
                 raise exc.FitException
 
-    def _fit(self, model, analysis):
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
         Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the non-linear search seeks to maximize.
+        instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
         ----------
@@ -151,7 +157,7 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
 
         Returns
         -------
@@ -248,12 +254,12 @@ class Emcee(AbstractMCMC):
         name_tag = self._config("tag", "name")
         nwalkers_tag = f"{self._config('tag', 'nwalkers')}_{self.nwalkers}"
 
-        return f"{name_tag}__{nwalkers_tag}"
+        return f"{name_tag}[{nwalkers_tag}]"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the emcee non-linear search with all associated attributes.
+        """Copy this instance of the emcee `NonLinearSearch` with all associated attributes.
 
-        This is used to set up the non-linear search on phase extensions."""
+        This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
@@ -272,18 +278,19 @@ class Emcee(AbstractMCMC):
 
         return copy
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, pool_ids=None):
+    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
         return Emcee.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_via_sampler_from_model,
+            log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids,
         )
 
     def samples_via_sampler_from_model(self, model):
-        """Create a *Samples* object from this non-linear search's output files on the hard-disk and model.
+        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Emcee, all quantities are extracted via the hdf5 backend of results.
 
@@ -293,8 +300,8 @@ class Emcee(AbstractMCMC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the non-linear search chains,
-            backups, etc.
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
         """
 
         parameters = self.backend.get_chain(flat=True).tolist()
@@ -307,7 +314,7 @@ class Emcee(AbstractMCMC):
         total_walkers = len(self.backend.get_chain()[0, :, 0])
         total_steps = len(self.backend.get_log_prob())
 
-        return MCMCSamples(
+        return EmceeSamples(
             model=model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
@@ -321,6 +328,37 @@ class Emcee(AbstractMCMC):
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
             time=self.timer.time,
+        )
+
+    def samples_via_csv_json_from_model(self, model):
+
+        # TODO : Better design to remove repetition.
+
+        parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
+            filename=f"{self.paths.samples_path}/samples.csv", model=model
+        )
+
+        with open(f"{self.paths.samples_path}/info.json") as infile:
+            samples_info = json.load(infile)
+
+        return EmceeSamples(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            auto_correlation_times=self.backend.get_autocorr_time(tol=0),
+            auto_correlation_check_size=samples_info["auto_correlation_check_size"],
+            auto_correlation_required_length=samples_info[
+                "auto_correlation_required_length"
+            ],
+            auto_correlation_change_threshold=samples_info[
+                "auto_correlation_change_threshold"
+            ],
+            total_walkers=samples_info["total_walkers"],
+            total_steps=samples_info["total_steps"],
+            time=samples_info["time"],
+            backend=self.backend
         )
 
     @property
@@ -337,3 +375,66 @@ class Emcee(AbstractMCMC):
                 "The file emcee.hdf does not exist at the path "
                 + self.paths.samples_path
             )
+
+
+class EmceeSamples(MCMCSamples):
+
+    def __init__(
+        self,
+        model: ModelMapper,
+        parameters: List[List[float]],
+        log_likelihoods: List[float],
+        log_priors: List[float],
+        weights: List[float],
+        auto_correlation_times: np.ndarray,
+        auto_correlation_check_size: int,
+        auto_correlation_required_length: int,
+        auto_correlation_change_threshold: float,
+        total_walkers: int,
+        total_steps: int,
+        backend: emcee.backends.HDFBackend,
+        unconverged_sample_size: int = 100,
+        time: float = None,
+    ):
+        """
+        Attributes
+        ----------
+        total_walkers : int
+            The total number of walkers used by this MCMC non-linear search.
+        total_steps : int
+            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
+            to the total steps * total walkers).
+        """
+
+        super().__init__(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights,
+            auto_correlation_times=auto_correlation_times,
+            auto_correlation_check_size=auto_correlation_check_size,
+            auto_correlation_required_length=auto_correlation_required_length,
+            auto_correlation_change_threshold=auto_correlation_change_threshold,
+            total_walkers=total_walkers,
+            total_steps=total_steps,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+        self.backend = backend
+
+    @property
+    def samples_after_burn_in(self) -> [list]:
+        """The emcee samples with the initial burn-in samples removed.
+
+        The burn-in period is estimated using the auto-correlation times of the parameters."""
+        discard = int(3.0 * np.max(self.auto_correlation_times))
+        thin = int(np.max(self.auto_correlation_times) / 2.0)
+        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+
+    @property
+    def previous_auto_correlation_times(self) -> [float]:
+        return emcee.autocorr.integrated_time(
+            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
+        )

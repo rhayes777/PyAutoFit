@@ -51,7 +51,7 @@ class Gaussian(Profile):
 
         Parameters
         ----------
-        values : ndarray
+        values : np.ndarray
             The x coordinates in the original reference frame of the grid.
         """
         transformed_xvalues = np.subtract(xvalues, self.centre)
@@ -93,7 +93,7 @@ class Exponential(Profile):
 
         Parameters
         ----------
-        values : ndarray
+        values : np.ndarray
             The x coordinates in the original reference frame of the grid.
         """
         transformed_xvalues = np.subtract(xvalues, self.centre)

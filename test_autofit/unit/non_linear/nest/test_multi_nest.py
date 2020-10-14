@@ -7,7 +7,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit.non_linear.nest import multi_nest as mn
-from test_autofit import mock
+from autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -242,7 +242,7 @@ class TestMulitNest:
             importance_nested_sampling=False,
         )
 
-        assert multi_nest.tag == "multinest__nlive_40_eff_0.5"
+        assert multi_nest.tag == "multinest[nlive_40_eff_0.5]"
 
         multi_nest = af.MultiNest(
             n_live_points=41,
@@ -252,14 +252,14 @@ class TestMulitNest:
             importance_nested_sampling=True,
         )
 
-        assert multi_nest.tag == "multinest__nlive_41_eff_0.6_const_mm_is"
+        assert multi_nest.tag == "multinest[nlive_41_eff_0.6_const_mm_is]"
 
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test__copy_with_name_extension(self):
-        search = af.MultiNest(af.Paths("phase_name"))
+        search = af.MultiNest(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
@@ -293,10 +293,10 @@ class TestMulitNest:
 
         multi_nest = af.MultiNest()
 
-        create_weighted_samples_4_parameters(path=multi_nest.paths.backup_path)
+        create_weighted_samples_4_parameters(path=multi_nest.paths.path)
 
         parameters = mn.parameters_from_file_weighted_samples(
-            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt",
+            file_weighted_samples=f"{multi_nest.paths.path}/multinest.txt",
             prior_count=4,
         )
 
@@ -314,7 +314,7 @@ class TestMulitNest:
         ]
 
         log_likelihoods = mn.log_likelihoods_from_file_weighted_samples(
-            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt"
+            file_weighted_samples=f"{multi_nest.paths.path}/multinest.txt"
         )
 
         value = -0.5 * 9999999.9
@@ -322,7 +322,7 @@ class TestMulitNest:
         assert log_likelihoods == 10 * [value]
 
         weights = mn.weights_from_file_weighted_samples(
-            file_weighted_samples=f"{multi_nest.paths.backup_path}/multinest.txt"
+            file_weighted_samples=f"{multi_nest.paths.path}/multinest.txt"
         )
 
         assert weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
@@ -332,10 +332,10 @@ class TestMulitNest:
 
         multi_nest = af.MultiNest()
 
-        create_resume(path=multi_nest.paths.backup_path)
+        create_resume(path=multi_nest.paths.path)
 
         total_samples = mn.total_samples_from_file_resume(
-            file_resume=f"{multi_nest.paths.backup_path}/multinestresume.dat"
+            file_resume=f"{multi_nest.paths.path}/multinestresume.dat"
         )
 
         assert total_samples == 12345
@@ -346,16 +346,16 @@ class TestMulitNest:
         multi_nest = af.MultiNest()
 
         log_evidence = mn.log_evidence_from_file_summary(
-            file_summary=f"{multi_nest.paths.backup_path}/multinestsummary.txt",
+            file_summary=f"{multi_nest.paths.samples_from_sym_path}/multinestsummary.txt",
             prior_count=4,
         )
 
         assert log_evidence == -1e99
 
-        create_summary_4_parameters(path=multi_nest.paths.backup_path)
+        create_summary_4_parameters(path=multi_nest.paths.samples_from_sym_path)
 
         log_evidence = mn.log_evidence_from_file_summary(
-            file_summary=f"{multi_nest.paths.backup_path}/multinestsummary.txt",
+            file_summary=f"{multi_nest.paths.samples_from_sym_path}/multinestsummary.txt",
             prior_count=4,
         )
 
@@ -368,9 +368,9 @@ class TestMulitNest:
 
         multi_nest = af.MultiNest()
 
-        create_weighted_samples_4_parameters(path=multi_nest.paths.backup_path)
-        create_resume(path=multi_nest.paths.backup_path)
-        create_summary_4_parameters(path=multi_nest.paths.backup_path)
+        create_weighted_samples_4_parameters(path=multi_nest.paths.samples_from_sym_path)
+        create_resume(path=multi_nest.paths.samples_from_sym_path)
+        create_summary_4_parameters(path=multi_nest.paths.samples_from_sym_path)
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)

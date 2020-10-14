@@ -1,6 +1,6 @@
-
 def create_path(path, folders):
-    """ For a given path, create a directory structure composed of a set of folders and return the path to the \
+    """
+    For a given path, create a directory structure composed of a set of folders and return the path to the \
     inner-most folder.
 
     For example, if path='/path/to/folders', and folder_names=['folder1', 'folder2'], the directory created will be

@@ -4,7 +4,7 @@ import shutil
 
 from autoconf import conf
 import autofit as af
-from test_autofit import mock
+from autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -65,7 +65,7 @@ class TestEmceeConfig:
 
         emcee = af.Emcee(nwalkers=11)
 
-        assert emcee.tag == "emcee__nwalkers_11"
+        assert emcee.tag == "emcee[nwalkers_11]"
 
     def test__samples_from_model(self):
 
@@ -74,7 +74,6 @@ class TestEmceeConfig:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -107,7 +106,6 @@ class TestEmceeOutput:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -125,7 +123,6 @@ class TestEmceeOutput:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -147,7 +144,6 @@ class TestEmceeOutput:
             f"{directory}/files/emcee.hdf",
             f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
         )
-        emcee.paths.backup()
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
@@ -165,10 +161,10 @@ class TestEmceeOutput:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_emcee(self):
-        search = af.Emcee(af.Paths("phase_name"))
+        search = af.Emcee(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

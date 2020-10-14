@@ -73,13 +73,11 @@ def test_laplace(
         a_,
         b_
 ):
-    opt = mp.optimise.LaplaceOptimiser(
-        model_approx
-    )
-    opt.run()
+    opt = mp.optimise.LaplaceOptimiser()
+    model_approx = opt.run(model_approx)
 
-    q_a = opt.model_approx[a_]
-    q_b = opt.model_approx[b_]
+    q_a = model_approx[a_]
+    q_b = model_approx[b_]
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(0.09, rel=1)

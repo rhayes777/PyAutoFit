@@ -3,7 +3,7 @@ import pytest
 
 from autoconf import conf
 import autofit as af
-from test_autofit import mock
+from autofit import mock
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -111,13 +111,13 @@ class TestPySwarmsGlobalConfig:
             n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
         )
 
-        assert pso.tag == "pyswarms_global__particles_51_c_0.4_s_0.5_i_0.6"
+        assert pso.tag == "pyswarms_global[particles_51_c_0.4_s_0.5_i_0.6]"
 
         pso = af.PySwarmsLocal(
             n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
         )
 
-        assert pso.tag == "pyswarms_local__particles_51_c_0.4_s_0.5_i_0.6"
+        assert pso.tag == "pyswarms_local[particles_51_c_0.4_s_0.5_i_0.6]"
 
     def test__samples_from_model(self):
 
@@ -152,10 +152,10 @@ class TestPySwarmsGlobalConfig:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test__pyswarms(self):
-        search = af.PySwarmsGlobal(af.Paths("phase_name"))
+        search = af.PySwarmsGlobal(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

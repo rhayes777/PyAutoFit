@@ -22,7 +22,7 @@ with open(join(this_dir, "requirements.txt")) as f:
 setup(
     name="autofit",
     version=version(),
-    description="Classy non-linear optimisation",
+    description="Classy Probabilistic Programming",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/rhayes777/AutoFit",

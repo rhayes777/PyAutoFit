@@ -26,7 +26,7 @@ xvalues = np.arange(pixels)
 
 # %%
 """
-Evaluate both Gaussian model instances and Exponential model instance at every xvalues to create their model line
+Evaluate both `Gaussian` model instances and Exponential model instance at every xvalues to create their model line
 profiles and sum them together to create the overall model profile.
 """
 

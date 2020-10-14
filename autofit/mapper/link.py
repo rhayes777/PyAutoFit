@@ -45,7 +45,7 @@ def path_for(path):
 
 def make_linked_folder(sym_path):
     """
-    Create a folder in the ~/.autolens directory and create a sym link to it at the provided path.
+        Returns a folder in the ~/.autolens directory and create a sym link to it at the provided path.
 
     If both folders already exist then nothing is changed. If the source folder exists but the destination folder does
     not then the source folder is removed and replaced so as to conform to the behaviour that the user would expect

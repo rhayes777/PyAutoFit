@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import autofit as af
-from test_autofit import mock
+from autofit import mock
 
 
 @pytest.fixture(name="model_promise")
@@ -16,9 +16,10 @@ def make_grid_search_promise(phase):
     grid_search_phase = af.as_grid_search(
         af.AbstractPhase
     )(
-        phase_name="phase_name",
-        phase_tag="phase_tag",
-        search=af.MockSearch()
+        search=af.MockSearch(
+            "name",
+            phase_tag="phase_tag",
+        )
     )
     grid_search_phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
     return grid_search_phase.result.model.one.parameter
@@ -205,13 +206,13 @@ class TestCase:
         assert model.prior_count == 0
 
     def test_model_promise(self, model_promise, phase):
-        assert isinstance(model_promise, af.prior.Promise)
+        assert isinstance(model_promise, af.Promise)
         assert model_promise.path == ("one", "parameter")
         assert model_promise.is_instance is False
         assert model_promise._phase is phase
 
     def test_grid_search_promise(self, grid_search_promise, phase):
-        assert isinstance(grid_search_promise, af.prior.Promise)
+        assert isinstance(grid_search_promise, af.Promise)
         assert grid_search_promise.path == ("one", "parameter")
         assert grid_search_promise.is_instance is False
         assert grid_search_promise._phase is not phase
@@ -222,12 +223,12 @@ class TestCase:
         assert result is None
 
     def test_optional_in_sub(self, collection, phase):
-        promise = phase.result.hyper.model.optional.heart
+        promise = phase.result.setup_hyper.model.optional.heart
         result = promise.populate(collection)
         assert result is None
 
     def test_instance_promise(self, instance_promise, phase):
-        assert isinstance(instance_promise, af.prior.Promise)
+        assert isinstance(instance_promise, af.Promise)
         assert instance_promise.path == ("one", "parameter")
         assert instance_promise.is_instance is True
         assert instance_promise._phase is phase
@@ -276,13 +277,13 @@ class TestCase:
     def test_embedded_results(self, phase, collection):
         hyper_result = phase.result.hyper_result
 
-        assert isinstance(hyper_result, af.prior.PromiseResult)
+        assert isinstance(hyper_result, af.PromiseResult)
 
         model_promise = hyper_result.model
         instance_promise = hyper_result.instance
 
-        assert isinstance(model_promise.hyper_galaxy, af.prior.Promise)
-        assert isinstance(instance_promise.hyper_galaxy, af.prior.Promise)
+        assert isinstance(model_promise.hyper_galaxy, af.Promise)
+        assert isinstance(instance_promise.hyper_galaxy, af.Promise)
 
         model = model_promise.populate(collection)
         instance = instance_promise.populate(collection)

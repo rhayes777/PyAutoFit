@@ -11,12 +11,21 @@ from .mapper.model import path_instances_of_class
 from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
-from .mapper.prior import AbstractPromise
-from .mapper.prior import GaussianPrior
-from .mapper.prior import LogUniformPrior
-from .mapper.prior import Prior
-from .mapper.prior import UniformPrior
-from .mapper.prior import last
+from .mapper.prior.prior import WidthModifier
+from .mapper.prior.prior import RelativeWidthModifier
+from .mapper.prior.prior import AbsoluteWidthModifier
+from .mapper.prior.assertion import GreaterThanLessThanAssertion
+from .mapper.prior.assertion import GreaterThanLessThanEqualAssertion
+from .mapper.prior.assertion import ComparisonAssertion
+from .mapper.prior.promise import AbstractPromise
+from .mapper.prior.prior import GaussianPrior
+from .mapper.prior.prior import LogUniformPrior
+from .mapper.prior.prior import Prior
+from .mapper.prior.prior import UniformPrior
+from .mapper.prior.assertion import ComparisonAssertion
+from .mapper.prior.promise import Promise
+from .mapper.prior.promise import PromiseResult
+from .mapper.prior.promise import last
 from .mapper.prior.deferred import DeferredArgument
 from .mapper.prior.deferred import DeferredInstance
 from .mapper.prior_model.abstract import AbstractPriorModel
@@ -56,7 +65,6 @@ from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
 from .non_linear.grid_search import GridSearch as NonLinearSearchGridSearch
 from .non_linear.grid_search import GridSearchResult
-from .text import Model
 from .text import formatter
 from .text import samples_text
 from .tools import util
@@ -69,4 +77,4 @@ from .tools.phase_property import PhaseProperty
 from .tools.pipeline import Pipeline
 from .tools.pipeline import ResultsCollection
 
-__version__ = '0.67.2'
+__version__ = '0.68.0'

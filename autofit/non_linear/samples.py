@@ -3,13 +3,11 @@ import json
 import math
 from typing import List
 
-import corner
 import emcee
 import numpy as np
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
-from autofit.text import model_text
 
 
 def load_from_table(filename, model):
@@ -45,7 +43,7 @@ class OptimizerSamples:
         weights: List[float],
         time: float = None,
     ):
-        """The *Samples* of a non-linear search, specifically the samples of an search which only provides
+        """The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
 
@@ -66,10 +64,6 @@ class OptimizerSamples:
         self.time = time
 
     @property
-    def parameter_names(self):
-        return self.model.parameter_names
-
-    @property
     def parameters_extract(self):
         return [
             [params[i] for params in self.parameters]
@@ -81,7 +75,7 @@ class OptimizerSamples:
         """
         Headers for the samples table
         """
-        return self.parameter_names + [
+        return self.model.model_component_and_parameter_names + [
             "log_likelihood",
             "log_prior",
             "log_posterior",
@@ -124,22 +118,18 @@ class OptimizerSamples:
             json.dump(info, outfile)
 
     @property
-    def parameter_labels(self):
-        return model_text.parameter_labels_from_model(model=self.model)
-
-    @property
     def max_log_likelihood_index(self) -> int:
         """The index of the sample with the highest log likelihood."""
         return int(np.argmax(self.log_likelihoods))
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
-        """ The parameters of the maximum log likelihood sample of the non-linear search returned as a list of values."""
+        """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
         return self.parameters[self.max_log_likelihood_index]
 
     @property
     def max_log_likelihood_instance(self) -> ModelInstance:
-        """  The parameters of the maximum log likelihood sample of the non-linear search returned as a model instance."""
+        """  The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
 
     @property
@@ -149,16 +139,16 @@ class OptimizerSamples:
 
     @property
     def max_log_posterior_vector(self) -> [float]:
-        """ The parameters of the maximum log posterior sample of the non-linear search returned as a list of values."""
+        """ The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values."""
         return self.parameters[self.max_log_posterior_index]
 
     @property
     def max_log_posterior_instance(self) -> ModelInstance:
-        """  The parameters of the maximum log posterior sample of the non-linear search returned as a model instance."""
+        """  The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance."""
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
+        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
          - The mean is given by maximum log likelihood model values.
@@ -195,7 +185,7 @@ class PDFSamples(OptimizerSamples):
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
-        """The *Samples* of a non-linear search, specifically the samples of a non-linear search which maps out the
+        """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
         Parameters
@@ -239,7 +229,7 @@ class PDFSamples(OptimizerSamples):
     @property
     def unconverged_sample_size(self):
         """If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
-        an alternative to GetDist.
+        an alternative to corner.py.
 
         These use a subset of samples spanning the range from the most recent sample to the valaue of the
         unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
@@ -257,7 +247,7 @@ class PDFSamples(OptimizerSamples):
         if one sample's weight contains > 99% of the weight. If this is the case, it implies the convergence necessary
         for error estimate and visualization has not been met.
 
-        This does not necessarily imply the non-linear search has converged overall, only that errors and visualization
+        This does not necessarily imply the `NonLinearSearch` has converged overall, only that errors and visualization
         can be performed numerically.."""
         if np.max(self.weights) > 0.99:
             return False
@@ -269,7 +259,7 @@ class PDFSamples(OptimizerSamples):
         as a list of values."""
         if self.pdf_converged:
             return [
-                corner.quantile(x=params, q=0.5, weights=self.weights)[0]
+                quantile(x=params, q=0.5, weights=self.weights)[0]
                 for params in self.parameters_extract
             ]
         return self.max_log_likelihood_vector
@@ -280,7 +270,7 @@ class PDFSamples(OptimizerSamples):
         as a model instance."""
         return self.model.instance_from_vector(vector=self.median_pdf_vector)
 
-    def vector_at_sigma(self, sigma) -> [float]:
+    def vector_at_sigma(self, sigma) -> [(float, float)]:
         """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
 
@@ -291,7 +281,7 @@ class PDFSamples(OptimizerSamples):
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
-        For *Dynesty*, this is estimated using *GetDist* if the samples have converged, by sampling the density
+        For *Dynesty*, this is estimated using *corner.py* if the samples have converged, by sampling the density
         function at an input PDF %. If not converged, a crude estimate using the range of values of the current
         physical live points is used.
 
@@ -304,12 +294,12 @@ class PDFSamples(OptimizerSamples):
             limit = math.erf(0.5 * sigma * math.sqrt(2))
 
             lower_errors = [
-                corner.quantile(x=params, q=1.0 - limit, weights=self.weights)[0]
+                quantile(x=params, q=1.0 - limit, weights=self.weights)[0]
                 for params in self.parameters_extract
             ]
 
             upper_errors = [
-                corner.quantile(x=params, q=limit, weights=self.weights)[0]
+                quantile(x=params, q=limit, weights=self.weights)[0]
                 for params in self.parameters_extract
             ]
 
@@ -403,19 +393,21 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def error_vector_at_sigma(self, sigma) -> [float]:
-        """ The value of every error after marginalization in 1D at an input sigma value of the probability density
-        function (PDF), returned as two lists of values corresponding to the lower and upper errors.
+    def error_vector_at_sigma(self, sigma) -> [(float, float)]:
+        """The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
+        density function (PDF), returned as a list.
 
-        For example, if sigma is 1.0, the errors marginalized at 31.7% and 68.2% percentiles of each PDF is returned.
+        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
 
         Parameters
-        ----------
+        -----------
         sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
-        uppers = self.vector_at_upper_sigma(sigma=sigma)
-        lowers = self.vector_at_lower_sigma(sigma=sigma)
-        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
+            PDF).
+        """
+        error_vector_lower = self.error_vector_at_lower_sigma(sigma=sigma)
+        error_vector_upper = self.error_vector_at_upper_sigma(sigma=sigma)
+        return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
 
     def error_vector_at_upper_sigma(self, sigma) -> [float]:
         """The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
@@ -459,6 +451,21 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
+    def error_magnitude_vector_at_sigma(self, sigma) -> [float]:
+        """ The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
+        function (PDF), returned as two lists of values corresponding to the lower and upper errors.
+
+        For example, if sigma is 1.0, the difference in the inferred values marginalized at 31.7% and 68.2% percentiles
+        of each PDF is returned.
+
+        Parameters
+        ----------
+        sigma : float
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+        uppers = self.vector_at_upper_sigma(sigma=sigma)
+        lowers = self.vector_at_lower_sigma(sigma=sigma)
+        return list(map(lambda upper, lower: upper - lower, uppers, lowers))
+
     def error_instance_at_sigma(self, sigma) -> ModelInstance:
         """ The error of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper errors.
@@ -470,7 +477,7 @@ class PDFSamples(OptimizerSamples):
         sigma : float
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
         return self.model.instance_from_vector(
-            vector=self.error_vector_at_sigma(sigma=sigma),
+            vector=self.error_magnitude_vector_at_sigma(sigma=sigma),
             assert_priors_in_limits=False,
         )
 
@@ -509,7 +516,7 @@ class PDFSamples(OptimizerSamples):
         )
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """*GaussianPrior*s of every parameter used to link its inferred values and errors to priors used to sample the
+        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent phase, where:
 
          - The mean is given by their most-probable values (using *median_pdf_vector*).
@@ -562,7 +569,7 @@ class PDFSamples(OptimizerSamples):
         """ The values of an input_vector offset by the *median_pdf_vector* (the PDF medians).
 
         If the 'true' values of a model are known and input as the *input_vector*, this function returns the results
-        of the non-linear search as values offset from the 'true' model. For example, a value 0.0 means the non-linear
+        of the `NonLinearSearch` as values offset from the 'true' model. For example, a value 0.0 means the non-linear
         search estimated the model parameter value correctly.
 
         Parameters
@@ -583,7 +590,7 @@ class PDFSamples(OptimizerSamples):
     def output_pdf_plots(self):
         """Output plots of the probability density functions of the non-linear seach.
 
-        This uses *GetDist* to plot:
+        This uses *corner.py* to plot:
 
          - The marginalize 1D PDF of every parameter.
          - The marginalized 2D PDF of every parameter pair.
@@ -595,14 +602,14 @@ class PDFSamples(OptimizerSamples):
         # import getdist.plots
         # import matplotlib
         #
-        # backend = conf.instance.visualize_general.get("general", "backend", str)
+        # backend = conf.instance["visualize"]["general"]["general"]["backend"]
         # if not backend in "default":
         #     matplotlib.use(backend)
-        # if conf.instance.general.get("hpc", "hpc_mode", bool):
+        # if conf.instance["general"]["hpc"]["hpc_mode"]:
         #     matplotlib.use("Agg")
         # import matplotlib.pyplot as plt
         #
-        # pdf_plot = getdist.plots.GetDistPlotter()
+        # pdf_plot = getdist.plots.corner.pyPlotter()
         #
         # plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
         #
@@ -616,7 +623,7 @@ class PDFSamples(OptimizerSamples):
         #
         # plt.close()
         #
-        # plot_pdf_triangle = conf.instance.visualize_plots.get("pdf", "triangle", bool)
+        # plot_pdf_triangle = conf.instance["visualize"]["plots"]["pdf"]["triangle"]
         #
         # if plot_pdf_triangle:
         #
@@ -626,7 +633,7 @@ class PDFSamples(OptimizerSamples):
         #     except Exception as e:
         #         logger.exception(e)
         #         print(
-        #             "The PDF triangle of this non-linear search could not be plotted. This is most likely due to a "
+        #             "The PDF triangle of this `NonLinearSearch` could not be plotted. This is most likely due to a "
         #             "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
         #             "parameter evidence_tolerance."
         #         )
@@ -648,7 +655,6 @@ class MCMCSamples(PDFSamples):
         auto_correlation_change_threshold: float,
         total_walkers: int,
         total_steps: int,
-        backend: emcee.backends.HDFBackend,
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
@@ -658,7 +664,7 @@ class MCMCSamples(PDFSamples):
         total_walkers : int
             The total number of walkers used by this MCMC non-linear search.
         total_steps : int
-            The total number of steps taken by each walker of this MCMC non-linear search (the total samples is equal
+            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
             to the total steps * total walkers).
         """
 
@@ -679,7 +685,6 @@ class MCMCSamples(PDFSamples):
         self.auto_correlation_required_length = auto_correlation_required_length
         self.auto_correlation_change_threshold = auto_correlation_change_threshold
         self.log_evidence = None
-        self.backend = backend
 
     @classmethod
     def from_table(self, filename: str, model, number_live_points=None):
@@ -719,11 +724,11 @@ class MCMCSamples(PDFSamples):
 
     @property
     def pdf_converged(self):
-        """ To analyse and visualize samples using *GetDist*, the analysis must be sufficiently converged to produce
+        """ To analyse and visualize samples using *corner.py*, the analysis must be sufficiently converged to produce
         smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
-        converged for *GetDist* use.
+        converged for *corner.py* use.
 
-        Emcee samples can be analysed by GetDist irrespective of how long the sampler has run, albeit low run times
+        Emcee samples can be analysed by corner.py irrespective of how long the sampler has run, albeit low run times
         will likely produce inaccurate results."""
         try:
             self.samples_after_burn_in
@@ -736,15 +741,11 @@ class MCMCSamples(PDFSamples):
         """The emcee samples with the initial burn-in samples removed.
 
         The burn-in period is estimated using the auto-correlation times of the parameters."""
-        discard = int(3.0 * np.max(self.auto_correlation_times))
-        thin = int(np.max(self.auto_correlation_times) / 2.0)
-        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+        raise NotImplementedError()
 
     @property
     def previous_auto_correlation_times(self) -> [float]:
-        return emcee.autocorr.integrated_time(
-            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
-        )
+        raise NotImplementedError()
 
     @property
     def relative_auto_correlation_times(self) -> [float]:
@@ -842,11 +843,11 @@ class NestSamples(PDFSamples):
         unconverged_sample_size: int = 100,
         time: float = None,
     ):
-        """The *Output* classes in **PyAutoFit** provide an interface between the results of a non-linear search (e.g.
+        """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
-        individual sample by the non-linear search and return information on the likelihoods, errors, etc.
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
         The Bayesian log evidence estimated by the nested sampling algorithm.
 
@@ -897,3 +898,51 @@ class NestSamples(PDFSamples):
     def acceptance_ratio(self) -> float:
         """The ratio of accepted samples to total samples."""
         return self.total_accepted_samples / self.total_samples
+
+
+def quantile(x, q, weights=None):
+    """
+    Copied from corner.py
+
+    Compute sample quantiles with support for weighted samples.
+    Note
+    ----
+    When ``weights`` is ``None``, this method simply calls numpy's percentile
+    function with the values of ``q`` multiplied by 100.
+    Parameters
+    ----------
+    x : array_like[nsamples,]
+       The samples.
+    q : array_like[nquantiles,]
+       The list of quantiles to compute. These should all be in the range
+       ``[0, 1]``.
+    weights : Optional[array_like[nsamples,]]
+        An optional weight corresponding to each sample. These
+    Returns
+    -------
+    quantiles : array_like[nquantiles,]
+        The sample quantiles computed at ``q``.
+    Raises
+    ------
+    ValueError
+        For invalid quantiles; ``q`` not in ``[0, 1]`` or dimension mismatch
+        between ``x`` and ``weights``.
+    """
+    x = np.atleast_1d(x)
+    q = np.atleast_1d(q)
+
+    if np.any(q < 0.0) or np.any(q > 1.0):
+        raise ValueError("Quantiles must be between 0 and 1")
+
+    if weights is None:
+        return np.percentile(x, list(100.0 * q))
+    else:
+        weights = np.atleast_1d(weights)
+        if len(x) != len(weights):
+            raise ValueError("Dimension mismatch: len(weights) != len(x)")
+        idx = np.argsort(x)
+        sw = weights[idx]
+        cdf = np.cumsum(sw)[:-1]
+        cdf /= cdf[-1]
+        cdf = np.append(0, cdf)
+        return np.interp(q, cdf, x[idx]).tolist()

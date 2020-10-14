@@ -5,7 +5,7 @@ from autoconf import conf
 import autofit as af
 
 from autofit.non_linear.samples import NestSamples
-from test_autofit.mock import MockClassx4
+from autofit.mock import MockClassx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
