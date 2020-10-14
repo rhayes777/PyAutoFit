@@ -14,7 +14,9 @@ from .utils import propagate_uncertainty, FlattenArrays
 class OptResult(NamedTuple):
     mode: Dict[str, np.ndarray]
     inv_hessian: Dict[str, np.ndarray]
+    log_norm: float
     result: OptimizeResult
+    status: Optional[Status]
 
 
 class OptFactor:
@@ -33,6 +35,7 @@ class OptFactor:
         self.param_shapes = FlattenArrays(kwargs)
         self.param_bounds = bounds
         self.free_vars = tuple(kwargs)
+        self.deterministic_variables = self.factor_approx.deterministic_variables
 
         self.sign = sign
         self.fixed_kws = fixed_kws
@@ -88,31 +91,44 @@ class OptFactor:
             constraints=constraints, tol=tol, callback=callback,
             options=options)
 
-    def _parse_result(self, res: OptimizeResult) -> OptResult:
+    def _parse_result(self, result: OptimizeResult, status=None) -> OptResult:
+        success, messages = Status() if status is None else status
+        success = result.success
+        message = result.message.decode()
+        messages += (
+            "optimise.find_factor_mode: "
+            f"nfev={result.nfev}, nit={result.nit}, "
+            f"status={result.status}, message={message}",)
         return OptResult(
-            self.param_shapes.unflatten(res.x),
-            self.param_shapes.unflatten(res.hess_inv.todense()),
-            res)
+            self.param_shapes.unflatten(result.x),
+            self.param_shapes.unflatten(result.hess_inv.todense()),
+            -result.fun, # minimized negative logpdf of factor approximation
+            result,
+            Status(success, messages))
 
     def minimise(self, bounds=None,
                  constraints=(), tol=None, callback=None,
                  options=None, **arrays):
         self.sign = 1
         res = self._minimise(
+            arrays,
             bounds=bounds, constraints=constraints, tol=tol,
-            callback=callback, options=options, **arrays)
+            callback=callback, options=options)
         return self._parse_result(res)
 
     def maximise(
             self,
-            arrays_dict,
+            arrays_dict={},
             bounds=None,
             constraints=(), tol=None, callback=None,
             options=None
     ):
         self.sign = -1
+        p0 = {
+            v: arrays_dict.pop(v, self.factor_approx.model_dist[v].sample(1)[0])
+            for v in self.free_vars}
         res = self._minimise(
-            arrays_dict,
+            p0,
             bounds=bounds, constraints=constraints, tol=tol,
             callback=callback, options=options)
         self.sign = 1
@@ -121,6 +137,20 @@ class OptFactor:
     minimize = minimise
     maximize = maximise
 
+def update_det_inv_hessian(
+        res: OptResult,
+        jacobian: Dict[Variable, np.ndarray]):
+    """Calculates the inv hessian of the deterministic variables
+
+    Note that this modifies res.
+    """
+    covars = res.inv_hessian
+    for (det, v), jac in jacobian.deterministic_values.items():
+        cov = covars[v]
+        det_cov = propagate_uncertainty(cov, jac)
+        covars[det] += covars.get(det, 0.) + det_cov
+
+    return res
 
 def maximise_factor_approx(
         factor_approx: FactorApproximation, **kwargs):
