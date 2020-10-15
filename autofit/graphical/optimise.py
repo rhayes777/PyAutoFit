@@ -1,5 +1,6 @@
 from itertools import repeat
-from typing import Optional, Dict, Tuple, NamedTuple, Any
+from typing import (
+    Optional, Dict, Tuple, NamedTuple, Any, List, Iterator)
 
 import numpy as np
 from scipy.optimize import minimize, OptimizeResult, least_squares
@@ -14,7 +15,6 @@ from autofit.graphical.utils import propagate_uncertainty, FlattenArrays, OptRes
 class OptFactor:
     """
     """
-
     def __init__(
             self,
             factor_approx: FactorApproximation,
@@ -186,64 +186,66 @@ def find_factor_mode(
 
     return res
 
+def laplace_factor_approx(
+            model_approx,
+            factor: Factor,
+            delta: float = 1., 
+            opt_kws: Optional[Dict[str, Any]] = None
+):
+    opt_kws = {} if opt_kws is None else opt_kws
+    factor_approx = model_approx.factor_approximation(factor)
+    res = find_factor_mode(
+        factor_approx,
+        return_cov=True,
+        **opt_kws
+    )
+
+    model_dist = factor_approx.model_dist.project_mode(res)
+    projection, status = factor_approx.project(
+        model_dist,
+        delta=delta,
+        status=res.status
+    )
+
+    new_approx, status = model_approx.project(
+        projection, status=status)
+
+    return new_approx, status
+
 class LaplaceOptimiser:
     def __init__(
             self,
             n_iter=4,
-            delta=1.
+            delta=1.,
+            opt_kws: Optional[Dict[str, Any]] = None
     ):
         self.history = dict()
         self.n_iter = n_iter
         self.delta = delta
+        self.opt_kws = {} if opt_kws is None else opt_kws
 
-    def run(self, model_approx):
-        model = model_approx.factor_graph
+    def step(self, model_approx, factors: Optional[List[Factor]] = None
+    ) -> Iterator[Tuple[Factor, MeanFieldApproximation]]:
+        new_approx = model_approx
+        factors = (
+            model_approx.factor_graph.factors 
+            if factors is None else factors)
+        for factor in factors:
+            new_approx, _ = laplace_factor_approx(
+                new_approx,
+                factor,
+                self.delta,
+                self.opt_kws)
+            yield factor, new_approx
+
+    def run(self, 
+            model_approx: MeanFieldApproximation, 
+            factors: Optional[List[Factor]] = None,
+    ) -> MeanFieldApproximation:
         for i in range(self.n_iter):
-            for factor in model.factors:
-                # We have reduced the entire EP step into a single function
-                model_approx, _ = self.laplace_factor_approx(
-                    model_approx,
-                    factor
-                )
-
-                # save and print current approximation
-                self.history[i, factor] = model_approx
-        return model_approx
-
-    def laplace_factor_approx(
-            self,
-            model_approx,
-            factor: Factor,
-            opt_kws: Optional[Dict[str, Any]] = None
-    ):
-        opt_kws = {} if opt_kws is None else opt_kws
-
-        factor_approx = model_approx.factor_approximation(factor)
-        res = find_factor_mode(
-            factor_approx,
-            return_cov=True,
-            **opt_kws
-        )
-
-        model_dist = factor_approx.model_dist.project_mode(res)
-        # model_dist = {
-        #     v: factor_approx.factor_dist[v].from_mode(
-        #         res.mode[v],
-        #         res.inv_hessian.get(v)
-        #     )
-        #     for v in res.mode
-        # }
-
-        projection, status = factor_approx.project(
-            model_dist,
-            delta=self.delta,
-            status=res.status
-        )
-
-        return model_approx.project(
-            projection,
-            status=status
-        )
+            for factor, new_approx in self.step(model_approx, factors):
+                self.history[i, factor] = new_approx
+        return new_approx
 
 
 class LeastSquaresOpt:
