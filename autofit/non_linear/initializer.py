@@ -38,8 +38,8 @@ class Initializer:
 
         elif initializer in "ball":
 
-            ball_lower_limit = config("initialize", "ball_lower_limit", float)
-            ball_upper_limit = config("initialize", "ball_upper_limit", float)
+            ball_lower_limit = config("initialize", "ball_lower_limit")
+            ball_upper_limit = config("initialize", "ball_upper_limit")
 
             return InitializerBall(
                 lower_limit=ball_lower_limit, upper_limit=ball_upper_limit
