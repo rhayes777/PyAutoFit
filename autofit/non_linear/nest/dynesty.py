@@ -514,7 +514,9 @@ class AbstractDynesty(AbstractNest):
     def remove_state_files(self):
         os.remove(f"{self.paths.samples_path}/dynesty.pickle")
 
+
 class DynestyStatic(AbstractDynesty):
+
     @convert_paths
     def __init__(
         self,
