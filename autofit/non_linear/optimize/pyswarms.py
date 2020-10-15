@@ -6,6 +6,7 @@ from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples
+from autofit.non_linear.paths import convert_paths
 
 from autofit.non_linear.log import logger
 
@@ -356,6 +357,8 @@ class AbstractPySwarms(AbstractOptimizer):
 
 
 class PySwarmsGlobal(AbstractPySwarms):
+
+    @convert_paths
     def __init__(
         self,
         paths=None,
@@ -471,6 +474,8 @@ class PySwarmsGlobal(AbstractPySwarms):
 
 
 class PySwarmsLocal(AbstractPySwarms):
+
+    @convert_paths
     def __init__(
         self,
         paths=None,

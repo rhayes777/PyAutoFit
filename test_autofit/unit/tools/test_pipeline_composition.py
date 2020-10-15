@@ -28,7 +28,7 @@ def make_pipeline_1(name):
         search=search,
         analysis_class=MockAnalysis,
     )
-    return af.Pipeline(f"{name}_1", phase)
+    return af.Pipeline(f"{name}_1", "", phase)
 
 
 def make_pipeline_2(name):
@@ -46,7 +46,7 @@ def make_pipeline_2(name):
         search=search,
         analysis_class=MockAnalysis,
     )
-    return af.Pipeline(f"{name}_2", phase)
+    return af.Pipeline(f"{name}_2", "", phase)
 
 
 def make_pipeline(
