@@ -141,7 +141,7 @@ def test():
 
         # perform laplace non linear fit for other factors
         for factor in factors:
-            model_approx, status = opt.laplace_factor_approx(
+            model_approx, status = mp.optimise.laplace_factor_approx(
                 model_approx,
                 factor
             )
