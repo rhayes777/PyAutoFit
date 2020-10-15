@@ -157,13 +157,13 @@ visualization in **PyAutoFit**. The ``general.ini`` config contains the followin
 
         Agg (outputs to .fits / .png but doesn't'display figures during a run on your computer screen)
 
-json_priors
+priors
 -----------
 
-These config files are found at ``autofit_workspace/config/json_priors`` and they contain the default priors and related
+These config files are found at ``autofit_workspace/config/priors`` and they contain the default priors and related
 variables for every model-component in a project, using ``.json`` format files (as opposed to ``.ini`` for most config files).
 
-The autofit_workspace`` contains example ``json_prior`` files for the 1D ``data`` fitting problem. An example entry of the
+The autofit_workspace`` contains example ``prior`` files for the 1D ``data`` fitting problem. An example entry of the
 json configs for the ``sigma`` parameter of the ``Gaussian`` class is as follows:
 
 .. code-block:: bash

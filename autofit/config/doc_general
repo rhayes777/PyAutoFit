@@ -1,0 +1,29 @@
+A description of the general.ini config.
+
+[output]
+    log_file -> str
+        The file name the logged output is written to (in the `NonLinearSearch` output folder).
+    log_level -> str
+        The level of logging.
+    model_results_decimal_places -> int
+        The number of decimal places the estimated values and errors of all parameters in the model.results file are
+        output to.
+    remove_files -> bool
+        If True, all output files of a `NonLinearSearch` (e.g. samples, samples_backup, model.results, images, etc.)
+        are deleted once the model-fit has completed.
+        A .zip file of all output is always created before files are removed, thus results are not lost with this
+        option turned on. If PyAutoFit does not find the output files of a model-fit (because they were removed) but
+        does find this .zip file, it will unzip the contents and continue the analysis as if the files were
+        there all along.
+        This feature was implemented because super-computers often have a limit on the number of files allowed per
+        user and the large number of files output by PyAutoFit can exceed this limit. By removing files the
+        number of files is restricted only to the .zip files.
+    grid_results_interval -> int
+        For a GridSearch non-linear optimization this interval sets after how many samples on the grid output is
+        performed for. A grid_results_interval of -1 turns off output.
+    skip_completed -> bool
+        If True, and if the results of a `NonLinearSearch` were completed in a previous run, then all processing steps
+        performed at the end of the `NonLinearSearch` (e.g. output of sample results, visualization, etc.) are skipped.
+
+        If False, they are repeated, which can be used for updating visualization or the `NonLinearSearch` pickles
+        to a new version of PyAutoFit.

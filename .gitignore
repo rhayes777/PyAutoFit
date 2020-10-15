@@ -121,7 +121,7 @@ test_autofit/test_files/text/
 fit/test_autofit/optimize/test_fit
 *.DS_Store
 
-test_autofit/unit/config/json_priors/old
+test_autofit/unit/config/priors/old
 
 # docs
 docs/_build

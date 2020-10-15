@@ -1,14 +1,14 @@
-A general description of configs in PyAutoLens is provided here, checkout their associated doc file for a more
+A general description of configs in PyAutoFit is provided here, checkout their associated doc file for a more
  detailed description of every config.
 
 general.ini:
-    Customizes general PyAutoLens settings such as the frequency of logging and backing up,
+    Customizes general PyAutoFit settings such as the frequency of logging and backing up.
 
 priors:
     Customize the priors of every model-component in your project (see doc_priors).
 
     default:
-        The default priors used on every model component in PyAutoLens (e.g. light proiles, mass profiles, etc.), for
+        The default priors used on every model component in PyAutoFit (e.g. light proiles, mass profiles, etc.), for
         example if they use a UniformPrior or GausssianPrior and the range of values sampled.
     limit:
         The limits between which a parameter may be sampled. For example, the axis_ratio of light and mass profiles has
@@ -25,7 +25,7 @@ visualize:
 
 
 non-Linear:
-    Customize the default `NonLinearSearch` settings used by PyAutoLens (see doc_non_linear).
+    Customize the default `NonLinearSearch` settings used by PyAutoFit (see doc_non_linear).
 
 
 label.ini:
@@ -33,5 +33,5 @@ label.ini:
     axis ratio is q).
 
 label_format.ini:
-    The format of certain results output by PyAutoLens (e.g. the mass format is {:.4e}, meaning it is output as an
+    The format of certain results output by PyAutoFit (e.g. the mass format is {:.4e}, meaning it is output as an
     exponential to 4 dp).

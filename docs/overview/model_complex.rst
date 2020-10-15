@@ -145,7 +145,7 @@ Now, lets consider how we *customize* the models that we *compose*. To begin, le
     model = af.PriorModel(Gaussian)
 
 By default, the priors on the ``Gaussian``'s parameters are loaded from configuration files. If you have downloaded the
-``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/json_priors``. Alternatively,
+``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/priors``. Alternatively,
 you can check them out at this `link <https://github.com/Jammy2211/autofit_workspace/tree/master/config>`_.
 
 Priors can be manually specified as follows:

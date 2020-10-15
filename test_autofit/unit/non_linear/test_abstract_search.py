@@ -154,6 +154,8 @@ class TestMovePickleFiles:
 
         arr = np.ones((3, 3))
 
+        print(f"{pickle_paths[0]}/test.pickle")
+
         with open(f"{pickle_paths[0]}/test.pickle", "wb") as f:
             pickle.dump(arr, f)
 

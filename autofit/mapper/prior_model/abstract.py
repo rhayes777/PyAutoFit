@@ -355,7 +355,7 @@ class AbstractPriorModel(AbstractModel):
             at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
             passed errors are used, the maximum of these two values are used).
         use_widths : bool
-            If True, the minimum prior widths specified in the json_prior configs of the model components are used to
+            If True, the minimum prior widths specified in the prior configs of the model components are used to
             set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
             these two values are used).
         tuples
