@@ -27,8 +27,8 @@ Setup the configs as we did in the previous tutorial, as well as the output fold
 """
 
 # %%
-conf.instance = conf.Config(
-    config_path=f"config",
+conf.instance.push(
+f"config",
     output_path=f"output/chapter_2",
 )
 

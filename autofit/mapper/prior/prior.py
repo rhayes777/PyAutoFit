@@ -56,7 +56,7 @@ class Limits:
     @staticmethod
     def for_class_and_attributes_name(cls, attribute_name):
         limit_dict = conf.instance.prior_config.for_class_and_suffix_path(
-            cls, [attribute_name, "gaussian_limits"], should_retry=False
+            cls, [attribute_name, "gaussian_limits"]
         )
         return limit_dict["lower"], limit_dict["upper"]
 

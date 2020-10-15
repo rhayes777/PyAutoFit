@@ -73,7 +73,7 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
     try:
         # noinspection PyProtectedMember
         for key, value in sorted(
-            label_conf.parser._sections["format"].items(),
+            label_conf["format"].items(),
             key=lambda item: len(item[0]),
             reverse=True,
         ):

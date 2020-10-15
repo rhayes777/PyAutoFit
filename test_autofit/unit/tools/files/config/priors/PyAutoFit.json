@@ -1,0 +1,47 @@
+{
+    "test_autofit.unit.mapper.model.test_model_mapper": {
+        "WithFloat": {
+            "value": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        },
+        "WithTuple": {
+            "tup_0": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "tup_1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        }
+    }
+}

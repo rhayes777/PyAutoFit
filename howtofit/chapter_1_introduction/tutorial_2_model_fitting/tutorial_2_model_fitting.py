@@ -24,7 +24,7 @@ These setup the configs as we did in the previous tutorial.
 """
 
 # %%
-conf.instance = conf.Config(config_path=f"config")
+conf.instance.push(f"config")
 
 # %%
 """

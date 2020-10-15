@@ -1,0 +1,107 @@
+{
+    "mock_real": {
+        "Tracer": {
+            "grid": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "source_galaxy": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "lens_galaxy": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        }
+    },
+    "mock": {
+        "MockComponents": {
+            "parameter": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "components_1": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            },
+            "components_0": {
+                "type": "Uniform",
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "width_modifier": {
+                    "type": "Absolute",
+                    "value": 0.2
+                },
+                "gaussian_limits": {
+                    "lower": 0.0,
+                    "upper": 1.0
+                }
+            }
+        }
+    },
+    "unit": {
+        "graphical.gaussian.model.Gaussian": {
+                "sigma": {
+                    "type": "Gaussian",
+                    "mean": 10.0,
+                    "sigma": 10.0
+                },
+                "intensity": {
+                    "type": "Gaussian",
+                    "mean": 10.0,
+                    "sigma": 10.0
+                },
+                "centre": {
+                    "type": "Gaussian",
+                    "mean": 10.0,
+                    "sigma": 10.0
+                }
+            }
+    }
+}

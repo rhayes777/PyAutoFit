@@ -1,0 +1,56 @@
+{
+        "MockClassx4": {
+        "one": {
+            "type": "Uniform",
+            "lower_limit": -120.0,
+            "upper_limit": 120.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 1.0
+            },
+            "gaussian_limits": {
+                "lower": -120.0,
+                "upper": 120.0
+            }
+        },
+        "two": {
+            "type": "Uniform",
+            "lower_limit": -120.0,
+            "upper_limit": 120.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "gaussian_limits": {
+                "lower": -120.0,
+                "upper": 120.0
+            }
+        },
+        "three": {
+            "type": "Uniform",
+            "lower_limit": -120.0,
+            "upper_limit": 120.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "gaussian_limits": {
+                "lower": -120.0,
+                "upper": 120.0
+            }
+        },
+        "four": {
+            "type": "Uniform",
+            "lower_limit": -120.0,
+            "upper_limit": 120.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 2.0
+            },
+            "gaussian_limits": {
+                "lower": -120.0,
+                "upper": 120.0
+            }
+        }
+}
+}
