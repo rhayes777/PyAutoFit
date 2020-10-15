@@ -50,7 +50,7 @@ Nevertheless, setting the paths explicitly within the code is good practise.
 """
 
 # %%
-conf.instance = conf.Config(config_path=f"config")
+conf.instance.push(f"config")
 
 # %%
 """

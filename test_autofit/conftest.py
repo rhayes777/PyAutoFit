@@ -25,7 +25,7 @@ def remove_reports():
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance = conf.Config(
-        config_path=path.join(directory, "unit/config"),
+        path.join(directory, "unit/config"),
         output_path=path.join(directory, "output")
     )
 

@@ -30,8 +30,8 @@ to the ``output`` folder where the results of a ``NonLinearSearch`` are stored i
 
     workspace_path = "/path/to/user/autofit_workspace"
 
-    conf.instance = conf.Config(
-        config_path=f"config", output_path=f"output"
+    conf.instance.push(
+f"config", output_path=f"output"
     )
 
 This manual setting of the config files is used in every example script in the autofit_workspace`` *example* folder,

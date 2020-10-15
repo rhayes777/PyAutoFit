@@ -29,8 +29,8 @@ Setup the configs and output folder for our `NonLinearSearch`.
 """
 
 # %%
-conf.instance = conf.Config(
-    config_path=f"config",
+conf.instance.push(
+f"config",
     output_path=f"output",
 )
 

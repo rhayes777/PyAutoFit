@@ -41,8 +41,8 @@ def make_samples():
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/emcee/config"),
+    conf.instance.push(
+        os.path.join(directory, "files/emcee/config"),
         output_path=os.path.join(directory, "files/emcee/output"),
     )
 

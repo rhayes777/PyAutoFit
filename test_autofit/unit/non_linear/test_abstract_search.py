@@ -17,7 +17,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/nlo/config"),
+        os.path.join(directory, "files/nlo/config"),
         output_path=os.path.join(directory, "files/nlo/output"),
     )
 
