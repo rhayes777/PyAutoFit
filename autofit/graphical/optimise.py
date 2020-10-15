@@ -83,7 +83,10 @@ class OptFactor:
             constraints=constraints, tol=tol, callback=callback,
             options=options)
 
-    def _parse_result(self, result: OptimizeResult, status=None) -> OptResult:
+    def _parse_result(
+            self, 
+            result: OptimizeResult, 
+            status: Optional[Status] = None) -> OptResult:
         success, messages = Status() if status is None else status
         success = result.success
         message = result.message.decode()
@@ -112,11 +115,13 @@ class OptFactor:
 
     def maximise(
             self,
-            arrays_dict={},
+            arrays_dict: Dict[Variable, np.ndarray] = {},
             bounds=None,
-            constraints=(), tol=None, callback=None,
+            constraints=(), 
+            tol=None, 
+            callback=None,
             options=None,
-            status=None,
+            status: Optional[Status] = None,
     ):
         self.sign = -1
         p0 = {
@@ -187,9 +192,10 @@ def find_factor_mode(
     return res
 
 def laplace_factor_approx(
-            model_approx,
+            model_approx: MeanFieldApproximation,
             factor: Factor,
             delta: float = 1., 
+            status: Optional[Status] = None, 
             opt_kws: Optional[Dict[str, Any]] = None
 ):
     opt_kws = {} if opt_kws is None else opt_kws
@@ -197,6 +203,7 @@ def laplace_factor_approx(
     res = find_factor_mode(
         factor_approx,
         return_cov=True,
+        # status=status, 
         **opt_kws
     )
 

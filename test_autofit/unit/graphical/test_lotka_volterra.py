@@ -143,7 +143,8 @@ def test():
         for factor in factors:
             model_approx, status = mp.optimise.laplace_factor_approx(
                 model_approx,
-                factor
+                factor,
+                status=status,
             )
             history[i, factor] = model_approx
 
