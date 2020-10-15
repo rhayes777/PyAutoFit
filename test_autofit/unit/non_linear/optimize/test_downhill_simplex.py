@@ -3,7 +3,7 @@ import os
 import pytest
 
 import autofit as af
-from autofit import Paths
+from fit.autofit import Paths
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
