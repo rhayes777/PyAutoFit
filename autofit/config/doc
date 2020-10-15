@@ -20,8 +20,7 @@ priors:
 
 visualize:
     general.ini:
-        General visualization setting like the matplotlib backend and what features should be included on an image (e.g.
-        the critical curves, origin, mask, etc.)
+        General visualization setting like the matplotlib backend.
 
 
 non-Linear:
