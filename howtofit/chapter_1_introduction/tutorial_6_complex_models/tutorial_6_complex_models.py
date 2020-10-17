@@ -130,7 +130,7 @@ Load the data and set up the `Dataset`. This uses a new `Dataset` that is a sum 
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x1__exponential_x1"
+dataset_path = "dataset/chapter_1/gaussian_x1__exponential_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
@@ -181,7 +181,7 @@ Lets fit a model composed of two `Gaussian`. and and an `Exponential`, which wil
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x2__exponential_x1"
+dataset_path = "dataset/chapter_1/gaussian_x2__exponential_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
@@ -249,7 +249,7 @@ We can now fit this model using a `Phase` as per usual.
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x3"
+dataset_path = "dataset/chapter_1/gaussian_x3"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 

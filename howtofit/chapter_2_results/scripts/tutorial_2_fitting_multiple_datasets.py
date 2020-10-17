@@ -59,7 +59,7 @@ for dataset_name in dataset_names:
 
     """The code below creates the `Dataset` and `mask` as per usual."""
 
-    dataset_path = f"dataset/howtofit/chapter_2/{dataset_name}"
+    dataset_path = f"dataset/chapter_2/{dataset_name}"
 
     data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
     noise_map = af.util.numpy_array_from_json(

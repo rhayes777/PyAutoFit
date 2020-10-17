@@ -32,7 +32,7 @@ import numpy as np
 """The code below creates the `Dataset` and `mask` as per usual."""
 
 # %%
-dataset_path = "dataset/howtofit/chapter_2/gaussian_x1"
+dataset_path = "dataset/chapter_2/gaussian_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 dataset = htf.Dataset(data=data, noise_map=noise_map)
