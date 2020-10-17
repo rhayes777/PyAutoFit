@@ -86,6 +86,8 @@ class:
 
         def __init__(self, data, noise_map):
 
+            super().__init__()
+
             self.data = data
             self.noise_map = noise_map
 
@@ -133,7 +135,7 @@ the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    dynesty = af.DynestyStatic()
+    dynesty = af.DynestyStatic(name="example_search")
 
     result = dynesty.fit(model=model, analysis=analysis)
 
@@ -166,7 +168,7 @@ We can fit this model, with all new priors, using a ``NonLinearSearch`` as we di
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee()
+    emcee = af.Emcee(name="another_example_search")
 
     # The model passed here now has updated priors!
 

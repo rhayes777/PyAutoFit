@@ -1,15 +1,15 @@
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset.dataset import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset.dataset import (
     Dataset,
     MaskedDataset,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.result import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.result import (
     Result,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.analysis import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.analysis import (
     Analysis,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.settings import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase.settings import (
     SettingsPhase,
 )
 
@@ -31,17 +31,14 @@ class Phase(af.AbstractPhase):
 
     Result = Result
 
-    @af.convert_paths
-    def __init__(self, paths, profiles, settings, search):
+    def __init__(self, *, profiles, settings, search):
         """
         A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a `NonLinearSearch`.
 
         Parameters
         ----------
-        paths : af.Paths
-            Handles the output directory structure.
         profiles : [profiles.Profile]
-            The model components (e.g. Gaussian, Exponenial) fitted by this phase.
+            The model components (e.g. Gaussian, Exponential) fitted by this phase.
         search: class
             The class of a non_linear search
         settings : SettingsPhase
@@ -56,9 +53,7 @@ class Phase(af.AbstractPhase):
         If this setting is off, the tag is an empty string and thus the directory structure is not changed.
         """
 
-        paths.tag = settings.tag  # The phase_tag must be manually added to the phase.
-
-        super().__init__(paths=paths, search=search)
+        super().__init__(search=search)
 
         self.settings = settings
         self.profiles = profiles
@@ -79,6 +74,9 @@ class Phase(af.AbstractPhase):
         result: AbstractPhase.Result
             A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
+
+        # This modifies the search path using the tag before the phase is run.
+        self.modify_search_paths()
 
         analysis = self.make_analysis(dataset=dataset, mask=mask)
 
@@ -126,3 +124,11 @@ class Phase(af.AbstractPhase):
             search=self.search,
             analysis=analysis,
         )
+
+    def modify_search_paths(self):
+        """
+        Modify the output paths of the phase before the non-linear search is run, so that the output path can be
+        customized using the tags of the phase.
+        """
+
+        self.search.paths.tag = self.settings.tag

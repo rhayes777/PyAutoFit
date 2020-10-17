@@ -43,43 +43,26 @@ a complete description of *non-linear searches* in chapter 2 of the HowToFit lec
 # %%
 #%matplotlib inline
 
-# %%
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
 
 # %%
 """
-
-The line `conf.instance` is now used to set up a second property of the configuration; the path to the **PyAutoFit** 
-output folder, which is where the results of the `NonLinearSearch` are written to on your hard-disk, alongside 
-visualization and other properties of the fit (e.g. `/path/to/autolens_workspace/output/howtolens`)
-
-(These will work autommatically if the WORKSPACE environment variable was set up correctly during installation. 
-Nevertheless, setting the paths explicitly within the code is good practise.
+Load the dataset from the `autofit_workspace/dataset` folder.
 """
 
 # %%
-conf.instance.push(
-f"config",
-    output_path=f"output/chapter_1",  # <- This sets up where the `NonLinearSearch`'s outputs go.
-)
-
-# %%
-"""
-To create the `Dataset`, we import the simulator module and use it to generate the `Dataset`'s data and noise-map. 
-"""
-
-# %%
-from howtofit.simulators.chapter_1 import gaussian_x1
-
-data = gaussian_x1.data
-noise_map = gaussian_x1.noise_map
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
 # %%
 """
@@ -105,38 +88,13 @@ plot_line(xvalues=xvalues, line=data, errors=noise_map, title="Data", ylabel="Da
 
 # %%
 """
-Lets remake the `Gaussian` class for this tutorial, which is the model we will fit using the `NonLinearSearch`.
+Lets import the `Gaussian` class for this tutorial, which is the model we will fit using the `NonLinearSearch`.
 """
 
 # %%
-class Gaussian:
-    def __init__(
-        self,
-        centre=0.0,  # <- **PyAutoFit** recognises these constructor arguments
-        intensity=0.1,  # <- are the Gaussian`s model parameters.
-        sigma=0.01,
-    ):
-        self.centre = centre
-        self.intensity = intensity
-        self.sigma = sigma
-
-    def profile_from_xvalues(self, xvalues):
-        """
-        Calculate the intensity of the light profile on a line of Cartesian x coordinates.
-
-        The input xvalues are translated to a coordinate system centred on the Gaussian, using its centre.
-
-        Parameters
-        ----------
-        xvalues : np.ndarray
-            The x coordinates in the original reference frame of the data.
-        """
-        transformed_xvalues = np.subtract(xvalues, self.centre)
-        return np.multiply(
-            np.divide(self.intensity, self.sigma * np.sqrt(2.0 * np.pi)),
-            np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
-        )
-
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_3_non_linear_search import (
+    gaussian as g,
+)
 
 # %%
 """
@@ -201,21 +159,21 @@ We manually set the priors on the model, in the next tutorial we'll cover how th
 """
 
 # %%
-model = af.PriorModel(Gaussian)
+model = af.PriorModel(g.Gaussian)
 model.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
 model.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
 model.sigma = af.UniformPrior(lower_limit=0.0, upper_limit=50.0)
 
 analysis = Analysis(data=data, noise_map=noise_map)
 
-emcee = af.Emcee()
+emcee = af.Emcee(path_prefix="howtofit/chapter_1/emcee")
 
 # %%
 """
 We begin the `NonLinearSearch` by calling its `fit` method, it  will take a minute or so to run (which is very fast 
 for a model-fit). Whilst you`re waiting, checkout the folder:
 
-`autofit_workspace/howtofit/chapter_1_introduction/output/emcee`
+`autofit_workspace/output/howtofit/chapter_1/emcee`
 
 Here, the results of the model-fit are output to your hard-disk (on-the-fly) and you can inspect them as the non-linear
 search runs. In particular, you`ll find:

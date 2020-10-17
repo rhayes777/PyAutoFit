@@ -1,6 +1,7 @@
-from howtofit.simulators.chapter_1 import profiles
+from autofit_workspace.howtofit.simulators.chapter_1 import profiles
 
 import numpy as np
+import autofit as af
 
 # %%
 """
@@ -48,3 +49,17 @@ noise-map of our data which is required when evaluating the chi-squared value of
 # %%
 data = model_line + noise
 noise_map = (1.0 / signal_to_noise_ratio) * np.ones(pixels)
+
+# %%
+"""
+Output the data and noise-map to the `autofit_workspace/dataset` folder so they can be loaded and used 
+in other example scripts.
+"""
+dataset_path = "dataset/howtofit/chapter_2/gaussian_x1"
+
+af.util.numpy_array_to_json(
+    array=data, file_path=f"{dataset_path}/data.json", overwrite=True
+)
+af.util.numpy_array_to_json(
+    array=noise_map, file_path=f"{dataset_path}/noise_map.json", overwrite=True
+)

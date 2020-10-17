@@ -19,29 +19,19 @@ generate it as the sum of all individual profiles in our model.
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
+
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_6_complex_models import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models import (
     src as htf,
 )
 
 import numpy as np
-
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-# %%
-"""
-Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
-"""
-
-# %%
-conf.instance.push(
-f"config",
-    output_path=f"output/chapter_1",
-)
 
 # %%
 """
@@ -128,23 +118,23 @@ print("sigma (Exponential) = ", instance.rich.rate)
 Now we can create a model composed of multiple components, lets fit it to a `Dataset`. To do this, we updated this 
 tutorial`s `phase` package, spefically its `Analysis` class such that it creates `model_data` as a super position of 
 all the model`s individual `Profile`'s. For example, in the model above, the `model_data` is the sum of the 
-_Gaussian_`s  individual profile and `Exponential`'s individual profile.
+`Gaussian``s  individual profile and `Exponential`'s individual profile.
 
 Checkout `phase.py` and `analysis.py` now, for a description of how this has been implemented.
 """
 
 # %%
 """
-Import the `simulators` module and set up the `Dataset`. This uses a new `Dataset` that is generated as a sum of a 
-_Gaussian_ and `Exponential` profile.
+Load the data and set up the `Dataset`. This uses a new `Dataset` that is a sum of a 
+`Gaussian` and `Exponential` profile.
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x1_exponential_x1
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1__exponential_x1"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
-dataset = htf.Dataset(
-    data=gaussian_x1_exponential_x1.data, noise_map=gaussian_x1_exponential_x1.noise_map
-)
+dataset = htf.Dataset(data=data, noise_map=noise_map)
 
 # %%
 """
@@ -163,11 +153,12 @@ dimensionality has increased from N=3 to N=6, given that we are now fitting two 
 
 # %%
 phase = htf.Phase(
-    name="phase_t6_gaussian_x1_exponential_x1",
+    search=af.Emcee(
+        path_prefix="howtofit/chapter_1", name="phase_t6__gaussian_x1__exponential_x1"
+    ),
     profiles=af.CollectionPriorModel(
         gaussian=htf.profiles.Gaussian, exponential=htf.profiles.Exponential
     ),
-    search=af.Emcee(),
 )
 
 print(
@@ -190,20 +181,21 @@ Lets fit a model composed of two `Gaussian`. and and an `Exponential`, which wil
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x2_exponential_x1
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x2__exponential_x1"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
-dataset = htf.Dataset(
-    data=gaussian_x2_exponential_x1.data, noise_map=gaussian_x2_exponential_x1.noise_map
-)
+dataset = htf.Dataset(data=data, noise_map=noise_map)
 
 phase = htf.Phase(
-    name="phase_t6_gaussian_x2_exponential_x1",
+    search=af.Emcee(
+        path_prefix="howtofit/chapter_1", name="phase_t6__gaussian_x2__exponential_x1"
+    ),
     profiles=af.CollectionPriorModel(
         gaussian_0=htf.profiles.Gaussian,
         gaussian_1=htf.profiles.Gaussian,
         exponential=htf.profiles.Exponential,
     ),
-    search=af.Emcee(),
 )
 
 print(
@@ -257,11 +249,16 @@ We can now fit this model using a `Phase` as per usual.
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x3
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x3"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
-dataset = htf.Dataset(data=gaussian_x3.data, noise_map=gaussian_x3.noise_map)
+dataset = htf.Dataset(data=data, noise_map=noise_map)
 
-phase = htf.Phase(name="phase_t6_gaussian_x3", profiles=model, search=af.Emcee())
+phase = htf.Phase(
+    search=af.Emcee(path_prefix="howtofit/chapter_1", name="phase_t6_gaussian_x3"),
+    profiles=model,
+)
 
 print(
     "Emcee has begun running - checkout the autofit_workspace/howtofit/chapter_1_introduction/output/phase_t5_gaussian_x3"

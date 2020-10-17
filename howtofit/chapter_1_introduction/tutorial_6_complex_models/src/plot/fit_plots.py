@@ -1,11 +1,11 @@
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.plot import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models.src.plot import (
     line_plots,
 )
 
 """This module is unchanged from the previous tutorial."""
 
 
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
     line_plots,
 )
 

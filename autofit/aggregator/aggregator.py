@@ -41,7 +41,7 @@ class AggregatorGroup:
         Parameters
         ----------
         predicates
-            Predicates that evaluate to ``True`` or `False` for any given phase.
+            Predicates that evaluate to `True` or `False` for any given phase.
 
         Returns
         -------
@@ -148,12 +148,12 @@ class AbstractAggregator:
         Parameters
         ----------
         predicates
-            Objects representing predicates that may evaluate to ``True`` or `False` for any
+            Objects representing predicates that may evaluate to `True` or `False` for any
             given phase output.
 
         Returns
         -------
-        An aggregator comprising all phases that evaluate to ``True`` for all predicates.
+        An aggregator comprising all phases that evaluate to `True` for all predicates.
         """
         phases = self.phases
         for predicate in predicates:
@@ -293,7 +293,7 @@ class Aggregator(AbstractAggregator):
         directory
             A directory in which the outputs of phases are kept. This is searched recursively.
         completed_only
-            If ``True`` only phases with a .completed file (indicating the phase was completed)
+            If `True` only phases with a .completed file (indicating the phase was completed)
             are included in the aggregator.
         """
 

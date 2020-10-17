@@ -236,7 +236,7 @@ class NonLinearSearch(ABC):
             self.timer.paths = self.paths
             self.timer.start()
 
-            self._fit(model=model, analysis=analysis)
+            self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
             open(self.paths.has_completed_path, "w+").close()
 
             samples = self.perform_update(

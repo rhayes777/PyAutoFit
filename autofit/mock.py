@@ -97,7 +97,7 @@ class MockSearch(af.NonLinearSearch):
 
         self.samples = samples or MockSamples()
 
-    def _fit(self, model, analysis):
+    def _fit(self, model, analysis, log_likelihood_cap=None):
         class Fitness:
             def __init__(self, instance_from_vector):
                 self.result = None

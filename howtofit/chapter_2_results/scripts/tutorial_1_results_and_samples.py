@@ -18,38 +18,29 @@ about how results in **PyAutoFit** work before covering more advanced material.
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
-from howtofit.chapter_2_results import src as htf
-
+from autofit_workspace.howtofit.chapter_2_results import src as htf
 import numpy as np
-import os
 
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
+# %%
+"""The code below creates the `Dataset` and `mask` as per usual."""
+
+# %%
+dataset_path = "dataset/howtofit/chapter_2/gaussian_x1"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset = htf.Dataset(data=data, noise_map=noise_map)
+mask = np.full(fill_value=False, shape=dataset.data.shape)
 
 # %%
 """
-Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
-"""
-
-# %%
-conf.instance.push(
-f"config",
-    output_path=f"output/chapter_2",
-)
-
-# %%
-"""
-Now, lets create a `Dataset` and fit it using a `Phase`, in an identical fashion to the previous chapter.
-"""
-
-# %%
-from howtofit.simulators.chapter_2 import gaussian_x1
-
-# %%
-"""
-When we fit the `Dataset``., we omit the data-trimming demonstrated in the previous tutorial.
+When we fit the `Dataset`, we omit the data-trimming demonstrated in the previous tutorial.
 """
 
 # %%
@@ -59,15 +50,6 @@ settings_masked_dataset = htf.SettingsMaskedDataset(
 
 settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
 
-# %%
-"""The code below creates the `Dataset` and `mask` as per usual."""
-
-# %%
-data = gaussian_x1.data
-noise_map = gaussian_x1.noise_map
-dataset = htf.Dataset(data=data, noise_map=noise_map)
-mask = np.full(fill_value=False, shape=dataset.data.shape)
-
 print(
     f"Emcee has begun running - checkout the "
     f"autofit_workspace/howtofit/chapter_2_results/output/phase_t1 folder for live "
@@ -76,10 +58,9 @@ print(
 )
 
 phase = htf.Phase(
-    name="phase_t1",
+    search=af.DynestyStatic(path_prefix="howtofit/chapter_2", name="phase_t1"),
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
     settings=settings,
-    search=af.DynestyStatic(),
 )
 
 """Note that we pass the info to the phase when we run it, so that the aggregator can make it accessible."""
@@ -155,12 +136,14 @@ This provides us with lists of all model parameters. However, this isn't that mu
 which parameters?
 
 The list of parameter names are available as a property of the `Model` included with the `Samples`, as are labels 
-which can be used for  labeling figures.
+which can be used for labeling figures.
 """
 
 # %%
-print(samples.model.parameter_names)
-print(samples.model.parameter_labels)
+model = samples.model
+print(model)
+print(model.parameter_names)
+print(model.parameter_labels)
 print("\n")
 
 # %%

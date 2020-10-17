@@ -1,9 +1,9 @@
 import autofit as af
 
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.fit import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.fit import (
     fit as f,
 )
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.phase import (
     visualizer,
 )
 

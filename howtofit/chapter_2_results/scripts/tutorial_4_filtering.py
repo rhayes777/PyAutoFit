@@ -13,26 +13,13 @@ the `Aggregator`'s `filter` tool, which filters the results and provides us with
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
-from howtofit.chapter_2_results import src as htf
-
-import numpy as np
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-# %%
-"""
-Setup the configs and output folder for our `NonLinearSearch`.
-"""
-
-# %%
-conf.instance.push(
-f"config",
-    output_path=f"output",
-)
 
 # %%
 """
@@ -47,9 +34,9 @@ are in the middle of a `NonLinearSearch` will be omitted and not loaded in the `
 """
 
 # %%
-output_path = f"output/chapter_2/aggregator"
-
-agg = af.Aggregator(directory=str(output_path), completed_only=True)
+agg = af.Aggregator(
+    directory="output/howtofit/chapter_2/aggregator", completed_only=True
+)
 
 # %%
 """

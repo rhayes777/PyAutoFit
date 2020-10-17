@@ -1,19 +1,21 @@
 import numpy as np
 
-# In tutorial 5, we perform modeling using multiple profiles, in particular the `Gaussian` profile from the previous
-# tutorials and an Exponential profile. In analysis.py, we will edit how model-data is generated from profiles such
-# that it is the sum of all profiles in our model.
+"""
+In tutorial 5, we perform modeling using multiple profiles, in particular the `Gaussian` profile from the previous
+tutorials and an Exponential profile. In analysis.py, we will edit how model-data is generated from profiles such
+that it is the sum of all profiles in our model.
 
-# In this module, we thus now have two classes following the PyAutoFit model component format. We have renamed the
-# module from `gaussian.py` to `profiles.py` to reflect this. We have created an abstract base class `Profile` from
-# which all profiles inherit.
+In this module, we thus now have two classes following the PyAutoFit model component format. We have renamed the
+module from `gaussian.py` to `profiles.py` to reflect this. We have created an abstract base class `Profile` from
+which all profiles inherit.
 
-# If you are not familiar with Python classes, in particular inheritance and the `super` method below, you may
-# be unsure what the classes are doing below. I have included comments describing what these command do.
+If you are not familiar with Python classes, in particular inheritance and the `super` method below, you may
+be unsure what the classes are doing below. I have included comments describing what these command do.
 
-# The Profile class is a base class from which all profiles we add (e.g Gaussian, Exponential, additional profiles
-# added down the line) will inherit. This is useful, as it signifinies which aspects of our model are different ways of
-# representing the same thing.
+The Profile class is a base class from which all profiles we add (e.g Gaussian, Exponential, additional profiles
+added down the line) will inherit. This is useful, as it signifinies which aspects of our model are different ways of
+representing the same thing.
+"""
 
 
 class Profile:
@@ -36,8 +38,12 @@ class Profile:
         self.intensity = intensity
 
 
-# The inclusioon of (Profile) in the `Gaussian` below instructs Python that the `Gaussian` class is going to inherit from
-# the Profile class.
+"""
+The inclusion of (Profile) in the `Gaussian` below instructs Python that the `Gaussian` class is going to inherit from
+the Profile class.
+"""
+
+
 class Gaussian(Profile):
     def __init__(
         self,

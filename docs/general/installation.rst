@@ -35,8 +35,8 @@ The simplest way to install **PyAutoFit** is via `pip`:
 
     pip install autofit
 
-Clone autofit_workspace`` & set ``WORKSPACE`` environment model (``--depth 1`` clones only the most recent
-branch on the autofit_workspace, reducing the download size):
+Clone ``autofit_workspace```` (``--depth 1`` clones only the most recent branch on the autofit_workspace, reducing 
+the download size):
 
 .. code-block:: bash
 
@@ -44,7 +44,7 @@ branch on the autofit_workspace, reducing the download size):
    git clone https://github.com/Jammy2211/autofit_workspace --depth 1
    cd autofit_workspace
 
-Finally, run the ``welcome.py`` script to get started!
+Finally, run the `welcome.py` script to get started!
 
 .. code-block:: bash
 
@@ -75,8 +75,8 @@ Install ``autofit``:
 
     pip install autofit
 
-Clone ``autofit`` ``WORKSPACE`` & set ``WORKSPACE`` environment model ('--depth 1' clones only the most recent
-branch on the autofit_workspace, reducing the download size):
+Clone the ``autofit_workspace`` ``WORKSPACE` (``--depth 1`` clones only the most recent branch on the autofit_workspace, 
+reducing the download size):
 
 .. code-block:: bash
 
@@ -84,24 +84,7 @@ branch on the autofit_workspace, reducing the download size):
    git clone https://github.com/Jammy2211/autofit_workspace --depth 1
    cd autofit_workspace
 
-We will import files from the ``autofit_workspace`` as if it were a Python module. To do this in ``conda``,
-we need to create a ``.pth`` file in our ``conda`` environments site-packages folder. In your browser or on the
-command line find your site packages folder:
-
-.. code-block:: bash
-
-   cd /home/usr/anaconda3/envs/autofit/lib/python3.7/site-packages/
-
-Now create a ``.pth`` file via a text editor and put the path to your autofit_workspace in the file and save
-
-NOTE: As shown below, the path in the .pth file points to the directory containing the ``autofit_workspace``
-folder but does not contain the ``autofit_workspace`` in ``PYTHONPATH`` itself!
-
-.. code-block:: bash
-
-   /path/on/your/computer/you/want/to/put/the
-
-Finally, run the ``welcome.py`` script to get started!
+Run the ``welcome.py`` script to get started!
 
 .. code-block:: bash
 
@@ -132,21 +115,6 @@ Include the **PyAutoFit** source repository in your PYTHONPATH (noting that you 
 
    export PYTHONPATH=$PYTHONPATH:/path/to/PyAutoFit
 
-**PyAutoFit** requires a valid config to run. Therefore, clone the
-`autofit_workspace <https://github.com/rhayes777/autofit_workspace>`_ which contains the config files:
-
-.. code-block:: bash
-
-   cd /path/on/your/computer/you/want/to/put/the/autofit_workspace
-   git clone https://github.com/Jammy2211/autofit_workspace --depth 1
-   cd autofit_workspace
-
-Next, run the `welcome.py` script to set up the configs and environment:
-
-.. code-block:: bash
-
-   python3 welcome.py
-
 Finally, check the **PyAutoFit** unit tests run and pass (you may need to install pytest via
 ``pip install pytest``):
 
@@ -155,26 +123,26 @@ Finally, check the **PyAutoFit** unit tests run and pass (you may need to instal
     cd /path/to/PyAutoFit
    python3 -m pytest
 
-Environment Variables
----------------------
+Current Working Directory
+-------------------------
 
-**PyAutoFit** uses an environment variable called ``WORKSPACE`` to know where the ``autofit_workspace`` folder is
-located. This is used to locate config files and output results. It should automatically be detected and set in
-the ``welcome.py`` script, but if something goes wrong you can set it manually using the command:
-
-.. code-block:: bash
-
-    export WORKSPACE=/path/on/your/computer/where/you/cloned/the/autofit_workspace
-
-The autofit_workspace imports modules within the ``WORKSPACE`` to use them, meaning the path to the ``WORKSPACE``
-must be included in the ``PYTHONPATH``. Your ``PYTHONPATH`` can be manual set using the command below.
-
-NOTE: As shown below, the ``PYTHONPATH`` points to the directory containing the ``autofit_workspace`` folder
-but does not contain the ``autofit_workspace`` in ``PYTHONPATH`` itself!
+**PyAutoFit** scripts assume that the ``autofit_workspace`` directory is the Python working directory. This means 
+that, when you run an example script, you should run it from the ``autofit_workspace`` as follows:
 
 .. code-block:: bash
 
-    export PYTHONPATH=/path/on/your/computer/you/want/to/put/the/.
+    cd path/to/autofit_workspace (if you are not already in the autofit_workspace).
+    python3 examples/model/beginner/mass_total__source_parametric.py
+
+The reasons for this are so that **PyAutoFit** can:
+ 
+ - Load configuration settings from config files in the ``autofit_workspace/config`` folder.
+ - Load example data from the ``autofit_workspace/dataset`` folder.
+ - Output the results of models fits to your hard-disk to the ``autofit/output`` folder. 
+ - Import modules from the ``autofit_workspace``, for example ``from autofit_workspace.transdimensional import pipelines``.
+
+If you have any errors relating to importing modules, loading data or outputting results it is likely because you
+are not running the script with the ``autofit_workspace`` as the working directory!
 
 Matplotlib Backend
 ------------------
