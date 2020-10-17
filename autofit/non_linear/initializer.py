@@ -9,7 +9,7 @@ class Initializer:
     def __init__(self, lower_limit, upper_limit):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
-        non-linear search to define where to begin sampling.
+        `NonLinearSearch` to define where to begin sampling.
 
         Although most non-linear searches have in-built functionality to do this, some do not cope well with parameter
         resamples that are raised as FitException's. Thus, PyAutoFit uses its own initializer to bypass these problems.
@@ -26,7 +26,7 @@ class Initializer:
 
         try:
 
-            initializer = config("initialize", "method", str)
+            initializer = config("initialize", "method")
 
         except configparser.NoSectionError:
 
@@ -38,8 +38,8 @@ class Initializer:
 
         elif initializer in "ball":
 
-            ball_lower_limit = config("initialize", "ball_lower_limit", float)
-            ball_upper_limit = config("initialize", "ball_upper_limit", float)
+            ball_lower_limit = config("initialize", "ball_lower_limit")
+            ball_upper_limit = config("initialize", "ball_upper_limit")
 
             return InitializerBall(
                 lower_limit=ball_lower_limit, upper_limit=ball_upper_limit
@@ -91,7 +91,7 @@ class InitializerPrior(Initializer):
     def __init__(self):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
-        non-linear search to define where to begin sampling.
+        `NonLinearSearch` to define where to begin sampling.
 
         Although most non-linear searches have in-built functionality to do this, some do not cope well with parameter
         resamples that are raised as FitException's. Thus, PyAutoFit uses its own initializer to bypass these problems.
@@ -107,13 +107,13 @@ class InitializerBall(Initializer):
     def __init__(self, lower_limit, upper_limit):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
-        non-linear search to define where to begin sampling.
+        `NonLinearSearch` to define where to begin sampling.
 
         Although most non-linear searches have in-built functionality to do this, some do not cope well with parameter
         resamples that are raised as FitException's. Thus, PyAutoFit uses its own initializer to bypass these problems.
 
         The InitializerBall class generates the samples in a small compact volume or 'ball' in parameter space, which is
-        the recommended initialization strategy for the MCMC non-linear search Emcee.
+        the recommended initialization strategy for the MCMC `NonLinearSearch` Emcee.
 
         Parameters
         ----------

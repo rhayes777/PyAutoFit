@@ -1,5 +1,5 @@
 
-from test_autofit.mock import MockDataset
+from autofit.mock import MockDataset
 
 
 # def test_load():

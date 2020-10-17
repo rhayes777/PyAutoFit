@@ -15,7 +15,6 @@ class MockSearch(NonLinearSearch):
 
     @convert_paths
     def __init__(self, paths=None, samples=None, fit_fast=True):
-
         super().__init__(paths=paths)
 
         self.fit_fast = fit_fast
@@ -78,7 +77,7 @@ class MockSearch(NonLinearSearch):
 
     @property
     def config_type(self):
-        return conf.instance.mock
+        return conf.instance["non_linear"]["mock"]
 
     @property
     def tag(self):

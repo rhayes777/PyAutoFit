@@ -2,7 +2,8 @@ import pytest
 
 import autofit as af
 from autofit import exc
-from test_autofit import mock
+from autofit import mock
+from autofit.mapper.prior.assertion import CompoundAssertion
 
 
 @pytest.fixture(name="prior_1")
@@ -119,29 +120,29 @@ def make_model(collection):
 class TestPromiseAssertion:
     def test_less_than(self, promise_model, collection, model):
         promise = promise_model.one < promise_model.two
-        assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
         assertion = promise.populate(collection)
-        assert isinstance(assertion, af.prior.GreaterThanLessThanAssertion)
+        assert isinstance(assertion, af.GreaterThanLessThanAssertion)
 
     def test_greater_than(self, promise_model, collection, model):
         promise = promise_model.one > promise_model.two
-        assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
     def test_greater_than_equal(self, promise_model, collection, model):
         promise = promise_model.one >= promise_model.two
-        assert isinstance(promise, af.prior.GreaterThanLessThanEqualAssertion)
+        assert isinstance(promise, af.GreaterThanLessThanEqualAssertion)
 
     def test_integer_promise_assertion(self, promise_model, collection, model):
         promise = promise_model.one > 1.0
-        assert isinstance(promise, af.prior.GreaterThanLessThanAssertion)
+        assert isinstance(promise, af.GreaterThanLessThanAssertion)
 
     def test_compound_assertion(self, promise_model, collection, model):
         promise = (1.0 < promise_model.one) < 1.0
-        assert isinstance(promise, af.prior.CompoundAssertion)
+        assert isinstance(promise, CompoundAssertion)
 
         assertion = promise.populate(collection)
-        assert isinstance(assertion, af.prior.CompoundAssertion)
+        assert isinstance(assertion, CompoundAssertion)
 
 
 class TestModel:

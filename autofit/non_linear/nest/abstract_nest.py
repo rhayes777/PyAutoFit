@@ -1,28 +1,28 @@
-import numpy as np
 import json
 
-from autoconf import conf
-from autofit.non_linear.initializer import InitializerPrior
-from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.abstract_search import IntervalCounter
-from autofit.non_linear.paths import Paths
-from autofit.non_linear import samples as samp
+import numpy as np
 
+from autoconf import conf
 from autofit import exc
+from autofit.non_linear import samples as samp
+from autofit.non_linear.abstract_search import IntervalCounter
+from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.initializer import InitializerPrior
+from autofit.non_linear.paths import Paths
 
 
 class AbstractNest(NonLinearSearch):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        iterations_per_update=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        stagger_resampling_likelihood=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            iterations_per_update=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            stagger_resampling_likelihood=None,
     ):
         """
-        Abstract class of a nested sampling non-linear search (e.g. MultiNest, Dynesty).
+        Abstract class of a nested sampling `NonLinearSearch` (e.g. MultiNest, Dynesty).
 
         **PyAutoFit** allows a nested sampler to automatically terminate when the acceptance ratio falls below an input
         threshold value. When this occurs, all samples are accepted using the current maximum log likelihood value,
@@ -38,12 +38,12 @@ class AbstractNest(NonLinearSearch):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         terminate_at_acceptance_ratio : bool
-            If *True*, the sampler will automatically terminate when the acceptance ratio falls behind an input
+            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value.
         acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is *True*.
+            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is `True`.
         """
 
         if paths is None:
@@ -57,19 +57,19 @@ class AbstractNest(NonLinearSearch):
         )
 
         self.terminate_at_acceptance_ratio = (
-            self._config("settings", "terminate_at_acceptance_ratio", bool)
+            self._config("settings", "terminate_at_acceptance_ratio")
             if terminate_at_acceptance_ratio is None
             else terminate_at_acceptance_ratio
         )
 
         self.acceptance_ratio_threshold = (
-            self._config("settings", "acceptance_ratio_threshold", float)
+            self._config("settings", "acceptance_ratio_threshold")
             if acceptance_ratio_threshold is None
             else acceptance_ratio_threshold
         )
 
         self.stagger_resampling_likelihood = (
-            self._config("settings", "stagger_resampling_likelihood", bool)
+            self._config("settings", "stagger_resampling_likelihood")
             if stagger_resampling_likelihood is None
             else stagger_resampling_likelihood
         )
@@ -116,7 +116,7 @@ class AbstractNest(NonLinearSearch):
                 return self.stagger_resampling_figure_of_merit()
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the non-linear search uses to sample parameter space. All Nested
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
             samplers use the log likelihood.
             """
             try:
@@ -131,7 +131,7 @@ class AbstractNest(NonLinearSearch):
             However, we found that this causes memory issues when running PyMultiNest. Therefore, we 'hack' a solution
             by not returning -np.inf (which leads the sample to be discarded) but instead a large negative float which
             is treated as a real sample (and does not lead too memory issues). The value returned is staggered to avoid
-            all initial samples returning the same log likelihood and the non-linear search terminating."""
+            all initial samples returning the same log likelihood and the `NonLinearSearch` terminating."""
 
             if not self.stagger_resampling_likelihood:
 
@@ -172,7 +172,7 @@ class AbstractNest(NonLinearSearch):
                 try:
 
                     if (
-                        samples.acceptance_ratio < self.acceptance_ratio_threshold
+                            samples.acceptance_ratio < self.acceptance_ratio_threshold
                     ) or self.terminate_has_begun:
 
                         self.terminate_has_begun = True
@@ -185,7 +185,7 @@ class AbstractNest(NonLinearSearch):
 
     @property
     def config_type(self):
-        return conf.instance.nest
+        return conf.instance["non_linear"]["nest"]
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         copy = super().copy_with_name_extension(

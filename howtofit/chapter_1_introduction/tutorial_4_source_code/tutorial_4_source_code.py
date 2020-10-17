@@ -27,19 +27,13 @@ templates we provide in the HowToFit series will adhere to it.
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-
-# %%
-conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_1",  # <- This sets up where the `NonLinearSearch`'s outputs go.
-)
 
 # %%
 """
@@ -64,7 +58,7 @@ more intuitive.
 """
 
 # %%
-from howtofit.chapter_1_introduction.tutorial_4_source_code import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code import (
     src as htf,
 )
 
@@ -74,13 +68,15 @@ To begin, in the `src` folder checkout the `data` package, which contains one mo
 had arrays which separately contained the `data` and `noise_map`, from here on we'll combine them into a `Dataset` class, 
 which can be easily extended if our model-fitting problem has additional data components.
 
-To create the `Dataset`, we import the simulator module and use it to generate the `Dataset`'s `data` and `noise-map`. 
+To create the `Dataset`, we load it from the `autofit_workspace/dataset` folder and then create a `Dataset` object. 
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x1
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
-dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
+dataset = htf.Dataset(data=data, noise_map=noise_map)
 
 # %%
 """
@@ -188,7 +184,7 @@ An over view of each is as follows:
 Performing a `NonLinearSearch` in **PyAutoFit** now only requires that we instantiate and run a `Phase` object. The 
 `Phase` performs the following tasks (which we performed manually in the previous tutorial):
 
- - Builds the model to be fitted and interfaces it with the `NonLinearSearch` algorithm.
+ - Builds the model to be fitted and interfaces it with the `NonLinearSearch`.
  
  - Receives the data to be fitted and prepares it so the model can fit it.
  
@@ -214,7 +210,8 @@ contrast to the previous tutorial includes the phase name in the path structure.
 
 # %%
 phase = htf.Phase(
-    phase_name="phase_t4", gaussian=af.PriorModel(htf.Gaussian), search=af.Emcee()
+    search=af.Emcee(path_prefix="howtofit/chapter_1", name="phase_t4"),
+    gaussian=af.PriorModel(htf.Gaussian),
 )
 
 print(

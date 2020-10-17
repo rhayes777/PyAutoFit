@@ -5,8 +5,8 @@ import pytest
 from autoconf import conf
 import autofit as af
 from autofit.non_linear import abstract_search
-from test_autofit import mock
-from test_autofit import mock_real
+from autofit import mock
+from autofit import mock_real
 
 directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -51,7 +51,7 @@ class NLO(abstract_search.NonLinearSearch):
 
 @pytest.fixture(name="phase")
 def make_phase():
-    return MyPhase(af.Paths(name=""), search=NLO)
+    return MyPhase(search=NLO)
 
 
 class MyPhase(af.AbstractPhase):
@@ -60,7 +60,7 @@ class MyPhase(af.AbstractPhase):
 
 @pytest.fixture(name="list_phase")
 def make_list_phase():
-    return MyPhase(af.Paths(name=""), search=NLO)
+    return MyPhase(search=NLO)
 
 
 class TestPhasePropertyList:

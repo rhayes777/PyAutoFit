@@ -1,25 +1,21 @@
 import logging
 import pickle
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from typing import Dict
+
 import dill
 
 from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
-from autofit.non_linear.paths import convert_paths
 from autofit.mapper.prior.promise import PromiseResult
 from autofit.non_linear import grid_search
-from autofit.non_linear.paths import Paths
 
 logger = logging.getLogger(__name__)
 
 
 class AbstractPhase:
-    @convert_paths
     def __init__(
             self,
-            paths: Paths,
             *,
             search,
             model=None,
@@ -33,7 +29,6 @@ class AbstractPhase:
         search: class
             The class of a non_linear search
         """
-
         self.search = search
         self.model = model or ModelMapper()
 
@@ -43,6 +38,22 @@ class AbstractPhase:
     @property
     def paths(self):
         return self.search.paths
+
+    @property
+    def folders(self):
+        return self.search.path_prefix
+
+    @property
+    def phase_property_collections(self):
+        """
+        Returns
+        -------
+        phase_property_collections: [PhaseProperty]
+            A list of phase property collections associated with this phase. This is
+            used in automated prior passing and should be overridden for any phase that
+            contains its own PhasePropertys.
+        """
+        return []
 
     def save_model_info(self):
         """Save the model.info file, which summarizes every parameter and prior."""
@@ -68,6 +79,12 @@ class AbstractPhase:
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.search.paths.name}>"
 
+    def run(self, dataset, mask, results=None):
+        raise NotImplementedError()
+
+    def modify_search_paths(self):
+        raise NotImplementedError()
+
     @property
     def result(self) -> PromiseResult:
         """
@@ -88,7 +105,7 @@ class AbstractPhase:
         raise NotImplementedError()
 
     @property
-    def phase_name(self):
+    def name(self):
         return self.paths.name
 
 
@@ -123,16 +140,14 @@ class Dataset(ABC):
 
 
 class Phase(AbstractPhase):
-    @convert_paths
     def __init__(
             self,
-            paths,
             *,
             analysis_class,
             search,
             model=None,
     ):
-        super().__init__(paths=paths, search=search, model=model)
+        super().__init__(search=search, model=model)
         self.analysis_class = analysis_class
 
     def make_result(self, result, analysis):
@@ -169,7 +184,7 @@ class Phase(AbstractPhase):
 
 def as_grid_search(phase_class, parallel=False):
     """
-    Create a grid search phase class from a regular phase class. Instead of the phase
+        Returns a grid search phase class from a regular phase class. Instead of the phase
     being optimised by a single non-linear optimiser, a new optimiser is created for
     each square in a grid.
 
@@ -190,17 +205,14 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
-        @convert_paths
         def __init__(
                 self,
-                paths,
                 *,
                 search,
                 number_of_steps=4,
                 **kwargs,
         ):
-
-            super().__init__(paths, search=search, **kwargs)
+            super().__init__(search=search, **kwargs)
 
             self.search = grid_search.GridSearch(
                 paths=self.paths,
@@ -231,7 +243,6 @@ def as_grid_search(phase_class, parallel=False):
             )
 
         def run_analysis(self, analysis, **kwargs):
-
             self.search.search.paths = self.paths
             self.search.paths = self.paths
 
@@ -266,5 +277,5 @@ class AbstractSettingsPhase:
         """
         if self.log_likelihood_cap is None:
             return ""
-        return f"__{conf.instance.settings_tag.get('phase', 'log_likelihood_cap')}" \
-                + "_{0:.1f}".format(self.log_likelihood_cap)
+        return f"__{conf.instance['notation']['settings_tags']['phase']['log_likelihood_cap']}" \
+               + "_{0:.1f}".format(self.log_likelihood_cap)

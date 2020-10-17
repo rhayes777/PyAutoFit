@@ -13,26 +13,13 @@ the `Aggregator`'s `filter` tool, which filters the results and provides us with
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
-from howtofit.chapter_2_results import src as htf
-
-import numpy as np
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-# %%
-"""
-Setup the configs and output folder for our `NonLinearSearch`.
-"""
-
-# %%
-conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output",
-)
 
 # %%
 """
@@ -47,9 +34,9 @@ are in the middle of a `NonLinearSearch` will be omitted and not loaded in the `
 """
 
 # %%
-output_path = f"{workspace_path}/output/chapter_2/aggregator"
-
-agg = af.Aggregator(directory=str(output_path), completed_only=True)
+agg = af.Aggregator(
+    directory="output/howtofit/chapter_2/aggregator", completed_only=True
+)
 
 # %%
 """
@@ -65,13 +52,13 @@ print("Total Samples Objects = ", len(list(agg.values("samples"))), "\n")
 # %%
 """
 To remove the fits of previous tutorials and just keep the `MCMCSamples` of the 3 `Dataset`s fitted in this tutorial 
-we can use the `Aggregator`'s `filter` tool. Below, we use the `phase_name` of the results, `phase_t2` which is 
+we can use the `Aggregator`'s `filter` tool. Below, we use the `name` of the results, `phase_t2` which is 
 unique to all 3  fits, to filter our results as desired.
 """
 
 # %%
-phase_name = "phase_t2_agg"
-agg_filter = agg.filter(agg.phase == phase_name)
+name = "phase_t2_agg"
+agg_filter = agg.filter(agg.phase == name)
 
 # %%
 """

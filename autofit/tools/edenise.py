@@ -173,4 +173,19 @@ def edenise(
                     )
                     f.truncate()
 
+    for root, _, files in walk(f"{target_directory}/{name}"):
+        try:
+            for file in ["mock.py", "mock_real.py"]:
+                with open(f"{root}/{file}", "r+") as f:
+                    string = f.read()
+                    f.seek(0)
+                    f.write(
+                        converter.convert(
+                            string
+                        )
+                    )
+                    f.truncate()
+        except FileNotFoundError:
+            continue
+
     open(f"{target_directory}/{name}/__init__.py", "w+").close()

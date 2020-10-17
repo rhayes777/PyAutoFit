@@ -42,13 +42,13 @@ class ResultsCollection:
             return self.__result_list[0]
         return None
 
-    def add(self, phase_name, result):
+    def add(self, name, result):
         """
         Add the result of a phase.
 
         Parameters
         ----------
-        phase_name: str
+        name: str
             The name of the phase
         result
             The result of that phase
@@ -57,7 +57,7 @@ class ResultsCollection:
             self.__result_list[self.__result_list.index(result)] = result
         except ValueError:
             self.__result_list.append(result)
-        self.__result_dict[phase_name] = result
+        self.__result_dict[name] = result
 
     def __getitem__(self, item):
         """
@@ -78,13 +78,13 @@ class ResultsCollection:
     def __len__(self):
         return len(self.__result_list)
 
-    def from_phase(self, phase_name):
+    def from_phase(self, name):
         """
         Returns the result of a previous phase by its name
 
         Parameters
         ----------
-        phase_name: str
+        name: str
             The name of a previous phase
 
         Returns
@@ -98,11 +98,11 @@ class ResultsCollection:
             If no phase with the expected result is found
         """
         try:
-            return self.__result_dict[phase_name]
+            return self.__result_dict[name]
         except KeyError:
             raise exc.PipelineException(
                 "No previous phase named {} found in results ({})".format(
-                    phase_name, ", ".join(self.__result_dict.keys())
+                    name, ", ".join(self.__result_dict.keys())
                 )
             )
 
@@ -111,29 +111,34 @@ class ResultsCollection:
 
 
 class Pipeline:
-    def __init__(self, pipeline_name, *phases):
+    def __init__(self, pipeline_name, path_prefix, *phases, write_promises=True):
         """
         A pipeline of phases to be run sequentially. Results are passed between phases. Phases must have unique names.
 
         Parameters
         ----------
         pipeline_name: str
-            The phase_name of this pipeline
+            The name of this pipeline
         """
         self.pipeline_name = pipeline_name
+        self.path_prefix = path_prefix
         self.phases = phases
         self.pipeline_tag = None
 
         for phase in phases:
+
+            phase.search.paths.path_prefix = path_prefix
+
             if phase.pipeline_name is None:
                 phase.pipeline_name = pipeline_name
             if phase.pipeline_tag is None:
                 phase.pipeline_tag = self.pipeline_tag
 
-            with open(phase.paths.file_model_promises, "w+") as f:
-                f.write(phase.model.info)
+            if write_promises:
+                with open(phase.paths.file_model_promises, "w+") as f:
+                    f.write(phase.model.info)
 
-        phase_names = [phase.phase_name for phase in phases]
+        phase_names = [phase.name for phase in phases]
 
         if len(set(phase_names)) < len(phase_names):
             raise exc.PipelineException(
@@ -164,7 +169,9 @@ class Pipeline:
                 self.pipeline_name,
                 other.pipeline_name
             ),
-            *(self.phases + other.phases)
+            self.path_prefix,
+            *(self.phases + other.phases),
+            write_promises=False,
         )
 
     def run(self, dataset):
@@ -191,10 +198,10 @@ class Pipeline:
         for i, phase in enumerate(self.phases):
             logger.info(
                 "Running Phase {} (Number {})".format(
-                    phase.phase_name,
+                    phase.name,
                     i
                 )
             )
-            name = phase.phase_name
+            name = phase.name
             results.add(name, func(phase, results))
         return results

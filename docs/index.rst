@@ -48,7 +48,7 @@ a simple example of how a *model* representing a 1D Gaussian is written:
                     np.exp(-0.5 * transformed_xvalues / self.sigma)
 
 A *model* fit then only requires that a **PyAutoFit** ``Analysis`` class is writen, which combines the data, *model* and
-likelihood function and defines how the *model-fit* is performed using a non-linear search 
+likelihood function and defines how the *model-fit* is performed using a `NonLinearSearch`
 (e.g. `dynesty <https://github.com/joshspeagle/dynesty>`_, `emcee <https://github.com/dfm/emcee>`_
 or `PySwarms <https://pyswarms.readthedocs.io/en/latest/>`_). Lets take a look at an example ``Analysis`` class:
 
@@ -99,7 +99,7 @@ follows:
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee(nwalkers=50, nsteps=2000)
+    emcee = af.Emcee(name="example_search", nwalkers=50, nsteps=2000)
 
     result = emcee.fit(model=model, analysis=analysis)
 

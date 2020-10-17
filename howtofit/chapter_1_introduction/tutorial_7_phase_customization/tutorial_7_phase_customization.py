@@ -21,28 +21,17 @@ they change the behaviour of **PyAutoFit**.
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
 import numpy as np
 
-from howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
     src as htf,
-)
-
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-# %%
-"""
-Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
-"""
-
-# %%
-conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_1",
 )
 
 # %%
@@ -77,21 +66,22 @@ settings_masked_dataset = htf.SettingsMaskedDataset(
 settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
 
 phase = htf.Phase(
-    phase_name="phase_t7",
+    search=af.Emcee(path_prefix="howtofit/chapter_1", name="phase_t7"),
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
     settings=settings,
-    search=af.Emcee(),
 )
 
 # %%
 """
-Import the `simulators` module and set up the `Dataset` and `mask`.
+Set up the`Dataset` and `mask`.
 """
 
 # %%
-from howtofit.simulators.chapter_1 import gaussian_x1
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
-dataset = htf.Dataset(data=gaussian_x1.data, noise_map=gaussian_x1.noise_map)
+dataset = htf.Dataset(data=data, noise_map=noise_map)
 mask = np.full(fill_value=False, shape=dataset.data.shape)
 
 print(
@@ -126,16 +116,15 @@ settings = htf.SettingsPhase(settings_masked_dataset=settings_masked_dataset)
 
 # %%
 """
-We now create a new `Phase` with these settings and run it (note that we haven`t changed the `phase_name` from 
+We now create a new `Phase` with these settings and run it (note that we haven`t changed the `name` from 
 `phase_t7`, which you might think would cause conflicts in the path the results are output to).
 """
 
 # %%
 phase = htf.Phase(
-    phase_name="phase_t7",
+    search=af.Emcee(path_prefix="howtofit/chapter_1", name="phase_t7"),
     profiles=af.CollectionPriorModel(gaussian=htf.profiles.Gaussian),
     settings=settings,
-    search=af.Emcee(),
 )
 
 print(
@@ -160,7 +149,7 @@ By customizing the `PhaseSetting``., **PyAutoFit** has changed the output path u
  1) Tags describes the analysis, making it explicit what was done to the `Dataset` for the fit.
 
  2) Tags create a unique output path, allowing you to compare results of `Phase`'s that use different `SettingsPhase`. 
-    Equally if you run multiple phases with different `PhaseSetting`'s this ensures the `NonLinearSearch` won`t
+    Equally if you run multiple phases with different `PhaseSetting`'s this ensures the `NonLinearSearch` won't
     use results generated via a different analysis method.
 
 You should now check out the `settings.py` and `dataset.py` modules, to see how we implemented this.

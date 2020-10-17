@@ -1,9 +1,9 @@
-from howtofit.chapter_2_results.src.plot import line_plots
+from autofit_workspace.howtofit.chapter_2_results.src.plot import line_plots
 
 """The `fit_plots.py` module is unchanged from the previous tutorial."""
 
 
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
     line_plots,
 )
 

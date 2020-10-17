@@ -1,11 +1,11 @@
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.dataset.dataset import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.dataset.dataset import (
     Dataset,
 )
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.result import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.result import (
     Result,
 )
-from howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.analysis import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.phase.analysis import (
     Analysis,
 )
 
@@ -32,10 +32,9 @@ class Phase(af.AbstractPhase):
 
     Result = Result  # Set the result to the Result class in `result.py`
 
-    @af.convert_paths  # <- This handles setting up output paths.
     def __init__(
         self,
-        paths,
+        *,  # <- Requires inputs to be given as keyword arguments.
         gaussian,  # <- The user inputs a model -> gaussian.py -> `Gaussian` class here.
         search,  # <- This specifies the default `NonLinearSearch` used by the phase.
     ):
@@ -44,14 +43,12 @@ class Phase(af.AbstractPhase):
 
         Parameters
         ----------
-        paths : af.Paths
-            Handles the output directory structure.
         gaussian : model.gaussians.Gaussian
             The model component `Gaussian` class fitted by this phase.
         search: class
             The class of a non_linear search
         """
-        super().__init__(paths=paths, search=search)
+        super().__init__(search=search)
         self.gaussian = gaussian
 
     def run(self, dataset: Dataset):
@@ -89,7 +86,7 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset):
         """
-        Create an Analysis object, which uses the `Dataset` with functions to perform a fit.
+        Returns an Analysis object, which uses the `Dataset` with functions to perform a fit.
 
         Parameters
         ----------

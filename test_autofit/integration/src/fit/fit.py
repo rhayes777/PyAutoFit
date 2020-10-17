@@ -113,7 +113,7 @@ def residual_map_from_data_model_data_and_mask(data, mask, model_data):
     data : np.ndarray
         The observed data that is fitted.
     mask : np.ndarray
-        The mask applied to the dataset, where ``False`` entries are included in the calculation.
+        The mask applied to the dataset, where `False` entries are included in the calculation.
     model_data : np.ndarray
         The model data used to fit the observed data.
     """
@@ -137,7 +137,7 @@ def normalized_residual_map_from_residual_map_noise_map_and_mask(
     noise_map : np.ndarray
         The noise-map of the observed dataset.
     mask : np.ndarray
-        The mask applied to the residual-map, where ``False`` entries are included in the calculation.
+        The mask applied to the residual-map, where `False` entries are included in the calculation.
     """
     return np.divide(
         residual_map,
@@ -148,7 +148,8 @@ def normalized_residual_map_from_residual_map_noise_map_and_mask(
 
 
 def chi_squared_map_from_residual_map_noise_map_and_mask(residual_map, noise_map, mask):
-    """Computes the chi-squared-map between a masked residual-map and noise-map, where:
+    """
+    Returns the chi-squared-map between a masked residual-map and noise-map, where:
 
     Chi_Squared = ((Residuals) / (Noise)) ** 2.0 = ((Data - Model)**2.0)/(Variances)
 
@@ -159,7 +160,7 @@ def chi_squared_map_from_residual_map_noise_map_and_mask(residual_map, noise_map
     noise_map : np.ndarray
         The noise-map of the observed dataset.
     mask : np.ndarray
-        The mask applied to the residual-map, where ``False`` entries are included in the calculation.
+        The mask applied to the residual-map, where `False` entries are included in the calculation.
     """
     return np.square(
         np.divide(
@@ -181,7 +182,7 @@ def chi_squared_from_chi_squared_map_and_mask(chi_squared_map, mask):
     chi_squared_map : np.ndarray
         The chi-squared-map of values of the model-simulator fit to the observed dataset.
     mask : np.ndarray
-        The mask applied to the chi-squared-map, where ``False`` entries are included in the calculation.
+        The mask applied to the chi-squared-map, where `False` entries are included in the calculation.
     """
     return np.sum(chi_squared_map[np.asarray(mask) == 0])
 
@@ -197,7 +198,7 @@ def noise_normalization_from_noise_map_and_mask(noise_map, mask):
     noise_map : np.ndarray
         The masked noise-map of the observed dataset.
     mask : np.ndarray
-        The mask applied to the noise-map, where ``False`` entries are included in the calculation.
+        The mask applied to the noise-map, where `False` entries are included in the calculation.
     """
     return np.sum(np.log(2 * np.pi * noise_map[np.asarray(mask) == 0] ** 2.0))
 

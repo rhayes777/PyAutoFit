@@ -7,7 +7,7 @@ test_type = "searches"
 data_name = "gaussian_x1"
 
 phase = ph.Phase(
-    phase_name="phase",
+    name="phase",
     profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
     search=af.PySwarmsGlobal,
 )

@@ -16,7 +16,7 @@ def make_pipeline_0():
     pipeline_name = "pipeline_0"
 
     phase = ph.Phase(
-        phase_name="phase",
+        name="phase",
         profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
         search=af.DynestyStatic(),
     )
@@ -35,7 +35,7 @@ def make_pipeline_1():
             ]
 
     phase = GridPhase(
-        phase_name="phase_grid",
+        name="phase_grid",
         profiles=af.CollectionPriorModel(gaussian=af.last.model.profiles.gaussian),
             search=af.DynestyStatic(
                 n_live_points=40, evidence_tolerance=5.0
@@ -47,8 +47,8 @@ def make_pipeline_1():
 
 integration_path = "{}/../..".format(os.path.dirname(os.path.realpath(__file__)))
 
-conf.instance = conf.Config(
-    config_path=f"{integration_path}/config",
+conf.instance.push(
+f"{integration_path}/config",
     output_path=f"{integration_path}/output/{test_type}"
 )
 

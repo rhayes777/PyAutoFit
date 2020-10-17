@@ -13,26 +13,12 @@ API for using `Result`'s follow closely tutorial 1 of this chapter.
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
-from howtofit.chapter_2_results import src as htf
-
-import numpy as np
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-# %%
-"""
-Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
-"""
-
-# %%
-conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_2",
-)
 
 # %%
 """
@@ -41,9 +27,7 @@ of the results we want it to load.
 """
 
 # %%
-output_path = f"{workspace_path}/output/chapter_2/aggregator"
-
-agg = af.Aggregator(directory=str(output_path))
+agg = af.Aggregator(directory="output/howtofit/chapter_2/aggregator")
 
 # %%
 """
@@ -54,7 +38,7 @@ dictionaries, or whatever.
 Why? Because lists and dictionaries store every entry in memory simultaneously. If you fit many `Dataset`s, you`ll 
 have lots of results and therefore use a lot of memory. This will crash your laptop! On the other hand, a generator 
 only stores the object in memory when it runs the function; it is free to overwrite it afterwards. Thus, your laptop 
-won`t crash!
+won't crash!
 
 There are two things to bare in mind with generators:
 

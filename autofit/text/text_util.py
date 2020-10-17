@@ -7,11 +7,10 @@ from autofit.text import formatter as frm, samples_text
 def results_to_file(samples, filename, during_analysis):
     """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
-
     Parameters
     ----------
     during_analysis : bool
-        Whether the model.results are being written during the analysis or after the non-linear search has finished.
+        Whether the model.results are being written during the analysis or after the `NonLinearSearch` has finished.
     """
 
     results = []
@@ -91,7 +90,5 @@ def format_str() -> str:
     """The format string for the model.results file, describing to how many decimal points every parameter
     estimate is output in the model.results file.
     """
-    decimal_places = conf.instance.general.get(
-        "output", "model_results_decimal_places", int
-    )
+    decimal_places = conf.instance["general"]["output"]["model_results_decimal_places"]
     return f"{{:.{decimal_places}f}}"

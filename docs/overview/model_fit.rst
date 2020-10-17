@@ -23,8 +23,8 @@ we need to define our 1D Gaussian profile as a **PyAutoFit** *model-component*. 
 of the model we fit to the ``data`` and it is has associated with it a set of *parameters* that can be varied for
 during *model-fitting*.
 
-*Model components* are defined using Python classes using the format below, where the class name is the *model
-component* name and the constructor arguments are its *parameters*.
+*Model components* are defined using Python classes using the format below, where the class name is the *model component*
+name and the constructor arguments are its *parameters*.
 
 .. code-block:: bash
 
@@ -135,16 +135,16 @@ Next, we *compose* our model, set up our ``Analysis`` and fit the model to the `
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee()
+    emcee = af.Emcee(name="example_search")
 
     result = emcee.fit(model=model, analysis=analysis)
 
-Above, we use a ``PriorModel`` object to compose the model. This tells **PyAutoFit** that the ``Gaussian`` class is to be
-used as a *model component* where its *parameters* are to be fitted for by the ``NonLinearSearch``. The model is
+Above, we use a ``PriorModel`` object to compose the model. This tells **PyAutoFit** that the ``Gaussian`` class is to
+be used as a *model component* where its *parameters* are to be fitted for by the ``NonLinearSearch``. The model is
 defined with 3 free parameters, thus the dimensionality of non-linear parameter space is 3.
 
 We perform the fit using the ``NonLinearSearch`` algorithm `emcee <https://github.com/dfm/emcee>`_ (we cover
-*``NonLinearSearch``es in more detail in a later API overview).
+*``NonLinearSearch``'s in more detail in a later API overview).
 
 By running the code above **PyAutoFit** performs the model-fit, outputting all results into structured paths on you
 hard-disk. It also returns a ``Result`` object in Python, which includes lists containing the ``NonLinearSearch``'s

@@ -38,7 +38,7 @@ class Phase(af.AbstractPhase):
         paths : af.Paths
             Handles the output directory structure.
         profiles : [profiles.Profile]
-            The model components (e.g. Gaussian, Exponenial) fitted by this phase.
+            The model components (e.g. Gaussian, Exponential) fitted by this phase.
         search: class
             The class of a non_linear search
         data_trim_left : int or None
@@ -73,7 +73,7 @@ class Phase(af.AbstractPhase):
         Returns
         -------
         result: AbstractPhase.Result
-            A result object comprising information on the non-linear search and the maximum likelihood model.
+            A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
 
         mask = np.full(fill_value=False, shape=dataset.data.shape)
@@ -103,7 +103,7 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the dataset and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the dataset and contains the functions which perform the fit.
 
         Parameters
         ----------
@@ -113,7 +113,7 @@ class Phase(af.AbstractPhase):
         Returns
         -------
         analysis : Analysis
-            An analysis object that the non-linear search calls to determine the fit log_likelihood for a given model
+            An analysis object that the `NonLinearSearch` calls to determine the fit log_likelihood for a given model
             instance.
         """
 

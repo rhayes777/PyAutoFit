@@ -3,11 +3,11 @@ from typing import Callable, cast, Set, List, Dict
 
 import numpy as np
 
-from autofit import Prior
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
+from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 
@@ -84,7 +84,7 @@ class AbstractModelFactor(ABC):
 
     def mean_field_approximation(self) -> MeanFieldApproximation:
         """
-        Create a MeanFieldApproximation of the factor graph
+        Returns a MeanFieldApproximation of the factor graph
         """
         return MeanFieldApproximation.from_kws(
             self.graph,
@@ -154,7 +154,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-            Creates an instance of the prior model and evaluates it, forming
+        Returnss an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters

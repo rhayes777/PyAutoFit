@@ -14,8 +14,7 @@ on our hard-disk. We can use the ``Aggregator`` to load the results of all 100 `
 
 .. code-block:: bash
 
-    output_path = "/path/to/gaussian_x100_fits"
-    agg = af.Aggregator(directory=str(output_path))
+    agg = af.Aggregator(directory="/path/to/gaussian_x100_fits")
 
 We can now use the ``Aggregator`` to load the ``Samples`` object of all 100 model-fits. This object
 (and all objects returned by the ``Aggregator``) are returned as a generator, as opposed to a list,
@@ -63,12 +62,12 @@ results of the *model-fit* to the 10th ``Gaussian`` in our dataset:
     )
 
 If users adopt the **PyAutoFit** ``phase`` API, they can use the in-built phase naming structure to ``filter``
-results based on ``phase_name``:
+results based on ``name``:
 
 .. code-block:: bash
 
-    phase_name = "phase__fit_1d_gaussian"
-    agg_filter = agg.filter(agg.phase == phase_name)
+    name = "phase__fit_1d_gaussian"
+    agg_filter = agg.filter(agg.phase == name)
 
 The ``phase`` API also allows the the user to customize the ``Aggregator`` to load model-specific
 results including the dataset, masks and auxiliary information about the data:
@@ -96,8 +95,7 @@ the results of completed fits:
 
 .. code-block:: bash
 
-    output_path = "/path/to/gaussian_x100_fits"
-    agg = af.Aggregator(directory=str(output_path), completed_only=True)
+    agg = af.Aggregator(directory="/path/to/gaussian_x100_fits", completed_only=True)
 
 In the ``NonLinearSearch`` API example, we discussed how *model-fit* results can be stored as ``.zip`` files to
 reduce the number of files used, which may be important for HPC users who face strict file limits. The downside
@@ -109,8 +107,7 @@ run the command we showed above:
 
 .. code-block:: bash
 
-    output_path = "/path/to/gaussian_x100_fits"
-    agg = af.Aggregator(directory=str(output_path))
+    agg = af.Aggregator(directory="/path/to/gaussian_x100_fits")
 
 If you'd like to see the ``Aggregator`` in action, checkout the
 `aggregator examples <https://github.com/Jammy2211/autofit_workspace/tree/master/examples/aggregator>`_ on the

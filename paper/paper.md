@@ -56,7 +56,7 @@ results, allowing it to provide more complete management of the model-fitting ta
 suited to longer term software projects. Model components are written as Python classes, allowing `PyAutoFit` to 
 define the model and associated parameters in an expressive way that is tied to the modeling software's API. A 
 model fit then only requires that a `PyAutoFit` `Analysis` class is writen, which combines the data, model and 
-likelihood function and defines how the model-fit is performed using a non-linear search 
+likelihood function and defines how the model-fit is performed using a `NonLinearSearch` 
 (e.g. `dynesty` [@dynesty], `emcee` [@emcee] or `PySwarms` [@pyswarms]). 
 
 The `Analysis` class provides a model specific interface between `PyAutoFit` and the modeling software, allowing it 
@@ -100,7 +100,7 @@ Breaking down a model-fit in this way
 uses `PyAutoFit`'s [transdimensional model-fitting pipelines](https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html), 
 which granularize the non-linear fitting procedure into a series of linked non-linear searches. Initial model-fits 
 are followed by fits that gradually increase the model complexity, using the information gained throughout the 
-pipeline to guide each non-linear search and thus enable accurate fitting of models of arbitrary complexity.
+pipeline to guide each `NonLinearSearch` and thus enable accurate fitting of models of arbitrary complexity.
 
 # History
 

@@ -1,25 +1,15 @@
 Configs
 =======
 
-The `autofit_workspace` includes configuration files that customize the behaviour of the ``NonLinearSearch``'s,
+The ``autofit_workspace`` includes configuration files that customize the behaviour of the ``NonLinearSearch``'s,
 visualization and other aspects of **PyAutoFit**. Here, we describe how to configure **PyAutoFit** to use the configs
 and describe every configuration file complete with input parameters.
 
 Setup
 -----
 
-By default, **PyAutoFit** looks for the config files at the path set by the environmental ``WORKSPACE`` variable, which
-you should have set up during the **PyAutoFit** installation. The variable was set by running the following command
-in your command line:
-
-.. code-block:: bash
-
-    export WORKSPACE=/path/to/autofit_workspace/
-
-If you find that **PyAutoFit** originally worked on your laptop, but more recently is raising config related errors,
-this is likely because your ``WORKSPACE`` variable has been reset. You can fix this by running the above command again,
-however to ensure this does not occur again I would recommend you put the command in your .bashrc file or the
-activate script of your Python virtual enviroment.
+By default, **PyAutoFit** looks for the config files in a ``config`` folder in the current working directory, which is
+why we run autofit scripts from the ``autofit_workspace`` directory.
 
 The configuration path can also be set manually in a script using **PyAutoConf** and the following command (the path
 to the ``output`` folder where the results of a ``NonLinearSearch`` are stored is also set below):
@@ -28,15 +18,9 @@ to the ``output`` folder where the results of a ``NonLinearSearch`` are stored i
 
     from autoconf import conf
 
-    workspace_path = "/path/to/user/autofit_workspace"
-
-    conf.instance = conf.Config(
-        config_path=f"{workspace_path}/config", output_path=f"{workspace_path}/output"
+    conf.instance.push(
+        config_path="path/to/config", output_path=f"path/to/output"
     )
-
-This manual setting of the config files is used in every example script in the autofit_workspace`` *example* folder,
-alongsie the **HowToFit** lectures. If the ``WORKSPACE`` environment variable does not seem to set the config path
-correct we recommend you try manually setting the config files as shown above.
 
 general.ini
 -----------
@@ -52,7 +36,7 @@ This config file is found at ``autofit_workspace/config/general.ini`` and contai
         The number of decimal places the estimated values and errors of all parameters in the ``model.results`` file are
         output to.
     remove_files -> bool
-        If ``True``, all output files of a ``NonLinearSearch`` (e.g. samples, samples_backup, model.results, images, etc.)
+        If `True`, all output files of a ``NonLinearSearch`` (e.g. samples, samples_backup, model.results, images, etc.)
         are deleted once the model-fit has completed.
 
         A .zip file of all output is always created before files are removed, thus results are not lost with this
@@ -64,10 +48,10 @@ This config file is found at ``autofit_workspace/config/general.ini`` and contai
         user and the large number of files output by **PyAutoFit** can exceed this limit. By removing files the
         number of files is restricted only to the .zip files.
     skip_completed -> bool
-        If ``True``, and if the results of a ``NonLinearSearch`` were completed in a previous run, then all processing steps
+        If `True`, and if the results of a ``NonLinearSearch`` were completed in a previous run, then all processing steps
         performed at the end of the ``NonLinearSearch`` (e.g. output of sample results, visualization, etc.) are skipped.
 
-        If ``False``, they are repeated, which can be used for updating visualization or the ``NonLinearSearch`` pickles
+        If `False`, they are repeated, which can be used for updating visualization or the ``NonLinearSearch`` pickles
         to a new version of PyAutoFit.
     grid_results_interval -> int
         For a ``GridSearch`` this interval sets after how many samples on the grid output is
@@ -109,7 +93,7 @@ The following config sections and variables are generic across all ``NonLinearSe
 
 [printing]
     silence -> bool
-        If ``True``, the default print output of the ``NonLinearSearch`` is silenced and not printed by the Python
+        If `True`, the default print output of the ``NonLinearSearch`` is silenced and not printed by the Python
         interpreter.
 
 [prior_passer]
@@ -157,13 +141,13 @@ visualization in **PyAutoFit**. The ``general.ini`` config contains the followin
 
         Agg (outputs to .fits / .png but doesn't'display figures during a run on your computer screen)
 
-json_priors
------------
+priors
+------
 
-These config files are found at ``autofit_workspace/config/json_priors`` and they contain the default priors and related
+These config files are found at ``autofit_workspace/config/priors`` and they contain the default priors and related
 variables for every model-component in a project, using ``.json`` format files (as opposed to ``.ini`` for most config files).
 
-The autofit_workspace`` contains example ``json_prior`` files for the 1D ``data`` fitting problem. An example entry of the
+The autofit_workspace`` contains example ``prior`` files for the 1D ``data`` fitting problem. An example entry of the
 json configs for the ``sigma`` parameter of the ``Gaussian`` class is as follows:
 
 .. code-block:: bash

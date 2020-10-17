@@ -1,5 +1,5 @@
 import autofit as af
-from test_autofit import mock
+from autofit import mock
 
 
 class TestMixin:
@@ -16,7 +16,6 @@ class TestMixin:
                 return self.run_analysis(analysis)
 
         my_phase = MyPhase(
-            af.Paths(name=""),
             number_of_steps=2,
             search=mock.MockSearch(
                 samples=mock.MockSamples(
@@ -37,7 +36,6 @@ class TestMixin:
 
     def test_parallel_flag(self):
         my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
-            af.Paths(name="phase name"),
             search=mock.MockSearch()
         )
         assert my_phase.search.parallel

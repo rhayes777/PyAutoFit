@@ -12,25 +12,15 @@ inspect, interpret and plot the results of the model-fit, including refitting th
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
-from howtofit.chapter_2_results import src as htf
+from autofit_workspace.howtofit.chapter_2_results import src as htf
 
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
-
-# %%
-"""
-Setup the configs as we did in the previous tutorial, as well as the output folder for our `NonLinearSearch`.
-"""
-
-# %%
-conf.instance = conf.Config(
-    config_path=f"{workspace_path}/config",
-    output_path=f"{workspace_path}/output/chapter_2",
-)
 
 # %%
 """
@@ -39,8 +29,7 @@ our path straight to the `Aggregator` results ensuring we don't need to filter o
 """
 
 # %%
-output_path = f"{workspace_path}/output/chapter_2/aggregator"
-agg = af.Aggregator(directory=str(output_path))
+agg = af.Aggregator(directory="output/howtofit/chapter_2/aggregator")
 
 # %%
 """
@@ -197,7 +186,7 @@ fits = [
 
 # %%
 """
-We can now plot different components of the `Fit` (again benefiting from how we set up the `fit_plots.py` module)!
+We can now plot different components of the `Fit` (again benefiting from autofit_workspace.how we set up the `fit_plots.py` module)!
 """
 
 # %%

@@ -1,10 +1,11 @@
 import os
-import pytest
 import shutil
 
-from autoconf import conf
+import pytest
+
 import autofit as af
-from test_autofit import mock
+from autoconf import conf
+from autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -12,15 +13,14 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/emcee/config"),
+    conf.instance.push(
+        os.path.join(directory, "files/emcee/config"),
         output_path=os.path.join(directory, "files/emcee/output"),
     )
 
 
 class TestEmceeConfig:
     def test__loads_from_config_file_correct(self):
-
         emcee = af.Emcee(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nwalkers=51,
@@ -62,13 +62,11 @@ class TestEmceeConfig:
         assert emcee.number_of_cores == 1
 
     def test__tag(self):
-
         emcee = af.Emcee(nwalkers=11)
 
         assert emcee.tag == "emcee[nwalkers_11]"
 
     def test__samples_from_model(self):
-
         emcee = af.Emcee(paths=af.Paths())
         shutil.copy(
             f"{directory}/files/emcee.hdf",
@@ -100,7 +98,6 @@ class TestEmceeConfig:
 
 class TestEmceeOutput:
     def test__median_pdf_parameters(self):
-
         emcee = af.Emcee(paths=af.Paths())
         shutil.copy(
             f"{directory}/files/emcee.hdf",
@@ -117,7 +114,6 @@ class TestEmceeOutput:
         )
 
     def test__vector_at_sigma__uses_output_files(self):
-
         emcee = af.Emcee(paths=af.Paths())
         shutil.copy(
             f"{directory}/files/emcee.hdf",
@@ -138,7 +134,6 @@ class TestEmceeOutput:
         assert parameters[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
     def test__autocorrelation_times(self):
-
         emcee = af.Emcee(paths=af.Paths())
         shutil.copy(
             f"{directory}/files/emcee.hdf",
@@ -161,10 +156,10 @@ class TestEmceeOutput:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_emcee(self):
-        search = af.Emcee(af.Paths("phase_name"))
+        search = af.Emcee(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
@@ -174,16 +169,16 @@ class TestCopyWithNameExtension:
         assert copy.nsteps is search.nsteps
         assert copy.initializer is search.initializer
         assert (
-            copy.auto_correlation_check_for_convergence
-            is search.auto_correlation_check_for_convergence
+                copy.auto_correlation_check_for_convergence
+                is search.auto_correlation_check_for_convergence
         )
         assert copy.auto_correlation_check_size is search.auto_correlation_check_size
         assert (
-            copy.auto_correlation_required_length
-            is search.auto_correlation_required_length
+                copy.auto_correlation_required_length
+                is search.auto_correlation_required_length
         )
         assert (
-            copy.auto_correlation_change_threshold
-            is search.auto_correlation_change_threshold
+                copy.auto_correlation_change_threshold
+                is search.auto_correlation_change_threshold
         )
         assert copy.number_of_cores is search.number_of_cores

@@ -1,13 +1,14 @@
 import os
-import numpy as np
-import shutil
 import pickle
+import shutil
+
+import numpy as np
 import pytest
 
 import autofit as af
 from autoconf import conf
+from autofit import mock
 from autofit.non_linear.mock.mock_search import MockSamples
-from test_autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -15,8 +16,8 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/nlo/config"),
+    conf.instance.push(
+        os.path.join(directory, "files/nlo/config"),
         output_path=os.path.join(directory, "files/nlo/output"),
     )
 
@@ -73,10 +74,10 @@ class TestResult:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_copy_with_name_extension(self):
-        search = af.MockSearch(af.Paths("phase_name", tag="tag"))
+        search = af.MockSearch(af.Paths("name", tag="tag"))
         copy = search.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy)
@@ -123,19 +124,20 @@ def test_nlo_wrong_info():
     return nlo_wrong_info_path
 
 
-
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)
         assert ["one", "two", "three", "four"] == model.model_component_and_parameter_names
 
     def test_label_config(self):
-        assert conf.instance.label.label("one") == "one_label"
-        assert conf.instance.label.label("two") == "two_label"
-        assert conf.instance.label.label("three") == "three_label"
-        assert conf.instance.label.label("four") == "four_label"
+        assert conf.instance["notation"]["label"]["label"]["one"] == "one_label"
+        assert conf.instance["notation"]["label"]["label"]["two"] == "two_label"
+        assert conf.instance["notation"]["label"]["label"]["three"] == "three_label"
+        assert conf.instance["notation"]["label"]["label"]["four"] == "four_label"
+
 
 test_path = "{}/files/phase".format(os.path.dirname(os.path.realpath(__file__)))
+
 
 class TestMovePickleFiles:
 
@@ -151,6 +153,8 @@ class TestMovePickleFiles:
         pickle_paths = ["{}/files/pickles".format(os.path.dirname(os.path.realpath(__file__)))]
 
         arr = np.ones((3, 3))
+
+        print(f"{pickle_paths[0]}/test.pickle")
 
         with open(f"{pickle_paths[0]}/test.pickle", "wb") as f:
             pickle.dump(arr, f)

@@ -56,7 +56,7 @@ class Limits:
     @staticmethod
     def for_class_and_attributes_name(cls, attribute_name):
         limit_dict = conf.instance.prior_config.for_class_and_suffix_path(
-            cls, [attribute_name, "gaussian_limits"], should_retry=False
+            cls, [attribute_name, "gaussian_limits"]
         )
         return limit_dict["lower"], limit_dict["upper"]
 
@@ -235,7 +235,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
     @classmethod
     def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
         """
-        Create a prior from a JSON representation.
+        Returns a prior from a JSON representation.
 
         Parameters
         ----------
@@ -329,7 +329,7 @@ class GaussianPrior(Prior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
 
     def __str__(self):
@@ -386,7 +386,7 @@ class UniformPrior(Prior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 0.0
 
     @property
@@ -439,7 +439,7 @@ class LogUniformPrior(UniformPrior):
         Parameters
         ----------
         value : float
-            The physical value of this prior's corresponding parameter in a non-linear search sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 1.0 / value
 
     def __str__(self):

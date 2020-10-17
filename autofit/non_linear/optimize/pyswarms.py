@@ -6,6 +6,7 @@ from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples
+from autofit.non_linear.paths import convert_paths
 
 from autofit.non_linear.log import logger
 
@@ -73,7 +74,7 @@ class AbstractPySwarms(AbstractOptimizer):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -94,24 +95,24 @@ class AbstractPySwarms(AbstractOptimizer):
         """
 
         self.n_particles = (
-            self._config("search", "n_particles", int)
+            self._config("search", "n_particles")
             if n_particles is None
             else n_particles
         )
-        self.iters = self._config("search", "iters", int) if iters is None else iters
+        self.iters = self._config("search", "iters") if iters is None else iters
 
         self.cognitive = (
-            self._config("search", "cognitive", float)
+            self._config("search", "cognitive")
             if cognitive is None
             else cognitive
         )
         self.social = (
-            self._config("search", "social", float) if social is None else social
+            self._config("search", "social") if social is None else social
         )
         self.inertia = (
-            self._config("search", "inertia", float) if inertia is None else inertia
+            self._config("search", "inertia") if inertia is None else inertia
         )
-        self.ftol = self._config("search", "ftol", float) if ftol is None else ftol
+        self.ftol = self._config("search", "ftol") if ftol is None else ftol
 
         super().__init__(
             paths=paths,
@@ -121,7 +122,7 @@ class AbstractPySwarms(AbstractOptimizer):
         )
 
         self.number_of_cores = (
-            self._config("parallel", "number_of_cores", int)
+            self._config("parallel", "number_of_cores")
             if number_of_cores is None
             else number_of_cores
         )
@@ -147,7 +148,7 @@ class AbstractPySwarms(AbstractOptimizer):
             return np.asarray(figures_of_merit)
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the non-linear search uses to sample parameter space. *PySwarms*
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. *PySwarms*
             uses the chi-squared value, which is the -2.0*log_posterior."""
             try:
                 return -2.0 * self.log_posterior_from_parameters(parameters=parameters)
@@ -157,7 +158,7 @@ class AbstractPySwarms(AbstractOptimizer):
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
         Fit a model using PySwarms and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the non-linear search seeks to maximize.
+        instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
         ----------
@@ -165,7 +166,7 @@ class AbstractPySwarms(AbstractOptimizer):
             The model which generates instances for different points in parameter space.
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the non-linear search maximizes.
+            the log likelihood the `NonLinearSearch` maximizes.
 
         Returns
         -------
@@ -262,7 +263,7 @@ class AbstractPySwarms(AbstractOptimizer):
         """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
         parameters defining the search strategy."""
 
-        name_tag = self._config("tag", "name", str)
+        name_tag = self._config("tag", "name")
         n_particles_tag = f"{self._config('tag', 'n_particles')}_{self.n_particles}"
         cognitive_tag = f"{self._config('tag', 'cognitive')}_{self.cognitive}"
         social_tag = f"{self._config('tag', 'social')}_{self.social}"
@@ -271,9 +272,9 @@ class AbstractPySwarms(AbstractOptimizer):
         return f"{name_tag}[{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}]"
 
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        """Copy this instance of the emcee non-linear search with all associated attributes.
+        """Copy this instance of the emcee `NonLinearSearch` with all associated attributes.
 
-        This is used to set up the non-linear search on phase extensions."""
+        This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
             extension=extension, remove_phase_tag=remove_phase_tag
         )
@@ -356,6 +357,8 @@ class AbstractPySwarms(AbstractOptimizer):
 
 
 class PySwarmsGlobal(AbstractPySwarms):
+
+    @convert_paths
     def __init__(
         self,
         paths=None,
@@ -414,7 +417,7 @@ class PySwarmsGlobal(AbstractPySwarms):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -471,6 +474,8 @@ class PySwarmsGlobal(AbstractPySwarms):
 
 
 class PySwarmsLocal(AbstractPySwarms):
+
+    @convert_paths
     def __init__(
         self,
         paths=None,
@@ -535,7 +540,7 @@ class PySwarmsLocal(AbstractPySwarms):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this non-linear search to a subsequent non-linear search.
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         n_particles : int
             The number of particles in the swarm used to sample parameter space.
         iters : int
@@ -565,13 +570,13 @@ class PySwarmsLocal(AbstractPySwarms):
         """
 
         self.number_of_k_neighbors = (
-            self._config("search", "number_of_k_neighbors", int)
+            self._config("search", "number_of_k_neighbors")
             if number_of_k_neighbors is None
             else number_of_k_neighbors
         )
 
         self.minkowski_p_norm = (
-            self._config("search", "minkowski_p_norm", int)
+            self._config("search", "minkowski_p_norm")
             if minkowski_p_norm is None
             else minkowski_p_norm
         )

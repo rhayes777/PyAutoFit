@@ -1,13 +1,13 @@
 import autofit as af
 
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.dataset.dataset import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models.src.dataset.dataset import (
     Dataset,
     MaskedDataset,
 )
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase.result import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase.result import (
     Result,
 )
-from howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase.analysis import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models.src.phase.analysis import (
     Analysis,
 )
 
@@ -29,22 +29,19 @@ class Phase(af.AbstractPhase):
 
     Result = Result
 
-    @af.convert_paths
-    def __init__(self, paths, profiles, search):
+    def __init__(self, *, profiles, search):
         """
         A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a `NonLinearSearch`.
 
         Parameters
         ----------
-        paths : af.Paths
-            Handles the output directory structure.
         profiles : [profiles.Profile]
-            The model components (e.g. Gaussian, Exponenial) fitted by this phase.
+            The model components (e.g. Gaussian, Exponential) fitted by this phase.
         search: class
             The class of a non_linear search
         """
 
-        super().__init__(paths=paths, search=search)
+        super().__init__(search=search)
 
         self.profiles = profiles
 
@@ -73,7 +70,7 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
 
         Parameters
         ----------

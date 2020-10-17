@@ -1,7 +1,7 @@
 import math
 
 import autofit as af
-from test_autofit import mock_real
+from autofit import mock_real
 
 
 def test_constructor():

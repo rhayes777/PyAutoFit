@@ -6,7 +6,7 @@ import autofit as af
 class Result(af.Result):
     def __init__(self, samples, analysis):
         """
-        The results of a non-linear search performed by a phase.
+        The results of a `NonLinearSearch` performed by a phase.
 
         Parameters
         ----------

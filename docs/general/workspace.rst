@@ -26,8 +26,8 @@ section of the ``readthedocs`` for a complete description of every configuration
 Examples
 --------
 
-Example scripts using the 1D ``data`` fitting model are provided here, including scripts for creating an ``Analysis`` class,
-performing a model-fit, inspecting results and using the ``Aggregator``. Two examples, illustrating ``simple`` and
+Example scripts using the 1D ``data`` fitting model are provided here, including scripts for creating an ``Analysis`` c
+lass,performing a model-fit, inspecting results and using the ``Aggregator``. Two examples, illustrating ``simple`` and
 ``complex`` model-fits are provided.
 
 HowToFit
@@ -43,16 +43,10 @@ full description of the lectures and online examples of every notebook.
 Dataset
 -------
 
-The folder where ``data`` for your model-fitting problem is stored. Example ``data`` for the 1D ``data`` fitting problem
-are provided in the workspace.
+The folder where ``dataset``'s for your model-fitting problem is stored. Example ``data`` for the 1D ``data`` fitting
+problem are provided in the workspace.
 
 Output
 ------
 
 The folder where the model-fitting results of your model-fitting problem are stored.
-
-Advanced
---------
-
-Contains example scripts for advanced **PyAutoFit** functionality, such as ``Pipelines``, which are described in detail
-in the 'Advanced' tab of the ``readthedocs``.

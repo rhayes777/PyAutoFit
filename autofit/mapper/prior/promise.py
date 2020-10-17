@@ -311,7 +311,7 @@ class Promise(AbstractPromise):
             phase.model.object_for_path(path)
 
     def __str__(self):
-        return f"{self._phase.phase_name}.{super().__str__()}"
+        return f"{self._phase.name}.{super().__str__()}"
 
     def __getstate__(self):
         return {}
@@ -381,7 +381,7 @@ class Promise(AbstractPromise):
             The promised prior, prior model, instance or instance
         """
         results = results_collection.from_phase(
-            self._phase.phase_name
+            self._phase.name
         )
         return self._populate_from_results(results)
 

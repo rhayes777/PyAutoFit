@@ -5,7 +5,7 @@ from autoconf import conf
 import autofit as af
 
 from autofit.non_linear.samples import NestSamples
-from test_autofit.mock import MockClassx4
+from autofit.mock import MockClassx4
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -39,8 +39,7 @@ def make_samples():
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/dynesty/config"),
+    conf.instance.push(os.path.join(directory, "files/dynesty/config"),
         output_path=os.path.join(directory, "files/dynesty/output"),
     )
 

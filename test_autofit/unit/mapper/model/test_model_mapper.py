@@ -6,8 +6,8 @@ import pytest
 import autofit as af
 from autofit import exc
 from autofit.text import formatter as frm
-from test_autofit import mock
-from test_autofit import mock_real
+from autofit import mock
+from autofit import mock_real
 
 dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 
@@ -93,11 +93,12 @@ class TestGenerateModelInfo:
 
     def test_with_promise(self):
         mm = af.ModelMapper()
-        mm.promise = af.prior.Promise(
+        mm.promise = af.Promise(
             af.Phase(
-                phase_name="phase",
                 analysis_class=None,
-                search=af.MockSearch()
+                search=af.MockSearch(
+                    "phase"
+                )
             ),
             "path",
             result_path=[],
@@ -906,7 +907,7 @@ def make_promise_mapper():
     mapper = af.ModelMapper()
     mapper.component = af.PriorModel(
         mock.MockComponents,
-        parameter=af.prior.Promise(
+        parameter=af.Promise(
             None,
             None,
             is_instance=False,

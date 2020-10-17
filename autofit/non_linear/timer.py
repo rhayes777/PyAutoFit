@@ -5,7 +5,7 @@ class Timer:
 
     def __init__(self, paths):
         """Times the run-time of the non-linear searches, by outputting a start-time file to the hard-disk and using
-        this to determine the total run time when a non-linear search update is performed.
+        this to determine the total run time when a `NonLinearSearch` update is performed.
 
         Parameters
         ----------
@@ -17,7 +17,7 @@ class Timer:
 
     def start(self):
         """
-        Record the start time of a non-linear search as universal date time, so that the run-time of the search can be
+        Record the start time of a `NonLinearSearch` as universal date time, so that the run-time of the search can be
         recorded.
         """
         start_time_path = "{}/.start_time".format(
@@ -33,7 +33,7 @@ class Timer:
 
     def update(self):
         """
-        Update the timer of the non-linear search so it reflections how long the non-linear search ahs been running.
+        Update the timer of the `NonLinearSearch` so it reflections how long the `NonLinearSearch` ahs been running.
         """
         execution_time = str(dt.timedelta(seconds=time.time() - float(self.start_time)))
 
@@ -55,7 +55,7 @@ class Timer:
 
     @property
     def time(self):
-        """Load the total time of the non-linear search written to hard disk fom the .start_time file."""
+        """Load the total time of the `NonLinearSearch` written to hard disk fom the .start_time file."""
         try:
             with open(
                     f"{self.paths.samples_path}/.time", "r"

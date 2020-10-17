@@ -68,12 +68,12 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
     format
         The format string (e.g {:.2f})
     """
-    label_conf = conf.instance.label_format
+    label_conf = conf.instance["notation"]["label_format"]
 
     try:
         # noinspection PyProtectedMember
         for key, value in sorted(
-            label_conf.parser._sections["format"].items(),
+            label_conf["format"].items(),
             key=lambda item: len(item[0]),
             reverse=True,
         ):
@@ -82,7 +82,7 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
     except KeyError:
         pass
     raise configparser.NoSectionError(
-        "Could not find an entry for the parameter {} in the label_format.iniconfig at path {}".format(
+        "Could not find an entry for the parameter {} in the label_format.ini config at path {}".format(
             parameter_name, label_conf.path
         )
     )
@@ -93,10 +93,10 @@ def convert_name_to_label(parameter_name, name_to_label):
     if not name_to_label:
         return parameter_name
 
-    label_conf = conf.instance.label
+    label_conf = conf.instance["notation"]["label"]
 
     try:
-        return conf.instance.label.label(name=parameter_name)
+        return label_conf["label"][parameter_name]
     except KeyError:
         raise configparser.NoSectionError(
             "Could not find an entry for the parameter {} in the label_format.iniconfig at path {}".format(

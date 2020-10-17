@@ -24,7 +24,7 @@ class Dataset:
 
 """
 Here, we create `MaskedDataset` that is fitted by our phase. This class takes an unmasked `Dataset` (e.g. an image and
-noise-map) and applies a mask to them, such that all entries where the mask is ``True`` are omitted from the fit and
+noise-map) and applies a mask to them, such that all entries where the mask is `True` are omitted from the fit and
 log_likelihood calution.
 
 This could be done using NumPy masked array functionality, by for simplicity we will simply set all masked entries
@@ -52,7 +52,7 @@ class MaskedDataset:
 
         self.mask = mask
 
-        """We apply the mask, setting all entries where the mask is ``True`` to zero."""
+        """We apply the mask, setting all entries where the mask is `True` to zero."""
         self.data = dataset.data * np.invert(mask)
 
         """Same for the noise-map"""

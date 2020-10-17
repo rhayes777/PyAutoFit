@@ -15,11 +15,7 @@ def make_path(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         full_path = func(*args, **kwargs)
-        if not os.path.exists(full_path):
-            try:
-                os.makedirs(full_path)
-            except FileExistsError:
-                pass
+        os.makedirs(full_path, exist_ok=True)
         return full_path
 
     return wrapper
@@ -41,7 +37,7 @@ def convert_paths(func):
             return func(self, paths=first_arg, **kwargs)
 
         if first_arg is None:
-            first_arg = kwargs.pop("phase_name", None)
+            first_arg = kwargs.pop("name", None)
 
         # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
         # TODO : nicely though.
@@ -89,7 +85,7 @@ class Paths:
             non_linear_tag_function=lambda: "",
             remove_files=False,
     ):
-        """Manages the path structure for non-linear search output, for analyses both not using and using the phase
+        """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the phase
         API. Use via non-linear searches requires manual input of paths, whereas the phase API manages this using the
         phase attributes.
 
@@ -106,7 +102,7 @@ class Paths:
         path_prefix = "folder_0/folder_1"
         non_linear_name = "emcee"
 
-        The output path of the non-linear search results will be:
+        The output path of the `NonLinearSearch` results will be:
 
         /path/to/output/folder_0/folder_1/name/tag/emcee
 
@@ -114,7 +110,7 @@ class Paths:
         ----------
         name : str
             The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For phases
-            this name is the ``phase_name``.
+            this name is the ``name``.
         tag : str
             A tag for the non-linear search, typically used for instances where the same data is fitted with the same
             model but with slight variants. For phases this is the phase_tag.
@@ -123,7 +119,7 @@ class Paths:
         non_linear_name : str
             The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
         remove_files : bool
-            If *True*, all output results except their ``.zip`` files are removed. If ``False`` they are not removed.
+            If `True`, all output results except their ``.zip`` files are removed. If `False` they are not removed.
         """
 
         self.path_prefix = path_prefix or ""
@@ -133,9 +129,9 @@ class Paths:
         self.non_linear_tag_function = non_linear_tag_function
 
         try:
-            self.remove_files = conf.instance.general.get("output", "remove_files", bool)
+            self.remove_files = conf.instance["general"]["output"]["remove_files"]
 
-            if conf.instance.general.get("hpc", "hpc_mode", bool):
+            if conf.instance["general"]["hpc"]["hpc_mode"]:
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
@@ -196,7 +192,7 @@ class Paths:
             filter(
                 len,
                 [
-                    conf.instance.output_path,
+                    str(conf.instance.output_path),
                     self.path_prefix,
                     self.name,
                     self.tag,
@@ -208,7 +204,7 @@ class Paths:
     @property
     def has_completed_path(self) -> str:
         """
-        A file indicating that a non-linear search has been completed previously
+        A file indicating that a `NonLinearSearch` has been completed previously
         """
         return f"{self.output_path}/.completed"
 
@@ -270,26 +266,26 @@ class Paths:
 
     def make_search_pickle_path(self) -> str:
         """
-        Create the path at which the search pickle should be saved
+        Returns the path at which the search pickle should be saved
         """
         return f"{self.pickle_path}/search.pickle"
 
     def make_model_pickle_path(self):
         """
-        Create the path at which the model pickle should be saved
+        Returns the path at which the model pickle should be saved
         """
         return f"{self.pickle_path}/model.pickle"
 
     def make_samples_pickle_path(self) -> str:
         """
-        Create the path at which the search pickle should be saved
+        Returns the path at which the search pickle should be saved
         """
         return f"{self.pickle_path}/samples.pickle"
 
     @make_path
     def make_path(self) -> str:
         """
-        Create the path to the folder at which the metadata should be saved
+        Returns the path to the folder at which the metadata should be saved
         """
         return "{}/{}/{}/{}/{}/".format(
             conf.instance.output_path,

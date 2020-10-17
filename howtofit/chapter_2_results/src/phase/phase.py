@@ -1,10 +1,10 @@
 import autofit as af
-from howtofit.chapter_2_results.src.dataset.dataset import (
+from autofit_workspace.howtofit.chapter_2_results.src.dataset.dataset import (
     Dataset,
     MaskedDataset,
 )
-from howtofit.chapter_2_results.src.phase.result import Result
-from howtofit.chapter_2_results.src.phase.analysis import Analysis
+from autofit_workspace.howtofit.chapter_2_results.src.phase.result import Result
+from autofit_workspace.howtofit.chapter_2_results.src.phase.analysis import Analysis
 
 # The `phase.py` module is mostly unchanged from the previous tutorial, however the `run` function has been updated.
 
@@ -15,17 +15,14 @@ class Phase(af.AbstractPhase):
 
     Result = Result
 
-    @af.convert_paths
-    def __init__(self, paths, *, profiles, settings, search):
+    def __init__(self, *, profiles, settings, search):
         """
         A phase which fits a model composed of multiple profiles (Gaussian, Exponential) using a `NonLinearSearch`.
 
         Parameters
         ----------
-        paths : af.Paths
-            Handles the output directory structure.
         profiles : [profiles.Profile]
-            The model components (e.g. Gaussian, Exponenial) fitted by this phase.
+            The model components (e.g. Gaussian, Exponential) fitted by this phase.
         search: class
             The class of a non_linear search
         data_trim_left : int or None
@@ -33,10 +30,7 @@ class Phase(af.AbstractPhase):
         data_trim_right : int or None
             The number of pixels by which the data is trimmed from the right-hand side.
         """
-
-        paths.tag = settings.tag
-
-        super().__init__(paths=paths, search=search)
+        super().__init__(search=search)
 
         self.profiles = profiles
         self.settings = settings
@@ -58,8 +52,7 @@ class Phase(af.AbstractPhase):
             A result object comprising information on the `NonLinearSearch` and the maximum likelihood model.
         """
 
-        # This saves the search information of the phase, meaning that we can use the search instance
-        # (e.g. Emcee) to interpret our results in the aggregator.
+        self.modify_search_paths()
 
         analysis = self.make_analysis(dataset=dataset, mask=mask)
 
@@ -69,7 +62,7 @@ class Phase(af.AbstractPhase):
 
     def make_analysis(self, dataset, mask):
         """
-        Create an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
+        Returns an Analysis object, which creates the `Dataset` and contains the functions which perform the fit.
 
         Parameters
         ----------
@@ -88,7 +81,9 @@ class Phase(af.AbstractPhase):
         )
 
         return Analysis(
-            masked_dataset=masked_dataset, settings=self.settings, image_path=self.search.paths.image_path
+            masked_dataset=masked_dataset,
+            settings=self.settings,
+            image_path=self.search.paths.image_path,
         )
 
     def make_result(self, result, analysis):
@@ -98,3 +93,11 @@ class Phase(af.AbstractPhase):
             search=self.search,
             analysis=analysis,
         )
+
+    def modify_search_paths(self):
+        """
+        Modify the output paths of the phase before the non-linear search is run, so that the output path can be
+        customized using the tags of the phase.
+        """
+
+        self.search.paths.tag = self.settings.tag

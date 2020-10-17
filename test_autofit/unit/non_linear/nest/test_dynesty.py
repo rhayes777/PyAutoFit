@@ -1,12 +1,13 @@
 import os
+import pickle
 import sys
+
+import numpy as np
 import pytest
 
-from autoconf import conf
 import autofit as af
-import pickle
-import numpy as np
-from test_autofit import mock
+from autoconf import conf
+from autofit import mock
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -14,10 +15,9 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/dynesty/config"),
-        output_path=os.path.join(directory, "files/dynesty/output"),
-    )
+    conf.instance.push(os.path.join(directory, "files/dynesty/config"),
+                       output_path=os.path.join(directory, "files/dynesty/output"),
+                       )
 
 
 class MockDynestyResults:
@@ -37,7 +37,6 @@ class MockDynestySampler:
 
 class TestDynestyConfig:
     def test__loads_from_config_file_if_not_input(self):
-
         dynesty = af.DynestyStatic(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=151,
@@ -198,14 +197,13 @@ class TestDynestyConfig:
         assert dynesty.number_of_cores == 4
 
     def test__tag(self):
-
         dynesty = af.DynestyStatic(
             n_live_points=40, bound="none", sample="auto", enlarge=1.0
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_40__bound_none__enlarge_1.0__sample_auto]"
+                dynesty.tag
+                == "dynesty_static[nlive_40__bound_none__enlarge_1.0__sample_auto]"
         )
 
         dynesty = af.DynestyStatic(
@@ -218,8 +216,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
+                dynesty.tag
+                == "dynesty_static[nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
         )
 
         dynesty = af.DynestyStatic(
@@ -232,8 +230,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5]"
+                dynesty.tag
+                == "dynesty_static[nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5]"
         )
 
         dynesty = af.DynestyStatic(
@@ -246,8 +244,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2]"
+                dynesty.tag
+                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2]"
         )
 
         dynesty = af.DynestyStatic(
@@ -255,8 +253,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1]"
+                dynesty.tag
+                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1]"
         )
 
         dynesty = af.DynestyStatic(
@@ -264,8 +262,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
+                dynesty.tag
+                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
         )
 
         dynesty = af.DynestyDynamic(
@@ -273,8 +271,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_dynamic[nlive_5__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
+                dynesty.tag
+                == "dynesty_dynamic[nlive_5__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
         )
 
         dynesty = af.DynestyDynamic(
@@ -282,8 +280,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_dynamic[nlive_5__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
+                dynesty.tag
+                == "dynesty_dynamic[nlive_5__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
         )
 
     def test__samples_from_model(self):
@@ -337,17 +335,17 @@ class TestDynestyConfig:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_dynesty(self):
-        search = af.DynestyStatic(af.Paths("phase_name"))
+        search = af.DynestyStatic(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.DynestyStatic)
         assert copy.prior_passer is search.prior_passer
         assert (
-            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
+                copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
@@ -368,14 +366,14 @@ class TestCopyWithNameExtension:
         assert copy.max_move == search.max_move
         assert copy.number_of_cores == search.number_of_cores
 
-        search = af.DynestyDynamic(af.Paths("phase_name"))
+        search = af.DynestyDynamic(af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)
         assert isinstance(copy, af.DynestyDynamic)
         assert copy.prior_passer is search.prior_passer
         assert (
-            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
+                copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 

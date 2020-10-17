@@ -3,7 +3,6 @@ import os
 import pytest
 
 import autofit as af
-from autofit import Paths
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -15,7 +14,7 @@ def make_downhill_simplex():
         return x0
 
     return af.DownhillSimplex(
-        fmin=fmin, paths=Paths(name="name", folders=("folders",), tag="tag")
+        fmin=fmin, paths=af.Paths(name="name", folders=("folders",), tag="tag")
     )
 
 
@@ -60,10 +59,10 @@ def make_downhill_simplex():
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy, search):
-        assert copy.paths.name == "phase_name/one"
+        assert copy.paths.name == "name/one"
 
     def test_downhill_simplex(self):
-        search = af.DownhillSimplex(Paths("phase_name"), fmin=lambda x: x)
+        search = af.DownhillSimplex(af.Paths("name"), fmin=lambda x: x)
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy, search)

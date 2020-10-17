@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import shutil
 import autofit as af
 
@@ -9,27 +10,21 @@ test_path = "{}/files/path/".format(
 )
 
 
-class TestMakeAndReturnPath:
-    def test__1_directory_input__makes_directory__returns_path(self):
-        path = af.util.create_path(
-            path=test_path, folders=["test1"]
+class TestJson:
+
+    def test__numpy_array_to_json__output_and_load(self):
+
+        if os.path.exists(test_path + "array_out.json"):
+            os.remove(test_path + "array_out.json")
+
+        arr = np.array([10.0, 30.0, 40.0, 92.0, 19.0, 20.0])
+
+        af.util.numpy_array_to_json(
+            arr, file_path=test_path + "array_out.json"
         )
 
-        assert path == test_path + "test1/"
-        assert os.path.exists(path=test_path + "test1")
-
-        shutil.rmtree(test_path + "test1")
-
-    def test__multiple_directories_input__makes_directory_structure__returns_full_path(
-        self
-    ):
-        path = af.util.create_path(
-            path=test_path, folders=["test1", "test2", "test3"]
+        array_load = af.util.numpy_array_from_json(
+            file_path=test_path + "array_out.json",
         )
 
-        assert path == test_path + "test1/test2/test3/"
-        assert os.path.exists(path=test_path + "test1")
-        assert os.path.exists(path=test_path + "test1/test2")
-        assert os.path.exists(path=test_path + "test1/test2/test3")
-
-        shutil.rmtree(test_path + "test1")
+        assert (arr == array_load).all()

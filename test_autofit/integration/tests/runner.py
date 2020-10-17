@@ -8,8 +8,8 @@ def run(module):
 
     integration_path = "{}/..".format(os.path.dirname(os.path.realpath(__file__)))
 
-    conf.instance = conf.Config(
-        config_path=f"{integration_path}/config",
+    conf.instance.push(
+f"{integration_path}/config",
         output_path=f"{integration_path}/output/{module.test_type}"
     )
 

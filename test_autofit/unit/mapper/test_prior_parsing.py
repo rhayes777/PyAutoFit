@@ -52,21 +52,21 @@ def make_absolute_width_dict():
 
 @pytest.fixture(name="relative_width_modifier")
 def make_relative_width_modifier(relative_width_dict):
-    return af.prior.WidthModifier.from_dict(relative_width_dict)
+    return af.WidthModifier.from_dict(relative_width_dict)
 
 
 @pytest.fixture(name="absolute_width_modifier")
 def make_absolute_width_modifier(absolute_width_dict):
-    return af.prior.WidthModifier.from_dict(absolute_width_dict)
+    return af.WidthModifier.from_dict(absolute_width_dict)
 
 
 class TestWidth:
     def test_relative(self, relative_width_modifier):
-        assert isinstance(relative_width_modifier, af.prior.RelativeWidthModifier)
+        assert isinstance(relative_width_modifier, af.RelativeWidthModifier)
         assert relative_width_modifier.value == 1.0
 
     def test_absolute(self, absolute_width_modifier):
-        assert isinstance(absolute_width_modifier, af.prior.AbsoluteWidthModifier)
+        assert isinstance(absolute_width_modifier, af.AbsoluteWidthModifier)
         assert absolute_width_modifier.value == 2.0
 
 

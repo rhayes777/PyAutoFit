@@ -26,7 +26,7 @@ We've seen that we can call a ``NonLinearSearch`` as follows:
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   emcee = af.Emcee()
+   emcee = af.Emcee(name="example_mcmc")
 
    result = emcee.fit(model=model, analysis=analysis)
 
@@ -42,6 +42,7 @@ Of course, we can instead manually specify all of the parameters:
    analysis = Analysis(data=data, noise_map=noise_map)
 
    emcee = af.Emcee(
+       name="example_mcmc",
        nwalkers=50,
        nsteps=2000,
        initialize_method="ball",
@@ -75,6 +76,7 @@ The nested sampling algorithm ``dynesty`` has its own config file for default se
    analysis = Analysis(data=data, noise_map=noise_map)
 
    dynesty = af.DynestyStatic(
+       name="example_nest",
        n_live_points=150,
        bound="multi",
        sample="auto",
@@ -100,19 +102,22 @@ using the **PyAutoFit** parent project **PyAutoConf** and the following command:
 
    from autoconf import conf
 
-   conf.instance = conf.Config(output_path="path/to/output")
+   conf.instance.push(config_path="path/to/config", output_path="path/to/output")
 
-The path structure within this folder of a given ``NonLinearSearch`` can be chosen using the ``Paths`` class
+The path structure within this folder of a given ``NonLinearSearch`` can be chosen using the ``path_prefix`` input
 when the ``NonLinearSearch`` is instantiated. For fits to many data-sets, this is important in ensuring
 results are clearly labeled and the path where outputs occur do not clash.
 
-The example code below would output the results to the path ``/path/to/output/folder_0/folder_1/name/emcee``:
+The example code below would output the results to the path ``/path/to/output/folder_0/folder_1/example_mcmc``:
 
 .. code-block:: bash
 
-   paths=af.Paths(folders=["folder_0", "folder_1"], name="name", non_linear_name="emcee")
+   emcee = af.Emcee(
+       path_prefix="folder_0/folder_1/",
+       name="example_mcmc"
+       )
 
-Both *Emcee* and ``dynesty`` support parallel analysis using the Python *multiprocessing* module. This distributes the
+Both *Emcee* and *Dynesty* support parallel analysis using the Python *multiprocessing* module. This distributes the
 ``NonLinearSearch`` analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used. To
 use this functionality in **PyAutoFit** you simply specifc the *number_of_cores* parameter (which is also
 found in the default config files):
