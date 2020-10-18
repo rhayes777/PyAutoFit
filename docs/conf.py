@@ -14,7 +14,6 @@ import datetime
 #
 from pyprojroot import here
 workspace_path = str(here())
-print(workspace_path)
 
 import os
 import sys
@@ -22,6 +21,7 @@ import sys
 os.system("git clone https://github.com/Jammy2211/autofit_workspace --depth 1")
 os.system("cp -r autofit_workspace/dataset .")
 os.system("rm -rf autofit_workspace")
+os.environ['WORKSPACE'] = f"{str(workspace_path)}"
 
 sys.path.insert(0, os.path.abspath('.'))
 
