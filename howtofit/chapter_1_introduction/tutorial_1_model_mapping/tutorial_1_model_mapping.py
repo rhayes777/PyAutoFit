@@ -10,7 +10,6 @@ which we'll ultimately need to fit to data.
 # %%
 #%matplotlib inline
 
-from autoconf import conf
 import autofit as af
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,7 +33,6 @@ locate the path to the workspace on your computer and use it to set the working 
 
 # %%
 from pyprojroot import here
-
 workspace_path = str(here())
 #%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
