@@ -5,6 +5,7 @@ exclude .travis.yml
 exclude docs
 include README.rst
 include setup.cfg
+include autofit/config
 prune .cache
 prune .git
 prune build
