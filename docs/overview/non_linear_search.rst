@@ -102,7 +102,7 @@ using the **PyAutoFit** parent project **PyAutoConf** and the following command:
 
    from autoconf import conf
 
-   conf.instance.push(config_path="path/to/config", output_path="path/to/output")
+   conf.instance.push(new_path="path/to/config", output_path="path/to/output")
 
 The path structure within this folder of a given ``NonLinearSearch`` can be chosen using the ``path_prefix`` input
 when the ``NonLinearSearch`` is instantiated. For fits to many data-sets, this is important in ensuring
