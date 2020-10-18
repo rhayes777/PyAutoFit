@@ -200,14 +200,16 @@ class AbstractMessage(ABC):
 
         NOTE: ignores log normalisation
         """
-        prod_dist = self.sum_natural_parameters(self, *self._iter_dists(dists))
+        log_norm = self.log_base_measure - self.log_partition
 
-        log_numerator = sum(
+        log_norm += sum(
             dist.log_base_measure - dist.log_partition
             for dist in dists)
-        log_denominator = prod_dist.log_base_measure - prod_dist.log_partition
 
-        return log_numerator - log_denominator
+        prod_dist = self.sum_natural_parameters(*self._iter_dists(dists))
+        log_norm -= prod_dist.log_base_measure - prod_dist.log_partition
+
+        return log_norm
 
     @staticmethod
     def _iter_dists(dists):

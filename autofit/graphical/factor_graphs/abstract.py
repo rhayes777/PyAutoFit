@@ -30,6 +30,7 @@ def accept_variable_dict(func):
 
 class AbstractNode(ABC):
     _deterministic_variables: Set[Variable]
+    _factor: callable = None
     _id = count()
 
     def __init__(
@@ -66,7 +67,7 @@ class AbstractNode(ABC):
     def deterministic_variables(self):
         return self._deterministic_variables
 
-    def __getattr__(self, item):
+    def __getitem__(self, item):
         try:
             return self._kwargs[
                 item
@@ -91,14 +92,7 @@ class AbstractNode(ABC):
         """
         The apparent signature of this object
         """
-        args = ", ".join(self.arg_names)
-        kws = ", ".join(map("{0[0]}={0[1]}".format, self.kwarg_names))
-        call_strs = []
-        if args:
-            call_strs.append(args)
-        if kws:
-            call_strs.extend(['*', kws])
-        call_str = ", ".join(call_strs)
+        call_str = ", ".join(map("{0[0]}={0[1]}".format, self.kwarg_names))
         call_sig = f"{self.name}({call_str})"
         return call_sig
 
@@ -118,7 +112,7 @@ class AbstractNode(ABC):
         """
         A dictionary of variables associated with this node
         """
-        return self.variables | self._deterministic_variables
+        return self.variables | self.deterministic_variables
 
     def _broadcast(
             self,
@@ -202,4 +196,4 @@ class AbstractNode(ABC):
         return hash((
             self._factor, 
             frozenset(self.variable_names.items()),
-            self.self._deterministic_variables,))
+            frozenset(self._deterministic_variables),))

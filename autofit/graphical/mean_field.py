@@ -6,8 +6,8 @@ from typing import (
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import Factor
-from autofit.graphical.factor_graphs.graph import FactorGraph
+from autofit.graphical.factor_graphs import (
+    Factor, AbstractNode, FactorGraph)
 from autofit.graphical.messages import FixedMessage, map_dists
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import prod, add_arrays, OptResult, Status
@@ -132,10 +132,11 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         return all(d.is_valid for d in self.values())
     
     def prod(self, *approxs: 'MeanField') -> 'MeanField':
-        return type(self)({
-            k: prod((m.get(k, 1) for m in approxs), m) 
+        return MeanField({
+            k: prod((m.get(k, 1.) for m in approxs), m) 
             for k, m in self.items()},
-            sum((m.log_norm for m in approxs), self.log_norm))
+            sum((m.log_norm for m in approxs), 
+            getattr(self, "log_norm", 0.)))
 
     __mul__ = prod
     
@@ -180,10 +181,8 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
 class FactorApproximation(NamedTuple):
     factor: Factor
     cavity_dist: MeanField
-    # deterministic_dist: MeanField
     factor_dist: MeanField
     model_dist: MeanField
-    # log_norm: float = 0.
 
     @property
     def deterministic_variables(self):
@@ -206,7 +205,6 @@ class FactorApproximation(NamedTuple):
     def is_valid(self) -> bool:
         dists = chain(
             self.cavity_dist.values(),
-            self.deterministic_dist.values(),
             self.factor_dist.values(),
             self.model_dist.values())
         return all(d.is_valid for d in dists if isinstance(d, AbstractMessage))
@@ -379,3 +377,131 @@ class MeanFieldApproximation:
                     self._variable_factor_dist.values()
                     for dist in factors.values())
                 and all(dist.is_valid for dist in self.approx.values()))
+
+
+class EPMeanField(AbstractNode):
+    
+    '''
+    TODO: rename this EP approximation
+    '''
+    def __init__(
+            self,
+            factor_graph: FactorGraph,
+            factor_mean_field: Dict[Factor, MeanField]
+    ):
+        self._factor_graph = factor_graph
+        self._factor_mean_field = factor_mean_field
+        variable_factor = {}
+        for factor, vs in factor_graph.factor_all_variables.items():
+            for v in vs:
+                variable_factor.setdefault(v, set()).add(factor)
+        self._variable_factor = variable_factor
+        
+        super().__init__(**self.factor_graph._kwargs)
+
+    @property 
+    def name(self):
+        return f"EP_{self.factor_graph.name}"
+
+    @property
+    def variables(self): 
+        return self.factor_graph.variables
+
+    @property
+    def deterministic_variables(self): 
+        return self.factor_graph.deterministic_variables
+
+    @property
+    def variable_names(self) -> Dict[str, Variable]: 
+        return self.factor_graph.variable_names
+ 
+    @property
+    def factor_mean_field(self) -> Dict[Factor, MeanField]:
+        return self._factor_mean_field.copy()
+
+    @property
+    def factor_graph(self) -> FactorGraph:
+        return self._factor_graph
+
+    @classmethod
+    def from_approx_dists(
+            cls,
+            factor_graph: FactorGraph,
+            approx_dists: Dict[Variable, AbstractMessage],
+    ) -> "EPMeanField":
+        factor_mean_field = {
+            factor: MeanField({
+                v: approx_dists[v] for v in factor.variables})
+            for factor in factor_graph.factors}
+
+        return cls(
+            factor_graph,
+            factor_mean_field)
+
+    from_kws = from_approx_dists
+
+    def project(self, projection: FactorApproximation
+                ) -> "EPMeanField":
+        """
+        """
+        factor_mean_field = self.factor_mean_field
+        factor_mean_field[projection.factor] = projection.factor_dict
+
+        return type(self)(
+            factor_graph=self._factor_graph,
+            factor_mean_field=factor_mean_field)
+
+    @property
+    def mean_field(self) -> MeanField:
+        return MeanField.prod(
+            {v: 1. for v in self.all_variables},
+            *self._factor_mean_field.values()
+        )
+
+
+    def _variable_cavity_dist(self, variable: str,
+                              cavity_factor: Factor
+                              ) -> Optional[AbstractMessage]:
+        dists = [dist for factor, dist in
+                 self._variable_factor_dist[variable].items()
+                 if factor != cavity_factor]
+        if dists:
+            return prod(dists)
+        return None
+
+    def factor_approximation(self, factor: Factor) -> FactorApproximation:
+        var_cavity = ((v, self._variable_cavity_dist(v, factor))
+                      for v in factor.all_variables)
+        # Some variables may only appear once in the factor graph
+        # in this case they might not have a cavity distribution
+        var_cavity = MeanField({
+            v: dist for v, dist in var_cavity if dist})
+        # det_cavity = {
+        #     v: self._variable_cavity_dist(v, factor)
+        #     for v in factor.deterministic_variables}
+        factor_dist = MeanField({
+            v: self._variable_factor_dist[v][factor]
+            for v in factor.all_variables})
+        model_dist = MeanField({
+            v: self[v] for v in factor.all_variables})
+
+        return FactorApproximation(
+            factor, var_cavity, factor_dist, model_dist)
+
+    def __repr__(self) -> str:
+        clsname = type(self).__name__
+        return f"{clsname}({self.factor_graph}, {self.factor_mean_field})"
+
+    def __call__(self, **kwargs: np.ndarray) -> np.ndarray:
+        return sum(
+            prod(factors.values()).logpdf(kwargs[v])
+            for v, factors in self._variable_factor_dist.items())
+
+    @property
+    def is_valid(self) -> bool:
+        return (
+                all(dist.is_valid for factors in
+                    self._variable_factor_dist.values()
+                    for dist in factors.values())
+                and all(dist.is_valid for dist in self.approx.values()))
+
