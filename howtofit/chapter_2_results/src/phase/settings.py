@@ -1,6 +1,6 @@
 import autofit as af
 
-from autofit_workspace.howtofit.chapter_2_results.src.dataset import dataset as ds
+from howtofit.chapter_2_results.src.dataset import dataset as ds
 
 # The `settings.py` module is identical to the previous tutorial.
 

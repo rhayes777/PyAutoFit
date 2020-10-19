@@ -21,7 +21,6 @@ import sys
 os.system("git clone https://github.com/Jammy2211/autofit_workspace --depth 1")
 os.system(f"cp -r autofit_workspace/dataset {workspace_path}")
 os.system("rm -rf autofit_workspace")
-os.environ['WORKSPACE'] = f"{str(workspace_path)}"
 
 sys.path.insert(0, os.path.abspath('.'))
 

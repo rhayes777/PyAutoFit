@@ -28,7 +28,6 @@ templates we provide in the HowToFit series will adhere to it.
 #%matplotlib inline
 
 from pyprojroot import here
-
 workspace_path = str(here())
 #%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
@@ -72,7 +71,7 @@ To create the `Dataset`, we load it from the `autofit_workspace/dataset` folder 
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x1"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 

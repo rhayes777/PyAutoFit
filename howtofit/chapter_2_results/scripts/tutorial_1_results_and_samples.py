@@ -19,20 +19,19 @@ about how results in **PyAutoFit** work before covering more advanced material.
 #%matplotlib inline
 
 from pyprojroot import here
-
 workspace_path = str(here())
-#%cd $workspace_path
+%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results import src as htf
+from howtofit.chapter_2_results import src as htf
 import numpy as np
 
 # %%
 """The code below creates the `Dataset` and `mask` as per usual."""
 
 # %%
-dataset_path = "dataset/chapter_2/gaussian_x1"
+dataset_path = "dataset/howtofit/chapter_2/gaussian_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 dataset = htf.Dataset(data=data, noise_map=noise_map)
