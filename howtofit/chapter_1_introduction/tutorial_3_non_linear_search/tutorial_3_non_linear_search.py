@@ -91,7 +91,7 @@ Lets import the `Gaussian` class for this tutorial, which is the model we will f
 """
 
 # %%
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_3_non_linear_search import (
+from howtofit.chapter_1_introduction.tutorial_3_non_linear_search import (
     gaussian as g,
 )
 

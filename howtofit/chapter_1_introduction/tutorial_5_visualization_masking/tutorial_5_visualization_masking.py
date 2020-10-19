@@ -23,7 +23,7 @@ workspace_path = str(here())
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
     src as htf,
 )
 

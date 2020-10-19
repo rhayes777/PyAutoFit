@@ -1,4 +1,4 @@
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot import (
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot import (
     line_plots,
 )
 

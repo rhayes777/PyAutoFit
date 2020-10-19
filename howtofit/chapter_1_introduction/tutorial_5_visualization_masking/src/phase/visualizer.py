@@ -1,4 +1,4 @@
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
     dataset_plots,
     fit_plots,
 )

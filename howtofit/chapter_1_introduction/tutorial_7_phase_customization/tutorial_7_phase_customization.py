@@ -29,7 +29,7 @@ print(f"Working Directory has been set to `{workspace_path}`")
 import autofit as af
 import numpy as np
 
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
     src as htf,
 )
 

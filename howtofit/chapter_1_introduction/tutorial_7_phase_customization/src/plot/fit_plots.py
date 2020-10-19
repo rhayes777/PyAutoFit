@@ -1,11 +1,11 @@
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot import (
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.plot import (
     line_plots,
 )
 
 """The `fit_plots.py` module is unchanged from the previous tutorial."""
 
 
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.plot import (
     line_plots,
 )
 

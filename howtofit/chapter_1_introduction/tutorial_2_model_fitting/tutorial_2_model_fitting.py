@@ -62,7 +62,7 @@ it as a model-component. This is again performed in the `gaussian.py` module of 
 """
 
 # %%
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_2_model_fitting import (
+from howtofit.chapter_1_introduction.tutorial_2_model_fitting import (
     gaussian as g,
 )
 

@@ -26,7 +26,7 @@ print(f"Working Directory has been set to `{workspace_path}`")
 
 
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models import (
+from howtofit.chapter_1_introduction.tutorial_6_complex_models import (
     src as htf,
 )
 

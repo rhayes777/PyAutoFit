@@ -145,7 +145,7 @@ By writing a model component in this way, we can use the Python class to set it 
 """
 
 # %%
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_1_model_mapping import (
+from howtofit.chapter_1_introduction.tutorial_1_model_mapping import (
     gaussian as g,
 )
 

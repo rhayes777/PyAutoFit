@@ -1,12 +1,12 @@
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.dataset.dataset import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.dataset.dataset import (
     Dataset,
     MaskedDataset,
 )
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.result import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.result import (
     Result,
 )
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.analysis import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.analysis import (
     Analysis,
 )
 

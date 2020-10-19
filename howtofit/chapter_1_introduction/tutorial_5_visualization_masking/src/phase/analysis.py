@@ -1,9 +1,9 @@
 import autofit as af
 
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.fit import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.fit import (
     fit as f,
 )
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase import (
     visualizer,
 )
 
