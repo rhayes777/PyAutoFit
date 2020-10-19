@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from functools import reduce
 from itertools import chain
 from operator import and_
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 from inspect import getfullargspec
 
 import numpy as np
@@ -193,20 +193,26 @@ class AbstractMessage(ABC):
     def from_mode(cls, mode, covariance):
         pass
 
-    def log_normalisation(self, *dists):
+    def log_normalisation(self, *dists: Union["AbstractMessage", float]) -> np.ndarray:
         """
         Calculates the log of the integral of the product of a
         set of distributions
 
         NOTE: ignores log normalisation
         """
-        log_norm = self.log_base_measure - self.log_partition
+        # Remove floats from messages passed
+        dists = [
+            dist for dist in self._iter_dists(dists) 
+            if isinstance(dist, AbstractMessage)]
 
+        # Calculate log product of message normalisation
+        log_norm = self.log_base_measure - self.log_partition
         log_norm += sum(
             dist.log_base_measure - dist.log_partition
             for dist in dists)
 
-        prod_dist = self.sum_natural_parameters(*self._iter_dists(dists))
+        # Calculate log normalisation of product of messages
+        prod_dist = self.sum_natural_parameters(*dists)
         log_norm -= prod_dist.log_base_measure - prod_dist.log_partition
 
         return log_norm

@@ -109,7 +109,7 @@ def test_importance_sampling(
     for i in range(n_iter):
         for factor in model.factors:
             # We have reduced the entire EP step into a single function
-            model_approx, status = mp.sampling.project_model(
+            model_approx, _ = mp.sampling.project_model(
                 model_approx,
                 factor,
                 sampler,
