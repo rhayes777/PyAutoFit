@@ -31,7 +31,7 @@ def masked_dataset_from_agg_obj(agg_obj):
      that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's generator
      outputs such that the function can use the `Aggregator`'s map function to to create a *MaskedDataset* generator.
 
-     The *MaskedDataset* is created following the same method as the *Phase* classes, including using the
+     The *MaskedDataset* is created following the same method as the `Phase` classes, including using the
      *meta_dataset* instance output by the phase to load inputs of the *MaskedDataset* (e.g. data_trim_left). 
 
     Parameters
@@ -118,7 +118,7 @@ def fit_from_agg_obj(agg_obj):
     acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator's generator outputs such
     that the function can use the `Aggregator`'s map function to to create a *Fit* generator.
 
-     The *Fit* is created following the same method as the PyAutoGalaxy *Phase* classes. 
+     The *Fit* is created following the same method as the PyAutoGalaxy `Phase` classes.
 
     Parameters
     ----------

@@ -86,6 +86,8 @@ class:
 
         def __init__(self, data, noise_map):
 
+            super().__init__()
+
             self.data = data
             self.noise_map = noise_map
 
@@ -133,7 +135,7 @@ the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    dynesty = af.DynestyStatic()
+    dynesty = af.DynestyStatic(name="example_search")
 
     result = dynesty.fit(model=model, analysis=analysis)
 
@@ -145,7 +147,7 @@ Now, lets consider how we *customize* the models that we *compose*. To begin, le
     model = af.PriorModel(Gaussian)
 
 By default, the priors on the ``Gaussian``'s parameters are loaded from configuration files. If you have downloaded the
-``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/json_priors``. Alternatively,
+``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/priors``. Alternatively,
 you can check them out at this `link <https://github.com/Jammy2211/autofit_workspace/tree/master/config>`_.
 
 Priors can be manually specified as follows:
@@ -166,7 +168,7 @@ We can fit this model, with all new priors, using a ``NonLinearSearch`` as we di
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee()
+    emcee = af.Emcee(name="another_example_search")
 
     # The model passed here now has updated priors!
 

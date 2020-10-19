@@ -5,11 +5,11 @@ exclude .travis.yml
 exclude docs
 include README.rst
 include setup.cfg
+recursive-include autofit/config *
 prune .cache
 prune .git
 prune build
 prune dist
-recursive-include autolens/config *
 recursive-exclude *.egg-info *
 recursive-include tests *
 include requirements.txt

@@ -1,7 +1,7 @@
 import pickle
 
 import autofit as af
-from autofit import Paths
+from autofit.non_linear.paths import Paths
 
 
 class TestCase:

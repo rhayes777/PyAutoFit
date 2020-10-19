@@ -99,7 +99,7 @@ follows:
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee(nwalkers=50, nsteps=2000)
+    emcee = af.Emcee(name="example_search", nwalkers=50, nsteps=2000)
 
     result = emcee.fit(model=model, analysis=analysis)
 

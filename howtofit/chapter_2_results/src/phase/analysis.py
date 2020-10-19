@@ -1,11 +1,12 @@
 import autofit as af
 
-from howtofit.chapter_2_results.src.fit import fit as f
-from howtofit.chapter_2_results.src.phase import visualizer
+from autofit_workspace.howtofit.chapter_2_results.src.fit import fit as f
+from autofit_workspace.howtofit.chapter_2_results.src.phase import visualizer
 
 import pickle
 
 # The `analysis.py` module is unchanged from the previous tutorial.
+
 
 class Analysis(af.Analysis):
     def __init__(self, masked_dataset, settings, image_path=None):

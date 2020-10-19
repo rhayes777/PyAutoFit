@@ -236,7 +236,7 @@ class NonLinearSearch(ABC):
             self.timer.paths = self.paths
             self.timer.start()
 
-            self._fit(model=model, analysis=analysis)
+            self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
             open(self.paths.has_completed_path, "w+").close()
 
             samples = self.perform_update(
@@ -248,18 +248,6 @@ class NonLinearSearch(ABC):
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
             samples = self.samples_via_csv_json_from_model(model=model)
             self.save_samples(samples=samples)
-
-            if self.remove_state_files_at_end:
-                try:
-                    self.remove_state_files()
-                except FileNotFoundError:
-                    pass
-
-                try:
-                    shutil.rmtree(f"{self.paths.samples_path}_backup")
-                except FileNotFoundError:
-                    pass
-
 
         self.paths.zip_remove()
 
@@ -674,7 +662,7 @@ class PriorPasser:
             3) The sigma of the Gaussian will use the maximum of two values:
 
                     (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
-                    (ii) The value specified for the profile in the 'config/json_priors/*.json' config
+                    (ii) The value specified for the profile in the 'config/priors/*.json' config
                          file's 'width_modifer' field (check these files out now).
 
                The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
@@ -725,7 +713,7 @@ class PriorPasser:
         to 4.0 +- 0.5, the sigma of the Gaussian prior would instead be 0.5.
 
         If the error on the parameter in phase 1 had been really small, lets say, 0.01, we would instead use the value
-        of the parameter width in the json_priors config file to set sigma instead. Lets imagine the prior config file
+        of the parameter width in the priors config file to set sigma instead. Lets imagine the prior config file
         specifies that we use an "Absolute" value of 0.8 to link this prior. Then, the GaussianPrior in phase 2 would
         have a mean=4.0 and sigma=0.8.
 

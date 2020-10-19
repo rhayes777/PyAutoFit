@@ -1,12 +1,12 @@
 import autofit as af
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.dataset.dataset import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.dataset.dataset import (
     Dataset,
     MaskedDataset,
 )
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.result import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.result import (
     Result,
 )
-from howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.analysis import (
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking.src.phase.analysis import (
     Analysis,
 )
 
@@ -20,22 +20,19 @@ class Phase(af.AbstractPhase):
 
     Result = Result
 
-    @af.convert_paths
-    def __init__(self, paths, gaussian, search):
+    def __init__(self, *, gaussian, search):
         """
         A phase which fits a `Gaussian` model using a `NonLinearSearch`.
 
         Parameters
         ----------
-        paths : af.Paths
-            Handles the output directory structure.
         gaussian : gaussians.Gaussian
             The model component `Gaussian` class fitted by this phase.
         search: class
             The class of a non_linear search
         """
 
-        super().__init__(paths=paths, search=search)
+        super().__init__(search=search)
 
         self.gaussian = gaussian
 

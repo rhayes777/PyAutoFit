@@ -10,12 +10,10 @@ import numpy as np
 from autoconf import conf
 from autofit import exc
 from autofit.mapper import model
-from autofit.mapper import model_mapper
 from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
-from autofit.mapper.prior_model import collection
 from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
@@ -99,6 +97,7 @@ class AbstractPriorModel(AbstractModel):
             obj = object.__new__(PriorModel)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
+            from autofit.mapper.prior_model import collection
             obj = object.__new__(
                 collection.CollectionPriorModel
             )
@@ -264,7 +263,7 @@ class AbstractPriorModel(AbstractModel):
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
         assert_priors_in_limits
-            If ``True`` it is checked that the physical values of priors are within set limits
+            If `True` it is checked that the physical values of priors are within set limits
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
@@ -344,7 +343,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         no_limits
-            If ``True`` generated priors have infinite limits
+            If `True` generated priors have infinite limits
         r
             The relative width to be assigned to gaussian priors
         a
@@ -355,7 +354,7 @@ class AbstractPriorModel(AbstractModel):
             at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
             passed errors are used, the maximum of these two values are used).
         use_widths : bool
-            If True, the minimum prior widths specified in the json_prior configs of the model components are used to
+            If True, the minimum prior widths specified in the prior configs of the model components are used to
             set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
             these two values are used).
         tuples
@@ -482,7 +481,7 @@ class AbstractPriorModel(AbstractModel):
         abstract_prior_model
             A concrete child of an abstract prior model
         """
-
+        from autofit.mapper.prior_model import collection
         if isinstance(instance, list):
             result = collection.CollectionPriorModel(
                 [
@@ -491,6 +490,7 @@ class AbstractPriorModel(AbstractModel):
                 ]
             )
         elif isinstance(instance, model.ModelInstance):
+            from autofit.mapper import model_mapper
             result = model_mapper.ModelMapper()
             for key, value in instance.dict.items():
                 setattr(

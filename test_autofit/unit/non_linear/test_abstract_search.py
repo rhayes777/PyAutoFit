@@ -7,8 +7,8 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from autofit.non_linear.mock.mock_search import MockSamples
 from autofit import mock
+from autofit.non_linear.mock.mock_search import MockSamples
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -16,8 +16,8 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/nlo/config"),
+    conf.instance.push(
+        os.path.join(directory, "files/nlo/config"),
         output_path=os.path.join(directory, "files/nlo/output"),
     )
 
@@ -153,6 +153,8 @@ class TestMovePickleFiles:
         pickle_paths = ["{}/files/pickles".format(os.path.dirname(os.path.realpath(__file__)))]
 
         arr = np.ones((3, 3))
+
+        print(f"{pickle_paths[0]}/test.pickle")
 
         with open(f"{pickle_paths[0]}/test.pickle", "wb") as f:
             pickle.dump(arr, f)

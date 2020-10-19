@@ -1,0 +1,36 @@
+A general description of configs in PyAutoFit is provided here, checkout their associated doc file for a more
+ detailed description of every config.
+
+general.ini:
+    Customizes general PyAutoFit settings such as the frequency of logging and backing up.
+
+priors:
+    Customize the priors of every model-component in your project (see doc_priors).
+
+    default:
+        The default priors used on every model component in PyAutoFit (e.g. light proiles, mass profiles, etc.), for
+        example if they use a UniformPrior or GausssianPrior and the range of values sampled.
+    limit:
+        The limits between which a parameter may be sampled. For example, the axis_ratio of light and mass profiles has
+        limits 0.0 -> 1.0 to prevent unphysical models.
+    width:
+        The width of the GaussianPrior used for each parameter if its priors are initialized via linking from a previous
+        phase.
+
+
+visualize:
+    general.ini:
+        General visualization setting like the matplotlib backend.
+
+
+non-Linear:
+    Customize the default `NonLinearSearch` settings used by PyAutoFit (see doc_non_linear).
+
+
+label.ini:
+    The labels used for every model parameter on certain figures (e.g. the label for centres are y an x and for an
+    axis ratio is q).
+
+label_format.ini:
+    The format of certain results output by PyAutoFit (e.g. the mass format is {:.4e}, meaning it is output as an
+    exponential to 4 dp).

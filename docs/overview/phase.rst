@@ -20,9 +20,8 @@ and concise interface for performing a *model-fit*:
     # care of results output, visualization, etc.
 
     phase = af.Phase(
-        name="phase_example",
+        search=af.Emcee(name="phase_example", nwalkers=50, nsteps=100),
         model=af.CollectionPriorModel(gaussian=Gaussian, exponential=Exponential),
-        search=af.Emcee(nwalkers=50, nsteps=100)
     )
 
     # To perform a model fit, we simply run the phase with a dataset.

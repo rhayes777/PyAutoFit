@@ -1,5 +1,5 @@
-from howtofit.chapter_2_results.src.dataset import dataset as ds
-from howtofit.chapter_2_results.src.fit import fit as f
+from autofit_workspace.howtofit.chapter_2_results.src.dataset import dataset as ds
+from autofit_workspace.howtofit.chapter_2_results.src.fit import fit as f
 
 from functools import partial
 
@@ -36,7 +36,7 @@ def masked_dataset_from_agg_obj(agg_obj, settings_masked_dataset=None):
      that it acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator`s generator
      outputs such that the function can use the `Aggregator``s map function to to create a *MaskedDataset* generator.
 
-     The *MaskedDataset* is created following the same method as the *Phase* classes, including using the
+     The *MaskedDataset* is created following the same method as the `Phase` classes, including using the
      *meta_dataset* instance output by the phase to load inputs of the *MaskedDataset* (e.g. data_trim_left). 
 
     Parameters
@@ -128,7 +128,7 @@ def fit_from_agg_obj(agg_obj, settings_masked_dataset=None):
     acts as the aggregator object for one result in the `Aggregator`. This uses the aggregator`s generator outputs such
     that the function can use the `Aggregator``s map function to to create a *Fit* generator.
 
-     The *Fit* is created following the same method as the PyAutoGalaxy *Phase* classes. 
+     The *Fit* is created following the same method as the PyAutoGalaxy `Phase` classes.
 
     Parameters
     ----------

@@ -4,10 +4,10 @@ from functools import wraps
 
 import pytest
 
-from autoconf import conf
 import autofit as af
-from autofit.non_linear.nest import multi_nest as mn
+from autoconf import conf
 from autofit import mock
+from autofit.non_linear.nest import multi_nest as mn
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -15,8 +15,8 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/multinest/config"),
+    conf.instance.push(
+        os.path.join(directory, "files/multinest/config"),
         output_path=os.path.join(directory, "files/multinest/output"),
     )
 
@@ -141,7 +141,6 @@ def create_resume(path):
 
 class TestMulitNest:
     def test__loads_from_config_file_if_not_input(self):
-
         multi_nest = af.MultiNest(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=40,
@@ -233,7 +232,6 @@ class TestMulitNest:
         assert fitness.acceptance_ratio_threshold == 0.0
 
     def test__tag(self):
-
         multi_nest = af.MultiNest(
             n_live_points=40,
             sampling_efficiency=0.5,
@@ -284,7 +282,7 @@ class TestMulitNest:
         assert copy.max_iter is search.max_iter
         assert copy.init_MPI is search.init_MPI
         assert (
-            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
+                copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
@@ -362,7 +360,7 @@ class TestMulitNest:
         assert log_evidence == 0.02
 
     def test__samples_from_model(
-        self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
+            self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
     ):
         conf.instance.output_path = multi_nest_samples_path + "/1_class"
 

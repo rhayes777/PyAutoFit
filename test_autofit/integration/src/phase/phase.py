@@ -38,7 +38,7 @@ class Phase(af.AbstractPhase):
         paths : af.Paths
             Handles the output directory structure.
         profiles : [profiles.Profile]
-            The model components (e.g. Gaussian, Exponenial) fitted by this phase.
+            The model components (e.g. Gaussian, Exponential) fitted by this phase.
         search: class
             The class of a non_linear search
         data_trim_left : int or None

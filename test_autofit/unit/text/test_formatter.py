@@ -14,7 +14,7 @@ text_path = "{}/files/text/".format(os.path.dirname(os.path.realpath(__file__)))
 
 @pytest.fixture(scope="session", autouse=True)
 def do_something():
-    conf.instance = conf.Config(config_path="{}/files/config/text".format(directory))
+    conf.instance.push("{}/files/config/text".format(directory))
 
 
 def test__value_result_string():

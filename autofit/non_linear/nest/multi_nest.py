@@ -3,9 +3,12 @@ from autofit.non_linear import abstract_search
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.samples import NestSamples
+from autofit.non_linear.paths import convert_paths
 
 
 class MultiNest(abstract_nest.AbstractNest):
+
+    @convert_paths
     def __init__(
             self,
             paths=None,
@@ -92,7 +95,7 @@ class MultiNest(abstract_nest.AbstractNest):
         verbose : bool
             Whether MultiNest prints messages.
         resume : bool
-            If ``True`` and existing results are found at the output path, MultiNest will resume that run. If False,
+            If `True` and existing results are found at the output path, MultiNest will resume that run. If False,
             MultiNest will start a new run.
         context : None
             Not used by PyAutoFit.

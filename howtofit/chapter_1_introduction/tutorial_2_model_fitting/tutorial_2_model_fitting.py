@@ -9,33 +9,25 @@ In this tutorial, we'll fit the 1D `Gaussian` model from the previous tutorial t
 # %%
 #%matplotlib inline
 
-from autoconf import conf
+from pyprojroot import here
+
+workspace_path = str(here())
+#%cd $workspace_path
+print(f"Working Directory has been set to `{workspace_path}`")
+
 import autofit as af
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-
-workspace_path = os.environ["WORKSPACE"]
-print("Workspace Path: ", workspace_path)
 
 # %%
 """
-These setup the configs as we did in the previous tutorial.
+Load the dataset we will fit from the `autofit_workspace/dataset` folder.
 """
 
 # %%
-conf.instance = conf.Config(config_path=f"config")
-
-# %%
-"""
-To create the Dataset, we import the simulator module and use it to generate the Dataset`s data and noise-map. 
-"""
-
-# %%
-from howtofit.simulators.chapter_1 import gaussian_x1
-
-data = gaussian_x1.data
-noise_map = gaussian_x1.noise_map
+dataset_path = "dataset/chapter_1/gaussian_x1"
+data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
 # %%
 """
@@ -64,39 +56,16 @@ plt.clf()
 # %%
 """
 So, how do we actually go about fitting our `Gaussian` model to this data? First, we need to be able to generate
-an image of our 1D `Gaussian` model. As we did in tutorial 1, we define the `Gaussian` as a Python class with the format 
-required for **PyAutoFit** to use it as a model-component.
+an image of our 1D `Gaussian` model. 
+
+As we did in tutorial 1, we define the `Gaussian` as a Python class with the format required for **PyAutoFit** to use 
+it as a model-component. This is again performed in the `gaussian.py` module of this tutorial.
 """
 
 # %%
-class Gaussian:
-    def __init__(
-        self,
-        centre=0.0,  # <- **PyAutoFit** recognises these constructor arguments
-        intensity=0.1,  # <- are the Gaussian`s model parameters.
-        sigma=0.01,
-    ):
-        self.centre = centre
-        self.intensity = intensity
-        self.sigma = sigma
-
-    def profile_from_xvalues(self, xvalues):
-        """
-        Calculate the intensity of the light profile on a line of Cartesian x coordinates.
-
-        The input xvalues are translated to a coordinate system centred on the Gaussian, using its centre.
-
-        Parameters
-        ----------
-        xvalues : np.ndarray
-            The x coordinates in the original reference frame of the data.
-        """
-        transformed_xvalues = np.subtract(xvalues, self.centre)
-        return np.multiply(
-            np.divide(self.intensity, self.sigma * np.sqrt(2.0 * np.pi)),
-            np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
-        )
-
+from autofit_workspace.howtofit.chapter_1_introduction.tutorial_2_model_fitting import (
+    gaussian as g,
+)
 
 # %%
 """
@@ -108,7 +77,7 @@ If we pass these values to an instance of the `Gaussian` class, we can create a 
 """
 
 # %%
-model = af.PriorModel(Gaussian)
+model = af.PriorModel(g.Gaussian)
 model.centre = af.UniformPrior(lower_limit=0.0, upper_limit=np.inf)
 model.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=np.inf)
 model.sigma = af.UniformPrior(lower_limit=0.0, upper_limit=np.inf)

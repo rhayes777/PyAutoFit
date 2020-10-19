@@ -40,7 +40,7 @@ class MaskedDataset:
 
         self.mask = mask
 
-        """We apply the mask, setting all entries where the mask is ``True`` to zero."""
+        """We apply the mask, setting all entries where the mask is `True` to zero."""
         self.data = dataset.data * np.invert(mask)
 
         """Same for the noise-map"""

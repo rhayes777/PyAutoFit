@@ -10,8 +10,8 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        config_path=os.path.join(directory, "files/pyswarms/config"),
+    conf.instance.push(
+os.path.join(directory, "files/pyswarms/config"),
         output_path=os.path.join(directory, "files/pyswarms/output"),
     )
 
