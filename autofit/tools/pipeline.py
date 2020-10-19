@@ -127,7 +127,8 @@ class Pipeline:
 
         for phase in phases:
 
-            phase.search.paths.path_prefix = path_prefix
+            if path_prefix is not None:
+                phase.search.paths.path_prefix = path_prefix
 
             if phase.pipeline_name is None:
                 phase.pipeline_name = pipeline_name
@@ -169,7 +170,7 @@ class Pipeline:
                 self.pipeline_name,
                 other.pipeline_name
             ),
-            self.path_prefix,
+            None,
             *(self.phases + other.phases),
             write_promises=False,
         )
