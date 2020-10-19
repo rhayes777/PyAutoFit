@@ -12,13 +12,13 @@ def test_message_norm():
                 [0.5, 0.1], [0.2, 0.3])),
         tuple(
             map(graph.NormalMessage, 
-                [0.5, 0.1], [0.2, 0.3], [-0.5, 1.3])),
+                [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
         tuple(
             map(graph.GammaMessage, 
                 [0.5, 1.1], [0.2, 1.3])),
         tuple(
             map(graph.GammaMessage, 
-                [0.5, 1.1], [0.2, 1.3], [2, 1])),
+                [0.5, 1.1, 2], [0.2, 1.3, 1])),
     ]
     for ms in messages:
         m1, *m2s = ms

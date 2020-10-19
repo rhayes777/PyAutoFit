@@ -88,12 +88,11 @@ class AbstractMessage(ABC):
         of this distribution with another distribution of the same
         type
         """
-        log_norm = self.log_norm + sum(
-            dist.log_norm for dist in self._iter_dists(dists))
         new_params = sum(
-            (dist.natural_parameters for dist in self._iter_dists(dists)),
+            (dist.natural_parameters for dist in self._iter_dists(dists) 
+            if isinstance(dist, AbstractMessage)),
             self.natural_parameters)
-        mul_dist = self.from_natural_parameters(new_params, log_norm=log_norm)
+        mul_dist = self.from_natural_parameters(new_params)
         return mul_dist
 
     def sub_natural_parameters(self, other):

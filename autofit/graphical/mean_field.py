@@ -1,7 +1,7 @@
 from collections import ChainMap
 from itertools import chain
 from typing import (
-    Dict, Tuple, Optional, NamedTuple, Iterator
+    Dict, Tuple, Optional, NamedTuple, Iterator, List
 )
 
 import numpy as np
@@ -103,6 +103,11 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         Factor.__init__(
             self, self._logpdf, **{v.name: v for v in dists})
         self.log_norm = log_norm
+
+    pop = dict.pop 
+    values = dict.values 
+    items = dict.items
+    __getitem__ = dict.__getitem__
         
     def _logpdf(self, **kwargs: np.ndarray) -> np.ndarray:
         var_names = self.variable_names
@@ -439,9 +444,21 @@ class EPMeanField(AbstractNode):
             factor_mean_field)
 
     from_kws = from_approx_dists
+    
+    def factor_approximation(self, factor: Factor) -> FactorApproximation:
+        mean_field = self.mean_field
+        factor_dist = mean_field.pop(factor)
+        cavity_dist = MeanField.prod(
+            {v: 1. for v in factor_dist.all_variables},
+            *(dist for fac, dist in mean_field.items()))
+        model_dist = factor_dist.prod(cavity_dist)
 
-    def project(self, projection: FactorApproximation
-                ) -> "EPMeanField":
+        return FactorApproximation(
+            factor, cavity_dist, factor_dist, model_dist)
+
+    def project_factor_approx(
+        self, projection: FactorApproximation
+    ) -> "EPMeanField":
         """
         """
         factor_mean_field = self.factor_mean_field
@@ -455,53 +472,77 @@ class EPMeanField(AbstractNode):
     def mean_field(self) -> MeanField:
         return MeanField.prod(
             {v: 1. for v in self.all_variables},
-            *self._factor_mean_field.values()
+            *self._factor_mean_field.values())
+
+    @property
+    def variable_factor_message(self
+    ) -> Dict[Variable, Dict[Factor, AbstractMessage]]:
+        variable_factor_message = {
+            v: {} for v in self.all_variables}
+        for factor, meanfield in self.factor_mean_field.values():
+            for v, message in meanfield.items():
+                variable_factor_message[v][factor] = message
+
+        return variable_factor_message
+
+    @property
+    def variable_messages(self) -> Dict[Variable, List[AbstractMessage]]:
+        variable_messages = {
+            v: [] for v in self.all_variables}
+        for meanfield in self.factor_mean_field.values():
+            for v, message in meanfield.items():
+                variable_messages[v].append(message)
+        
+        return variable_messages
+
+    @property
+    def variable_evidence(self) -> Dict[Variable, np.ndarray]:
+        return {
+            v: AbstractMessage.log_normalisation(*ms)
+            for v, ms in self.variable_messages.items()}
+
+    @property 
+    def factor_evidence(self) -> Dict[Factor, np.ndarray]:
+        return {
+            factor: meanfield.log_norm 
+            for factor, meanfield in self.factor_mean_field.items()}
+    
+    @property
+    def log_evidence(self):
+        """ Calculates evidence for the EP approximation
+
+        Evidence for a variable, x_i,
+
+        Z_i = \int \prod_a m_{a \rightarrow i}(x_i) d x_i
+
+        Evidence for a factor, f_a,
+
+        Z_a = \frac
+            {\int \prod_{j \in \alpha} m_{j \rightarrow a}(x_j) f_a (x_a) d x_a}
+            {\prod_{j \in \alpha} Z_i}
+
+        Evidence for model
+
+        Z = \prod_i Z_i \prod_a Z_a
+        """
+        variable_evidence = {
+            v: np.sum(Zi) for v, Zi in self.variable_evidence.items()}
+        factor_evidence = sum(
+            np.sum(meanfield.log_norm)
+             - sum(variable_evidence[v] for v in factor.all_variables)
+            for factor, meanfield in self.factor_mean_field.items()
         )
-
-
-    def _variable_cavity_dist(self, variable: str,
-                              cavity_factor: Factor
-                              ) -> Optional[AbstractMessage]:
-        dists = [dist for factor, dist in
-                 self._variable_factor_dist[variable].items()
-                 if factor != cavity_factor]
-        if dists:
-            return prod(dists)
-        return None
-
-    def factor_approximation(self, factor: Factor) -> FactorApproximation:
-        var_cavity = ((v, self._variable_cavity_dist(v, factor))
-                      for v in factor.all_variables)
-        # Some variables may only appear once in the factor graph
-        # in this case they might not have a cavity distribution
-        var_cavity = MeanField({
-            v: dist for v, dist in var_cavity if dist})
-        # det_cavity = {
-        #     v: self._variable_cavity_dist(v, factor)
-        #     for v in factor.deterministic_variables}
-        factor_dist = MeanField({
-            v: self._variable_factor_dist[v][factor]
-            for v in factor.all_variables})
-        model_dist = MeanField({
-            v: self[v] for v in factor.all_variables})
-
-        return FactorApproximation(
-            factor, var_cavity, factor_dist, model_dist)
+        return factor_evidence + sum(variable_evidence.values())
 
     def __repr__(self) -> str:
         clsname = type(self).__name__
         return f"{clsname}({self.factor_graph}, {self.factor_mean_field})"
 
     def __call__(self, **kwargs: np.ndarray) -> np.ndarray:
-        return sum(
-            prod(factors.values()).logpdf(kwargs[v])
-            for v, factors in self._variable_factor_dist.items())
+        return self.mean_field(**kwargs)
 
     @property
     def is_valid(self) -> bool:
-        return (
-                all(dist.is_valid for factors in
-                    self._variable_factor_dist.values()
-                    for dist in factors.values())
-                and all(dist.is_valid for dist in self.approx.values()))
+        return all(
+            mean_field.is_valid for mean_field in self.factor_mean_field.values())
 
