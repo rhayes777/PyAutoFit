@@ -6,6 +6,10 @@ from itertools import count
 import numpy as np
 
 from autofit.mapper.variable import Variable, Plate
+from autofit.graphical.factor_graphs.numerical import (
+    FactorValue, JacobianValue,
+    numerical_func_jacobian, numerical_jacobian,
+    numerical_func_jacobian_hessian)
 
 
 def accept_variable_dict(func):
@@ -92,7 +96,7 @@ class AbstractNode(ABC):
         """
         The apparent signature of this object
         """
-        call_str = ", ".join(map("{0[0]}={0[1]}".format, self.kwarg_names))
+        call_str = ", ".join(map("{0}={0}".format, self.kwarg_names))
         call_sig = f"{self.name}({call_str})"
         return call_sig
 
@@ -189,7 +193,7 @@ class AbstractNode(ABC):
         return np.array([self.plates.index(p) for p in plates], dtype=int)
 
     @abstractmethod
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> FactorValue:
         pass
     
     def __hash__(self):
@@ -197,3 +201,7 @@ class AbstractNode(ABC):
             self._factor, 
             frozenset(self.variable_names.items()),
             frozenset(self._deterministic_variables),))
+
+    func_jacobian = numerical_func_jacobian
+    jacobian = numerical_jacobian
+    func_jacobian_hessian = numerical_func_jacobian_hessian

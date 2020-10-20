@@ -98,7 +98,7 @@ class TestFactorGraph:
     ):
         assert sigmoid.name == "log_sigmoid"
         assert phi.name == "log_phi"
-        assert compound.name == "log_sigmoid.log_phi"
+        assert compound.name == "(log_sigmoid*log_phi)"
 
     def test_argument(
             self,

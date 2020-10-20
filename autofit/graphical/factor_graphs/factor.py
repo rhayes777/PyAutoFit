@@ -6,17 +6,8 @@ from functools import lru_cache
 import numpy as np
 
 from autofit.graphical.factor_graphs.abstract import AbstractNode, accept_variable_dict
-from autofit.graphical.factor_graphs.numerical import numerical_jacobian
+from autofit.graphical.factor_graphs.numerical import FactorValue
 from autofit.mapper.variable import Variable
-
-
-class FactorValue(NamedTuple):
-    """
-    The value associated with some factor
-    """
-
-    log_value: np.ndarray
-    deterministic_values: Dict[Variable, np.ndarray]
 
 
 class AbstractFactor(AbstractNode, ABC):
@@ -149,7 +140,7 @@ class Factor(AbstractFactor):
             name=name or factor.__name__
         )
 
-    jacobian = numerical_jacobian
+    # jacobian = numerical_jacobian
 
     def __hash__(self) -> int:
         # TODO: might this break factor repetition somewhere?

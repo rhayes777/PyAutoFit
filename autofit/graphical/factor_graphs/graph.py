@@ -105,7 +105,7 @@ class FactorGraph(AbstractNode):
         factors
             Nodes wrapping individual factors in a model
         """
-        self._name = ".".join(f.name for f in factors)
+        self._name = "(%s)" % "*".join(f.name for f in factors)
 
         self._factors = tuple(factors)
 

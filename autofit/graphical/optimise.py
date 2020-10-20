@@ -103,6 +103,16 @@ class OptFactor:
             result,
             Status(success, messages))
 
+    def get_random_start(self, arrays_dict: Dict[Variable, np.ndarray] = {}):
+        p0 = {}
+        for v in self.free_vars:
+            if v in arrays_dict:
+                p0[v] = arrays_dict[v]
+            else:
+                p0[v] = self.factor_approx.model_dist[v].sample(1)[0]
+        
+        return p0
+
     def minimise(self, bounds=None,
                  constraints=(), tol=None, callback=None,
                  options=None, **arrays):

@@ -82,8 +82,8 @@ def project_on_to_factor_approx(
     projection = FactorApproximation(
         factor_approx.factor,
         factor_approx.cavity_dist, 
-        factor_dist=factor_projection,
-        model_dist=model_dist,
+        factor_dist=MeanField(factor_projection),
+        model_dist=MeanField(model_dist),
 #         log_norm=log_norm
     )
     status = Status(success, messages)
@@ -140,8 +140,8 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         return MeanField({
             k: prod((m.get(k, 1.) for m in approxs), m) 
             for k, m in self.items()},
-            sum((m.log_norm for m in approxs), 
-            getattr(self, "log_norm", 0.)))
+            # sum((m.log_norm for m in approxs), getattr(self, "log_norm", 0))
+            )
 
     __mul__ = prod
     
@@ -228,6 +228,34 @@ class FactorApproximation(NamedTuple):
         return log_result
 
     project = project_on_to_factor_approx
+
+    def project_mean_field(
+            self, 
+            model_dist: MeanField, 
+            delta: float = 1.,
+            status: Optional[Status] = None,
+    ) -> "FactorApprox":
+        success, messages = Status() if status is None else status
+
+        factor_dist = (model_dist / self.cavity_dist)
+        if delta < 1:
+            factor_dist = (
+                factor_dist**delta * self.factor_dist**(1-delta))
+        
+        if not factor_dist.is_valid:
+            success = False
+            messages += (
+                f"model projection for {self} is invalid",)
+            factor_dist = self.factor_dist
+
+        new_approx = FactorApproximation(
+            self.factor,
+            self.cavity_dist, 
+            factor_dist=factor_dist,
+            model_dist=model_dist,
+        )
+        return new_approx, Status(success, messages)
+
 
     def __repr__(self):
         # TODO make this nicer
@@ -344,7 +372,8 @@ class MeanFieldApproximation:
         # Some variables may only appear once in the factor graph
         # in this case they might not have a cavity distribution
         var_cavity = MeanField({
-            v: dist for v, dist in var_cavity if dist})
+            v: dist for v, dist in var_cavity if dist}, 
+            log_norm=0.)
         # det_cavity = {
         #     v: self._variable_cavity_dist(v, factor)
         #     for v in factor.deterministic_variables}
@@ -446,11 +475,12 @@ class EPMeanField(AbstractNode):
     from_kws = from_approx_dists
     
     def factor_approximation(self, factor: Factor) -> FactorApproximation:
-        mean_field = self.mean_field
-        factor_dist = mean_field.pop(factor)
+        factor_mean_field = self.factor_mean_field
+        factor_dist = factor_mean_field.pop(factor)
         cavity_dist = MeanField.prod(
             {v: 1. for v in factor_dist.all_variables},
-            *(dist for fac, dist in mean_field.items()))
+            *(dist for fac, dist in factor_mean_field.items()))
+        # cavity_dist.log_norm = 0.
         model_dist = factor_dist.prod(cavity_dist)
 
         return FactorApproximation(
@@ -462,7 +492,7 @@ class EPMeanField(AbstractNode):
         """
         """
         factor_mean_field = self.factor_mean_field
-        factor_mean_field[projection.factor] = projection.factor_dict
+        factor_mean_field[projection.factor] = projection.factor_dist
 
         return type(self)(
             factor_graph=self._factor_graph,
