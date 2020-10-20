@@ -238,6 +238,6 @@ class TestFactorGraph:
         )
 
         assert factor.jacobian(
+            {x: 2},
             [x],
-            {x: 2}
         ).log_value[x] == pytest.approx(coefficient)

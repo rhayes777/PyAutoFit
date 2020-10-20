@@ -1,16 +1,31 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import List, Tuple, Dict, cast, Collection, Set
+from typing import \
+    List, Tuple, Dict, cast, Collection, Set, NamedTuple, Optional
 from itertools import count
 
 import numpy as np
 
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.factor_graphs.numerical import (
-    FactorValue, JacobianValue,
-    numerical_func_jacobian, numerical_jacobian,
-    numerical_func_jacobian_hessian)
 
+
+class FactorValue(NamedTuple):
+    """
+    The return value associated with a factor
+    """
+    log_value: np.ndarray
+    deterministic_values: Dict[Variable, np.ndarray]
+
+
+class JacobianValue(NamedTuple):
+    log_value: Dict[Variable, np.ndarray]
+    deterministic_values: Dict[Tuple[Variable, Variable], np.ndarray]
+
+
+HessianValue = Dict[Variable, np.ndarray]
+
+from .numerical import (
+    numerical_func_jacobian, numerical_func_jacobian_hessian)
 
 def accept_variable_dict(func):
     @wraps(func)
@@ -203,5 +218,24 @@ class AbstractNode(ABC):
             frozenset(self._deterministic_variables),))
 
     func_jacobian = numerical_func_jacobian
-    jacobian = numerical_jacobian
     func_jacobian_hessian = numerical_func_jacobian_hessian
+
+    def jacobian(
+            self, 
+            values: Dict[Variable, np.array],
+            variables: Optional[Tuple[Variable, ...]] = None,
+            _eps: float = 1e-6,
+            _calc_deterministic: bool = True ) -> JacobianValue:
+        return self.func_jacobian(
+            values, variables, 
+            _eps=_eps, _calc_deterministic=_calc_deterministic)[1]
+            
+    def hessian(
+            self, 
+            values: Dict[Variable, np.array],
+            variables: Optional[Tuple[Variable, ...]] = None,
+            _eps: float = 1e-6,
+            _calc_deterministic: bool = True ) -> HessianValue:
+        return self.func_jacobian_hessian(
+            values, variables, 
+            _eps=_eps, _calc_deterministic=_calc_deterministic)[2]

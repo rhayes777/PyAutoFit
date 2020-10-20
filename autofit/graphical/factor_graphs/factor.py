@@ -5,8 +5,8 @@ from typing import Tuple, Dict, Union, Set, NamedTuple, Callable
 from functools import lru_cache
 import numpy as np
 
-from autofit.graphical.factor_graphs.abstract import AbstractNode, accept_variable_dict
-from autofit.graphical.factor_graphs.numerical import FactorValue
+from autofit.graphical.factor_graphs.abstract import \
+    AbstractNode, accept_variable_dict, FactorValue
 from autofit.mapper.variable import Variable
 
 

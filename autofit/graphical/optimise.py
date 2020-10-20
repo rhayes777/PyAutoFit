@@ -196,7 +196,7 @@ def find_factor_mode(
 
         # Calculate covariance of deterministic values
         jacobian = factor_approx.factor.jacobian(
-            opt.free_vars, res.mode)
+            res.mode, opt.free_vars)
         update_det_cov(res, jacobian)
 
     return res

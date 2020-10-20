@@ -1,33 +1,16 @@
-from typing import Tuple, Dict, NamedTuple
+from typing import Tuple, Dict, NamedTuple, Optional
 
 import numpy as np
 
 from autofit.mapper.variable import Variable
 
-
-class FactorValue(NamedTuple):
-    """
-    The return value associated with a factor
-    """
-    log_value: np.ndarray
-    deterministic_values: Dict[Variable, np.ndarray]
-
-
-class JacobianValue(NamedTuple):
-    log_value: Dict[Variable, np.ndarray]
-    deterministic_values: Dict[Tuple[Variable, Variable], np.ndarray]
-
-
-HessianValue = Dict[Variable, np.ndarray]
-
-
 def numerical_func_jacobian(
-        factor,
-        args: Tuple[Variable, ...],
-        kwargs: Dict[Variable, np.array],
+        factor: "AbstractNode",
+        values: Dict[Variable, np.array],
+        variables: Optional[Tuple[Variable, ...]],
         _eps: float = 1e-6,
         _calc_deterministic: bool = True,
-) -> JacobianValue:
+) -> Tuple["FactorValue", "JacobianValue"]:
     """Calculates the numerical Jacobian of the passed factor
 
     the arguments passed correspond to the variable that we want
@@ -58,27 +41,29 @@ def numerical_func_jacobian(
         log_value={'x': array([[0.], [0.]])},
         deterministic_values={('x', 'y'): array([[0., 2.], [1., 3.]])})
     """
+    if variables is None:
+        variables = factor.variables
     # copy the input array
-    p0 = {v: np.array(x, dtype=float) for v, x in kwargs.items()}
+    p0 = {v: np.array(x, dtype=float) for v, x in values.items()}
     f0 = factor(p0)
     log_f0 = f0.log_value
     det_vars0 = f0.deterministic_values
 
     jac_f = {
-        v: np.empty(np.shape(kwargs[v]) + np.shape(log_f0))
-        for v in args}
+        v: np.empty(np.shape(values[v]) + np.shape(log_f0))
+        for v in variables}
     if _calc_deterministic:
         jac_det = {
             (det, v): np.empty(
-                np.shape(val) + np.shape(kwargs[v]))
-            for v in args
+                np.shape(val) + np.shape(values[v]))
+            for v in variables
             for det, val in det_vars0.items()}
         det_slices = {
-            v: (slice(None),) * np.ndim(a) for v, a in kwargs.items()}
+            v: (slice(None),) * np.ndim(a) for v, a in values.items()}
     else:
         jac_det = {}
 
-    for v in args:
+    for v in variables:
         x0 = p0[v]
         if x0.shape:
             inds = tuple(a.ravel() for a in np.indices(x0.shape))
@@ -108,50 +93,42 @@ def numerical_func_jacobian(
     return f0, JacobianValue(jac_f, jac_det)
 
 
-def numerical_jacobian(
-        factor,
-        args: Tuple[Variable, ...],
-        kwargs: Dict[Variable, np.array],
-        _eps: float = 1e-6,
-        _calc_deterministic: bool = True,
-) -> 'FactorValue':
-    return numerical_func_jacobian(
-        factor, args, kwargs, _eps, _calc_deterministic)[1]
-
-
 def numerical_func_jacobian_hessian(
-        factor,
-        args: Tuple[Variable, ...],
-        kwargs: Dict[Variable, np.array],
+        factor: "AbstractNode",
+        values: Dict[Variable, np.array],
+        variables: Optional[Tuple[Variable, ...]] = None,
         _eps: float = 1e-6,
         _calc_deterministic: bool = True
-) -> Tuple[FactorValue, JacobianValue, Dict[Variable, np.ndarray]]:
+) -> Tuple["FactorValue", "JacobianValue", "HessianValue"]:
     
-    p0 = {v: np.array(x, dtype=float) for v, x in kwargs.items()}
-    f0, fjac0 = factor.func_jacobian(args, p0)
-    (log_f0, det_vars0), (grad_log_f0, jac_det_vars0) = f0, fjac0
+    if variables is None:
+        variables = factor.variables
+    p0 = {v: np.array(x, dtype=float) for v, x in values.items()}
+    f0, jac_f0 = factor.func_jacobian(p0, variables)
+    (log_f0, det_vars0), (grad_f0, jac_det_vars0) = f0, jac_f0
 
     f_shape = np.shape(log_f0)
     f_size = np.prod(f_shape)
     hess_f = {
-        v: np.empty(np.shape(kwargs[v]) * 2 + f_shape)
-        for v in args}
+        v: np.empty(np.shape(values[v]) * 2 + f_shape)
+        for v in variables}
 
     if _calc_deterministic:
         det_shapes = {v: d.shape for v, d in det_vars0.items()}
         for v in det_vars0:
             hess_f[v] = 0.
 
-    for v in args:
+    for v in variables:
         x0 = p0[v]
         if x0.shape:
             inds = tuple(a.ravel() for a in np.indices(x0.shape))
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
-                grad_log_f, _ = factor.jacobian([v], p0, _calc_deterministic=False)
+                grad_f, _ = factor.jacobian(
+                    p0, (v,), _calc_deterministic=False)
                 x0[ind] -= _eps
-                hess_f[v][ind] = grad_log_f[v] - grad_log_f0[v]
+                hess_f[v][ind] = grad_f[v] - grad_f0[v]
                 
             # Symmetrise Hessian
             triu = np.triu_indices(x0.size, 1)
@@ -164,7 +141,6 @@ def numerical_func_jacobian_hessian(
             
             if _calc_deterministic:
                 var_size = x0.size
-                var_ndim = x0.ndim
                 hess = hess_f[v].reshape((var_size, var_size, f_size))
                 for d, d_shape in det_shapes.items():
                     jac = jac_det_vars0[d, v].reshape(np.prod(d_shape), var_size)
@@ -174,10 +150,10 @@ def numerical_func_jacobian_hessian(
             
         else:
             p0[v] += _eps
-            grad_log_f, _ = factor.jacobian(
-                [v], p0, _calc_deterministic=False)
+            grad_f, _ = factor.jacobian(
+                p0, (v,), _calc_deterministic=False)
             p0[v] -= _eps
-            hess_f[v] = grad_log_f[v] - grad_log_f0[v]
+            hess_f[v] = grad_f[v] - grad_f0[v]
             
             if _calc_deterministic:
                 hess = hess_f[v].reshape(1, 1, f_size)
@@ -186,3 +162,9 @@ def numerical_func_jacobian_hessian(
                     hess_f[d] += (
                         jac[:, None, None] 
                         * jac[None, :, None] * hess[None, None, :])
+
+    return f0, jac_f0, hess_f
+
+# Import these at the end to resolve circular imports and typing
+from .abstract import (
+    FactorValue, JacobianValue, HessianValue)
