@@ -213,7 +213,6 @@ def laplace_factor_approx(
     res = find_factor_mode(
         factor_approx,
         return_cov=True,
-        # status=status, 
         **opt_kws
     )
 

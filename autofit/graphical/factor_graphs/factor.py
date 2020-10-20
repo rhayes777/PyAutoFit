@@ -78,7 +78,7 @@ class AbstractFactor(AbstractNode, ABC):
         return len(self._deterministic_variables)
 
     def __hash__(self):
-        return self.id
+        return hash((type(self), self.id))
 
     def _resolve_args(
             self,

@@ -99,6 +99,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             dists: Dict[Variable, AbstractMessage], 
             log_norm: np.ndarray = 0.):
         
+        
         dict.__init__(self, dists)
         Factor.__init__(
             self, self._logpdf, **{v.name: v for v in dists})
@@ -137,17 +138,17 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         return all(d.is_valid for d in self.values())
     
     def prod(self, *approxs: 'MeanField') -> 'MeanField':
+        dists = (
+            (k, prod((m.get(k, 1.) for m in approxs), m))
+            for k, m in self.items())
         return MeanField({
-            k: prod((m.get(k, 1.) for m in approxs), m) 
-            for k, m in self.items()},
-            # sum((m.log_norm for m in approxs), getattr(self, "log_norm", 0))
-            )
+            k: m for k, m in dists if isinstance(m, AbstractMessage)})
 
     __mul__ = prod
     
     def __truediv__(self, other: 'MeanField') -> 'MeanField':
         return type(self)({
-            k: m / other[k] for k, m in self.items()},
+            k: m / other.get(k, 1.) for k, m in self.items()},
             self.log_norm - other.log_norm)
 
     def __pow__(self, other: float) -> 'MeanField':
@@ -509,7 +510,7 @@ class EPMeanField(AbstractNode):
     ) -> Dict[Variable, Dict[Factor, AbstractMessage]]:
         variable_factor_message = {
             v: {} for v in self.all_variables}
-        for factor, meanfield in self.factor_mean_field.values():
+        for factor, meanfield in self.factor_mean_field.items():
             for v, message in meanfield.items():
                 variable_factor_message[v][factor] = message
 
