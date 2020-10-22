@@ -114,16 +114,6 @@ class TestGenerateModelInfo:
         assert mm.info == 'tuple                                                                                     (0, 1)'
 
 
-class WithFloat:
-    def __init__(self, value):
-        self.value = value
-
-
-class WithTuple:
-    def __init__(self, tup=(0.0, 0.0)):
-        self.tup = tup
-
-
 # noinspection PyUnresolvedReferences
 class TestRegression:
     def test_tuple_instance_model_info(self, mapper):
@@ -156,8 +146,8 @@ class TestRegression:
         assert isinstance(mm.sersic.centre_1, af.Prior)
 
     def test_tuple_parameter(self, mapper):
-        mapper.with_float = WithFloat
-        mapper.with_tuple = WithTuple
+        mapper.with_float = mock.WithFloat
+        mapper.with_tuple = mock.WithTuple
 
         assert mapper.prior_count == 3
 
@@ -250,8 +240,8 @@ class TestRegression:
         assert ls.name_for_prior(ls[1].one) == "1_one"
 
     def test_tuple_parameter_float(self, mapper):
-        mapper.with_float = WithFloat
-        mapper.with_tuple = WithTuple
+        mapper.with_float = mock.WithFloat
+        mapper.with_tuple = mock.WithTuple
 
         mapper.with_float.value = 1.0
 

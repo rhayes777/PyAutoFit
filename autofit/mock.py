@@ -226,6 +226,16 @@ class DeferredClass:
         self.two = two
 
 
+class WithFloat:
+    def __init__(self, value):
+        self.value = value
+
+
+class WithTuple:
+    def __init__(self, tup=(0.0, 0.0)):
+        self.tup = tup
+
+
 ### Real Classes ###
 
 class MockComponents:
