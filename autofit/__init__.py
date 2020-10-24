@@ -79,4 +79,4 @@ from .tools.pipeline import ResultsCollection
 
 conf.instance.register(__file__)
 
-__version__ = '0.69.3'
+__version__ = '0.69.4'
