@@ -84,10 +84,10 @@ def test__output_list_of_strings_to_file():
 
 
 def test_string():
-    assert frm.format_string_for_parameter_name("radius_value") == "radius_value"
-    assert frm.format_string_for_parameter_name("mass_value") == "{:.2f}"
+    assert frm.format_string_for_parameter_name("radius") == "{:.2f}"
+    assert frm.format_string_for_parameter_name("mass") == "{:.2f}"
 
 
 def test_substring():
-    assert frm.format_string_for_parameter_name("einstein_radius") == "radius_value"
+    assert frm.format_string_for_parameter_name("einstein_radius") == "{:.2f}"
     assert frm.format_string_for_parameter_name("mass_value_something") == "{:.2f}"

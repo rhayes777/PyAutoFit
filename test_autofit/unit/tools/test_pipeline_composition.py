@@ -2,8 +2,8 @@ from os import path
 
 import autofit as af
 from autoconf import conf
-from autofit.non_linear.mock.mock_search import MockSearch, MockAnalysis, MockSamples
-from autofit import mock
+from autofit.mock.mock_search import MockSearch, MockAnalysis, MockSamples
+from autofit.mock import mock
 
 directory = path.dirname(path.realpath(__file__))
 

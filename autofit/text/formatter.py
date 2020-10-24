@@ -83,7 +83,7 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
         pass
     raise configparser.NoSectionError(
         "Could not find an entry for the parameter {} in the label_format.ini config at path {}".format(
-            parameter_name, label_conf.path
+            parameter_name, conf.instance.path
         )
     )
 
@@ -100,7 +100,7 @@ def convert_name_to_label(parameter_name, name_to_label):
     except KeyError:
         raise configparser.NoSectionError(
             "Could not find an entry for the parameter {} in the label_format.iniconfig at path {}".format(
-                parameter_name, label_conf.path
+                parameter_name, conf.instance.path
             )
         )
 

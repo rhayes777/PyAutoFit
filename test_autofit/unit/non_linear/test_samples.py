@@ -4,7 +4,7 @@ import pytest
 
 import autofit as af
 from autofit.non_linear.samples import OptimizerSamples, PDFSamples
-from autofit.mock import MockClassx2, MockClassx4
+from autofit.mock.mock import MockClassx2, MockClassx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 

@@ -6,8 +6,8 @@ import pytest
 import autofit as af
 from autofit import exc
 from autofit.text import formatter as frm
-from autofit import mock
-from autofit import mock_real
+from autofit.mock import mock
+from autofit.mock import mock_real
 
 dataset_path = "{}/../".format(os.path.dirname(os.path.realpath(__file__)))
 

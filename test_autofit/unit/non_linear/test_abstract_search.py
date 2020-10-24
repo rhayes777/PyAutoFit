@@ -7,8 +7,8 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from autofit import mock
-from autofit.non_linear.mock.mock_search import MockSamples
+from autofit.mock import mock
+from autofit.mock.mock_search import MockSamples
 
 directory = os.path.dirname(os.path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")

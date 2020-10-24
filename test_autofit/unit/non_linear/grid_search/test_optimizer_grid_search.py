@@ -4,8 +4,8 @@ import pytest
 
 import autofit as af
 from autofit import exc
-from autofit import mock
-from autofit.mock import MockAnalysis
+from autofit.mock import mock
+from autofit.mock.mock import MockAnalysis
 
 
 @pytest.fixture(name="mapper")

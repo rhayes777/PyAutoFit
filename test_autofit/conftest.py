@@ -6,7 +6,7 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from autofit import mock
+from autofit.mock import mock
 
 directory = path.dirname(path.realpath(__file__))
 
