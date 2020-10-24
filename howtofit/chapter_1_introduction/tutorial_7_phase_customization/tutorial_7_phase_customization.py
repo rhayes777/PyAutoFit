@@ -89,7 +89,7 @@ print(
     "This Jupyter notebook cell with progress once Emcee has completed - this could take a few minutes!"
 )
 
-phase.run(dataset=dataset, mask=mask)
+# phase.run(dataset=dataset, mask=mask)
 
 print("Emcee has finished run - you may now continue the notebook.")
 
@@ -132,7 +132,7 @@ print(
     "This Jupyter notebook cell with progress once Emcee has completed - this could take a few minutes!"
 )
 
-phase.run(dataset=dataset, mask=mask)
+# phase.run(dataset=dataset, mask=mask)
 
 print("Emcee has finished run - you may now continue the notebook.")
 
