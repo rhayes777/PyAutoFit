@@ -78,7 +78,7 @@ instance = model.instance_from_vector(vector=[0.1, 0.2, 0.3, 0.4, 0.5, 0.01])
 # %%
 """
 This `instance` contains each of the model components we defined above, using the input argument name of the
-_CollectionoPriorModel_ to define the attributes in the `instance`:
+`CollectionoPriorModel` to define the attributes in the `instance`:
 """
 
 # %%
