@@ -35,7 +35,7 @@ The simplest way to install **PyAutoFit** is via `pip`:
 
     pip install autofit
 
-Clone ``autofit_workspace```` (``--depth 1`` clones only the most recent branch on the autofit_workspace, reducing 
+Clone ``autofit_workspace`` (``--depth 1`` clones only the most recent branch on the autofit_workspace, reducing
 the download size):
 
 .. code-block:: bash
@@ -75,7 +75,7 @@ Install ``autofit``:
 
     pip install autofit
 
-Clone the ``autofit_workspace`` ``WORKSPACE` (``--depth 1`` clones only the most recent branch on the autofit_workspace, 
+Clone the ``autofit_workspace`` (``--depth 1`` clones only the most recent branch on the autofit_workspace,
 reducing the download size):
 
 .. code-block:: bash
@@ -132,14 +132,14 @@ that, when you run an example script, you should run it from the ``autofit_works
 .. code-block:: bash
 
     cd path/to/autofit_workspace (if you are not already in the autofit_workspace).
-    python3 examples/model/beginner/mass_total__source_parametric.py
+    python3 examples/simple/fit.py
 
 The reasons for this are so that **PyAutoFit** can:
  
  - Load configuration settings from config files in the ``autofit_workspace/config`` folder.
  - Load example data from the ``autofit_workspace/dataset`` folder.
  - Output the results of models fits to your hard-disk to the ``autofit/output`` folder. 
- - Import modules from the ``autofit_workspace``, for example ``from autofit_workspace.transdimensional import pipelines``.
+ - Import modules from the ``autofit_workspace``, for example ``from autofit_workspace.examples.simple import model as m``.
 
 If you have any errors relating to importing modules, loading data or outputting results it is likely because you
 are not running the script with the ``autofit_workspace`` as the working directory!

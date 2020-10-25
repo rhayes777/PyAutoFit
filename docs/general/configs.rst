@@ -47,12 +47,6 @@ This config file is found at ``autofit_workspace/config/general.ini`` and contai
         This feature was implemented because super-computers often have a limit on the number of files allowed per
         user and the large number of files output by **PyAutoFit** can exceed this limit. By removing files the
         number of files is restricted only to the .zip files.
-    skip_completed -> bool
-        If `True`, and if the results of a ``NonLinearSearch`` were completed in a previous run, then all processing steps
-        performed at the end of the ``NonLinearSearch`` (e.g. output of sample results, visualization, etc.) are skipped.
-
-        If `False`, they are repeated, which can be used for updating visualization or the ``NonLinearSearch`` pickles
-        to a new version of PyAutoFit.
     grid_results_interval -> int
         For a ``GridSearch`` this interval sets after how many samples on the grid output is
         performed for. A ``grid_results_interval`` of -1 turns off output.
@@ -95,11 +89,6 @@ The following config sections and variables are generic across all ``NonLinearSe
     silence -> bool
         If `True`, the default print output of the ``NonLinearSearch`` is silenced and not printed by the Python
         interpreter.
-
-[prior_passer]
-sigma=3.0
-use_errors=True
-use_widths=True
 
 [parallel]
     number_of_cores -> int

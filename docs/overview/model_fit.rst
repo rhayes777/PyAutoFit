@@ -42,11 +42,11 @@ name and the constructor arguments are its *parameters*.
             self.sigma = sigma
 
 The code above defines a **PyAutoFit** *model component* called a ``Gaussian``. When used for *model-fitting* it has
-three parameters, ``centre``, ``intensity`` and ``sigma``.
+three parameters: ``centre``, ``intensity`` and ``sigma``.
 
 When we fit the model to ``data`` and compute a likelihood an instance of the class above is accessible, with specific
-values of ``centre``, ``intensity`` and ``sigma`` chosen by the algorithm used to fit the model to the data, called a
-``NonLinearSearch``.
+values of ``centre``, ``intensity`` and ``sigma`` chosen by the ``NonLinearSearch`` algorithm that fits the model to
+the data.
 
 This means that the class's functions are available to compute the likelihood, so lets add a ``profile_from_xvalues``
 function that generates the 1D profile from the ``Gaussian``.
@@ -91,23 +91,23 @@ define a **PyAutoFit** ``Analysis`` class:
         def log_likelihood_function(self, instance):
 
             # The 'instance' that comes into this method is an instance of the Gaussian
-            # class, which the print statements below illustrate if you run the code!
+            # class, which the print statements below illustrates if you run the code!
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
             print("Intensity = ", instance.intensity)
             print("Sigma = ", instance.sigma)
 
-            # Get the range of x-values the ``data`` is defined on, to evaluate the model
+            # Get the range of x-values the data is defined on, to evaluate the model
             # of the Gaussian.
 
             xvalues = np.arange(self.data.shape[0])
 
-            # Use these xvalues to create model ``data`` of our Gaussian.
+            # Use these xvalues to create model_data of our Gaussian.
             model_data = instance.profile_from_xvalues(xvalues=xvalues)
 
             # Fit the model gaussian to the data, computing the residuals, chi-squareds
-            # and returning the log likelihood value to the ``NonLinearSearch``.
+            # and returning the log likelihood value to the NonLinearSearch.
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -118,14 +118,14 @@ define a **PyAutoFit** ``Analysis`` class:
 Lets consider exactly what is happening in the ``Analysis`` class above.
 
 - The ``data`` the model fits to is passed into the constructor of the ``Analysis`` class. Above, only the
-  ``data`` and ``noise_map`` are input, but the constructor can be easily extended to add other ``data`` components.
+  ``data`` and ``noise_map`` are input, but the constructor can be easily extended to add other parts of the dataset.
 
 - The ``log_likelihood_function`` receives an ``instance`` of the model, which in this example is an ``instance`` of the
   ``Gaussian`` class. This ``instance`` has values for its *parameters* (``centre``, ``intensity`` and ``sigma``) which are
   chosen by the ``NonLinearSearch`` used to fit the model, as discussed next.
 
-- The ``log_likelihood_function`` returns a log likelihood value, which the ``NonLinearSearch`` uses to vary parameter
-  values and sample parameter space.
+- The ``log_likelihood_function`` returns a log likelihood value, which the ``NonLinearSearch`` uses evaluate the
+  goodness-of-fit of a model to the data when sampling parameter space.
 
 Next, we *compose* our model, set up our ``Analysis`` and fit the model to the ``data`` using a ``NonLinearSearch``:
 
@@ -144,7 +144,7 @@ be used as a *model component* where its *parameters* are to be fitted for by th
 defined with 3 free parameters, thus the dimensionality of non-linear parameter space is 3.
 
 We perform the fit using the ``NonLinearSearch`` algorithm `emcee <https://github.com/dfm/emcee>`_ (we cover
-*``NonLinearSearch``'s in more detail in a later API overview).
+``NonLinearSearch``'s in more detail later).
 
 By running the code above **PyAutoFit** performs the model-fit, outputting all results into structured paths on you
 hard-disk. It also returns a ``Result`` object in Python, which includes lists containing the ``NonLinearSearch``'s

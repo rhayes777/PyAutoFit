@@ -9,9 +9,7 @@ A ``NonLinearSearch``'s fit function returns a ``Result`` object:
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   emcee = af.Emcee(
-       number_of_cores=4
-   )
+   emcee = af.Emcee(number_of_cores=4)
 
    result = emcee.fit(model=model, analysis=analysis)
 
@@ -144,7 +142,7 @@ discussed above was a part of its ``Samples`` property! For projects which use *
 API (see `here <https://pyautofit.readthedocs.io/en/latest/overview/phase.html>`_), the ``Result``'s object
 can be extended to include model-specific results.
 
-For example, we may extend the results of our 1D ``Gaussian example`` to include properties like the
+For example, we may extend the results of our 1D ``Gaussian`` example to include properties like the
 ``max_log_likelihood_profile`` (e.g. the 1D model data of the best-fit profile) or a list of these
 profiles for every individual line profile in the model:
 

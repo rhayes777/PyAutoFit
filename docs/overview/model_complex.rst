@@ -93,10 +93,10 @@ class:
 
         def log_likelihood_function(self, instance):
 
-            # The 'instance' that comes into this method is a CollectionPriorModel. It contains instances of every
-            # class we instantiated it with, where each instance is named following the names given to the
-            # CollectionPriorModel, which in this example is a Gaussian (with name 'gaussian) and Exponential
-            # (with name 'exponential'):
+            # The 'instance' that comes into this method is a CollectionPriorModel. It contains
+            # instances of every class we instantiated it with, where each instance is named
+            # following the names given to the CollectionPriorModel, which in this example is a
+            # Gaussian (with name 'gaussian) and Exponential (with name 'exponential'):
 
             print("Gaussian Instance:")
             print("Centre = ", instance.gaussian.centre)
@@ -108,16 +108,19 @@ class:
             print("Intensity = ", instance.exponential.intensity)
             print("Rate = ", instance.exponential.rate)
 
-            # Get the range of x-values the ``data`` is defined on, to evaluate the model of the line profiles.
+            # Get the range of x-values the data is defined on, to evaluate the model of the
+            # line profiles.
 
             xvalues = np.arange(self.data.shape[0])
 
-            # The ``instance`` variable is a list of our model components. We can iterate over this list, calling their
-            # profile_from_xvalues and summing the result to compute the summed line profile of our model.
+            # The instance variable is a list of our model components. We can iterate over
+            # this list, calling their profile_from_xvalues and summing the result to compute
+            # the summed line profile of our model.
 
             model_data = sum([line.profile_from_xvalues(xvalues=xvalues) for line in instance])
 
-            # Fit the model line profile ``data`` to the observed data, computing the residuals and chi-squareds.
+            # Fit the model line profile data to the observed data, computing the residuals and
+            # chi-squareds.
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
