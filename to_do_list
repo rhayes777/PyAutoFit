@@ -11,6 +11,14 @@ Readthedocs:
 
     - Read docstring API, use notebook sphinx
 
+Samples:
+
+    - The 1D PDF array of a given parameter, via either histogram or KDE.
+    - The Gaussian that best fits the PDF, via the method above, for a parameter in 1D.
+    - A function that returns that highest likelihood instance of a model for a parameter between a
+      range of values for that parameter.
+    - parameters_for_param_index method (or use the name).
+
 Future:
 
 Ideas / Other:
