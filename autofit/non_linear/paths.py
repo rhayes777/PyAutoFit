@@ -172,13 +172,6 @@ class Paths:
         return f"{self.output_path}/samples"
 
     @property
-    def samples_from_sym_path(self) -> str:
-        """
-        The path to the samples folder.
-        """
-        return f"{self.output_path}/samples_from_sym"
-
-    @property
     def zip_path(self) -> str:
         return f"{self.output_path}.zip"
 
@@ -299,19 +292,19 @@ class Paths:
 
     @property
     def file_summary(self) -> str:
-        return "{}/{}".format(self.samples_from_sym_path, "multinestsummary.txt")
+        return "{}/{}".format(self.samples_path, "multinestsummary.txt")
 
     @property
     def file_weighted_samples(self):
-        return "{}/{}".format(self.samples_from_sym_path, "multinest.txt")
+        return "{}/{}".format(self.samples_path, "multinest.txt")
 
     @property
     def file_phys_live(self) -> str:
-        return "{}/{}".format(self.samples_from_sym_path, "multinestphys_live.points")
+        return "{}/{}".format(self.samples_path, "multinestphys_live.points")
 
     @property
     def file_resume(self) -> str:
-        return "{}/{}".format(self.samples_from_sym_path, "multinestresume.dat")
+        return "{}/{}".format(self.samples_path, "multinestresume.dat")
 
     @property
     def file_search_summary(self) -> str:
@@ -325,19 +318,12 @@ class Paths:
         """
         Copy files from the sym-linked search folder to the samples folder.
         """
-        try:
-            shutil.rmtree(self.samples_from_sym_path)
-        except FileNotFoundError:
-            pass
 
-     #   print(os.listdir(self.path))
-
-     #   stop
-
-        try:
-            shutil.copytree(self.path, self.samples_from_sym_path)
-        except shutil.Error as e:
-            logger.exception(e)
+        src_files = os.listdir(self.path)
+        for file_name in src_files:
+            full_file_name = os.path.join(self.path, file_name)
+            if os.path.isfile(full_file_name):
+                shutil.copy(full_file_name, self.samples_path)
 
     def zip_remove(self):
         """

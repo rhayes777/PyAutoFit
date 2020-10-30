@@ -366,7 +366,6 @@ class AbstractDynesty(AbstractNest):
             ):
                 finished = True
 
-
     def copy_with_name_extension(self, extension, remove_phase_tag=False):
         """Copy this instance of the dynesty `NonLinearSearch` with all associated attributes.
 
