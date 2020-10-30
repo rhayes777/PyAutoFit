@@ -1,3 +1,4 @@
+from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
 from autofit.non_linear.log import logger
@@ -201,6 +202,40 @@ class MultiNest(abstract_nest.AbstractNest):
         )
 
         logger.debug("Creating MultiNest NLO")
+
+    class Fitness(abstract_nest.AbstractNest.Fitness):
+
+        def __init__(self, paths, model, analysis, samples_from_model, stagger_resampling_likelihood,
+                     terminate_at_acceptance_ratio,
+                     acceptance_ratio_threshold, log_likelihood_cap=None, pool_ids=None):
+
+            super().__init__(paths=paths, model=model, analysis=analysis,
+                             samples_from_model=samples_from_model,
+                             stagger_resampling_likelihood=stagger_resampling_likelihood,
+                             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
+                             acceptance_ratio_threshold=acceptance_ratio_threshold,
+                             log_likelihood_cap=log_likelihood_cap,
+                             pool_ids=pool_ids)
+
+            should_update_sym = conf.instance["non_linear"]["nest"]["MultiNest"]["updates"]["should_update_sym"]
+
+            self.should_update_sym = abstract_search.IntervalCounter(should_update_sym)
+
+        def fit_instance(self, instance):
+
+            if self.should_update_sym():
+                self.paths.copy_from_sym()
+
+            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+
+            if self.log_likelihood_cap is not None:
+                if log_likelihood > self.log_likelihood_cap:
+                    log_likelihood = self.log_likelihood_cap
+
+            if log_likelihood > self.max_log_likelihood:
+                self.max_log_likelihood = log_likelihood
+
+            return log_likelihood
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> abstract_search.Result:
         """
