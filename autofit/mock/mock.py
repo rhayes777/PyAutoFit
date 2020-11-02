@@ -16,7 +16,7 @@ class MockAnalysis(af.Analysis):
         self.fit_instances.append(instance)
         return [1]
 
-    def visualize(self, instance, during_analysis):
+    def visualize(self, paths, instance, during_analysis):
         pass
 
     def log(self, instance):

@@ -1,4 +1,4 @@
-from howtofit.simulators.chapter_1 import profiles
+import profiles
 
 import autofit as af
 import numpy as np

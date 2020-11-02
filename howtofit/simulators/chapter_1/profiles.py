@@ -30,7 +30,7 @@ class Profile:
             Overall intensity normalisation of the profile.
         """
 
-        # Every profile class we add below (e.g. Gaussian, Exponential) will call this ``.nit__ method of the Profile
+        # Every profile class we add below (e.g. Gaussian, Exponential) will call this __init__ method of the Profile
         # base class. Given that every profile will have a centre and intensity, this means we can set these parameters
         # in the Profile class`s init method instead of repeating the two lines of code for every individual profile.
 
@@ -64,11 +64,11 @@ class Gaussian(Profile):
             The sigma value controlling the size of the Gaussian.
         """
 
-        # Writing (Profile) above does not mean the `Gaussian` class will call the Profile class`s ``.nit__ method. To
+        # Writing (Profile) above does not mean the `Gaussian` class will call the Profile class`s __init__ method. To
         # achieve this we have the call the `super` method following the format below.
         super(Gaussian, self).__init__(centre=centre, intensity=intensity)
 
-        # This super method calls the ``.nit__ method of the Profile class above, which means we do not need
+        # This super method calls the __init__ method of the Profile class above, which means we do not need
         # to write the two lines of code below (which are commented out given they are not necessary).
 
         # self.centre = centre

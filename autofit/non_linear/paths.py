@@ -172,6 +172,13 @@ class Paths:
         return f"{self.output_path}/samples"
 
     @property
+    def image_path(self) -> str:
+        """
+        The path to the samples folder.
+        """
+        return f"{self.output_path}/image"
+
+    @property
     def zip_path(self) -> str:
         return f"{self.output_path}.zip"
 
