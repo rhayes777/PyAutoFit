@@ -17,7 +17,7 @@ results in **PyAutoFit** work before covering more advanced material.
 from pyprojroot import here
 
 workspace_path = str(here())
-#%cd $workspace_path
+%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af

@@ -48,7 +48,7 @@ https://towardsdatascience.com/a-zero-math-introduction-to-markov-chain-monte-ca
 from pyprojroot import here
 
 workspace_path = str(here())
-#%cd $workspace_path
+%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
