@@ -20,6 +20,8 @@ import sys
 
 os.system("git clone https://github.com/Jammy2211/autofit_workspace --depth 1")
 os.system(f"cp -r autofit_workspace/dataset {workspace_path}")
+os.system(f"cp -r autofit_workspace/howtofit/chapter_1_introduction/*.py {workspace_path}")
+os.system(f"cp -r autofit_workspace/howtofit/chapter_phase_api/src {workspace_path}")
 os.system("rm -rf autofit_workspace")
 
 sys.path.insert(0, os.path.abspath('.'))
