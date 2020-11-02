@@ -24,7 +24,7 @@ generate it as the sum of all individual profiles in our model.
 from pyprojroot import here
 
 workspace_path = str(here())
-%cd $workspace_path
+#%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
@@ -163,7 +163,7 @@ example, in the model above, the `model_data` is the sum of the `Gaussian`'s  in
 individual profile.
 """
 
-
+# %%
 class Analysis(af.Analysis):
     def __init__(self, data, noise_map):
 
