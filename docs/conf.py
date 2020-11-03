@@ -24,6 +24,10 @@ os.system(f"cp -r autofit_workspace/howtofit/chapter_1_introduction/*.py {worksp
 os.system(f"cp -r autofit_workspace/howtofit/chapter_phase_api/src {workspace_path}")
 os.system("rm -rf autofit_workspace")
 
+os.system("git clone https://github.com/Jammy2211/autolens_files --depth 1")
+os.system(f"cp -r autolens_files/output {workspace_path}")
+os.system("rm -rf autolens_files")
+
 sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------

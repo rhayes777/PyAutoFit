@@ -422,7 +422,7 @@ model.gaussian_0.sigma = 1.0
 """This assertion forces all values of the `sigma` value of the third `Gaussian` to  be above 3.0."""
 
 # %%
-model.add_assertion(model.gaussian_0 > 3.0)
+model.gaussian_2.add_assertion(model.gaussian_2.sigma > 3.0)
 
 # %%
 """We can now fit this model as per usual."""
