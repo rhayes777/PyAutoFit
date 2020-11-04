@@ -1,6 +1,7 @@
 import multiprocessing
 from abc import ABC, abstractmethod
 from time import sleep
+from typing import List
 
 from autofit.non_linear.log import logger
 
@@ -45,3 +46,32 @@ class Process(multiprocessing.Process):
                 self.queue.put(job.perform())
         logger.info("terminating process {}".format(self.name))
         self.job_queue.close()
+
+    @classmethod
+    def run_jobs(cls, jobs: List[AbstractJob], number_of_cores):
+        job_queue = multiprocessing.Queue()
+
+        processes = [
+            Process(str(number), job_queue)
+            for number in range(number_of_cores - 1)
+        ]
+
+        for job in jobs:
+            job_queue.put(job)
+
+        for process in processes:
+            process.start()
+
+        count = 0
+
+        while count < len(jobs):
+            for process in processes:
+                while not process.queue.empty():
+                    result = process.queue.get()
+                    count += 1
+                    yield result
+
+        job_queue.close()
+
+        for process in processes:
+            process.join(timeout=1.0)

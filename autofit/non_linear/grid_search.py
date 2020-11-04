@@ -1,5 +1,4 @@
 import copy
-import multiprocessing
 from typing import List
 
 import numpy as np
@@ -9,7 +8,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import Result
-from autofit.non_linear.parallel import Process, AbstractJob
+from autofit.non_linear.parallel import AbstractJob, Process
 from autofit.non_linear.paths import Paths
 
 
@@ -319,39 +318,27 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
-        job_queue = multiprocessing.Queue()
-
-        processes = [
-            Process(str(number), job_queue)
-            for number in range(self.number_of_cores - 1)
-        ]
+        jobs = list()
 
         for index, values in enumerate(lists):
-            job = self.job_for_analysis_grid_priors_and_values(
-                analysis=copy.deepcopy(analysis),
-                model=model,
-                grid_priors=grid_priors,
-                values=values,
-                index=index,
+            jobs.append(
+                self.job_for_analysis_grid_priors_and_values(
+                    analysis=copy.deepcopy(analysis),
+                    model=model,
+                    grid_priors=grid_priors,
+                    values=values,
+                    index=index,
+                )
             )
-            job_queue.put(job)
 
-        for process in processes:
-            process.start()
+        for result in Process.run_jobs(
+                jobs,
+                self.number_of_cores
+        ):
+            results.append(result.result)
+            results_list.append(result.result_list_row)
 
-        while len(results) < len(lists):
-            for process in processes:
-                while not process.queue.empty():
-                    result = process.queue.get()
-                    results.append(result.result)
-                    results_list.append(result.result_list_row)
-
-                    self.write_results(results_list)
-
-        job_queue.close()
-
-        for process in processes:
-            process.join(timeout=1.0)
+            self.write_results(results_list)
 
         return GridSearchResult(results, lists, physical_lists)
 

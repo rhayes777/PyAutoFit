@@ -1,3 +1,4 @@
+import multiprocessing
 from typing import List, Generator, Callable
 
 from autofit import AbstractPriorModel, ModelInstance
@@ -42,6 +43,14 @@ class Sensitivity:
         self.step_size = step_size
         self.perturbation_model = perturbation_model
         self.image_function = image_function
+
+    def run(self):
+        job_queue = multiprocessing.Queue()
+
+        processes = [
+            Process(str(number), job_queue)
+            for number in range(self.number_of_cores - 1)
+        ]
 
     @property
     def lists(self) -> List[List[float]]:
