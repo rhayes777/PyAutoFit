@@ -129,16 +129,27 @@ class AbstractModelFactor(ABC):
     def global_likelihood(self, instance):
         likelihood = abs(
             self.model_factors[0].likelihood_function(
-                instance
+                instance[0]
             )
         )
-        for model_factor in self.model_factors[1:]:
+        for model_factor, instance_ in zip(
+                self.model_factors[1:],
+                instance[1:]
+        ):
             likelihood *= abs(
                 model_factor.likelihood_function(
-                    instance
+                    instance_
                 )
             )
         return -likelihood
+
+    @property
+    def global_prior_model(self):
+        return CollectionPriorModel([
+            model_factor.prior_model
+            for model_factor
+            in self.model_factors
+        ])
 
 
 class ModelFactor(Factor, AbstractModelFactor):
