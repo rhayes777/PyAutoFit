@@ -3,7 +3,8 @@ import pytest
 
 import autofit as af
 import autofit.graphical as ep
-from test_autofit.unit.graphical.gaussian.model import Gaussian, make_data, _likelihood
+from test_autofit.unit.graphical.gaussian.model import make_data, _likelihood
+from autofit.mock.mock import Gaussian
 
 
 def test_shared_intensity():

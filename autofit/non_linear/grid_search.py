@@ -1,6 +1,5 @@
 import copy
 import multiprocessing
-from time import sleep
 from typing import List
 
 import numpy as np
@@ -10,7 +9,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import Result
-from autofit.non_linear.log import logger
+from autofit.non_linear.parallel import Process, AbstractJob
 from autofit.non_linear.paths import Paths
 
 
@@ -284,14 +283,12 @@ class GridSearch:
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
-        if self.parallel:
-            return self.fit_parallel(
-                model=model, analysis=analysis, grid_priors=grid_priors
-            )
-        else:
-            return self.fit_sequential(
-                model=model, analysis=analysis, grid_priors=grid_priors
-            )
+        func = self.fit_parallel if self.parallel else self.fit_sequential
+        return func(
+            model=model,
+            analysis=analysis,
+            grid_priors=grid_priors
+        )
 
     def fit_parallel(self, model, analysis, grid_priors):
         """
@@ -493,7 +490,7 @@ class JobResult:
         self.result_list_row = result_list_row
 
 
-class Job:
+class Job(AbstractJob):
     def __init__(self, search_instance, model, analysis, arguments, index):
         """
         A job to be performed in parallel.
@@ -522,42 +519,6 @@ class Job:
         ]
 
         return JobResult(result, result_list_row)
-
-
-class Process(multiprocessing.Process):
-    def __init__(self, name: str, job_queue: multiprocessing.Queue):
-        """
-        A parallel process that consumes Jobs through the job queue and outputs results through its own queue.
-
-        Parameters
-        ----------
-        name: str
-            The name of the process
-        job_queue: multiprocessing.Queue
-            The queue through which jobs are submitted
-        """
-        super().__init__(name=name)
-        logger.info("created process {}".format(name))
-
-        self.job_queue = job_queue
-        self.queue = multiprocessing.Queue()
-        self.count = 0
-        self.max_count = 250
-
-    def run(self):
-        logger.info("starting process {}".format(self.name))
-        while True:
-            sleep(0.025)
-            if self.count >= self.max_count:
-                break
-            if self.job_queue.empty():
-                self.count += 1
-            else:
-                self.count = 0
-                job = self.job_queue.get()
-                self.queue.put(job.perform())
-        logger.info("terminating process {}".format(self.name))
-        self.job_queue.close()
 
 
 def grid(fitness_function, no_dimensions, step_size):
