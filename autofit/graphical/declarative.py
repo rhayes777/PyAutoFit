@@ -9,7 +9,7 @@ from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
 
 
 class AbstractModelFactor(ABC):
@@ -126,11 +126,25 @@ class AbstractModelFactor(ABC):
             arguments
         )
 
+    def global_likelihood(self, instance):
+        likelihood = abs(
+            self.model_factors[0].likelihood_function(
+                instance
+            )
+        )
+        for model_factor in self.model_factors[1:]:
+            likelihood *= abs(
+                model_factor.likelihood_function(
+                    instance
+                )
+            )
+        return -likelihood
+
 
 class ModelFactor(Factor, AbstractModelFactor):
     def __init__(
             self,
-            prior_model: PriorModel,
+            prior_model: AbstractPriorModel,
             likelihood_function: Callable
     ):
         """
@@ -154,7 +168,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-        Returnss an instance of the prior model and evaluates it, forming
+        Returns an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters
