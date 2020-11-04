@@ -89,7 +89,7 @@ class CollectionPriorModel(AbstractPriorModel):
             if isinstance(arguments, dict):
                 self.add_dict_items(arguments)
         else:
-            raise AssertionError("TODO")
+            self.__init__(arguments)
 
     def add_dict_items(self, item_dict):
         for key, value in item_dict.items():

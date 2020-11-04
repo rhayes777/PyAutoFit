@@ -537,11 +537,6 @@ class Result:
         ----------
         previous_model
             The model mapper from the stage that produced this result
-<<<<<<< HEAD
-        prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-=======
->>>>>>> 73e304fd8ae4aab89840fc8e3f8324f8db904a6d
         """
 
         self.samples = samples
