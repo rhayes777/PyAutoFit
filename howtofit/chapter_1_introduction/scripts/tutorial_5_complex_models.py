@@ -1,6 +1,6 @@
 # %%
 """
-Tutorial 6: Complex Models
+Tutorial 5: Complex Models
 ==========================
 
 Up to now, we've fitted a very simple model, a 1D `Gaussian` with 3 free parameters. In this tutorial, we'll look at
