@@ -8,8 +8,10 @@ from scipy.optimize import minimize, OptimizeResult, least_squares
 from autofit.graphical import FixedMessage
 from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs import Factor
-from autofit.graphical.mean_field import FactorApproximation, MeanFieldApproximation, Status
-from autofit.graphical.utils import propagate_uncertainty, FlattenArrays, OptResult
+from autofit.graphical.mean_field import \
+    MeanField, FactorApproximation, MeanFieldApproximation, Status
+from autofit.graphical.utils import \
+    propagate_uncertainty, FlattenArrays, OptResult
 
 
 class OptFactor:
@@ -400,12 +402,12 @@ def lstsq_laplace_factor_approx(
         f"status={result.status}, message={result.message}",)
     status = Status(result.success, message)
 
-    model_dist = {
+    model_dist = MeanField({
         v: factor_approx.factor_dist[v].from_mode(
             mode[v],
             covar.get(v))
         for v in mode
-    }
+    })
 
     projection, status = factor_approx.project(
         model_dist, delta=delta, status=status)

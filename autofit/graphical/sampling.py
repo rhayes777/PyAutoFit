@@ -7,9 +7,9 @@ import numpy as np
 
 from autofit.graphical.factor_graphs import Factor
 from autofit.graphical.messages.abstract import AbstractMessage
-from .mean_field import MeanFieldApproximation, FactorApproximation, Status
-from .messages import map_dists
-from .utils import add_arrays
+from autofit.graphical.mean_field import MeanField, MeanFieldApproximation, FactorApproximation, Status
+from autofit.graphical.messages import map_dists
+from autofit.graphical.utils import add_arrays
 
 
 class SamplingResult(NamedTuple):
@@ -234,9 +234,9 @@ def project_factor_approx_sample(
         v: factor_approx.factor.collapse(v, sample.log_weights, agg_func=np.sum)
         for v in factor_approx.all_cavity_dist}
 
-    model_dist = {
+    model_dist = MeanField({
         v: factor_approx.factor_dist[v].project(x, variable_log_weights.get(v))
-        for v, x in chain(sample.samples.items(), sample.det_variables.items())}
+        for v, x in chain(sample.samples.items(), sample.det_variables.items())})
     return model_dist
 
 

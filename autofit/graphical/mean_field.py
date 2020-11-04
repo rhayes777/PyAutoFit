@@ -98,12 +98,14 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             self, 
             dists: Dict[Variable, AbstractMessage], 
             log_norm: np.ndarray = 0.):
-        
-        
         dict.__init__(self, dists)
         Factor.__init__(
             self, self._logpdf, **{v.name: v for v in dists})
-        self.log_norm = log_norm
+
+        if isinstance(dists, MeanField):
+            self.log_norm = dists.log_norm
+        else:
+            self.log_norm = log_norm
 
     pop = dict.pop 
     values = dict.values 
@@ -228,7 +230,7 @@ class FactorApproximation(NamedTuple):
 
         return log_result
 
-    project = project_on_to_factor_approx
+    project_on_to_factor_approx = project_on_to_factor_approx
 
     def project_mean_field(
             self, 
@@ -257,6 +259,7 @@ class FactorApproximation(NamedTuple):
         )
         return new_approx, Status(success, messages)
 
+    project = project_mean_field
 
     def __repr__(self):
         # TODO make this nicer
@@ -488,16 +491,19 @@ class EPMeanField(AbstractNode):
             factor, cavity_dist, factor_dist, model_dist)
 
     def project_factor_approx(
-        self, projection: FactorApproximation
+        self, projection: FactorApproximation, status: Optional[Status] = None,
     ) -> "EPMeanField":
         """
         """
         factor_mean_field = self.factor_mean_field
         factor_mean_field[projection.factor] = projection.factor_dist
 
-        return type(self)(
+        new_approx = type(self)(
             factor_graph=self._factor_graph,
             factor_mean_field=factor_mean_field)
+        return new_approx, status
+
+    project = project_factor_approx
 
     @property
     def mean_field(self) -> MeanField:
@@ -540,21 +546,22 @@ class EPMeanField(AbstractNode):
     
     @property
     def log_evidence(self):
-        """ Calculates evidence for the EP approximation
+        """
+        Calculates evidence for the EP approximation
 
         Evidence for a variable, x_i,
 
-        Z_i = \int \prod_a m_{a \rightarrow i}(x_i) d x_i
+        Zᵢ = ∫ ∏ₐ m_{a → i} (xᵢ) dxᵢ
 
         Evidence for a factor, f_a,
 
-        Z_a = \frac
-            {\int \prod_{j \in \alpha} m_{j \rightarrow a}(x_j) f_a (x_a) d x_a}
-            {\prod_{j \in \alpha} Z_i}
+                ∫ ∏_{j ∈ a} m_{a → i} (xᵢ) fₐ(xₐ) dxₐ
+        Zₐ = -----------------------------------------
+                             ∏_{j ∈ a} Zⱼ
 
         Evidence for model
 
-        Z = \prod_i Z_i \prod_a Z_a
+        Z = ∏ᵢ Zᵢ ∏ₐ Zₐ
         """
         variable_evidence = {
             v: np.sum(Zi) for v, Zi in self.variable_evidence.items()}
