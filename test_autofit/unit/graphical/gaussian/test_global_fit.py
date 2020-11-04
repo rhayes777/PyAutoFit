@@ -23,6 +23,25 @@ def make_model_factor():
     )
 
 
+@pytest.fixture(
+    name="model_factor_2"
+)
+def make_model_factor_2():
+    model_2 = af.Collection(
+        one=af.UniformPrior()
+    )
+
+    def likelihood_function(
+            instance
+    ):
+        return -(instance.one - 0.0) ** 2
+
+    return g.ModelFactor(
+        model_2,
+        likelihood_function
+    )
+
+
 class TestGlobalLikelihood:
     @pytest.mark.parametrize(
         "unit_value, likelihood",
@@ -76,23 +95,10 @@ class TestGlobalLikelihood:
     def test_two_factor(
             self,
             model_factor,
+            model_factor_2,
             unit_vector,
             likelihood
     ):
-        model_2 = af.Collection(
-            one=af.UniformPrior()
-        )
-
-        def likelihood_function(
-                instance
-        ):
-            return -(instance.one - 0.0) ** 2
-
-        model_factor_2 = g.ModelFactor(
-            model_2,
-            likelihood_function
-        )
-
         collection = g.ModelFactorCollection(
             model_factor,
             model_factor_2
@@ -103,3 +109,25 @@ class TestGlobalLikelihood:
                 unit_vector
             )
         ) == likelihood
+
+    def test_global_search(
+            self,
+            model_factor,
+            model_factor_2
+    ):
+        collection = g.ModelFactorCollection(
+            model_factor,
+            model_factor_2
+        )
+        search = af.MockSearch()
+
+        class Analysis(af.Analysis):
+            def log_likelihood_function(self, instance):
+                return collection.global_likelihood(
+                    instance
+                )
+
+        search.fit(
+            collection.global_prior_model,
+            Analysis()
+        )
