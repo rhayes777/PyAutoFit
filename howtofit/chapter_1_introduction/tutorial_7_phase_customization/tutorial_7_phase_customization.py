@@ -22,7 +22,6 @@ they change the behaviour of **PyAutoFit**.
 #%matplotlib inline
 
 from pyprojroot import here
-
 workspace_path = str(here())
 #%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
@@ -30,7 +29,7 @@ print(f"Working Directory has been set to `{workspace_path}`")
 import autofit as af
 import numpy as np
 
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization import (
     src as htf,
 )
 
@@ -77,7 +76,7 @@ Set up the`Dataset` and `mask`.
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x1"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
@@ -90,7 +89,7 @@ print(
     "This Jupyter notebook cell with progress once Emcee has completed - this could take a few minutes!"
 )
 
-phase.run(dataset=dataset, mask=mask)
+# phase.run(dataset=dataset, mask=mask)
 
 print("Emcee has finished run - you may now continue the notebook.")
 
@@ -133,7 +132,7 @@ print(
     "This Jupyter notebook cell with progress once Emcee has completed - this could take a few minutes!"
 )
 
-phase.run(dataset=dataset, mask=mask)
+# phase.run(dataset=dataset, mask=mask)
 
 print("Emcee has finished run - you may now continue the notebook.")
 

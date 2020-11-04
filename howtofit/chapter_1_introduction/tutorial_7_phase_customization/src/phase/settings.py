@@ -1,6 +1,6 @@
 import autofit as af
 
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset import (
+from howtofit.chapter_1_introduction.tutorial_7_phase_customization.src.dataset import (
     dataset as ds,
 )
 

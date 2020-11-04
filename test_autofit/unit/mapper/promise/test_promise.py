@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import autofit as af
-from autofit import mock
+from autofit.mock import mock
 
 
 @pytest.fixture(name="model_promise")

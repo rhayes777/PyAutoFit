@@ -60,16 +60,16 @@ A number of these parameters are not part of the ``emcee`` package, but addition
 **PyAutoFit**:
 
 - Initialization methods for the walkers are provided, including the strategy recommended at
- this `page <https://emcee.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where
- the walkers are initialized as a compact 'ball' in parameter space.
+this `page <https://emcee.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where
+the walkers are initialized as a compact 'ball' in parameter space.
 
 - Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have
- converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at
- this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
+converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at
+this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
 
 The nested sampling algorithm ``dynesty`` has its own config file for default settings, which are at
- this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/Dynesty.ini>`_.
- ``DynestyStatic`` parameters can be manually specified as follows:
+this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/Dynesty.ini>`_.
+``DynestyStatic`` parameters can be manually specified as follows:
 
 .. code-block:: bash
 
@@ -126,9 +126,7 @@ found in the default config files):
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   emcee = af.Emcee(
-       number_of_cores=4
-   )
+   emcee = af.Emcee(number_of_cores=4)
 
    result = emcee.fit(model=model, analysis=analysis)
 
@@ -136,9 +134,7 @@ found in the default config files):
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   dynesty = af.DynestyStatic(
-       number_of_cores=4
-   )
+   dynesty = af.DynestyStatic(number_of_cores=4)
 
    result = dynesty.fit(model=model, analysis=analysis)
 

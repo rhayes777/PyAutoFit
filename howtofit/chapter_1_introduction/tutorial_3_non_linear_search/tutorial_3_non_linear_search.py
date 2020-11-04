@@ -44,7 +44,6 @@ a complete description of *non-linear searches* in chapter 2 of the HowToFit lec
 #%matplotlib inline
 
 from pyprojroot import here
-
 workspace_path = str(here())
 #%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
@@ -60,7 +59,7 @@ Load the dataset from the `autofit_workspace/dataset` folder.
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x1"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
@@ -92,7 +91,7 @@ Lets import the `Gaussian` class for this tutorial, which is the model we will f
 """
 
 # %%
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_3_non_linear_search import (
+from howtofit.chapter_1_introduction.tutorial_3_non_linear_search import (
     gaussian as g,
 )
 

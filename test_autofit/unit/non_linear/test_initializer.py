@@ -1,5 +1,5 @@
 import autofit as af
-from autofit.mock import MockClassx4
+from autofit.mock.mock import MockClassx4
 
 
 class MockFitness:

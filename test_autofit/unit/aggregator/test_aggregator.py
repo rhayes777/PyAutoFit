@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.mock import MockPhaseOutput
+from autofit.mock.mock import MockPhaseOutput
 
 
 def test_completed_aggregator(

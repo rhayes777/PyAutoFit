@@ -14,13 +14,12 @@ we'll fit 3 different `Dataset`s, each with a single `Gaussian` model.
 #%matplotlib inline
 
 from pyprojroot import here
-
 workspace_path = str(here())
-#%cd $workspace_path
+%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results import src as htf
+from howtofit.chapter_2_results import src as htf
 import numpy as np
 
 # %%
@@ -59,7 +58,7 @@ for dataset_name in dataset_names:
 
     """The code below creates the `Dataset` and `mask` as per usual."""
 
-    dataset_path = f"dataset/chapter_2/{dataset_name}"
+    dataset_path = f"dataset/howtofit/chapter_2/{dataset_name}"
 
     data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
     noise_map = af.util.numpy_array_from_json(

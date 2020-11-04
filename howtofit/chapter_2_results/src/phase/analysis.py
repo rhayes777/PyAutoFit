@@ -1,7 +1,7 @@
 import autofit as af
 
-from autofit_workspace.howtofit.chapter_2_results.src.fit import fit as f
-from autofit_workspace.howtofit.chapter_2_results.src.phase import visualizer
+from howtofit.chapter_2_results.src.fit import fit as f
+from howtofit.chapter_2_results.src.phase import visualizer
 
 import pickle
 

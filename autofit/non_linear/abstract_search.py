@@ -59,7 +59,6 @@ class NonLinearSearch(ABC):
 
         self.timer = Timer(paths=paths)
 
-        self.skip_completed = conf.instance["general"]["output"]["skip_completed"]
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
         self.log_file = conf.instance["general"]["output"]["log_file"].replace(
@@ -218,8 +217,8 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if (not os.path.exists(
-                self.paths.has_completed_path) or not self.skip_completed) or self.force_pickle_overwrite:
+        if (not os.path.exists(self.paths.has_completed_path)) or \
+                self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
             self.save_parameter_names_file(model=model)
@@ -230,7 +229,7 @@ class NonLinearSearch(ABC):
             self.move_pickle_files(pickle_files=pickle_files)
             analysis.save_for_aggregator(paths=self.paths)
 
-        if not os.path.exists(self.paths.has_completed_path) or not self.skip_completed:
+        if not os.path.exists(self.paths.has_completed_path):
 
             # TODO : Better way to handle?
             self.timer.paths = self.paths
@@ -538,11 +537,6 @@ class Result:
         ----------
         previous_model
             The model mapper from the stage that produced this result
-<<<<<<< HEAD
-        prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-=======
->>>>>>> 73e304fd8ae4aab89840fc8e3f8324f8db904a6d
         """
 
         self.samples = samples

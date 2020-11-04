@@ -3,8 +3,8 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-from autofit import mock
-from autofit import mock_real
+from autofit.mock import mock
+from autofit.mock import mock_real
 
 
 @pytest.fixture(name="prior_model")

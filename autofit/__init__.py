@@ -50,8 +50,8 @@ from .non_linear.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
 from .non_linear.mcmc.emcee import Emcee
-from .non_linear.mock.mock_search import MockResult
-from .non_linear.mock.mock_search import MockSearch
+from .mock.mock_search import MockResult
+from .mock.mock_search import MockSearch
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multi_nest import MultiNest
@@ -79,4 +79,4 @@ from .tools.pipeline import ResultsCollection
 
 conf.instance.register(__file__)
 
-__version__ = '0.69.2'
+__version__ = '0.69.5'

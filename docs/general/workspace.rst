@@ -26,9 +26,9 @@ section of the ``readthedocs`` for a complete description of every configuration
 Examples
 --------
 
-Example scripts using the 1D ``data`` fitting model are provided here, including scripts for creating an ``Analysis`` c
-lass,performing a model-fit, inspecting results and using the ``Aggregator``. Two examples, illustrating ``simple`` and
-``complex`` model-fits are provided.
+Example scripts using the example of fitting 1D data of noisy Gaussian profiles are provided here, including scripts
+for creating an ``Analysis`` class,performing a model-fit, inspecting results and using the ``Aggregator``. Two
+examples, illustrating ``simple`` and ``complex`` model-fits are provided.
 
 HowToFit
 --------
@@ -43,10 +43,10 @@ full description of the lectures and online examples of every notebook.
 Dataset
 -------
 
-The folder where ``dataset``'s for your model-fitting problem is stored. Example ``data`` for the 1D ``data`` fitting
-problem are provided in the workspace.
+This folder stores the example dataset's used in the ``example`` package and will include the data fpr your
+model-fitting problem.
 
 Output
 ------
 
-The folder where the model-fitting results of your model-fitting problem are stored.
+The folder where the model-fitting results of a ``NonLinearSearch`` are stored.

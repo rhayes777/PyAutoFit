@@ -1,10 +1,10 @@
 import autofit as af
-from autofit_workspace.howtofit.chapter_2_results.src.dataset.dataset import (
+from howtofit.chapter_2_results.src.dataset.dataset import (
     Dataset,
     MaskedDataset,
 )
-from autofit_workspace.howtofit.chapter_2_results.src.phase.result import Result
-from autofit_workspace.howtofit.chapter_2_results.src.phase.analysis import Analysis
+from howtofit.chapter_2_results.src.phase.result import Result
+from howtofit.chapter_2_results.src.phase.analysis import Analysis
 
 # The `phase.py` module is mostly unchanged from the previous tutorial, however the `run` function has been updated.
 

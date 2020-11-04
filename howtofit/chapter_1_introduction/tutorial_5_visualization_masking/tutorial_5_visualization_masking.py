@@ -18,13 +18,12 @@ These new features have lead to an additional module in the `phase` package not 
 #%matplotlib inline
 
 from pyprojroot import here
-
 workspace_path = str(here())
 #%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
+from howtofit.chapter_1_introduction.tutorial_5_visualization_masking import (
     src as htf,
 )
 
@@ -36,7 +35,7 @@ Load the data and set up the `Dataset`.
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x1"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 

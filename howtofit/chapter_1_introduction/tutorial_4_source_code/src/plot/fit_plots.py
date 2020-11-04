@@ -1,4 +1,4 @@
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_4_source_code.src.plot import (
+from howtofit.chapter_1_introduction.tutorial_4_source_code.src.plot import (
     line_plots,
 )
 

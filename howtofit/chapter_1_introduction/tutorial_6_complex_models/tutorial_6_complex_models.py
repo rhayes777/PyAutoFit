@@ -20,14 +20,13 @@ generate it as the sum of all individual profiles in our model.
 #%matplotlib inline
 
 from pyprojroot import here
-
 workspace_path = str(here())
 #%cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
 
 import autofit as af
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_6_complex_models import (
+from howtofit.chapter_1_introduction.tutorial_6_complex_models import (
     src as htf,
 )
 
@@ -79,7 +78,7 @@ instance = model.instance_from_vector(vector=[0.1, 0.2, 0.3, 0.4, 0.5, 0.01])
 # %%
 """
 This `instance` contains each of the model components we defined above, using the input argument name of the
-_CollectionoPriorModel_ to define the attributes in the `instance`:
+`CollectionoPriorModel` to define the attributes in the `instance`:
 """
 
 # %%
@@ -130,7 +129,7 @@ Load the data and set up the `Dataset`. This uses a new `Dataset` that is a sum 
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x1__exponential_x1"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1__exponential_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
@@ -181,7 +180,7 @@ Lets fit a model composed of two `Gaussian`. and and an `Exponential`, which wil
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x2__exponential_x1"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x2__exponential_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
@@ -249,7 +248,7 @@ We can now fit this model using a `Phase` as per usual.
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x3"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x3"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 

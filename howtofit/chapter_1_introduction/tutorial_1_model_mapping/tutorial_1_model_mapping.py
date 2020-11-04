@@ -10,6 +10,7 @@ which we'll ultimately need to fit to data.
 # %%
 #%matplotlib inline
 
+from autoconf import conf
 import autofit as af
 import numpy as np
 import matplotlib.pyplot as plt
@@ -53,7 +54,7 @@ specific to your project.
 """
 
 # %%
-dataset_path = "dataset/chapter_1/gaussian_x1"
+dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
 data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
 noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
 
@@ -142,7 +143,9 @@ By writing a model component in this way, we can use the Python class to set it 
 **PyAutoFit** can the generate model components as instances of their Python class, meaning that its functions 
 (e.g. `profile_from_xvalues`) are accessible to **PyAutoFit**.
 """
-from autofit_workspace.howtofit.chapter_1_introduction.tutorial_1_model_mapping import (
+
+# %%
+from howtofit.chapter_1_introduction.tutorial_1_model_mapping import (
     gaussian as g,
 )
 
