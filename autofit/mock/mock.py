@@ -1,5 +1,3 @@
-import typing
-
 import autofit as af
 from autoconf import conf
 from autofit.tools.phase import Dataset
@@ -201,23 +199,6 @@ class MockClassInf:
 class ComplexClass:
     def __init__(self, simple: MockClassx2):
         self.simple = simple
-
-
-class MockDistance(af.DimensionType):
-    pass
-
-
-class MockPositionClass:
-    @af.map_types
-    def __init__(self, position: typing.Tuple[MockDistance, MockDistance]):
-        self.position = position
-
-
-class MockDistanceClass:
-    @af.map_types
-    def __init__(self, one: MockDistance, two: MockDistance):
-        self.one = one
-        self.two = two
 
 
 class DeferredClass:
