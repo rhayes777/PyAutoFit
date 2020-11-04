@@ -158,6 +158,14 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             k: m**other for k, m in self.items()},
             self.log_norm * other)
 
+    def update_invalid(self, other: "MeanField") -> "MeanField":
+        mean_field = {}
+        for k, m in self.items():
+            m2 = other.get(k)
+            mean_field[k] = m.update_invalid(m2) if m2 else m
+
+        return type(self)(mean_field, self.log_norm)
+
     def project_mode(self, res: OptResult):
         projection = type(self)({
             v: dist.from_mode(res.mode[v], res.inv_hessian.get(v))
@@ -249,7 +257,7 @@ class FactorApproximation(NamedTuple):
             success = False
             messages += (
                 f"model projection for {self} is invalid",)
-            factor_dist = self.factor_dist
+            factor_dist = factor_dist.update_invalid(self.factor_dist)
 
         new_approx = FactorApproximation(
             self.factor,

@@ -228,14 +228,12 @@ class AbstractMessage(ABC):
                     yield dist
 
     def update_invalid(self, other: 'AbstractMessage') -> 'AbstractMessage':
-        invalid = reduce(
-            and_, (np.isfinite(p) for p in
-                   chain(self.parameters, [self.check_support()])))
+        valid = self.check_valid()
         if self.ndim:
             valid_parameters = (
-                np.where(invalid, p, p_safe) for p, p_safe in zip(self, other))
+                np.where(valid, p, p_safe) for p, p_safe in zip(self, other))
         else:
-            valid_parameters = self if invalid else other  # TODO: Fairly certain this would not work
+            valid_parameters = self if valid else other  # TODO: Fairly certain this would not work
         return type(self)(*valid_parameters, log_norm=self.log_norm)
 
     def check_support(self) -> np.ndarray:
@@ -248,13 +246,15 @@ class AbstractMessage(ABC):
             return np.array(True, dtype=bool, ndmin=self.ndim)
         return np.array([True])
 
+    def check_finite(self) -> np.ndarray:
+        return np.isfinite(self.natural_parameters).all(0)
+
+    def check_valid(self):
+        return self.check_finite() & self.check_support()
+
     @property
     def is_valid(self):
-        return np.isfinite(
-            self.natural_parameters
-        ).all() and np.all(
-            self.check_support()
-        )
+        return np.all(self.check_finite()) and np.all(self.check_support())
 
     @staticmethod
     def _get_mean_variance(mean: np.ndarray, covariance: float

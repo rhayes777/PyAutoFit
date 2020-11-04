@@ -61,7 +61,7 @@ def make_model_approx(
             b_: mp.NormalMessage.from_mode(
                 np.zeros(n_dims), 10),
             z_: mp.NormalMessage.from_mode(
-                np.zeros((n_obs, n_dims)), 10),
+                np.zeros((n_obs, n_dims)), 100),
             x_: mp.FixedMessage(x),
             y_: mp.FixedMessage(y)
         }
@@ -71,7 +71,9 @@ def make_model_approx(
 def test_laplace(
         model_approx,
         a_,
-        b_
+        b_,
+        y_,
+        z_,
 ):
     opt = mp.optimise.LaplaceOptimiser()
     model_approx = opt.run(model_approx)
@@ -84,6 +86,16 @@ def test_laplace(
 
     assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
+    
+    q_z = model_approx[z_]
+    y = model_approx[y_].mean
+    y_pred = q_z.mean > 0
+    (tpr, fpr), (fnr, tnr) = np.dot(
+        np.array([y, 1-y]).reshape(2, -1),
+        np.array([y_pred, 1-y_pred]).reshape(2, -1).T)
+
+    accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
+    assert 0.9 > accuracy > 0.7
 
 
 def test_importance_sampling(
@@ -91,19 +103,21 @@ def test_importance_sampling(
         model_approx,
         a_,
         b_,
+        y_, 
+        z_, 
 ):
     sampler = mp.ImportanceSampler(n_samples=500)
     history = {}
 
-    for i in range(3):
+    for i in range(5):
         for factor in model.factors:
             # We have reduced the entire EP step into a single function
             model_approx, status = mp.sampling.project_model(
                 model_approx,
                 factor,
                 sampler,
-                force_sample=False,
-                delta=1.
+                force_sample=True,
+                delta=0.8, 
             )
 
             # save and print current approximation
@@ -111,9 +125,18 @@ def test_importance_sampling(
 
     q_a = model_approx[a_]
     q_b = model_approx[b_]
+    q_z = model_approx[z_]
+    y = model_approx[y_].mean
+    y_pred = q_z.mean > 0
+    (tpr, fpr), (fnr, tnr) = np.dot(
+        np.array([y, 1-y]).reshape(2, -1),
+        np.array([y_pred, 1-y_pred]).reshape(2, -1).T)
 
-    assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
-    assert q_a.sigma[0][0] == pytest.approx(0.08, rel=1)
+    accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
+    assert 0.9 > accuracy > 0.7
 
-    assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
-    assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
+    # assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
+    # assert q_a.sigma[0][0] == pytest.approx(0.08, rel=1)
+
+    # assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
+    # assert q_b.sigma[0] == pytest.approx(0.2, rel=2)

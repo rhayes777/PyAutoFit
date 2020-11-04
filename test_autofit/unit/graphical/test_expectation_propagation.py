@@ -67,7 +67,7 @@ def test_approximations(
         covariance=result.inv_hessian[x]
     )
 
-    probit_model_dist = {x: probit_model}
+    probit_model_dist = mp.MeanField({x: probit_model})
 
     # get updated factor approximation
     probit_project, status = probit_approx.project(
