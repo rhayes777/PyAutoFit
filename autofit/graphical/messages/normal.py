@@ -106,7 +106,9 @@ class NormalMessage(AbstractMessage):
             logl = self.log_base_measure + eta_t - np.log(self.sigma)
 
             if shape[1:] == self.shape:
-                hess_logl = np.repeat(hess_logl[None, ...], shape[0], 0)
+                hess_logl = np.repeat(
+                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)), 
+                    shape[0], 0)
 
         else:
             deltax = x - self.mu
