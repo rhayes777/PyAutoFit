@@ -1,5 +1,6 @@
 from functools import reduce
 from operator import mul
+from itertools import chain
 from typing import (
     Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional
 )
@@ -112,6 +113,33 @@ def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     b = np.broadcast(*arrays)
     return sum(a * np.size(a) / b.size for a in arrays)
 
+
+def aggregate(array: np.ndarray, axis=False, **kwargs) -> np.ndarray:
+    """
+    aggregates the values of array
+    
+    if axis is False then aggregate returns the unmodified array
+
+    otherwise aggrate returns np.sum(array, axis=axis, **kwargs)
+    """
+    if axis is False:
+        return array
+    else:
+        return np.sum(array, axis=axis, **kwargs)
+    
+
+def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
+    array = np.asanyarray(array)
+    d1 = array.shape
+    if ds:
+        ds = (d1,) + ds
+    else:
+        ds = (d1, d1)
+
+    out = np.zeros(sum(ds, ()))
+    diag_inds = tuple(map(np.ravel, (i for d in ds for i in np.indices(d))))
+    out[diag_inds] = array.ravel()
+    return out
 
 _M = TypeVar('M')
 

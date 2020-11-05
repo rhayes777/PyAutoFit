@@ -28,5 +28,5 @@ def test_():
 
     model = factor * factor
 
-    value = model(x=np.array([1.0]))
+    value = model({x: np.array([1.0])})
     assert value.log_value == np.array([4.0])

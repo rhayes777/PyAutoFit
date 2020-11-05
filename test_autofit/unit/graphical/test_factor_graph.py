@@ -16,12 +16,17 @@ def log_phi(x):
 def plus_two(x):
     return x + 2
 
+@pytest.fixture(
+    name="x"
+)
+def make_x():
+    return mp.Variable('x')
 
 @pytest.fixture(
     name="y"
 )
 def make_y():
-    return autofit.mapper.variable.Variable('y')
+    return mp.Variable('y')
 
 
 @pytest.fixture(
@@ -106,11 +111,10 @@ class TestFactorGraph:
             phi,
             compound
     ):
-        x = 5
-
-        assert sigmoid(x=x).log_value == -0.006715348489118068
-        assert phi(x=x).log_value == -13.418938533204672
-        assert compound(x=x).log_value == -13.42565388169379
+        values = {mp.Variable('x') : 5}
+        assert sigmoid(values).log_value == -0.006715348489118068
+        assert phi(values).log_value == -13.418938533204672
+        assert compound(values).log_value == -13.42565388169379
         
     def test_factor_shape(
             self,
@@ -118,11 +122,10 @@ class TestFactorGraph:
             phi,
             compound
     ):
-        x = [5]
-
-        assert sigmoid(x=x).log_value[0] == -0.006715348489118068
-        assert phi(x=x).log_value[0] == -13.418938533204672
-        assert compound(x=x).log_value[0] == -13.42565388169379
+        values = {mp.Variable('x') : [5]}
+        assert sigmoid(values).log_value[0] == -0.006715348489118068
+        assert phi(values).log_value[0] == -13.418938533204672
+        assert compound(values).log_value[0] == -13.42565388169379
 
     def test_multivariate_message(
             self):
@@ -160,10 +163,10 @@ class TestFactorGraph:
             sigmoid,
             vectorised_sigmoid
     ):
-        x = np.full(1000, 5.)
+        variables = {mp.Variable('x'): np.full(1000, 5.)}
         assert np.allclose(
-            sigmoid(x=x).log_value, 
-            vectorised_sigmoid(x=x).log_value)
+            sigmoid(variables).log_value, 
+            vectorised_sigmoid(variables).log_value)
 
     def test_broadcast(
             self,
@@ -171,7 +174,8 @@ class TestFactorGraph:
     ):
         length = 2 ** 10
         array = np.linspace(-5, 5, length)
-        result = compound(x=array)
+        variables = {mp.Variable('x'): array}
+        result = compound(variables)
         log_value = result.log_value
 
         assert isinstance(
@@ -192,10 +196,10 @@ class TestFactorGraph:
     def test_deterministic_variable_value(
             self,
             flat_compound,
+            x,
             y
     ):
-        x = 3
-        value = flat_compound(x=x)
+        value = flat_compound({x: 3})
 
         assert value.log_value == -13.467525884778414
         assert value.deterministic_values == {
@@ -209,10 +213,10 @@ class TestFactorGraph:
         def sub(a, b):
             return a - b
 
-        x = autofit.mapper.variable.Variable('a', obs, dims)
-        y = autofit.mapper.variable.Variable('b', dims)
+        a = autofit.mapper.variable.Variable('a', obs, dims)
+        b = autofit.mapper.variable.Variable('b', dims)
 
-        subtract = mp.Factor(sub, a=x, b=y)
+        subtract = mp.Factor(sub, a=a, b=b)
 
         x = np.array(
             [[1, 2, 3],
@@ -220,12 +224,9 @@ class TestFactorGraph:
         )
         y = np.array([1, 2, 1])
 
-        value = subtract(a=x, b=y).log_value
+        value = subtract({a: x, b: y}).log_value
 
-        assert (value == np.array(
-            [[0, 0, 2],
-             [3, 3, 5]]
-        )).all()
+        assert (value == x - y).all()
 
     @pytest.mark.parametrize(
         "coefficient",

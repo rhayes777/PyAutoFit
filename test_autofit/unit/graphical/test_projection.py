@@ -21,7 +21,7 @@ def test_integration(
 
     probit = np.exp(
         probit_factor(
-            x=x
+            {mp.Variable('x'): x}
         ).log_value
     )
     q = q_cavity.pdf(x)
@@ -46,7 +46,7 @@ def test_importance_sampling(
 ):
     x_samples = q_cavity.sample(200)
 
-    log_weights = probit_factor(x=x_samples).log_value
+    log_weights = probit_factor({mp.Variable('x'): x_samples}).log_value
 
     q_importance_sampling = q_cavity.project(x_samples, log_weights)
 

@@ -153,7 +153,7 @@ class Factor(AbstractFactor):
         Calculates the expected function shape based on the variables
         """
         var_shapes = {
-            k: np.shape(x) for k, x in self._resolve_args(**kwargs).items()}
+            k: np.shape(x) for k, x in kwargs.items()}
         return self._var_shape(**var_shapes)
     
     @lru_cache(maxsize=8)
@@ -232,13 +232,13 @@ class Factor(AbstractFactor):
         -------
         Value returned by the factor
         """
-        kws = self._resolve_args(
-            **kwargs
-        )
+        # kws = self._resolve_args(
+        #     **kwargs
+        # )
 
         if self.vectorised:
-            return self._factor(**kws)
-        return self._py_vec_call(**kws)
+            return self._factor(**kwargs)
+        return self._py_vec_call(**kwargs)
 
     def _py_vec_call(
             self,
@@ -299,10 +299,11 @@ class Factor(AbstractFactor):
 
         return res
 
-    @accept_variable_dict
+    # @accept_variable_dict
     def __call__(
             self,
-            **kwargs: np.ndarray
+            variable_dict: Dict[Variable, np.ndarray],
+            # **kwargs: np.ndarray
     ) -> FactorValue:
         """
         Call the underlying factor
@@ -318,14 +319,10 @@ class Factor(AbstractFactor):
         -------
         Object encapsulating the result of the function call
         """
+        kwargs = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(**kwargs)
         return FactorValue(
-            val.reshape(
-                self._function_shape(
-                    **kwargs
-                )
-            ), {}
-        )
+            val.reshape(self._function_shape(**kwargs)), {})
 
     def broadcast_variable(
             self,

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import \
-    List, Tuple, Dict, cast, Collection, Set, NamedTuple, Optional
+    List, Tuple, Dict, cast, Collection, Set, NamedTuple, Optional, Union
 from itertools import count
 
 import numpy as np
@@ -51,7 +51,17 @@ class AbstractNode(ABC):
             Key word arguments passed to the value
         """
         self._kwargs = kwargs
+        self._variable_name_kw = {
+            v.name: kw for kw, v in kwargs.items()}
         self.id = next(self._id)
+
+    def resolve_variable_dict(
+            self, variable_dict:Dict[Variable, np.ndarray]
+    ) -> Dict[str, np.ndarray]:
+        return {
+            self._variable_name_kw[v.name]: x
+            for v, x in variable_dict.items()
+            if v.name in self._variable_name_kw}
 
     @property
     @abstractmethod
@@ -151,6 +161,42 @@ class AbstractNode(ABC):
             np.argsort(plate_inds) + shift)
         return np.reshape(movedvalue, newshape)
 
+    def _broadcast2d(
+            self,
+            plate_inds: np.ndarray,
+            value: np.ndarray
+    ) -> np.ndarray:
+        """
+        Ensure the shape of the data matches the shape of the plates
+
+        Parameters
+        ----------
+        plate_inds
+            The indices of the plates of some factor within this node
+        value
+            Some data
+
+        Returns
+        -------
+        The data reshaped
+        """
+        shape2d = np.shape(value)
+        ndim = len(shape2d) // 2
+        shape1, shape2 = shape2d[:ndim], shape2d[ndim:]
+
+        newshape = np.ones(self.ndim * 2)
+        newshape[plate_inds] = shape1
+        newshape[plate_inds + self.ndim] = shape2
+
+        # reorder axes of value to match ordering of newshape
+        plate_order = np.argsort(plate_inds)
+        movedvalue = np.moveaxis(
+            value, 
+            np.arange(plate_inds.size * 2), 
+            np.r_[plate_order, plate_order + ndim])
+        return np.reshape(movedvalue, newshape)
+
+
     @property
     def plates(self) -> Tuple[Plate]:
         """
@@ -201,6 +247,8 @@ class AbstractNode(ABC):
             frozenset(self.variable_names.items()),
             frozenset(self._deterministic_variables),))
 
+    _numerical_func_jacobian = numerical_func_jacobian
+    _numerical_func_jacobian_hessian = numerical_func_jacobian_hessian
     func_jacobian = numerical_func_jacobian
     func_jacobian_hessian = numerical_func_jacobian_hessian
 
@@ -208,18 +256,20 @@ class AbstractNode(ABC):
             self, 
             values: Dict[Variable, np.array],
             variables: Optional[Tuple[Variable, ...]] = None,
+            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
             _eps: float = 1e-6,
             _calc_deterministic: bool = True ) -> JacobianValue:
         return self.func_jacobian(
-            values, variables, 
+            values, variables, axis, 
             _eps=_eps, _calc_deterministic=_calc_deterministic)[1]
             
     def hessian(
             self, 
             values: Dict[Variable, np.array],
             variables: Optional[Tuple[Variable, ...]] = None,
+            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
             _eps: float = 1e-6,
             _calc_deterministic: bool = True ) -> HessianValue:
         return self.func_jacobian_hessian(
-            values, variables, 
+            values, variables, axis, 
             _eps=_eps, _calc_deterministic=_calc_deterministic)[2]

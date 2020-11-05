@@ -20,7 +20,7 @@ class AbstractMessage(ABC):
         pass
 
     @abstractmethod
-    def sample(self, n_samples):
+    def sample(self, n_samples=None):
         pass
 
     @staticmethod

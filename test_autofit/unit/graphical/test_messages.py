@@ -1,10 +1,11 @@
 import numpy as np
 import pytest
-from scipy import stats
+from scipy import stats, integrate
+
+import numpy as np
 
 import autofit.graphical.messages.normal
 from autofit import graphical as graph
-
 
 def test_message_norm():
     messages = [
@@ -49,3 +50,23 @@ def test_numerical_gradient_hessians():
 
         for a, n in zip(res, nres):
             assert np.linalg.norm(a - n) == pytest.approx(0, abs=1e-2)
+
+
+def test_meanfield_gradients():
+    n1, n2, n3 = 2, 3, 5
+    p1, p2, p3 = [graph.Plate() for i in range(3)]
+
+    v1 = graph.Variable('v1', p1, p2)
+    v2 = graph.Variable('v2', p2, p3)
+    v3 = graph.Variable('v3', p3, p1)
+
+    mean_field = graph.MeanField({
+        v1: graph.NormalMessage(
+            np.random.randn(n1, n2),
+            np.random.exponential(size=(n1, n2))),
+        v2: graph.NormalMessage(
+            np.random.randn(n2, n3),
+            np.random.exponential(size=(n2, n3))),
+        v3: graph.NormalMessage(
+            np.random.randn(n3, n1),
+            np.random.exponential(size=(n3, n1)))})

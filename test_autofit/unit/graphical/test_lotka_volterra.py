@@ -148,7 +148,7 @@ def test():
             )
             history[i, factor] = model_approx
 
-    model_mean = {v.name: d.mean for v, d in model_approx.approx.items()}
-    y_pred = LV_model(**model_mean).deterministic_values[y_]
+    model_mean = {v: d.mean for v, d in model_approx.approx.items()}
+    y_pred = LV_model(model_mean).deterministic_values[y_]
     
     assert np.square(y_pred - y).mean()**0.5 < 2

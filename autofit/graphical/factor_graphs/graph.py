@@ -42,10 +42,11 @@ class DeterministicFactorNode(Factor):
             variable
         }
 
-    @accept_variable_dict
+    # @accept_variable_dict
     def __call__(
             self,
-            **kwargs: np.ndarray
+            variable_dict: Dict[Variable, np.ndarray],
+            # **kwargs: np.ndarray
     ) -> FactorValue:
         """
         Call this factor with a set of arguments
@@ -61,6 +62,7 @@ class DeterministicFactorNode(Factor):
         -------
         An object encapsulating the value for the factor
         """
+        kwargs = self.resolve_variable_dict(variable_dict)
         res = self._call_factor(**kwargs)
         shape = self._function_shape(**kwargs)
         shift = len(shape) - self.ndim
@@ -238,10 +240,11 @@ class FactorGraph(AbstractNode):
 
         return call_sequence
 
-    @accept_variable_dict
+    # @accept_variable_dict
     def __call__(
             self,
-            **kwargs: np.ndarray
+            variable_dict: Dict[Variable, np.ndarray],
+            **kwargs
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -266,9 +269,9 @@ class FactorGraph(AbstractNode):
         # missing deterministic variables that need to be calculated
         log_value = 0.
         det_values = {}
-        variables = kwargs
+        variables = variable_dict.copy()
 
-        missing = set(self.kwarg_names) - variables.keys()
+        missing = self._variable_name_kw.keys() - (v.name for v in variables)
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)
@@ -280,7 +283,7 @@ class FactorGraph(AbstractNode):
         for calls in self._call_sequence:
             # TODO parallelise this part?
             for factor in calls:
-                ret = factor(variables)
+                ret = factor(variables, **kwargs)
                 ret_value = self.broadcast_plates(factor.plates, ret.log_value)
                 log_value = add_arrays(log_value, ret_value)
                 det_values.update(ret.deterministic_values)
