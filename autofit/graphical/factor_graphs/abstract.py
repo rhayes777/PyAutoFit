@@ -7,24 +7,8 @@ from itertools import count
 import numpy as np
 
 from autofit.mapper.variable import Variable, Plate
-
-
-class FactorValue(NamedTuple):
-    """
-    The return value associated with a factor
-    """
-    log_value: np.ndarray
-    deterministic_values: Dict[Variable, np.ndarray]
-
-
-class JacobianValue(NamedTuple):
-    log_value: Dict[Variable, np.ndarray]
-    deterministic_values: Dict[Tuple[Variable, Variable], np.ndarray]
-
-
-HessianValue = Dict[Variable, np.ndarray]
-
-from .numerical import (
+from autofit.graphical.utils import FactorValue, JacobianValue, HessianValue
+from autofit.graphical.factor_graphs.numerical import (
     numerical_func_jacobian, numerical_func_jacobian_hessian)
 
 def accept_variable_dict(func):

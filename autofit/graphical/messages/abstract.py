@@ -10,7 +10,7 @@ import numpy as np
 
 class AbstractMessage(ABC):
     log_base_measure: float
-
+    _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
@@ -55,7 +55,12 @@ class AbstractMessage(ABC):
     def __init__(self, parameters, log_norm=0.):
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
-        self.parameters = parameters
+        if self.shape:
+            self.parameters = tuple(
+                np.asanyarray(p) for p in parameters)
+        else:
+            self.parameters = tuple(parameters)
+
 
     def __iter__(self):
         return iter(self.parameters)
@@ -151,21 +156,105 @@ class AbstractMessage(ABC):
 
     __repr__ = __str__
 
+    def pdf(self, x):
+        return np.exp(self.logpdf(x))
+
     def logpdf(self, x):
-        if np.shape(x) == self.shape:
+        shape = np.shape(x)
+        if shape:
+            x = np.asanyarray(x)
+
+        if shape == self.shape:
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
             log_base = self.log_base_measure
             eta_t = np.multiply(eta, t).sum(0)  # TODO this can be made more efficient using tensordot
             return log_base + eta_t - self.log_partition
-        elif np.shape(x)[1:] == self.shape:
-            return np.array([self.logpdf(x_) for x_ in x])
+        elif shape[1:] == self.shape:
+            eta = self.natural_parameters
+            t = self.to_canonical_form(x)
+            eta_t = np.multiply(eta[:, None, ...], t).sum(0)
+            return self.log_base_measure + eta_t - self.log_partition
+            # return np.array([self.logpdf(x_) for x_ in x])
 
         raise ValueError(
-            f"shape of passed value {x.shape} does not match message shape {self.shape}")
+            f"shape of passed value {shape} does not match message shape {self.shape}")
 
-    def pdf(self, x):
-        return np.exp(self.logpdf(x))
+    def numerical_logpdf_gradient(self, x: np.ndarray, eps: float=1e-6
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        shape = np.shape(x)
+        if shape:
+            x0 = np.array(x, dtype=np.float64)
+            logl0 = self.logpdf(x0)
+            if self._multivariate:
+                grad_logl = np.empty(logl0.shape + x0.shape)
+                sl = tuple(slice(None) for _ in range(logl0.ndim))
+                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                    for xv in it:
+                        xv += eps
+                        logl = self.logpdf(x0)
+                        grad_logl[sl + it.multi_index] = (logl - logl0)/eps
+                        xv -= eps
+            else:
+                l0 = logl0.sum()
+                grad_logl = np.empty_like(x0)
+                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                    for xv in it:
+                        xv += eps
+                        logl = self.logpdf(x0).sum()
+                        grad_logl[it.multi_index] = (logl - l0)/eps
+                        xv -= eps
+        else:
+            logl0 = self.logpdf(x)
+            grad_logl = (self.logpdf(x + eps) - logl0)/eps
+
+        return logl0, grad_logl
+
+    def numerical_logpdf_gradient_hessian(self, x: np.ndarray, eps: float=1e-6
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        shape = np.shape(x)
+        if shape:
+            x0 = np.array(x, dtype=np.float64)
+            if self._multivariate:
+                logl0, gradl0 = self.numerical_logpdf_gradient(x0)
+                hess_logl = np.empty(gradl0.shape + x0.shape)
+                sl = tuple(slice(None) for _ in range(gradl0.ndim))
+                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                    for xv in it:
+                        xv += eps
+                        _, gradl = self.numerical_logpdf_gradient(x0)
+                        hess_logl[sl + it.multi_index] = (gradl - gradl0)/eps
+                        xv -= eps
+            else:
+                logl0 = self.logpdf(x0)
+                l0 = logl0.sum()
+                grad_logl = np.empty_like(x0)
+                hess_logl = np.empty_like(x0)
+                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                    for xv in it:
+                        xv += eps
+                        l1 = self.logpdf(x0).sum()
+                        xv -= 2 * eps
+                        l2 = self.logpdf(x0).sum()
+                        g1 = (l1 - l0)/eps
+                        g2 = (l0 - l2)/eps
+                        grad_logl[it.multi_index] = g1
+                        hess_logl[it.multi_index] = (g1 - g2)/eps
+                        xv += eps
+
+                gradl0 = grad_logl
+        else:
+            logl0 = self.logpdf(x)
+            logl1 = self.logpdf(x + eps)
+            logl2 = self.logpdf(x - eps)
+            gradl0 = (logl1 - logl0)/eps
+            gradl1 = (logl0 - logl2)/eps
+            hess_logl = (gradl0 - gradl1)/eps
+
+        return logl0, gradl0, hess_logl
+
+    logpdf_gradient = numerical_logpdf_gradient
+    logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
     def project(cls, samples, log_weights):

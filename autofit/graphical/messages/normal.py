@@ -1,5 +1,7 @@
 import numpy as np
 
+from typing import Tuple
+
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.mapper.prior.prior import GaussianPrior
 
@@ -20,12 +22,11 @@ class NormalMessage(AbstractMessage):
             sigma=1.,
             log_norm=0.
     ):
-        self.mu = mu
-        self.sigma = sigma
         super().__init__(
             (mu, sigma),
             log_norm=log_norm
         )
+        self.mu, self.sigma = self.parameters
 
     @classmethod
     def from_prior(
@@ -92,3 +93,29 @@ class NormalMessage(AbstractMessage):
     def from_mode(cls, mode: np.ndarray, covariance: float = 1.):
         mode, variance = cls._get_mean_variance(mode, covariance)
         return cls(mode, variance ** 0.5)
+
+    def logpdf_gradient_hessian(self, x:np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        shape = np.shape(x)
+        if shape:
+            x = np.asanyarray(x)
+            deltax = x - self.mu
+            hess_logl = - self.sigma**-2
+            grad_logl = deltax * hess_logl
+            eta_t = 0.5 * grad_logl * deltax
+            logl = self.log_base_measure + eta_t - np.log(self.sigma)
+
+            if shape[1:] == self.shape:
+                hess_logl = np.repeat(hess_logl[None, ...], shape[0], 0)
+
+        else:
+            deltax = x - self.mu
+            hess_logl = - self.sigma**-2
+            grad_logl = deltax * hess_logl
+            eta_t = 0.5 * grad_logl * deltax
+            logl = self.log_base_measure + eta_t - np.log(self.sigma)
+
+        return logl, grad_logl, hess_logl
+
+    def logpdf_gradient(self, x:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        return self.logpdf_gradient_hessian(x)[:2]

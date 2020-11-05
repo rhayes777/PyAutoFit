@@ -10,6 +10,23 @@ from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable
 
+
+class FactorValue(NamedTuple):
+    """
+    The return value associated with a factor
+    """
+    log_value: np.ndarray
+    deterministic_values: Dict[Variable, np.ndarray] 
+
+
+class JacobianValue(NamedTuple):
+    log_value: Dict[Variable, np.ndarray]
+    deterministic_values: Dict[Tuple[Variable, Variable], np.ndarray]
+
+
+HessianValue = Dict[Variable, np.ndarray]
+
+
 class Status(NamedTuple):
     success: bool = True
     messages: Tuple[str, ...] = ()

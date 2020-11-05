@@ -3,6 +3,7 @@ from typing import Tuple, Dict, NamedTuple, Optional
 import numpy as np
 
 from autofit.mapper.variable import Variable
+from autofit.graphical.utils import FactorValue, JacobianValue, HessianValue
 
 def numerical_func_jacobian(
         factor: "AbstractNode",
@@ -10,7 +11,7 @@ def numerical_func_jacobian(
         variables: Optional[Tuple[Variable, ...]],
         _eps: float = 1e-6,
         _calc_deterministic: bool = True,
-) -> Tuple["FactorValue", "JacobianValue"]:
+) -> Tuple[FactorValue, JacobianValue]:
     """Calculates the numerical Jacobian of the passed factor
 
     the arguments passed correspond to the variable that we want
@@ -99,7 +100,7 @@ def numerical_func_jacobian_hessian(
         variables: Optional[Tuple[Variable, ...]] = None,
         _eps: float = 1e-6,
         _calc_deterministic: bool = True
-) -> Tuple["FactorValue", "JacobianValue", "HessianValue"]:
+) -> Tuple[FactorValue, JacobianValue, HessianValue]:
     
     if variables is None:
         variables = factor.variables
@@ -164,7 +165,3 @@ def numerical_func_jacobian_hessian(
                         * jac[None, :, None] * hess[None, None, :])
 
     return f0, jac_f0, hess_f
-
-# Import these at the end to resolve circular imports and typing
-from .abstract import (
-    FactorValue, JacobianValue, HessianValue)
