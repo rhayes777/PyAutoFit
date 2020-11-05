@@ -1,12 +1,15 @@
 from abc import ABC
 from inspect import getfullargspec
 from itertools import chain, repeat
-from typing import Tuple, Dict, Union, Set, NamedTuple, Callable
+from typing import \
+    Tuple, Dict, Union, Set, NamedTuple, Callable, Optional
 from functools import lru_cache
 import numpy as np
 
+
+from autofit.graphical.utils import aggregate
 from autofit.graphical.factor_graphs.abstract import \
-    AbstractNode, accept_variable_dict, FactorValue
+    AbstractNode, FactorValue
 from autofit.mapper.variable import Variable
 
 
@@ -303,6 +306,7 @@ class Factor(AbstractFactor):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
+            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
             # **kwargs: np.ndarray
     ) -> FactorValue:
         """
@@ -321,8 +325,9 @@ class Factor(AbstractFactor):
         """
         kwargs = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(**kwargs)
-        return FactorValue(
-            val.reshape(self._function_shape(**kwargs)), {})
+        val = aggregate(
+            val.reshape(self._function_shape(**kwargs)), axis)
+        return FactorValue(val, {})
 
     def broadcast_variable(
             self,

@@ -1,5 +1,6 @@
 from collections import Counter, defaultdict
-from typing import Tuple, Dict, Collection, List, Callable
+from typing import \
+    Tuple, Dict, Collection, List, Callable, Optional, Union
 
 import numpy as np
 
@@ -7,7 +8,7 @@ from autofit.graphical.factor_graphs import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.abstract import accept_variable_dict
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.utils import add_arrays
+from autofit.graphical.utils import add_arrays, aggregate
 
 
 class DeterministicFactorNode(Factor):
@@ -46,6 +47,7 @@ class DeterministicFactorNode(Factor):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
+            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
             # **kwargs: np.ndarray
     ) -> FactorValue:
         """
@@ -78,7 +80,9 @@ class DeterministicFactorNode(Factor):
         if not (isinstance(res, tuple) or self.n_deterministic > 1):
             res = res,
 
-        log_val = 0. if shape == () else np.zeros(np.ones_like(shape))
+        log_val = (
+            0. if shape == () else 
+            aggregate(np.zeros(np.ones_like(shape)), axis))
         det_vals = {
             k: np.reshape(val, det_shapes[k])
             if det_shapes[k]
@@ -244,7 +248,8 @@ class FactorGraph(AbstractNode):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            **kwargs
+            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+            # **kwargs
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -283,9 +288,9 @@ class FactorGraph(AbstractNode):
         for calls in self._call_sequence:
             # TODO parallelise this part?
             for factor in calls:
-                ret = factor(variables, **kwargs)
+                ret = factor(variables)
                 ret_value = self.broadcast_plates(factor.plates, ret.log_value)
-                log_value = add_arrays(log_value, ret_value)
+                log_value = add_arrays(log_value, aggregate(ret_value, axis))
                 det_values.update(ret.deterministic_values)
                 variables.update(ret.deterministic_values)
 
