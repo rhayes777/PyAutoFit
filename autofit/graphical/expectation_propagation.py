@@ -202,7 +202,8 @@ class EPOptimiser:
             factor_graph: FactorGraph,
             default_optimiser: AbstractFactorOptimiser,
             factor_optimisers: Dict[Factor, AbstractFactorOptimiser] = {},
-            callback: Optional[EPCallBack] = None):
+            callback: Optional[EPCallBack] = None,
+            factor_order: Optional[List[Factor]] = None):
 
         self.factor_graph = factor_graph
         self.factors = \

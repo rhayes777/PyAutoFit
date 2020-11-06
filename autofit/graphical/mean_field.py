@@ -13,7 +13,7 @@ from autofit.graphical.messages import FixedMessage, map_dists
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, FactorValue, JacobianValue, 
-    aggregate, diag)
+    aggregate, diag, Axis)
 from autofit.mapper.variable import Variable
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
@@ -328,12 +328,16 @@ class FactorApproximation(NamedTuple):
 
         return log_result
 
-    def _func_jacobian(self, variable_dict: Dict[Variable, np.ndarray]):
+    def _func_jacobian(
+            self, 
+            variable_dict: Dict[Variable, np.ndarray],
+            axis: Axis = False):
         (log_result, det_vars), (grad, jac_det) = self.factor.func_jacobian(
-            variable_dict)
+            variable_dict, axis=axis)
 
-        for res in map_dists(self.cavity_dist):
-            pass
+        log_cavity, grad_cavity = factor_approx.cavity_dist.logpdf_gradient(
+            {**variable_dict, **det_vars}, axis=axis)
+
 
     project_on_to_factor_approx = project_on_to_factor_approx
 
