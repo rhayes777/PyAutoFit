@@ -66,7 +66,7 @@ class EPMeanField(AbstractNode):
     ) -> "EPMeanField":
         factor_mean_field = {
             factor: MeanField({
-                v: approx_dists[v] for v in factor.variables})
+                v: approx_dists[v] for v in factor.all_variables})
             for factor in factor_graph.factors}
 
         return cls(

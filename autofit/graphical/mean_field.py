@@ -142,9 +142,9 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         gradl = {}
         for v, m in self.items():
             lv, gradl[v] = m.logpdf_gradient(values[v])
-            logl = logl + aggregate(
-                self._broadcast(lv, self._variable_plates[v]), axis=axis)
-            logl = logl + lv
+            lv = self._broadcast(self._variable_plates[v], lv)
+            print(v, lv.shape)
+            logl = logl + aggregate(lv, axis=axis)
 
         return logl, gradl
 
@@ -158,8 +158,9 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         hessl = {}
         for v, m in self.items():
             lv, gradl[v], hessl[v] = m.logpdf_gradient_hessian(values[v])
-            logl = logl + aggregate(
-                self._broadcast(lv, self._variable_plates[v]), axis=axis)
+            lv = self._broadcast(self._variable_plates[v], lv)
+            print(v, lv.shape)
+            logl = logl + aggregate(lv, axis=axis)
 
         return logl, gradl, hessl
 
@@ -180,10 +181,8 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
                 jac = diag(g1, g2.shape)
                 if axis is False:
                     gradl[v] = jac
-                elif isinstance(axis, int): 
-                    gradl[v] = jac.sum(axis + len(g1.shape))
                 else:
-                    gradl[v] = jac.sum([i + len(g1.shape) for i in axis])
+                    gradl[v] = jac.sum(np.array(axis) + len(g1.shape))
 
         return FactorValue(logl, {}), JacobianValue(gradl, {})
 
@@ -205,20 +204,16 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
                 jac = diag(g1, g2.shape)
                 if axis is False:
                     gradl[v] = jac
-                elif isinstance(axis, int): 
-                    gradl[v] = jac.sum(axis + len(g1.shape))
                 else:
-                    gradl[v] = jac.sum([i + len(g1.shape) for i in axis])
+                    gradl[v] = jac.sum(np.array(axis) + len(g1.shape))
 
             for v, h in hessl.items():
                 d2 = self._broadcast(self._variable_plates[v], h).shape
                 h = diag(h, h.shape, d2)
                 if axis is False:
                     hessl[v] = h
-                elif isinstance(axis, int): 
-                    hessl[v] = h.sum(axis + len(g1.shape)*2)
                 else:
-                    hessl[v] = jac.sum([i + len(g1.shape)*2 for i in axis])
+                    hessl[v] = h.sum(np.array(axis) + len(g1.shape) * 2)
 
         return logl, gradl, hessl
 
@@ -334,6 +329,13 @@ class FactorApproximation(NamedTuple):
                 log_result, self.factor.broadcast_variable(*res))
 
         return log_result
+
+    def _func_jacobian(self, variable_dict: Dict[Variable, np.ndarray]):
+        (log_result, det_vars), (grad, jac_det) = self.factor.func_jacobian(
+            variable_dict)
+
+        for res in map_dists(self.cavity_dist):
+            pass
 
     project_on_to_factor_approx = project_on_to_factor_approx
 

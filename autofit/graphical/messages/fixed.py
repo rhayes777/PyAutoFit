@@ -33,12 +33,15 @@ class FixedMessage(AbstractMessage):
     def invert_sufficient_statistics(cls, suff_stats):
         return suff_stats
 
-    def sample(self, n_samples):
+    def sample(self, n_samples=None):
         """
         Rely on array broadcasting to get fixed values to
         calculate correctly
         """
-        return np.array(self.parameters)
+        if n_samples is None:
+            return np.array(self.parameters[0])
+        else:
+            return np.array(self.parameters)
 
     def logpdf(self, x):
         return np.zeros_like(x)

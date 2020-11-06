@@ -32,7 +32,7 @@ def accept_variable_dict(func):
 
 
 class AbstractNode(ABC):
-    _deterministic_variables: Set[Variable]
+    _deterministic_variables: Set[Variable] = frozenset()
     _factor: callable = None
     _id = count()
 

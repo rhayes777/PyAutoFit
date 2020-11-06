@@ -2,7 +2,7 @@ from functools import reduce
 from operator import mul
 from itertools import chain
 from typing import (
-    Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional
+    Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
 )
 
 import numpy as np
@@ -113,8 +113,9 @@ def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     b = np.broadcast(*arrays)
     return sum(a * np.size(a) / b.size for a in arrays)
 
+Axis = Optional[Union[bool, int, Tuple[int, ...]]]
 
-def aggregate(array: np.ndarray, axis=False, **kwargs) -> np.ndarray:
+def aggregate(array: np.ndarray, axis: Axis = False, **kwargs) -> np.ndarray:
     """
     aggregates the values of array
     
@@ -230,7 +231,7 @@ def invpsilog(c: np.ndarray) -> np.ndarray:
     x0 = -(1 - 0.5 * (1 + A * (-c) ** beta) ** -gamma) / c
 
     # do 4 iterations of Newton Raphson to refine estimate
-    for i in range(4):
+    for _ in range(4):
         f0 = psilog(x0) - c
         x0 = x0 - f0 / grad_psilog(x0)
 

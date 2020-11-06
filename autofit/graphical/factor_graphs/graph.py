@@ -1,6 +1,7 @@
 from collections import Counter, defaultdict
 from typing import \
     Tuple, Dict, Collection, List, Callable, Optional, Union
+from functools import reduce 
 
 import numpy as np
 
@@ -8,7 +9,7 @@ from autofit.graphical.factor_graphs import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.abstract import accept_variable_dict
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.utils import add_arrays, aggregate
+from autofit.graphical.utils import add_arrays, aggregate, Axis
 
 
 class DeterministicFactorNode(Factor):
@@ -47,7 +48,7 @@ class DeterministicFactorNode(Factor):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+            axis: Axis = False, 
             # **kwargs: np.ndarray
     ) -> FactorValue:
         """
@@ -133,10 +134,6 @@ class FactorGraph(AbstractNode):
             **_kwargs
         )
 
-    @property
-    def deterministic_variables(self):
-        return self._deterministic_variables
-
     def broadcast_plates(
             self,
             plates: Collection[Plate],
@@ -192,18 +189,14 @@ class FactorGraph(AbstractNode):
         }
 
     @property
-    def _deterministic_variables(self):
-        return {
-            variable
-            for factor
-            in self.factors
-            for variable
-            in factor.deterministic_variables
-        }
+    def deterministic_variables(self):
+        return reduce(
+            set.union, 
+            (factor.deterministic_variables for factor in self.factors))
 
     @property
     def variables(self):
-        return self._variables - self._deterministic_variables
+        return self._variables - self.deterministic_variables
 
     def _get_call_sequence(self) -> List[List[Factor]]:
         """
@@ -248,8 +241,7 @@ class FactorGraph(AbstractNode):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
-            # **kwargs
+            axis: Axis = False, 
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -259,9 +251,9 @@ class FactorGraph(AbstractNode):
 
         Parameters
         ----------
-        args
+        variable_dict
             Positional arguments
-        kwargs
+        axis
             Keyword arguments
 
         Returns
@@ -276,7 +268,7 @@ class FactorGraph(AbstractNode):
         det_values = {}
         variables = variable_dict.copy()
 
-        missing = self._variable_name_kw.keys() - (v.name for v in variables)
+        missing = set(v.name for v in self.variables).difference(v.name for v in variables)
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)

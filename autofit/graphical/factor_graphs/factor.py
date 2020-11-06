@@ -7,7 +7,7 @@ from functools import lru_cache
 import numpy as np
 
 
-from autofit.graphical.utils import aggregate
+from autofit.graphical.utils import aggregate, Axis
 from autofit.graphical.factor_graphs.abstract import \
     AbstractNode, FactorValue
 from autofit.mapper.variable import Variable
@@ -306,7 +306,7 @@ class Factor(AbstractFactor):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+            axis: Axis = False, 
             # **kwargs: np.ndarray
     ) -> FactorValue:
         """
