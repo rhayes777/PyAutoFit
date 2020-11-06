@@ -4,7 +4,7 @@ from typing import Tuple
 
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.mapper.prior.prior import GaussianPrior
-
+from autofit.graphical.utils import cached_property
 
 class NormalMessage(AbstractMessage):
     @property
@@ -44,7 +44,7 @@ class NormalMessage(AbstractMessage):
             sigma=self.sigma
         )
 
-    @property
+    @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(
             self.mu,

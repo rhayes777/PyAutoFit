@@ -4,6 +4,7 @@ from scipy import special
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import invpsilog
 
+from autofit.graphical.utils import cached_property
 
 class GammaMessage(AbstractMessage):
     @property
@@ -32,7 +33,7 @@ class GammaMessage(AbstractMessage):
             log_norm=log_norm
         )
 
-    @property
+    @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(
             self.alpha,
@@ -59,11 +60,11 @@ class GammaMessage(AbstractMessage):
         beta = alpha / X
         return cls.calc_natural_parameters(alpha, beta)
 
-    @property
+    @cached_property
     def mean(self):
         return self.alpha / self.beta
 
-    @property
+    @cached_property
     def variance(self):
         return self.alpha / self.beta ** 2
 

@@ -9,7 +9,8 @@ from autofit.graphical.factor_graphs import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.abstract import accept_variable_dict
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.utils import add_arrays, aggregate, Axis
+from autofit.graphical.utils import \
+    add_arrays, aggregate, Axis, cached_property
 
 
 class DeterministicFactorNode(Factor):
@@ -178,19 +179,19 @@ class FactorGraph(AbstractNode):
                 "multiple factors"
             )
 
-    @property
+    @cached_property
     def all_variables(self):
         return reduce(
             set.union, 
             (factor.all_variables for factor in self.factors))
 
-    @property
+    @cached_property
     def deterministic_variables(self):
         return reduce(
             set.union, 
             (factor.deterministic_variables for factor in self.factors))
 
-    @property
+    @cached_property
     def variables(self):
         return self.all_variables - self.deterministic_variables
 
