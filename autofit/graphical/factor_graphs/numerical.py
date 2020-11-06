@@ -56,7 +56,7 @@ def numerical_func_jacobian(
     det_vars0 = f0.deterministic_values
 
     jac_f = {
-        v: np.empty(np.shape(values[v]) + np.shape(log_f0))
+        v: np.empty(np.shape(log_f0) + np.shape(values[v]))
         for v in variables}
     if _calc_deterministic:
         jac_det = {
@@ -73,13 +73,15 @@ def numerical_func_jacobian(
         x0 = p0[v]
         if x0.shape:
             inds = tuple(a.ravel() for a in np.indices(x0.shape))
+            i0 = tuple(slice(None) for _ in range(np.ndim(log_f0)))
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
                 f = factor(p0, axis=axis)
                 x0[ind] -= _eps
 
-                jac_f[v][ind] = (f.log_value - log_f0) / _eps
+                # print(ind)
+                jac_f[v][i0 + ind] = (f.log_value - log_f0) / _eps
                 if _calc_deterministic:
                     det_vars = f.deterministic_values
                     for det, val in det_vars.items():
@@ -121,7 +123,7 @@ def numerical_func_jacobian_hessian(
     f_shape = np.shape(log_f0)
     f_size = np.prod(f_shape, dtype=int)
     hess_f = {
-        v: np.empty(np.shape(values[v]) * 2 + f_shape)
+        v: np.empty(f_shape + np.shape(values[v]) * 2)
         for v in variables}
 
     if _calc_deterministic:
@@ -133,26 +135,28 @@ def numerical_func_jacobian_hessian(
         x0 = p0[v]
         if x0.shape:
             inds = tuple(a.ravel() for a in np.indices(x0.shape))
+            i0 = tuple(slice(None) for _ in range(np.ndim(log_f0)))
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
                 grad_f, _ = factor.jacobian(
                     p0, (v,), axis=axis, _eps=_eps, _calc_deterministic=False)
                 x0[ind] -= _eps
-                hess_f[v][ind] = grad_f[v] - grad_f0[v]
+                hess_f[v][i0 + ind] = grad_f[v] - grad_f0[v]
                 
             # Symmetrise Hessian
             triu = np.triu_indices(x0.size, 1) # indices of upper diagonal
             i = tuple(ind[triu[0]] for ind in inds)
             j = tuple(ind[triu[1]] for ind in inds)
-            # np.add.at(hess_f[v], i + j, hess_f[v][j + i])
-            hess_f[v][i + j] += hess_f[v][j + i]
-            hess_f[v][i + j] /= 2 
-            hess_f[v][j + i] = hess_f[v][i + j]
+            upper = i0 + i + j
+            lower = i0 + j + i
+            hess_f[v][upper] += hess_f[v][lower]
+            hess_f[v][upper] /= 2 
+            hess_f[v][lower] = hess_f[v][upper]
             
             if _calc_deterministic:
                 var_size = x0.size
-                if f_size:
+                if f_shape:
                     hess = hess_f[v].reshape(var_size, var_size, f_size)
                     for d, d_shape in det_shapes.items():
                         jac = jac_det_vars0[d, v].reshape(
@@ -167,7 +171,7 @@ def numerical_func_jacobian_hessian(
                         jac = jac_det_vars0[d, v].reshape(
                             np.prod(d_shape), var_size)
                         hess_d = np.linalg.multi_dot(
-                            jac, hess, jac.T)
+                            [jac, hess, jac.T])
                         hess_f[d] += hess_d.reshape(d_shape + d_shape)
             
         else:

@@ -122,30 +122,55 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
     
     def logpdf(
             self, 
-            values: Dict[Variable, np.ndarray]
+            values: Dict[Variable, np.ndarray],
+            axis: Axis = False, 
     ) -> np.ndarray:
         """Calculates the logpdf of the passed values for messages 
 
         the result is broadcast to the appropriate shape given the variable
         plates
         """
-        return sum(
-            self._broadcast(self._variable_plates[v], m.logpdf(values[v])) 
-            for v, m in self.items())
+        return aggregate(
+            sum(
+                self._broadcast(
+                    self._variable_plates[v], m.logpdf(values[v]))
+                for v, m in self.items()), 
+                axis=axis) 
+        # logl = 0. 
+        # fsize = prod(
+        #     self._function_shape(**self.resolve_variable_dict(values)))
+        # for v, m in self.items():
+        #     lv = self._broadcast(self._variable_plates[v], m.logpdf(values[v]))
+        #     vsize = lv.size
+        #     lv = aggregate(lv, axis=axis)
+        #     logl = logl + lv * vsize / lv.size
+
+        # return logl * fsize / logl.size
+
+    def __call__(
+            self, 
+            values: Dict[Variable, np.ndarray],
+            axis: Axis = False, 
+    ) -> FactorValue:
+        return FactorValue(self.logpdf(values, axis=axis), {})
 
     def logpdf_gradient(
             self, 
             values: Dict[Variable, np.ndarray], 
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+            axis: Axis = False, 
             **kwargs):
-        logl = 0.
+        logl = 0
         gradl = {}
+        fsize = prod(
+            self._function_shape(**self.resolve_variable_dict(values)))
         for v, m in self.items():
-            lv, gradl[v] = m.logpdf_gradient(values[v])
-            lv = self._broadcast(self._variable_plates[v], lv)
-            logl = logl + aggregate(lv, axis=axis)
+            val = values[v]
+            vsize = np.size(val)
+            lv, g = m.logpdf_gradient(val)
+            logl = logl + self._broadcast(self._variable_plates[v], lv)
+            gradl[v] = g * (fsize / vsize)
 
-        return logl, gradl
+        return aggregate(logl, axis=axis), gradl
 
     def logpdf_gradient_hessian(
             self, 
@@ -155,65 +180,73 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         logl = 0.
         gradl = {}
         hessl = {}
+        fsize = prod(
+            self._function_shape(**self.resolve_variable_dict(values)))
         for v, m in self.items():
-            lv, gradl[v], hessl[v] = m.logpdf_gradient_hessian(values[v])
+            val = values[v]
+            vsize = np.size(val)
+            lv, g, h = m.logpdf_gradient_hessian(val)
             lv = self._broadcast(self._variable_plates[v], lv)
             logl = logl + aggregate(lv, axis=axis)
+            gradl[v] = g * (fsize / vsize)
+            hessl[v] = h * (fsize / vsize)
 
         return logl, gradl, hessl
 
-    def _func_jacobian(
-            self, 
-            values: Dict[Variable, np.ndarray], 
-            variables: Optional[Tuple[Variable, ...]] = None, 
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
-            **kwargs
-    ):
-        logl, gradl = self.logpdf_gradient(values)
-        if axis is None:
-            return FactorValue(logl, {}), JacobianValue(gradl, {})
-        else:        
-            logl = aggregate(logl, axis)
-            for v, g1 in gradl.items():
-                g2 = self._broadcast(self._variable_plates[v], g1)
-                jac = diag(g1, g2.shape)
-                if axis is False:
-                    gradl[v] = jac
-                else:
-                    gradl[v] = jac.sum(np.array(axis) + len(g1.shape))
+    # def _func_jacobian(
+    #         self, 
+    #         values: Dict[Variable, np.ndarray], 
+    #         variables: Optional[Tuple[Variable, ...]] = None, 
+    #         axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+    #         **kwargs
+    # ):
+    #     logl, gradl = self.logpdf_gradient(values)
+    #     if axis is None:
+    #         return FactorValue(logl, {}), JacobianValue(gradl, {})
+    #     else:        
+    #         fsize = logl.size
+    #         logl = aggregate(logl, axis)
+    #         variables = gradl if variables is None else variables
+    #         for v in variables:
+    #             vsize = np.size(values[v])
+    #             g1 = gradl[v] * (vsize / fsize)
+    #             # this is a memory expensive way of doing this
+    #             g2 = self._broadcast(self._variable_plates[v], g1)
+    #             jac = diag(g1, g2.shape).reshape(g2.shape + g1.shape)
+    #             gradl[v] = aggregate(jac, axis=axis) 
 
-        return FactorValue(logl, {}), JacobianValue(gradl, {})
+    #     return FactorValue(logl, {}), JacobianValue(gradl, {})
 
-    def _func_jacobian_hessian(
-            self, 
-            values: Dict[Variable, np.ndarray], 
-            variables: Optional[Tuple[Variable, ...]] = None, 
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
-            **kwargs
-    ):
-        logl, gradl, hessl = self.logpdf_gradient_hessian(values)
-        if axis is None:
-            hessl = {v: diag(h) for v, h in hessl.items()}
-            return FactorValue(logl, {}), JacobianValue(gradl, {}), hessl
-        else:
-            logl = aggregate(logl, axis)
-            for v, g1 in gradl.items():
-                g2 = self._broadcast(self._variable_plates[v], g1)
-                jac = diag(g1, g2.shape)
-                if axis is False:
-                    gradl[v] = jac
-                else:
-                    gradl[v] = jac.sum(np.array(axis) + len(g1.shape))
+    # def _func_jacobian_hessian(
+    #         self, 
+    #         values: Dict[Variable, np.ndarray], 
+    #         variables: Optional[Tuple[Variable, ...]] = None, 
+    #         axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+    #         **kwargs
+    # ):
+    #     logl, gradl, hessl = self.logpdf_gradient_hessian(values)
+    #     if axis is None:
+    #         hessl = {v: diag(h) for v, h in hessl.items()}
+    #         return FactorValue(logl, {}), JacobianValue(gradl, {}), hessl
+    #     else:
+    #         logl = aggregate(logl, axis)
+    #         for v, g1 in gradl.items():
+    #             g2 = self._broadcast(self._variable_plates[v], g1)
+    #             jac = diag(g1, g2.shape)
+    #             if axis is False:
+    #                 gradl[v] = jac
+    #             else:
+    #                 gradl[v] = jac.sum(np.array(axis) + len(g1.shape))
 
-            for v, h in hessl.items():
-                d2 = self._broadcast(self._variable_plates[v], h).shape
-                h = diag(h, h.shape, d2)
-                if axis is False:
-                    hessl[v] = h
-                else:
-                    hessl[v] = h.sum(np.array(axis) + len(g1.shape) * 2)
+    #         for v, h in hessl.items():
+    #             d2 = self._broadcast(self._variable_plates[v], h).shape
+    #             h = diag(h, h.shape, d2)
+    #             if axis is False:
+    #                 hessl[v] = h
+    #             else:
+    #                 hessl[v] = h.sum(np.array(axis) + len(g1.shape) * 2)
 
-        return logl, gradl, hessl
+    #     return logl, gradl, hessl
 
 
 
