@@ -87,7 +87,7 @@ def test_meanfield_gradients():
         values, axis=1, _eps=1e-8)[1][0]
     njac2 = mean_field._numerical_func_jacobian(
         values, axis=(0, 1), _eps=1e-8)[1][0]
-    njac = mean_field._numerical_func_jacobian(
+    njac = mean_field._numerical_func_jacobian_hessian(
         values, axis=False, _eps=1e-8)[1][0]
     grad = mean_field.logpdf_gradient(values, axis=False)[1]
     for v in grad:

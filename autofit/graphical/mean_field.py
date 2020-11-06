@@ -1,5 +1,6 @@
 from collections import ChainMap
 from itertools import chain
+from functools import reduce
 from typing import (
     Dict, Tuple, Optional, NamedTuple, Iterator, List, Union
 )
@@ -130,12 +131,20 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         the result is broadcast to the appropriate shape given the variable
         plates
         """
-        return aggregate(
-            sum(
+        return reduce(
+            add_arrays, 
+            (aggregate(
                 self._broadcast(
-                    self._variable_plates[v], m.logpdf(values[v]))
-                for v, m in self.items()), 
-                axis=axis) 
+                    self._variable_plates[v], m.logpdf(values[v])),
+                axis = axis)
+            for v, m in self.items())
+        )
+        # return aggregate(
+        #     sum(
+        #         self._broadcast(
+        #             self._variable_plates[v], m.logpdf(values[v]))
+        #         for v, m in self.items()), 
+        #         axis=axis) 
         # logl = 0. 
         # fsize = prod(
         #     self._function_shape(**self.resolve_variable_dict(values)))
@@ -161,16 +170,14 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             **kwargs):
         logl = 0
         gradl = {}
-        fsize = prod(
-            self._function_shape(**self.resolve_variable_dict(values)))
         for v, m in self.items():
-            val = values[v]
-            vsize = np.size(val)
-            lv, g = m.logpdf_gradient(val)
-            logl = logl + self._broadcast(self._variable_plates[v], lv)
-            gradl[v] = g * (fsize / vsize)
+            lv, gradl[v] = m.logpdf_gradient(values[v])
+            lv = aggregate(
+                self._broadcast(self._variable_plates[v], lv),
+                axis = axis)
+            logl = add_arrays(logl, lv)
 
-        return aggregate(logl, axis=axis), gradl
+        return logl, gradl
 
     def logpdf_gradient_hessian(
             self, 
@@ -180,16 +187,12 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         logl = 0.
         gradl = {}
         hessl = {}
-        fsize = prod(
-            self._function_shape(**self.resolve_variable_dict(values)))
         for v, m in self.items():
-            val = values[v]
-            vsize = np.size(val)
-            lv, g, h = m.logpdf_gradient_hessian(val)
-            lv = self._broadcast(self._variable_plates[v], lv)
-            logl = logl + aggregate(lv, axis=axis)
-            gradl[v] = g * (fsize / vsize)
-            hessl[v] = h * (fsize / vsize)
+            lv, gradl[v], hessl[v] = m.logpdf_gradient_hessian(values[v])
+            lv = aggregate(
+                self._broadcast(self._variable_plates[v], lv),
+                axis = axis)
+            logl = add_arrays(logl, lv)
 
         return logl, gradl, hessl
 
@@ -361,16 +364,39 @@ class FactorApproximation(NamedTuple):
 
         return log_result
 
-    def _func_jacobian(
+    def func_jacobian(
             self, 
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False):
-        (log_result, det_vars), (grad, jac_det) = self.factor.func_jacobian(
-            variable_dict, axis=axis)
+            variables: Optional[List[Variable]] = None,
+            axis: Axis = None):
 
-        log_cavity, grad_cavity = factor_approx.cavity_dist.logpdf_gradient(
-            {**variable_dict, **det_vars}, axis=axis)
+        if axis is not None:
+            raise NotImplementedError(
+                "FactorApproximation.func_jacobian has not implemeted "
+                f"axis={axis}, try axis=None")
 
+        if variables is None:
+            fixed_variables = set(
+                v for v, m in self.model_dist.items() 
+                if isinstance(m, graph.FixedMessage))
+            variables = self.factor.variables - fixed_variables
+        (log_factor, det_vars), (grad, jac_det) = self.factor.func_jacobian(
+            variable_dict, variables, axis=axis)
+
+        values = {**variable_dict, **det_vars}
+        var_sizes = {v: np.size(x) for v, x in values.items()}
+        var_shapes = {v: np.shape(x) for v, x in values.items()}
+        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(
+            values, axis=axis)
+
+        logl = log_factor + log_cavity
+
+        for (det, var), jac in jac_det.items():
+            det_grad = grad_cavity[det].ravel()
+            g = jac.reshape(var_sizes[det], var_sizes[var])
+            grad[var] += det_grad.dot(g).reshape(var_shapes[var])
+        
+        return FactorValue(logl, det_vars), JacobianValue(grad, jac_det)
 
     project_on_to_factor_approx = project_on_to_factor_approx
 
