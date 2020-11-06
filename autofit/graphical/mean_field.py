@@ -143,7 +143,6 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         for v, m in self.items():
             lv, gradl[v] = m.logpdf_gradient(values[v])
             lv = self._broadcast(self._variable_plates[v], lv)
-            print(v, lv.shape)
             logl = logl + aggregate(lv, axis=axis)
 
         return logl, gradl
@@ -159,7 +158,6 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         for v, m in self.items():
             lv, gradl[v], hessl[v] = m.logpdf_gradient_hessian(values[v])
             lv = self._broadcast(self._variable_plates[v], lv)
-            print(v, lv.shape)
             logl = logl + aggregate(lv, axis=axis)
 
         return logl, gradl, hessl

@@ -179,14 +179,10 @@ class FactorGraph(AbstractNode):
             )
 
     @property
-    def _variables(self):
-        return {
-            variable
-            for factor
-            in self.factors
-            for variable
-            in factor.variables
-        }
+    def all_variables(self):
+        return reduce(
+            set.union, 
+            (factor.all_variables for factor in self.factors))
 
     @property
     def deterministic_variables(self):
@@ -196,7 +192,7 @@ class FactorGraph(AbstractNode):
 
     @property
     def variables(self):
-        return self._variables - self.deterministic_variables
+        return self.all_variables - self.deterministic_variables
 
     def _get_call_sequence(self) -> List[List[Factor]]:
         """
