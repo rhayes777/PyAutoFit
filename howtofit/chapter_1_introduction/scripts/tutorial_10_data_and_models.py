@@ -1,6 +1,6 @@
 # %%
 """
-Tutorial 5: Data and Models
+Tutorial 10: Data and Models
 ===========================
 
 Up to now, we've used used the `Aggregator` to load and inspect the `Samples` of 3 model-fits.

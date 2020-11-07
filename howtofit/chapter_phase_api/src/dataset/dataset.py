@@ -55,7 +55,7 @@ class SettingsDataset:
         Returns a tag describing all settings customizing the `Dataset`, which for this example only describes
         how the dataset is trimmed from the left and right.
         """
-        return f"dataset[{self.data_trim_left_tag}{self.data_trim_right_tag}]"
+        return f"__dataset[{self.data_trim_left_tag}{self.data_trim_right_tag}]"
 
     @property
     def data_trim_left_tag(self) -> str:
@@ -71,7 +71,7 @@ class SettingsDataset:
         """
         if self.data_trim_left is None:
             return ""
-        return f"__trim_left_{self.data_trim_left}"
+        return f"trim_left_{self.data_trim_left}"
 
     @property
     def data_trim_right_tag(self) -> str:

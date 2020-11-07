@@ -1,6 +1,6 @@
 # %%
 """
-Tutorial 6: Complex Models
+Tutorial 5: Complex Models
 ==========================
 
 Up to now, we've fitted a very simple model, a 1D `Gaussian` with 3 free parameters. In this tutorial, we'll look at
@@ -163,7 +163,7 @@ example, in the model above, the `model_data` is the sum of the `Gaussian`'s  in
 individual profile.
 """
 
-
+# %%
 class Analysis(af.Analysis):
     def __init__(self, data, noise_map):
 
@@ -422,7 +422,7 @@ model.gaussian_0.sigma = 1.0
 """This assertion forces all values of the `sigma` value of the third `Gaussian` to  be above 3.0."""
 
 # %%
-model.add_assertion(model.gaussian_0 > 3.0)
+model.gaussian_2.add_assertion(model.gaussian_2.sigma > 3.0)
 
 # %%
 """We can now fit this model as per usual."""

@@ -1,7 +1,7 @@
 # %%
 """
-Tutorial 6: Results
-===================
+Tutorial 6: Results And Samples
+===============================
 
 In this tutorial, we'll cover all of the output that comes from a `NonLinearSearch` in the form of a `Result` object.
 
