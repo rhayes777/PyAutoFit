@@ -2,8 +2,6 @@ import copy
 import inspect
 import logging
 
-from typing_inspect import is_tuple_type
-
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.deferred import DeferredInstance
@@ -119,14 +117,6 @@ class PriorModel(AbstractPriorModel):
                     )
 
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
-                elif is_tuple_type(spec):
-                    tuple_prior = TuplePrior()
-                    for i, tuple_arg in enumerate(spec.__args__):
-                        attribute_name = "{}_{}".format(arg, i)
-                        setattr(
-                            tuple_prior, attribute_name, self.make_prior(attribute_name)
-                        )
-                    setattr(self, arg, tuple_prior)
                 else:
                     setattr(self, arg, PriorModel(annotations[arg]))
             else:
