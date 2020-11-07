@@ -3,13 +3,14 @@ from typing import Callable, cast, Set, List, Dict
 
 import numpy as np
 
+from autofit import ModelInstance
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanFieldApproximation
 from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
 
 
 class AbstractModelFactor(ABC):
@@ -126,11 +127,55 @@ class AbstractModelFactor(ABC):
             arguments
         )
 
+    def global_likelihood(
+            self,
+            instance: ModelInstance
+    ) -> float:
+        """
+        Compute the combined likelihood of each factor from a collection of instances
+        with the same ordering as the factors.
+
+        Parameters
+        ----------
+        instance
+            A collection of instances, one corresponding to each factor
+
+        Returns
+        -------
+        The combined likelihood of all factors
+        """
+        likelihood = abs(
+            self.model_factors[0].likelihood_function(
+                instance[0]
+            )
+        )
+        for model_factor, instance_ in zip(
+                self.model_factors[1:],
+                instance[1:]
+        ):
+            likelihood *= abs(
+                model_factor.likelihood_function(
+                    instance_
+                )
+            )
+        return -likelihood
+
+    @property
+    def global_prior_model(self) -> CollectionPriorModel:
+        """
+        A collection of prior models, with one model for each factor.
+        """
+        return CollectionPriorModel([
+            model_factor.prior_model
+            for model_factor
+            in self.model_factors
+        ])
+
 
 class ModelFactor(Factor, AbstractModelFactor):
     def __init__(
             self,
-            prior_model: PriorModel,
+            prior_model: AbstractPriorModel,
             likelihood_function: Callable
     ):
         """
@@ -154,7 +199,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-        Returnss an instance of the prior model and evaluates it, forming
+        Returns an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters
