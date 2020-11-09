@@ -3,7 +3,8 @@ from typing import (
     Optional, Dict, Tuple, NamedTuple, Any, List, Iterator)
 
 import numpy as np
-from scipy.optimize import minimize, OptimizeResult, least_squares
+from scipy.optimize import \
+    minimize, OptimizeResult, least_squares, approx_fprime
 
 from autofit.graphical import FixedMessage
 from autofit.mapper.variable import Variable
@@ -69,21 +70,51 @@ class OptFactor:
             bounds=bounds,
         )
 
-    def __call__(self, args):
+    def flatten(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
+        return self.param_shapes.flatten(values)
+
+    def unflatten(self, x0: np.ndarray) -> Dict[Variable, np.ndarray]:
+        values = self.param_shapes.unflatten(x0)
+        values.update(self.fixed_kws)
+        return values
+
+    def __call__(self, x0):
+        values = self.unflatten(x0)
+        return self.sign * np.sum(self.factor_approx(values, axis=None))
+
+    def func_jacobian(self, args):
         params = self.param_shapes.unflatten(args)
         params.update(self.fixed_kws)
-        return self.sign * np.sum(self.factor_approx(params))
 
-    def _minimise(self, arrays_dict, method=None, bounds=None,
-                  constraints=(), tol=None, callback=None,
-                  options=None):
-        x0 = self.param_shapes.flatten(arrays_dict)
-        bounds = self.bounds if bounds is None else bounds
-        method = self.method if method is None else method
-        return minimize(
-            self, x0, method=method, bounds=bounds,
-            constraints=constraints, tol=tol, callback=callback,
-            options=options)
+        fval, jval = self.factor_approx.func_jacobian(
+            params, self.free_vars, axis=None, _calc_deterministic=True)
+        f = fval[0]
+        grad = self.param_shapes.flatten(jval[0])
+        return self.sign * f, self.sign * grad
+
+    def jacobian(self, args):
+        return self.func_jacobian(args)[1]
+
+    def numerically_verify_jacobian(
+            self, 
+            n_tries=10,
+            eps=1e-6,
+            rtol=1e-3,
+            atol=1e-2):
+        x0s = (
+            self.flatten(
+                self.factor_approx.model_dist.sample())
+            for _ in range(n_tries)
+        )
+        return all(
+            np.allclose(
+                self.jacobian(x0),
+                approx_fprime(x0, self, eps),
+                atol=atol,
+                rtol=rtol
+            )
+            for x0 in x0s
+        )
 
     def _parse_result(
             self, 
@@ -101,7 +132,7 @@ class OptFactor:
         covar = self.param_shapes.unflatten(result.hess_inv.todense())
         return OptResult(
             mode, covar,
-            -result.fun, # minimized negative logpdf of factor approximation
+            self.sign * result.fun, # minimized negative logpdf of factor approximation
             result,
             Status(success, messages))
 
@@ -114,6 +145,18 @@ class OptFactor:
                 p0[v] = self.factor_approx.model_dist[v].sample(1)[0]
         
         return p0
+
+    def _minimise(self, arrays_dict, method=None, bounds=None,
+                  constraints=(), tol=None, callback=None,
+                  options=None):
+        x0 = self.param_shapes.flatten(arrays_dict)
+        bounds = self.bounds if bounds is None else bounds
+        method = self.method if method is None else method
+        return minimize(
+            # self, x0, method=method, bounds=bounds,
+            self.func_jacobian, x0, method=method, jac=True, bounds=bounds,
+            constraints=constraints, tol=tol, callback=callback,
+            options=options)
 
     def minimise(
             self,
@@ -153,7 +196,6 @@ class OptFactor:
             p0,
             bounds=bounds, constraints=constraints, tol=tol,
             callback=callback, options=options)
-        self.sign = 1
         return self._parse_result(res, status=status)
 
     minimize = minimise

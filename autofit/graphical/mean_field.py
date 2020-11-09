@@ -246,7 +246,10 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
     __hash__ = Factor.__hash__ 
     
     @classmethod
-    def as_meanfield(cls, dist):
+    def as_meanfield(
+        cls, 
+        dist: Union[Dict[Variable, AbstractMessage], "MeanField"]
+    ) -> "MeanField":
         return dist if isinstance(dist, cls) else MeanField(dist)
 
 
@@ -263,6 +266,8 @@ class FactorApproximation(_FactorApproximation):
         cavity_dist, 
         factor_dist, 
         model_dist):
+        # Have to seperate FactorApproximation into two classes
+        # in order to be able to redefine __new__
         return super().__new__(
             cls, factor, 
             MeanField.as_meanfield(cavity_dist),
@@ -344,6 +349,12 @@ class FactorApproximation(_FactorApproximation):
 
         logl = log_factor + log_cavity
 
+        for v in grad:
+            grad[v] += grad_cavity[v]
+
+        # Update gradients using jacobians of deterministic variables
+        # TODO: Should add logic to account for pullbacks for 
+        #       AD frameworks e.g. Zygote.jl
         for (det, var), jac in jac_det.items():
             det_grad = grad_cavity[det].ravel()
             g = jac.reshape(var_sizes[det], var_sizes[var])
