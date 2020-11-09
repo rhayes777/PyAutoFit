@@ -76,7 +76,7 @@ def test_laplace(
         z_,
 ):
     opt = mp.optimise.LaplaceOptimiser()
-    model_approx = opt.run(model_approx)
+    model_approx, status = opt.run(model_approx)
 
     q_a = model_approx[a_]
     q_b = model_approx[b_]

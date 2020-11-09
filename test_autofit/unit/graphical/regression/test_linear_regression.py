@@ -81,7 +81,7 @@ def test_laplace(
     opt = mp.optimise.LaplaceOptimiser(
         n_iter=3
     )
-    model_approx = opt.run(
+    model_approx, status = opt.run(
         model_approx
     )
 

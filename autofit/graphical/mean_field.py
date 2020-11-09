@@ -245,13 +245,29 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
 
     __hash__ = Factor.__hash__ 
     
+    @classmethod
+    def as_meanfield(cls, dist):
+        return dist if isinstance(dist, cls) else MeanField(dist)
 
 
-class FactorApproximation(NamedTuple):
+class _FactorApproximation(NamedTuple):
     factor: Factor
     cavity_dist: MeanField
     factor_dist: MeanField
     model_dist: MeanField
+
+class FactorApproximation(_FactorApproximation):
+    def __new__(
+        cls, 
+        factor, 
+        cavity_dist, 
+        factor_dist, 
+        model_dist):
+        return super().__new__(
+            cls, factor, 
+            MeanField.as_meanfield(cavity_dist),
+            MeanField.as_meanfield(factor_dist),
+            MeanField.as_meanfield(model_dist))
 
     @property
     def deterministic_variables(self):
@@ -278,24 +294,32 @@ class FactorApproximation(NamedTuple):
             self.model_dist.values())
         return all(d.is_valid for d in dists if isinstance(d, AbstractMessage))
 
-    def __call__(self, kwargs: Dict[Variable, np.ndarray]) -> np.ndarray:
-        log_result, det_vars = self.factor(kwargs)
-
+    def __call__(
+            self, 
+            values: Dict[Variable, np.ndarray],
+            axis: Axis = False, 
+    ) -> np.ndarray:
+        log_factor, det_vars = self.factor(values, axis=axis)
+        log_meanfield, _ = self.cavity_dist(
+            {**values, **det_vars}, axis=axis)
+        return add_arrays(log_factor, log_meanfield)
         # refactor as a mapreduce?
         # for res in chain(map_dists(self.cavity_dist, kwargs),
         #                  map_dists(self.deterministic_dist, det_vars)):
-        for res in map_dists(self.cavity_dist, {**det_vars, **kwargs}):
-            # need to add the arrays whilst preserving the sum
-            log_result = add_arrays(
-                log_result, self.factor.broadcast_variable(*res))
+        # for res in map_dists(self.cavity_dist, {**det_vars, **kwargs}):
+        #     # need to add the arrays whilst preserving the sum
+        #     log_result = add_arrays(
+        #         log_result, self.factor.broadcast_variable(*res))
 
-        return log_result
+        # return log_result
 
     def func_jacobian(
             self, 
             variable_dict: Dict[Variable, np.ndarray],
             variables: Optional[List[Variable]] = None,
-            axis: Axis = None):
+            axis: Axis = None,
+            _calc_deterministic: bool = True,
+    ) -> Tuple[FactorValue, JacobianValue]:
 
         if axis is not None:
             raise NotImplementedError(
@@ -307,8 +331,10 @@ class FactorApproximation(NamedTuple):
                 v for v, m in self.model_dist.items() 
                 if isinstance(m, FixedMessage))
             variables = self.factor.variables - fixed_variables
+
         (log_factor, det_vars), (grad, jac_det) = self.factor.func_jacobian(
-            variable_dict, variables, axis=axis)
+            variable_dict, variables, axis=axis, 
+            _calc_deterministic=_calc_deterministic)
 
         values = {**variable_dict, **det_vars}
         var_sizes = {v: np.size(x) for v, x in values.items()}

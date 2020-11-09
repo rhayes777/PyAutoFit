@@ -63,7 +63,7 @@ def test_laplace_method(probit_factor, q_cavity, x):
         factor=probit_factor,
         cavity_dist={x: q_cavity},
         factor_dist={},
-        model_dist={x: q_cavity})
+        model_dist=mp.MeanField({x: q_cavity}))
 
     opt_probit = mp.OptFactor.from_approx(probit_approx)
     result = opt_probit.maximise({x: 0.})

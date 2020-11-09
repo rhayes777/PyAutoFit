@@ -88,8 +88,8 @@ class OptFactor:
     def _parse_result(
             self, 
             result: OptimizeResult, 
-            status: Optional[Status] = None) -> OptResult:
-        success, messages = Status() if status is None else status
+            status: Status = Status()) -> OptResult:
+        success, messages = status
         success = result.success
         message = result.message.decode()
         messages += (
@@ -115,15 +115,25 @@ class OptFactor:
         
         return p0
 
-    def minimise(self, bounds=None,
-                 constraints=(), tol=None, callback=None,
-                 options=None, **arrays):
+    def minimise(
+            self,
+            arrays_dict: Dict[Variable, np.ndarray] = {},
+            bounds=None,
+            constraints=(), 
+            tol=None, 
+            callback=None,
+            options=None,
+            status: Status = Status(), 
+    ):
         self.sign = 1
+        p0 = {
+            v: arrays_dict.pop(v, self.factor_approx.model_dist[v].sample(1)[0])
+            for v in self.free_vars}
         res = self._minimise(
-            arrays,
+            p0,
             bounds=bounds, constraints=constraints, tol=tol,
             callback=callback, options=options)
-        return self._parse_result(res)
+        return self._parse_result(res, status=status)
 
     def maximise(
             self,
@@ -133,7 +143,7 @@ class OptFactor:
             tol=None, 
             callback=None,
             options=None,
-            status: Optional[Status] = None,
+            status: Status = Status(), 
     ):
         self.sign = -1
         p0 = {
@@ -179,7 +189,7 @@ maximize_factor_approx = maximise_factor_approx
 def find_factor_mode(
         factor_approx: FactorApproximation,
         return_cov: bool = True,
-        status: Optional[Status] = None,
+        status: Status = Status(), 
         min_iter: int = 2,
         opt_kws: Optional[dict] = None,
         **kwargs
@@ -204,17 +214,18 @@ def find_factor_mode(
     return res
 
 def laplace_factor_approx(
-            model_approx: MeanFieldApproximation,
-            factor: Factor,
-            delta: float = 1., 
-            status: Optional[Status] = None, 
-            opt_kws: Optional[Dict[str, Any]] = None
+        model_approx: MeanFieldApproximation,
+        factor: Factor,
+        delta: float = 1., 
+        status: Status = Status(), 
+        opt_kws: Optional[Dict[str, Any]] = None
 ):
     opt_kws = {} if opt_kws is None else opt_kws
     factor_approx = model_approx.factor_approximation(factor)
     res = find_factor_mode(
         factor_approx,
         return_cov=True,
+        status=status,
         **opt_kws
     )
 
@@ -242,28 +253,36 @@ class LaplaceOptimiser:
         self.delta = delta
         self.opt_kws = {} if opt_kws is None else opt_kws
 
-    def step(self, model_approx, factors: Optional[List[Factor]] = None
-    ) -> Iterator[Tuple[Factor, MeanFieldApproximation]]:
+    def step(
+        self, 
+        model_approx, 
+        factors: Optional[List[Factor]] = None,
+        status: Status = Status()
+    ) -> Iterator[Tuple[Factor, MeanFieldApproximation, Status]]:
         new_approx = model_approx
         factors = (
             model_approx.factor_graph.factors 
             if factors is None else factors)
         for factor in factors:
-            new_approx, _ = laplace_factor_approx(
+            new_approx, status = laplace_factor_approx(
                 new_approx,
                 factor,
                 self.delta,
-                self.opt_kws)
-            yield factor, new_approx
+                status=status,
+                opt_kws=self.opt_kws)
+            yield factor, new_approx, status
 
-    def run(self, 
-            model_approx: MeanFieldApproximation, 
-            factors: Optional[List[Factor]] = None,
+    def run(
+        self, 
+        model_approx: MeanFieldApproximation, 
+        factors: Optional[List[Factor]] = None,
+        status: Status = Status()
     ) -> MeanFieldApproximation:
+        new_approx = model_approx
         for i in range(self.n_iter):
-            for factor, new_approx in self.step(model_approx, factors):
+            for factor, new_approx, status in self.step(new_approx, factors):
                 self.history[i, factor] = new_approx
-        return new_approx
+        return new_approx, status
 
 
 class LeastSquaresOpt:

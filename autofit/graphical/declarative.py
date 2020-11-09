@@ -106,7 +106,7 @@ class AbstractModelFactor(ABC):
         -------
         A collection of prior models
         """
-        updated_model = optimiser.run(
+        updated_model, status = optimiser.run(
             self.mean_field_approximation()
         )
 
