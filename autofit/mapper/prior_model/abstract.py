@@ -14,7 +14,6 @@ from autofit.mapper.model import AbstractModel
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
-from autofit.mapper.prior_model import dimension_type as dim
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
@@ -509,7 +508,7 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, (dim.DimensionType, np.ndarray)):
+        elif isinstance(instance, np.ndarray):
             return instance
         else:
             from .prior_model import PriorModel
@@ -840,9 +839,13 @@ class AbstractPriorModel(AbstractModel):
 
         subscripts = []
 
+        subscript_conf = conf.instance["notation"]["label"]["subscript"]
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
-            subscripts.append(conf.instance["notation"]["label"]["subscript"].family(cls))
+            try:
+                subscripts.append(subscript_conf.family(cls))
+            except KeyError:
+                subscripts.append(cls.__name__[0])
 
         return subscripts
 

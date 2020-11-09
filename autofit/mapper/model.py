@@ -221,6 +221,10 @@ class ModelInstance(AbstractModel):
     def __getitem__(self, item):
         if isinstance(item, int):
             return list(self.values())[item]
+        if isinstance(item, slice):
+            return ModelInstance(
+                list(self.values())[item]
+            )
         return self.__dict__[item]
 
     def __setitem__(self, key, value):
