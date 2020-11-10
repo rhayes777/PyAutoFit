@@ -366,3 +366,18 @@ class AbstractMessage(ABC):
                 f"shape of covariance {covariance.shape} is invalid "
                 f"must be (), {mean.shape}, or {mean.shape * 2}")
         return mean, variance
+
+    def likelihood_jac(self, x, _variables=('x')):
+        if _variables is None:
+            return self.logpdf(x)
+        else:
+            if 'x' in _variables:
+                loglike, g = self.logpdf_gradient(x)
+                g = np.expand_dims(g, list(range(loglike.ndim)))
+                return loglike, (g,)
+            else:
+                return self.logpdf(x), ()
+
+    def as_factor(self, variable):
+        from autofit.graphical import FactorJacobian 
+        return FactorJacobian(self.likelihood_jac, x=variable)

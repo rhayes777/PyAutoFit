@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+from scipy.optimize import approx_fprime
+
 import autofit.mapper.variable
 from autofit import graphical as mp
 
@@ -92,6 +94,24 @@ def make_flat_compound(
         x=y
     )
     return phi * g * sigmoid
+
+
+def test_factor_jacobian():
+    shape = 4, 3
+    z_ = mp.Variable('z', *(mp.Plate() for _ in shape))
+    likelihood = mp.NormalMessage(
+        np.random.randn(*shape), 
+        np.random.exponential(size=shape))
+    likelihood_factor = likelihood.as_factor(z_)
+
+    values = {z_: likelihood.sample()}
+    fval, jval = likelihood_factor.func_jacobian(
+        values, axis=None)
+    ngrad = approx_fprime(
+        values[z_].ravel(), 
+        lambda x: likelihood.logpdf(x.reshape(*shape)).sum(), 
+        1e-8).reshape(*shape)
+    assert np.allclose(ngrad, jval[0][z_])
 
 
 class TestFactorGraph:
