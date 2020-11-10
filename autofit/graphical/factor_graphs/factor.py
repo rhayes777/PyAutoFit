@@ -109,6 +109,7 @@ class Factor(AbstractFactor):
             factor: Callable,
             name=None,
             vectorised=False,
+            is_scalar=False,
             **kwargs: Variable
     ):
         """
@@ -124,7 +125,7 @@ class Factor(AbstractFactor):
             Variables representing keyword arguments for the function
         """
         self.vectorised = vectorised
-
+        self.is_scalar = is_scalar
         self._factor = factor
 
         args = getfullargspec(self._factor).args
@@ -138,6 +139,7 @@ class Factor(AbstractFactor):
             }
         }
 
+
         super().__init__(
             **kwargs,
             name=name or factor.__name__
@@ -149,9 +151,22 @@ class Factor(AbstractFactor):
         # TODO: might this break factor repetition somewhere?
         return hash(self._factor)
 
+    def _reshape_factor(
+            self, factor_val, values
+    ):
+        shift, shape = self._function_shape(**values)
+        if self.is_scalar:
+            if shift:
+                return np.sum(
+                    factor_val, axis=np.arange(1,np.ndim(factor_val)))
+            else:
+                return np.sum(factor_val)
+        else:
+            return np.reshape(factor_val, shape)
+
     def _function_shape(
             self, 
-            **kwargs: np.ndarray) -> Tuple[int, ...]:
+            **kwargs: np.ndarray) -> Tuple[int, Tuple[int, ...]]:
         """
         Calculates the expected function shape based on the variables
         """
@@ -215,7 +230,7 @@ class Factor(AbstractFactor):
                     )
                 shape[ind] = np.maximum(shape[ind], vshape)
         
-        return tuple(shape)
+        return shift, tuple(shape)
 
     def _call_factor(
             self,
@@ -325,8 +340,7 @@ class Factor(AbstractFactor):
         """
         kwargs = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(**kwargs)
-        val = aggregate(
-            val.reshape(self._function_shape(**kwargs)), axis)
+        val = aggregate(self._reshape_factor(val, kwargs), axis)
         return FactorValue(val, {})
 
     def broadcast_variable(
@@ -410,6 +424,7 @@ class FactorJacobian(Factor):
             factor_jacobian: Callable,
             name=None,
             vectorised=False,
+            is_scalar=False, 
             variable_order=None, 
             **kwargs: Variable
     ):
@@ -426,6 +441,7 @@ class FactorJacobian(Factor):
             Variables representing keyword arguments for the function
         """
         self.vectorised = vectorised
+        self.is_scalar = is_scalar
         self._factor_jacobian = factor_jacobian
         AbstractFactor.__init__(
             self, 
@@ -532,6 +548,7 @@ class FactorJacobian(Factor):
     ) -> FactorValue:
         values = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(values, variables=None)
+        val = aggregate(val, axis)
         return FactorValue(val, {})
 
     def func_jacobian(
@@ -564,13 +581,14 @@ class FactorJacobian(Factor):
         kwargs = self.resolve_variable_dict(variable_dict)
         val, jacs = self._call_factor(
             kwargs, variables=variable_names)
-        val = aggregate(
-            val.reshape(self._function_shape(**kwargs)), axis)
-        jacobian = {
-            v: aggregate(jac, axis) 
-            for v, jac in zip(self._variables, jacs)
+        grad_axis = tuple(range(np.ndim(val))) if axis is None else axis
+        
+        val = aggregate(self._reshape_factor(val, kwargs), axis)
+        gradient = {
+            v: aggregate(jac, grad_axis) 
+            for v, jac in zip(variables, jacs)
         }
-        return FactorValue(val, {}), JacobianValue(jacobian, {})
+        return FactorValue(val, {}), JacobianValue(gradient, {})
 
     def __eq__(self, other: Union["Factor", Variable]):
         """

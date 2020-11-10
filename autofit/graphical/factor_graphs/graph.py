@@ -69,8 +69,7 @@ class DeterministicFactorNode(Factor):
         """
         kwargs = self.resolve_variable_dict(variable_dict)
         res = self._call_factor(**kwargs)
-        shape = self._function_shape(**kwargs)
-        shift = len(shape) - self.ndim
+        shift, shape = self._function_shape(**kwargs)
         plate_dim = dict(zip(self.plates, shape[shift:]))
 
         det_shapes = {
@@ -83,8 +82,8 @@ class DeterministicFactorNode(Factor):
             res = res,
 
         log_val = (
-            0. if shape == () else 
-            aggregate(np.zeros(np.ones_like(shape)), axis))
+            0. if (shape == () or axis is None) else 
+            aggregate(np.zeros(len(shape)), axis))
         det_vals = {
             k: np.reshape(val, det_shapes[k])
             if det_shapes[k]
@@ -166,8 +165,7 @@ class DeterministicFactorJacobianNode(FactorJacobian):
         kwargs = self.resolve_variable_dict(variable_dict)
         vals, *jacs = self._call_factor(
             kwargs, variables=variable_names)
-        shape = self._function_shape(**kwargs)
-        shift = len(shape) - self.ndim
+        shift, shape = self._function_shape(**kwargs)
         plate_dim = dict(zip(self.plates, shape[shift:]))
 
 
