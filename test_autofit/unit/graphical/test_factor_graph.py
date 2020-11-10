@@ -191,7 +191,7 @@ class TestFactorGraph:
         print(flat_compound)
         assert str(
             flat_compound
-        ) == "(Factor(log_phi)(x=y) * (Factor(plus_two)(x=x) == (y)) * Factor(log_sigmoid)(x=x))"
+        ) == "(Factor(log_phi, x=y) * (Factor(plus_two, x=x) == (y)) * Factor(log_sigmoid, x=x))"
 
     def test_deterministic_variable_value(
             self,

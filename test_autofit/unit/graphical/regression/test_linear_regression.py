@@ -72,6 +72,61 @@ def make_model_approx(
         }
     )
 
+def test_jacobian(
+        a_,
+        b_,
+        x_,
+        z_,
+        linear_factor,
+        linear_factor_jac,
+):
+    n, m, d = 5, 4, 3
+    x = np.random.rand(n, d)
+    a = np.random.rand(d, m)
+    b = np.random.rand(m)
+
+    
+    values = {x_:x, a_: a, b_: b}
+
+    (fval0, det0), (grad0, jval0) = linear_factor.func_jacobian(values)
+    (fval1, det1), (grad1, jval1) = linear_factor_jac.func_jacobian(values)
+
+    assert np.allclose(fval0, fval1)
+    for d in det0:
+        assert np.allclose(det0[d], det1[d]), f"d={d}"
+
+    for v in values:
+        assert np.allclose(grad0[v], grad1[v]), f"v={v}"
+
+    for d, v in jval0:
+        assert np.allclose(jval0[d, v], jval1[d, v]), f"d={d}, v={v}"
+
+    # testing selective jacobian return
+    (fval0, det0), (grad0, jval0) = linear_factor.func_jacobian(
+        values, variables=(a_,))
+    (fval1, det1), (grad1, jval1) = linear_factor_jac.func_jacobian(
+        values, variables=(a_,))
+
+    # a gradient should only be returned
+    assert len(grad0.keys() - (a_,)) == 0
+    assert len(grad1.keys() - (a_,)) == 0, ", ".join(map(str, grad1))
+
+    # (z, a) jacobian should only be returned
+    assert len(jval0.keys() - ((z_, a_),)) == 0
+    assert len(jval1.keys() - ((z_, a_),)) == 0
+
+    assert np.allclose(fval0, fval1)
+    for d in det0:
+        assert np.allclose(det0[d], det1[d]), f"d={d}"
+
+    for v in (a_,):
+        assert np.allclose(grad0[v], grad1[v]), f"v={v}"
+
+    for d, v in ((z_, a_),):
+        assert np.allclose(jval0[d, v], jval1[d, v]), f"d={d}, v={v}"
+
+
+
 
 def test_laplace(
         model_approx,

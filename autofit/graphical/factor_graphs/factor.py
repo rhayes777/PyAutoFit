@@ -9,7 +9,7 @@ import numpy as np
 
 from autofit.graphical.utils import aggregate, Axis
 from autofit.graphical.factor_graphs.abstract import \
-    AbstractNode, FactorValue
+    AbstractNode, FactorValue, JacobianValue
 from autofit.mapper.variable import Variable
 
 
@@ -400,4 +400,206 @@ class Factor(AbstractFactor):
     def __repr__(self) -> str:
         args = ", ".join(chain(
             map("{0[0]}={0[1]}".format, self._kwargs.items())))
-        return f"Factor({self.name})({args})"
+        return f"Factor({self.name}, {args})"
+
+
+
+class FactorJacobian(Factor):
+    def __init__(
+            self,
+            factor_jacobian: Callable,
+            name=None,
+            vectorised=False,
+            variable_order=None, 
+            **kwargs: Variable
+    ):
+        """
+        A node in a graph representing a factor
+
+        Parameters
+        ----------
+        factor
+            A wrapper around some callable
+        args
+            Variables representing positional arguments for the function
+        kwargs
+            Variables representing keyword arguments for the function
+        """
+        self.vectorised = vectorised
+        self._factor_jacobian = factor_jacobian
+        AbstractFactor.__init__(
+            self, 
+            **kwargs,
+            name=name or factor_jacobian.__name__
+        )
+        self._variables = tuple(
+            self._kwargs.values() if variable_order is None else variable_order)
+
+
+    def __hash__(self) -> int:
+        # TODO: might this break factor repetition somewhere?
+        return hash(self._factor)
+
+    def _call_factor(
+            self,
+            values: Dict[str, np.ndarray],
+            variables: Optional[Tuple[str, ...]] = None, 
+    ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
+        """
+        Call the underlying function
+
+        Parameters
+        ----------
+        args
+            Positional arguments for the function
+        kwargs
+            Keyword arguments for the function
+
+        Returns
+        -------
+        Value returned by the factor
+        """
+        if self.vectorised:
+            return self._factor_jacobian(**values, _variables=variables)
+            
+        """Some factors may not be vectorised to broadcast over
+        multiple inputs
+
+        this method checks whether multiple input values have been
+        passed, and if so automatically loops over the inputs.
+        If any of the inputs have initial dimension one, it repeats
+        that value to match the length of the other inputs
+
+        If the other inputs do not match then it raises ValueError
+        """
+        kwargs_dims = {k: np.ndim(a) for k, a in values.items()}
+        # Check dimensions of inputs directly match plates
+        direct_call = (
+            all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
+        if direct_call:
+            return self._factor_jacobian(**values, _variables=variables)
+
+        # Check dimensions of inputs match plates + 1
+        vectorised = (
+            all(dim + 1 == kwargs_dims[k]
+                for k, dim in self._kwargs_dims.items()))
+
+        if not vectorised:
+            raise ValueError(
+                "input dimensions do not match required dims"
+                f"input: **kwargs={kwargs_dims}"
+                f"required: "
+                f"**kwargs={self._kwargs_dims}")
+
+        kw_lens = {k: len(a) for k, a in values.items()}
+
+        # checking 1st dimensions match
+        sizes = set(kw_lens.values())
+        dim0 = max(sizes)
+        if sizes.difference({1, dim0}):
+            raise ValueError(
+                f"size mismatch first dimensions passed: {sizes}")
+
+        iter_kws = {
+            k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
+            for k, a in values.items()}
+
+        # iterator to generate keyword arguments
+        def gen_kwargs():
+            for _ in range(dim0):
+                yield {
+                    k: next(a) for k, a in iter_kws.items()}
+
+        # TODO this loop can also be parallelised for increased performance
+        fjacs = [
+            self._factor_jacobian(**kws, _variables=variables)
+             for kws in gen_kwargs()]
+        res = np.array([fjac[0] for fjac in fjacs])
+        if variables is None:
+            return res 
+        else:
+            njac = len(fjacs[0][1])
+            jacs = tuple(
+                np.array([fjac[1][i] for fjac in fjacs])
+                for i in range(njac))
+
+            return res, jacs
+
+    def __call__(
+            self,
+            variable_dict: Dict[Variable, np.ndarray],
+            axis: Axis = False, 
+    ) -> FactorValue:
+        values = self.resolve_variable_dict(variable_dict)
+        val = self._call_factor(values, variables=None)
+        return FactorValue(val, {})
+
+    def func_jacobian(
+            self,
+            variable_dict: Dict[Variable, np.ndarray],
+            variables: Optional[Tuple[Variable, ...]] = None,
+            axis: Axis = False, 
+            **kwargs
+    ) -> Tuple[FactorValue, JacobianValue]:
+        """
+        Call the underlying factor
+
+        Parameters
+        ----------
+        args
+            Positional arguments for the factor
+        kwargs
+            Keyword arguments for the factor
+
+        Returns
+        -------
+        Object encapsulating the result of the function call
+        """
+        if variables is None:
+            variables = self.variables
+
+        variable_names = tuple(
+            self._variable_name_kw[v.name]
+            for v in variables)
+        kwargs = self.resolve_variable_dict(variable_dict)
+        val, jacs = self._call_factor(
+            kwargs, variables=variable_names)
+        val = aggregate(
+            val.reshape(self._function_shape(**kwargs)), axis)
+        jacobian = {
+            v: aggregate(jac, axis) 
+            for v, jac in zip(self._variables, jacs)
+        }
+        return FactorValue(val, {}), JacobianValue(jacobian, {})
+
+    def __eq__(self, other: Union["Factor", Variable]):
+        """
+        If set equal to a variable that variable is taken to be deterministic and
+        so a DeterministicFactorNode is generated.
+        """
+        if isinstance(other, Factor):
+            if isinstance(other, type(self)):
+                return (
+                        (self._factor == other._factor)
+                        and (frozenset(self._kwargs.items())
+                             == frozenset(other._kwargs.items()))
+                        and (frozenset(self.variables)
+                             == frozenset(other.variables))
+                        and (frozenset(self.deterministic_variables)
+                             == frozenset(self.deterministic_variables)))
+            else:
+                return False
+
+        from autofit.graphical.factor_graphs.graph import \
+            DeterministicFactorJacobianNode
+        return DeterministicFactorJacobianNode(
+            self._factor_jacobian,
+            other,
+            variable_order=self._variables,
+            **self._kwargs
+        )
+
+    def __repr__(self) -> str:
+        args = ", ".join(chain(
+            map("{0[0]}={0[1]}".format, self._kwargs.items())))
+        return f"FactorJacobian({self.name}, {args})"

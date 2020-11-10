@@ -153,7 +153,6 @@ class OptFactor:
         bounds = self.bounds if bounds is None else bounds
         method = self.method if method is None else method
         return minimize(
-            # self, x0, method=method, bounds=bounds,
             self.func_jacobian, x0, method=method, jac=True, bounds=bounds,
             constraints=constraints, tol=tol, callback=callback,
             options=options)

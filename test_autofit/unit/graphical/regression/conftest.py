@@ -41,6 +41,38 @@ def linear(x, a, b):
     return np.matmul(x, a) + np.expand_dims(b, -2)
 
 
+def linear_jacobian(x, a, b, _variables=('x', 'a', 'b')):
+    z = np.matmul(x, a) + np.expand_dims(b, -2)
+    
+    if _variables is None:
+        return z
+    else:
+        (n, m) = z.shape
+        d = np.shape(x)[1]
+        inds = None
+        jacs = ()
+        for v in _variables:
+            if v == 'x':
+                if inds is None:
+                    i, j, k = inds = np.indices((n, m, d))
+                    
+                jac_x = np.zeros((n, m, n, d))
+                jac_x[i, j, i, k] = a[k, j]
+                jacs += jac_x,
+
+            if v == 'a':
+                if inds is None:
+                    i, j, k = inds = np.indices((n, m, d))
+
+                jac_a = np.zeros((n, m, d, m))
+                jac_a[i, j, k, j] = x[i, k]
+                jacs += jac_a,
+
+            if v == 'b':
+                jacs += np.repeat(np.eye(m)[None, ...], n, axis=0),
+
+        return z, jacs
+
 @pytest.fixture(
     name="obs"
 )
@@ -105,6 +137,13 @@ def make_linear_factor(
 ):
     return mp.Factor(linear, x=x_, a=a_, b=b_) == z_
 
+@pytest.fixture(
+    name="linear_factor_jac"
+)
+def make_linear_factor_jac(
+        x_, a_, b_, z_
+):
+    return mp.FactorJacobian(linear_jacobian, x=x_, a=a_, b=b_) == z_
 
 @pytest.fixture(
     name="prior_a"

@@ -1,5 +1,6 @@
 from .declarative import ModelFactor, ModelFactorCollection
-from .factor_graphs import Factor, FactorGraph, AbstractFactor, FactorValue
+from .factor_graphs import \
+    Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue
 from .mean_field import FactorApproximation, MeanField, MeanFieldApproximation
 from .expectation_propagation import EPMeanField
 from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage
