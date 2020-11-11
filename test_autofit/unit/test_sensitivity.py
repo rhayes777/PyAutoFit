@@ -4,6 +4,7 @@ import pytest
 import autofit as af
 from autofit import sensitivity as s
 from autofit.mock.mock import Gaussian
+from autofit.sensitivity import ImageAnalysis
 
 
 @pytest.fixture(
@@ -33,20 +34,17 @@ def make_sensitivity(perturbation_model):
 x = np.array(range(10))
 
 
-def image_function(instance):
+def image_function(instance: af.ModelInstance):
     return instance.model(x) + instance.perturbation(x)
 
 
-class Analysis(af.Analysis):
-    def __init__(self, data):
-        self.data = data
-
+class Analysis(ImageAnalysis):
     def log_likelihood_function(self, instance):
         return -1
 
 
 def test_lists(sensitivity):
-    assert len(list(sensitivity.perturbation_instances)) == 8
+    assert len(list(sensitivity._perturbation_instances)) == 8
 
 
 def test_sensitivity(sensitivity):
@@ -55,7 +53,7 @@ def test_sensitivity(sensitivity):
 
 
 def test_labels(sensitivity):
-    labels = list(sensitivity.labels)
+    labels = list(sensitivity._labels)
     assert labels == [
         'centre_0.25_intensity_0.25_sigma_0.25',
         'centre_0.25_intensity_0.25_sigma_0.75',
@@ -69,7 +67,7 @@ def test_labels(sensitivity):
 
 
 def test_searches(sensitivity):
-    assert len(list(sensitivity.searches)) == 8
+    assert len(list(sensitivity._searches)) == 8
 
 
 def test_job(perturbation_model):
@@ -80,9 +78,8 @@ def test_job(perturbation_model):
     job = s.Job(
         model=af.PriorModel(Gaussian),
         perturbation_model=af.PriorModel(Gaussian),
-        analysis_class=Analysis,
-        search=af.MockSearch(),
-        image=image
+        analysis=Analysis(image),
+        search=af.MockSearch()
     )
     result = job.perform()
     assert isinstance(
