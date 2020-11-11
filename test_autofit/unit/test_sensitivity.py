@@ -24,7 +24,7 @@ def make_sensitivity(perturbation_model):
     return s.Sensitivity(
         instance=Gaussian(),
         model=af.PriorModel(Gaussian),
-        search=af.MockSearch(),
+        search=GridSearch(),
         perturbation_model=perturbation_model,
         image_function=image_function,
         step_size=0.5,
@@ -67,6 +67,9 @@ def test_lists(sensitivity):
 def test_sensitivity(sensitivity):
     results = sensitivity.run()
     assert len(results) == 8
+
+    for result in results:
+        assert result.log_likelihood_difference > 0
 
 
 def test_labels(sensitivity):
