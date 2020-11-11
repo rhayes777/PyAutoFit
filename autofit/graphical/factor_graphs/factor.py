@@ -563,14 +563,20 @@ class FactorJacobian(Factor):
 
         Parameters
         ----------
-        args
-            Positional arguments for the factor
-        kwargs
-            Keyword arguments for the factor
+        variable_dict : 
+            the values to call the function with
+        variables : tuple of Variables
+            the variables to calculate gradients and Jacobians for
+            if variables = None then differentiates wrt all variables
+        axis : None or False or int or tuple of ints, optional
+            the axes to reduce the result over.
+            if axis = None the sum over all dimensions 
+            if axis = False then does not reduce result
 
         Returns
         -------
-        Object encapsulating the result of the function call
+        FactorValue, JacobianValue
+            encapsulating the result of the function call
         """
         if variables is None:
             variables = self.variables

@@ -19,6 +19,35 @@ class FactorValue(NamedTuple):
     log_value: np.ndarray
     deterministic_values: Dict[Variable, np.ndarray] 
 
+# class FactorValue(np.ndarray):
+
+#     def __new__(cls, input_array, deterministic_values=None):
+#         obj = np.asarray(input_array).view(cls)
+        
+#         if deterministic_values is None:
+#             obj.deterministic_values = {}
+#         else:
+#             obj.deterministic_values = deterministic_values
+            
+#         return obj
+
+#     def __array_finalize__(self, obj):
+#         if obj is None: return
+#         self.deterministic_values = getattr(
+#             obj, 'deterministic_values', None)
+        
+#     @property
+#     def log_value(self):
+#         if self.shape:
+#             return self.base
+#         else:
+#             return self.item()
+        
+#     def __getitem__(self, index):
+#         if isinstance(index, graph.Variable):
+#             return self.deterministic_values[index]
+#         else:
+#             return super().__getitem__(index)
 
 class JacobianValue(NamedTuple):
     gradients: Dict[Variable, np.ndarray]

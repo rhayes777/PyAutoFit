@@ -160,8 +160,7 @@ class DeterministicFactorJacobianNode(FactorJacobian):
             variables = self.variables
 
         variable_names = tuple(
-            self._variable_name_kw[v.name]
-            for v in variables)
+            self._variable_name_kw[v.name] for v in variables)
         kwargs = self.resolve_variable_dict(variable_dict)
         vals, *jacs = self._call_factor(
             kwargs, variables=variable_names)
@@ -182,7 +181,7 @@ class DeterministicFactorJacobianNode(FactorJacobian):
 
         log_val = (
             0. if (shape == () or axis is None) else 
-            aggregate(np.zeros(np.ones_like(shape)), axis))
+            aggregate(np.zeros(tuple(1 for _ in shape)), axis))
         grad_vals = {
             v: np.zeros(np.shape(log_val) + var_shapes[v])
             for v in variables
@@ -205,7 +204,7 @@ class DeterministicFactorJacobianNode(FactorJacobian):
             variable_dict: Dict[Variable, np.ndarray],
             axis: Axis = False, 
     ) -> FactorValue:
-        return self.func_jacobian(variable_dict, axis=axis)[0]
+        return self.func_jacobian(variable_dict, (), axis=axis)[0]
 
     def __repr__(self) -> str:
         factor_str = super().__repr__()
