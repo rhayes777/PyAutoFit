@@ -1,3 +1,4 @@
+import copy
 import logging
 import multiprocessing as mp
 import os
@@ -105,6 +106,15 @@ class NonLinearSearch(ABC):
         self.number_of_cores = number_of_cores
 
         self._in_phase = False
+
+    def copy_with_paths(
+            self,
+            paths
+    ):
+        search_instance = copy.copy(self)
+        search_instance.paths = paths
+
+        return search_instance
 
     class Fitness:
         def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None, pool_ids=None):
@@ -520,7 +530,7 @@ class Analysis:
     def visualize(self, instance, during_analysis):
         pass
 
-    def save_for_aggregator(self, paths : Paths):
+    def save_for_aggregator(self, paths: Paths):
         pass
 
 

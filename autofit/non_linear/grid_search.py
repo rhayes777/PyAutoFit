@@ -440,17 +440,14 @@ class GridSearch:
         )
 
     def search_instance(self, name_path):
-
-        paths = Paths(
-            name=name_path,
-            tag=self.paths.tag,
-            path_prefix=self.paths.path_prefix,
-            remove_files=self.paths.remove_files,
+        search_instance = self.search.copy_with_paths(
+            Paths(
+                name=name_path,
+                tag=self.paths.tag,
+                path_prefix=self.paths.path_prefix,
+                remove_files=self.paths.remove_files,
+            )
         )
-
-        search_instance = copy.copy(self.search)
-
-        search_instance.paths = paths
 
         for key, value in self.__dict__.items():
             if key not in ("model", "instance", "paths"):

@@ -1,6 +1,6 @@
 from typing import List, Generator, Callable
 
-from autofit import AbstractPriorModel, ModelInstance
+from autofit import AbstractPriorModel, ModelInstance, Paths
 from autofit.non_linear.parallel import AbstractJob, Process
 from .non_linear.grid_search import make_lists
 
@@ -64,6 +64,23 @@ class Sensitivity:
             self.perturbation_model.prior_count,
             step_size=self.step_size
         )
+
+    @property
+    def labels(self):
+        for list_ in self.lists:
+            strings = list()
+            for value, prior_tuple in zip(
+                    list_,
+                    self.perturbation_model.prior_tuples
+            ):
+                path, prior = prior_tuple
+                value = prior.value_for(
+                    value
+                )
+                strings.append(
+                    f"{path}_{value}"
+                )
+            yield "_".join(strings)
 
     @property
     def perturbation_instances(self) -> Generator[ModelInstance, None, None]:

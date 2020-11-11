@@ -44,6 +44,20 @@ def test_sensitivity(sensitivity):
     assert len(results) == 8
 
 
+def test_labels(sensitivity):
+    labels = list(sensitivity.labels)
+    assert labels == [
+        'centre_0.25_intensity_0.25_sigma_0.25',
+        'centre_0.25_intensity_0.25_sigma_0.75',
+        'centre_0.25_intensity_0.75_sigma_0.25',
+        'centre_0.25_intensity_0.75_sigma_0.75',
+        'centre_0.75_intensity_0.25_sigma_0.25',
+        'centre_0.75_intensity_0.25_sigma_0.75',
+        'centre_0.75_intensity_0.75_sigma_0.25',
+        'centre_0.75_intensity_0.75_sigma_0.75'
+    ]
+
+
 def test_job(perturbation_model):
     job = s.Job(
         instance=Gaussian(),
