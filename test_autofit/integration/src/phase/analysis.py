@@ -47,7 +47,7 @@ class Analysis(af.Analysis):
     def fit_from_model_data(self, model_data):
         return f.FitDataset(masked_dataset=self.masked_dataset, model_data=model_data)
 
-    def visualize(self, instance, during_analysis):
+    def visualize(self, paths, instance, during_analysis):
 
         model_data = self.model_data_from_instance(instance=instance)
         fit = self.fit_from_model_data(model_data=model_data)

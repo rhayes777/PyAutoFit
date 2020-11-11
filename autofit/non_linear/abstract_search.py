@@ -350,7 +350,7 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-            analysis.visualize(instance=instance, during_analysis=during_analysis)
+            analysis.visualize(paths=self.paths, instance=instance, during_analysis=during_analysis)
 
         if self.should_output_model_results() or not during_analysis:
 
@@ -527,7 +527,7 @@ class Analysis:
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, instance, during_analysis):
+    def visualize(self, paths : Paths, instance, during_analysis):
         pass
 
     def save_for_aggregator(self, paths: Paths):

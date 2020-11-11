@@ -162,7 +162,6 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    overview/non_linear_search
    overview/result
    overview/aggregator
-   overview/phase
 
 .. toctree::
    :caption: Tutorials:
@@ -171,7 +170,7 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
 
    howtofit/howtofit
    howtofit/chapter_1_introduction/index
-   howtofit/chapter_2_results/index
+   howtofit/chapter_phase_api/index
 
 .. toctree::
    :caption: API Reference:
@@ -185,4 +184,5 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    :maxdepth: 1
    :hidden:
 
+   overview/phase
    advanced/pipelines

@@ -36,8 +36,6 @@ from .mapper.prior_model.attribute_pair import PriorNameValue
 from .mapper.prior_model.attribute_pair import cast_collection
 from .mapper.prior_model.collection import CollectionPriorModel
 from .mapper.prior_model.collection import CollectionPriorModel as Collection
-from .mapper.prior_model.dimension_type import DimensionType
-from .mapper.prior_model.dimension_type import map_types
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.prior_model import PriorModel as Model
 from .mapper.prior_model.util import PriorModelNameValue
@@ -79,4 +77,4 @@ from .tools.pipeline import ResultsCollection
 
 conf.instance.register(__file__)
 
-__version__ = '0.69.5'
+__version__ = '0.69.6'

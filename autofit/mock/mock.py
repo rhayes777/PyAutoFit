@@ -1,5 +1,3 @@
-import typing
-
 import numpy as np
 
 import autofit as af
@@ -18,7 +16,7 @@ class MockAnalysis(af.Analysis):
         self.fit_instances.append(instance)
         return [1]
 
-    def visualize(self, instance, during_analysis):
+    def visualize(self, paths, instance, during_analysis):
         pass
 
     def log(self, instance):
@@ -203,23 +201,6 @@ class MockClassInf:
 class ComplexClass:
     def __init__(self, simple: MockClassx2):
         self.simple = simple
-
-
-class MockDistance(af.DimensionType):
-    pass
-
-
-class MockPositionClass:
-    @af.map_types
-    def __init__(self, position: typing.Tuple[MockDistance, MockDistance]):
-        self.position = position
-
-
-class MockDistanceClass:
-    @af.map_types
-    def __init__(self, one: MockDistance, two: MockDistance):
-        self.one = one
-        self.two = two
 
 
 class DeferredClass:

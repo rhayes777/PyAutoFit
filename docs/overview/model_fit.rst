@@ -6,7 +6,7 @@ Fitting a Model
 To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to
 noisy data.
 
-The example ``data`` with errors (black) and the model-fit we'll perform (red), are shown below:
+The example ``data`` with errors (black) and the model-fit (red), are shown below:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit.png
   :width: 600
@@ -104,6 +104,7 @@ define a **PyAutoFit** ``Analysis`` class:
             xvalues = np.arange(self.data.shape[0])
 
             # Use these xvalues to create model_data of our Gaussian.
+
             model_data = instance.profile_from_xvalues(xvalues=xvalues)
 
             # Fit the model gaussian to the data, computing the residuals, chi-squareds
@@ -117,8 +118,8 @@ define a **PyAutoFit** ``Analysis`` class:
 
 Lets consider exactly what is happening in the ``Analysis`` class above.
 
-- The ``data`` the model fits to is passed into the constructor of the ``Analysis`` class. Above, only the
-  ``data`` and ``noise_map`` are input, but the constructor can be easily extended to add other parts of the dataset.
+- The ``data`` is passed into the constructor of the ``Analysis`` class. Above, only ``data`` and a ``noise_map`` are
+  input, but the constructor can be easily extended to add other parts of the dataset.
 
 - The ``log_likelihood_function`` receives an ``instance`` of the model, which in this example is an ``instance`` of the
   ``Gaussian`` class. This ``instance`` has values for its *parameters* (``centre``, ``intensity`` and ``sigma``) which are

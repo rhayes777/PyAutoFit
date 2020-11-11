@@ -107,7 +107,7 @@ class MockAnalysis(Analysis):
     def log_likelihood_function(self, instance):
         return 1.0
 
-    def visualize(self, instance, during_analysis):
+    def visualize(self, paths, instance, during_analysis):
         pass
 
     def __init__(self, data):
