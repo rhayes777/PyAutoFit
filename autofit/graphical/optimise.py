@@ -12,7 +12,7 @@ from autofit.graphical.factor_graphs import Factor
 from autofit.graphical.mean_field import \
     MeanField, FactorApproximation, MeanFieldApproximation, Status
 from autofit.graphical.utils import \
-    propagate_uncertainty, FlattenArrays, OptResult
+    propagate_uncertainty, FlattenArrays, OptResult, JacobianValue
 
 
 class OptFactor:
@@ -202,13 +202,13 @@ class OptFactor:
 
 def update_det_cov(
         res: OptResult,
-        jacobian: Dict[Variable, np.ndarray]):
+        jacobian: JacobianValue):
     """Calculates the inv hessian of the deterministic variables
 
     Note that this modifies res.
     """
     covars = res.inv_hessian
-    for (det, v), jac in jacobian.deterministic_values.items():
+    for (det, v), jac in jacobian[1].items():
         cov = covars[v]
         covars[det] = covars.get(det, 0.) + propagate_uncertainty(cov, jac)
 

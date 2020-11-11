@@ -149,7 +149,7 @@ class AbstractNode(ABC):
         shape = np.shape(value)
         shift = len(shape) - plate_inds.size
 
-        assert shift in {0, 1}
+        assert shift in {0, 1}, shift
         newshape = np.ones(self.ndim + shift, dtype=int)
         newshape[:shift] = shape[:shift]
         newshape[shift + plate_inds] = shape[shift:]

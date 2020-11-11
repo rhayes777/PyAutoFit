@@ -86,6 +86,8 @@ def test_laplace(
     opt = mp.optimise.LaplaceOptimiser()
     model_approx, status = opt.run(model_approx)
 
+    # assert status.success
+
     q_a = model_approx[a_]
     q_b = model_approx[b_]
 
@@ -131,8 +133,6 @@ def test_importance_sampling(
             # save and print current approximation
             history[i, factor] = model_approx
 
-    q_a = model_approx[a_]
-    q_b = model_approx[b_]
     q_z = model_approx[z_]
     y = model_approx[y_].mean
     y_pred = q_z.mean > 0

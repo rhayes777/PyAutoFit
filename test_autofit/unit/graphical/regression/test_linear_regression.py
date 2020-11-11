@@ -133,12 +133,9 @@ def test_laplace(
         a_,
         b_
 ):
-    opt = mp.optimise.LaplaceOptimiser(
-        n_iter=3
-    )
-    model_approx, status = opt.run(
-        model_approx
-    )
+    opt = mp.optimise.LaplaceOptimiser(n_iter=3)
+    model_approx, status = opt.run(model_approx)
+    # assert status.success
 
     q_a = model_approx[a_]
     q_b = model_approx[b_]
@@ -154,7 +151,9 @@ def test_importance_sampling(
         model,
         model_approx,
         a_,
-        b_
+        b_,
+        y_,
+        z_, 
 ):
     sampler = mp.ImportanceSampler(n_samples=500)
 
@@ -168,18 +167,24 @@ def test_importance_sampling(
                 model_approx,
                 factor,
                 sampler,
-                force_sample=False,
+                force_sample=True,
                 delta=1.
             )
 
             # save and print current approximation
             history[i, factor] = model_approx
 
-    q_a = model_approx[a_]
-    q_b = model_approx[b_]
+    y = model_approx[y_].mean
+    y_pred = model_approx[z_].mean
 
-    assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
-    assert q_a.sigma[0][0] == pytest.approx(7.13, rel=1)
+    r2 = 1 - np.square(y - y_pred).mean()/np.square(y).mean()
+    assert r2 > 0.95
 
-    assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
-    assert q_b.sigma[0] == pytest.approx(6.8, rel=1)
+    # q_a = model_approx[a_]
+    # q_b = model_approx[b_]
+
+    # assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
+    # assert q_a.sigma[0][0] == pytest.approx(7.13, rel=1)
+
+    # assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
+    # assert q_b.sigma[0] == pytest.approx(6.8, rel=1)

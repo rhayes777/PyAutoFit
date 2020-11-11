@@ -83,7 +83,7 @@ class DeterministicFactorNode(Factor):
 
         log_val = (
             0. if (shape == () or axis is None) else 
-            aggregate(np.zeros(len(shape)), axis))
+            aggregate(np.zeros(tuple(1 for _ in shape)), axis))
         det_vals = {
             k: np.reshape(val, det_shapes[k])
             if det_shapes[k]

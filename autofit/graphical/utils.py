@@ -21,8 +21,8 @@ class FactorValue(NamedTuple):
 
 
 class JacobianValue(NamedTuple):
-    log_value: Dict[Variable, np.ndarray]
-    deterministic_values: Dict[Tuple[Variable, Variable], np.ndarray]
+    gradients: Dict[Variable, np.ndarray]
+    jacobians: Dict[Tuple[Variable, Variable], np.ndarray]
 
 
 HessianValue = Dict[Variable, np.ndarray]
