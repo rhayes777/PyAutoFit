@@ -16,19 +16,32 @@ class Job(AbstractJob):
             model,
             perturbation_instance,
             perturbation_model,
-            image_function
+            image_function,
+            analysis_class,
+            search
     ):
         self.instance = instance
         self.model = model
+
         self.perturbation_instance = perturbation_instance
         self.perturbation_model = perturbation_model
+
         self.image_function = image_function
+
+        self.analysis_class = analysis_class
+        self.search = search
 
     def perform(self):
         image = self.image_function(
             self.instance,
             self.perturbation_instance
         )
+        analysis = self.analysis_class(
+            image
+        )
+        # perturbed_result = self.optimiser_class(
+        #
+        # )
         return JobResult()
 
 
@@ -37,6 +50,8 @@ class Sensitivity:
             self,
             instance,
             model,
+            search,
+            analysis_class,
             perturbation_model: AbstractPriorModel,
             image_function: Callable,
             step_size=0.1,
@@ -44,6 +59,10 @@ class Sensitivity:
     ):
         self.instance = instance
         self.model = model
+
+        self.search = search
+        self.analysis_class = analysis_class
+
         self.step_size = step_size
         self.perturbation_model = perturbation_model
         self.image_function = image_function
@@ -89,6 +108,33 @@ class Sensitivity:
                 list_
             )
 
+    @property
+    def searches(self):
+        for label in self.labels:
+            paths = self.search.paths
+            name_path = "{}/{}/{}/{}".format(
+                paths.name,
+                paths.tag,
+                paths.non_linear_tag,
+                label,
+            )
+            yield self.search_instance(
+                name_path
+            )
+
+    def search_instance(self, name_path):
+        paths = self.search.paths
+        search_instance = self.search.copy_with_paths(
+            Paths(
+                name=name_path,
+                tag=paths.tag,
+                path_prefix=paths.path_prefix,
+                remove_files=paths.remove_files,
+            )
+        )
+
+        return search_instance
+
     def make_jobs(self):
         return [
             Job(
@@ -96,8 +142,13 @@ class Sensitivity:
                 self.model,
                 perturbation_instance,
                 self.perturbation_model,
-                self.image_function
+                self.image_function,
+                search=search,
+                analysis_class=self.analysis_class
             )
-            for perturbation_instance
-            in self.perturbation_instances
+            for perturbation_instance, search
+            in zip(
+                self.perturbation_instances,
+                self.searches
+            )
         ]

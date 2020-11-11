@@ -22,9 +22,11 @@ def make_sensitivity(perturbation_model):
     return s.Sensitivity(
         instance=Gaussian(),
         model=af.PriorModel(Gaussian),
+        search=af.MockSearch(),
         perturbation_model=perturbation_model,
         image_function=image_function,
-        step_size=0.5
+        step_size=0.5,
+        analysis_class=Analysis
     )
 
 
@@ -33,6 +35,11 @@ x = np.array(range(10))
 
 def image_function(instance, perturbation_instance):
     return instance(x) + perturbation_instance(x)
+
+
+class Analysis:
+    def __init__(self, data):
+        self.data = data
 
 
 def test_lists(sensitivity):
@@ -58,13 +65,19 @@ def test_labels(sensitivity):
     ]
 
 
+def test_searches(sensitivity):
+    assert len(list(sensitivity.searches)) == 8
+
+
 def test_job(perturbation_model):
     job = s.Job(
         instance=Gaussian(),
         model=af.PriorModel(Gaussian),
         perturbation_instance=Gaussian(),
         perturbation_model=af.PriorModel(Gaussian),
-        image_function=image_function
+        image_function=image_function,
+        analysis_class=Analysis,
+        search=af.MockSearch()
     )
     result = job.perform()
     assert isinstance(
