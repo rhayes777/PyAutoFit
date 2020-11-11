@@ -1,7 +1,6 @@
-from copy import copy
 from typing import List, Generator, Callable
 
-from autofit import AbstractPriorModel, ModelInstance, Paths
+from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel
 from autofit.non_linear.parallel import AbstractJob, Process
 from .non_linear.grid_search import make_lists
 
@@ -50,8 +49,11 @@ class Job(AbstractJob):
             model=self.model,
             analysis=self.analysis
         )
-        perturbed_model = copy(self.model)
+
+        perturbed_model = CollectionPriorModel()
         perturbed_model.perturbation = self.perturbation_model
+        perturbed_model.model = self.model
+
         perturbed_result = self.perturbed_search.fit(
             model=perturbed_model,
             analysis=self.analysis
@@ -157,7 +159,8 @@ class Sensitivity:
                 self.perturbation_instances,
                 self.searches
         ):
-            instance = copy(self.instance)
+            instance = ModelInstance()
+            instance.model = self.instance
             instance.perturbation = perturbation_instance
             image = self.image_function(
                 instance

@@ -34,7 +34,7 @@ x = np.array(range(10))
 
 
 def image_function(instance):
-    return instance(x) + instance.perturbation(x)
+    return instance.model(x) + instance.perturbation(x)
 
 
 class Analysis(af.Analysis):
@@ -73,7 +73,8 @@ def test_searches(sensitivity):
 
 
 def test_job(perturbation_model):
-    instance = Gaussian()
+    instance = af.ModelInstance()
+    instance.model = Gaussian()
     instance.perturbation = Gaussian()
     image = image_function(instance)
     job = s.Job(
