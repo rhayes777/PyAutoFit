@@ -89,3 +89,11 @@ def test_job(perturbation_model):
         result,
         s.JobResult
     )
+    assert isinstance(
+        result.perturbed_result,
+        af.Result
+    )
+    assert isinstance(
+        result.result,
+        af.Result
+    )

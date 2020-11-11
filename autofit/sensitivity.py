@@ -1,12 +1,16 @@
 from typing import List, Generator, Callable
 
-from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel
+from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel, Result
 from autofit.non_linear.parallel import AbstractJob, Process
 from .non_linear.grid_search import make_lists
 
 
 class JobResult:
-    def __init__(self, result, perturbed_result):
+    def __init__(
+            self,
+            result: Result,
+            perturbed_result: Result
+    ):
         self.result = result
         self.perturbed_result = perturbed_result
 
@@ -45,6 +49,8 @@ class Job(AbstractJob):
         )
 
     def perform(self):
+        model = CollectionPriorModel()
+        model.model = self.model
         result = self.search.fit(
             model=self.model,
             analysis=self.analysis
