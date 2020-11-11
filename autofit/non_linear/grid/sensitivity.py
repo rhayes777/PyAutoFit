@@ -1,11 +1,11 @@
 from abc import ABC
-from typing import List, Generator, Callable, Type
+from typing import List, Generator, Callable, Type, Union, Tuple
 
 import numpy as np
 
 from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel, Result, Analysis, NonLinearSearch
-from autofit.non_linear.parallel import AbstractJob, Process
 from autofit.non_linear.grid.grid_search import make_lists
+from autofit.non_linear.parallel import AbstractJob, Process
 
 
 class JobResult:
@@ -114,7 +114,7 @@ class Sensitivity:
             image_function: Callable,
             analysis_class: Type[ImageAnalysis],
             search: NonLinearSearch,
-            step_size: float = 0.1,
+            step_size: Union[Tuple[float], float] = 0.1,
             number_of_cores: int = 2
     ):
         """
