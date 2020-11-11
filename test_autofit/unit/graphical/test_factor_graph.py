@@ -111,7 +111,7 @@ def test_factor_jacobian():
         values[z_].ravel(), 
         lambda x: likelihood.logpdf(x.reshape(*shape)).sum(), 
         1e-8).reshape(*shape)
-    assert np.allclose(ngrad, jval[0][z_])
+    assert np.allclose(ngrad, jval[z_])
 
 
 class TestFactorGraph:
@@ -261,4 +261,4 @@ class TestFactorGraph:
         assert factor.jacobian(
             {x: 2},
             [x],
-        )[0][x] == pytest.approx(coefficient)
+        )[x] == pytest.approx(coefficient)

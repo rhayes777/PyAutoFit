@@ -304,10 +304,10 @@ class FactorApproximation(_FactorApproximation):
             values: Dict[Variable, np.ndarray],
             axis: Axis = False, 
     ) -> np.ndarray:
-        log_factor, det_vars = self.factor(values, axis=axis)
-        log_meanfield, _ = self.cavity_dist(
-            {**values, **det_vars}, axis=axis)
-        return add_arrays(log_factor, log_meanfield)
+        fval = self.factor(values, axis=axis)
+        log_meanfield = self.cavity_dist(
+            {**values, **fval.deterministic_values}, axis=axis)
+        return add_arrays(fval, log_meanfield)
         # refactor as a mapreduce?
         # for res in chain(map_dists(self.cavity_dist, kwargs),
         #                  map_dists(self.deterministic_dist, det_vars)):
@@ -337,30 +337,31 @@ class FactorApproximation(_FactorApproximation):
                 if isinstance(m, FixedMessage))
             variables = self.factor.variables - fixed_variables
 
-        (log_factor, det_vars), (grad, jac_det) = self.factor.func_jacobian(
+        fval, fjac = self.factor.func_jacobian(
             variable_dict, variables, axis=axis, 
             _calc_deterministic=_calc_deterministic)
 
-        values = {**variable_dict, **det_vars}
+        values = {**variable_dict, **fval.deterministic_values}
         var_sizes = {v: np.size(x) for v, x in values.items()}
         var_shapes = {v: np.shape(x) for v, x in values.items()}
         log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(
             values, axis=axis)
 
-        logl = log_factor + log_cavity
+        logl = fval + log_cavity
 
-        for v in grad:
-            grad[v] += grad_cavity[v]
+        for v in fjac:
+            fjac[v] += grad_cavity[v]
 
         # Update gradients using jacobians of deterministic variables
         # TODO: Should add logic to account for pullbacks for 
         #       AD frameworks e.g. Zygote.jl
-        for (det, var), jac in jac_det.items():
-            det_grad = grad_cavity[det].ravel()
-            g = jac.reshape(var_sizes[det], var_sizes[var])
-            grad[var] += det_grad.dot(g).reshape(var_shapes[var])
+        for var, grad in fjac.items():
+            for det, jac in grad.deterministic_values.items():
+                det_grad = grad_cavity[det].ravel()
+                g = jac.reshape(var_sizes[det], var_sizes[var])
+                fjac[var] += det_grad.dot(g).reshape(var_shapes[var])
         
-        return FactorValue(logl, det_vars), JacobianValue(grad, jac_det)
+        return logl, fjac
 
     project_on_to_factor_approx = project_on_to_factor_approx
 

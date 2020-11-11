@@ -88,9 +88,8 @@ class OptFactor:
 
         fval, jval = self.factor_approx.func_jacobian(
             params, self.free_vars, axis=None, _calc_deterministic=True)
-        f = fval[0]
-        grad = self.param_shapes.flatten(jval[0])
-        return self.sign * f, self.sign * grad
+        grad = self.param_shapes.flatten(jval)
+        return self.sign * fval.log_value, self.sign * grad
 
     def jacobian(self, args):
         return self.func_jacobian(args)[1]
@@ -208,9 +207,10 @@ def update_det_cov(
     Note that this modifies res.
     """
     covars = res.inv_hessian
-    for (det, v), jac in jacobian[1].items():
-        cov = covars[v]
-        covars[det] = covars.get(det, 0.) + propagate_uncertainty(cov, jac)
+    for v, grad in jacobian.items():
+        for det, jac in grad.items():
+            cov = propagate_uncertainty(covars[v], jac)
+            covars[det] = covars.get(det, 0.) + cov
 
     return res
 
@@ -384,12 +384,11 @@ class LeastSquaresOpt:
 
     def __call__(self, arr):
         p0 = self.param_shapes.unflatten(arr)
-        _, det_vars = self.factor_approx.factor(
-            {**p0, **self.fixed_kws}
-        )
-        vals = {**p0, **det_vars}
+        values = {**p0, **self.fixed_kws}
+        fvals = self.factor_approx.factor(values)
+        values.update(fvals.deterministic_values)
         residuals = {
-            v: (vals[v] - mean) / self.resid_scales[v]
+            v: (values[v] - mean) / self.resid_scales[v]
             for v, mean in self.resid_means.items()
         }
         return self.resid_shapes.flatten(residuals)
@@ -404,9 +403,10 @@ class LeastSquaresOpt:
             self, arr, bounds=self.bounds, **self.opt_params)
 
         sol = self.param_shapes.unflatten(res.x)
-        _, det_vars = self.factor_approx.factor(
+        fval = self.factor_approx.factor(
             {**sol, **self.fixed_kws}
         )
+        det_vars = fval.deterministic_values
 
         jac = {
             (d, k): b

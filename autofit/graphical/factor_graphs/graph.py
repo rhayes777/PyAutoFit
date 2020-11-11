@@ -182,22 +182,25 @@ class DeterministicFactorJacobianNode(FactorJacobian):
         log_val = (
             0. if (shape == () or axis is None) else 
             aggregate(np.zeros(tuple(1 for _ in shape)), axis))
-        grad_vals = {
-            v: np.zeros(np.shape(log_val) + var_shapes[v])
-            for v in variables
-        }
         det_vals = {
             k: np.reshape(val, det_shapes[k])
             if det_shapes[k] else val
             for k, val in zip(self._deterministic_variables, vals)
         }
-        det_jac = {
-            (k, v): np.reshape(jac, det_shapes[k] + var_shapes[v][shift:])
-            for k, _jacs in zip(self._deterministic_variables, jacs)
-            for v, jac in zip(variables, _jacs) if v in variables
+        fval = FactorValue(log_val, det_vals)
+
+        vjacs = {}
+        for k, _jacs in zip(self._deterministic_variables, jacs):
+            for v, jac in zip(variables, _jacs):
+                vjacs.setdefault(v, {})[k] = np.reshape(
+                    jac, det_shapes[k] + var_shapes[v][shift:])
+        fjac = {
+            v: FactorValue(
+                np.zeros(np.shape(log_val) + var_shapes[v]),
+                vjacs[v])
+            for v in variables
         }
-        return (FactorValue(log_val, det_vals), 
-                JacobianValue(grad_vals, det_jac))
+        return fval, fjac
 
     def __call__(
             self,

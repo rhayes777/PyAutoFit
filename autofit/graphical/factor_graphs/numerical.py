@@ -55,22 +55,21 @@ def numerical_func_jacobian(
     log_f0 = f0.log_value
     det_vars0 = f0.deterministic_values
 
-    jac_f = {
-        v: np.empty(np.shape(log_f0) + np.shape(values[v]))
+    fjac = {
+        v: FactorValue(np.empty(np.shape(log_f0) + np.shape(values[v])))
         for v in variables}
     if _calc_deterministic:
-        jac_det = {
-            (det, v): np.empty(
-                np.shape(val) + np.shape(values[v]))
-            for v in variables
-            for det, val in det_vars0.items()}
+        for v, grad in fjac.items():
+            grad.deterministic_values = {
+                det: np.empty(np.shape(val) + np.shape(values[v]))
+                for det, val in det_vars0.items()
+            }
         det_slices = {
             v: (slice(None),) * np.ndim(a) for v, a in values.items()}
-    else:
-        jac_det = {}
 
-    for v in variables:
+    for v, grad in fjac.items():
         x0 = p0[v]
+        v_jac = grad.deterministic_values
         if x0.shape:
             inds = tuple(a.ravel() for a in np.indices(x0.shape))
             i0 = tuple(slice(None) for _ in range(np.ndim(log_f0)))
@@ -81,24 +80,24 @@ def numerical_func_jacobian(
                 x0[ind] -= _eps
 
                 # print(ind)
-                jac_f[v][i0 + ind] = (f.log_value - log_f0) / _eps
+                grad[i0 + ind] = (f - f0) / _eps
                 if _calc_deterministic:
                     det_vars = f.deterministic_values
                     for det, val in det_vars.items():
-                        jac_det[det, v][det_slices[v] + ind] = \
+                        v_jac[det][det_slices[v] + ind] = \
                             (val - det_vars0[det]) / _eps
         else:
             p0[v] += _eps
             f = factor(p0, axis=axis)
             p0[v] -= _eps
 
-            jac_f[v] = (f.log_value - log_f0) / _eps
+            grad.itemset((f - f0) / _eps)
             if _calc_deterministic:
                 det_vars = f.deterministic_values
                 for det, val in det_vars.items():
-                    jac_det[det, v] = (val - det_vars0[det]) / _eps
+                    v_jac[det] = (val - det_vars0[det]) / _eps
 
-    return f0, JacobianValue(jac_f, jac_det)
+    return f0, fjac
 
 
 def numerical_func_jacobian_hessian(
@@ -116,33 +115,34 @@ def numerical_func_jacobian_hessian(
     # agg = partial(aggregate, axis=axis)
 
     p0 = {v: np.array(x, dtype=float) for v, x in values.items()}
-    f0, jac_f0 = factor.func_jacobian(p0, variables, axis=axis)
-    (log_f0, det_vars0), (grad_f0, jac_det_vars0) = f0, jac_f0
+    f0, fjac0 = factor.func_jacobian(p0, variables, axis=axis)
+    # grad_f0, jac_det_vars0 = jac_f0
 
-    log_f0 = log_f0
+    log_f0 = f0.log_value
+    det_vars0 = f0.deterministic_values
     f_shape = np.shape(log_f0)
     f_size = np.prod(f_shape, dtype=int)
-    hess_f = {
+    fhess0 = {
         v: np.empty(f_shape + np.shape(values[v]) * 2)
         for v in variables}
 
     if _calc_deterministic:
         det_shapes = {v: d.shape for v, d in det_vars0.items()}
         for v in det_vars0:
-            hess_f[v] = 0.
+            fhess0[v] = 0.
 
-    for v in variables:
+    for v, hess in fhess0.items():
         x0 = p0[v]
         if x0.shape:
             inds = tuple(a.ravel() for a in np.indices(x0.shape))
-            i0 = tuple(slice(None) for _ in range(np.ndim(log_f0)))
+            i0 = tuple(slice(None) for _ in f_shape)
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
-                grad_f, _ = factor.jacobian(
+                fjac1 = factor.jacobian(
                     p0, (v,), axis=axis, _eps=_eps, _calc_deterministic=False)
                 x0[ind] -= _eps
-                hess_f[v][i0 + ind] = grad_f[v] - grad_f0[v]
+                hess[i0 + ind] = fjac1[v] - fjac0[v]
                 
             # Symmetrise Hessian
             triu = np.triu_indices(x0.size, 1) # indices of upper diagonal
@@ -150,43 +150,43 @@ def numerical_func_jacobian_hessian(
             j = tuple(ind[triu[1]] for ind in inds)
             upper = i0 + i + j
             lower = i0 + j + i
-            hess_f[v][upper] += hess_f[v][lower]
-            hess_f[v][upper] /= 2 
-            hess_f[v][lower] = hess_f[v][upper]
+            hess[upper] += hess[lower]
+            hess[upper] /= 2 
+            hess[lower] = hess[upper]
             
             if _calc_deterministic:
                 var_size = x0.size
                 if f_shape:
-                    hess = hess_f[v].reshape(var_size, var_size, f_size)
+                    hess2d = hess.reshape(f_size, var_size, var_size)
                     for d, d_shape in det_shapes.items():
-                        jac = jac_det_vars0[d, v].reshape(
+                        jac = fjac0[v][d].reshape(
                             np.prod(d_shape), var_size)
                         hess_d = np.einsum(
-                            "ij,jkl,mk->iml", jac, hess, jac)
-                        hess_f[d] += hess_d.reshape(
+                            "ij,ljk,mk->lim", jac, hess2d, jac)
+                        fhess0[d] += hess_d.reshape(
                             d_shape + d_shape + f_shape)
                 else:
-                    hess = hess_f[v].reshape((var_size, var_size))
+                    hess2d = hess.reshape((var_size, var_size))
                     for d, d_shape in det_shapes.items():
-                        jac = jac_det_vars0[d, v].reshape(
+                        jac = fjac0[v][d].reshape(
                             np.prod(d_shape), var_size)
                         hess_d = np.linalg.multi_dot(
-                            [jac, hess, jac.T])
-                        hess_f[d] += hess_d.reshape(d_shape + d_shape)
+                            [jac, hess2d, jac.T])
+                        fhess0[d] += hess_d.reshape(d_shape + d_shape)
             
         else:
             p0[v] += _eps
-            grad_f, _ = factor.jacobian(
+            fjac1 = factor.jacobian(
                 p0, (v,), axis=axis, _eps=_eps, _calc_deterministic=False)
             p0[v] -= _eps
-            hess_f[v] = grad_f[v] - grad_f0[v]
+            fhess0[v] = hess = fjac1[v] - fjac0[v]
             
             if _calc_deterministic:
-                hess = hess_f[v].reshape(1, 1, f_size)
+                hess2d = hess.reshape(f_size, 1, 1)
                 for d, d_shape in det_shapes.items():
-                    jac = jac_det_vars0[d, v].reshape(np.prod(d_shape))
-                    hess_f[d] += (
+                    jac = fjac0[v][d].reshape(np.prod(d_shape))
+                    fhess0[d] += (
                         jac[:, None, None] 
                         * jac[None, :, None] * hess[None, None, :])
 
-    return f0, jac_f0, hess_f
+    return f0, fjac0, fhess0

@@ -71,24 +71,24 @@ def test_meanfield_gradients():
             np.random.exponential(size=(n3, n1)))})
 
     values = mean_field.sample()
-    l0, _ = mean_field(values, axis=None)
-    logl, _ = mean_field(values, axis=False)
+    l0 = mean_field(values, axis=None)
+    logl = mean_field(values, axis=False)
     assert logl.sum() == pytest.approx(l0, abs=1e-5)
-    logl, _ = mean_field(values, axis=1)
+    logl = mean_field(values, axis=1)
     assert logl.sum() == pytest.approx(l0, abs=1e-5)
-    logl, _ = mean_field(values, axis=2)
+    logl = mean_field(values, axis=2)
     assert logl.sum() == pytest.approx(l0, abs=1e-5)
-    logl, _ = mean_field(values, axis=(0, 2))
+    logl = mean_field(values, axis=(0, 2))
     assert logl.sum() == pytest.approx(l0, abs=1e-5)
 
     njac0 = mean_field._numerical_func_jacobian(
-        values, axis=None, _eps=1e-8)[1][0]
+        values, axis=None, _eps=1e-8)[1]
     njac1 = mean_field._numerical_func_jacobian(
-        values, axis=1, _eps=1e-8)[1][0]
+        values, axis=1, _eps=1e-8)[1]
     njac2 = mean_field._numerical_func_jacobian(
-        values, axis=(0, 1), _eps=1e-8)[1][0]
+        values, axis=(0, 1), _eps=1e-8)[1]
     njac = mean_field._numerical_func_jacobian_hessian(
-        values, axis=False, _eps=1e-8)[1][0]
+        values, axis=False, _eps=1e-8)[1]
     grad = mean_field.logpdf_gradient(values, axis=False)[1]
     for v in grad:
         norm = np.linalg.norm(grad[v] - njac[v].sum((0, 1, 2)))

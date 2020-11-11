@@ -111,12 +111,13 @@ class ImportanceSampler(AbstractSampler):
             ).sample(n_samples=n_samples)
             for v in factor.variables
         }
-        log_factor, det_vars = factor(samples)
-        log_factor = log_factor + np.zeros(
+        fval = factor(samples)
+        log_factor = fval + np.zeros(
             (n_samples,) + tuple(1 for _ in range(factor.ndim)))
 
         sample = self._weight_samples(
-            factor, samples, det_vars, log_factor, cavity_dist,
+            factor, samples, fval.deterministic_values, 
+            log_factor, cavity_dist,
             deterministic_dist, proposal_dist, n_samples=n_samples)
 
         self._history[factor] += SamplingHistory(n_samples, [sample], messages)

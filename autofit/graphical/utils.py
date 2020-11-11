@@ -12,47 +12,69 @@ from scipy.optimize import OptimizeResult
 from autofit.mapper.variable import Variable
 
 
-class FactorValue(NamedTuple):
-    """
-    The return value associated with a factor
-    """
-    log_value: np.ndarray
-    deterministic_values: Dict[Variable, np.ndarray] 
+# class FactorValue(NamedTuple):
+#     """
+#     The return value associated with a factor
+#     """
+#     log_value: np.ndarray
+#     deterministic_values: Dict[Variable, np.ndarray] 
 
-# class FactorValue(np.ndarray):
+class FactorValue(np.ndarray):
 
-#     def __new__(cls, input_array, deterministic_values=None):
-#         obj = np.asarray(input_array).view(cls)
+    def __new__(cls, input_array, deterministic_values=None):
+        obj = np.asarray(input_array).view(cls)
         
-#         if deterministic_values is None:
-#             obj.deterministic_values = {}
-#         else:
-#             obj.deterministic_values = deterministic_values
+        if deterministic_values is None:
+            obj.deterministic_values = {}
+        else:
+            obj.deterministic_values = deterministic_values
             
-#         return obj
+        return obj
 
-#     def __array_finalize__(self, obj):
-#         if obj is None: return
-#         self.deterministic_values = getattr(
-#             obj, 'deterministic_values', None)
+    def __array_finalize__(self, obj):
+        if obj is None: return
+        self.deterministic_values = getattr(
+            obj, 'deterministic_values', None)
         
-#     @property
-#     def log_value(self):
-#         if self.shape:
-#             return self.base
-#         else:
-#             return self.item()
+    @property
+    def log_value(self) -> np.ndarray:
+        if self.shape:
+            return self.base
+        else:
+            return self.item()
         
-#     def __getitem__(self, index):
-#         if isinstance(index, graph.Variable):
-#             return self.deterministic_values[index]
-#         else:
-#             return super().__getitem__(index)
+    def __getitem__(self, index) -> np.ndarray:
+        if isinstance(index, Variable):
+            return self.deterministic_values[index]
+        else:
+            return super().__getitem__(index)
 
-class JacobianValue(NamedTuple):
-    gradients: Dict[Variable, np.ndarray]
+    def keys(self):
+        return self.deterministic_values.keys()
+
+    def values(self):
+        return self.deterministic_values.values()
+
+    def items(self):
+        return self.deterministic_values.items()
+
+
+# class JacobianValue(NamedTuple):
+#     gradients: Dict[Variable, np.ndarray]
+#     jacobians: Dict[Tuple[Variable, Variable], np.ndarray]
+JacobianValue = Dict[Variable, FactorValue]
+
+def jacobian_value(
+    gradients: Dict[Variable, np.ndarray],
     jacobians: Dict[Tuple[Variable, Variable], np.ndarray]
+) -> JacobianValue:
+    jacs = {}
+    for (d, v), j in jacobians.items():
+        jacs.setdefault(v, {})[d] = j
 
+    return {
+        v: FactorValue(grad, jacs[v]) for v, grad in gradients.items()
+    }
 
 HessianValue = Dict[Variable, np.ndarray]
 

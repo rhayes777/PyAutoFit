@@ -88,42 +88,47 @@ def test_jacobian(
     
     values = {x_:x, a_: a, b_: b}
 
-    (fval0, det0), (grad0, jval0) = linear_factor.func_jacobian(values)
-    (fval1, det1), (grad1, jval1) = linear_factor_jac.func_jacobian(values)
+    fval0, fjac0 = linear_factor.func_jacobian(values)
+    fval1, fjac1 = linear_factor_jac.func_jacobian(values)
 
     assert np.allclose(fval0, fval1)
+    det0, det1 = fval0.deterministic_values, fval1.deterministic_values
     for d in det0:
         assert np.allclose(det0[d], det1[d]), f"d={d}"
 
     for v in values:
-        assert np.allclose(grad0[v], grad1[v]), f"v={v}"
+        assert np.allclose(fjac0[v], fjac1[v]), f"v={v}"
 
-    for d, v in jval0:
-        assert np.allclose(jval0[d, v], jval1[d, v]), f"d={d}, v={v}"
+    for v in values:
+        for d in linear_factor.deterministic_variables:
+            assert np.allclose(fjac0[v][d], fjac1[v][d]), f"d={d}, v={v}"
 
     # testing selective jacobian return
-    (fval0, det0), (grad0, jval0) = linear_factor.func_jacobian(
+    fval0, fjac0 = linear_factor.func_jacobian(
         values, variables=(a_,))
-    (fval1, det1), (grad1, jval1) = linear_factor_jac.func_jacobian(
+    fval1, fjac1 = linear_factor_jac.func_jacobian(
         values, variables=(a_,))
 
     # a gradient should only be returned
-    assert len(grad0.keys() - (a_,)) == 0
-    assert len(grad1.keys() - (a_,)) == 0, ", ".join(map(str, grad1))
+    assert len(fjac0.keys() - (a_,)) == 0
+    assert len(fjac1.keys() - (a_,)) == 0
 
     # (z, a) jacobian should only be returned
-    assert len(jval0.keys() - ((z_, a_),)) == 0
-    assert len(jval1.keys() - ((z_, a_),)) == 0
+    assert len(fjac0[a_].keys() - (z_,)) == 0
+    assert len(fjac1[a_].keys() - (z_,)) == 0
 
+    
     assert np.allclose(fval0, fval1)
+    det0, det1 = fval0.deterministic_values, fval1.deterministic_values
     for d in det0:
         assert np.allclose(det0[d], det1[d]), f"d={d}"
 
-    for v in (a_,):
-        assert np.allclose(grad0[v], grad1[v]), f"v={v}"
+    for v in fjac0.keys():
+        assert np.allclose(fjac0[v], fjac1[v]), f"v={v}"
 
-    for d, v in ((z_, a_),):
-        assert np.allclose(jval0[d, v], jval1[d, v]), f"d={d}, v={v}"
+    for v in fjac0.keys():
+        for d in linear_factor.deterministic_variables:
+            assert np.allclose(fjac0[v][d], fjac1[v][d]), f"d={d}, v={v}"
 
 
 

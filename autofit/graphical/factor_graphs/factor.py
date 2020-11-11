@@ -589,12 +589,13 @@ class FactorJacobian(Factor):
             kwargs, variables=variable_names)
         grad_axis = tuple(range(np.ndim(val))) if axis is None else axis
         
-        val = aggregate(self._reshape_factor(val, kwargs), axis)
-        gradient = {
-            v: aggregate(jac, grad_axis) 
+        fval = FactorValue(
+            aggregate(self._reshape_factor(val, kwargs), axis))
+        fjac = {
+            v: FactorValue(aggregate(jac, grad_axis))
             for v, jac in zip(variables, jacs)
         }
-        return FactorValue(val, {}), JacobianValue(gradient, {})
+        return fval, fjac
 
     def __eq__(self, other: Union["Factor", Variable]):
         """
