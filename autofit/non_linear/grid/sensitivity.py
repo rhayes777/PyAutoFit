@@ -1,4 +1,5 @@
 from abc import ABC
+from itertools import count
 from typing import List, Generator, Callable, Type, Union, Tuple
 
 import numpy as np
@@ -11,6 +12,7 @@ from autofit.non_linear.parallel import AbstractJob, Process
 class JobResult:
     def __init__(
             self,
+            number: int,
             result: Result,
             perturbed_result: Result
     ):
@@ -22,8 +24,18 @@ class JobResult:
         result
         perturbed_result
         """
+        self.number = number
         self.result = result
         self.perturbed_result = perturbed_result
+
+    def __lt__(self, other):
+        return self.number < other.number
+
+    def __gt__(self, other):
+        return self.number > other.number
+
+    def __eq__(self, other):
+        return self.number == other.number
 
     @property
     def log_likelihood_difference(self):
@@ -31,6 +43,8 @@ class JobResult:
 
 
 class Job(AbstractJob):
+    _number = count()
+
     def __init__(
             self,
             analysis: Analysis,
@@ -53,6 +67,8 @@ class Job(AbstractJob):
         search
             A non-linear search
         """
+        self.number = next(Job._number)
+
         self.analysis = analysis
         self.model = model
 
@@ -95,9 +111,24 @@ class Job(AbstractJob):
             analysis=self.analysis
         )
         return JobResult(
+            number=self.number,
             result=result,
             perturbed_result=perturbed_result
         )
+
+
+class SensitivityResult:
+    def __init__(self, results: List[JobResult]):
+        self.results = sorted(results)
+
+    def __getitem__(self, item):
+        return self.results[item]
+
+    def __iter__(self):
+        return iter(self.results)
+
+    def __len__(self):
+        return len(self.results)
 
 
 class ImageAnalysis(Analysis, ABC):
@@ -163,7 +194,7 @@ class Sensitivity:
         self.image_function = simulate_function
         self.number_of_cores = number_of_cores
 
-    def run(self) -> List[JobResult]:
+    def run(self) -> SensitivityResult:
         """
         Run fits and comparisons for all perturbations, returning
         a list of results.
@@ -174,7 +205,7 @@ class Sensitivity:
                 number_of_cores=self.number_of_cores
         ):
             results.append(result)
-        return results
+        return SensitivityResult(results)
 
     @property
     def _lists(self) -> List[List[float]]:
