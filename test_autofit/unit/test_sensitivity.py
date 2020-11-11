@@ -21,6 +21,7 @@ def make_perturbation_model():
     name="sensitivity"
 )
 def make_sensitivity(perturbation_model):
+    # noinspection PyTypeChecker
     return s.Sensitivity(
         instance=Gaussian(),
         model=af.PriorModel(Gaussian),
@@ -95,6 +96,7 @@ def test_job(perturbation_model):
     instance.model = Gaussian()
     instance.perturbation = Gaussian()
     image = image_function(instance)
+    # noinspection PyTypeChecker
     job = s.Job(
         model=af.PriorModel(Gaussian),
         perturbation_model=af.PriorModel(Gaussian),
