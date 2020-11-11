@@ -73,6 +73,11 @@ def test_sensitivity(sensitivity):
         assert result.log_likelihood_difference > 0
 
 
+def test_tuple_step_size(sensitivity):
+    sensitivity.step_size = (0.5, 0.5, 0.25)
+    assert len(sensitivity._lists) == 16
+
+
 def test_labels(sensitivity):
     labels = list(sensitivity._labels)
     assert labels == [

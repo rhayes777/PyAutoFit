@@ -1,5 +1,5 @@
 import copy
-from typing import List
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -541,30 +541,51 @@ def grid(fitness_function, no_dimensions, step_size):
     return best_arguments
 
 
-def make_lists(no_dimensions, step_size, centre_steps=True):
+def make_lists(
+        no_dimensions: int,
+        step_size: Union[Tuple[float], float],
+        centre_steps=True
+):
     """
         Returns a list of lists of floats covering every combination across no_dimensions of points of integer step size
     between 0 and 1 inclusive.
 
     Parameters
     ----------
-    no_dimensions: int
+    no_dimensions
         The number of dimensions, that is the length of the lists
-    step_size: float
-        The step size
-    centre_steps: bool
+    step_size
+        The step size. This can be a float or a tuple with the same number of dimensions
+    centre_steps
 
     Returns
     -------
     lists: [[float]]
         A list of lists
     """
+    if isinstance(step_size, float):
+        step_size = tuple(
+            step_size
+            for _
+            in range(no_dimensions)
+        )
+
     if no_dimensions == 0:
         return [[]]
 
-    sub_lists = make_lists(no_dimensions - 1, step_size, centre_steps=centre_steps)
+    sub_lists = make_lists(
+        no_dimensions - 1,
+        step_size[1:],
+        centre_steps=centre_steps
+    )
+    step_size = step_size[0]
     return [
-        [step_size * value + (0.5 * step_size if centre_steps else 0)] + sub_list
+        [
+            step_size * value + (
+                0.5 * step_size
+                if centre_steps
+                else 0)
+        ] + sub_list
         for value in range(int((1 / step_size)))
         for sub_list in sub_lists
     ]
