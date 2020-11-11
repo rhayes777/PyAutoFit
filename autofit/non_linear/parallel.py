@@ -7,9 +7,15 @@ from autofit.non_linear.log import logger
 
 
 class AbstractJob(ABC):
+    """
+    Task to be completed in parallel
+    """
+
     @abstractmethod
     def perform(self):
-        pass
+        """
+        Perform the task and return the result
+        """
 
 
 class Process(multiprocessing.Process):
@@ -33,6 +39,10 @@ class Process(multiprocessing.Process):
         self.max_count = 250
 
     def run(self):
+        """
+        Run this process, completing each job in the job_queue and
+        passing the result to the queue.
+        """
         logger.info("starting process {}".format(self.name))
         while True:
             sleep(0.025)
@@ -48,7 +58,26 @@ class Process(multiprocessing.Process):
         self.job_queue.close()
 
     @classmethod
-    def run_jobs(cls, jobs: List[AbstractJob], number_of_cores):
+    def run_jobs(
+            cls,
+            jobs: List[AbstractJob],
+            number_of_cores: int
+    ):
+        """
+        Run the collection of jobs across n - 1 other cores.
+
+        Parameters
+        ----------
+        jobs
+            Serializable concrete children of the AbstractJob class
+        number_of_cores
+            The number of cores this computer has. Must be at least 2.
+        """
+        if number_of_cores < 2:
+            raise AssertionError(
+                "The number of cores available must be at least 2 for parallel to run"
+            )
+
         job_queue = multiprocessing.Queue()
 
         processes = [
