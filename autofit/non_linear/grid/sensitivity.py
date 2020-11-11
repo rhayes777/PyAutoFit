@@ -111,7 +111,7 @@ class Sensitivity:
             instance,
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
-            image_function: Callable,
+            simulate_function: Callable,
             analysis_class: Type[ImageAnalysis],
             search: NonLinearSearch,
             step_size: Union[Tuple[float], float] = 0.1,
@@ -143,7 +143,7 @@ class Sensitivity:
         perturbation_model
             A model which provides a perturbations to be applied to the instance
             before creating images
-        image_function
+        simulate_function
             A function that can convert an instance into an image
         step_size
             The size of the step between perturbations. For example, a set size of 0.5
@@ -160,7 +160,7 @@ class Sensitivity:
 
         self.step_size = step_size
         self.perturbation_model = perturbation_model
-        self.image_function = image_function
+        self.image_function = simulate_function
         self.number_of_cores = number_of_cores
 
     def run(self) -> List[JobResult]:

@@ -22,15 +22,8 @@ def make_perturbation_model():
 )
 def make_sensitivity(perturbation_model):
     # noinspection PyTypeChecker
-    return s.Sensitivity(
-        instance=Gaussian(),
-        model=af.PriorModel(Gaussian),
-        search=GridSearch(),
-        perturbation_model=perturbation_model,
-        image_function=image_function,
-        step_size=0.5,
-        analysis_class=Analysis
-    )
+    return s.Sensitivity(instance=Gaussian(), model=af.PriorModel(Gaussian), perturbation_model=perturbation_model,
+                         simulate_function=image_function, analysis_class=Analysis, search=GridSearch(), step_size=0.5)
 
 
 x = np.array(range(10))
