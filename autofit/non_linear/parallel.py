@@ -1,7 +1,7 @@
 import multiprocessing
 from abc import ABC, abstractmethod
 from time import sleep
-from typing import List
+from typing import Iterable
 
 from autofit.non_linear.log import logger
 
@@ -60,7 +60,7 @@ class Process(multiprocessing.Process):
     @classmethod
     def run_jobs(
             cls,
-            jobs: List[AbstractJob],
+            jobs: Iterable[AbstractJob],
             number_of_cores: int
     ):
         """
@@ -85,15 +85,17 @@ class Process(multiprocessing.Process):
             for number in range(number_of_cores - 1)
         ]
 
+        total = 0
         for job in jobs:
             job_queue.put(job)
+            total += 1
 
         for process in processes:
             process.start()
 
         count = 0
 
-        while count < len(jobs):
+        while count < total:
             for process in processes:
                 while not process.queue.empty():
                     result = process.queue.get()

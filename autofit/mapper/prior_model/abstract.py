@@ -842,7 +842,17 @@ class AbstractPriorModel(AbstractModel):
 
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
-            subscripts.append(conf.instance["notation"]["label"]["subscript"].family(cls))
+            try:
+                subscript = conf.instance[
+                    "notation"
+                ][
+                    "label"
+                ][
+                    "subscript"
+                ].family(cls)
+            except KeyError:
+                subscript = prior_name[0]
+            subscripts.append(subscript)
 
         return subscripts
 

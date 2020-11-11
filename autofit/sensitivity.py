@@ -1,3 +1,4 @@
+from copy import copy
 from typing import List, Generator, Callable
 
 from autofit import AbstractPriorModel, ModelInstance, Paths
@@ -6,43 +7,59 @@ from .non_linear.grid_search import make_lists
 
 
 class JobResult:
-    pass
+    def __init__(self, result, perturbed_result):
+        self.result = result
+        self.perturbed_result = perturbed_result
 
 
 class Job(AbstractJob):
     def __init__(
             self,
-            instance,
+            image,
             model,
-            perturbation_instance,
             perturbation_model,
-            image_function,
             analysis_class,
             search
     ):
-        self.instance = instance
+        self.image = image
         self.model = model
 
-        self.perturbation_instance = perturbation_instance
         self.perturbation_model = perturbation_model
-
-        self.image_function = image_function
-
         self.analysis_class = analysis_class
+
+        paths = search.paths
+
         self.search = search
+        self.perturbed_search = search.copy_with_paths(
+            Paths(
+                name=paths.name,
+                tag=paths.tag + "[perturbed]",
+                path_prefix=paths.path_prefix,
+                remove_files=paths.remove_files,
+            )
+        )
+
+    @property
+    def analysis(self):
+        return self.analysis_class(
+            self.image
+        )
 
     def perform(self):
-        image = self.image_function(
-            self.instance,
-            self.perturbation_instance
+        result = self.search.fit(
+            model=self.model,
+            analysis=self.analysis
         )
-        analysis = self.analysis_class(
-            image
+        perturbed_model = copy(self.model)
+        perturbed_model.perturbation = self.perturbation_model
+        perturbed_result = self.perturbed_search.fit(
+            model=perturbed_model,
+            analysis=self.analysis
         )
-        # perturbed_result = self.optimiser_class(
-        #
-        # )
-        return JobResult()
+        return JobResult(
+            result=result,
+            perturbed_result=perturbed_result
+        )
 
 
 class Sensitivity:
@@ -136,19 +153,19 @@ class Sensitivity:
         return search_instance
 
     def make_jobs(self):
-        return [
-            Job(
-                self.instance,
-                self.model,
-                perturbation_instance,
-                self.perturbation_model,
-                self.image_function,
+        for perturbation_instance, search in zip(
+                self.perturbation_instances,
+                self.searches
+        ):
+            instance = copy(self.instance)
+            instance.perturbation = perturbation_instance
+            image = self.image_function(
+                instance
+            )
+            yield Job(
+                image=image,
+                model=self.model,
+                perturbation_model=self.perturbation_model,
                 search=search,
                 analysis_class=self.analysis_class
             )
-            for perturbation_instance, search
-            in zip(
-                self.perturbation_instances,
-                self.searches
-            )
-        ]
