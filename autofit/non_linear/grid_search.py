@@ -53,7 +53,12 @@ class GridSearchResult:
 
     @property
     def shape(self):
-        return tuple([self.side_length for dim in range(self.no_dimensions)])
+        return tuple([
+            self.side_length
+            for _ in range(
+                self.no_dimensions
+            )
+        ])
 
     @property
     def best_result(self):

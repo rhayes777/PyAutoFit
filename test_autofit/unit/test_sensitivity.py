@@ -4,6 +4,7 @@ import pytest
 import autofit as af
 from autofit import sensitivity as s
 from autofit.mock.mock import Gaussian
+from autofit.non_linear.simple_grid import GridSearch
 from autofit.sensitivity import ImageAnalysis
 
 
@@ -35,12 +36,28 @@ x = np.array(range(10))
 
 
 def image_function(instance: af.ModelInstance):
-    return instance.model(x) + instance.perturbation(x)
+    image = instance.model(x)
+    if hasattr(instance, "perturbation"):
+        image += instance.perturbation(x)
+    return image
 
 
 class Analysis(ImageAnalysis):
     def log_likelihood_function(self, instance):
-        return -1
+        image = image_function(
+            instance
+        )
+        return np.mean(
+            np.multiply(
+                -0.5,
+                np.square(
+                    np.subtract(
+                        self.image,
+                        image
+                    )
+                )
+            )
+        )
 
 
 def test_lists(sensitivity):
@@ -79,7 +96,7 @@ def test_job(perturbation_model):
         model=af.PriorModel(Gaussian),
         perturbation_model=af.PriorModel(Gaussian),
         analysis=Analysis(image),
-        search=af.MockSearch()
+        search=GridSearch()
     )
     result = job.perform()
     assert isinstance(
@@ -94,3 +111,4 @@ def test_job(perturbation_model):
         result.result,
         af.Result
     )
+    assert result.log_likelihood_difference > 0

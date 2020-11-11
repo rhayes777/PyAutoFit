@@ -5,7 +5,7 @@ from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
-from autofit.non_linear.abstract_search import Analysis
+from autofit.non_linear.abstract_search import Analysis, Result
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.paths import convert_paths
 from autofit.non_linear.samples import PDFSamples
@@ -66,7 +66,7 @@ class MockSearch(NonLinearSearch):
         return MockResult(
             model=model,
             samples=MockSamples(
-                log_likelihoods=fit,
+                log_likelihoods=[fit],
                 model=model,
                 gaussian_tuples=[
                     (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
@@ -148,16 +148,17 @@ class MockSamples(PDFSamples):
         pass
 
 
-class MockResult:
+class MockResult(Result):
     def __init__(
             self,
             samples=None,
             instance=None,
             model=None,
             analysis=None,
-            search=None,
+            search=None
     ):
-        self.instance = instance or ModelInstance()
+        super().__init__(samples, None, search)
+        self._instance = instance or ModelInstance()
         self.model = model or ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
 

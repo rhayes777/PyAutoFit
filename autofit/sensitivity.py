@@ -25,6 +25,10 @@ class JobResult:
         self.result = result
         self.perturbed_result = perturbed_result
 
+    @property
+    def log_likelihood_difference(self):
+        return self.perturbed_result.log_likelihood - self.result.log_likelihood
+
 
 class Job(AbstractJob):
     def __init__(
@@ -78,7 +82,7 @@ class Job(AbstractJob):
         model = CollectionPriorModel()
         model.model = self.model
         result = self.search.fit(
-            model=self.model,
+            model=model,
             analysis=self.analysis
         )
 
