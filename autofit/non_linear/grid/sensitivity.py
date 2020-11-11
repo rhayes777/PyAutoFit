@@ -5,7 +5,7 @@ import numpy as np
 
 from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel, Result, Analysis, NonLinearSearch
 from autofit.non_linear.parallel import AbstractJob, Process
-from .non_linear.grid_search import make_lists
+from autofit.non_linear.grid.grid_search import make_lists
 
 
 class JobResult:

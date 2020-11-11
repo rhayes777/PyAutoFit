@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit import sensitivity as s
+from autofit.non_linear.grid import sensitivity as s
 from autofit.mock.mock import Gaussian
-from autofit.non_linear.simple_grid import GridSearch
-from autofit.sensitivity import ImageAnalysis
+from autofit.non_linear.grid.simple_grid import GridSearch
+from autofit.non_linear.grid.sensitivity import ImageAnalysis
 
 
 @pytest.fixture(

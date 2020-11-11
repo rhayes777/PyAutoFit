@@ -2,7 +2,7 @@ from copy import copy
 
 import autofit as af
 from autofit.mock.mock import MockSamples
-from autofit.non_linear.grid_search import make_lists
+from autofit.non_linear.grid.grid_search import make_lists
 
 
 class GridSearch:
