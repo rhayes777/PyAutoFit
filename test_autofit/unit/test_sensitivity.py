@@ -15,6 +15,19 @@ def make_perturbation_model():
     )
 
 
+@pytest.fixture(
+    name="sensitivity"
+)
+def make_sensitivity(perturbation_model):
+    return s.Sensitivity(
+        instance=Gaussian(),
+        model=af.PriorModel(Gaussian),
+        perturbation_model=perturbation_model,
+        image_function=image_function,
+        step_size=0.5
+    )
+
+
 x = np.array(range(10))
 
 
@@ -22,12 +35,13 @@ def image_function(instance, perturbation_instance):
     return instance(x) + perturbation_instance(x)
 
 
-def test_lists(perturbation_model):
-    sensitivity = s.Sensitivity(
-        perturbation_model=perturbation_model,
-        image_function=lambda: None
-    )
-    assert len(list(sensitivity.perturbation_instances)) == 1000
+def test_lists(sensitivity):
+    assert len(list(sensitivity.perturbation_instances)) == 8
+
+
+def test_sensitivity(sensitivity):
+    results = sensitivity.run()
+    assert len(results) == 8
 
 
 def test_job(perturbation_model):

@@ -1,8 +1,7 @@
-import multiprocessing
 from typing import List, Generator, Callable
 
 from autofit import AbstractPriorModel, ModelInstance
-from autofit.non_linear.parallel import AbstractJob
+from autofit.non_linear.parallel import AbstractJob, Process
 from .non_linear.grid_search import make_lists
 
 
@@ -36,21 +35,28 @@ class Job(AbstractJob):
 class Sensitivity:
     def __init__(
             self,
+            instance,
+            model,
             perturbation_model: AbstractPriorModel,
             image_function: Callable,
-            step_size=0.1
+            step_size=0.1,
+            number_of_cores=2
     ):
+        self.instance = instance
+        self.model = model
         self.step_size = step_size
         self.perturbation_model = perturbation_model
         self.image_function = image_function
+        self.number_of_cores = number_of_cores
 
     def run(self):
-        job_queue = multiprocessing.Queue()
-
-        processes = [
-            Process(str(number), job_queue)
-            for number in range(self.number_of_cores - 1)
-        ]
+        results = list()
+        for result in Process.run_jobs(
+                self.make_jobs(),
+                number_of_cores=self.number_of_cores
+        ):
+            results.append(result)
+        return results
 
     @property
     def lists(self) -> List[List[float]]:
@@ -65,3 +71,16 @@ class Sensitivity:
             yield self.perturbation_model.instance_from_unit_vector(
                 list_
             )
+
+    def make_jobs(self):
+        return [
+            Job(
+                self.instance,
+                self.model,
+                perturbation_instance,
+                self.perturbation_model,
+                self.image_function
+            )
+            for perturbation_instance
+            in self.perturbation_instances
+        ]
