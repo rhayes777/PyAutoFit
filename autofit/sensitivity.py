@@ -110,10 +110,10 @@ class Sensitivity:
             self,
             instance,
             model: AbstractPriorModel,
-            search: NonLinearSearch,
-            analysis_class: Type[ImageAnalysis],
             perturbation_model: AbstractPriorModel,
             image_function: Callable,
+            analysis_class: Type[ImageAnalysis],
+            search: NonLinearSearch,
             step_size: float = 0.1,
             number_of_cores: int = 2
     ):
