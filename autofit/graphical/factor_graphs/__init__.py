@@ -1,6 +1,17 @@
-from autofit.graphical.factor_graphs.abstract import AbstractNode
-from autofit.graphical.factor_graphs.factor import \
-    FactorValue, Factor, FactorJacobian, AbstractFactor
-from autofit.graphical.factor_graphs.graph import \
-    DeterministicFactorNode, FactorGraph
-from autofit.mapper.variable import Variable, Plate
+from typing import Union
+
+from .abstract import AbstractNode, Variable, Plate
+from .factor import \
+    FactorValue, AbstractFactor, Factor, DeterministicFactor
+from .jacobians import \
+    FactorJacobian, DeterministicFactorJacobian
+from .graph import FactorGraph
+
+FactorNode = Union[
+    Factor, 
+    FactorJacobian
+]
+DeterministicFactorNode = Union[
+    DeterministicFactor,
+    DeterministicFactorJacobian
+    ]
