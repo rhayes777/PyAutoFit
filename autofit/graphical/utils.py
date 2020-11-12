@@ -68,7 +68,6 @@ class FlattenArrays(dict):
             ndim = arr.ndim
         arrays = [
             arr[(ind,) * ndim] for ind in self.inds]
-            # arr[np.ix_(*(ind for _ in range(ndim)))] for ind in self.inds]
         arr_shapes = [arr.shape[ndim:] for arr in arrays]
         return {
             k: arr.reshape(shape * ndim + arr_shape)

@@ -9,7 +9,7 @@ from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs
 
 from autofit.graphical.factor_graphs import \
     AbstractNode, Variable, FactorValue, JacobianValue, HessianValue
-from autofit.graphical.utils import cached_property, Axis
+from autofit.graphical.utils import cached_property, Axis, FlattenArrays
 
 class AbstractTransform(ABC):
 
@@ -19,19 +19,19 @@ class AbstractTransform(ABC):
         pass
 
     @abstractmethod
-    def whiten(self, values: Dict[Variable, np.ndarray]):
+    def transform(self, values: Dict[Variable, np.ndarray]):
         pass
     
     @abstractmethod
-    def unwhiten(self, values: Dict[Variable, np.ndarray]):
+    def untransform(self, values: Dict[Variable, np.ndarray]):
         pass
 
     @abstractmethod
-    def whiten2d(self, values: Dict[Variable, np.ndarray]):
+    def transform2d(self, values: Dict[Variable, np.ndarray]):
         pass
     
     @abstractmethod
-    def unwhiten2d(self, values: Dict[Variable, np.ndarray]):
+    def untransform2d(self, values: Dict[Variable, np.ndarray]):
         pass
 
     @property
@@ -49,25 +49,29 @@ class RescaleTransform(AbstractTransform):
         self.scale = variables_scales
         self.inv_scale = {v: scale**-1 for v, scale in self.scale.items()}
 
-    def whiten(
+    @property
+    def variables(self):
+        return self.scale.keys()
+
+    def transform(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
         return {
             v: val * self.inv_scale[v] for v, val in values.items()}
 
-    def unwhiten(
+    def untransform(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
         return {
             v: val * self.scale[v] for v, val in values.items()}
 
-    def whiten2d(
+    def transform2d(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
-        whitened = {}
+        transformed = {}
         for v, hess in values.items():
             inv_scale = self.inv_scale[v]
             shape = np.shape(inv_scale)
@@ -75,15 +79,15 @@ class RescaleTransform(AbstractTransform):
             hess2d = np.reshape(hess, (size, size))
             inv_scale1d = inv_scale.ravel()
             w_hess = hess2d * inv_scale1d[None, :] * inv_scale1d[:, None]
-            whitened[v] = w_hess.reshape(shape + shape)
+            transformed[v] = w_hess.reshape(shape + shape)
 
-        return whitened
+        return transformed
 
-    def unwhiten2d(
+    def untransform2d(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
-        unwhitened = {}
+        actual_values = {}
         for v, hess in values.items():
             scale = self.scale[v]
             shape = np.shape(scale)
@@ -91,9 +95,9 @@ class RescaleTransform(AbstractTransform):
             hess2d = np.reshape(hess, (size, size))
             scale1d = scale.ravel()
             w_hess = hess2d * scale1d[None, :] * scale1d[:, None]
-            unwhitened[v] = w_hess.reshape(shape + shape)
+            actual_values[v] = w_hess.reshape(shape + shape)
 
-        return unwhitened
+        return actual_values
 
     @cached_property
     def log_det(self):
@@ -119,7 +123,7 @@ def _mul_triangular(c_and_lower, b, trans=False, overwrite_b=False):
             a1.T, b1, lower=not lower, trans=not trans, 
             overwrite_x=overwrite_b)
 
-def _whiten_choleksy(c_and_lower, b):
+def _whiten_cholesky(c_and_lower, b):
     c, lower = c_and_lower
     b = np.asarray(b)
     n = c.shape[1]
@@ -127,21 +131,21 @@ def _whiten_choleksy(c_and_lower, b):
     return _solve_triangular(
         c_and_lower, b.reshape(n, -1), trans=lower, 
     ).reshape(b.shape)
-        
 
 def _unwhiten_cholesky(c_and_lower, b):
     c, lower = c_and_lower
     b = np.asarray(b)
     n = c.shape[1]
 
-
     if b.size == n:
         return _mul_triangular(
             c_and_lower, b.ravel(), trans=lower
         ).reshape(b.shape)
     else:
+        # make a copy of b in Fortran memory order
         d = np.array(b.reshape(n, -1), order='F')
         for i in range(d.shape[1]):
+            # save result of multiplication in d
             _mul_triangular(
                 c_and_lower, d[:, i], trans=lower,
                 overwrite_b = True
@@ -150,7 +154,6 @@ def _unwhiten_cholesky(c_and_lower, b):
         return d.reshape(b.shape)
 
 class CholeskyTransform(AbstractTransform):
-
     def __init__(
             self,
             variable_cho_factors: Dict[Variable, Tuple[np.ndarray, bool]],
@@ -160,13 +163,11 @@ class CholeskyTransform(AbstractTransform):
         self.cho_factors = variable_cho_factors
         
         self._inv_transform = (
-            _unwhiten_cholesky if _inv_transform is None 
-            else _inv_transform)
+            _unwhiten_cholesky if _inv_transform is None else _inv_transform)
         self._transform = (
-            _whiten_choleksy if _transform is None 
-            else _transform)
+            _whiten_cholesky if _transform is None else _transform)
 
-    def whiten(
+    def transform(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
@@ -174,7 +175,7 @@ class CholeskyTransform(AbstractTransform):
             v: self._transform(self.cho_factors[v], val) 
             for v, val in values.items()}
 
-    def unwhiten(
+    def untransform(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
@@ -182,7 +183,7 @@ class CholeskyTransform(AbstractTransform):
             v: self._inv_transform(self.cho_factors[v], val) 
             for v, val in values.items()}
 
-    def whiten2d(
+    def transform2d(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
@@ -191,7 +192,7 @@ class CholeskyTransform(AbstractTransform):
                 self._inv_transform(self.cho_factors[v], val).T).T
             for v, val in values.items()}
 
-    def unwhiten2d(
+    def untransform2d(
         self, 
         values: Dict[Variable, np.ndarray]
     ) -> Dict[Variable, np.ndarray]:
@@ -208,6 +209,59 @@ class CholeskyTransform(AbstractTransform):
             for c, _ in self.cho_factors.values()
         )
 
+class FullCholeskyTransform(AbstractTransform):
+    def __init__(
+            self, 
+            cho_factor: Tuple[np.ndarray, bool], 
+            param_shapes: FlattenArrays):
+        self.c, self.lower = self.cho_factor = cho_factor
+        self.param_shapes = param_shapes
+
+    @property
+    def variables(self):
+        self.param_shapes.keys()       
+
+    def transform(
+        self, 
+        values: Dict[Variable, np.ndarray]
+    ) -> Dict[Variable, np.ndarray]:
+        x0 = self.param_shapes.flatten(values)
+        x1 = _whiten_cholesky(self.cho_factor, x0)
+        return self.param_shapes.unflatten(x1)
+
+    def untransform(
+        self, 
+        values: Dict[Variable, np.ndarray]
+    ) -> Dict[Variable, np.ndarray]:
+        x0 = self.param_shapes.flatten(values)
+        x1 = _unwhiten_cholesky(self.cho_factor, x0)
+        return self.param_shapes.unflatten(x1)
+
+    def transform2d(
+        self, 
+        values: Dict[Variable, np.ndarray]
+    ) -> Dict[Variable, np.ndarray]:
+        X0 = self.param_shapes.flatten2D(values)
+        X1 = _whiten_cholesky(
+            self.cho_factor,
+            _whiten_cholesky(
+                self.cho_factor, 
+                X0).T
+        ).T
+        return self.param_shapes.unflatten2d(X1)
+
+    def untransform2d(
+        self, 
+        values: Dict[Variable, np.ndarray]
+    ) -> Dict[Variable, np.ndarray]:
+        X0 = self.param_shapes.flatten2D(values)
+        X1 = _unwhiten_cholesky(
+            self.cho_factor,
+            _unwhiten_cholesky(
+                self.cho_factor, 
+                X0).T
+        ).T
+        return self.param_shapes.unflatten2d(X1)
 
 class TransformedNode(AbstractNode):
     def __init__(
@@ -239,8 +293,8 @@ class TransformedNode(AbstractNode):
             values: Dict[Variable, np.ndarray],
             axis: Axis = False, 
     ) -> FactorValue:
-        unwhitened = self.transform.whiten(values)
-        return self.node(unwhitened, axis=axis)
+        actual_values = self.transform.transform(values)
+        return self.node(actual_values, axis=axis)
 
     def func_jacobian(
             self, 
@@ -249,14 +303,14 @@ class TransformedNode(AbstractNode):
             axis: Axis = None,
             _calc_deterministic: bool = True,
     ) -> Tuple[FactorValue, JacobianValue]:
-        unwhittened = self.transform.unwhiten(values)
+        unwhittened = self.transform.untransform(values)
         fval, jval = self.func_jacobian(
             unwhittened, 
             variables=variables, 
             axis=axis,
             _calc_deterministic=_calc_deterministic)
 
-        jval = self.transform.whiten(jval)
+        jval = self.transform.transform(jval)
         return fval, jval
 
     def func_jacobian_hessian(
@@ -266,13 +320,13 @@ class TransformedNode(AbstractNode):
             axis: Axis = None,
             _calc_deterministic: bool = True,
     ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
-        unwhitened = self.transform.unwhiten(values)
+        actual_values = self.transform.untransform(values)
         fval, jval, hval = self.func_jacobian_hessian(
-            unwhitened, 
+            actual_values, 
             variables=variables, 
             axis=axis,
             _calc_deterministic=_calc_deterministic)
 
-        jval = self.transform.whiten(jval)
-        hval = self.transform.whiten2d(hval)
+        jval = self.transform.transform(jval)
+        hval = self.transform.transform2d(hval)
         return fval, jval, hval
