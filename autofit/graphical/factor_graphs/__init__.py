@@ -1,8 +1,9 @@
 from typing import Union
 
-from .abstract import AbstractNode, Variable, Plate
+from .abstract import \
+    FactorValue, JacobianValue, HessianValue, AbstractNode, Variable, Plate
 from .factor import \
-    FactorValue, AbstractFactor, Factor, DeterministicFactor
+    AbstractFactor, Factor, DeterministicFactor
 from .jacobians import \
     FactorJacobian, DeterministicFactorJacobian
 from .graph import FactorGraph

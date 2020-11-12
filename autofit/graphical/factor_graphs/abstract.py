@@ -7,10 +7,51 @@ from itertools import count
 import numpy as np
 
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.utils import FactorValue, JacobianValue, HessianValue
+
+class FactorValue(np.ndarray):
+
+    def __new__(cls, input_array, deterministic_values=None):
+        obj = np.asarray(input_array).view(cls)
+        
+        if deterministic_values is None:
+            obj.deterministic_values = {}
+        else:
+            obj.deterministic_values = deterministic_values
+            
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None: return
+        self.deterministic_values = getattr(
+            obj, 'deterministic_values', None)
+        
+    @property
+    def log_value(self) -> np.ndarray:
+        if self.shape:
+            return self.base
+        else:
+            return self.item()
+        
+    def __getitem__(self, index) -> np.ndarray:
+        if isinstance(index, Variable):
+            return self.deterministic_values[index]
+        else:
+            return super().__getitem__(index)
+
+    def keys(self):
+        return self.deterministic_values.keys()
+
+    def values(self):
+        return self.deterministic_values.values()
+
+    def items(self):
+        return self.deterministic_values.items()
+
+JacobianValue = Dict[Variable, FactorValue]
+HessianValue = Dict[Variable, np.ndarray]
+
 from autofit.graphical.factor_graphs.numerical import (
     numerical_func_jacobian, numerical_func_jacobian_hessian)
-
 
 class AbstractNode(ABC):
     _deterministic_variables: Set[Variable] = frozenset()

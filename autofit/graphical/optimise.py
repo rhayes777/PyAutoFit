@@ -8,11 +8,11 @@ from scipy.optimize import \
 
 from autofit.graphical import FixedMessage
 from autofit.mapper.variable import Variable
-from autofit.graphical.factor_graphs import Factor
+from autofit.graphical.factor_graphs import Factor, JacobianValue
 from autofit.graphical.mean_field import \
     MeanField, FactorApproximation, MeanFieldApproximation, Status
 from autofit.graphical.utils import \
-    propagate_uncertainty, FlattenArrays, OptResult, JacobianValue
+    propagate_uncertainty, FlattenArrays, OptResult
 
 
 class OptFactor:

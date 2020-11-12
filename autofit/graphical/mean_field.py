@@ -8,13 +8,12 @@ from functools import partial
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import (
-    Factor, AbstractNode, FactorGraph)
-from autofit.graphical.messages import FixedMessage, map_dists
-from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.graphical.utils import (
-    prod, add_arrays, OptResult, Status, FactorValue, JacobianValue, 
-    aggregate, diag, Axis)
+from autofit.graphical.factor_graphs import \
+    Factor, AbstractNode, FactorGraph, FactorValue, JacobianValue
+from autofit.graphical.messages import \
+    AbstractMessage, FixedMessage, map_dists
+from autofit.graphical.utils import \
+    prod, add_arrays, OptResult, Status, aggregate, diag, Axis
 from autofit.mapper.variable import Variable
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
@@ -276,13 +275,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         return dist if isinstance(dist, cls) else MeanField(dist)
 
 
-class _FactorApproximation(NamedTuple):
-    factor: Factor
-    cavity_dist: MeanField
-    factor_dist: MeanField
-    model_dist: MeanField
-
-class FactorApproximation(_FactorApproximation):
+class FactorApproximation(AbstractNode):
     """
     This class represents the 'tilted distribution' in EP,
 
@@ -331,19 +324,21 @@ class FactorApproximation(_FactorApproximation):
 
         returns qʳₐ, status
     """
-    def __new__(
-        cls, 
-        factor, 
-        cavity_dist, 
-        factor_dist, 
-        model_dist):
+    def __init__(
+        self, 
+        factor: Factor, 
+        cavity_dist: MeanField, 
+        factor_dist: MeanField, 
+        model_dist: MeanField
+    ):
         # Have to seperate FactorApproximation into two classes
         # in order to be able to redefine __new__
-        return super().__new__(
-            cls, factor, 
-            MeanField.as_meanfield(cavity_dist),
-            MeanField.as_meanfield(factor_dist),
-            MeanField.as_meanfield(model_dist))
+        self.factor = factor
+        self.cavity_dist = MeanField.as_meanfield(cavity_dist)
+        self.factor_dist = MeanField.as_meanfield(factor_dist)
+        self.model_dist = MeanField.as_meanfield(model_dist)
+
+        super().__init__(**factor._kwargs)
 
     @property
     def variables(self):
@@ -356,6 +351,10 @@ class FactorApproximation(_FactorApproximation):
     @property
     def all_variables(self):
         return self.factor.all_variables
+
+    @property
+    def name(self):
+        return f"FactorApproximation({self.factor.name})"
 
     @property
     def deterministic_dist(self):
@@ -381,7 +380,7 @@ class FactorApproximation(_FactorApproximation):
             self, 
             values: Dict[Variable, np.ndarray],
             axis: Axis = False, 
-    ) -> np.ndarray:
+    ) -> FactorValue:
         fval = self.factor(values, axis=axis)
         log_meanfield = self.cavity_dist(
             {**values, **fval.deterministic_values}, axis=axis)
@@ -468,7 +467,7 @@ class FactorApproximation(_FactorApproximation):
     
 class MeanFieldApproximation:
     '''
-    TODO: rename this EP approximation
+    TODO: delete this class
     '''
     def __init__(
             self,

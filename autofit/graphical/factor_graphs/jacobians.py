@@ -7,10 +7,12 @@ from functools import reduce
 import numpy as np
 
 from autofit.mapper.variable import Variable
+from autofit.graphical.factor_graphs.abstract import \
+    FactorValue, JacobianValue
 from autofit.graphical.factor_graphs.factor import \
     AbstractFactor, Factor, DeterministicFactor
 from autofit.graphical.utils import \
-    aggregate, Axis, cached_property, FactorValue, JacobianValue
+    aggregate, Axis, cached_property
 
 
 class FactorJacobian(Factor):

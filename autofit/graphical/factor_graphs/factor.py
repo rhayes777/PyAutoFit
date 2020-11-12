@@ -8,9 +8,9 @@ from functools import lru_cache
 import numpy as np
 
 from autofit.graphical.utils import \
-    aggregate, Axis, FactorValue, JacobianValue
+    aggregate, Axis
 from autofit.graphical.factor_graphs.abstract import \
-    AbstractNode
+    AbstractNode, FactorValue, JacobianValue
 from autofit.mapper.variable import Variable
 
 

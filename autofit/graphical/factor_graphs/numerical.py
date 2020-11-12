@@ -4,8 +4,9 @@ from functools import partial
 import numpy as np
 
 from autofit.mapper.variable import Variable
-from autofit.graphical.utils import \
-    FactorValue, JacobianValue, HessianValue, aggregate, Axis
+from autofit.graphical.utils import aggregate, Axis
+from autofit.graphical.factor_graphs.abstract import \
+    FactorValue, JacobianValue, HessianValue
 
 def numerical_func_jacobian(
         factor: "AbstractNode",
