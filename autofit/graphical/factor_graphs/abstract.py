@@ -11,25 +11,6 @@ from autofit.graphical.utils import FactorValue, JacobianValue, HessianValue
 from autofit.graphical.factor_graphs.numerical import (
     numerical_func_jacobian, numerical_func_jacobian_hessian)
 
-def accept_variable_dict(func):
-    @wraps(func)
-    def wrapper(self, variable_dict=None, **kwargs):
-        if variable_dict is not None:
-            kwargs.update({
-                variable.name if isinstance(
-                    variable,
-                    Variable
-                ) else variable: array
-                for variable, array
-                in variable_dict.items()
-            })
-        return func(
-            self,
-            **kwargs
-        )
-
-    return wrapper
-
 
 class AbstractNode(ABC):
     _deterministic_variables: Set[Variable] = frozenset()

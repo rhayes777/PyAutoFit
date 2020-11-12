@@ -59,7 +59,7 @@ class FactorJacobian(Factor):
     ):
         self.vectorised = vectorised
         self.is_scalar = is_scalar
-        self._factor_jacobian = factor_jacobian
+        self._factor = factor_jacobian
         AbstractFactor.__init__(
             self, 
             **kwargs,
@@ -90,7 +90,7 @@ class FactorJacobian(Factor):
         Value returned by the factor
         """
         if self.vectorised:
-            return self._factor_jacobian(**values, _variables=variables)
+            return self._factor(**values, _variables=variables)
             
         """Some factors may not be vectorised to broadcast over
         multiple inputs
@@ -107,7 +107,7 @@ class FactorJacobian(Factor):
         direct_call = (
             all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
         if direct_call:
-            return self._factor_jacobian(**values, _variables=variables)
+            return self._factor(**values, _variables=variables)
 
         # Check dimensions of inputs match plates + 1
         vectorised = (
@@ -142,7 +142,7 @@ class FactorJacobian(Factor):
 
         # TODO this loop can also be parallelised for increased performance
         fjacs = [
-            self._factor_jacobian(**kws, _variables=variables)
+            self._factor(**kws, _variables=variables)
              for kws in gen_kwargs()]
         res = np.array([fjac[0] for fjac in fjacs])
         if variables is None:
@@ -230,7 +230,7 @@ class FactorJacobian(Factor):
                 return False
 
         return DeterministicFactorJacobian(
-            self._factor_jacobian,
+            self._factor,
             other,
             **self._kwargs
         )
@@ -260,7 +260,7 @@ class DeterministicFactorJacobian(FactorJacobian):
         >>> g_ = Factor(g, x) == y
         >>> f_ = Factor(f, y)
         ```
-        Alternatively g could be defined,
+        Alternatively g could be directly defined,
         ```
         >>> g_ = DeterministicFactor(g, y, x=x)
         ```
