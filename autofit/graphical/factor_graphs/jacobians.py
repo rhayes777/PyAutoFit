@@ -1,5 +1,5 @@
 
-from itertools import repeat
+from itertools import repeat, chain
 from typing import \
     Tuple, Dict, List, Callable, Optional, Union
 from functools import reduce 
