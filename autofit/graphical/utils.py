@@ -8,6 +8,7 @@ from typing import (
 import numpy as np
 from scipy import special
 from scipy.optimize import OptimizeResult
+from scipy.linalg import block_diag
 
 from autofit.mapper.variable import Variable
 
@@ -45,8 +46,11 @@ class FlattenArrays(dict):
         self.splits = np.cumsum([
             np.prod(s) for s in self.values()], dtype=int)
         self.inds = [
-            np.arange(i0, i1, dtype=int) for i0, i1 in
+            slice(i0, i1) for i0, i1 in 
+            # np.arange(i0, i1, dtype=int) for i0, i1 in
             zip(np.r_[0, self.splits[:-1]], self.splits)]
+        self.sizes = {
+            k: np.prod(s, dtype=int) for k, s in self.items()}
 
     @classmethod
     def from_arrays(cls, **arrays: Dict[str, np.ndarray]) -> "FlattenArrays":
@@ -62,13 +66,25 @@ class FlattenArrays(dict):
         arr = np.asanyarray(arr)
         if ndim is None:
             ndim = arr.ndim
-        arrays = [arr[np.ix_(*(ind for _ in range(ndim)))] for ind in self.inds]
+        arrays = [
+            arr[(ind,) * ndim] for ind in self.inds]
+            # arr[np.ix_(*(ind for _ in range(ndim)))] for ind in self.inds]
         arr_shapes = [arr.shape[ndim:] for arr in arrays]
         return {
             k: arr.reshape(shape * ndim + arr_shape)
             if shape or arr_shape else arr.item()
             for (k, shape), arr_shape, arr in
             zip(self.items(), arr_shapes, arrays)}
+
+    def flatten2d(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
+        assert all(np.shape(values[k]) == shape * 2
+                   for k, shape in self.items())
+        return block_diag(*(
+            np.reshape(values[k], (n, n))
+            for k, n in self.sizes.items()
+        ))
+
+    unflatten2d = unflatten
 
     def __repr__(self):
         shapes = ", ".join(map("{0[0]}={0[1]}".format, self.items()))
