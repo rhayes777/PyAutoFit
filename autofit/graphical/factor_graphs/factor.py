@@ -127,6 +127,29 @@ class Factor(AbstractFactor):
         
     kwargs: Variables
         Variables for each keyword argument for the function
+
+    Methods
+    -------
+    __call__({x: x0}, axis=axis)
+        calls the factor, the passed input must be a dictionary with
+        where the keys are the Variable objects that the function takes
+        as input. The Variable keys only have to match the _names_
+        of the variables of the function.  
+
+        `axis` controls the shape of the output if the variables and factor
+        have plates associated with them, when axis=False then 
+        no reduction is performed, otherwise it is equivalent to calling
+        np.sum(log_val, axis=axis) on the returned value
+        
+        returns a FactorValue object which behaves like an np.ndarray
+        
+
+    func_jacobian({x: x0}, variables=(x,), axis=axis)
+        calls the factor and returns it value and the jacobian of its value
+        with respect to the `variables` passed. if variables is None then
+        it returns the jacobian with respect to all variables.
+
+        returns fval, {x: d fval / dx}
     """
     def __init__(
             self,

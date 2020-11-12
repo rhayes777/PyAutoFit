@@ -39,7 +39,7 @@ def project_on_to_factor_approx(
     factor_projection = {}
 #     log_norm = 0.
     for v, q_fit in model_dist.items():
-        q_cavity = factor_approx.all_cavity_dist.get(v)
+        q_cavity = factor_approx.cavity_dist.get(v)
         if isinstance(q_fit, FixedMessage):
             factor_projection[v] = q_fit
         elif q_fit.is_valid:
@@ -96,7 +96,30 @@ def project_on_to_factor_approx(
 
     
 class MeanField(Dict[Variable, AbstractMessage], Factor):
-    """
+    """For a factor with multiple variables, this class represents the 
+    the mean field approximation to that factor, 
+
+    f(x₁, x₂, x₃) = q(x₁, x₂, x₃) = q₁(x₁) q₂(x₂) q₃(x₃)
+
+    Internally these variables approximations are stored in a 
+    dictionary with the variables as keys and the message or 
+    variable distribution as values
+
+
+    Methods
+    -------
+    keys()
+        returns the variables of the mean_field
+
+    logpdf({x₁: x1, x₂: x2, x₃: x3})
+        returns the q(x₁, x₂, x₃), axis defines the axes over which
+        to reduce the return, if the meanfield is duplicated over multiple
+        plates. 
+
+    logpdf_gradient({x₁: x1, x₂: x2, x₃: x3})
+        returns the q(x₁, x₂, x₃) and the gradients for each input. 
+        to save memory the gradients are always the shape of the input
+        values (i.e. this does not calculate the Jacobian)
     """
     def __init__(
             self, 
@@ -230,7 +253,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             covar: Dict[Variable, np.ndarray], 
             fun: Optional[float] = None):
         """
-        Projects mode and covar
+        Projects the mode and covariance 
         """
         projection = MeanField({
             v: dist.from_mode(mode[v], covar.get(v))
@@ -260,6 +283,54 @@ class _FactorApproximation(NamedTuple):
     model_dist: MeanField
 
 class FactorApproximation(_FactorApproximation):
+    """
+    This class represents the 'tilted distribution' in EP,
+
+    When approximating a model distribution of the form,
+
+    m(x) = ∏ₐ fₐ(xₐ)
+
+    we can define an approximating distribution as the product of 
+    factor distributions,
+
+    q(x) = ∏ₐ qₐ(xₐ)
+
+    the 'cavity distribution' q⁻ᵃ for a factor can be viewed as a 
+    prior distribution for the factor,
+
+    q⁻ᵃ(xₐ) = ∏_{ᵦ ≠ a} qᵦ(xᵦ)
+
+    so the model can be approximated by the 'tilted distribution'
+
+    q⁺ᵃ(xₐ) = fₐ(xₐ) q⁻ᵃ(xₐ)
+
+    Parameters
+    ----------
+    is_valid
+    factor: Factor
+        fₐ(xₐ)
+    cavity_dist: MeanField
+        q⁻ᵃ(xₐ)
+    factor_dist: MeanField
+        qₐ(xₐ)
+    model_dist: MeanField
+        q(xₐ)
+
+    Methods
+    -------
+    __call__(values={xₐ: x₀}, axis=axis)
+        returns q⁺ᵃ(x₀)
+
+    func_jacobian(values={xₐ: x₀}, variables=(xₐ,), axis=axis)
+        returns q⁺ᵃ(x₀), {xₐ: dq⁺ᵃ(x₀)/dxₐ}
+
+    project_mean_field(mean_field, delta=1., status=Status())
+        for qᶠ = mean_field, finds qₐ such that qᶠₐ * q⁻ᵃ = qᶠ
+        delta controls how much to change from the original factor qₐ
+        so qʳₐ = (qᶠₐ)ᵟ * (qᶠₐ)¹⁻ᵟ
+
+        returns qʳₐ, status
+    """
     def __new__(
         cls, 
         factor, 
@@ -275,24 +346,31 @@ class FactorApproximation(_FactorApproximation):
             MeanField.as_meanfield(model_dist))
 
     @property
+    def variables(self):
+        return self.factor.variables
+
+    @property
     def deterministic_variables(self):
         return self.factor.deterministic_variables
 
     @property
-    def deterministic_dist(self):
-        return MeanField({
-            v: self.cavity_dist[v] 
-            for v in self.deterministic_variables})
+    def all_variables(self):
+        return self.factor.all_variables
 
     @property
-    def all_cavity_dist(self):
-        return ChainMap(
-            self.cavity_dist,
-            self.deterministic_dist
-        )
+    def deterministic_dist(self):
+        """
+        the `MeanField` approximation of the deterministic variables
+        """
+        return MeanField({
+            v: self.cavity_dist[v] for v in self.deterministic_variables})
 
     @property
     def is_valid(self) -> bool:
+        """
+        returns whether all the distributions in the factor approximation
+        are valid
+        """
         dists = chain(
             self.cavity_dist.values(),
             self.factor_dist.values(),
@@ -308,15 +386,6 @@ class FactorApproximation(_FactorApproximation):
         log_meanfield = self.cavity_dist(
             {**values, **fval.deterministic_values}, axis=axis)
         return add_arrays(fval, log_meanfield)
-        # refactor as a mapreduce?
-        # for res in chain(map_dists(self.cavity_dist, kwargs),
-        #                  map_dists(self.deterministic_dist, det_vars)):
-        # for res in map_dists(self.cavity_dist, {**det_vars, **kwargs}):
-        #     # need to add the arrays whilst preserving the sum
-        #     log_result = add_arrays(
-        #         log_result, self.factor.broadcast_variable(*res))
-
-        # return log_result
 
     def func_jacobian(
             self, 
@@ -362,8 +431,6 @@ class FactorApproximation(_FactorApproximation):
                 fjac[var] += det_grad.dot(g).reshape(var_shapes[var])
         
         return logl, fjac
-
-    project_on_to_factor_approx = project_on_to_factor_approx
 
     def project_mean_field(
             self, 

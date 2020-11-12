@@ -131,8 +131,6 @@ def test_jacobian(
             assert np.allclose(fjac0[v][d], fjac1[v][d]), f"d={d}, v={v}"
 
 
-
-
 def test_laplace(
         model_approx,
         a_,

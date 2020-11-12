@@ -362,20 +362,17 @@ class LeastSquaresOpt:
 
         if opt_only is None:
             opt_only = tuple(
-                v for v, d in factor_approx.all_cavity_dist.items()
+                v for v, d in factor_approx.cavity_dist.items()
                 if not isinstance(d, FixedMessage)
             )
 
         self.opt_only = opt_only
         self.resid_means = {
-            k: factor_approx.all_cavity_dist[k].mean
-            for k in self.opt_only}
+            k: factor_approx.cavity_dist[k].mean for k in self.opt_only}
         self.resid_scales = {
-            k: factor_approx.all_cavity_dist[k].scale
-            for k in self.opt_only}
+            k: factor_approx.cavity_dist[k].scale for k in self.opt_only}
         self.resid_shapes = FlattenArrays({
-            k: np.shape(m) for k, m in
-            self.resid_means.items()})
+            k: np.shape(m) for k, m in self.resid_means.items()})
 
         self.bounds = tuple(np.array(list(zip(*[
             b for k, s in param_shapes.items()

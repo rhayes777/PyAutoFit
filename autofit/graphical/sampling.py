@@ -233,7 +233,7 @@ def project_factor_approx_sample(
     # variables
     variable_log_weights = {
         v: factor_approx.factor.collapse(v, sample.log_weights, agg_func=np.sum)
-        for v in factor_approx.all_cavity_dist}
+        for v in factor_approx.cavity_dist}
 
     model_dist = MeanField({
         v: factor_approx.factor_dist[v].project(x, variable_log_weights.get(v))
