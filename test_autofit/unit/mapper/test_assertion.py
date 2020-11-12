@@ -92,20 +92,6 @@ class TestAssertion:
         assert assertion.instance_for_arguments({prior_1: 0.1}) is False
         assert assertion.instance_for_arguments({prior_1: 0.6}) is False
 
-    # noinspection PyUnresolvedReferences
-    def test_annotation(self):
-        model = af.PriorModel(mock.MockDistanceClass)
-        assertion = model.one < model.two
-
-        assert assertion.instance_for_arguments({
-            model.one.value: 0.3,
-            model.two.value: 0.4
-        }) is True
-        assert assertion.instance_for_arguments({
-            model.one.value: 0.5,
-            model.two.value: 0.4
-        }) is False
-
 
 @pytest.fixture(name="promise_model")
 def make_promise_model(phase):

@@ -340,7 +340,7 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-            analysis.visualize(instance=instance, during_analysis=during_analysis)
+            analysis.visualize(paths=self.paths, instance=instance, during_analysis=during_analysis)
 
         if self.should_output_model_results() or not during_analysis:
 
@@ -517,7 +517,7 @@ class Analysis:
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, instance, during_analysis):
+    def visualize(self, paths : Paths, instance, during_analysis):
         pass
 
     def save_for_aggregator(self, paths : Paths):
@@ -537,6 +537,11 @@ class Result:
         ----------
         previous_model
             The model mapper from the stage that produced this result
+<<<<<<< HEAD
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
+=======
+>>>>>>> 2c0fc10046b374070e28b9021b6c2c8073f4e6e1
         """
 
         self.samples = samples
