@@ -26,9 +26,9 @@ Load the dataset from the `autofit_workspace/dataset` folder.
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_1","gaussian_x1")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "noise_map.json"))
 
 # %%
 """
@@ -184,7 +184,7 @@ import gaussian as g
 
 model = af.PriorModel(g.Gaussian)
 
-emcee = af.Emcee(name="tutorial_4", path_prefix="howtofit/chapter_1")
+emcee = af.Emcee(name="tutorial_4", path_prefix=path.join( "howtofit", "chapter_1"))
 
 analysis = Analysis(data=data, noise_map=noise_map)
 

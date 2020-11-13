@@ -7,6 +7,9 @@ from autofit.mock.mock import MockPhaseOutput
 def test_completed_aggregator(
         aggregator_directory
 ):
+
+    print(aggregator_directory)
+
     aggregator = af.Aggregator(
         aggregator_directory,
         completed_only=True

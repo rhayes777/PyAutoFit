@@ -18,7 +18,7 @@ In the previous tutorial, you'lll have noted we told **PyAutoFit** where to load
 Python code:
 
  from autoconf import conf
- conf.instance.push(new_path=f"{workspace_path}/howtofit/chapter_phase_api/src/config")
+ conf.instance.push(new_path=path.join(workspace_path, "howtofit", "chapter_phase_api", "src", "config"))
 
 When you or a user uses your model-fitting software, there are lots of settings that one may wish to customize when
 performing model-fitting. This use of config files ensures this is possible, but avoids the user needing to know about

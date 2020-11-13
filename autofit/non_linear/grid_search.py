@@ -2,6 +2,7 @@ import copy
 import multiprocessing
 from time import sleep
 from typing import List
+from os import path
 
 import numpy as np
 
@@ -407,7 +408,7 @@ class GridSearch:
 
     def write_results(self, results_list):
 
-        with open("{}/results".format(self.paths.output_path), "w+") as f:
+        with open(path.join(self.paths.output_path, "results"), "w+") as f:
             f.write(
                 "\n".join(
                     map(
@@ -438,7 +439,7 @@ class GridSearch:
                 )
             )
 
-        name_path = "{}/{}/{}/{}".format(
+        name_path = path.join(
             self.paths.name,
             self.paths.tag,
             self.paths.non_linear_tag,

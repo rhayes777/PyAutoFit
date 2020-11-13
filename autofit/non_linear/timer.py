@@ -1,5 +1,7 @@
 import datetime as dt
+from os import path
 import time
+
 
 class Timer:
 
@@ -20,9 +22,8 @@ class Timer:
         Record the start time of a `NonLinearSearch` as universal date time, so that the run-time of the search can be
         recorded.
         """
-        start_time_path = "{}/.start_time".format(
-            self.paths.samples_path
-        )
+        start_time_path = path.join(self.paths.samples_path, ".start_time")
+        print(start_time_path)
         try:
             with open(start_time_path) as f:
                 float(f.read())
@@ -38,7 +39,7 @@ class Timer:
         execution_time = str(dt.timedelta(seconds=time.time() - float(self.start_time)))
 
         with open(
-                f"{self.paths.samples_path}/.time", "w+"
+                path.join(self.paths.samples_path, ".time"), "w+"
         ) as f:
             f.write(execution_time)
 
@@ -47,7 +48,7 @@ class Timer:
         """Load the start time written to hard disk from the .start_time file."""
         try:
             with open(
-                    f"{self.paths.samples_path}/.start_time", "r"
+                    path.join(self.paths.samples_path, ".start_time"), "r"
             ) as f:
                 return f.read()
         except FileNotFoundError:
@@ -58,7 +59,7 @@ class Timer:
         """Load the total time of the `NonLinearSearch` written to hard disk fom the .start_time file."""
         try:
             with open(
-                    f"{self.paths.samples_path}/.time", "r"
+                    path.join(self.paths.samples_path, ".time"), "r"
             ) as f:
                 return f.read()
         except FileNotFoundError:

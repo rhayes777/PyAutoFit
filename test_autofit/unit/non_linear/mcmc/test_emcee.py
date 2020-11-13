@@ -1,4 +1,4 @@
-import os
+from os import path
 import shutil
 
 import pytest
@@ -7,15 +7,15 @@ import autofit as af
 from autoconf import conf
 from autofit.mock import mock
 
-directory = os.path.dirname(os.path.realpath(__file__))
+directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance.push(
-        os.path.join(directory, "files/emcee/config"),
-        output_path=os.path.join(directory, "files/emcee/output"),
+        path.join(directory, "files/emcee/config"),
+        output_path=path.join(directory, "files/emcee/output"),
     )
 
 
@@ -68,9 +68,10 @@ class TestEmceeConfig:
 
     def test__samples_from_model(self):
         emcee = af.Emcee(paths=af.Paths())
+        
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -100,8 +101,8 @@ class TestEmceeOutput:
     def test__median_pdf_parameters(self):
         emcee = af.Emcee(paths=af.Paths())
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -115,9 +116,10 @@ class TestEmceeOutput:
 
     def test__vector_at_sigma__uses_output_files(self):
         emcee = af.Emcee(paths=af.Paths())
+
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -135,9 +137,10 @@ class TestEmceeOutput:
 
     def test__autocorrelation_times(self):
         emcee = af.Emcee(paths=af.Paths())
+
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)

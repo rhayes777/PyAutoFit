@@ -8,7 +8,7 @@ from autofit.mock import mock
 directory = path.dirname(path.realpath(__file__))
 
 conf.instance = conf.Config(
-    path.join(directory, "files/config")
+    path.join(directory, "files", "config")
 )
 
 

@@ -291,11 +291,6 @@ class AbstractDynesty(AbstractNest):
 
         else:
 
-            try:
-                os.makedirs(self.paths.samples_path)
-            except FileExistsError:
-                pass
-
             sampler = self.sampler_fom_model_and_fitness(
                 model=model, fitness_function=fitness_function
             )
@@ -1024,11 +1019,6 @@ class DynestyDynamic(AbstractDynesty):
             model=model, analysis=analysis, pool_ids=pool_ids
         )
 
-        try:
-            os.makedirs(self.paths.samples_path)
-        except FileExistsError:
-            pass
-
         sampler = self.sampler_fom_model_and_fitness(
             model=model, fitness_function=fitness_function
         )
@@ -1085,7 +1075,7 @@ class DynestyDynamic(AbstractDynesty):
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model, sampler=sampler)
-        samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
+        samples.write_table(filename=self.paths.samples_file)
         self.save_samples(samples=samples)
 
         instance = samples.max_log_likelihood_instance

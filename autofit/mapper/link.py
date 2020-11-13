@@ -12,7 +12,7 @@ logger = logging.getLogger(__file__)
 try:
     autolens_dir = expanduser(os.environ["SYMDIR"])
 except KeyError:
-    autolens_dir = "{}/{}".format(expanduser("~"), ".autofit")
+    autolens_dir = os.path.join("{}".format(expanduser('~')), "{}".format('.autofit'))
 
 try:
     os.mkdir(autolens_dir)
@@ -38,10 +38,11 @@ def path_for(path):
     start = int(SUB_PATH_LENGTH / 2)
     end = SUB_PATH_LENGTH - start
     encoded_string = str(hashlib.sha224(path.encode("utf-8")).hexdigest())
-    return "{}/al_{}".format(
-        autolens_dir, (encoded_string[:start] + encoded_string[-end:]).replace("-", "")
-    )
 
+    return os.path.join(
+        "{}".format(autolens_dir),
+        "al_{}".format(encoded_string[:start] + encoded_string[-end:]).replace('-', '')
+    )
 
 def make_linked_folder(sym_path):
     """
@@ -62,6 +63,8 @@ def make_linked_folder(sym_path):
         The path where multinest output is actually saved
     """
     source_path = path_for(sym_path)
+    print(source_path)
+    print(sym_path)
     if os.path.exists(source_path) and not os.path.exists(sym_path):
         logger.debug(
             "Source {} exists but target {} does not. Removing source.".format(

@@ -45,10 +45,10 @@ class NonLinearSearch(ABC):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
 
-        if paths.non_linear_name is "":
+        if paths.non_linear_name == "":
             paths.non_linear_name = self._config("tag", "name")
 
-        if paths.non_linear_tag is "":
+        if paths.non_linear_tag == "":
             paths.non_linear_tag_function = lambda: self.tag
 
         self.paths = paths
@@ -214,6 +214,11 @@ class NonLinearSearch(ABC):
         produced by this fit.
         """
 
+        try:
+            os.makedirs(self.paths.samples_path)
+        except FileExistsError:
+            pass
+
         self.paths.restore()
         self.setup_log_file()
 
@@ -329,8 +334,8 @@ class NonLinearSearch(ABC):
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model)
-        samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
-        samples.info_to_json(filename=f"{self.paths.sym_path}/info.json")
+        samples.write_table(filename=self.paths.samples_file)
+        samples.info_to_json(filename=self.paths.info_file)
 
         self.save_samples(samples=samples)
 

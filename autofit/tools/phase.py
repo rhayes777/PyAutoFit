@@ -1,9 +1,8 @@
 import logging
+from os import path
 import pickle
 from abc import ABC, abstractmethod
 from typing import Dict
-
-import dill
 
 from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
@@ -54,11 +53,6 @@ class AbstractPhase:
             contains its own PhasePropertys.
         """
         return []
-
-    def save_model_info(self):
-        """Save the model.info file, which summarizes every parameter and prior."""
-        with open(self.paths.file_model_info, "w+") as f:
-            f.write(self.model.info)
 
     @property
     def _default_metadata(self) -> Dict[str, str]:
@@ -223,7 +217,7 @@ def as_grid_search(phase_class, parallel=False):
 
         def save_grid_search_result(self, grid_search_result):
             with open(
-                    f"{self.paths.pickle_path}/grid_search_result.pickle",
+                    path.join(self.paths.pickle_path, "grid_search_result.pickle"),
                     "wb+"
             ) as f:
                 pickle.dump(

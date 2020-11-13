@@ -19,7 +19,7 @@ print(f"Working Directory has been set to `{workspace_path}`")
 
 from autoconf import conf
 
-conf.instance.push(new_path=f"{workspace_path}/howtofit/chapter_phase_api/src/config")
+conf.instance.push(new_path=path.join(workspace_path, "howtofit", "chapter_phase_api", "src", "config"))
 
 import autofit as af
 import src as htf

@@ -3,7 +3,6 @@ import json
 import math
 from typing import List
 
-import emcee
 import numpy as np
 
 from autofit.mapper.model import ModelInstance
@@ -18,7 +17,7 @@ def load_from_table(filename, model):
     log_posteriors = []
     weights = []
 
-    with open(filename, "r+") as f:
+    with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
         for index, row in enumerate(reader):
             if index > 0:
@@ -104,7 +103,7 @@ class OptimizerSamples:
         filename
             Where the table is to be written
         """
-        with open(filename, "w+") as f:
+        with open(filename, "w+", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(self._headers)
             for row in self._rows:
