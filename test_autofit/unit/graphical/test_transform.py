@@ -87,7 +87,7 @@ def test_simple_transform_cholesky():
     assert np.allclose(res.x, b, rtol=1e-2)
     H, iA = res.hess_inv, np.linalg.inv(A)
     # check R2 score
-    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.99
+    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.95
     
     cho = transform.CholeskyTransform(linalg.cho_factor(A))
     whiten = transform.VariableTransform({x: cho})
@@ -97,7 +97,7 @@ def test_simple_transform_cholesky():
     y0 = cho * x0
 
     res = optimize.minimize(white_func, y0)
-    assert np.allclose(res.x, cho * b)
+    assert np.allclose(res.x, cho * b, atol=1e-3, rtol=1e-3)
     assert np.allclose(res.hess_inv, np.eye(d), atol=1e-6, rtol=1e-5)
 
     # testing gradients
@@ -128,9 +128,11 @@ def test_simple_transform_diagonal():
     d = 5
     scale = np.random.exponential(size=d)
     A = np.diag(scale**-1)
+    b = np.random.randn(d)
     
     x = graph.Variable('x', graph.Plate())
     x0 = np.random.randn(d)
+    param_shapes = graph.utils.FlattenArrays({x: (d,)})
 
     def likelihood(x):
         x = x - b
@@ -143,7 +145,7 @@ def test_simple_transform_diagonal():
     assert np.allclose(res.x, b, rtol=1e-2)
     H, iA = res.hess_inv, np.linalg.inv(A)
     # check R2 score
-    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.99
+    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.95
     
     
     scale = np.random.exponential(size=d)
@@ -160,7 +162,7 @@ def test_simple_transform_diagonal():
     assert np.allclose(res.x, diag * b)
     H, iA = res.hess_inv, np.eye(d)
     # check R2 score
-    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.99
+    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.95
     
     # testing gradients
     grad = white_func.jacobian(y0)
