@@ -35,7 +35,7 @@ are in the middle of a `NonLinearSearch` will be omitted and not loaded in the `
 
 # %%
 agg = af.Aggregator(
-    directory="output/howtofit/chapter_1/aggregator", completed_only=True
+    directory=path.join( "output", "howtofit", "chapter_1", "aggregator"), completed_only=True
 )
 
 # %%

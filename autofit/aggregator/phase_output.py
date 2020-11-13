@@ -1,4 +1,5 @@
 import os
+from os import path
 import pickle
 
 import dill
@@ -36,7 +37,7 @@ class PhaseOutput:
 
     @property
     def pickle_path(self):
-        return f"{self.directory}/pickles"
+        return path.join(self.directory, "pickles")
 
     @property
     def model_results(self) -> str:
@@ -79,7 +80,7 @@ class PhaseOutput:
         pipeline = self.pipeline or ""
         phase = self.phase or ""
         dataset_name = self.dataset_name or ""
-        return "/".join((pipeline, phase, dataset_name))
+        return path.join(pipeline, phase, dataset_name)
 
     @property
     def search(self) -> abstract_search.NonLinearSearch:

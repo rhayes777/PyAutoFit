@@ -28,7 +28,7 @@ of the results we want it to load.
 """
 
 # %%
-agg = af.Aggregator(directory="output/howtofit/chapter_1/aggregator")
+agg = af.Aggregator(directory=path.join( "output", "howtofit", "chapter_1", "aggregator"))
 
 # %%
 """

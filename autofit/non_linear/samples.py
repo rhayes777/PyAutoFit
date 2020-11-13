@@ -3,7 +3,6 @@ import json
 import math
 from typing import List
 
-import emcee
 import numpy as np
 
 from autofit.mapper.model import ModelInstance

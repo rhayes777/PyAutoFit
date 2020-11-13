@@ -324,9 +324,9 @@ Load the dataset from the `autofit_workspace/dataset` folder. This uses a new `d
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x1__exponential_x1"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_1","gaussian_x1__exponential_x1")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "noise_map.json"))
 
 # %%
 """
@@ -363,9 +363,9 @@ Lets fit a model composed of two `Gaussian`. and and an `Exponential`, which wil
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x2__exponential_x1"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_1","gaussian_x2__exponential_x1")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "noise_map.json"))
 
 analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -428,13 +428,13 @@ model.gaussian_2.add_assertion(model.gaussian_2.sigma > 3.0)
 """We can now fit this model as per usual."""
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x3"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_1","gaussian_x3")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "noise_map.json"))
 
 analysis = Analysis(data=data, noise_map=noise_map)
 
-emcee = af.Emcee(name="tutorial_5__gaussian_x3", path_prefix="howtofit/chapter_1")
+emcee = af.Emcee(name="tutorial_5__gaussian_x3", path_prefix=path.join( "howtofit", "chapter_1"))
 
 print(
     "Emcee has begun running. "

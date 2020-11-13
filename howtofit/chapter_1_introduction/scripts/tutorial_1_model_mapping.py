@@ -53,9 +53,9 @@ specific to your project.
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_1","gaussian_x1")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "noise_map.json"))
 
 # %%
 """

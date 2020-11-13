@@ -1,3 +1,4 @@
+import copy
 import logging
 import multiprocessing as mp
 import os
@@ -45,10 +46,10 @@ class NonLinearSearch(ABC):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
 
-        if paths.non_linear_name is "":
+        if paths.non_linear_name == "":
             paths.non_linear_name = self._config("tag", "name")
 
-        if paths.non_linear_tag is "":
+        if paths.non_linear_tag == "":
             paths.non_linear_tag_function = lambda: self.tag
 
         self.paths = paths
@@ -105,6 +106,15 @@ class NonLinearSearch(ABC):
         self.number_of_cores = number_of_cores
 
         self._in_phase = False
+
+    def copy_with_paths(
+            self,
+            paths
+    ):
+        search_instance = copy.copy(self)
+        search_instance.paths = paths
+
+        return search_instance
 
     class Fitness:
         def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None, pool_ids=None):
@@ -213,6 +223,11 @@ class NonLinearSearch(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
+
+        try:
+            os.makedirs(self.paths.samples_path)
+        except FileExistsError:
+            pass
 
         self.paths.restore()
         self.setup_log_file()
@@ -329,8 +344,8 @@ class NonLinearSearch(ABC):
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model)
-        samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
-        samples.info_to_json(filename=f"{self.paths.sym_path}/info.json")
+        samples.write_table(filename=self.paths.samples_file)
+        samples.info_to_json(filename=self.paths.info_file)
 
         self.save_samples(samples=samples)
 
@@ -520,7 +535,7 @@ class Analysis:
     def visualize(self, paths : Paths, instance, during_analysis):
         pass
 
-    def save_for_aggregator(self, paths : Paths):
+    def save_for_aggregator(self, paths: Paths):
         pass
 
 
@@ -537,11 +552,6 @@ class Result:
         ----------
         previous_model
             The model mapper from the stage that produced this result
-<<<<<<< HEAD
-        prior_passer : af.PriorPasser
-            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-=======
->>>>>>> 2c0fc10046b374070e28b9021b6c2c8073f4e6e1
         """
 
         self.samples = samples

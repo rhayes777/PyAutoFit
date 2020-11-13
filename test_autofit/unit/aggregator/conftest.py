@@ -26,7 +26,8 @@ def make_aggregator_directory():
     directory = os.path.dirname(
         os.path.realpath(__file__)
     )
-    return f"{directory}/../tools/files/aggregator"
+
+    return os.path.join(f"{directory}", "..", "tools", "files", "aggregator")
 
 
 @pytest.fixture(name="aggregator")

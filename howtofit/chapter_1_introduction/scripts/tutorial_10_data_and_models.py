@@ -28,7 +28,7 @@ our path straight to the `Aggregator` results ensuring we don't need to filter o
 """
 
 # %%
-agg = af.Aggregator(directory="output/howtofit/chapter_1/aggregator")
+agg = af.Aggregator(directory=path.join( "output", "howtofit", "chapter_1", "aggregator"))
 
 # %%
 """

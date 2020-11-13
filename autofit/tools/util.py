@@ -39,7 +39,7 @@ def numpy_array_to_json(
     numpy_array_to_json(array_2d=array_2d, file_path='/path/to/file/filename.json', overwrite=True)
     """
 
-    file_dir = file_path.rsplit("/", 1)[0]
+    file_dir = os.path.split(file_path)[0]
 
     if not os.path.exists(file_dir):
         os.makedirs(file_dir)
