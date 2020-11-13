@@ -54,7 +54,7 @@ class OptFactor:
     ) -> 'OptFactor':
         fixed_kws = {}
         bounds = {}
-        for v in factor_approx.factor.variables:
+        for v in factor_approx.variables:
             dist = factor_approx.model_dist[v]
             if isinstance(dist, FixedMessage):
                 fixed_kws[v] = dist.mean
@@ -187,9 +187,9 @@ class OptFactor:
             status: Status = Status(), 
     ):
         self.sign = -1
-        p0 = {
-            v: arrays_dict.pop(v, self.factor_approx.model_dist[v].sample(1)[0])
-            for v in self.free_vars}
+        p0 = arrays_dict.copy()
+        for v in set(self.free_vars).difference(p0.keys()):
+            p0[v] = self.factor_approx.model_dist[v].sample()
         res = self._minimise(
             p0,
             bounds=bounds, constraints=constraints, tol=tol,

@@ -7,7 +7,9 @@ from itertools import count
 import numpy as np
 
 from autofit.mapper.variable import Variable, Plate
+from autofit.graphical.utils import FlattenArrays
 
+Value = Dict[Variable, np.ndarray]
 class FactorValue(np.ndarray):
 
     def __new__(cls, input_array, deterministic_values=None):
@@ -52,6 +54,7 @@ HessianValue = Dict[Variable, np.ndarray]
 
 from autofit.graphical.factor_graphs.numerical import (
     numerical_func_jacobian, numerical_func_jacobian_hessian)
+
 
 class AbstractNode(ABC):
     _deterministic_variables: Set[Variable] = frozenset()
@@ -295,3 +298,51 @@ class AbstractNode(ABC):
         return self.func_jacobian_hessian(
             values, variables, axis, 
             _eps=_eps, _calc_deterministic=_calc_deterministic)[2]
+
+    def flatten(self, param_shapes: FlattenArrays) -> 'FlattenedNode':
+        return FlattenedNode(self, param_shapes)
+
+
+class FlattenedNode:
+    def __init__(
+            self, 
+            node: 'AbstractNode', 
+            param_shapes: FlattenArrays
+    ):
+        self.node = node 
+        self.param_shapes = param_shapes
+
+    def flatten(self, values: Value) -> np.ndarray:
+        return self.param_shapes.flatten(values)
+    
+    def unflatten(self, x0: np.ndarray) -> Value:
+        return self.param_shapes.unflatten(x0)
+        
+    def __call__(self, x: np.ndarray, axis=None) -> np.ndarray:
+        values = self.unflatten(x)
+        return self.node(values, axis=axis)
+    
+    def func_jacobian(self, x: np.ndarray, axis=None):
+        values = self.unflatten(x)
+        fval, jval = self.node.func_jacobian(values, axis=axis)
+        grad = self.flatten(jval)
+        return fval, grad
+
+    def func_jacobian_hessian(self, x: np.ndarray, axis=None):
+        values = self.unflatten(x)
+        fval, jval, hval = self.node.func_jacobian_hessian(values, axis=axis)
+        grad = self.flatten(jval)
+        hess = self.param_shapes.flatten2d(hval)
+        return fval, grad, hess
+
+    def jacobian(self, x: np.ndarray):
+        return self.func_jacobian(x)[1]
+
+    def hessian(self, x: np.ndarray):
+        return self.func_jacobian_hessian(x)[1]
+
+    def __getattribute__(self, name):
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            return getattr(self.node, name)

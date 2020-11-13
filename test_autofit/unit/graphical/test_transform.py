@@ -3,60 +3,164 @@ import numpy as np
 
 import pytest
 import numpy as np
-from scipy import stats, linalg
+from scipy import stats, linalg, optimize
 
 import autofit.graphical as graph
 import autofit.graphical.factor_graphs.transform as transform
 
-
-
-def test_un_whiten_cholesky():
-    d = 4
+def test_CholeskyTransform():
+    d = 10
     A = stats.wishart(d, np.eye(d)).rvs()
-    x = np.random.rand(d)
-    X = np.random.rand(d, d)
-    U, _ = linalg.cho_factor(A, lower=False)
-    L, _ = linalg.cho_factor(A, lower=True)
 
-    U = np.triu(U, 0) # clear lower diagonal
-    L = np.tril(L, 0) # clear upper diagonal
+    cho_factor = transform.CholeskyTransform(linalg.cho_factor(A))
 
-    assert pytest.approx(0) == np.linalg.norm(U - L.T)
-    assert pytest.approx(0) == np.linalg.norm(U.T.dot(U) - A)
-    assert pytest.approx(0) == (np.linalg.norm(L.dot(L.T) - A))
-    assert pytest.approx(0) == (np.linalg.norm(L.dot(U) - A))
-    assert pytest.approx(0) == (np.linalg.norm(
-        transform._mul_triangular((L, True), x, trans=True) 
-        - transform._mul_triangular((U, False), x, trans=False)))
+    U = np.triu(cho_factor.U)
+    iU = np.linalg.inv(U)
+
+    b = np.random.rand(d)
+    assert np.allclose(cho_factor * b, U @ b)
+    assert np.allclose(b * cho_factor, b @ U)
+    assert np.allclose(cho_factor.ldiv(b), iU @ b)
+    assert np.allclose(b / cho_factor, b @ iU)
     
-    # test unwhiten
-    assert pytest.approx(0) == (np.linalg.norm(
-        U.dot(x) 
-        - transform._unwhiten_cholesky((L, True), x)))
-    assert pytest.approx(0) == (np.linalg.norm(
-        L.T.dot(x) 
-        - transform._unwhiten_cholesky((U, False), x)))
-    assert pytest.approx(0) == (np.linalg.norm(
-        U.dot(X).dot(L)
-        - transform._unwhiten_cholesky(
-            (U, False), transform._unwhiten_cholesky((U, False), X).T).T))
-    assert pytest.approx(0) == (np.linalg.norm(
-        U.dot(X).dot(L)
-        - transform._unwhiten_cholesky(
-            (L, True), transform._unwhiten_cholesky((L, True), X).T).T))
+    b = np.random.rand(d, d)
+    assert np.allclose(cho_factor * b, U @ b)
+    assert np.allclose(b * cho_factor, b @ U)
+    assert np.allclose(cho_factor.ldiv(b), iU @ b)
+    assert np.allclose(b / cho_factor, b @ iU)
+    
+    b = np.random.rand(d, d + 1)
+    assert np.allclose(cho_factor * b, U @ b)
+    assert np.allclose(cho_factor.ldiv(b), iU @ b)
 
-    # test whiten
-    assert pytest.approx(0) == (np.linalg.norm(
-        linalg.solve(U, x)
-        - transform._whiten_cholesky((L, True), x)))
-    assert pytest.approx(0) == (np.linalg.norm(
-        linalg.solve(L.T, x)
-        - transform._whiten_cholesky((U, False), x)))
-    assert pytest.approx(0) == (np.linalg.norm(
-        np.linalg.inv(U).dot(X).dot(np.linalg.inv(L))
-        - transform._whiten_cholesky(
-            (U, False), transform._whiten_cholesky((U, False), X).T).T))
-    assert pytest.approx(0) == (np.linalg.norm(
-        linalg.solve(L, linalg.solve(U, X).T, transposed=True).T
-        - transform._whiten_cholesky(
-            (L, True), transform._whiten_cholesky((L, True), X).T).T))
+    b = np.random.rand(d + 1, d)
+    assert np.allclose(b * cho_factor, b @ U)
+    assert np.allclose(b / cho_factor, b @ iU)
+
+def test_DiagonalTransform():
+    d = 3
+
+    scale = np.random.rand(d)
+    D = np.diag(scale**-1)
+    iD = np.diag(scale)
+    diag_scale = transform.DiagonalTransform(scale)
+
+    b = np.random.rand(d)
+    assert np.allclose(diag_scale * b, D @ b)
+    assert np.allclose(b * diag_scale, b @ D)
+    assert np.allclose(diag_scale.ldiv(b), iD @ b)
+    assert np.allclose(b / diag_scale, b @ iD)
+
+    b = np.random.rand(d, d)
+    assert np.allclose(diag_scale * b, D @ b)
+    assert np.allclose(b * diag_scale, b @ D)
+    assert np.allclose(diag_scale.ldiv(b), iD @ b)
+    assert np.allclose(b / diag_scale, b @ iD)
+    
+    b = np.random.rand(d, d + 1)
+    assert np.allclose(diag_scale * b, D @ b)
+    assert np.allclose(diag_scale.ldiv(b), iD @ b)
+
+    b = np.random.rand(d + 1, d)
+    assert np.allclose(b * diag_scale, b @ D)
+    assert np.allclose(b / diag_scale, b @ iD)
+
+
+def test_simple_transform():
+
+    d = 5
+
+    A = stats.wishart(d, np.eye(d)).rvs()
+    b = np.random.rand(d)
+
+    def likelihood(x):
+        x = x - b
+        return 0.5 * np.linalg.multi_dot((x, A, x))
+
+    x = graph.Variable('x', graph.Plate())
+    x0 = np.random.randn(d)
+
+    factor = graph.Factor(likelihood, x=x, is_scalar=True)
+    param_shapes = graph.utils.FlattenArrays({x: (d,)})
+    func = factor.flatten(param_shapes)
+
+    res = optimize.minimize(func, x0)
+    assert np.allclose(res.x, b, rtol=1e-2)
+    H, iA = res.hess_inv, np.linalg.inv(A)
+    # check R2 score
+    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.99
+    
+    cho = transform.CholeskyTransform(linalg.cho_factor(A))
+    whiten = transform.VariableTransform({x: cho})
+    white_factor = transform.TransformedNode(factor, whiten)
+    white_func = white_factor.flatten(param_shapes)
+
+    y0 = cho * x0
+
+    res = optimize.minimize(white_func, y0)
+    assert np.allclose(res.x, cho * b)
+    assert np.allclose(res.hess_inv, np.eye(d), atol=1e-6, rtol=1e-5)
+
+    # testing gradients
+
+    grad = white_func.jacobian(y0)
+    ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
+    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)
+
+    white = transform.FullCholeskyTransform(cho, param_shapes)
+    white_factor = transform.TransformedNode(factor, whiten)
+    white_func = white_factor.flatten(param_shapes)
+
+    y0 = cho * x0
+
+    res = optimize.minimize(white_func, y0)
+    assert np.allclose(res.x, cho * b)
+    assert np.allclose(res.hess_inv, np.eye(d), atol=1e-6, rtol=1e-5)
+
+    # testing gradients
+
+    grad = white_func.jacobian(y0)
+    ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
+    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)
+
+
+    # testing DiagonalTransform
+
+    scale = np.random.exponential(size=d)
+    A = np.diag(scale**-1)
+    
+    def likelihood(x):
+        x = x - b
+        return 0.5 * np.linalg.multi_dot((x, A, x))
+
+    
+    factor = graph.Factor(likelihood, x=x, is_scalar=True)
+    func = factor.flatten(param_shapes)
+    
+    res = optimize.minimize(func, x0)
+    assert np.allclose(res.x, b, rtol=1e-2)
+    H, iA = res.hess_inv, np.linalg.inv(A)
+    # check R2 score
+    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.99
+    
+    
+    scale = np.random.exponential(size=d)
+    A = np.diag(scale**-2)
+    
+    diag = transform.DiagonalTransform(scale)
+    whiten = transform.VariableTransform({x: diag})
+    white_factor = transform.TransformedNode(factor, whiten)
+    white_func = white_factor.flatten(param_shapes)
+
+    y0 = diag * x0
+
+    res = optimize.minimize(white_func, y0)
+    assert np.allclose(res.x, diag * b)
+    H, iA = res.hess_inv, np.eye(d)
+    # check R2 score
+    assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.99
+    
+    # testing gradients
+    grad = white_func.jacobian(y0)
+    ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
+    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)

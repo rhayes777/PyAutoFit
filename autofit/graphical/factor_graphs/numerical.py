@@ -143,7 +143,7 @@ def numerical_func_jacobian_hessian(
                 fjac1 = factor.jacobian(
                     p0, (v,), axis=axis, _eps=_eps, _calc_deterministic=False)
                 x0[ind] -= _eps
-                hess[i0 + ind] = fjac1[v] - fjac0[v]
+                hess[i0 + ind] = (fjac1[v] - fjac0[v])/_eps
                 
             # Symmetrise Hessian
             triu = np.triu_indices(x0.size, 1) # indices of upper diagonal
@@ -180,7 +180,7 @@ def numerical_func_jacobian_hessian(
             fjac1 = factor.jacobian(
                 p0, (v,), axis=axis, _eps=_eps, _calc_deterministic=False)
             p0[v] -= _eps
-            fhess0[v] = hess = fjac1[v] - fjac0[v]
+            fhess0[v] = hess = (fjac1[v] - fjac0[v])/_eps
             
             if _calc_deterministic:
                 hess2d = hess.reshape(f_size, 1, 1)

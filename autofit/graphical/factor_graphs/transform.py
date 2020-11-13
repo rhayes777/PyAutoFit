@@ -8,122 +8,90 @@ import numpy as np
 from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs
 
 from autofit.graphical.factor_graphs import \
-    AbstractNode, Variable, FactorValue, JacobianValue, HessianValue
+    AbstractNode, Variable, Value, FactorValue, JacobianValue, HessianValue
 from autofit.graphical.utils import cached_property, Axis, FlattenArrays
 
-class AbstractTransform(ABC):
-
-    @property 
+class AbstractLinearTransform(ABC):
     @abstractmethod
-    def variables(self):
-        pass
+    def __mul__(self, x:np.ndarray) -> np.ndarray:
+        pass 
 
     @abstractmethod
-    def transform(self, values: Dict[Variable, np.ndarray]):
-        pass
-    
-    @abstractmethod
-    def untransform(self, values: Dict[Variable, np.ndarray]):
+    def __rtruediv__(self, x:np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
-    def transform2d(self, values: Dict[Variable, np.ndarray]):
-        pass
-    
-    @abstractmethod
-    def untransform2d(self, values: Dict[Variable, np.ndarray]):
-        pass
+    def __rmul__(self, x:np.ndarray) -> np.ndarray:
+        pass 
 
-    @property
     @abstractmethod
-    def log_det(self):
+    def ldiv(self, x: np.ndarray) -> np.ndarray:
         pass
 
     @cached_property
-    def det(self):
-        return np.exp(self.log_det)
-
-
-class RescaleTransform(AbstractTransform):
-    def __init__(self, variables_scales: Dict[Variable, np.ndarray]):
-        self.scale = variables_scales
-        self.inv_scale = {v: scale**-1 for v, scale in self.scale.items()}
-
-    @property
-    def variables(self):
-        return self.scale.keys()
-
-    def transform(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        return {
-            v: val * self.inv_scale[v] for v, val in values.items()}
-
-    def untransform(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        return {
-            v: val * self.scale[v] for v, val in values.items()}
-
-    def transform2d(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        transformed = {}
-        for v, hess in values.items():
-            inv_scale = self.inv_scale[v]
-            shape = np.shape(inv_scale)
-            size = np.size(inv_scale)
-            hess2d = np.reshape(hess, (size, size))
-            inv_scale1d = inv_scale.ravel()
-            w_hess = hess2d * inv_scale1d[None, :] * inv_scale1d[:, None]
-            transformed[v] = w_hess.reshape(shape + shape)
-
-        return transformed
-
-    def untransform2d(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        actual_values = {}
-        for v, hess in values.items():
-            scale = self.scale[v]
-            shape = np.shape(scale)
-            size = np.size(scale)
-            hess2d = np.reshape(hess, (size, size))
-            scale1d = scale.ravel()
-            w_hess = hess2d * scale1d[None, :] * scale1d[:, None]
-            actual_values[v] = w_hess.reshape(shape + shape)
-
-        return actual_values
-
-    @cached_property
+    @abstractmethod
     def log_det(self):
-        return sum(np.log(scale).sum() for scale in self.scale.values())
+        pass
+    
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        if ufunc is np.multiply:
+            return self.__rmul__(inputs[0])
+        elif ufunc is np.divide:
+            return self.__rtruediv__(inputs[0])
+        elif ufunc is np.matmul:
+            return self.__rmul__(inputs[0])
+        else:    
+            return NotImplemented
 
 def _solve_triangular(c_and_lower, b, trans=False, overwrite_b=False):
     c, lower = c_and_lower
     return solve_triangular(
         c, b, lower=lower, trans=trans, overwrite_b=overwrite_b)
 
+
 def _mul_triangular(c_and_lower, b, trans=False, overwrite_b=False):
     c, lower = c_and_lower 
     a1 = np.asarray(c)
     b1 = np.asarray(b)
 
+    n = c.shape[1]
+    if c.shape[0] != n:
+        raise ValueError("Triangular matrix passed must be square")
+    if b.shape[0] != n:
+        raise ValueError(
+            f"shapes {c.shape} and {b.shape} not aligned: "
+            f"{n} (dim 1) != {b.shape[0]} (dim 0)")
+
+    
     trmv, = get_blas_funcs(('trmv',), (a1, b1))
     if a1.flags.f_contiguous:
-        return trmv(
-            a1, b1, lower=lower, trans=trans, overwrite_x=overwrite_b)
+        def _trmv(a1, b1, overwrite_x):
+            return trmv(
+                a1, b1, 
+                lower=lower, trans=trans, overwrite_x=overwrite_x)
     else:
         # transposed system is solved since trmv expects Fortran ordering
-        return trmv(
-            a1.T, b1, lower=not lower, trans=not trans, 
-            overwrite_x=overwrite_b)
+        def _trmv(a1, b1, overwrite_x=overwrite_b):
+            return trmv(
+                a1.T, b1, 
+                lower=not lower, trans=not trans, overwrite_x=overwrite_x)
 
-def _whiten_cholesky(c_and_lower, b):
+    if b1.ndim == 1:
+        return _trmv(a1, b1, overwrite_b)
+    elif b1.ndim == 2:
+        b2 = np.array(b1, order='F')
+        for i in range(b2.shape[1]):
+            _trmv(a1, b2[:, i], True)
+
+        if overwrite_b:
+            b1[:] = b2
+            return b1
+        else:
+            return b2
+    else:
+        raise ValueError("b must have 1 or 2 dimensions, has {b.ndim}")
+
+def _unwhiten_cholesky(c_and_lower, b):
     c, lower = c_and_lower
     b = np.asarray(b)
     n = c.shape[1]
@@ -132,7 +100,7 @@ def _whiten_cholesky(c_and_lower, b):
         c_and_lower, b.reshape(n, -1), trans=lower, 
     ).reshape(b.shape)
 
-def _unwhiten_cholesky(c_and_lower, b):
+def _whiten_cholesky(c_and_lower, b):
     c, lower = c_and_lower
     b = np.asarray(b)
     n = c.shape[1]
@@ -153,128 +121,142 @@ def _unwhiten_cholesky(c_and_lower, b):
 
         return d.reshape(b.shape)
 
-class CholeskyTransform(AbstractTransform):
-    def __init__(
-            self,
-            variable_cho_factors: Dict[Variable, Tuple[np.ndarray, bool]],
-            _inv_transform = None,
-            _transform = None,
-    ):
-        self.cho_factors = variable_cho_factors
-        
-        self._inv_transform = (
-            _unwhiten_cholesky if _inv_transform is None else _inv_transform)
-        self._transform = (
-            _whiten_cholesky if _transform is None else _transform)
+class CholeskyTransform(AbstractLinearTransform):
 
-    def transform(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        return {
-            v: self._transform(self.cho_factors[v], val) 
-            for v, val in values.items()}
+    def __init__(self, cho_factor):
+        self.c, self.lower = self.cho_factor = cho_factor
+        self.L = self.c if self.lower else self.c.T
+        self.U = self.c.T if self.lower else self.c
 
-    def untransform(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        return {
-            v: self._inv_transform(self.cho_factors[v], val) 
-            for v, val in values.items()}
+    def __mul__(self, x):
+        return _mul_triangular((self.U, False), x)
 
-    def transform2d(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        return {
-            v: self._inv_transform(self.cho_factors[v],
-                self._inv_transform(self.cho_factors[v], val).T).T
-            for v, val in values.items()}
+    def __rmul__(self, x):
+        return _mul_triangular((self.L, True), x.T).T
 
-    def untransform2d(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        return {
-            v: self._transform(self.cho_factors[v],
-                self._transform(self.cho_factors[v], val).T).T
-            for v, val in values.items()}
+    def __rtruediv__(self, x): 
+        return solve_triangular(self.L, x.T, lower=True).T
+
+    def ldiv(self, x):
+        return solve_triangular(self.U, x, lower=False)
 
     @cached_property
     def log_det(self):
-        return sum(
-            # determinant of triangular matrix is product of diagonal
-            np.log(c.diagonal()).sum() 
-            for c, _ in self.cho_factors.values()
-        )
+        return np.sum(np.log(self.U.diagonal()))
 
-class FullCholeskyTransform(AbstractTransform):
-    def __init__(
-            self, 
-            cho_factor: Tuple[np.ndarray, bool], 
-            param_shapes: FlattenArrays):
-        self.c, self.lower = self.cho_factor = cho_factor
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+
+class DiagonalTransform(AbstractLinearTransform):
+    def __init__(self, scale, inv_scale=None):
+        self.scale = scale
+        self.inv_scale = 1/scale if inv_scale is None else scale
+
+    def __mul__(self, x):
+        if np.ndim(x) == 1:
+            return x * self.inv_scale
+        else:
+            return x * self.inv_scale[:, None]
+
+    def __rmul__(self, x):
+        return x * self.inv_scale
+
+    def __rtruediv__(self, x): 
+        return x * self.scale
+
+    def ldiv(self, x):
+        if np.ndim(x) == 1:
+            return x * self.scale
+        else:
+            return x * self.scale[:, None]
+
+    @cached_property
+    def log_det(self):
+        return np.sum(np.log(self.inv_scale))
+
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+    
+
+class VariableTransform:
+    def __init__(self, transforms):
+        self.transforms = transforms 
+        
+    def __mul__(self, values: Value) -> Value:
+        return {
+            k: M * values[k] for k, M in self.transforms.items()} 
+
+    def __rtruediv__(self, values: Value) -> Value:
+        return {
+            k: values[k] / M for k, M in self.transforms.items()} 
+
+    def __rmul__(self, values: Value) -> Value:
+        return {
+            k: values[k] * M for k, M in self.transforms.items()} 
+         
+    @abstractmethod
+    def ldiv(self, values: Value) -> Value:
+        return {
+            k: M.ldiv(values[k]) for k, M in self.transforms.items()} 
+
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+
+    @cached_property
+    def log_det(self):
+        return sum(M.log_det for M in self.transforms.values())
+
+
+class FullCholeskyTransform(VariableTransform):
+    def __init__(self, cholesky, param_shapes):
+        self.cholesky = cholesky
         self.param_shapes = param_shapes
 
-    @property
-    def variables(self):
-        self.param_shapes.keys()       
+    def __mul__(self, values: Value) -> Value:
+        M, x = self.cholesky, self.param_shapes.flatten(value)
+        return self.param_shapes.unflatten(M * x)
 
-    def transform(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        x0 = self.param_shapes.flatten(values)
-        x1 = _whiten_cholesky(self.cho_factor, x0)
-        return self.param_shapes.unflatten(x1)
+    def __rtruediv__(self, values: Value) -> Value:
+        M, x = self.cholesky, self.param_shapes.flatten(value)
+        return self.param_shapes.unflatten(x / M)
 
-    def untransform(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        x0 = self.param_shapes.flatten(values)
-        x1 = _unwhiten_cholesky(self.cho_factor, x0)
-        return self.param_shapes.unflatten(x1)
+    def __rmul__(self, values: Value) -> Value:
+        M, x = self.cholesky, self.param_shapes.flatten(value)
+        return self.param_shapes.unflatten(x * M)
+         
+    @abstractmethod
+    def ldiv(self, values: Value) -> Value:
+        M, x = self.cholesky, self.param_shapes.flatten(value)
+        return self.param_shapes.unflatten(M.ldiv(x))
 
-    def transform2d(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        X0 = self.param_shapes.flatten2D(values)
-        X1 = _whiten_cholesky(
-            self.cho_factor,
-            _whiten_cholesky(
-                self.cho_factor, 
-                X0).T
-        ).T
-        return self.param_shapes.unflatten2d(X1)
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
 
-    def untransform2d(
-        self, 
-        values: Dict[Variable, np.ndarray]
-    ) -> Dict[Variable, np.ndarray]:
-        X0 = self.param_shapes.flatten2D(values)
-        X1 = _unwhiten_cholesky(
-            self.cho_factor,
-            _unwhiten_cholesky(
-                self.cho_factor, 
-                X0).T
-        ).T
-        return self.param_shapes.unflatten2d(X1)
+    @cached_property
+    def log_det(self):
+        return self.cholesky.log_det
+
 
 class TransformedNode(AbstractNode):
     def __init__(
         self, 
         node: AbstractNode, 
-        transform: AbstractTransform
+        transform: VariableTransform
     ):
         self.node = node 
         self.transform = transform 
 
     @property 
     def variables(self):
-        self.node.variables 
+        return self.node.variables 
 
     @property
     def deterministic_variables(self):
@@ -293,8 +275,7 @@ class TransformedNode(AbstractNode):
             values: Dict[Variable, np.ndarray],
             axis: Axis = False, 
     ) -> FactorValue:
-        actual_values = self.transform.transform(values)
-        return self.node(actual_values, axis=axis)
+        return self.node(self.transform.ldiv(values), axis=axis)
 
     def func_jacobian(
             self, 
@@ -302,16 +283,16 @@ class TransformedNode(AbstractNode):
             variables: Optional[List[Variable]] = None,
             axis: Axis = None,
             _calc_deterministic: bool = True,
+            **kwargs, 
     ) -> Tuple[FactorValue, JacobianValue]:
-        unwhittened = self.transform.untransform(values)
-        fval, jval = self.func_jacobian(
-            unwhittened, 
+        fval, jval = self.node.func_jacobian(
+            self.transform.ldiv(values), 
             variables=variables, 
             axis=axis,
             _calc_deterministic=_calc_deterministic)
 
-        jval = self.transform.transform(jval)
-        return fval, jval
+        grad = jval / self.transform
+        return fval, grad
 
     def func_jacobian_hessian(
             self, 
@@ -319,14 +300,21 @@ class TransformedNode(AbstractNode):
             variables: Optional[List[Variable]] = None,
             axis: Axis = None,
             _calc_deterministic: bool = True,
+            **kwargs, 
     ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
-        actual_values = self.transform.untransform(values)
-        fval, jval, hval = self.func_jacobian_hessian(
-            actual_values, 
+        M = self.transform
+        fval, jval, hval = self.node.func_jacobian_hessian(
+            M.ldiv(values), 
             variables=variables, 
             axis=axis,
             _calc_deterministic=_calc_deterministic)
 
-        jval = self.transform.transform(jval)
-        hval = self.transform.transform2d(hval)
-        return fval, jval, hval
+        grad = jval / M
+        hess = {v: H.T for v, H in (hval / M).items()} / M
+        return fval, grad, hess
+
+    def __getattribute__(self, name):
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            return getattr(self.node, name)

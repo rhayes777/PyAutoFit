@@ -392,6 +392,7 @@ class FactorApproximation(AbstractNode):
             variables: Optional[List[Variable]] = None,
             axis: Axis = None,
             _calc_deterministic: bool = True,
+            **kwargs, 
     ) -> Tuple[FactorValue, JacobianValue]:
 
         if axis is not None:
