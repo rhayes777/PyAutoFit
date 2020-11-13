@@ -66,10 +66,9 @@ def test_DiagonalTransform():
     assert np.allclose(b / diag_scale, b @ iD)
 
 
-def test_simple_transform():
+def test_simple_transform_cholesky():
 
     d = 5
-
     A = stats.wishart(d, np.eye(d)).rvs()
     b = np.random.rand(d)
 
@@ -107,7 +106,7 @@ def test_simple_transform():
     ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
     assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)
 
-    white = transform.FullCholeskyTransform(cho, param_shapes)
+    whiten = transform.FullCholeskyTransform(cho, param_shapes)
     white_factor = transform.TransformedNode(factor, whiten)
     white_func = white_factor.flatten(param_shapes)
 
@@ -124,15 +123,18 @@ def test_simple_transform():
     assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)
 
 
+def test_simple_transform_diagonal():
     # testing DiagonalTransform
-
+    d = 5
     scale = np.random.exponential(size=d)
     A = np.diag(scale**-1)
     
+    x = graph.Variable('x', graph.Plate())
+    x0 = np.random.randn(d)
+
     def likelihood(x):
         x = x - b
         return 0.5 * np.linalg.multi_dot((x, A, x))
-
     
     factor = graph.Factor(likelihood, x=x, is_scalar=True)
     func = factor.flatten(param_shapes)
@@ -163,4 +165,4 @@ def test_simple_transform():
     # testing gradients
     grad = white_func.jacobian(y0)
     ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
-    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)
+    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-4)

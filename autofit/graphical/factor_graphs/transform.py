@@ -219,20 +219,20 @@ class FullCholeskyTransform(VariableTransform):
         self.param_shapes = param_shapes
 
     def __mul__(self, values: Value) -> Value:
-        M, x = self.cholesky, self.param_shapes.flatten(value)
+        M, x = self.cholesky, self.param_shapes.flatten(values)
         return self.param_shapes.unflatten(M * x)
 
     def __rtruediv__(self, values: Value) -> Value:
-        M, x = self.cholesky, self.param_shapes.flatten(value)
+        M, x = self.cholesky, self.param_shapes.flatten(values)
         return self.param_shapes.unflatten(x / M)
 
     def __rmul__(self, values: Value) -> Value:
-        M, x = self.cholesky, self.param_shapes.flatten(value)
+        M, x = self.cholesky, self.param_shapes.flatten(values)
         return self.param_shapes.unflatten(x * M)
          
     @abstractmethod
     def ldiv(self, values: Value) -> Value:
-        M, x = self.cholesky, self.param_shapes.flatten(value)
+        M, x = self.cholesky, self.param_shapes.flatten(values)
         return self.param_shapes.unflatten(M.ldiv(x))
 
     rdiv = __rtruediv__
