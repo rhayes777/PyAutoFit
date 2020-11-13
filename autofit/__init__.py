@@ -43,8 +43,8 @@ from .non_linear.abstract_search import Analysis
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import PriorPasser
 from .non_linear.abstract_search import Result
-from .non_linear.grid_search import GridSearch as NonLinearSearchGridSearch
-from .non_linear.grid_search import GridSearchResult
+from autofit.non_linear.grid.grid_search import GridSearch as NonLinearSearchGridSearch
+from autofit.non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
 from .non_linear.mcmc.emcee import Emcee
