@@ -1,7 +1,5 @@
 import copy
-import multiprocessing
-from time import sleep
-from typing import List
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -10,7 +8,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import Result
-from autofit.non_linear.log import logger
+from autofit.non_linear.parallel import AbstractJob, Process
 from autofit.non_linear.paths import Paths
 
 
@@ -55,7 +53,12 @@ class GridSearchResult:
 
     @property
     def shape(self):
-        return tuple([self.side_length for dim in range(self.no_dimensions)])
+        return tuple([
+            self.side_length
+            for _ in range(
+                self.no_dimensions
+            )
+        ])
 
     @property
     def best_result(self):
@@ -284,14 +287,12 @@ class GridSearch:
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
-        if self.parallel:
-            return self.fit_parallel(
-                model=model, analysis=analysis, grid_priors=grid_priors
-            )
-        else:
-            return self.fit_sequential(
-                model=model, analysis=analysis, grid_priors=grid_priors
-            )
+        func = self.fit_parallel if self.parallel else self.fit_sequential
+        return func(
+            model=model,
+            analysis=analysis,
+            grid_priors=grid_priors
+        )
 
     def fit_parallel(self, model, analysis, grid_priors):
         """
@@ -322,39 +323,27 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
-        job_queue = multiprocessing.Queue()
-
-        processes = [
-            Process(str(number), job_queue)
-            for number in range(self.number_of_cores - 1)
-        ]
+        jobs = list()
 
         for index, values in enumerate(lists):
-            job = self.job_for_analysis_grid_priors_and_values(
-                analysis=copy.deepcopy(analysis),
-                model=model,
-                grid_priors=grid_priors,
-                values=values,
-                index=index,
+            jobs.append(
+                self.job_for_analysis_grid_priors_and_values(
+                    analysis=copy.deepcopy(analysis),
+                    model=model,
+                    grid_priors=grid_priors,
+                    values=values,
+                    index=index,
+                )
             )
-            job_queue.put(job)
 
-        for process in processes:
-            process.start()
+        for result in Process.run_jobs(
+                jobs,
+                self.number_of_cores
+        ):
+            results.append(result.result)
+            results_list.append(result.result_list_row)
 
-        while len(results) < len(lists):
-            for process in processes:
-                while not process.queue.empty():
-                    result = process.queue.get()
-                    results.append(result.result)
-                    results_list.append(result.result_list_row)
-
-                    self.write_results(results_list)
-
-        job_queue.close()
-
-        for process in processes:
-            process.join(timeout=1.0)
+            self.write_results(results_list)
 
         return GridSearchResult(results, lists, physical_lists)
 
@@ -456,17 +445,14 @@ class GridSearch:
         )
 
     def search_instance(self, name_path):
-
-        paths = Paths(
-            name=name_path,
-            tag=self.paths.tag,
-            path_prefix=self.paths.path_prefix,
-            remove_files=self.paths.remove_files,
+        search_instance = self.search.copy_with_paths(
+            Paths(
+                name=name_path,
+                tag=self.paths.tag,
+                path_prefix=self.paths.path_prefix,
+                remove_files=self.paths.remove_files,
+            )
         )
-
-        search_instance = copy.copy(self.search)
-
-        search_instance.paths = paths
 
         for key, value in self.__dict__.items():
             if key not in ("model", "instance", "paths"):
@@ -493,7 +479,7 @@ class JobResult:
         self.result_list_row = result_list_row
 
 
-class Job:
+class Job(AbstractJob):
     def __init__(self, search_instance, model, analysis, arguments, index):
         """
         A job to be performed in parallel.
@@ -522,42 +508,6 @@ class Job:
         ]
 
         return JobResult(result, result_list_row)
-
-
-class Process(multiprocessing.Process):
-    def __init__(self, name: str, job_queue: multiprocessing.Queue):
-        """
-        A parallel process that consumes Jobs through the job queue and outputs results through its own queue.
-
-        Parameters
-        ----------
-        name: str
-            The name of the process
-        job_queue: multiprocessing.Queue
-            The queue through which jobs are submitted
-        """
-        super().__init__(name=name)
-        logger.info("created process {}".format(name))
-
-        self.job_queue = job_queue
-        self.queue = multiprocessing.Queue()
-        self.count = 0
-        self.max_count = 250
-
-    def run(self):
-        logger.info("starting process {}".format(self.name))
-        while True:
-            sleep(0.025)
-            if self.count >= self.max_count:
-                break
-            if self.job_queue.empty():
-                self.count += 1
-            else:
-                self.count = 0
-                job = self.job_queue.get()
-                self.queue.put(job.perform())
-        logger.info("terminating process {}".format(self.name))
-        self.job_queue.close()
 
 
 def grid(fitness_function, no_dimensions, step_size):
@@ -591,30 +541,51 @@ def grid(fitness_function, no_dimensions, step_size):
     return best_arguments
 
 
-def make_lists(no_dimensions, step_size, centre_steps=True):
+def make_lists(
+        no_dimensions: int,
+        step_size: Union[Tuple[float], float],
+        centre_steps=True
+):
     """
         Returns a list of lists of floats covering every combination across no_dimensions of points of integer step size
     between 0 and 1 inclusive.
 
     Parameters
     ----------
-    no_dimensions: int
+    no_dimensions
         The number of dimensions, that is the length of the lists
-    step_size: float
-        The step size
-    centre_steps: bool
+    step_size
+        The step size. This can be a float or a tuple with the same number of dimensions
+    centre_steps
 
     Returns
     -------
     lists: [[float]]
         A list of lists
     """
+    if isinstance(step_size, float):
+        step_size = tuple(
+            step_size
+            for _
+            in range(no_dimensions)
+        )
+
     if no_dimensions == 0:
         return [[]]
 
-    sub_lists = make_lists(no_dimensions - 1, step_size, centre_steps=centre_steps)
+    sub_lists = make_lists(
+        no_dimensions - 1,
+        step_size[1:],
+        centre_steps=centre_steps
+    )
+    step_size = step_size[0]
     return [
-        [step_size * value + (0.5 * step_size if centre_steps else 0)] + sub_list
-        for value in range(0, int((1 / step_size)))
+        [
+            step_size * value + (
+                0.5 * step_size
+                if centre_steps
+                else 0)
+        ] + sub_list
+        for value in range(int((1 / step_size)))
         for sub_list in sub_lists
     ]

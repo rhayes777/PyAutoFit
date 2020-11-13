@@ -3,12 +3,10 @@ import pickle
 from abc import ABC, abstractmethod
 from typing import Dict
 
-import dill
-
 from autoconf import conf
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior.promise import PromiseResult
-from autofit.non_linear import grid_search
+from autofit.non_linear.grid import grid_search
 
 logger = logging.getLogger(__name__)
 
