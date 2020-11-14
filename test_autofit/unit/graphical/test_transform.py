@@ -242,13 +242,13 @@ def test_complex_transform():
     res = optimize.minimize(
         trans_factor.flatten(param_shapes).func_jacobian, 
         param_shapes.flatten(transformed),
-        method='BFGS'
+        method='BFGS', jac=True
     )
     assert res.hess_inv.diagonal() == pytest.approx(1., rel=5e-2)
 
     # test VariableTransform with CholeskyTransform
     diag_factors = {
-        v: transform.DiagonalTransform(cov.diagonal()**-0.5)
+        v: transform.DiagonalTransform(cov.diagonal()**0.5)
         for v, cov in var_cov.items()
     }
     whiten = transform.VariableTransform(diag_factors)
@@ -269,6 +269,6 @@ def test_complex_transform():
     res = optimize.minimize(
         trans_factor.flatten(param_shapes).func_jacobian, 
         param_shapes.flatten(transformed),
-        method='BFGS'
+        method='BFGS', jac=True
     )
     assert res.hess_inv.diagonal() == pytest.approx(1., rel=5e-2)
