@@ -28,6 +28,18 @@ class AbstractLinearTransform(ABC):
     def ldiv(self, x: np.ndarray) -> np.ndarray:
         pass
 
+    @property
+    @abstractmethod
+    def shape(self) -> Tuple[int, ...]:
+        pass 
+
+    def __len__(self) -> int:
+        return self.shape[0]
+
+    @property
+    def size(self) -> int:
+        return np.prod(self.shape, dtype=int)
+
     @cached_property
     @abstractmethod
     def log_det(self):
@@ -121,6 +133,20 @@ def _whiten_cholesky(c_and_lower, b):
 
         return d.reshape(b.shape)
 
+def _wrap_leftop(method):
+    @wraps(method)
+    def leftmethod(self, x):
+        return method(self, np.reshape(x, (len(self), -1))).reshape(x.shape)
+
+    return leftmethod
+
+def _wrap_rightop(method):
+    @wraps(method)
+    def rightmethod(self, x):
+        return method(self, np.reshape(x, (-1, len(self)))).reshape(x.shape)
+
+    return rightmethod
+
 class CholeskyTransform(AbstractLinearTransform):
 
     def __init__(self, cho_factor):
@@ -128,15 +154,19 @@ class CholeskyTransform(AbstractLinearTransform):
         self.L = self.c if self.lower else self.c.T
         self.U = self.c.T if self.lower else self.c
 
+    @_wrap_leftop
     def __mul__(self, x):
         return _mul_triangular((self.U, False), x)
 
+    @_wrap_rightop
     def __rmul__(self, x):
         return _mul_triangular((self.L, True), x.T).T
 
+    @_wrap_rightop
     def __rtruediv__(self, x): 
         return solve_triangular(self.L, x.T, lower=True).T
 
+    @_wrap_leftop
     def ldiv(self, x):
         return solve_triangular(self.U, x, lower=False)
 
@@ -149,28 +179,30 @@ class CholeskyTransform(AbstractLinearTransform):
     lmul = __mul__
     __matmul__ = __mul__
 
+    @property
+    def shape(self):
+        return self.c.shape
+
 class DiagonalTransform(AbstractLinearTransform):
     def __init__(self, scale, inv_scale=None):
         self.scale = scale
         self.inv_scale = 1/scale if inv_scale is None else scale
 
+    @_wrap_leftop
     def __mul__(self, x):
-        if np.ndim(x) == 1:
-            return x * self.inv_scale
-        else:
-            return x * self.inv_scale[:, None]
+        return self.inv_scale[:, None] * x 
 
+    @_wrap_rightop
     def __rmul__(self, x):
         return x * self.inv_scale
 
+    @_wrap_rightop
     def __rtruediv__(self, x): 
         return x * self.scale
 
+    @_wrap_leftop
     def ldiv(self, x):
-        if np.ndim(x) == 1:
-            return x * self.scale
-        else:
-            return x * self.scale[:, None]
+        return self.scale[:, None] * x 
 
     @cached_property
     def log_det(self):
@@ -180,9 +212,15 @@ class DiagonalTransform(AbstractLinearTransform):
     rmul = __rmul__
     lmul = __mul__
     __matmul__ = __mul__
+
+    @property
+    def shape(self):
+        return self.scale.shape * 2
     
 
 class VariableTransform:
+    """
+    """
     def __init__(self, transforms):
         self.transforms = transforms 
         
@@ -291,6 +329,7 @@ class TransformedNode(AbstractNode):
             axis=axis,
             _calc_deterministic=_calc_deterministic)
 
+        # TODO this doesn't deal with deterministic jacobians
         grad = jval / self.transform
         return fval, grad
 

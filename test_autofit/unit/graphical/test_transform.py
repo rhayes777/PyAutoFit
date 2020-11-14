@@ -168,3 +168,107 @@ def test_simple_transform_diagonal():
     grad = white_func.jacobian(y0)
     ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
     assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-4)
+
+
+def test_complex_transform():
+
+    n1, n2, n3 = 2, 3, 2
+    d = n1 + n2 * n3
+
+    A = stats.wishart(d, np.eye(d)).rvs()
+    b = np.random.rand(d)
+
+    p1, p2, p3 = (graph.Plate() for i in range(3))
+    x1 = graph.Variable('x1', p1)
+    x2 = graph.Variable('x2', p2, p3)
+
+    mean_field = graph.MeanField({
+        x1: graph.NormalMessage(np.zeros(n1),100*np.ones(n1)),
+        x2: graph.NormalMessage(np.zeros((n2, n3)),100*np.ones((n2, n3))),
+    })
+
+    values = mean_field.sample()
+    param_shapes = graph.utils.FlattenArrays(
+        {v: x.shape for v, x in values.items()})
+
+    def likelihood(x1, x2):
+        x = np.r_[x1, x2.ravel()] - b
+        return 0.5 * np.linalg.multi_dot((x, A, x))
+
+    factor = graph.Factor(likelihood, x1=x1, x2=x2, is_scalar=True)
+
+    cho = transform.CholeskyTransform(linalg.cho_factor(A))
+    whiten = transform.FullCholeskyTransform(cho, param_shapes)
+    trans_factor = transform.TransformedNode(factor, whiten)
+
+    values = mean_field.sample()
+    transformed = whiten * values
+
+    assert np.allclose(factor(values), trans_factor(transformed))
+
+    njac = trans_factor._numerical_func_jacobian(transformed)[1]
+    jac = trans_factor.jacobian(transformed)
+    ngrad = param_shapes.flatten(njac)
+    grad = param_shapes.flatten(jac)
+
+    assert np.allclose(grad, ngrad)
+
+
+    # test VariableTransform with CholeskyTransform
+    var_cov = {
+        v: (X.reshape((int(X.size**0.5),)*2))
+        for v, X in param_shapes.unflatten(linalg.inv(A)).items()
+    }
+    cho_factors = {
+        v:  transform.CholeskyTransform(
+            linalg.cho_factor(linalg.inv(cov)))
+        for v, cov in var_cov.items()
+    }
+    whiten = transform.VariableTransform(cho_factors)
+    trans_factor = transform.TransformedNode(factor, whiten)
+
+    values = mean_field.sample()
+    transformed = whiten * values
+
+    assert np.allclose(factor(values), trans_factor(transformed))
+
+    njac = trans_factor._numerical_func_jacobian(transformed)[1]
+    jac = trans_factor.jacobian(transformed)
+    ngrad = param_shapes.flatten(njac)
+    grad = param_shapes.flatten(jac)
+
+    assert np.allclose(grad, ngrad)
+
+    res = optimize.minimize(
+        trans_factor.flatten(param_shapes).func_jacobian, 
+        param_shapes.flatten(transformed),
+        method='BFGS'
+    )
+    assert res.hess_inv.diagonal() == pytest.approx(1., rel=5e-2)
+
+    # test VariableTransform with CholeskyTransform
+    diag_factors = {
+        v: transform.DiagonalTransform(cov.diagonal()**-0.5)
+        for v, cov in var_cov.items()
+    }
+    whiten = transform.VariableTransform(diag_factors)
+    trans_factor = transform.TransformedNode(factor, whiten)
+
+    values = mean_field.sample()
+    transformed = whiten * values
+
+    assert np.allclose(factor(values), trans_factor(transformed))
+
+    njac = trans_factor._numerical_func_jacobian(transformed)[1]
+    jac = trans_factor.jacobian(transformed)
+    ngrad = param_shapes.flatten(njac)
+    grad = param_shapes.flatten(jac)
+
+    assert np.allclose(grad, ngrad)
+
+    res = optimize.minimize(
+        trans_factor.flatten(param_shapes).func_jacobian, 
+        param_shapes.flatten(transformed),
+        method='BFGS'
+    )
+    assert res.hess_inv.diagonal() == pytest.approx(1., rel=5e-2)
