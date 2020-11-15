@@ -1,6 +1,8 @@
 from .declarative import ModelFactor, ModelFactorCollection
 from .factor_graphs import \
-    Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue
+    Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue, \
+    DiagonalTransform, CholeskyTransform, VariableTransform, \
+    FullCholeskyTransform 
 from .mean_field import FactorApproximation, MeanField, MeanFieldApproximation
 from .expectation_propagation import EPMeanField
 from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage

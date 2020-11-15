@@ -89,7 +89,8 @@ def test_simple_transform_cholesky():
     # check R2 score
     assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.95
     
-    cho = transform.CholeskyTransform(linalg.cho_factor(A))
+    # cho = transform.CholeskyTransform(linalg.cho_factor(A))
+    cho = transform.CholeskyTransform.from_dense(A)
     whiten = transform.VariableTransform({x: cho})
     white_factor = transform.TransformedNode(factor, whiten)
     white_func = white_factor.flatten(param_shapes)
@@ -98,13 +99,35 @@ def test_simple_transform_cholesky():
 
     res = optimize.minimize(white_func, y0)
     assert np.allclose(res.x, cho * b, atol=1e-3, rtol=1e-3)
-    assert np.allclose(res.hess_inv, np.eye(d), atol=1e-6, rtol=1e-5)
+    assert np.allclose(res.hess_inv, np.eye(d), atol=1e-3, rtol=1e-3)
 
     # testing gradients
 
     grad = white_func.jacobian(y0)
     ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
-    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)
+    assert np.allclose(grad, ngrad, atol=1e-3, rtol=1e-3)
+
+    # testing CovarianceTransform,
+
+    cho = transform.CovarianceTransform.from_dense(iA)
+    whiten = transform.VariableTransform({x: cho})
+    white_factor = transform.TransformedNode(factor, whiten)
+    white_func = white_factor.flatten(param_shapes)
+
+    y0 = cho * x0
+
+    res = optimize.minimize(white_func, y0)
+    assert np.allclose(res.x, cho * b, atol=1e-3, rtol=1e-3)
+    assert np.allclose(res.hess_inv, np.eye(d), atol=1e-3, rtol=1e-3)
+
+    # testing gradients
+
+    grad = white_func.jacobian(y0)
+    ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
+    assert np.allclose(grad, ngrad, atol=1e-3, rtol=1e-3)
+
+
+    # testing FullCholeskyTransform
 
     whiten = transform.FullCholeskyTransform(cho, param_shapes)
     white_factor = transform.TransformedNode(factor, whiten)
@@ -113,14 +136,14 @@ def test_simple_transform_cholesky():
     y0 = cho * x0
 
     res = optimize.minimize(white_func, y0)
-    assert np.allclose(res.x, cho * b)
-    assert np.allclose(res.hess_inv, np.eye(d), atol=1e-6, rtol=1e-5)
+    assert np.allclose(res.x, cho * b, atol=1e-3, rtol=1e-3)
+    assert np.allclose(res.hess_inv, np.eye(d), atol=1e-3, rtol=1e-3)
 
     # testing gradients
 
     grad = white_func.jacobian(y0)
     ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
-    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-5)
+    assert np.allclose(grad, ngrad, atol=1e-3, rtol=1e-3)
 
 
 def test_simple_transform_diagonal():
@@ -142,7 +165,7 @@ def test_simple_transform_diagonal():
     func = factor.flatten(param_shapes)
     
     res = optimize.minimize(func, x0)
-    assert np.allclose(res.x, b, rtol=1e-2)
+    assert np.allclose(res.x, b, rtol=1e-2, atol=1e-2)
     H, iA = res.hess_inv, np.linalg.inv(A)
     # check R2 score
     assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.95
@@ -167,7 +190,7 @@ def test_simple_transform_diagonal():
     # testing gradients
     grad = white_func.jacobian(y0)
     ngrad = optimize.approx_fprime(y0, white_func, 1e-6)
-    assert np.allclose(grad, ngrad, atol=1e-6, rtol=1e-4)
+    assert np.allclose(grad, ngrad, atol=1e-3, rtol=1e-3)
 
 
 def test_complex_transform():
@@ -211,8 +234,7 @@ def test_complex_transform():
     ngrad = param_shapes.flatten(njac)
     grad = param_shapes.flatten(jac)
 
-    assert np.allclose(grad, ngrad)
-
+    assert np.allclose(grad, ngrad, atol=1e-3, rtol=1e-3)
 
     # test VariableTransform with CholeskyTransform
     var_cov = {

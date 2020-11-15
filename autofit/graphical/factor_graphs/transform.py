@@ -6,6 +6,7 @@ from typing import Dict, Tuple, Optional, List
 
 import numpy as np
 from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs
+from scipy._lib._util import _asarray_validated
 
 from autofit.graphical.factor_graphs import \
     AbstractNode, Variable, Value, FactorValue, JacobianValue, HessianValue
@@ -55,16 +56,40 @@ class AbstractLinearTransform(ABC):
         else:    
             return NotImplemented
 
-def _solve_triangular(c_and_lower, b, trans=False, overwrite_b=False):
-    c, lower = c_and_lower
-    return solve_triangular(
-        c, b, lower=lower, trans=trans, overwrite_b=overwrite_b)
 
+def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False, 
+                    check_finite=True):
+    """wrapper for BLAS function trmv to perform triangular matrix
+    multiplications
 
-def _mul_triangular(c_and_lower, b, trans=False, overwrite_b=False):
-    c, lower = c_and_lower 
-    a1 = np.asarray(c)
-    b1 = np.asarray(b)
+    
+    Parameters
+    ----------
+    a : (M, M) array_like
+        A triangular matrix
+    b : (M,) or (M, N) array_like
+        vector/matrix being multiplied
+    lower : bool, optional
+        Use only data contained in the lower triangle of `a`.
+        Default is to use upper triangle.
+    trans : bool, optional
+        type of multiplication,
+        
+        ========  =========
+        trans     system
+        ========  =========
+        False     a b
+        True      a^T b
+    overwrite_b : bool, optional
+        Allow overwriting data in `b` (may enhance performance)
+        not fully tested
+    check_finite : bool, optional
+        Whether to check that the input matrices contain only finite numbers.
+        Disabling may give a performance gain, but may result in problems
+        (crashes, non-termination) if the inputs do contain infinities or NaNs.
+    """    
+    a1 = _asarray_validated(c, check_finite=check_finite)
+    b1 = _asarray_validated(b, check_finite=check_finite)
 
     n = c.shape[1]
     if c.shape[0] != n:
@@ -73,7 +98,6 @@ def _mul_triangular(c_and_lower, b, trans=False, overwrite_b=False):
         raise ValueError(
             f"shapes {c.shape} and {b.shape} not aligned: "
             f"{n} (dim 1) != {b.shape[0]} (dim 0)")
-
     
     trmv, = get_blas_funcs(('trmv',), (a1, b1))
     if a1.flags.f_contiguous:
@@ -91,8 +115,11 @@ def _mul_triangular(c_and_lower, b, trans=False, overwrite_b=False):
     if b1.ndim == 1:
         return _trmv(a1, b1, overwrite_b)
     elif b1.ndim == 2:
+        # trmv only works for vector multiplications
+        # set Fortran order so memory contiguous
         b2 = np.array(b1, order='F')
         for i in range(b2.shape[1]):
+            # overwrite results
             _trmv(a1, b2[:, i], True)
 
         if overwrite_b:
@@ -103,35 +130,6 @@ def _mul_triangular(c_and_lower, b, trans=False, overwrite_b=False):
     else:
         raise ValueError("b must have 1 or 2 dimensions, has {b.ndim}")
 
-def _unwhiten_cholesky(c_and_lower, b):
-    c, lower = c_and_lower
-    b = np.asarray(b)
-    n = c.shape[1]
-        
-    return _solve_triangular(
-        c_and_lower, b.reshape(n, -1), trans=lower, 
-    ).reshape(b.shape)
-
-def _whiten_cholesky(c_and_lower, b):
-    c, lower = c_and_lower
-    b = np.asarray(b)
-    n = c.shape[1]
-
-    if b.size == n:
-        return _mul_triangular(
-            c_and_lower, b.ravel(), trans=lower
-        ).reshape(b.shape)
-    else:
-        # make a copy of b in Fortran memory order
-        d = np.array(b.reshape(n, -1), order='F')
-        for i in range(d.shape[1]):
-            # save result of multiplication in d
-            _mul_triangular(
-                c_and_lower, d[:, i], trans=lower,
-                overwrite_b = True
-            )
-
-        return d.reshape(b.shape)
 
 def _wrap_leftop(method):
     @wraps(method)
@@ -148,19 +146,34 @@ def _wrap_rightop(method):
     return rightmethod
 
 class CholeskyTransform(AbstractLinearTransform):
+    """ This performs the whitening transforms for the passed
+    cholesky factor of the Hessian/inverse covariance of the system.
+
+    see https://en.wikipedia.org/wiki/Whitening_transformation
+
+    >>> M = CholeskyTransform(linalg.cho_factor(hess))
+    >>> y = M * x
+    >>> f, df_dx = func_and_gradient(M.ldiv(y))
+    >>> df_dy = df_df * M
+    >>> 
+    """
 
     def __init__(self, cho_factor):
         self.c, self.lower = self.cho_factor = cho_factor
         self.L = self.c if self.lower else self.c.T
         self.U = self.c.T if self.lower else self.c
 
+    @classmethod
+    def from_dense(cls, hess):
+        return cls(cho_factor(hess))
+
     @_wrap_leftop
     def __mul__(self, x):
-        return _mul_triangular((self.U, False), x)
+        return _mul_triangular(self.U, x, lower=False)
 
     @_wrap_rightop
     def __rmul__(self, x):
-        return _mul_triangular((self.L, True), x.T).T
+        return _mul_triangular(self.L, x.T, lower=True).T
 
     @_wrap_rightop
     def __rtruediv__(self, x): 
@@ -182,6 +195,25 @@ class CholeskyTransform(AbstractLinearTransform):
     @property
     def shape(self):
         return self.c.shape
+
+class CovarianceTransform(CholeskyTransform):
+    """In the case where the covariance matrix is passed
+    we perform the inverse operations
+    """
+    __mul__ = CholeskyTransform.__rtruediv__
+    __rmul__ = CholeskyTransform.ldiv
+    __rtruediv__ = CholeskyTransform.__mul__
+    ldiv = CholeskyTransform.__rmul__
+
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+
+    @cached_property
+    def log_det(self):
+        return - np.sum(np.log(self.U.diagonal()))
+
 
 class DiagonalTransform(AbstractLinearTransform):
     def __init__(self, scale, inv_scale=None):
@@ -250,11 +282,46 @@ class VariableTransform:
     def log_det(self):
         return sum(M.log_det for M in self.transforms.values())
 
+    @classmethod
+    def from_scales(cls, scales):
+        return cls({
+            v: DiagonalTransform(scale) for v, scale in scales.items()
+        })
+
+    @classmethod
+    def from_covariances(cls, covs):
+        return cls({
+            v: CovarianceTransform(cho_factor(cov))
+            for v, cov in covs.items()
+        })
+
+    @classmethod
+    def from_inv_covariances(cls, inv_covs):
+        return cls({
+            v: CholeskyTransform(cho_factor(inv_cov))
+            for v, inv_cov in inv_covs.items()
+        })
 
 class FullCholeskyTransform(VariableTransform):
     def __init__(self, cholesky, param_shapes):
         self.cholesky = cholesky
         self.param_shapes = param_shapes
+
+    @classmethod
+    def from_optresult(cls, opt_result):
+        param_shapes = FlattenArrays({
+            v: x.shape for v, x in opt_result.items()
+        })
+
+        cov = opt_result.hess_inv.todense()
+        if not isinstance(cov, np.ndarray):
+            # if optimiser is L-BFGS-B then convert
+            # implicit hess_inv into dense matrix
+            cov = cov.todense()
+
+        return cls(
+            CovarianceTransform(cov),
+            param_shapes)
 
     def __mul__(self, values: Value) -> Value:
         M, x = self.cholesky, self.param_shapes.flatten(values)
@@ -281,7 +348,7 @@ class FullCholeskyTransform(VariableTransform):
     @cached_property
     def log_det(self):
         return self.cholesky.log_det
-
+        
 
 class TransformedNode(AbstractNode):
     def __init__(

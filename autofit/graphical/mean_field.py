@@ -142,6 +142,18 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         var_names = self.variable_names
         return self.logpdf(
             {var_names[k]: value for k, value in kwargs.items()})
+
+    @property
+    def mean(self):
+        return {v: dist.mean for v, dist in self.items()}
+
+    @property 
+    def variance(self):
+        return {v: dist.variance for v, dist in self.items()}
+
+    @property 
+    def scale(self):
+        return {v: dist.scale for v, dist in self.items()}
     
     def logpdf(
             self, 
