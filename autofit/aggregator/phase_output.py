@@ -69,7 +69,6 @@ class PhaseOutput:
             ) as f:
                 return pickle.load(f)
         except FileNotFoundError:
-            #    print(f"No {item} associated with {self.directory}")
             pass
 
     @property

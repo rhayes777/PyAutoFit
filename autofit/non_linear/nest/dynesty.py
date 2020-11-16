@@ -361,12 +361,12 @@ class AbstractDynesty(AbstractNest):
             ):
                 finished = True
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
         """Copy this instance of the dynesty `NonLinearSearch` with all associated attributes.
 
         This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
+            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
         )
         copy.n_live_points = self.n_live_points
         copy.iterations_per_update = self.iterations_per_update

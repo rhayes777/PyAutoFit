@@ -1,5 +1,6 @@
 from howtofit.simulators.chapter_1 import profiles
 
+from os import path
 import numpy as np
 import autofit as af
 

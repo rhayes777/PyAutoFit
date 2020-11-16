@@ -63,8 +63,6 @@ def make_linked_folder(sym_path):
         The path where multinest output is actually saved
     """
     source_path = path_for(sym_path)
-    print(source_path)
-    print(sym_path)
     if os.path.exists(source_path) and not os.path.exists(sym_path):
         logger.debug(
             "Source {} exists but target {} does not. Removing source.".format(
@@ -84,7 +82,7 @@ def make_linked_folder(sym_path):
         )
         os.symlink(source_path, sym_path)
         logger.debug("Success")
-    except FileExistsError as e:
+    except (FileExistsError, IsADirectoryError) as e:
         logger.debug("Sym already existed")
         logger.debug(e)
     return source_path

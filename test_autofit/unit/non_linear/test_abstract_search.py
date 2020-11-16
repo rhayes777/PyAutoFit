@@ -1,4 +1,5 @@
 import os
+from os import path
 import pickle
 import shutil
 
@@ -10,15 +11,15 @@ from autoconf import conf
 from autofit.mock import mock
 from autofit.mock.mock_search import MockSamples
 
-directory = os.path.dirname(os.path.realpath(__file__))
+directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance.push(
-        os.path.join(directory, "files/nlo/config"),
-        output_path=os.path.join(directory, "files/nlo/output"),
+        new_path=path.join(directory, "files", "nlo", "config"),
+        output_path=path.join(directory, "files", "nlo", "output"),
     )
 
 
@@ -38,7 +39,9 @@ def make_result():
     mapper.component = mock.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]), previous_model=mapper, search=mock.MockSearch()
+        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
+        previous_model=mapper,
+        search=mock.MockSearch(),
     )
 
 
@@ -74,7 +77,7 @@ class TestResult:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "name/one"
+        assert copy.paths.name ==  path.join("name", "one")
 
     def test_copy_with_name_extension(self):
         search = af.MockSearch(af.Paths("name", tag="tag"))
@@ -86,11 +89,9 @@ class TestCopyWithNameExtension:
 
 @pytest.fixture(name="nlo_setup_path")
 def test_nlo_setup():
-    nlo_setup_path = "{}/files/nlo/setup/".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+    nlo_setup_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "nlo", "setup")
 
-    if os.path.exists(nlo_setup_path):
+    if path.exists(nlo_setup_path):
         shutil.rmtree(nlo_setup_path)
 
     os.mkdir(nlo_setup_path)
@@ -100,11 +101,11 @@ def test_nlo_setup():
 
 @pytest.fixture(name="nlo_model_info_path")
 def test_nlo_model_info():
-    nlo_model_info_path = "{}/files/nlo/model_info/".format(
-        os.path.dirname(os.path.realpath(__file__))
+    nlo_model_info_path = path.join(
+        "{}".format(path.dirname(path.realpath(__file__))), "file", "nlo", "model_info"
     )
 
-    if os.path.exists(nlo_model_info_path):
+    if path.exists(nlo_model_info_path):
         shutil.rmtree(nlo_model_info_path)
 
     return nlo_model_info_path
@@ -112,11 +113,11 @@ def test_nlo_model_info():
 
 @pytest.fixture(name="nlo_wrong_info_path")
 def test_nlo_wrong_info():
-    nlo_wrong_info_path = "{}/files/nlo/wrong_info/".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+    nlo_wrong_info_path = path.join("{}".format(
+        path.dirname(path.realpath(__file__))
+    ), "files", "nlo", "wrong_info")
 
-    if os.path.exists(nlo_wrong_info_path):
+    if path.exists(nlo_wrong_info_path):
         shutil.rmtree(nlo_wrong_info_path)
 
     os.mkdir(nlo_wrong_info_path)
@@ -127,7 +128,12 @@ def test_nlo_wrong_info():
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)
-        assert ["one", "two", "three", "four"] == model.model_component_and_parameter_names
+        assert [
+                   "one",
+                   "two",
+                   "three",
+                   "four",
+               ] == model.model_component_and_parameter_names
 
     def test_label_config(self):
         assert conf.instance["notation"]["label"]["label"]["one"] == "one_label"
@@ -136,37 +142,55 @@ class TestLabels:
         assert conf.instance["notation"]["label"]["label"]["four"] == "four_label"
 
 
-test_path = "{}/files/phase".format(os.path.dirname(os.path.realpath(__file__)))
+test_path = path.join(
+    "{}".format(path.dirname(path.realpath(__file__))), "files", "phase"
+)
 
 
 class TestMovePickleFiles:
-
     def test__move_pickle_files(self):
 
-        output_path = "{}/files/nlo/output/test_phase/mock/pickles".format(os.path.dirname(os.path.realpath(__file__)))
+        output_path = path.join(
+            "{}".format(path.dirname(path.realpath(__file__))),
+            "files",
+            "nlo",
+            "output",
+            "test_phase",
+            "mock",
+            "pickles",
+        )
 
-        if os.path.exists(output_path):
+        if path.exists(output_path):
             shutil.rmtree(output_path)
 
-        search = af.MockSearch(paths=af.Paths(name="test_phase", ))
+        search = af.MockSearch(paths=af.Paths(name="test_phase"))
 
-        pickle_paths = ["{}/files/pickles".format(os.path.dirname(os.path.realpath(__file__)))]
+        pickle_paths = [
+            path.join(
+                "{}".format(path.dirname(path.realpath(__file__))), "files", "pickles"
+            )
+        ]
 
         arr = np.ones((3, 3))
 
-        print(f"{pickle_paths[0]}/test.pickle")
-
-        with open(f"{pickle_paths[0]}/test.pickle", "wb") as f:
+        with open(path.join(pickle_paths[0], "test.pickle"), "wb") as f:
             pickle.dump(arr, f)
 
-        pickle_paths = ["{}/files/pickles/test.pickle".format(os.path.dirname(os.path.realpath(__file__)))]
+        pickle_paths = [
+            path.join(
+                "{}".format(path.dirname(path.realpath(__file__))),
+                "files",
+                "pickles",
+                "test.pickle",
+            )
+        ]
 
         search.move_pickle_files(pickle_files=pickle_paths)
 
-        with open(f"{output_path}/test.pickle", "rb") as f:
+        with open(path.join(output_path, "test.pickle"), "rb") as f:
             arr_load = pickle.load(f)
 
         assert (arr == arr_load).all()
 
-        if os.path.exists(test_path):
+        if path.exists(test_path):
             shutil.rmtree(test_path)

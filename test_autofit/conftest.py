@@ -11,21 +11,19 @@ from autofit.mock import mock
 directory = path.dirname(path.realpath(__file__))
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def remove_reports():
     yield
     for d, _, files in os.walk(directory):
         for file in files:
             if file == "report.log":
-                os.remove(f"{d}/{file}")
+                os.remove(path.join(d, file))
 
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance = conf.Config(
-        path.join(directory, "unit/config"),
+    conf.instance.push(
+        new_path=path.join(directory, "unit", "config"),
         output_path=path.join(directory, "output")
     )
 
@@ -33,7 +31,7 @@ def set_config_path():
 @pytest.fixture(autouse=True)
 def remove_output():
     try:
-        shutil.rmtree(f"{directory}/output")
+        shutil.rmtree(path.join(directory, "output"))
     except FileNotFoundError:
         pass
 
@@ -45,15 +43,8 @@ def model():
 
 @pytest.fixture(name="phase")
 def make_phase():
-    phase = af.AbstractPhase(
-        search=af.MockSearch(
-            "phase name"
-        )
-    )
-    phase.model.one = af.PriorModel(
-        mock.MockComponents,
-        component=mock.MockClassx2
-    )
+    phase = af.AbstractPhase(search=af.MockSearch("phase name"))
+    phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
     return phase
 
 

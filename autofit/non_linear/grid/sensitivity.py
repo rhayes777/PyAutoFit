@@ -1,7 +1,7 @@
 from abc import ABC
 from itertools import count
 from typing import List, Generator, Callable, Type, Union, Tuple
-
+from os import path
 import numpy as np
 
 from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel, Result, Analysis, NonLinearSearch
@@ -264,7 +264,7 @@ class Sensitivity:
         """
         for label in self._labels:
             paths = self.search.paths
-            name_path = "{}/{}/{}/{}".format(
+            name_path = path.join(
                 paths.name,
                 paths.tag,
                 paths.non_linear_tag,

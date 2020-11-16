@@ -23,7 +23,6 @@ class Timer:
         recorded.
         """
         start_time_path = path.join(self.paths.samples_path, ".start_time")
-        print(start_time_path)
         try:
             with open(start_time_path) as f:
                 float(f.read())

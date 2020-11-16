@@ -8,22 +8,23 @@ from autofit.non_linear.grid.simple_grid import GridSearch
 from autofit.non_linear.grid.sensitivity import ImageAnalysis
 
 
-@pytest.fixture(
-    name="perturbation_model"
-)
+@pytest.fixture(name="perturbation_model")
 def make_perturbation_model():
-    return af.PriorModel(
-        Gaussian
-    )
+    return af.PriorModel(Gaussian)
 
 
-@pytest.fixture(
-    name="sensitivity"
-)
+@pytest.fixture(name="sensitivity")
 def make_sensitivity(perturbation_model):
     # noinspection PyTypeChecker
-    return s.Sensitivity(instance=Gaussian(), model=af.PriorModel(Gaussian), perturbation_model=perturbation_model,
-                         simulate_function=image_function, analysis_class=Analysis, search=GridSearch(), step_size=0.5)
+    return s.Sensitivity(
+        instance=Gaussian(),
+        model=af.PriorModel(Gaussian),
+        perturbation_model=perturbation_model,
+        simulate_function=image_function,
+        analysis_class=Analysis,
+        search=GridSearch(),
+        step_size=0.5,
+    )
 
 
 x = np.array(range(10))
@@ -38,20 +39,8 @@ def image_function(instance: af.ModelInstance):
 
 class Analysis(ImageAnalysis):
     def log_likelihood_function(self, instance):
-        image = image_function(
-            instance
-        )
-        return np.mean(
-            np.multiply(
-                -0.5,
-                np.square(
-                    np.subtract(
-                        self.image,
-                        image
-                    )
-                )
-            )
-        )
+        image = image_function(instance)
+        return np.mean(np.multiply(-0.5, np.square(np.subtract(self.image, image))))
 
 
 def test_lists(sensitivity):
@@ -74,14 +63,14 @@ def test_tuple_step_size(sensitivity):
 def test_labels(sensitivity):
     labels = list(sensitivity._labels)
     assert labels == [
-        'centre_0.25_intensity_0.25_sigma_0.25',
-        'centre_0.25_intensity_0.25_sigma_0.75',
-        'centre_0.25_intensity_0.75_sigma_0.25',
-        'centre_0.25_intensity_0.75_sigma_0.75',
-        'centre_0.75_intensity_0.25_sigma_0.25',
-        'centre_0.75_intensity_0.25_sigma_0.75',
-        'centre_0.75_intensity_0.75_sigma_0.25',
-        'centre_0.75_intensity_0.75_sigma_0.75'
+        "centre_0.25_intensity_0.25_sigma_0.25",
+        "centre_0.25_intensity_0.25_sigma_0.75",
+        "centre_0.25_intensity_0.75_sigma_0.25",
+        "centre_0.25_intensity_0.75_sigma_0.75",
+        "centre_0.75_intensity_0.25_sigma_0.25",
+        "centre_0.75_intensity_0.25_sigma_0.75",
+        "centre_0.75_intensity_0.75_sigma_0.25",
+        "centre_0.75_intensity_0.75_sigma_0.75",
     ]
 
 
@@ -99,19 +88,10 @@ def test_job(perturbation_model):
         model=af.PriorModel(Gaussian),
         perturbation_model=af.PriorModel(Gaussian),
         analysis=Analysis(image),
-        search=GridSearch()
+        search=GridSearch(),
     )
     result = job.perform()
-    assert isinstance(
-        result,
-        s.JobResult
-    )
-    assert isinstance(
-        result.perturbed_result,
-        af.Result
-    )
-    assert isinstance(
-        result.result,
-        af.Result
-    )
+    assert isinstance(result, s.JobResult)
+    assert isinstance(result.perturbed_result, af.Result)
+    assert isinstance(result.result, af.Result)
     assert result.log_likelihood_difference > 0

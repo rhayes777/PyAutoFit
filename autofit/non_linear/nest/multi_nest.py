@@ -331,12 +331,12 @@ class MultiNest(abstract_nest.AbstractNest):
 
         return f"{name_tag}[{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}]"
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
         """Copy this instance of the multinest `NonLinearSearch` with all associated attributes.
 
         This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
+            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
         )
         copy.prior_passer = self.prior_passer
         copy.importance_nested_sampling = self.importance_nested_sampling

@@ -18,9 +18,7 @@ class TestMixin:
         my_phase = MyPhase(
             number_of_steps=2,
             search=mock.MockSearch(
-                samples=mock.MockSamples(
-                    gaussian_tuples=[(0.5, 0.5), (0.5, 0.5)]
-                )
+                samples=mock.MockSamples(gaussian_tuples=[(0.5, 0.5), (0.5, 0.5)])
             ),
         )
         my_phase.model.component = mock.MockClassx2Tuple

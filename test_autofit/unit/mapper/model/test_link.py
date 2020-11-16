@@ -7,11 +7,10 @@ import pytest
 
 import autofit as af
 
-link_dir = path.join(
-    "{}".format(path.dirname(path.realpath(__file__))), "files",
-)
+link_dir = path.join("{}".format(path.dirname(path.realpath(__file__))), "files")
 
 temp_folder_path = path.join(link_dir, "linked_folder")
+
 
 def delete_trees(*paths):
     for path in paths:
@@ -26,7 +25,7 @@ class TestCase:
         assert path.exists(af.link.autolens_dir)
 
     def test_environment_model(self):
-        symdir = "~/.symdir"
+        symdir = path.join("~", ".symdir")
         os.environ["SYMDIR"] = symdir
         reload(af.link)
         assert ".symdir" in af.link.autolens_dir
@@ -42,14 +41,45 @@ class TestCase:
         )
 
         link_1 = af.link.path_for(
-            path.join("","abcdefghijklmnopqrstuv","a","long","directory","that","has","a","difference","in","the","middle","of","the","path"
-            "","abcdefghijklmnopqrstuv"
-        ))
+            path.join(
+                "",
+                "abcdefghijklmnopqrstuv",
+                "a",
+                "long",
+                "directory",
+                "that",
+                "has",
+                "a",
+                "difference",
+                "in",
+                "the",
+                "middle",
+                "of",
+                "the",
+                "path" "",
+                "abcdefghijklmnopqrstuv",
+            )
+        )
 
         link_2 = af.link.path_for(
-            path.join("","abcdefghijklmnopqrstuv","a","long","directory","that","is","different","in","the","middle","of","the","path"
-            "","abcdefghijklmnopqrstuv"
-        ))
+            path.join(
+                "",
+                "abcdefghijklmnopqrstuv",
+                "a",
+                "long",
+                "directory",
+                "that",
+                "is",
+                "different",
+                "in",
+                "the",
+                "middle",
+                "of",
+                "the",
+                "path" "",
+                "abcdefghijklmnopqrstuv",
+            )
+        )
 
         assert link_1 != link_2
 
@@ -67,7 +97,7 @@ class TestCase:
 
     def test_clean_source(self):
         linked_path = af.link.make_linked_folder(temp_folder_path)
-        temp_file_path = path.join("{}".format(linked_path), "{}".format('temp'))
+        temp_file_path = path.join("{}".format(linked_path), "{}".format("temp"))
         open(temp_file_path, "a").close()
         assert path.exists(temp_file_path)
 
@@ -78,7 +108,7 @@ class TestCase:
 
     def test_not_clean_source(self):
         linked_path = af.link.make_linked_folder(temp_folder_path)
-        temp_file_path = path.join("{}".format(linked_path), "{}".format('temp'))
+        temp_file_path = path.join("{}".format(linked_path), "{}".format("temp"))
         open(temp_file_path, "a").close()
         assert path.exists(temp_file_path)
 

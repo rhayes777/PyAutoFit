@@ -1,4 +1,5 @@
 import os
+from os import path
 from astropy.io import fits
 from test_autofit.integration.src.model import profiles
 
@@ -37,9 +38,9 @@ def numpy_array_1d_to_fits(array_1d, file_path, overwrite=False):
     numpy_array_1d_to_fits(array_1d=array_1d, file_path='/path/to/file/filename.fits', overwrite=True)
     """
 
-    if overwrite and os.path.exists(file_path):
+    if overwrite and path.exists(file_path):
         os.remove(file_path)
-        
+
     new_hdr = fits.Header()
     hdu = fits.PrimaryHDU(array_1d, new_hdr)
     hdu.writeto(file_path)
@@ -52,8 +53,8 @@ if you wish to reuse this script to generate it again (or new datasets) you must
 """
 
 # %%
-test_path = "{}".format(os.path.dirname(os.path.realpath(__file__)))
-dataset_path = f"{test_path}/dataset"
+test_path = "{}".format(path.dirname(path.realpath(__file__)))
+dataset_path = path.join(test_path, "dataset")
 
 # %%
 """
@@ -63,7 +64,7 @@ Setup the path and filename the .fits file of the Gaussian is written to.
 """
 
 # %%
-data_path = f"{dataset_path}/gaussian_x1"
+data_path = path.join(dataset_path, "gaussian_x1")
 
 # %%
 """
@@ -117,8 +118,8 @@ Output this data to fits file, so it can be loaded and fitted in the HowToFit tu
 
 # %%
 numpy_array_1d_to_fits(
-    array_1d=data, file_path=f"{data_path}/data.fits", overwrite=True
+    array_1d=data, file_path=path.join(data_path, "data.fits"), overwrite=True
 )
 numpy_array_1d_to_fits(
-    array_1d=noise_map, file_path=f"{data_path}/noise_map.fits", overwrite=True
+    array_1d=noise_map, file_path=path.join(data_path, "noise_map.fits"), overwrite=True
 )

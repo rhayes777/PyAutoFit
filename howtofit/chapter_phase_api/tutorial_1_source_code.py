@@ -48,6 +48,7 @@ workspace_path = str(here())
 %cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
+from os import path
 import autofit as af
 
 # %%
@@ -56,7 +57,9 @@ import autofit as af
 # %%
 from autoconf import conf
 
-conf.instance.push(new_path=path.join(workspace_path, "howtofit", "chapter_phase_api", "src", "config"))
+conf.instance.push(
+    new_path=path.join(workspace_path, "howtofit", "chapter_phase_api", "src", "config")
+)
 
 # %%
 """
@@ -96,9 +99,11 @@ To create the `Dataset`, we load it from the `autofit_workspace/dataset` folder 
 """
 
 # %%
-dataset_path = path.join("dataset", "howtofit", "chapter_phase_api","gaussian_x1")
+dataset_path = path.join("dataset", "howtofit", "chapter_phase_api", "gaussian_x1")
 data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
-noise_map = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "noise_map.json"))
+noise_map = af.util.numpy_array_from_json(
+    file_path=path.join(dataset_path, "noise_map.json")
+)
 dataset = htf.Dataset(data=data, noise_map=noise_map)
 
 # %%
@@ -239,7 +244,9 @@ of code.  The results are output to the path `autofit_workspace/output/howtofit/
 
 # %%
 phase = htf.Phase(
-    search=af.Emcee(path_prefix=path.join("howtofit", "chapter_phase_api"), name="phase_t1"),
+    search=af.Emcee(
+        path_prefix=path.join("howtofit", "chapter_phase_api"), name="phase_t1"
+    ),
     settings=htf.SettingsPhase(),  # We describe `Settings` objects in tutorial 3.
     profiles=af.CollectionPriorModel(gaussian=htf.Gaussian),
 )

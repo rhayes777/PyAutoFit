@@ -37,7 +37,11 @@ class TestGridSearchablePriors:
 
         mappers = list(
             grid_search.model_mappers(
-                mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1]
+                mapper,
+                grid_priors=[
+                    mapper.component.one_tuple.one_tuple_0,
+                    mapper.component.one_tuple.one_tuple_1,
+                ],
             )
         )
 
@@ -59,7 +63,9 @@ class TestGridSearchablePriors:
         )
 
         mappers = list(
-            grid_search.model_mappers(mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0])
+            grid_search.model_mappers(
+                mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0]
+            )
         )
 
         assert len(mappers) == 10
@@ -79,7 +85,10 @@ class TestGridSearchablePriors:
 
         mappers = list(
             grid_search.model_mappers(
-                grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
+                grid_priors=[
+                    mapper.component.one_tuple.one_tuple_0,
+                    mapper.component.one_tuple.one_tuple_1,
+                ],
                 model=mapper,
             )
         )
@@ -97,7 +106,10 @@ class TestGridSearchablePriors:
         assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
         for mapper in mappers:
-            assert mapper.component.one_tuple.one_tuple_0 == mapper.component.one_tuple.one_tuple_1
+            assert (
+                mapper.component.one_tuple.one_tuple_0
+                == mapper.component.one_tuple.one_tuple_1
+            )
 
     def test_different_prior_width(self, grid_search, mapper):
         mapper.component.one_tuple.one_tuple_0 = af.UniformPrior(0.0, 2.0)
@@ -117,7 +129,9 @@ class TestGridSearchablePriors:
 
         mapper.component.one_tuple.one_tuple_0 = af.UniformPrior(1.0, 1.5)
         mappers = list(
-            grid_search.model_mappers(mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0])
+            grid_search.model_mappers(
+                mapper, grid_priors=[mapper.component.one_tuple.one_tuple_0]
+            )
         )
 
         assert len(mappers) == 10
@@ -143,9 +157,7 @@ class TestGridSearchablePriors:
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05():
     return af.NonLinearSearchGridSearch(
-        search=MockOptimizer(),
-        number_of_steps=2,
-        paths=af.Paths(name="sample_name"),
+        search=MockOptimizer(), number_of_steps=2, paths=af.Paths(name="sample_name")
     )
 
 
@@ -157,9 +169,7 @@ class MockOptimizer(af.MockSearch):
         self.init_args.append(paths)
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def empty_args():
     MockOptimizer.init_args = list()
 
@@ -169,7 +179,10 @@ class TestGridNLOBehaviour:
         result = grid_search_05.fit(
             model=mapper,
             analysis=MockAnalysis(),
-            grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
+            grid_priors=[
+                mapper.component.one_tuple.one_tuple_0,
+                mapper.component.one_tuple.one_tuple_1,
+            ],
         )
 
         assert len(result.results) == 4
@@ -183,7 +196,10 @@ class TestGridNLOBehaviour:
         result = grid_search.fit(
             model=mapper,
             analysis=MockAnalysis(),
-            grid_priors=[mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
+            grid_priors=[
+                mapper.component.one_tuple.one_tuple_0,
+                mapper.component.one_tuple.one_tuple_1,
+            ],
         )
 
         assert len(result.results) == 100

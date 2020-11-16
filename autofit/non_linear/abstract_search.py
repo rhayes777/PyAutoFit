@@ -1,6 +1,7 @@
 import copy
 import logging
 import multiprocessing as mp
+from os import path
 import os
 import pickle
 import shutil
@@ -232,7 +233,7 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if (not os.path.exists(self.paths.has_completed_path)) or \
+        if (not path.exists(self.paths.has_completed_path)) or \
                 self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
@@ -244,7 +245,7 @@ class NonLinearSearch(ABC):
             self.move_pickle_files(pickle_files=pickle_files)
             analysis.save_for_aggregator(paths=self.paths)
 
-        if not os.path.exists(self.paths.has_completed_path):
+        if not path.exists(self.paths.has_completed_path):
 
             # TODO : Better way to handle?
             self.timer.paths = self.paths
@@ -276,8 +277,11 @@ class NonLinearSearch(ABC):
         """Tag the output folder of the non-linear search, based on the non linear search settings"""
         raise NotImplementedError
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
-        name = "{}/{}".format(self.paths.name, extension)
+    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
+        name = path.join(self.paths.name, extension)
+
+        if path_prefix is None:
+            path_prefix = self.paths.path_prefix
 
         if remove_phase_tag:
             tag = ""
@@ -288,7 +292,7 @@ class NonLinearSearch(ABC):
             paths=Paths(
                 name=name,
                 tag=tag,
-                path_prefix=self.paths.path_prefix,
+                path_prefix=path_prefix,
                 non_linear_name=self.paths.non_linear_name,
                 remove_files=self.paths.remove_files,
             )
@@ -383,7 +387,7 @@ class NonLinearSearch(ABC):
                 raise ValueError("In general.ini log_to_file is True, but log_file is an empty string. "
                                  "Either give log_file a name or set log_to_file to False.")
 
-            log_path = "{}/{}".format(self.paths.output_path, self.log_file)
+            log_path = path.join(self.paths.output_path, self.log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
 
@@ -424,7 +428,7 @@ class NonLinearSearch(ABC):
         """
         Save the dataset associated with the phase
         """
-        with open("{}/info.pickle".format(self.paths.pickle_path), "wb") as f:
+        with open(path.join(self.paths.pickle_path, "info.pickle"), "wb") as f:
             pickle.dump(info, f)
 
     def save_search(self):
@@ -453,7 +457,7 @@ class NonLinearSearch(ABC):
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open("{}/metadata".format(self.paths.make_path()), "a") as f:
+        with open(path.join(self.paths.make_path(), "metadata"), "a") as f:
             f.write(self.make_metadata_text())
 
     def move_pickle_files(self, pickle_files):

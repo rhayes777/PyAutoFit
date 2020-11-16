@@ -1,6 +1,4 @@
-from test_autofit.integration.src.dataset import (
-    dataset as ds,
-)
+from test_autofit.integration.src.dataset import dataset as ds
 
 # The 'meta_dataset.py' module is unchanged from the previous tutorial.
 

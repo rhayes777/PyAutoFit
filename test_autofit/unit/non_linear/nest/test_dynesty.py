@@ -1,4 +1,4 @@
-import os
+from os import path
 import pickle
 import sys
 
@@ -9,15 +9,16 @@ import autofit as af
 from autoconf import conf
 from autofit.mock import mock
 
-directory = os.path.dirname(os.path.realpath(__file__))
+directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 @pytest.fixture(autouse=True)
 def set_config_path():
-    conf.instance.push(os.path.join(directory, "files/dynesty/config"),
-                       output_path=os.path.join(directory, "files/dynesty/output"),
-                       )
+    conf.instance.push(
+        new_path=path.join(directory, "files", "dynesty", "config"),
+        output_path=path.join(directory, "files", "dynesty", "output"),
+    )
 
 
 class MockDynestyResults:
@@ -202,8 +203,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_static[nlive_40__bound_none__enlarge_1.0__sample_auto]"
+            dynesty.tag
+            == "dynesty_static[nlive_40__bound_none__enlarge_1.0__sample_auto]"
         )
 
         dynesty = af.DynestyStatic(
@@ -216,8 +217,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_static[nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
+            dynesty.tag
+            == "dynesty_static[nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
         )
 
         dynesty = af.DynestyStatic(
@@ -230,8 +231,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_static[nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5]"
+            dynesty.tag
+            == "dynesty_static[nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5]"
         )
 
         dynesty = af.DynestyStatic(
@@ -244,8 +245,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2]"
+            dynesty.tag
+            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2]"
         )
 
         dynesty = af.DynestyStatic(
@@ -253,8 +254,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1]"
+            dynesty.tag
+            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1]"
         )
 
         dynesty = af.DynestyStatic(
@@ -262,8 +263,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
+            dynesty.tag
+            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
         )
 
         dynesty = af.DynestyDynamic(
@@ -271,8 +272,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_dynamic[nlive_5__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
+            dynesty.tag
+            == "dynesty_dynamic[nlive_5__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
         )
 
         dynesty = af.DynestyDynamic(
@@ -280,8 +281,8 @@ class TestDynestyConfig:
         )
 
         assert (
-                dynesty.tag
-                == "dynesty_dynamic[nlive_5__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
+            dynesty.tag
+            == "dynesty_dynamic[nlive_5__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
         )
 
     def test__samples_from_model(self):
@@ -304,7 +305,7 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyStatic(paths=paths)
 
-        with open(f"{dynesty.paths.samples_path}/dynesty.pickle", "wb") as f:
+        with open(path.join(dynesty.paths.samples_path, "dynesty.pickle"), "wb") as f:
             pickle.dump(sampler, f)
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -335,7 +336,7 @@ class TestDynestyConfig:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "name/one"
+        assert copy.paths.name == path.join("name", "one")
 
     def test_dynesty(self):
         search = af.DynestyStatic(af.Paths("name"))
@@ -345,7 +346,7 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyStatic)
         assert copy.prior_passer is search.prior_passer
         assert (
-                copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
@@ -373,7 +374,7 @@ class TestCopyWithNameExtension:
         assert isinstance(copy, af.DynestyDynamic)
         assert copy.prior_passer is search.prior_passer
         assert (
-                copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
+            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
         )
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 

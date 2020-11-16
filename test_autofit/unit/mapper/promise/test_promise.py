@@ -13,15 +13,12 @@ def make_model_promise(phase):
 
 @pytest.fixture(name="grid_search_promise")
 def make_grid_search_promise(phase):
-    grid_search_phase = af.as_grid_search(
-        af.AbstractPhase
-    )(
-        search=af.MockSearch(
-            "name",
-            phase_tag="phase_tag",
-        )
+    grid_search_phase = af.as_grid_search(af.AbstractPhase)(
+        search=af.MockSearch("name", phase_tag="phase_tag")
     )
-    grid_search_phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
+    grid_search_phase.model.one = af.PriorModel(
+        mock.MockComponents, component=mock.MockClassx2
+    )
     return grid_search_phase.result.model.one.parameter
 
 
@@ -153,15 +150,12 @@ class TestIndexLast:
         collection = af.ResultsCollection()
         components = af.PriorModel(mock.MockComponents)
         collection.add(
-            "phase one", af.GridSearchResult(
-                [
-                    af.MockResult(
-                        model=af.ModelMapper(component=components)
-                    )
-                ],
+            "phase one",
+            af.GridSearchResult(
+                [af.MockResult(model=af.ModelMapper(component=components))],
                 [[1]],
-                [[1]]
-            )
+                [[1]],
+            ),
         )
 
         result = af.last.model.component.populate(collection)
@@ -196,13 +190,8 @@ class TestIndexLast:
 
 
 class TestCase:
-    def test_does_not_contribute_to_prior_count(
-            self,
-            model_promise
-    ):
-        model = af.ModelMapper(
-            argument=model_promise
-        )
+    def test_does_not_contribute_to_prior_count(self, model_promise):
+        model = af.ModelMapper(argument=model_promise)
         assert model.prior_count == 0
 
     def test_model_promise(self, model_promise, phase):

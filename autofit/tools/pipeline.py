@@ -111,7 +111,7 @@ class ResultsCollection:
 
 
 class Pipeline:
-    def __init__(self, pipeline_name, path_prefix, *phases, write_promises=True):
+    def __init__(self, pipeline_name, path_prefix, *phases):
         """
         A pipeline of phases to be run sequentially. Results are passed between phases. Phases must have unique names.
 
@@ -134,10 +134,6 @@ class Pipeline:
                 phase.pipeline_name = pipeline_name
             if phase.pipeline_tag is None:
                 phase.pipeline_tag = self.pipeline_tag
-
-            if write_promises:
-                with open(phase.paths.file_model_promises, "w+") as f:
-                    f.write(phase.model.info)
 
         phase_names = [phase.name for phase in phases]
 
@@ -172,7 +168,6 @@ class Pipeline:
             ),
             None,
             *(self.phases + other.phases),
-            write_promises=False,
         )
 
     def run(self, dataset):

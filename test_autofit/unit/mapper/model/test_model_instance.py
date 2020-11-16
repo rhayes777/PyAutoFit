@@ -142,7 +142,9 @@ class TestModelInstance:
         mapper.mock_profile = mock.MockClassx3TupleFloat
 
         # noinspection PyUnresolvedReferences
-        mapper.mock_profile.one_tuple.one_tuple_1 = mapper.mock_profile.one_tuple.one_tuple_0
+        mapper.mock_profile.one_tuple.one_tuple_1 = (
+            mapper.mock_profile.one_tuple.one_tuple_0
+        )
 
         model_map = mapper.instance_from_unit_vector([1.0, 0.0])
 

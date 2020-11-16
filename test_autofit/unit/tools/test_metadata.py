@@ -4,17 +4,10 @@ import autofit as af
 from autofit.mock import mock
 
 
-@pytest.fixture(
-    name="phase"
-)
+@pytest.fixture(name="phase")
 def make_phase():
     return af.AbstractPhase(
-        search=mock.MockSearch(
-            paths=af.Paths(
-                name="name",
-                tag="phase_tag"
-            )
-        )
+        search=mock.MockSearch(paths=af.Paths(name="name", tag="phase_tag"))
     )
 
 
@@ -27,6 +20,3 @@ def test_metadata_dictionary(phase):
         "pipeline": "pipeline_name",
         "pipeline_tag": "pipeline_tag",
     }
-
-
-

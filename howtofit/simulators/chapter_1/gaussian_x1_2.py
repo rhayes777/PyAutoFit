@@ -1,5 +1,6 @@
 import profiles
 
+from os import path
 import numpy as np
 import autofit as af
 
@@ -54,7 +55,7 @@ noise_map = (1.0 / signal_to_noise_ratio) * np.ones(pixels)
 Output the data and noise-map to the `autofit_workspace/dataset` folder so they can be loaded and used 
 in other example scripts.
 """
-dataset_path = path.join("dataset", "howtofit", "chapter_1","gaussian_x1_1")
+dataset_path = path.join("dataset", "howtofit", "chapter_1", "gaussian_x1_1")
 
 af.util.numpy_array_to_json(
     array=data, file_path=path.join(dataset_path, "data.json"), overwrite=True

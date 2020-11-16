@@ -1,4 +1,4 @@
-import os
+from os import path
 import pytest
 
 from autoconf import conf
@@ -7,7 +7,7 @@ import autofit as af
 from autofit.non_linear.samples import MCMCSamples
 from autofit.mock.mock import MockClassx4
 
-directory = os.path.dirname(os.path.realpath(__file__))
+directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
@@ -42,8 +42,8 @@ def make_samples():
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance.push(
-        os.path.join(directory, "files/emcee/config"),
-        output_path=os.path.join(directory, "files/emcee/output"),
+        path.join(directory, "files", "emcee", "config"),
+        output_path=path.join(directory, "files", "emcee", "output"),
     )
 
 
@@ -52,8 +52,8 @@ class TestJsonCSV:
 
         mcmc = af.Emcee()
 
-        samples.write_table(filename=f"{mcmc.paths.samples_path}/samples.csv")
-        samples.info_to_json(filename=f"{mcmc.paths.samples_path}/info.json")
+        samples.write_table(filename=path.join(mcmc.paths.samples_path, "samples.csv"))
+        samples.info_to_json(filename=path.join(mcmc.paths.samples_path, "info.json"))
 
         model = af.ModelMapper(mock_class_1=MockClassx4)
 
@@ -70,7 +70,7 @@ class TestJsonCSV:
         assert samples.log_priors == [0.0, 0.0, 0.0, 0.0, 0.0]
         assert samples.log_posteriors == [1.0, 2.0, 3.0, 10.0, 5.0]
         assert samples.weights == [1.0, 1.0, 1.0, 1.0, 1.0]
-      #  assert samples.auto_correlation_times == None
+        #  assert samples.auto_correlation_times == None
         assert samples.auto_correlation_check_size == 2
         assert samples.auto_correlation_required_length == 3
         assert samples.auto_correlation_change_threshold == 4

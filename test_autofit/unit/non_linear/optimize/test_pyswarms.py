@@ -1,18 +1,19 @@
-import os
+from os import path
 import pytest
 
 from autoconf import conf
 import autofit as af
 from autofit.mock import mock
-directory = os.path.dirname(os.path.realpath(__file__))
+
+directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance.push(
-os.path.join(directory, "files/pyswarms/config"),
-        output_path=os.path.join(directory, "files/pyswarms/output"),
+        new_path=path.join(directory, "files", "pyswarms", "config"),
+        output_path=path.join(directory, "files", "pyswarms", "output"),
     )
 
 
@@ -152,7 +153,7 @@ class TestPySwarmsGlobalConfig:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "name/one"
+        assert copy.paths.name == path.join("name", "one")
 
     def test__pyswarms(self):
         search = af.PySwarmsGlobal(af.Paths("name"))

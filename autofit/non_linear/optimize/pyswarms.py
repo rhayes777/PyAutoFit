@@ -271,12 +271,12 @@ class AbstractPySwarms(AbstractOptimizer):
 
         return f"{name_tag}[{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}]"
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
         """Copy this instance of the emcee `NonLinearSearch` with all associated attributes.
 
         This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
+            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
         )
         copy.prior_passer = self.prior_passer
         copy.n_particles = self.n_particles
