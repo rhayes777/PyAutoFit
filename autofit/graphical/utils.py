@@ -7,21 +7,14 @@ from typing import (
 
 import numpy as np
 from scipy import special
-from scipy.optimize import OptimizeResult
 from scipy.linalg import block_diag
+from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable
 
 class Status(NamedTuple):
     success: bool = True
     messages: Tuple[str, ...] = ()
-
-class OptResult(NamedTuple):
-    mode: Dict[str, np.ndarray]
-    inv_hessian: Dict[str, np.ndarray]
-    log_norm: float
-    result: OptimizeResult
-    status: Optional[Status]
 
 
 class FlattenArrays(dict):
@@ -93,6 +86,15 @@ class FlattenArrays(dict):
     def size(self):
         return self.splits[-1]
 
+
+class OptResult(NamedTuple):
+    mode: Dict[Variable, np.ndarray]
+    inv_hessian: Dict[Variable, np.ndarray]
+    log_norm: float
+    param_shapes: FlattenArrays
+    result: OptimizeResult
+    status: Status = Status()
+    
 
 def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     """Sums over broadcasting multidimensional arrays

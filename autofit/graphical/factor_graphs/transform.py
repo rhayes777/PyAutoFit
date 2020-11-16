@@ -309,18 +309,16 @@ class FullCholeskyTransform(VariableTransform):
 
     @classmethod
     def from_optresult(cls, opt_result):
-        param_shapes = FlattenArrays({
-            v: x.shape for v, x in opt_result.items()
-        })
+        param_shapes = opt_result.param_shapes
 
-        cov = opt_result.hess_inv.todense()
+        cov = opt_result.result.hess_inv.todense()
         if not isinstance(cov, np.ndarray):
             # if optimiser is L-BFGS-B then convert
             # implicit hess_inv into dense matrix
             cov = cov.todense()
 
         return cls(
-            CovarianceTransform(cov),
+            CovarianceTransform.from_dense(cov),
             param_shapes)
 
     def __mul__(self, values: Value) -> Value:

@@ -293,4 +293,4 @@ def test_complex_transform():
         param_shapes.flatten(transformed),
         method='BFGS', jac=True
     )
-    assert res.hess_inv.diagonal() == pytest.approx(1., rel=5e-2)
+    assert res.hess_inv.diagonal() == pytest.approx(1., rel=1e-1)

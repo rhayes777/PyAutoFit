@@ -20,19 +20,22 @@ class OptFactor:
     """
     def __init__(
             self,
-            factor_approx: FactorApproximation,
-            kwargs: Dict[Variable, Tuple[int, ...]],
+            factor: Factor,
+            param_shapes: FlattenArrays,
             fixed_kws: Optional[Dict[str, np.ndarray]] = None,
+            model_dist: Optional[MeanField] = None, 
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
-            sign: int = 1, method: str = 'L-BFGS-B',
+            method: str = 'L-BFGS-B',
     ):
-        self.factor_approx = factor_approx
-        self.param_shapes = FlattenArrays(kwargs)
-        self.param_bounds = bounds
-        self.free_vars = tuple(kwargs)
-        self.deterministic_variables = self.factor_approx.deterministic_variables
+        self.factor = factor
+        self.param_shapes = param_shapes
+        self._model_dist = model_dist
 
-        self.sign = sign
+        self.param_bounds = bounds
+        self.free_vars = tuple(self.param_shapes.keys())
+        self.deterministic_variables = self.factor.deterministic_variables
+
+        self.sign = 1
         self.fixed_kws = fixed_kws
         self.method = method
 
@@ -40,11 +43,18 @@ class OptFactor:
             # TODO check that this is correct for composite
             # distributions e.g. NormalGammaMessage
             self.bounds = [
-                b for k, s in kwargs.items()
+                b for k, s in self.param_shapes.items()
                 for bound in bounds[k]
                 for b in repeat(bound, np.prod(s, dtype=int))]
         else:
             self.bounds = bounds
+
+    @property 
+    def model_dist(self):
+        if self._model_dist is None:
+            raise ValueError("Model dist not defined")
+        else:
+            return self._model_dist
 
     @classmethod
     def from_approx(
@@ -64,9 +74,9 @@ class OptFactor:
 
         return cls(
             factor_approx,
-            kwargs,
+            FlattenArrays(kwargs),
             fixed_kws=fixed_kws,
-            sign=-1,
+            model_dist=factor_approx.model_dist, 
             bounds=bounds,
         )
 
@@ -80,14 +90,13 @@ class OptFactor:
 
     def __call__(self, x0):
         values = self.unflatten(x0)
-        return self.sign * np.sum(self.factor_approx(values, axis=None))
+        return self.sign * np.sum(self.factor(values, axis=None))
 
     def func_jacobian(self, args):
-        params = self.param_shapes.unflatten(args)
-        params.update(self.fixed_kws)
-
-        fval, jval = self.factor_approx.func_jacobian(
-            params, self.free_vars, axis=None, _calc_deterministic=True)
+        values = self.unflatten(args)
+        fval, jval = self.factor.func_jacobian(
+            values, self.free_vars, 
+            axis=None, _calc_deterministic=True)
         grad = self.param_shapes.flatten(jval)
         return self.sign * fval.log_value, self.sign * grad
 
@@ -101,8 +110,7 @@ class OptFactor:
             rtol=1e-3,
             atol=1e-2):
         x0s = (
-            self.flatten(
-                self.factor_approx.model_dist.sample())
+            self.flatten(self.get_random_start())
             for _ in range(n_tries)
         )
         return all(
@@ -132,6 +140,7 @@ class OptFactor:
         return OptResult(
             mode, covar,
             self.sign * result.fun, # minimized negative logpdf of factor approximation
+            self.param_shapes, 
             result,
             Status(success, messages))
 
@@ -141,7 +150,7 @@ class OptFactor:
             if v in arrays_dict:
                 p0[v] = arrays_dict[v]
             else:
-                p0[v] = self.factor_approx.model_dist[v].sample(1)[0]
+                p0[v] = self.model_dist[v].sample()
         
         return p0
 
@@ -167,9 +176,7 @@ class OptFactor:
             status: Status = Status(), 
     ):
         self.sign = 1
-        p0 = {
-            v: arrays_dict.pop(v, self.factor_approx.model_dist[v].sample(1)[0])
-            for v in self.free_vars}
+        p0 = self.get_random_start(arrays_dict)
         res = self._minimise(
             p0,
             bounds=bounds, constraints=constraints, tol=tol,
@@ -187,13 +194,12 @@ class OptFactor:
             status: Status = Status(), 
     ):
         self.sign = -1
-        p0 = arrays_dict.copy()
-        for v in set(self.free_vars).difference(p0.keys()):
-            p0[v] = self.factor_approx.model_dist[v].sample()
+        p0 = self.get_random_start(arrays_dict)
         res = self._minimise(
             p0,
             bounds=bounds, constraints=constraints, tol=tol,
             callback=callback, options=options)
+        self.sign = 1
         return self._parse_result(res, status=status)
 
     minimize = minimise
