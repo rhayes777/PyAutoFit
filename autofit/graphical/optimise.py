@@ -6,9 +6,11 @@ import numpy as np
 from scipy.optimize import \
     minimize, OptimizeResult, least_squares, approx_fprime
 
-from autofit.graphical import FixedMessage
-from autofit.mapper.variable import Variable
-from autofit.graphical.factor_graphs import Factor, JacobianValue
+from autofit.graphical.factor_graphs import \
+    Variable, Factor, JacobianValue
+from autofit.graphical.factor_graphs.transform import \
+    AbstractLinearTransform, identity_transform
+from autofit.graphical.messages import FixedMessage
 from autofit.graphical.mean_field import \
     MeanField, FactorApproximation, MeanFieldApproximation, Status
 from autofit.graphical.utils import \
@@ -24,20 +26,29 @@ class OptFactor:
             param_shapes: FlattenArrays,
             fixed_kws: Optional[Dict[str, np.ndarray]] = None,
             model_dist: Optional[MeanField] = None, 
+            transform: Optional[AbstractLinearTransform] = None, 
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
             method: str = 'L-BFGS-B',
     ):
         self.factor = factor
         self.param_shapes = param_shapes
         self._model_dist = model_dist
-
+        
+        self.transform = identity_transform if transform is None else transform
         self.param_bounds = bounds
         self.free_vars = tuple(self.param_shapes.keys())
         self.deterministic_variables = self.factor.deterministic_variables
 
         self.sign = 1
         self.fixed_kws = fixed_kws
-        self.method = method
+
+        meth = method.lower()
+        # method needs to return Hessian information.
+        if meth not in ('bfgs', 'l-bfgs-b'):
+            raise ValueError('Unknown solver %s' % method)
+        
+        self.method = meth 
+
 
         if bounds:
             # TODO check that this is correct for composite
@@ -60,6 +71,7 @@ class OptFactor:
     def from_approx(
             cls,
             factor_approx: FactorApproximation,
+            transform: Optional[AbstractLinearTransform] = None, 
             **kwargs
     ) -> 'OptFactor':
         fixed_kws = {}
@@ -77,27 +89,29 @@ class OptFactor:
             FlattenArrays(kwargs),
             fixed_kws=fixed_kws,
             model_dist=factor_approx.model_dist, 
+            transform=transform, 
             bounds=bounds,
         )
 
     def flatten(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
-        return self.param_shapes.flatten(values)
+        x0 = self.param_shapes.flatten(values)
+        return x0
 
     def unflatten(self, x0: np.ndarray) -> Dict[Variable, np.ndarray]:
-        values = self.param_shapes.unflatten(x0)
-        values.update(self.fixed_kws)
+        values = {**self.param_shapes.unflatten(x0), **self.fixed_kws}
         return values
 
     def __call__(self, x0):
-        values = self.unflatten(x0)
+        values = self.unflatten(self.transform.ldiv(x0))
         return self.sign * np.sum(self.factor(values, axis=None))
 
-    def func_jacobian(self, args):
-        values = self.unflatten(args)
+    def func_jacobian(self, x0):
+        values = self.unflatten(self.transform.ldiv(x0))
         fval, jval = self.factor.func_jacobian(
             values, self.free_vars, 
             axis=None, _calc_deterministic=True)
-        grad = self.param_shapes.flatten(jval)
+        
+        grad = self.flatten(jval) / self.transform
         return self.sign * fval.log_value, self.sign * grad
 
     def jacobian(self, args):
@@ -123,7 +137,20 @@ class OptFactor:
             for x0 in x0s
         )
 
-    def _parse_result(
+    def get_random_start(self, arrays_dict: Dict[Variable, np.ndarray] = {}):
+        values = {
+            v: arrays_dict[v] if v in arrays_dict 
+            else self.model_dist[v].sample()
+            for v in self.free_vars
+        }      
+        # transform values
+        return self.unflatten(
+            self.transform.ldiv(
+                self.flatten(values)
+            )
+        )
+
+    def _parse_result( 
             self, 
             result: OptimizeResult, 
             status: Status = Status()) -> OptResult:
@@ -134,30 +161,33 @@ class OptFactor:
             "optimise.find_factor_mode: "
             f"nfev={result.nfev}, nit={result.nit}, "
             f"status={result.status}, message={message}",)
-        mode = self.param_shapes.unflatten(result.x)
-        mode.update(self.fixed_kws)
-        covar = self.param_shapes.unflatten(result.hess_inv.todense())
+
+        full_hess_inv = result.hess_inv
+        if not isinstance(full_hess_inv, np.ndarray):
+            # if optimiser is L-BFGS-B then convert
+            # implicit hess_inv into dense matrix
+            full_hess_inv = full_hess_inv.todense()
+
+        # make inverse transform back
+        M = self.transform
+        full_hess_inv = M.ldiv(M.ldiv(full_hess_inv).T)
+        x = M.ldiv(result.x)
+
+        mode =  {**self.param_shapes.unflatten(x), **self.fixed_kws}
+        hess_inv = self.param_shapes.unflatten(full_hess_inv)
+
         return OptResult(
-            mode, covar,
+            mode, 
+            hess_inv,
             self.sign * result.fun, # minimized negative logpdf of factor approximation
-            self.param_shapes, 
+            full_hess_inv, # full inverse hessian of optimisation
             result,
             Status(success, messages))
-
-    def get_random_start(self, arrays_dict: Dict[Variable, np.ndarray] = {}):
-        p0 = {}
-        for v in self.free_vars:
-            if v in arrays_dict:
-                p0[v] = arrays_dict[v]
-            else:
-                p0[v] = self.model_dist[v].sample()
-        
-        return p0
 
     def _minimise(self, arrays_dict, method=None, bounds=None,
                   constraints=(), tol=None, callback=None,
                   options=None):
-        x0 = self.param_shapes.flatten(arrays_dict)
+        x0 = self.transform * self.param_shapes.flatten(arrays_dict)
         bounds = self.bounds if bounds is None else bounds
         method = self.method if method is None else method
         return minimize(
@@ -199,7 +229,6 @@ class OptFactor:
             p0,
             bounds=bounds, constraints=constraints, tol=tol,
             callback=callback, options=options)
-        self.sign = 1
         return self._parse_result(res, status=status)
 
     minimize = minimise
@@ -212,7 +241,7 @@ def update_det_cov(
 
     Note that this modifies res.
     """
-    covars = res.inv_hessian
+    covars = res.hess_inv
     for v, grad in jacobian.items():
         for det, jac in grad.items():
             cov = propagate_uncertainty(covars[v], jac)

@@ -252,7 +252,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
 
     def project_mode(self, res: OptResult):
         projection = type(self)({
-            v: dist.from_mode(res.mode[v], res.inv_hessian.get(v))
+            v: dist.from_mode(res.mode[v], res.hess_inv.get(v))
             for v, dist in self.items()})
         
         projection.log_norm = res.log_norm - projection(res.mode).log_value

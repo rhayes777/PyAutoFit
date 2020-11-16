@@ -70,7 +70,7 @@ def test_laplace_method(probit_factor, q_cavity, x):
 
     q_probit_laplace = autofit.graphical.messages.normal.NormalMessage.from_mode(
         result.mode[x],
-        covariance=result.inv_hessian[x]
+        covariance=result.hess_inv[x]
     )
 
     assert q_probit_laplace.mu == pytest.approx(-0.258, rel=0.01)

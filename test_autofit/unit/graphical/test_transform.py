@@ -266,7 +266,7 @@ def test_complex_transform():
         param_shapes.flatten(transformed),
         method='BFGS', jac=True
     )
-    assert res.hess_inv.diagonal() == pytest.approx(1., rel=5e-2)
+    assert res.hess_inv.diagonal() == pytest.approx(1., rel=1e-1)
 
     # test VariableTransform with CholeskyTransform
     diag_factors = {
@@ -286,7 +286,7 @@ def test_complex_transform():
     ngrad = param_shapes.flatten(njac)
     grad = param_shapes.flatten(jac)
 
-    assert np.allclose(grad, ngrad)
+    assert np.allclose(grad, ngrad, atol=1e-3, rtol=1e-3)
 
     res = optimize.minimize(
         trans_factor.flatten(param_shapes).func_jacobian, 

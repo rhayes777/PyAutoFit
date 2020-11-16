@@ -64,7 +64,7 @@ def test_approximations(
 
     probit_model = autofit.graphical.messages.normal.NormalMessage.from_mode(
         result.mode[x],
-        covariance=result.inv_hessian[x]
+        covariance=result.hess_inv[x]
     )
 
     probit_model_dist = mp.MeanField({x: probit_model})

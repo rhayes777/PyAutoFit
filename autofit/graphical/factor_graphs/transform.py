@@ -56,6 +56,34 @@ class AbstractLinearTransform(ABC):
         else:    
             return NotImplemented
 
+class IdentityTransform(AbstractLinearTransform):
+    def __init__(self):
+        pass
+
+    def _identity(self, values: np.ndarray) -> np.ndarray:
+        return values
+
+    __mul__ = _identity
+    __rtruediv__ = _identity
+    __rmul__ = _identity
+    ldiv = _identity
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+    quad = _identity
+    invquad = _identity
+
+    @property
+    def log_det(self):
+        return 0.
+
+    @property
+    def shape(self):
+        return ()
+
+    def __len__(self):
+        return 0
 
 def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False, 
                     check_finite=True):
@@ -268,7 +296,6 @@ class VariableTransform:
         return {
             k: values[k] * M for k, M in self.transforms.items()} 
          
-    @abstractmethod
     def ldiv(self, values: Value) -> Value:
         return {
             k: M.ldiv(values[k]) for k, M in self.transforms.items()} 
@@ -277,6 +304,16 @@ class VariableTransform:
     rmul = __rmul__
     lmul = __mul__
     __matmul__ = __mul__
+
+    def quad(self, values):
+        return {
+            v: H.T if np.ndim(H) else H
+            for v, H in (values * self).items()} * self
+
+    def invquad(self, values):
+        return {
+            v: H.T if np.ndim(H) else H
+             for v, H in (values / self).items()} / self
 
     @cached_property
     def log_det(self):
@@ -302,6 +339,7 @@ class VariableTransform:
             for v, inv_cov in inv_covs.items()
         })
 
+
 class FullCholeskyTransform(VariableTransform):
     def __init__(self, cholesky, param_shapes):
         self.cholesky = cholesky
@@ -311,7 +349,7 @@ class FullCholeskyTransform(VariableTransform):
     def from_optresult(cls, opt_result):
         param_shapes = opt_result.param_shapes
 
-        cov = opt_result.result.hess_inv.todense()
+        cov = opt_result.result.hess_inv
         if not isinstance(cov, np.ndarray):
             # if optimiser is L-BFGS-B then convert
             # implicit hess_inv into dense matrix
@@ -346,7 +384,32 @@ class FullCholeskyTransform(VariableTransform):
     @cached_property
     def log_det(self):
         return self.cholesky.log_det
-        
+
+
+class IdentityVariableTransform(VariableTransform):
+    def __init__(self):
+        pass
+
+    def _identity(self, values: Value) -> Value:
+        return values
+
+    __mul__ = _identity
+    __rtruediv__ = _identity
+    __rmul__ = _identity
+    ldiv = _identity
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+    quad = _identity
+    invquad = _identity
+
+    @property
+    def log_det(self):
+        return 0.
+
+identity_transform = IdentityTransform()
+identity_variable_transform = IdentityVariableTransform()
 
 class TransformedNode(AbstractNode):
     def __init__(
@@ -414,7 +477,8 @@ class TransformedNode(AbstractNode):
             _calc_deterministic=_calc_deterministic)
 
         grad = jval / M
-        hess = {v: H.T for v, H in (hval / M).items()} / M
+        # hess = {v: H.T for v, H in (hval / M).items()} / M
+        hess = M.invquad(hval)
         return fval, grad, hess
 
     def __getattribute__(self, name):

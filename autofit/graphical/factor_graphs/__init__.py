@@ -9,7 +9,7 @@ from .jacobians import \
 from .graph import FactorGraph
 from .transform import \
     DiagonalTransform, CholeskyTransform, VariableTransform, \
-    FullCholeskyTransform 
+    FullCholeskyTransform, identity_transform, TransformedNode
 
 FactorNode = Union[
     Factor, 

@@ -89,9 +89,9 @@ class FlattenArrays(dict):
 
 class OptResult(NamedTuple):
     mode: Dict[Variable, np.ndarray]
-    inv_hessian: Dict[Variable, np.ndarray]
+    hess_inv: Dict[Variable, np.ndarray]
     log_norm: float
-    param_shapes: FlattenArrays
+    full_hess_inv: np.ndarray
     result: OptimizeResult
     status: Status = Status()
     
