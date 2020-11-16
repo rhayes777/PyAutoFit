@@ -1,5 +1,6 @@
 from howtofit.simulators.chapter_1 import profiles
 
+from os import path
 import numpy as np
 import autofit as af
 
@@ -62,8 +63,8 @@ in other example scripts.
 dataset_path = "dataset/howtofit/chapter_2/gaussian_x2_split"
 
 af.util.numpy_array_to_json(
-    array=data, file_path=f"{dataset_path}/data.json", overwrite=True
+    array=data, file_path=path.join(dataset_path, "data.json"), overwrite=True
 )
 af.util.numpy_array_to_json(
-    array=noise_map, file_path=f"{dataset_path}/noise_map.json", overwrite=True
+    array=noise_map, file_path=path.join(dataset_path, "noise_map.json"), overwrite=True
 )

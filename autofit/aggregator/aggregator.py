@@ -13,6 +13,7 @@ Example:
 """
 
 import os
+from os import path
 import zipfile
 from collections import defaultdict
 from shutil import rmtree
@@ -97,11 +98,13 @@ class AbstractAggregator:
         Removes the unzipped output directory for each phase.
         """
         for phase in self.phases:
-            path = "/".join(
-                phase.directory.split("/")[:-1]
-            )
+
+            split_path = path.split(phase.directory)[0]
+
+            unzipped_path = path.join(split_path)
+
             rmtree(
-                path,
+                unzipped_path,
                 ignore_errors=True
             )
 
@@ -307,8 +310,8 @@ class Aggregator(AbstractAggregator):
         for root, _, filenames in os.walk(directory):
             for filename in filenames:
                 if filename.endswith(".zip"):
-                    with zipfile.ZipFile(f"{root}/{filename}", "r") as f:
-                        f.extractall(f"{root}/{filename[:-4]}")
+                    with zipfile.ZipFile(path.join(root, filename), "r") as f:
+                        f.extractall(path.join(root, filename[:-4]))
 
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:

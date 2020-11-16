@@ -12,7 +12,7 @@ logger = logging.getLogger(__file__)
 try:
     autolens_dir = expanduser(os.environ["SYMDIR"])
 except KeyError:
-    autolens_dir = "{}/{}".format(expanduser("~"), ".autofit")
+    autolens_dir = os.path.join("{}".format(expanduser('~')), "{}".format('.autofit'))
 
 try:
     os.mkdir(autolens_dir)
@@ -38,10 +38,11 @@ def path_for(path):
     start = int(SUB_PATH_LENGTH / 2)
     end = SUB_PATH_LENGTH - start
     encoded_string = str(hashlib.sha224(path.encode("utf-8")).hexdigest())
-    return "{}/al_{}".format(
-        autolens_dir, (encoded_string[:start] + encoded_string[-end:]).replace("-", "")
-    )
 
+    return os.path.join(
+        "{}".format(autolens_dir),
+        "al_{}".format(encoded_string[:start] + encoded_string[-end:]).replace('-', '')
+    )
 
 def make_linked_folder(sym_path):
     """
@@ -81,7 +82,7 @@ def make_linked_folder(sym_path):
         )
         os.symlink(source_path, sym_path)
         logger.debug("Success")
-    except FileExistsError as e:
+    except (FileExistsError, IsADirectoryError) as e:
         logger.debug("Sym already existed")
         logger.debug(e)
     return source_path

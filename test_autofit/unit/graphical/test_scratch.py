@@ -10,10 +10,7 @@ def func(x):
 
 def test_():
     x = autofit.mapper.variable.Variable("x")
-    factor = mp.Factor(
-        func,
-        x=x
-    )
+    factor = mp.Factor(func, x=x)
 
     model = factor * factor
 

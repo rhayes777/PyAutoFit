@@ -328,7 +328,6 @@ class GalaxyModel(af.AbstractPriorModel):
     def __init__(self, model_redshift=False, **kwargs):
         super().__init__()
         self.redshift = af.PriorModel(Redshift) if model_redshift else None
-        print(self.redshift)
         self.__dict__.update(
             {
                 key: af.PriorModel(value) if inspect.isclass(value) else value

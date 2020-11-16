@@ -62,7 +62,6 @@ class TestSamplesTable:
 
 
 class TestOptimizerSamples:
-
     def test__max_log_likelihood_vector_and_instance(self, samples):
         assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
 
@@ -89,7 +88,7 @@ class TestOptimizerSamples:
             parameters=parameters,
             log_likelihoods=[1.0, 2.0, 3.0, 0.0, 5.0],
             log_priors=[1.0, 2.0, 3.0, 10.0, 6.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0]
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
         )
 
         assert samples.log_posteriors == [2.0, 4.0, 6.0, 10.0, 11.0]
@@ -118,7 +117,7 @@ class TestOptimizerSamples:
             parameters=parameters,
             log_likelihoods=[10.0, 0.0, 0.0, 0.0, 0.0],
             log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0]
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
         )
 
         gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
@@ -149,7 +148,7 @@ class TestOptimizerSamples:
             parameters=parameters,
             log_likelihoods=[0.0, 0.0, 0.0, 0.0, 0.0],
             log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0]
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
         )
 
         instance = samples.instance_from_sample_index(sample_index=0)
@@ -168,14 +167,19 @@ class TestOptimizerSamples:
 
 
 class TestPDFSamples:
-
     def test__from_csv_table(self, samples):
         filename = "samples.csv"
         samples.write_table(filename=filename)
 
         samples = af.NestSamples.from_table(filename=filename, model=samples.model)
 
-        assert samples.parameters == [[0.0, 1.0, 2.0, 3.0], [0.0, 1.0, 2.0, 3.0], [0.0, 1.0, 2.0, 3.0], [21.0, 22.0, 23.0, 24.0], [0.0, 1.0, 2.0, 3.0]]
+        assert samples.parameters == [
+            [0.0, 1.0, 2.0, 3.0],
+            [0.0, 1.0, 2.0, 3.0],
+            [0.0, 1.0, 2.0, 3.0],
+            [21.0, 22.0, 23.0, 24.0],
+            [0.0, 1.0, 2.0, 3.0],
+        ]
         assert samples.log_likelihoods == [1.0, 2.0, 3.0, 10.0, 5.0]
         assert samples.log_priors == [0.0, 0.0, 0.0, 0.0, 0.0]
         assert samples.log_posteriors == [1.0, 2.0, 3.0, 10.0, 5.0]
@@ -479,7 +483,6 @@ class TestPDFSamples:
 
 
 class TestNestSamples:
-
     def test__acceptance_ratio_is_correct(self):
         model = af.ModelMapper(mock_class_1=MockClassx4)
 

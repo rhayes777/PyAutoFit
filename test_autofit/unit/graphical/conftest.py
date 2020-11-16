@@ -5,21 +5,11 @@ import autofit.mapper.variable
 from autofit import graphical as mp
 
 
-@pytest.fixture(
-    name="x"
-)
+@pytest.fixture(name="x")
 def make_x():
     return autofit.mapper.variable.Variable("x")
 
 
-@pytest.fixture(
-    name="probit_factor"
-)
+@pytest.fixture(name="probit_factor")
 def make_probit_factor(x):
-    return mp.Factor(
-        stats.norm(
-            loc=0.,
-            scale=1.
-        ).logcdf,
-        x=x
-    )
+    return mp.Factor(stats.norm(loc=0.0, scale=1.0).logcdf, x=x)

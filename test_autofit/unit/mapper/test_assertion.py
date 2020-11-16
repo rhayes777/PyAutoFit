@@ -26,28 +26,13 @@ def make_greater_assertion(prior_1, prior_2):
     return prior_1 > prior_2
 
 
-def test_as_argument(
-        prior_1,
-        prior_2
-):
-    model = af.Collection(
-        truth=prior_1 < prior_2
-    )
+def test_as_argument(prior_1, prior_2):
+    model = af.Collection(truth=prior_1 < prior_2)
 
-    result = model.instance_for_arguments(
-        {
-            prior_1: 0,
-            prior_2: 1
-        }
-    )
+    result = model.instance_for_arguments({prior_1: 0, prior_2: 1})
     assert result.truth is True
 
-    result = model.instance_for_arguments(
-        {
-            prior_1: 1,
-            prior_2: 0
-        }
-    )
+    result = model.instance_for_arguments({prior_1: 1, prior_2: 0})
     assert result.truth is False
 
 
@@ -66,12 +51,23 @@ class TestAssertion:
         assert assertion.instance_for_arguments({prior_1: 0.4, prior_2: 0.5}) is False
 
     def test_assert_on_arguments_lower(self, lower_assertion, prior_1, prior_2):
-        assert lower_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5}) is True
-        assert lower_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5}) is False
+        assert (
+            lower_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5}) is True
+        )
+        assert (
+            lower_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5})
+            is False
+        )
 
     def test_assert_on_arguments_greater(self, greater_assertion, prior_1, prior_2):
-        assert greater_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5}) is True
-        assert greater_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5}) is False
+        assert (
+            greater_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5})
+            is True
+        )
+        assert (
+            greater_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5})
+            is False
+        )
 
     def test_numerical_assertion(self, prior_1):
         assertion = prior_1 < 0.5
@@ -151,18 +147,18 @@ class TestModel:
 
         model = model.populate(collection)
 
-        assert model._assertions[0].instance_for_arguments(
-            {
-                model.component.one: 0.0,
-                model.component.two: 1.0
-            }
-        ) is True
-        assert model._assertions[0].instance_for_arguments(
-            {
-                model.component.one: 1.0,
-                model.component.two: 0.0
-            }
-        ) is False
+        assert (
+            model._assertions[0].instance_for_arguments(
+                {model.component.one: 0.0, model.component.two: 1.0}
+            )
+            is True
+        )
+        assert (
+            model._assertions[0].instance_for_arguments(
+                {model.component.one: 1.0, model.component.two: 0.0}
+            )
+            is False
+        )
 
     def test_numerical(self):
         model = af.ModelMapper()

@@ -1,4 +1,5 @@
 import os
+from os import path
 import shutil
 
 import pytest
@@ -7,14 +8,14 @@ import autofit as af
 from autofit.text import formatter as frm
 from autoconf import conf
 
-directory = os.path.dirname(os.path.realpath(__file__))
+directory = path.dirname(path.realpath(__file__))
 
-text_path = "{}/files/text/".format(os.path.dirname(os.path.realpath(__file__)))
+text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "text")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def do_something():
-    conf.instance.push("{}/files/config/text".format(directory))
+    conf.instance.push(path.join("{}".format(directory), "files", "config", "text"))
 
 
 def test__value_result_string():
@@ -68,7 +69,7 @@ def test__parameter_result_latex():
 
 
 def test__output_list_of_strings_to_file():
-    if os.path.exists(text_path):
+    if path.exists(text_path):
         shutil.rmtree(text_path)
 
     os.mkdir(text_path)

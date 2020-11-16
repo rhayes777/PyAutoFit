@@ -2,11 +2,11 @@ import autofit as af
 from autofit.text import text_util
 import pytest
 
-import os
+from os import path
 
 from autofit.mock.mock import MockClassx2
 
-text_path = "{}/files/samples/".format(os.path.dirname(os.path.realpath(__file__)))
+text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
 
 
 @pytest.fixture(name="model")
@@ -30,7 +30,8 @@ def make_samples(model):
 
 
 def test__results_to_file(samples):
-    file_results = f"{text_path}model.results"
+
+    file_results = path.join(text_path, "model.results")
 
     text_util.results_to_file(
         samples=samples, filename=file_results, during_analysis=True
@@ -48,7 +49,7 @@ def test__results_to_file(samples):
 
 def test__search_summary_to_file(model):
 
-    file_search_summary = f"{text_path}search.summary"
+    file_search_summary = path.join(text_path, "search.summary")
 
     parameters = [[1.0, 2.0], [1.2, 2.2]]
 

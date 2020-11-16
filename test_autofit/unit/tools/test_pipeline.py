@@ -47,12 +47,17 @@ class MockPhase(af.AbstractPhase):
 class TestPipeline:
     def test_unique_phases(self):
 
-        phase1 = MockPhase(search=af.MockSearch("one", ))
-        phase2 = MockPhase(search=af.MockSearch("two", ))
+        phase1 = MockPhase(search=af.MockSearch("one"))
+        phase2 = MockPhase(search=af.MockSearch("two"))
 
         af.Pipeline("name", "", phase1, phase2)
         with pytest.raises(af.exc.PipelineException):
-            af.Pipeline("name", "",MockPhase(search=af.MockSearch("one")), MockPhase(search=af.MockSearch("one")))
+            af.Pipeline(
+                "name",
+                "",
+                MockPhase(search=af.MockSearch("one")),
+                MockPhase(search=af.MockSearch("one")),
+            )
 
     def test_search_assertion(self, model):
         paths = af.Paths("Phase Name")
@@ -77,16 +82,16 @@ class TestPipeline:
 # noinspection PyUnresolvedReferences
 class TestPhasePipelineName:
     def test_name_stamping(self):
-        one = MockPhase(search=af.MockSearch("one", ))
-        two = MockPhase(search=af.MockSearch("two", ))
+        one = MockPhase(search=af.MockSearch("one"))
+        two = MockPhase(search=af.MockSearch("two"))
         af.Pipeline("name", "", one, two)
 
         assert one.pipeline_name == "name"
         assert two.pipeline_name == "name"
 
     def test_no_restamping(self):
-        one = MockPhase(search=af.MockSearch("one", ))
-        two = MockPhase(search=af.MockSearch("two", ))
+        one = MockPhase(search=af.MockSearch("one"))
+        two = MockPhase(search=af.MockSearch("two"))
         pipeline_one = af.Pipeline("one", "", one)
         pipeline_two = af.Pipeline("two", "", two)
 

@@ -1,4 +1,3 @@
-
 from autofit.mock.mock import MockDataset
 
 

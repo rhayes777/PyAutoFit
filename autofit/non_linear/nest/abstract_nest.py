@@ -187,9 +187,9 @@ class AbstractNest(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
         copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
+            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
         )
         copy.prior_passer = self.prior_passer
         copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
@@ -214,10 +214,10 @@ class AbstractNest(NonLinearSearch):
     def samples_via_csv_json_from_model(self, model):
 
         parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
-            filename=f"{self.paths.samples_path}/samples.csv", model=model
+            filename=self.paths.samples_file, model=model
         )
 
-        with open(f"{self.paths.samples_path}/info.json") as infile:
+        with open(self.paths.info_file) as infile:
             samples_info = json.load(infile)
 
         return samp.NestSamples(

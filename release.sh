@@ -23,7 +23,7 @@ set +e
 git commit -m "Incremented version number"
 set -e
 
-python setup.py sdist bdist_wheel
+python3 setup.py sdist bdist_wheel
 twine upload dist/* --skip-existing --username $PYPI_USERNAME --password $PYPI_PASSWORD
 
 # docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD

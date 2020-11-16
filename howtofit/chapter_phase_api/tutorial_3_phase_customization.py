@@ -30,9 +30,12 @@ print(f"Working Directory has been set to `{workspace_path}`")
 """We again need to tell PyAutoFit where the project config files are."""
 
 # %%
+from os import path
 from autoconf import conf
 
-conf.instance.push(new_path=f"{workspace_path}/howtofit/chapter_phase_api/src/config")
+conf.instance.push(
+    new_path=path.join(workspace_path, "howtofit", "chapter_phase_api", "src", "config")
+)
 
 import autofit as af
 
@@ -67,7 +70,9 @@ settings_dataset = htf.SettingsDataset(data_trim_left=None, data_trim_right=None
 settings = htf.SettingsPhase(settings_dataset=settings_dataset)
 
 phase = htf.Phase(
-    search=af.Emcee(path_prefix="howtofit/chapter_phase_api", name="phase_t3"),
+    search=af.Emcee(
+        path_prefix=path.join("howtofit", "chapter_phase_api"), name="phase_t3"
+    ),
     settings=settings,
     profiles=af.CollectionPriorModel(gaussian=htf.Gaussian),
 )
@@ -76,9 +81,11 @@ phase = htf.Phase(
 """Set up the`Dataset`."""
 
 # %%
-dataset_path = "dataset/howtofit/chapter_phase_api/gaussian_x1"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_phase_api", "gaussian_x1")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(
+    file_path=path.join(dataset_path, "noise_map.json")
+)
 
 dataset = htf.Dataset(data=data, noise_map=noise_map)
 
@@ -119,7 +126,9 @@ We now create a new `Phase` with these settings and run it (note that we haven`t
 
 # %%
 phase = htf.Phase(
-    search=af.Emcee(path_prefix="howtofit/chapter_phase_api", name="phase_t3"),
+    search=af.Emcee(
+        path_prefix=path.join("howtofit", "chapter_phase_api"), name="phase_t3"
+    ),
     settings=settings,
     profiles=af.CollectionPriorModel(gaussian=htf.Gaussian),
 )

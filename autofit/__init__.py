@@ -43,8 +43,8 @@ from .non_linear.abstract_search import Analysis
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import PriorPasser
 from .non_linear.abstract_search import Result
-from .non_linear.grid_search import GridSearch as NonLinearSearchGridSearch
-from .non_linear.grid_search import GridSearchResult
+from autofit.non_linear.grid.grid_search import GridSearch as NonLinearSearchGridSearch
+from autofit.non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
 from .non_linear.mcmc.emcee import Emcee
@@ -53,7 +53,6 @@ from .mock.mock_search import MockSearch
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multi_nest import MultiNest
-from .non_linear.optimize.downhill_simplex import DownhillSimplex
 from .non_linear.optimize.pyswarms import PySwarmsGlobal
 from .non_linear.optimize.pyswarms import PySwarmsLocal
 from .non_linear.paths import Paths
@@ -77,4 +76,4 @@ from .tools.pipeline import ResultsCollection
 
 conf.instance.register(__file__)
 
-__version__ = '0.69.6'
+__version__ = '0.70.0'
