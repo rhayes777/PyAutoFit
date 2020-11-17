@@ -87,7 +87,23 @@ class GammaMessage(AbstractMessage):
         # TODO check this is correct
         # https://arxiv.org/pdf/0911.4863.pdf
         return (
-            logP - special.gammaln(Q.alpha)
-            + (P.beta - Q.beta) * (special.psi(P.beta) + logP)
-            + P.beta * (P.alpha/Q.alpha - 1)
+            (P.alpha - Q.alpha) * special.psi(P.alpha)
+            - special.gammaln(P.alpha) + special.gammaln(Q.alpha)
+            + Q.alpha * (np.log(P.beta / Q.beta))
+            + P.alpha * (Q.beta/P.beta - 1)
         )
+
+    def logpdf_gradient(self, x):
+        logl = self.logpdf(x)
+        eta1 = self.natural_parameters[0]
+        gradl = eta1/x - 1/self.beta 
+        return logl, gradl 
+
+    def logpdf_gradient_hessian(self, x):
+        logl = self.logpdf(x)
+        eta1 = self.natural_parameters[0]
+        gradl = eta1/x
+        hessl = - gradl/x
+        gradl -= 1/self.beta 
+        return logl, gradl, hessl
+    
