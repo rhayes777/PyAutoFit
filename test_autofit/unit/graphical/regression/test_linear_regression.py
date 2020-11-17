@@ -61,7 +61,8 @@ def make_model_approx(
         100
     )
 
-    return mp.MeanFieldApproximation.from_kws(
+    # return mp.MeanFieldApproximation.from_kws(
+    return mp.EPMeanField.from_approx_dists(
         model,
         {
             a_: message_a,
@@ -131,7 +132,7 @@ def test_jacobian(
             assert np.allclose(fjac0[v][d], fjac1[v][d]), f"d={d}, v={v}"
 
 
-def test_laplace(
+def test_laplace_old(
         model_approx,
         a_,
         b_
@@ -140,8 +141,8 @@ def test_laplace(
     model_approx, status = opt.run(model_approx)
     # assert status.success
 
-    q_a = model_approx[a_]
-    q_b = model_approx[b_]
+    q_a = model_approx.mean_field[a_]
+    q_b = model_approx.mean_field[b_]
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
@@ -149,12 +150,29 @@ def test_laplace(
     assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=1)
 
+def test_laplace(
+        model_approx,
+        a_,
+        b_,
+        y_, 
+        z_, 
+):
+    laplace = mp.LaplaceFactorOptimiser()
+    opt = mp.EPOptimiser(
+        model_approx.factor_graph, 
+        default_optimiser=laplace)
+    model_approx = opt.run(model_approx)
+
+    y = model_approx.mean_field[y_].mean
+    y_pred = model_approx.mean_field[z_].mean
+
+    assert mp.utils.r2_score(y, y_pred) > 0.95
+
+
 
 def test_importance_sampling(
         model,
         model_approx,
-        a_,
-        b_,
         y_,
         z_, 
 ):
@@ -171,17 +189,15 @@ def test_importance_sampling(
                 factor,
                 sampler,
                 force_sample=True,
-                delta=1.
+                delta=.8
             )
 
             # save and print current approximation
             history[i, factor] = model_approx
 
-    y = model_approx[y_].mean
-    y_pred = model_approx[z_].mean
-
-    r2 = 1 - np.square(y - y_pred).mean()/np.square(y).mean()
-    assert r2 > 0.95
+    y = model_approx.mean_field[y_].mean
+    y_pred = model_approx.mean_field[z_].mean
+    assert mp.utils.r2_score(y, y_pred) > 0.90
 
     # q_a = model_approx[a_]
     # q_b = model_approx[b_]

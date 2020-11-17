@@ -143,8 +143,6 @@ def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
     return out
 
 _M = TypeVar('M')
-
-
 def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     """calculates the product of the passed iterable,
     much like sum, if a second argument is passed,
@@ -159,6 +157,15 @@ def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     4.
     """
     return reduce(mul, iterable, *arg)
+
+def r2_score(y_true, y_pred, axis=None):
+    y_true = np.asanyarray(y_true)
+    y_pred = np.asanyarray(y_pred)
+
+    mse = np.square(y_true - y_pred).mean(axis=axis)
+    var = y_true.var(axis=axis)
+
+    return 1 - mse/var
 
 class CachedProperty(object):
     ''' 

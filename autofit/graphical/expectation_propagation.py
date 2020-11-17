@@ -297,7 +297,7 @@ class EPOptimiser:
 
         self.callback = callback
 
-    def model_step(
+    def run(
             self, 
             model_approx: EPMeanField, 
             max_steps=100,
