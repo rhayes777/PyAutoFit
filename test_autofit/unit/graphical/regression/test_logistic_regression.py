@@ -53,7 +53,7 @@ def make_model_approx(
 
     y = np.random.binomial(1, p)
 
-    return mp.MeanFieldApproximation.from_kws(
+    return mp.EPMeanField.from_approx_dists(
         model,
         {
             a_: mp.NormalMessage.from_mode(
@@ -83,13 +83,17 @@ def test_laplace(
         y_,
         z_,
 ):
-    opt = mp.optimise.LaplaceOptimiser()
-    model_approx, status = opt.run(model_approx)
+    laplace = mp.LaplaceFactorOptimiser()
+    opt = mp.EPOptimiser(
+        model_approx.factor_graph, 
+        default_optimiser=laplace)
+    model_approx = opt.run(model_approx)
+
 
     # assert status.success
 
-    q_a = model_approx[a_]
-    q_b = model_approx[b_]
+    q_a = model_approx.mean_field[a_]
+    q_b = model_approx.mean_field[b_]
 
     assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(0.09, rel=1)
@@ -97,9 +101,8 @@ def test_laplace(
     assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
     
-    q_z = model_approx[z_]
-    y = model_approx[y_].mean
-    y_pred = q_z.mean > 0
+    y = model_approx.mean_field[y_].mean
+    y_pred = model_approx.mean_field[z_].mean > 0
     (tpr, fpr), (fnr, tnr) = np.dot(
         np.array([y, 1-y]).reshape(2, -1),
         np.array([y_pred, 1-y_pred]).reshape(2, -1).T)
@@ -133,8 +136,8 @@ def test_importance_sampling(
             # save and print current approximation
             history[i, factor] = model_approx
 
-    q_z = model_approx[z_]
-    y = model_approx[y_].mean
+    q_z = model_approx.mean_field[z_]
+    y = model_approx.mean_field[y_].mean
     y_pred = q_z.mean > 0
     (tpr, fpr), (fnr, tnr) = np.dot(
         np.array([y, 1-y]).reshape(2, -1),
