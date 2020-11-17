@@ -7,7 +7,7 @@ from itertools import count
 import numpy as np
 
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.utils import FlattenArrays
+from autofit.graphical.utils import FlattenArrays, cached_property
 
 Value = Dict[Variable, np.ndarray]
 class FactorValue(np.ndarray):
@@ -145,7 +145,7 @@ class AbstractNode(ABC):
             in self._kwargs.values()
         ]
 
-    @property
+    @cached_property
     def all_variables(self) -> Set[Variable]:
         """
         A dictionary of variables associated with this node
@@ -221,8 +221,7 @@ class AbstractNode(ABC):
             np.r_[plate_order, plate_order + ndim])
         return np.reshape(movedvalue, newshape)
 
-
-    @property
+    @cached_property
     def plates(self) -> Tuple[Plate]:
         """
         A tuple of the set of all plates in this graph, ordered by id

@@ -516,7 +516,6 @@ class DeterministicFactor(Factor):
             variable
         }
 
-    # @accept_variable_dict
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],

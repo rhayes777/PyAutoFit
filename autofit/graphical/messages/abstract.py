@@ -367,7 +367,7 @@ class AbstractMessage(ABC):
                 f"must be (), {mean.shape}, or {mean.shape * 2}")
         return mean, variance
 
-    def likelihood_jac(self, x, _variables=('x')):
+    def __call__(self, x, _variables=('x')):
         if _variables is None:
             return self.logpdf(x)
         else:
@@ -378,6 +378,12 @@ class AbstractMessage(ABC):
             else:
                 return self.logpdf(x), ()
 
-    def as_factor(self, variable):
-        from autofit.graphical import FactorJacobian 
-        return FactorJacobian(self.likelihood_jac, x=variable)
+    def as_factor(self, variable, name=None):
+        from autofit.graphical import FactorJacobian
+        if name is None:
+            shape = self.shape
+            clsname = type(self).__name__
+            family = clsname[:-7] if clsname.endswith('Message') else clsname
+            name = f"{family}Likelihood" + (str(shape) if shape else '')
+
+        return FactorJacobian(self, x=variable, name=name)

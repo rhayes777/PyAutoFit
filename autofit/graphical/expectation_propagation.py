@@ -14,7 +14,7 @@ from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.factor_graphs import (
     Factor, AbstractNode, FactorGraph)
 from autofit.mapper.variable import Variable
-from autofit.graphical.utils import Status
+from autofit.graphical.utils import Status, cached_property
 from autofit.graphical.mean_field import MeanField, FactorApproximation 
 
 
@@ -148,7 +148,7 @@ class EPMeanField(AbstractNode):
         """
         Calculates evidence for the EP approximation
 
-        Evidence for a variable, x_i,
+        Evidence for a variable, xᵢ,
 
         Zᵢ = ∫ ∏ₐ m_{a → i} (xᵢ) dxᵢ
 
@@ -173,7 +173,9 @@ class EPMeanField(AbstractNode):
 
     def __repr__(self) -> str:
         clsname = type(self).__name__
-        return f"{clsname}({self.factor_graph}, {self.factor_mean_field})"
+        return (
+            f"{clsname}({self.factor_graph}, "
+            f"log_evidence={self.log_evidence})")
 
     def __call__(self, **kwargs: np.ndarray) -> np.ndarray:
         return self.mean_field(**kwargs)
