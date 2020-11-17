@@ -73,3 +73,6 @@ class FixedMessage(AbstractMessage):
     _divide = _no_op
     sum_natural_parameters = _no_op
     sub_natural_parameters = _no_op
+
+    def kl(self, dist):
+        return 0.

@@ -277,6 +277,12 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
     def sample(self, n_samples=None):
         return {v: dist.sample(n_samples) for v, dist in self.items()}
 
+    def kl(self, mean_field: 'MeanField') -> np.ndarray:
+        return sum(
+            np.sum(dist.kl(mean_field[k]))
+            for k, dist in self.items()
+        ) 
+
     __hash__ = Factor.__hash__ 
     
     @classmethod

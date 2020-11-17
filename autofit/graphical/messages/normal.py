@@ -93,6 +93,13 @@ class NormalMessage(AbstractMessage):
             
         return x * sigma + mu
 
+    def kl(self, dist):
+        return (
+        np.log(dist.sigma/self.sigma) 
+        + (self.sigma**2 + (self.mu - dist.mu)**2) / 2 / dist.sigma**2
+        - 1/2
+    )
+
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: float = 1.):
         mode, variance = cls._get_mean_variance(mode, covariance)

@@ -1,4 +1,5 @@
 from itertools import repeat
+from collections import defaultdict
 from typing import (
     Optional, Dict, Tuple, NamedTuple, Any, List, Iterator)
 
@@ -6,16 +7,17 @@ import numpy as np
 from scipy.optimize import \
     minimize, OptimizeResult, least_squares, approx_fprime
 
+from autofit.graphical.utils import \
+    propagate_uncertainty, FlattenArrays, OptResult
 from autofit.graphical.factor_graphs import \
     Variable, Factor, JacobianValue
 from autofit.graphical.factor_graphs.transform import \
-    AbstractLinearTransform, identity_transform
+    AbstractLinearTransform, identity_transform, CovarianceTransform
 from autofit.graphical.messages import FixedMessage
 from autofit.graphical.mean_field import \
     MeanField, FactorApproximation, MeanFieldApproximation, Status
-from autofit.graphical.utils import \
-    propagate_uncertainty, FlattenArrays, OptResult
-
+from autofit.graphical.expectation_propagation import \
+    EPMeanField, AbstractFactorOptimiser
 
 class OptFactor:
     """
@@ -72,8 +74,8 @@ class OptFactor:
             cls,
             factor_approx: FactorApproximation,
             transform: Optional[AbstractLinearTransform] = None, 
-            **kwargs
     ) -> 'OptFactor':
+        value_shapes = {}
         fixed_kws = {}
         bounds = {}
         for v in factor_approx.variables:
@@ -81,12 +83,12 @@ class OptFactor:
             if isinstance(dist, FixedMessage):
                 fixed_kws[v] = dist.mean
             else:
-                kwargs[v] = dist.shape
+                value_shapes[v] = dist.shape
                 bounds[v] = dist._support
 
         return cls(
             factor_approx,
-            FlattenArrays(kwargs),
+            FlattenArrays(value_shapes),
             fixed_kws=fixed_kws,
             model_dist=factor_approx.model_dist, 
             transform=transform, 
@@ -170,8 +172,8 @@ class OptFactor:
 
         # make inverse transform back
         M = self.transform
-        full_hess_inv = M.ldiv(M.ldiv(full_hess_inv).T)
         x = M.ldiv(result.x)
+        full_hess_inv = M.ldiv(M.ldiv(full_hess_inv).T)
 
         mode =  {**self.param_shapes.unflatten(x), **self.fixed_kws}
         hess_inv = self.param_shapes.unflatten(full_hess_inv)
@@ -249,6 +251,66 @@ def update_det_cov(
 
     return res
 
+
+class LaplaceFactorOptimiser(AbstractFactorOptimiser):
+
+    def __init__(
+        self, 
+        whiten_optimiser=True,
+        transforms=None,
+        deltas=None, 
+        opt_kws=None):
+
+        self.whiten_optimiser = whiten_optimiser 
+        self.transforms = defaultdict(lambda: identity_transform)
+        if transforms:
+            self.transforms.update(transforms)
+
+        self.deltas = defaultdict(lambda: 1)
+        if deltas:
+            self.deltas.update(deltas)
+
+        self.opt_kws = defaultdict(dict) 
+        if opt_kws:
+            self.opt_kws.update(opt_kws)
+
+    def optimise(
+            self, 
+            factor: Factor, 
+            model_approx: EPMeanField, 
+            status: Optional[Status] = Status(), 
+    ) -> Tuple[EPMeanField, Status]:
+
+        whiten = self.transforms[factor]
+        delta = self.deltas[factor]
+        opt_kws = self.opt_kws[factor]
+
+        factor_approx = model_approx.factor_approximation(factor)
+        opt = OptFactor.from_approx(factor_approx, transform=whiten)
+        res = opt.maximise(status=status, **opt_kws)
+
+        # Calculate covariance of deterministic values
+        # TODO: estimate this Jacobian using Broyden's method
+        # https://en.wikipedia.org/wiki/Broyden%27s_method
+        value = factor_approx.factor(res.mode)
+        res.mode.update(value.deterministic_values)
+        jacobian = factor_approx.factor.jacobian(
+            res.mode, opt.free_vars, axis=None)
+        update_det_cov(res, jacobian)
+
+        self.transforms[factor] = CovarianceTransform.from_dense(
+            res.full_hess_inv)
+        
+        # Project Laplace's approximation
+        new_model_dist = factor_approx.model_dist.project_mode(res)
+        projection, status = factor_approx.project(
+            new_model_dist,
+            delta=delta,
+            status=res.status
+        )
+        new_approx, status = model_approx.project(projection, status)
+        return new_approx, status
+
 def maximise_factor_approx(
         factor_approx: FactorApproximation, **kwargs):
     """
@@ -316,6 +378,7 @@ def laplace_factor_approx(
         projection, status=status)
 
     return new_approx, status
+
 
 class LaplaceOptimiser:
     def __init__(

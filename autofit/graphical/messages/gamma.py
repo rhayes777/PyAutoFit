@@ -80,3 +80,14 @@ class GammaMessage(AbstractMessage):
         alpha = 1 + m ** 2 * V  # match variance
         beta = alpha / m  # match mean
         return cls(alpha, beta)
+
+    def kl(self, dist):
+        P, Q = dist, self
+        logP = np.log(P.alpha)
+        # TODO check this is correct
+        # https://arxiv.org/pdf/0911.4863.pdf
+        return (
+            logP - special.gammaln(Q.alpha)
+            + (P.beta - Q.beta) * (special.psi(P.beta) + logP)
+            + P.beta * (P.alpha/Q.alpha - 1)
+        )

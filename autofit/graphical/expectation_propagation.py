@@ -1,5 +1,7 @@
 
 from abc import ABC, abstractmethod
+from collections import defaultdict 
+from itertools import count
 from typing import (
     Dict, Tuple, Optional, NamedTuple, Iterator, List,
     Callable
@@ -194,37 +196,121 @@ class AbstractFactorOptimiser(ABC):
 
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
 
+class EPHistory:
+    def __init__(
+            self, 
+            callbacks: Tuple[EPCallBack, ...] = (),
+            kl_tol=1e-6,
+            evidence_tol=None):
+        self._callbacks = callbacks
+        self.history = {}
+        self.statuses = {}
+        self.factor_count = defaultdict(count)
+
+        self.kl_tol = kl_tol 
+        self.evidence_tol = evidence_tol
+
+    def __call__(
+            self, 
+            factor: Factor, 
+            approx: EPMeanField, 
+            status: Status = Status()
+    ) -> bool:
+        i = next(self.factor_count[factor])
+        self.history[i, factor] = approx 
+        self.statuses[i, factor] = status
+
+        stop = any([
+            callback(factor, approx, status) for callback in self._callbacks
+        ])
+        if stop:
+            return True
+        elif i:
+            last_approx = self.history[i-1, factor]
+            return self._check_convergence(approx, last_approx)
+        else:
+            return False
+
+    def _kl_convergence(
+            self, 
+            approx: EPMeanField, 
+            last_approx: EPMeanField, 
+    ) -> bool:
+        return approx.mean_field.kl(last_approx.mean_field) < self.kl_tol
+
+    def _evidence_convergence(
+            self, 
+            approx: EPMeanField, 
+            last_approx: EPMeanField, 
+    ) -> bool:
+        last_evidence = last_approx.log_evidence
+        evidence = approx.log_evidence 
+        if last_evidence > evidence:
+            # todo print warning?
+            return False
+        else:
+            return evidence - last_evidence < self.evidence_tol
+
+    def _check_convergence(
+            self, 
+            approx: EPMeanField, 
+            last_approx: EPMeanField, 
+    ) -> bool:
+        stop = False
+        if self.kl_tol:
+            stop = stop or self._kl_convergence(approx, last_approx)
+
+        if self.evidence_tol:
+            stop = stop or self._evidence_convergence(approx, last_approx)
+
+        return stop
+
+
+
 class EPOptimiser:
     """
     """
     def __init__(
             self, 
             factor_graph: FactorGraph,
-            default_optimiser: AbstractFactorOptimiser,
+            default_optimiser: AbstractFactorOptimiser = None,
             factor_optimisers: Dict[Factor, AbstractFactorOptimiser] = {},
-            callback: Optional[EPCallBack] = None,
+            callback: EPCallBack = EPHistory(),
             factor_order: Optional[List[Factor]] = None):
 
         self.factor_graph = factor_graph
         self.factors = \
             self.factor_graph.factors if factor_order is None else factor_order
-        self.factor_optimisers = {
-            factor_optimisers.get(factor, default_optimiser)
-            for factor in self.factors}
+        
+        if default_optimiser is None:
+            self.factor_optimisers = factor_optimisers
+            missing = set(self.factors) - self.factor_optimisers.keys()
+            if missing:
+                raise(ValueError(
+                    f"missing optimisers for {missing}, "
+                    "pass a default_optimiser or add missing optimsers"
+                    ))
+        else:
+            self.factor_optimisers = {
+                factor: factor_optimisers.get(factor, default_optimiser)
+                for factor in self.factors}
+
         self.callback = callback
 
     def model_step(
-            self, model_approx:EPMeanField, status=Optional[Status]
-            ) -> EPMeanField:
-        new_approx = model_approx
-        for factor, optimiser in self.factor_optimisers.items():
-            new_approx, status = optimiser.optimise(
-                factor, new_approx, status=status)
-            if self.callback is not None:
-                stop = self.callback(factor, new_approx, status)
-                if stop:
-                    break
+            self, 
+            model_approx: EPMeanField, 
+            max_steps=100,
+    ) -> EPMeanField:
+        for _ in range(max_steps):
+            for factor, optimiser in self.factor_optimisers.items():
+                model_approx, status = optimiser.optimise(factor, model_approx)
+                if self.callback(factor, model_approx, status):
+                    break # callback controls convergence
+            else: # If no break do next iteration
+                continue
+            break  # stop iterations
 
-        return new_approx, status
+        return model_approx
 
         

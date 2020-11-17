@@ -4,8 +4,8 @@ from .factor_graphs import \
     DiagonalTransform, CholeskyTransform, VariableTransform, \
     FullCholeskyTransform 
 from .mean_field import FactorApproximation, MeanField, MeanFieldApproximation
-from .expectation_propagation import EPMeanField
+from .expectation_propagation import EPMeanField, EPOptimiser
 from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage
-from .optimise import OptFactor, lstsq_laplace_factor_approx
+from .optimise import OptFactor, LaplaceFactorOptimiser, lstsq_laplace_factor_approx
 from .sampling import ImportanceSampler, project_factor_approx_sample
 from ..mapper.variable import Variable, Plate
