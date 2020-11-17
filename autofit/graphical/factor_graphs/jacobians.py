@@ -54,6 +54,7 @@ class FactorJacobian(Factor):
     def __init__(
             self,
             factor_jacobian: Callable,
+            *, 
             name=None,
             vectorised=False,
             is_scalar=False, 
@@ -281,7 +282,6 @@ class DeterministicFactorJacobian(FactorJacobian):
         
         super().__init__(
             factor_jacobian,
-            variable,
             vectorised=vectorised,
             is_scalar=is_scalar, 
             **kwargs
