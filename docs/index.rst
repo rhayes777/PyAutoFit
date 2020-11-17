@@ -155,7 +155,7 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    :maxdepth: 1
    :hidden:
 
-   installation/installation
+   installation/overview
    installation/conda
    installation/pip
    installation/source

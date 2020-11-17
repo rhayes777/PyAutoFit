@@ -20,7 +20,7 @@ You need to change the path below to the chapter 2 directory so we can load the 
 """
 
 # %%
-chapter_path = "/home/jammy/PycharmProjects/PyAuto/autofit_workspace/howtofit/chapter_phase_api_non_linear_searches"
+chapter_path = "/Users/Jammy/Code/PyAuto/autofit_workspace/howtofit/chapter_phase_api_non_linear_searches"
 
 # %%
 """
