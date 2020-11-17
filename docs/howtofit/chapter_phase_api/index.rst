@@ -1,14 +1,9 @@
-Chapter 2: Results
+Chapter: Phase API
 ==================
 
-In chapter 2, we introduce you to results that are output after a **PyAutoFit** analysis alongside the
-``Aggregator`` tool which allows you to load, inspect and interpret the results of many model-fits to big
-datasets.
-
-A number of the notebooks require a ``NonLinearSearch`` to be performed, which can lead the auto-generation
-of the **HowToFit** readthedocs pages to crash. For this reason, all cells which perform a ``NonLinearSearch``
-or use its result are commented out. We advise if you want to read through the **HowToFit** lectures in full
-that you download the ``autofit_workspace`` and run them from there (where these comments are removed).
+In this chapter, we introduce you to the **PyAutoFit** phase API, which long-term software projects can adopt to interface
+**PyAutoFit** directly with your software and provide a better management of many of model composition and fitting,
+such as visualization, outputting results in a structured format and augmenting data before a fit.
 
 The chapter contains the following tutorials:
 
