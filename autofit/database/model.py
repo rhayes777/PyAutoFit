@@ -1,0 +1,2 @@
+class PriorModel:
+    pass
