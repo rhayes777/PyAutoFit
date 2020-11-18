@@ -69,3 +69,12 @@ class TestPriors:
             model.centre,
             af.UniformPrior
         )
+
+
+def test_commit(session):
+    model = af.PriorModel(
+        m.Gaussian
+    )
+    serialized = db.Object(model)
+    session.add(serialized)
+    session.commit()
