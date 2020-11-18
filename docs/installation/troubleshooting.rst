@@ -1,5 +1,8 @@
 .. _troubleshooting:
 
+Troubleshooting
+===============
+
 Current Working Directory
 -------------------------
 

@@ -376,7 +376,7 @@ class TestCollectionPriorModel:
         assert instance.two.one == 1
         assert instance.two.two == 2
 
-    def test_mix_instances_in_list_prior_model(self):
+    def test_mix_instances_in_grouped_list_prior_model(self):
         prior_model = af.CollectionPriorModel(
             [mock.MockClassx2, mock.MockClassx2(1, 2)]
         )
@@ -398,7 +398,7 @@ class TestCollectionPriorModel:
 
         assert len(prior_model.prior_class_dict) == 2
 
-    def test_list_in_list_prior_model(self):
+    def test_list_in_grouped_list_prior_model(self):
         prior_model = af.CollectionPriorModel([[mock.MockClassx2]])
 
         assert len(prior_model.direct_prior_model_tuples) == 1
