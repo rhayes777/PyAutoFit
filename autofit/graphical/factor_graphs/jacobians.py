@@ -137,20 +137,18 @@ class FactorJacobian(Factor):
             k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
             for k, a in values.items()}
 
-        # iterator to generate keyword arguments
-        def gen_kwargs():
-            for _ in range(dim0):
-                yield {
-                    k: next(a) for k, a in iter_kws.items()}
-
         # TODO this loop can also be parallelised for increased performance
         fjacs = [
-            self._factor(**kws, _variables=variables)
-             for kws in gen_kwargs()]
-        res = np.array([fjac[0] for fjac in fjacs])
+            self._factor(**{
+                    k: next(a) for k, a in iter_kws.items()}, 
+                    _variables=variables)
+             for _ in range(dim0)]
+        
         if variables is None:
+            res = np.array([fjac for fjac in fjacs])
             return res 
         else:
+            res = np.array([fjac[0] for fjac in fjacs])
             njac = len(fjacs[0][1])
             jacs = tuple(
                 np.array([fjac[1][i] for fjac in fjacs])

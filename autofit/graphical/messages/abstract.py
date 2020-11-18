@@ -386,4 +386,4 @@ class AbstractMessage(ABC):
             family = clsname[:-7] if clsname.endswith('Message') else clsname
             name = f"{family}Likelihood" + (str(shape) if shape else '')
 
-        return FactorJacobian(self, x=variable, name=name)
+        return FactorJacobian(self, x=variable, name=name, vectorised=True)
