@@ -66,7 +66,7 @@ def numerical_func_jacobian(
                 for det, val in det_vars0.items()
             }
         det_slices = {
-            v: (slice(None),) * np.ndim(a) for v, a in values.items()}
+            v: (slice(None),) * np.ndim(a) for v, a in det_vars0.items()}
 
     for v, grad in fjac.items():
         x0 = p0[v]
@@ -85,7 +85,7 @@ def numerical_func_jacobian(
                 if _calc_deterministic:
                     det_vars = f.deterministic_values
                     for det, val in det_vars.items():
-                        v_jac[det][det_slices[v] + ind] = \
+                        v_jac[det][det_slices[det] + ind] = \
                             (val - det_vars0[det]) / _eps
         else:
             p0[v] += _eps
