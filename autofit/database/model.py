@@ -31,28 +31,28 @@ class PriorModel(Base):
     )
 
     @property
-    def class_path_array(self):
+    def _class_path_array(self):
         return self.class_path.split(".")
 
     @property
-    def class_name(self):
-        return self.class_path_array[-1]
+    def _class_name(self):
+        return self._class_path_array[-1]
 
     @property
-    def module_path(self):
-        return ".".join(self.class_path_array[:-1])
+    def _module_path(self):
+        return ".".join(self._class_path_array[:-1])
 
     @property
-    def module(self):
+    def _module(self):
         return importlib.import_module(
-            self.module_path
+            self._module_path
         )
 
     @property
     def cls(self):
         return getattr(
-            self.module,
-            self.class_name
+            self._module,
+            self._class_name
         )
 
     def __init__(self, model: af.PriorModel):

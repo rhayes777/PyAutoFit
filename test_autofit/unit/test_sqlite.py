@@ -41,9 +41,7 @@ def test_serialise_model(
     assert isinstance(
         serialized_model, db.PriorModel
     )
-    assert serialized_model.class_path == "autofit.mock.mock.Gaussian"
-    assert serialized_model.module_path == "autofit.mock.mock"
-    assert serialized_model.class_name == "Gaussian"
+    assert serialized_model.cls is m.Gaussian
 
 
 def test_deserialize_model(
