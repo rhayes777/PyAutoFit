@@ -2,7 +2,7 @@ import importlib
 import re
 from typing import List
 
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -40,6 +40,8 @@ class Object(Base):
         "Object"
     )
 
+    name = Column(String)
+
     @property
     def priors(self):
         return [
@@ -57,21 +59,41 @@ class Object(Base):
         'polymorphic_on': type
     }
 
-    def __new__(cls, source):
+    def __new__(
+            cls,
+            source,
+            **kwargs
+    ):
         if isinstance(source, af.PriorModel):
             return object.__new__(PriorModel)
         if isinstance(source, af.Prior):
             return object.__new__(Prior)
+        if isinstance(source, (float, int)):
+            return object.__new__(Value)
         raise TypeError(
             f"{type(source)} is not supported"
         )
 
+    def _make_instance(self):
+        raise NotImplemented()
+
     def __call__(self):
-        raise NotImplementedError()
+        instance = self._make_instance()
+        for child in self.children:
+            setattr(
+                instance,
+                child.name,
+                child()
+            )
+        return instance
 
 
-class PriorModel(Object):
-    __tablename__ = "prior_model"
+class Value(Object):
+    __tablename__ = "value"
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'value'
+    }
 
     id = Column(
         Integer,
@@ -81,10 +103,23 @@ class PriorModel(Object):
         primary_key=True,
     )
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'prior_model'
-    }
+    value = Column(Float)
 
+    def __init__(
+            self,
+            value,
+            **kwargs
+    ):
+        super().__init__(
+            **kwargs
+        )
+        self.value = value
+
+    def __call__(self):
+        return self.value
+
+
+class ClassMixin:
     class_path = Column(
         String
     )
@@ -114,20 +149,50 @@ class PriorModel(Object):
             self._class_name
         )
 
-    def __init__(self, model: af.PriorModel):
-        self.class_path = re.search("'(.*)'", str(model.cls))[1]
+    @cls.setter
+    def cls(self, cls):
+        self.class_path = re.search("'(.*)'", str(cls))[1]
+
+
+class PriorModel(Object, ClassMixin):
+    __tablename__ = "prior_model"
+
+    id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        ),
+        primary_key=True,
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'prior_model'
+    }
+
+    def __init__(
+            self,
+            model: af.PriorModel,
+            **kwargs
+    ):
+        super().__init__(
+            **kwargs
+        )
+        self.cls = model.cls
         for name, prior in model.direct_prior_tuples:
             self.children.append(
                 Object(
-                    prior
+                    prior,
+                    name=name
                 )
             )
 
-    def __call__(self):
-        return self.cls()
+    def _make_instance(self):
+        return af.PriorModel(
+            self.cls
+        )
 
 
-class Prior(Object):
+class Prior(Object, ClassMixin):
     __tablename__ = "prior"
 
     id = Column(
@@ -142,8 +207,22 @@ class Prior(Object):
         'polymorphic_identity': 'prior'
     }
 
-    def __init__(self, model: af.Prior):
-        pass
+    def __init__(
+            self,
+            model: af.Prior,
+            **kwargs
+    ):
+        super().__init__(
+            **kwargs
+        )
+        self.cls = type(model)
+        for key, value in model.__dict__.items():
+            self.children.append(
+                Object(
+                    value,
+                    name=key
+                )
+            )
 
-    def __call__(self):
-        pass
+    def _make_instance(self):
+        return self.cls()

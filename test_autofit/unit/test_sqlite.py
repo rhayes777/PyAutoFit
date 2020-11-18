@@ -49,15 +49,23 @@ class TestModel:
             self,
             serialized_model
     ):
-        assert isinstance(
-            serialized_model(),
-            m.Gaussian
-        )
+        assert serialized_model().cls is m.Gaussian
 
 
 class TestPriors:
     def test_serialize(
             self,
-            serialized_model
+            serialized_model,
     ):
         assert len(serialized_model.priors) == 3
+
+    def test_deserialize(
+            self,
+            serialized_model
+    ):
+        model = serialized_model()
+        assert len(model.priors) == 3
+        assert isinstance(
+            model.centre,
+            af.UniformPrior
+        )
