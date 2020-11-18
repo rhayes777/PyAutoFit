@@ -9,7 +9,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import Result
-from autofit.non_linear.parallel import AbstractJob, Process
+from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.paths import Paths
 
 
@@ -341,12 +341,20 @@ class GridSearch:
                 jobs,
                 self.number_of_cores
         ):
-            results.append(result.result)
+            results.append(result)
+            results = sorted(results)
             results_list.append(result.result_list_row)
-
             self.write_results(results_list)
 
-        return GridSearchResult(results, lists, physical_lists)
+        return GridSearchResult(
+            [
+                result.result
+                for result
+                in results
+            ],
+            lists,
+            physical_lists
+        )
 
     def fit_sequential(self, model, analysis, grid_priors):
         """
@@ -464,8 +472,8 @@ class GridSearch:
         return search_instance
 
 
-class JobResult:
-    def __init__(self, result, result_list_row):
+class JobResult(AbstractJobResult):
+    def __init__(self, result, result_list_row, number):
         """
         The result of a job
 
@@ -476,6 +484,7 @@ class JobResult:
         result_list_row
             A row in the result list
         """
+        super().__init__(number)
         self.result = result
         self.result_list_row = result_list_row
 
@@ -494,6 +503,7 @@ class Job(AbstractJob):
         arguments
             The grid search arguments
         """
+        super().__init__()
         self.search_instance = search_instance
         self.analysis = analysis
         self.model = model
@@ -508,7 +518,7 @@ class Job(AbstractJob):
             result.log_likelihood,
         ]
 
-        return JobResult(result, result_list_row)
+        return JobResult(result, result_list_row, self.number)
 
 
 def grid(fitness_function, no_dimensions, step_size):

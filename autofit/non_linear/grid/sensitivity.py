@@ -1,15 +1,16 @@
 from abc import ABC
 from itertools import count
-from typing import List, Generator, Callable, Type, Union, Tuple
 from os import path
+from typing import List, Generator, Callable, Type, Union, Tuple
+
 import numpy as np
 
 from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel, Result, Analysis, NonLinearSearch
 from autofit.non_linear.grid.grid_search import make_lists
-from autofit.non_linear.parallel import AbstractJob, Process
+from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 
 
-class JobResult:
+class JobResult(AbstractJobResult):
     def __init__(
             self,
             number: int,
@@ -24,18 +25,9 @@ class JobResult:
         result
         perturbed_result
         """
-        self.number = number
+        super().__init__(number)
         self.result = result
         self.perturbed_result = perturbed_result
-
-    def __lt__(self, other):
-        return self.number < other.number
-
-    def __gt__(self, other):
-        return self.number > other.number
-
-    def __eq__(self, other):
-        return self.number == other.number
 
     @property
     def log_likelihood_difference(self):
@@ -67,8 +59,7 @@ class Job(AbstractJob):
         search
             A non-linear search
         """
-        self.number = next(Job._number)
-
+        super().__init__()
         self.analysis = analysis
         self.model = model
 
