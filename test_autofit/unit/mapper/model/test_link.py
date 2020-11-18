@@ -84,6 +84,10 @@ class TestCase:
         assert link_1 != link_2
 
     def test_make_linked_folder(self):
+
+        if path.exists(temp_folder_path):
+            os.remove(temp_folder_path)
+
         linked_path = af.link.make_linked_folder(temp_folder_path)
         assert af.link.autolens_dir in linked_path
         assert path.exists(linked_path)
