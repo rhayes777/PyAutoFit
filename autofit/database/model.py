@@ -63,14 +63,18 @@ class Object(Base):
             source,
             **kwargs
     ):
+        if source is None:
+            return None
         if isinstance(source, af.PriorModel):
             return object.__new__(PriorModel)
         if isinstance(source, af.Prior):
             return object.__new__(Prior)
         if isinstance(source, (float, int)):
             return object.__new__(Value)
-        if isinstance(source, af.CollectionPriorModel):
+        if isinstance(source, (af.CollectionPriorModel, dict, list)):
             return object.__new__(CollectionPriorModel)
+        if isinstance(source, str):
+            return object.__new__(StringValue)
         return object.__new__(Instance)
 
     def _make_instance(self):
@@ -193,6 +197,37 @@ class Value(Object):
         return self.value
 
 
+class StringValue(Object):
+    __tablename__ = "string_value"
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'string_value'
+    }
+
+    id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        ),
+        primary_key=True,
+    )
+
+    value = Column(String)
+
+    def __init__(
+            self,
+            value,
+            **kwargs
+    ):
+        super().__init__(
+            **kwargs
+        )
+        self.value = value
+
+    def __call__(self):
+        return self.value
+
+
 class CollectionPriorModel(Object):
     __tablename__ = "collection_prior_model"
 
@@ -210,11 +245,24 @@ class CollectionPriorModel(Object):
 
     def __init__(
             self,
-            collection: af.CollectionPriorModel,
+            collection: Union[
+                af.CollectionPriorModel,
+                list,
+                dict
+            ],
             **kwargs
     ):
         super().__init__(**kwargs)
-        self._add_children(collection.items())
+        if not isinstance(
+                collection,
+                af.CollectionPriorModel
+        ):
+            collection = af.CollectionPriorModel(
+                collection
+            )
+        self._add_children(
+            collection.items()
+        )
         self.cls = af.CollectionPriorModel
 
 
@@ -242,7 +290,7 @@ class PriorModel(Object):
             **kwargs
         )
         self.cls = model.cls
-        self._add_children(model.direct_prior_tuples)
+        self._add_children(model.items())
 
     def _make_instance(self):
         return af.PriorModel(
