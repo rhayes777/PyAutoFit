@@ -33,8 +33,7 @@ class Object(Base):
     )
     parent = relationship(
         "Object",
-        uselist=False,
-        # foreign_keys=[parent_id]
+        uselist=False
     )
     children: List["Object"] = relationship(
         "Object"
@@ -72,14 +71,10 @@ class Object(Base):
             return object.__new__(Value)
         if isinstance(source, af.CollectionPriorModel):
             return object.__new__(CollectionPriorModel)
-        raise TypeError(
-            f"{type(source)} is not supported"
-        )
+        return object.__new__(Instance)
 
     def _make_instance(self):
-        if hasattr(self, "cls"):
-            return self.cls()
-        raise NotImplemented()
+        return self.cls()
 
     def __call__(self):
         instance = self._make_instance()
@@ -106,39 +101,6 @@ class Object(Base):
                 )
             )
 
-
-class Value(Object):
-    __tablename__ = "value"
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'value'
-    }
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    value = Column(Float)
-
-    def __init__(
-            self,
-            value,
-            **kwargs
-    ):
-        super().__init__(
-            **kwargs
-        )
-        self.value = value
-
-    def __call__(self):
-        return self.value
-
-
-class ClassMixin:
     class_path = Column(
         String
     )
@@ -173,7 +135,65 @@ class ClassMixin:
         self.class_path = re.search("'(.*)'", str(cls))[1]
 
 
-class CollectionPriorModel(Object, ClassMixin):
+class Instance(Object):
+    __tablename__ = "instance"
+
+    id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        ),
+        primary_key=True,
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'instance'
+    }
+
+    def __init__(
+            self,
+            model,
+            **kwargs
+    ):
+        super().__init__(
+            **kwargs
+        )
+        self.cls = type(model)
+        self._add_children(model.__dict__.items())
+
+
+class Value(Object):
+    __tablename__ = "value"
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'value'
+    }
+
+    id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        ),
+        primary_key=True,
+    )
+
+    value = Column(Float)
+
+    def __init__(
+            self,
+            value,
+            **kwargs
+    ):
+        super().__init__(
+            **kwargs
+        )
+        self.value = value
+
+    def __call__(self):
+        return self.value
+
+
+class CollectionPriorModel(Object):
     __tablename__ = "collection_prior_model"
 
     id = Column(
@@ -198,7 +218,7 @@ class CollectionPriorModel(Object, ClassMixin):
         self.cls = af.CollectionPriorModel
 
 
-class PriorModel(Object, ClassMixin):
+class PriorModel(Object):
     __tablename__ = "prior_model"
 
     id = Column(
@@ -230,7 +250,7 @@ class PriorModel(Object, ClassMixin):
         )
 
 
-class Prior(Object, ClassMixin):
+class Prior(Object):
     __tablename__ = "prior"
 
     id = Column(

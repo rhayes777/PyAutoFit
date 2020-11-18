@@ -53,6 +53,16 @@ def make_serialized_collection(collection):
     )
 
 
+class TestInstance:
+    def test_serialize(self):
+        serialized_instance = db.Object(
+            m.Gaussian()
+        )
+        assert len(
+            serialized_instance.children
+        ) == 3
+
+
 class TestModel:
     def test_serialize(
             self,
