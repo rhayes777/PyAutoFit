@@ -77,6 +77,8 @@ class Object(Base):
         )
 
     def _make_instance(self):
+        if hasattr(self, "cls"):
+            return self.cls()
         raise NotImplemented()
 
     def __call__(self):
@@ -103,16 +105,6 @@ class Object(Base):
                     name=key
                 )
             )
-
-
-class CollectionPriorModel(Object):
-    def __init__(
-            self,
-            collection: af.CollectionPriorModel,
-            **kwargs
-    ):
-        super().__init__(**kwargs)
-        self._add_children(collection.items())
 
 
 class Value(Object):
@@ -181,6 +173,31 @@ class ClassMixin:
         self.class_path = re.search("'(.*)'", str(cls))[1]
 
 
+class CollectionPriorModel(Object, ClassMixin):
+    __tablename__ = "collection_prior_model"
+
+    id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        ),
+        primary_key=True,
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'collection_prior_model'
+    }
+
+    def __init__(
+            self,
+            collection: af.CollectionPriorModel,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+        self._add_children(collection.items())
+        self.cls = af.CollectionPriorModel
+
+
 class PriorModel(Object, ClassMixin):
     __tablename__ = "prior_model"
 
@@ -238,6 +255,3 @@ class Prior(Object, ClassMixin):
         )
         self.cls = type(model)
         self._add_children(model.__dict__.items())
-
-    def _make_instance(self):
-        return self.cls()

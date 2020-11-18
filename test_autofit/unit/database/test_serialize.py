@@ -35,6 +35,24 @@ def make_serialized_model(model):
     )
 
 
+@pytest.fixture(
+    name="collection"
+)
+def make_collection(model):
+    return af.CollectionPriorModel(
+        model=model
+    )
+
+
+@pytest.fixture(
+    name="serialized_collection"
+)
+def make_serialized_collection(collection):
+    return db.Object(
+        collection
+    )
+
+
 class TestModel:
     def test_serialize(
             self,
@@ -74,17 +92,24 @@ class TestPriors:
 class TestCollection:
     def test_serialize(
             self,
-            model
+            serialized_collection
     ):
-        collection = af.CollectionPriorModel(
-            model=model
-        )
-        serialized_collection = db.Object(
-            collection
-        )
         assert isinstance(
             serialized_collection,
             db.CollectionPriorModel
+        )
+        child, = serialized_collection.children
+        assert len(child.priors) == 3
+
+    def test_deserialize(
+            self,
+            serialized_collection
+    ):
+        collection = serialized_collection()
+        assert len(collection) == 1
+        assert isinstance(
+            collection.model,
+            af.PriorModel
         )
 
 
