@@ -311,6 +311,10 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         new_approx, status = model_approx.project(projection, status)
         return new_approx, status
 
+
+#################################################
+
+
 def maximise_factor_approx(
         factor_approx: FactorApproximation, **kwargs):
     """
@@ -488,9 +492,10 @@ class LeastSquaresOpt:
         }
         return self.resid_shapes.flatten(residuals)
 
-    def least_squares(self):
+    def least_squares(self, values={}):
+        model_dist = self.factor_approx.model_dist
         p0 = {
-            v: self.factor_approx.model_dist[v].sample(1)[0]
+            v: values[v] if v in values else model_dist[v].sample()
             for v in self.param_shapes.keys()}
         arr = self.param_shapes.flatten(p0)
 

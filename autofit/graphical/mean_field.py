@@ -215,7 +215,8 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         return logl, gradl, hessl
 
     def __repr__(self):
-        reprdict = dict.__repr__(self)
+        reprdict = "{\n" + "\n".join(
+            "  {}: {}".format(k, v) for k, v in self.items()) + "\n  }"
         classname = (type(self).__name__)
         return f"{classname}({reprdict}, log_norm={self.log_norm})"
     
