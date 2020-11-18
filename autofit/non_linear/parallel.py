@@ -1,15 +1,34 @@
 import multiprocessing
 from abc import ABC, abstractmethod
+from itertools import count
 from time import sleep
 from typing import Iterable
 
 from autofit.non_linear.log import logger
 
 
+class AbstractJobResult(ABC):
+    def __init__(self, number):
+        self.number = number
+
+    def __eq__(self, other):
+        return self.number == other.number
+
+    def __gt__(self, other):
+        return self.number > other.number
+
+    def __lt__(self, other):
+        return self.number < other.number
+
+
 class AbstractJob(ABC):
     """
     Task to be completed in parallel
     """
+    _number = count()
+
+    def __init__(self):
+        self.number = next(self._number)
 
     @abstractmethod
     def perform(self):
