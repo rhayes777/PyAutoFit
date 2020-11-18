@@ -277,7 +277,7 @@ class EPOptimiser:
             factor_graph: FactorGraph,
             default_optimiser: AbstractFactorOptimiser = None,
             factor_optimisers: Dict[Factor, AbstractFactorOptimiser] = {},
-            callback: EPCallBack = EPHistory(),
+            callback: Optional[EPCallBack] = None,
             factor_order: Optional[List[Factor]] = None):
 
         self.factor_graph = factor_graph
@@ -297,7 +297,7 @@ class EPOptimiser:
                 factor: factor_optimisers.get(factor, default_optimiser)
                 for factor in self.factors}
 
-        self.callback = callback
+        self.callback = EPHistory() if callback is None else callback
 
     def run(
             self, 

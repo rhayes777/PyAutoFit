@@ -256,7 +256,8 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             v: dist.from_mode(res.mode[v], res.hess_inv.get(v))
             for v, dist in self.items()})
         
-        projection.log_norm = res.log_norm - projection(res.mode).log_value
+        projection.log_norm = (
+            res.log_norm - projection(res.mode, axis=None).log_value)
         return projection
 
     def _project_mode(
@@ -461,15 +462,18 @@ class FactorApproximation(AbstractNode):
 
         factor_dist = (model_dist / self.cavity_dist)
         if delta < 1:
+            log_norm = factor_dist.log_norm
             factor_dist = (
                 factor_dist**delta * self.factor_dist**(1-delta))
-        
+            factor_dist.log_norm = (
+                delta * log_norm + (1 - delta) *  self.factor_dist.log_norm)
+
         if not factor_dist.is_valid:
             success = False
             messages += (
                 f"model projection for {self} is invalid",)
             factor_dist = factor_dist.update_invalid(self.factor_dist)
-
+        
         new_approx = FactorApproximation(
             self.factor,
             self.cavity_dist, 

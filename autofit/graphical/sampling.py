@@ -7,7 +7,10 @@ import numpy as np
 
 from autofit.graphical.factor_graphs import Factor
 from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.graphical.mean_field import MeanField, MeanFieldApproximation, FactorApproximation, Status
+from autofit.graphical.mean_field import \
+    MeanField, MeanFieldApproximation, FactorApproximation, Status
+from autofit.graphical.expectation_propagation import \
+    EPMeanField, AbstractFactorOptimiser
 from autofit.graphical.messages import map_dists
 from autofit.graphical.utils import add_arrays
 
@@ -73,12 +76,35 @@ class SamplingHistory(NamedTuple):
             for f in self._fields))
 
 
-class AbstractSampler(ABC):
+class AbstractSampler(AbstractFactorOptimiser):
+    def __init__(self, delta=1., deltas=None, sample_kws=None):
+        self.deltas = defaultdict(lambda: delta)
+        if deltas:
+            self.deltas.update(deltas)
+
+        self.sample_kws = defaultdict(dict)
+        if sample_kws:
+            self.sample_kws.update(sample_kws)
+
     @abstractmethod
     def __call__(self, factor_approx: "FactorApproximation",
                  last_samples: Optional[SamplingResult] = None) -> SamplingResult:
         pass
 
+    def optimise(
+            self, 
+            factor: Factor, 
+            model_approx: EPMeanField, 
+            status: Status = Status(),
+    ) -> Tuple[EPMeanField, Status]:
+        delta = self.deltas[factor]
+        sample_kws = self.sample_kws[factor]
+
+        factor_approx = model_approx.factor_approximation(factor)
+        sample = self(factor_approx, **sample_kws)
+        model_dist = project_factor_approx_sample(factor_approx, sample)
+        projection, status = factor_approx.project(model_dist, delta=delta)
+        return model_approx.project(projection, status=status)
 
 class ImportanceSampler(AbstractSampler):
     def __init__(
@@ -86,17 +112,26 @@ class ImportanceSampler(AbstractSampler):
             n_samples: int = 200,
             n_resample: int = 100,
             min_n_eff: int = 100,
-            max_samples: int = 1000
+            max_samples: int = 1000,
+            force_sample: bool = True,
+            delta: float = 1.,
+            deltas = None, 
+            sample_kws = None, 
     ):
 
         self.params = dict(
             n_samples=n_samples, n_resample=n_resample,
-            min_n_eff=min_n_eff, max_samples=max_samples)
+            min_n_eff=min_n_eff, max_samples=max_samples,
+            force_sample=force_sample)
         self._history = defaultdict(SamplingHistory)
 
-    def sample(self, factor_approx: "FactorApproximation") -> SamplingResult:
+        super().__init__(
+            delta=delta, deltas=deltas, sample_kws=sample_kws)
+
+    def sample(self, factor_approx: "FactorApproximation", **kwargs) -> SamplingResult:
         # Update default params 
-        n_samples = self.params['n_samples']
+        params = {**self.params, **kwargs}
+        n_samples = params['n_samples']
         messages = ()
 
         factor = factor_approx.factor
@@ -183,21 +218,23 @@ class ImportanceSampler(AbstractSampler):
             proposal_dist=factor_approx.model_dist,
             n_samples=sampling_result.n_samples)
 
-    def stop_criterion(self, sample: SamplingResult) -> bool:
+    def stop_criterion(self, sample: SamplingResult, **kwargs) -> bool:
+        params = {**self.params, **kwargs}
         ess = effective_sample_size(sample.weights, 0).mean()
         n = len(sample.weights)
 
-        return ess > self.params['min_n_eff'] or n > self.params['max_samples']
+        return ess > params['min_n_eff'] or n > params['max_samples']
 
     def __call__(
             self,
             factor_approx: "FactorApproximation",
-            force_sample: bool = True
+            **kwargs
     ) -> SamplingResult:
         """
         """
+        params = {**self.params, **kwargs}
         samples = None
-        if force_sample:
+        if params['force_sample']:
             last_samples = None
         else:
             last_samples = self.last_samples(factor_approx.factor)
@@ -229,15 +266,23 @@ class ImportanceSampler(AbstractSampler):
 def project_factor_approx_sample(
         factor_approx: FactorApproximation,
         sample: SamplingResult) -> Dict[str, AbstractMessage]:
+
+    #Calculate log_norm
+    log_weights = sample.log_weights
+    # subtract max log_weight for numerical stability
+    log_w_max = np.max(log_weights, axis=0)
+    w = np.exp(log_weights - log_w_max)
+    log_norm = np.log(w.mean(0)) + log_w_max
     # Need to collapse the weights to match the shapes of the different
     # variables
     variable_log_weights = {
-        v: factor_approx.factor.collapse(v, sample.log_weights, agg_func=np.sum)
+        v: factor_approx.factor.collapse(v, log_weights, agg_func=np.sum)
         for v in factor_approx.cavity_dist}
 
     model_dist = MeanField({
         v: factor_approx.factor_dist[v].project(x, variable_log_weights.get(v))
-        for v, x in chain(sample.samples.items(), sample.det_variables.items())})
+        for v, x in chain(sample.samples.items(), sample.det_variables.items())},
+        log_norm=log_norm)
     return model_dist
 
 
