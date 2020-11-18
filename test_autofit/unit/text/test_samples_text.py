@@ -2,11 +2,11 @@ import autofit as af
 from autofit.text import samples_text
 import pytest
 
-import os
+from os import path
 
 from autofit.mock.mock import MockClassx2
 
-text_path = "{}/files/samples/".format(os.path.dirname(os.path.realpath(__file__)))
+text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
 
 
 @pytest.fixture(name="model")

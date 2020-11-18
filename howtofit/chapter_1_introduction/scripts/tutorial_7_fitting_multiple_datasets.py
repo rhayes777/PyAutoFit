@@ -20,6 +20,7 @@ workspace_path = str(here())
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
+from os import path
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -189,11 +190,11 @@ for dataset_name in dataset_names:
 
     """Load the dataset from the `autofit_workspace/dataset` folder."""
 
-    dataset_path = f"dataset/howtofit/chapter_1/{dataset_name}"
+    dataset_path = path.join("dataset", "howtofit", "chapter_1", dataset_name)
 
-    data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
+    data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
     noise_map = af.util.numpy_array_from_json(
-        file_path=f"{dataset_path}/noise_map.json"
+        file_path=path.join(dataset_path, "noise_map.json")
     )
 
     """

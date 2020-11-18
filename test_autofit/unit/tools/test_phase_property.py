@@ -12,14 +12,13 @@ directory = os.path.dirname(os.path.realpath(__file__))
 
 
 class NLO(abstract_search.NonLinearSearch):
-
     @property
     def config_type(self):
         return conf.instance.mock
 
     @property
     def tag(self):
-        return"nlo"
+        return "nlo"
 
     def _fit(self, model, analysis):
         class Fitness:
@@ -34,9 +33,7 @@ class NLO(abstract_search.NonLinearSearch):
                     setattr(instance, key, value)
 
                 log_likelihood = analysis.log_likelihood_function(instance)
-                self.result = abstract_search.Result(
-                    instance, log_likelihood
-                )
+                self.result = abstract_search.Result(instance, log_likelihood)
 
                 # Return Chi squared
                 return -2 * log_likelihood
@@ -178,7 +175,8 @@ class TestPhasePropertyCollectionAttributes:
 
     def test_shared_priors(self, list_phase):
         list_phase.prop = dict(
-            one=mock_real.GalaxyModel(model_redshift=True), two=mock_real.GalaxyModel(model_redshift=True)
+            one=mock_real.GalaxyModel(model_redshift=True),
+            two=mock_real.GalaxyModel(model_redshift=True),
         )
 
         assert list_phase.model.prior_count == 2

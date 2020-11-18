@@ -8,7 +8,7 @@ def _gaussian(x, centre, intensity, sigma):
     return Gaussian(centre=centre, intensity=intensity, sigma=sigma)(x)
 
 
-_norm = stats.norm(loc=0, scale=1.)
+_norm = stats.norm(loc=0, scale=1.0)
 
 
 # TODO: use autofit likelihood
@@ -33,10 +33,10 @@ class Profile:
 
 class Gaussian(Profile):
     def __init__(
-            self,
-            centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-            intensity=0.1,  # <- are the Gaussian's model parameters.
-            sigma=0.01,
+        self,
+        centre=0.0,  # <- PyAutoFit recognises these constructor arguments
+        intensity=0.1,  # <- are the Gaussian's model parameters.
+        sigma=0.01,
     ):
         """Represents a 1D Gaussian profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a non-linear search.
@@ -71,10 +71,7 @@ class Gaussian(Profile):
         )
 
 
-def make_data(
-        gaussian,
-        x
-):
+def make_data(gaussian, x):
     model_line = gaussian(xvalues=x)
     signal_to_noise_ratio = 25.0
     noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, len(x))

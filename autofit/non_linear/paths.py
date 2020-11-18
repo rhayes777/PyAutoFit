@@ -1,5 +1,5 @@
-import glob
 import os
+from os import path
 import shutil
 import zipfile
 from configparser import NoSectionError
@@ -169,14 +169,22 @@ class Paths:
         """
         The path to the samples folder.
         """
-        return f"{self.output_path}/samples"
+        return path.join(self.output_path, "samples")
+
+    @property
+    def samples_file(self) -> str:
+        return path.join(self.samples_path, "samples.csv")
+
+    @property
+    def info_file(self) -> str:
+        return path.join(self.samples_path, "info.json")
 
     @property
     def image_path(self) -> str:
         """
-        The path to the samples folder.
+        The path to the image folder.
         """
-        return f"{self.output_path}/image"
+        return path.join(self.output_path, "image")
 
     @property
     def zip_path(self) -> str:
@@ -188,42 +196,45 @@ class Paths:
         """
         The path to the output information for a phase.
         """
-        return "/".join(
-            filter(
+        strings = (
+            list(filter(
                 len,
-                [
-                    str(conf.instance.output_path),
-                    self.path_prefix,
-                    self.name,
-                    self.tag,
-                    self.non_linear_tag,
-                ],
+                    [
+                        str(conf.instance.output_path),
+                        self.path_prefix,
+                        self.name,
+                        self.tag,
+                        self.non_linear_tag,
+                    ],
+                )
             )
         )
+
+        return path.join("", *strings)
 
     @property
     def has_completed_path(self) -> str:
         """
         A file indicating that a `NonLinearSearch` has been completed previously
         """
-        return f"{self.output_path}/.completed"
+        return path.join(self.output_path, ".completed")
 
     @property
     def execution_time_path(self) -> str:
         """
         The path to the output information for a phase.
         """
-        return "{}/execution_time".format(self.name_folder)
+        return path.join(self.name_folder, "execution_time")
 
     @property
     @make_path
     def name_folder(self):
-        return "/".join((conf.instance.output_path, self.path_prefix, self.name))
+        return path.join(conf.instance.output_path, self.path_prefix, self.name)
 
     @property
     @make_path
     def sym_path(self) -> str:
-        return "{}/{}/{}/{}/{}/samples".format(
+        return path.join(
             conf.instance.output_path,
             self.path_prefix,
             self.name,
@@ -233,23 +244,23 @@ class Paths:
 
     @property
     def file_param_names(self) -> str:
-        return "{}/{}".format(self.path, self.non_linear_tag + ".paramnames")
+        return path.join(self.samples_path, "model.paramnames")
 
     @property
     def file_model_promises(self) -> str:
-        return "{}/{}".format(self.output_path, "model.promises")
+        return path.join(self.output_path, "model.promises")
 
     @property
     def file_model_info(self) -> str:
-        return "{}/{}".format(self.output_path, "model.info")
+        return path.join(self.output_path, "model.info")
 
     @property
-    @make_path
-    def image_path(self) -> str:
-        """
-        The path to the directory in which images are stored.
-        """
-        return "{}/image/".format(self.output_path)
+    def file_search_summary(self) -> str:
+        return path.join(self.output_path, "search.summary")
+
+    @property
+    def file_results(self):
+        return path.join(self.output_path, "model.results")
 
     @property
     @make_path
@@ -257,37 +268,37 @@ class Paths:
         """
         The path to the directory in which images are stored.
         """
-        return "{}pdf/".format(self.image_path)
+        return path.join(self.image_path, "pdf")
 
     @property
     @make_path
     def pickle_path(self) -> str:
-        return f"{self.make_path()}/pickles"
+        return path.join(self.make_path(), "pickles")
 
     def make_search_pickle_path(self) -> str:
         """
         Returns the path at which the search pickle should be saved
         """
-        return f"{self.pickle_path}/search.pickle"
+        return path.join(self.pickle_path, "search.pickle")
 
     def make_model_pickle_path(self):
         """
         Returns the path at which the model pickle should be saved
         """
-        return f"{self.pickle_path}/model.pickle"
+        return path.join(self.pickle_path, "model.pickle")
 
     def make_samples_pickle_path(self) -> str:
         """
         Returns the path at which the search pickle should be saved
         """
-        return f"{self.pickle_path}/samples.pickle"
+        return path.join(self.pickle_path, "samples.pickle")
 
     @make_path
     def make_path(self) -> str:
         """
         Returns the path to the folder at which the metadata should be saved
         """
-        return "{}/{}/{}/{}/{}/".format(
+        return path.join(
             conf.instance.output_path,
             self.path_prefix,
             self.name,
@@ -299,27 +310,19 @@ class Paths:
 
     @property
     def file_summary(self) -> str:
-        return "{}/{}".format(self.samples_path, "multinestsummary.txt")
+        return path.join(self.samples_path, "multinestsummary.txt")
 
     @property
     def file_weighted_samples(self):
-        return "{}/{}".format(self.samples_path, "multinest.txt")
+        return path.join(self.samples_path, "multinest.txt")
 
     @property
     def file_phys_live(self) -> str:
-        return "{}/{}".format(self.samples_path, "multinestphys_live.points")
+        return path.join(self.samples_path, "multinestphys_live.points")
 
     @property
     def file_resume(self) -> str:
-        return "{}/{}".format(self.samples_path, "multinestresume.dat")
-
-    @property
-    def file_search_summary(self) -> str:
-        return "{}/{}".format(self.output_path, "search.summary")
-
-    @property
-    def file_results(self):
-        return "{}/{}".format(self.output_path, "model.results")
+        return path.join(self.samples_path, "multinestresume.dat")
 
     def copy_from_sym(self):
         """
@@ -328,8 +331,8 @@ class Paths:
 
         src_files = os.listdir(self.path)
         for file_name in src_files:
-            full_file_name = os.path.join(self.path, file_name)
-            if os.path.isfile(full_file_name):
+            full_file_name = path.join(self.path, file_name)
+            if path.isfile(full_file_name):
                 shutil.copy(full_file_name, self.samples_path)
 
     def zip_remove(self):
@@ -349,7 +352,7 @@ class Paths:
         Copy files from the ``.zip`` file to the samples folder.
         """
 
-        if os.path.exists(self.zip_path):
+        if path.exists(self.zip_path):
             with zipfile.ZipFile(self.zip_path, "r") as f:
                 f.extractall(self.output_path)
 
@@ -360,10 +363,13 @@ class Paths:
             with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
                 for root, dirs, files in os.walk(self.output_path):
                     for file in files:
+
+                        # TODO : I removed lstrip("/") here, I think it is ok...
+
                         f.write(
-                            os.path.join(root, file),
-                            os.path.join(
-                                root[len(self.output_path):].lstrip("/"), file
+                            path.join(root, file),
+                            path.join(
+                                root[len(self.output_path):], file
                             ),
                         )
 

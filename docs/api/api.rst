@@ -29,7 +29,6 @@ Non-Linear Searches
 .. autosummary::
    :toctree: generated/
 
-   DownhillSimplex
    PySwarmsGlobal
 
 *`GridSearch`*:

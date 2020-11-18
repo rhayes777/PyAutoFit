@@ -140,6 +140,28 @@ in **PyAutoFit**'s advanced statistical methods, such
 as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html>`_.
 
 .. toctree::
+   :caption: Overview:
+   :maxdepth: 1
+   :hidden:
+
+   overview/model_fit
+   overview/model_complex
+   overview/non_linear_search
+   overview/result
+   overview/aggregator
+
+.. toctree::
+   :caption: Installation:
+   :maxdepth: 1
+   :hidden:
+
+   installation/overview
+   installation/conda
+   installation/pip
+   installation/source
+   installation/troubleshooting
+
+.. toctree::
    :caption: General:
    :maxdepth: 1
    :hidden:
@@ -151,17 +173,6 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    general/citations
    general/future
    general/credits
-
-.. toctree::
-   :caption: Overview:
-   :maxdepth: 1
-   :hidden:
-
-   overview/model_fit
-   overview/model_complex
-   overview/non_linear_search
-   overview/result
-   overview/aggregator
 
 .. toctree::
    :caption: Tutorials:

@@ -1,4 +1,4 @@
-import os
+from os import path
 import shutil
 
 import pytest
@@ -7,15 +7,15 @@ import autofit as af
 from autoconf import conf
 from autofit.mock import mock
 
-directory = os.path.dirname(os.path.realpath(__file__))
+directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 @pytest.fixture(autouse=True)
 def set_config_path():
     conf.instance.push(
-        os.path.join(directory, "files/emcee/config"),
-        output_path=os.path.join(directory, "files/emcee/output"),
+        new_path=path.join(directory, "files", "emcee", "config"),
+        output_path=path.join(directory, "files", "emcee", "output"),
     )
 
 
@@ -68,9 +68,12 @@ class TestEmceeConfig:
 
     def test__samples_from_model(self):
         emcee = af.Emcee(paths=af.Paths())
+
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(
+                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
+            ),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -100,8 +103,10 @@ class TestEmceeOutput:
     def test__median_pdf_parameters(self):
         emcee = af.Emcee(paths=af.Paths())
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(
+                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
+            ),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -115,9 +120,12 @@ class TestEmceeOutput:
 
     def test__vector_at_sigma__uses_output_files(self):
         emcee = af.Emcee(paths=af.Paths())
+
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(
+                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
+            ),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -135,9 +143,12 @@ class TestEmceeOutput:
 
     def test__autocorrelation_times(self):
         emcee = af.Emcee(paths=af.Paths())
+
         shutil.copy(
-            f"{directory}/files/emcee.hdf",
-            f"{directory}/files/emcee/output/emcee__nwalkers_50/samples",
+            path.join(directory, "files", "emcee.hdf"),
+            path.join(
+                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
+            ),
         )
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -156,7 +167,7 @@ class TestEmceeOutput:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == "name/one"
+        assert copy.paths.name == path.join("name", "one")
 
     def test_emcee(self):
         search = af.Emcee(af.Paths("name"))
@@ -169,16 +180,16 @@ class TestCopyWithNameExtension:
         assert copy.nsteps is search.nsteps
         assert copy.initializer is search.initializer
         assert (
-                copy.auto_correlation_check_for_convergence
-                is search.auto_correlation_check_for_convergence
+            copy.auto_correlation_check_for_convergence
+            is search.auto_correlation_check_for_convergence
         )
         assert copy.auto_correlation_check_size is search.auto_correlation_check_size
         assert (
-                copy.auto_correlation_required_length
-                is search.auto_correlation_required_length
+            copy.auto_correlation_required_length
+            is search.auto_correlation_required_length
         )
         assert (
-                copy.auto_correlation_change_threshold
-                is search.auto_correlation_change_threshold
+            copy.auto_correlation_change_threshold
+            is search.auto_correlation_change_threshold
         )
         assert copy.number_of_cores is search.number_of_cores

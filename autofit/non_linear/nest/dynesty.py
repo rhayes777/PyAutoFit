@@ -291,11 +291,6 @@ class AbstractDynesty(AbstractNest):
 
         else:
 
-            try:
-                os.makedirs(self.paths.samples_path)
-            except FileExistsError:
-                pass
-
             sampler = self.sampler_fom_model_and_fitness(
                 model=model, fitness_function=fitness_function
             )
@@ -366,12 +361,12 @@ class AbstractDynesty(AbstractNest):
             ):
                 finished = True
 
-    def copy_with_name_extension(self, extension, remove_phase_tag=False):
+    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
         """Copy this instance of the dynesty `NonLinearSearch` with all associated attributes.
 
         This is used to set up the `NonLinearSearch` on phase extensions."""
         copy = super().copy_with_name_extension(
-            extension=extension, remove_phase_tag=remove_phase_tag
+            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
         )
         copy.n_live_points = self.n_live_points
         copy.iterations_per_update = self.iterations_per_update
@@ -1024,11 +1019,6 @@ class DynestyDynamic(AbstractDynesty):
             model=model, analysis=analysis, pool_ids=pool_ids
         )
 
-        try:
-            os.makedirs(self.paths.samples_path)
-        except FileExistsError:
-            pass
-
         sampler = self.sampler_fom_model_and_fitness(
             model=model, fitness_function=fitness_function
         )
@@ -1085,7 +1075,7 @@ class DynestyDynamic(AbstractDynesty):
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model, sampler=sampler)
-        samples.write_table(filename=f"{self.paths.sym_path}/samples.csv")
+        samples.write_table(filename=self.paths.samples_file)
         self.save_samples(samples=samples)
 
         instance = samples.max_log_likelihood_instance

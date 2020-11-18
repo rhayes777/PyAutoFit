@@ -1,7 +1,4 @@
-from test_autofit.integration.src.plot import (
-    dataset_plots,
-    fit_plots,
-)
+from test_autofit.integration.src.plot import dataset_plots, fit_plots
 
 # The 'visualizer.py' module is unchanged from the previous tutorial.
 

@@ -18,6 +18,7 @@ workspace_path = str(here())
 %cd $workspace_path
 print(f"Working Directory has been set to `{workspace_path}`")
 
+from os import path
 import autofit as af
 
 
@@ -28,7 +29,9 @@ our path straight to the `Aggregator` results ensuring we don't need to filter o
 """
 
 # %%
-agg = af.Aggregator(directory="output/howtofit/chapter_1/aggregator")
+agg = af.Aggregator(
+    directory=path.join("output", "howtofit", "chapter_1", "aggregator")
+)
 
 # %%
 """

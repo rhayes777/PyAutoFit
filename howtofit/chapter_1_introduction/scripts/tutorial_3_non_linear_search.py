@@ -52,6 +52,7 @@ workspace_path = str(here())
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
+from os import path
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -61,9 +62,11 @@ Load the dataset from the `autofit_workspace/dataset` folder.
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_1", "gaussian_x1")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(
+    file_path=path.join(dataset_path, "noise_map.json")
+)
 
 # %%
 """
@@ -166,7 +169,7 @@ model.sigma = af.UniformPrior(lower_limit=0.0, upper_limit=50.0)
 
 analysis = Analysis(data=data, noise_map=noise_map)
 
-emcee = af.Emcee(name="tutorial_3", path_prefix="howtofit/chapter_1")
+emcee = af.Emcee(name="tutorial_3", path_prefix=path.join("howtofit", "chapter_1"))
 
 # %%
 """

@@ -8,21 +8,19 @@ import autofit as af
 directory = path.dirname(path.realpath(__file__))
 
 
-
-
 class PatchPaths(af.Paths):
     @property
     def path(self):
-        return f"{directory}/path"
+        return path.join(directory, "path")
 
     @property
     def sym_path(self) -> str:
-        return f"{directory}/sym_path"
+        return path.join(directory, "sym_path")
 
     @property
     @af.make_path
     def output_path(self) -> str:
-        return f"{directory}/phase_output_path"
+        return path.join(directory, "phase_output_path")
 
 
 @pytest.fixture(name="paths")
@@ -44,9 +42,9 @@ def test_zip_remove(paths):
 
     paths.zip_remove()
 
-    assert not os.path.exists(paths.path)
-    assert not os.path.exists(f"{directory}/phase_output_path")
-    assert os.path.exists(paths.zip_path)
+    assert not path.exists(paths.path)
+    assert not path.exists(path.join(directory, "phase_output_path"))
+    assert path.exists(paths.zip_path)
 
     os.remove(paths.zip_path)
     os.rmdir(paths.sym_path)
@@ -62,7 +60,7 @@ def test_restore(paths):
 
     paths.restore()
 
-    assert os.path.exists(paths.output_path)
-    assert not os.path.exists(paths.zip_path)
+    assert path.exists(paths.output_path)
+    assert not path.exists(paths.zip_path)
 
     os.rmdir(paths.output_path)

@@ -1,6 +1,4 @@
-from test_autofit.integration.src.dataset import (
-    dataset as ds,
-)
+from test_autofit.integration.src.dataset import dataset as ds
 from test_autofit.integration.src.fit import fit as f
 
 # This module contains convenience methods for computing standard objects from an `Aggregator` as generators.

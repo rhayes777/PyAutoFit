@@ -13,10 +13,10 @@ class AbstractOptimizer(NonLinearSearch):
     def samples_via_csv_json_from_model(self, model):
 
         parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
-            filename=f"{self.paths.samples_path}/samples.csv", model=model
+            filename=self.paths.samples_file, model=model
         )
 
-        with open(f"{self.paths.samples_path}/info.json") as infile:
+        with open(self.paths.info_file) as infile:
             samples_info = json.load(infile)
 
         return samp.OptimizerSamples(

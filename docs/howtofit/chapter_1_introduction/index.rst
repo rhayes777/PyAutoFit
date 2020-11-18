@@ -1,13 +1,8 @@
 Chapter 1: Introduction
 =======================
 
-In chapter 1, we introduce you to the **PyAutoFit** API and describe how to set up your own software
-project to use **PyAutoFit**.
-
-A number of the notebooks require a ``NonLinearSearch`` to be performed, which can lead the auto-generation
-of the **HowToFit** readthedocs pages to crash. For this reason, all cells which perform a ``NonLinearSearch``
-or use its result are commented out. We advise if you want to read through the **HowToFit** lectures in full
-that you download the ``autofit_workspace`` and run them from there (where these comments are removed).
+In chapter 1, we introduce you to the **PyAutoFit** and describe how to set up your own model, fit it to data via
+a non-linear search and inspect and interpret the results.
 
 The chapter contains the following tutorials:
 
@@ -33,7 +28,7 @@ The chapter contains the following tutorials:
 - Fitting a model to multiple similar datasets.
 
 `Tutorial 8: Aggregator <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_8_aggregator.html>`_
-- Loaing large libraries of results using in-built database tools.
+- Loading large libraries of results using in-built database tools.
 
 `Tutorial 9: Filtering <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_9_filtering.html>`_
 - Filtering the loaded results to find specific results of interest.

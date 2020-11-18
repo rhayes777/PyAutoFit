@@ -5,22 +5,14 @@ import pytest
 from autofit.tools.edenise import Line, Converter
 
 
-@pytest.fixture(
-    name="as_line"
-)
+@pytest.fixture(name="as_line")
 def make_as_line():
-    return Line(
-        "from .mapper.model import ModelInstance as Instance"
-    )
+    return Line("from .mapper.model import ModelInstance as Instance")
 
 
-@pytest.fixture(
-    name="line"
-)
+@pytest.fixture(name="line")
 def make_line():
-    return Line(
-        "from .mapper.model import ModelInstance"
-    )
+    return Line("from .mapper.model import ModelInstance")
 
 
 class Test:
@@ -40,35 +32,27 @@ class Test:
         assert hash(as_line) == hash(line)
 
     def test_phase_property_line(self):
-        line = Line(
-            "from .tools.phase_property import PhaseProperty"
-        )
+        line = Line("from .tools.phase_property import PhaseProperty")
         assert line.source == "PhaseProperty"
         assert line._target == "tools.phase_property.PhaseProperty"
 
     def test_replace(self, as_line, line):
-        converter = Converter(
-            "testfit",
-            "tf",
-            [as_line, line]
+        converter = Converter("testfit", "tf", [as_line, line])
+        assert (
+            converter.convert("import testfit as tf\n\ntf.ModelInstance\ntf.Instance")
+            == "from testfit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"
         )
-        assert converter.convert(
-            "import testfit as tf\n\ntf.ModelInstance\ntf.Instance"
-        ) == "from testfit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"
 
     def test_replace_dotted(self):
-        line = Line(
-            "from .text import formatter"
-        )
+        line = Line("from .text import formatter")
         assert line.joint_source == "text.formatter"
-        converter = Converter(
-            "testfit",
-            "tf",
-            [line]
+        converter = Converter("testfit", "tf", [line])
+        assert (
+            converter.convert(
+                "import testfit as tf\n\ntf.text.formatter.label_and_label_string"
+            )
+            == "from testfit.text import formatter\n\n\nformatter.label_and_label_string"
         )
-        assert converter.convert(
-            "import testfit as tf\n\ntf.text.formatter.label_and_label_string"
-        ) == "from testfit.text import formatter\n\n\nformatter.label_and_label_string"
 
 
 def test_convert_formatter():
@@ -77,9 +61,7 @@ def test_convert_formatter():
     with open(test_path) as f:
         string = f.read()
     converter = Converter.from_prefix_and_source_directory(
-        "autofit",
-        "af",
-        unit_test_directory.parent.parent / "autofit"
+        "autofit", "af", unit_test_directory.parent.parent / "autofit"
     )
     result = converter.convert(string)
 

@@ -168,12 +168,16 @@ class TestSum:
         galaxy_1 = af.PriorModel(
             mock.MockComponents,
             components_0=af.CollectionPriorModel(light_1=mock_real.EllipticalProfile),
-            components_1=af.CollectionPriorModel(mass_1=mock_real.EllipticalMassProfile),
+            components_1=af.CollectionPriorModel(
+                mass_1=mock_real.EllipticalMassProfile
+            ),
         )
         galaxy_2 = af.PriorModel(
             mock.MockComponents,
             components_0=af.CollectionPriorModel(light_2=mock_real.EllipticalProfile),
-            components_1=af.CollectionPriorModel(mass_2=mock_real.EllipticalMassProfile),
+            components_1=af.CollectionPriorModel(
+                mass_2=mock_real.EllipticalMassProfile
+            ),
         )
 
         result = galaxy_1 + galaxy_2
@@ -193,7 +197,9 @@ class TestSum:
         galaxy_2 = af.PriorModel(
             mock.MockComponents,
             components_0=af.CollectionPriorModel(light=mock_real.EllipticalProfile),
-            components_1=af.CollectionPriorModel(mass=mock_real.EllipticalMassProfile()),
+            components_1=af.CollectionPriorModel(
+                mass=mock_real.EllipticalMassProfile()
+            ),
         )
 
         result = galaxy_1 + galaxy_2
@@ -230,8 +236,8 @@ class TestHashing:
         assert hash(af.AbstractPriorModel()) is not None
         assert hash(af.PriorModel(mock.MockClassx2)) is not None
         assert (
-                hash(af.AnnotationPriorModel(mock.MockClassx2, mock.MockClassx2, "one"))
-                is not None
+            hash(af.AnnotationPriorModel(mock.MockClassx2, mock.MockClassx2, "one"))
+            is not None
         )
 
     def test_prior_prior_model_hash_consecutive(self):
@@ -370,7 +376,7 @@ class TestCollectionPriorModel:
         assert instance.two.one == 1
         assert instance.two.two == 2
 
-    def test_mix_instances_in_list_prior_model(self):
+    def test_mix_instances_in_grouped_list_prior_model(self):
         prior_model = af.CollectionPriorModel(
             [mock.MockClassx2, mock.MockClassx2(1, 2)]
         )
@@ -392,7 +398,7 @@ class TestCollectionPriorModel:
 
         assert len(prior_model.prior_class_dict) == 2
 
-    def test_list_in_list_prior_model(self):
+    def test_list_in_grouped_list_prior_model(self):
         prior_model = af.CollectionPriorModel([[mock.MockClassx2]])
 
         assert len(prior_model.direct_prior_model_tuples) == 1

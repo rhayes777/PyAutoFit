@@ -1,4 +1,4 @@
-import os
+from os import path
 from autoconf import conf
 import autofit as af
 from test_autofit.integration.src.dataset import dataset as ds
@@ -15,29 +15,26 @@ data_name = "gaussian_x1"
 class GridPhase(af.as_grid_search(phase_class=ph.Phase, parallel=False)):
     @property
     def grid_priors(self):
-        return [
-            self.model.profiles.gaussian.one_tuple,
-        ]
+        return [self.model.profiles.gaussian.one_tuple]
+
 
 phase = GridPhase(
     name="phase_grid",
     profiles=af.CollectionPriorModel(gaussian=profiles.Gaussian),
-        search=af.DynestyStatic(
-            n_live_points=40, evidence_tolerance=5.0
-        ),
-        number_of_steps=2,
-    )
+    search=af.DynestyStatic(n_live_points=40, evidence_tolerance=5.0),
+    number_of_steps=2,
+)
 
-integration_path = "{}/../..".format(os.path.dirname(os.path.realpath(__file__)))
+integration_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "..", "..")
 
 conf.instance.push(
-f"{integration_path}/config",
-    output_path=f"{integration_path}/output/{test_type}"
+    new_path=path.join(integration_path, "config"),
+    output_path=path.join(integration_path, "output", test_type)
 )
 
 dataset = ds.Dataset.from_fits(
-    data_path=f"{integration_path}/dataset/{data_name}/data.fits",
-    noise_map_path=f"{integration_path}/dataset/{data_name}/noise_map.fits",
+    data_path=path.join(integration_path, "dataset", data_name, "data.fits"),
+    noise_map_path=path.join(integration_path, "dataset", data_name, "noise_map.fits"),
 )
 
 phase.run(dataset=dataset)

@@ -16,6 +16,7 @@ workspace_path = str(here())
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
+from os import path
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -25,9 +26,11 @@ Load the dataset we will fit from the `autofit_workspace/dataset` folder.
 """
 
 # %%
-dataset_path = "dataset/howtofit/chapter_1/gaussian_x1"
-data = af.util.numpy_array_from_json(file_path=f"{dataset_path}/data.json")
-noise_map = af.util.numpy_array_from_json(file_path=f"{dataset_path}/noise_map.json")
+dataset_path = path.join("dataset", "howtofit", "chapter_1", "gaussian_x1")
+data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
+noise_map = af.util.numpy_array_from_json(
+    file_path=path.join(dataset_path, "noise_map.json")
+)
 
 # %%
 """

@@ -95,7 +95,9 @@ class TestPriorLimits:
         mm = af.ModelMapper()
         mm.mock_class_gaussian = mock.MockClassx2
 
-        new_mapper = mm.mapper_from_gaussian_tuples(tuples=[(0.0, 0.5), (0.0, 1)], use_widths=True, use_errors=True)
+        new_mapper = mm.mapper_from_gaussian_tuples(
+            tuples=[(0.0, 0.5), (0.0, 1)], use_widths=True, use_errors=True
+        )
 
         prior_tuples = new_mapper.prior_tuples_ordered_by_id
 
@@ -110,9 +112,7 @@ class TestPriorLimits:
         mm.mock_class_gaussian = mock.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
-            tuples=[(0.1, 0.2), (0.3, 0.4)],
-            use_widths=False,
-            use_errors=True
+            tuples=[(0.1, 0.2), (0.3, 0.4)], use_widths=False, use_errors=True
         )
 
         prior_tuples = new_mapper.prior_tuples_ordered_by_id
@@ -129,9 +129,7 @@ class TestPriorLimits:
         mm.mock_class_gaussian = mock.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
-            tuples=[(5.0, 5.0), (5.0, 5.0)],
-            use_widths=True,
-            use_errors=False
+            tuples=[(5.0, 5.0), (5.0, 5.0)], use_widths=True, use_errors=False
         )
 
         prior_tuples = new_mapper.prior_tuples_ordered_by_id
@@ -148,9 +146,7 @@ class TestPriorLimits:
         mm.mock_class_gaussian = mock.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
-            tuples=[(5.0, 0.2), (5.0, 5.0)],
-            use_widths=True,
-            use_errors=True
+            tuples=[(5.0, 0.2), (5.0, 5.0)], use_widths=True, use_errors=True
         )
 
         prior_tuples = new_mapper.prior_tuples_ordered_by_id
@@ -166,8 +162,7 @@ class TestPriorLimits:
         mm.mock_class_gaussian = mock.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
-            [(0.0, 0.5), (0.0, 1)],
-            no_limits=True
+            [(0.0, 0.5), (0.0, 1)], no_limits=True
         )
 
         priors = new_mapper.priors
