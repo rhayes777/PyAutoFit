@@ -30,24 +30,34 @@ def make_model():
     name="serialized_model"
 )
 def make_serialized_model(model):
-    return db.PriorModel(
+    return db.Object(
         model
     )
 
 
-def test_serialise_model(
-        serialized_model
-):
-    assert isinstance(
-        serialized_model, db.PriorModel
-    )
-    assert serialized_model.cls is m.Gaussian
+class TestModel:
+    def test_serialise(
+            self,
+            serialized_model
+    ):
+        assert isinstance(
+            serialized_model, db.PriorModel
+        )
+        assert serialized_model.cls is m.Gaussian
+
+    def test_deserialize(
+            self,
+            serialized_model
+    ):
+        assert isinstance(
+            serialized_model(),
+            m.Gaussian
+        )
 
 
-def test_deserialize_model(
-        serialized_model
-):
-    assert isinstance(
-        serialized_model(),
-        m.Gaussian
-    )
+class TestPriors:
+    def test_serialize(
+            self,
+            serialized_model
+    ):
+        assert len(serialized_model.priors) == 3
