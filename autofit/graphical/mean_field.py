@@ -243,6 +243,12 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             k: m**other for k, m in self.items()},
             self.log_norm * other)
 
+    def log_normalisation(self, other: 'MeanField') -> float:
+        return sum(
+            np.sum(dist.log_normalisation(other[v]))
+            for v, dist in self.items()
+        )
+
     def update_invalid(self, other: "MeanField") -> "MeanField":
         mean_field = {}
         for k, m in self.items():
@@ -474,6 +480,9 @@ class FactorApproximation(AbstractNode):
                 f"model projection for {self} is invalid",)
             factor_dist = factor_dist.update_invalid(self.factor_dist)
         
+        # variable_norm = self.cavity_dist.log_normalisation(factor_dist)
+        # factor_dist.log_norm = np.sum(factor_dist.log_norm) - variable_norm
+
         new_approx = FactorApproximation(
             self.factor,
             self.cavity_dist, 

@@ -173,31 +173,41 @@ def test_laplace(
 def test_importance_sampling(
         model,
         model_approx,
+        linear_factor, 
         y_,
         z_, 
 ):
-    sampler = mp.ImportanceSampler(n_samples=500)
-
-    history = {}
-    n_iter = 3
-
-    for i in range(n_iter):
-        for factor in model.factors:
-            # We have reduced the entire EP step into a single function
-            model_approx, _ = mp.sampling.project_model(
-                model_approx,
-                factor,
-                sampler,
-                force_sample=True,
-                delta=.8
-            )
-
-            # save and print current approximation
-            history[i, factor] = model_approx
+    laplace = mp.LaplaceFactorOptimiser()
+    sampler = mp.ImportanceSampler(
+        n_samples=500, force_sample=True, delta=0.8)
+    ep_opt = mp.EPOptimiser(
+        model, default_optimiser=laplace,
+        factor_optimisers={linear_factor: sampler}
+    )
+    model_approx = ep_opt.run(model_approx, max_steps=3)
 
     y = model_approx.mean_field[y_].mean
     y_pred = model_approx.mean_field[z_].mean
+    
     assert mp.utils.r2_score(y, y_pred) > 0.90
+
+    # history = {}
+    # n_iter = 3
+
+    # for i in range(n_iter):
+    #     for factor in model.factors:
+    #         # We have reduced the entire EP step into a single function
+    #         model_approx, _ = mp.sampling.project_model(
+    #             model_approx,
+    #             factor,
+    #             sampler,
+    #             force_sample=True,
+    #             delta=.8
+    #         )
+
+    #         # save and print current approximation
+    #         history[i, factor] = model_approx
+
 
     # q_a = model_approx[a_]
     # q_b = model_approx[b_]

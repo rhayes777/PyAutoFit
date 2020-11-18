@@ -269,15 +269,18 @@ def project_factor_approx_sample(
 
     #Calculate log_norm
     log_weights = sample.log_weights
-    # subtract max log_weight for numerical stability
-    log_w_max = np.max(log_weights, axis=0)
-    w = np.exp(log_weights - log_w_max)
-    log_norm = np.log(w.mean(0)) + log_w_max
     # Need to collapse the weights to match the shapes of the different
     # variables
     variable_log_weights = {
         v: factor_approx.factor.collapse(v, log_weights, agg_func=np.sum)
         for v in factor_approx.cavity_dist}
+        
+    log_weights = log_weights.sum(
+        tuple(range(1, log_weights.ndim)))
+    # subtract max log_weight for numerical stability
+    log_w_max = np.max(log_weights)
+    w = np.exp(log_weights - log_w_max)
+    log_norm = np.log(w.mean(0)) + log_w_max
 
     model_dist = MeanField({
         v: factor_approx.factor_dist[v].project(x, variable_log_weights.get(v))

@@ -154,7 +154,7 @@ class EPMeanField(AbstractNode):
 
         Evidence for a factor, f_a,
 
-                ∫ ∏_{j ∈ a} m_{a → i} (xᵢ) fₐ(xₐ) dxₐ
+                ∫ ∏_{j ∈ a} m_{i → a} (xᵢ) fₐ(xₐ) dxₐ
         Zₐ = -----------------------------------------
                              ∏_{j ∈ a} Zⱼ
 
@@ -166,7 +166,7 @@ class EPMeanField(AbstractNode):
             v: np.sum(Zi) for v, Zi in self.variable_evidence.items()}
         factor_evidence = sum(
             np.sum(meanfield.log_norm)
-             - sum(variable_evidence[v] for v in factor.all_variables)
+            - sum(variable_evidence[v] for v in factor.all_variables)
             for factor, meanfield in self.factor_mean_field.items()
         )
         return factor_evidence + sum(variable_evidence.values())
