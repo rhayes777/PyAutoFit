@@ -311,7 +311,7 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         new_approx, status = model_approx.project(projection, status)
         return new_approx, status
 
-
+LaplaceFactorOptimizer = LaplaceFactorOptimiser
 #################################################
 
 
