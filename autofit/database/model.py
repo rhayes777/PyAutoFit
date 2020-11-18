@@ -1,6 +1,6 @@
 import importlib
 import re
-from typing import List
+from typing import List, Tuple, Any, Iterable, Union, ItemsView
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.ext.declarative import declarative_base
@@ -70,6 +70,8 @@ class Object(Base):
             return object.__new__(Prior)
         if isinstance(source, (float, int)):
             return object.__new__(Value)
+        if isinstance(source, af.CollectionPriorModel):
+            return object.__new__(CollectionPriorModel)
         raise TypeError(
             f"{type(source)} is not supported"
         )
@@ -86,6 +88,31 @@ class Object(Base):
                 child()
             )
         return instance
+
+    def _add_children(
+            self,
+            items: Union[
+                ItemsView[str, Any],
+                Iterable[Tuple[str, Any]]
+            ]
+    ):
+        for key, value in items:
+            self.children.append(
+                Object(
+                    value,
+                    name=key
+                )
+            )
+
+
+class CollectionPriorModel(Object):
+    def __init__(
+            self,
+            collection: af.CollectionPriorModel,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+        self._add_children(collection.items())
 
 
 class Value(Object):
@@ -178,13 +205,7 @@ class PriorModel(Object, ClassMixin):
             **kwargs
         )
         self.cls = model.cls
-        for name, prior in model.direct_prior_tuples:
-            self.children.append(
-                Object(
-                    prior,
-                    name=name
-                )
-            )
+        self._add_children(model.direct_prior_tuples)
 
     def _make_instance(self):
         return af.PriorModel(
@@ -216,13 +237,7 @@ class Prior(Object, ClassMixin):
             **kwargs
         )
         self.cls = type(model)
-        for key, value in model.__dict__.items():
-            self.children.append(
-                Object(
-                    value,
-                    name=key
-                )
-            )
+        self._add_children(model.__dict__.items())
 
     def _make_instance(self):
         return self.cls()

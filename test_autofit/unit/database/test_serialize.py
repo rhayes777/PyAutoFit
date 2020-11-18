@@ -36,7 +36,7 @@ def make_serialized_model(model):
 
 
 class TestModel:
-    def test_serialise(
+    def test_serialize(
             self,
             serialized_model
     ):
@@ -68,6 +68,23 @@ class TestPriors:
         assert isinstance(
             model.centre,
             af.UniformPrior
+        )
+
+
+class TestCollection:
+    def test_serialize(
+            self,
+            model
+    ):
+        collection = af.CollectionPriorModel(
+            model=model
+        )
+        serialized_collection = db.Object(
+            collection
+        )
+        assert isinstance(
+            serialized_collection,
+            db.CollectionPriorModel
         )
 
 
