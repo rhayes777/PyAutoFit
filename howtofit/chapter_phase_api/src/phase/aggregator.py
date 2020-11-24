@@ -45,7 +45,7 @@ def dataset_from_agg_obj(
      outputs such that the function can use the `Aggregator``s map function to to create a `Dataset` generator.
 
      The `Dataset` is created following the same method as the `Phase` classes, including using the
-     `meta_dataset` instance output by the phase to load inputs of the `Dataset` (e.g. data_trim_left). 
+     `meta_dataset` instance output by the phase to load inputs of the `Dataset` (e.g. data_trim_left).
 
     Parameters
     ----------

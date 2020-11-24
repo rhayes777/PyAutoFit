@@ -14,7 +14,7 @@ in the phase package (phase.py, analysis.py, result.py).
 class Phase(af.AbstractPhase):
 
     """
-    This tells the phase that the input parameter `profiles` contains model components that are fitted for by the 
+    This tells the phase that the input parameter `profiles` contains model components that are fitted for by the
     phase`s `NonLinearSearch`.
 
     In `analysis.py`, the `log_likelihood_function`' input parameter `instance` contains the `profiles` mapped from
