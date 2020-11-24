@@ -5,11 +5,13 @@ Overview
 
 **PyAutoFit** requires Python 3.6+ and support the Linux, MacOS and Windows operating systems.
 
-**PyAutoFit** can be installed via the Python distribution `Anaconda <https://www.anaconda.com/>`_ or using
-`Pypi <https://pypi.org/>`_ to `pip install` **PyAutoFit** into your Python distribution. We recommend Anaconda as
-it manages the installation of many major libraries used by **PyAutoFit** (e.g. numpy, scipy, matplotlib, etc.),
-making installation more straight forward. However, most users report no issues when installing **PyAutoFit**
-via `pip`. The installation guide for both approaches can be found at:
+**PyAutoLens** can be installed via the Python distribution `Anaconda <https://www.anaconda.com/>`_ or using
+`Pypi <https://pypi.org/>`_ to ``pip install`` **PyAutoLens** into your Python distribution.
+
+We recommend Anaconda as it manages the installation of many major libraries used by **PyAutoLens** (e.g. numpy, scipy,
+matplotlib, etc.) making installation more straight forward.
+
+The installation guide for both approaches can be found at:
 
 - `Anaconda installation guide <https://pyautofit.readthedocs.io/en/latest/installation/conda.html>`_
 

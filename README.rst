@@ -17,7 +17,7 @@ Installation
 ------------
 
 **PyAutoFit** requires Python 3.6+ and you can install it via pip or conda (see
-`this link <https://pyautofit.readthedocs.io/en/latest/general/installation.html#installation-with-conda>`_
+`this link <https://pyautofit.readthedocs.io/en/latest/installation/conda.html>`_
 for conda instructions).
 
 .. code-block:: bash

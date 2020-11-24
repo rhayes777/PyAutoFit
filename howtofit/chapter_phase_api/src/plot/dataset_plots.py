@@ -27,10 +27,10 @@ def subplot_dataset(
         The observed `Dataset` which is plotted.
     output_path : str
         The path where the image of the data is output, if saved as a `.png`.
-    output_filename : str  
+    output_filename : str
         The name of the file the image of the data is output too, if saved as a `.png`.
     output_format : str
-        Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").     
+        Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     """
 
     plt.figure(figsize=(18, 8))
@@ -73,12 +73,12 @@ def data(
         The observed `Dataset` whose data is plotted.
     output_path : str
         The path where the image of the data is output, if saved as a `.png`.
-    output_filename : str  
+    output_filename : str
         The name of the file the image of the data is output too, if saved as a `.png`.
     output_format : str
         Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     bypass_show : bool
-        If `True` the show or savefig function is bypassed. This is used when plotting subplots.        
+        If `True` the show or savefig function is bypassed. This is used when plotting subplots.
     """
     line_plots.line(
         xvalues=dataset.xvalues,
@@ -110,12 +110,12 @@ def noise_map(
         The observed `Dataset` whose noise-map is plotted.
     output_path : str
         The path where the image of the noise-map is output, if saved as a `.png`.
-    output_filename : str  
+    output_filename : str
         The name of the file the image of the noise-map is output too, if saved as a `.png`.
     output_format : str
         Whether the noise-map is output as a `.png` file ("png") or displayed on the screen ("show").
     bypass_show : bool
-        If `True` the show or savefig function is bypassed. This is used when plotting subplots.        
+        If `True` the show or savefig function is bypassed. This is used when plotting subplots.
     """
     line_plots.line(
         xvalues=dataset.xvalues,
