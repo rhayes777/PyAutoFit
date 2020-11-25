@@ -6,11 +6,14 @@ Installation with conda
 Installation via a conda environment circumvents compatibility issues when installing certain libraries. This guide
 assumes you have a working installation of `conda <https://conda.io/miniconda.html>`_.
 
-First, create a conda environment (we name is ``autofit`` to signify it is for the **PyAutoFit** install):
+First, create a conda environment (we name is ``autofit`` to signify it is for the **PyAutoFit** install).
+
+The command below creates this environment with some of the bigger package requirements, the rest will be installed
+with **PyAutoFit** via pip:
 
 .. code-block:: bash
 
-    conda create -n autofit anaconda
+    conda create -n autofit numpy scipy
 
 Activate the conda environment (you will have to do this every time you want to run **PyAutoFit**):
 

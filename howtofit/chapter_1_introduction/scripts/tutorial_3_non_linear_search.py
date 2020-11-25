@@ -174,7 +174,7 @@ emcee = af.Emcee(name="tutorial_3", path_prefix=path.join("howtofit", "chapter_1
 # %%
 """
 We begin the `NonLinearSearch` by calling its `fit` method. This will take a minute or so to run (which is very fast 
-for a model-fit). Whilst you`re waiting, checkout the folder:
+for a model-fit). Whilst you're waiting, checkout the folder:
 
 `autofit_workspace/output/howtofit/chapter_1`
 
