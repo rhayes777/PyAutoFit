@@ -20,6 +20,45 @@ from autofit.graphical.mean_field import MeanField, FactorApproximation
 
 class EPMeanField(AbstractNode):
     '''
+    this class encode the EP mean-field approximation to a factor graph
+
+    
+    Attributes
+    ----------
+    factor_graph: FactorGraph
+        the base factor graph being approximated
+
+    factor_mean_field: Dict[Factor, MeanField]
+        the mean-field approximation for each factor in the factor graph
+
+    mean_field: MeanField
+        the mean-field approximation of the full factor graph
+        i.e. the product of the factor mean-field approximations
+
+    variables: Set[Variable]
+        the variables of the approximation
+
+    deterministic_variables: Set[Variable]
+        the deterministic variables
+
+    log_evidence: float
+        the approximate log evidence of the approximation
+
+    is_valid: bool
+        returns whether the factor mean-field approximations are all valid
+
+    Methods
+    -------
+    from_approx_dists(factor_graph, approx_dists)
+        create a EPMeanField object from the passed factor_graph
+        using approx_dists to initialise the factor mean-field approximations
+
+    factor_approximation(factor)
+        create the FactorApproximation for the factor
+
+    project_factor_approx(factor_approximation)
+        given the passed FactorApproximation, return a new `EPMeanField`
+        object encoding the updated mean-field approximation
     '''
     def __init__(
             self,
@@ -48,9 +87,9 @@ class EPMeanField(AbstractNode):
     def deterministic_variables(self): 
         return self.factor_graph.deterministic_variables
 
-    @property
-    def variable_names(self) -> Dict[str, Variable]: 
-        return self.factor_graph.variable_names
+    # @property
+    # def variable_names(self) -> Dict[str, Variable]: 
+    #     return self.factor_graph.variable_names
  
     @property
     def factor_mean_field(self) -> Dict[Factor, MeanField]:
@@ -78,7 +117,7 @@ class EPMeanField(AbstractNode):
     from_kws = from_approx_dists
     
     def factor_approximation(self, factor: Factor) -> FactorApproximation:
-        factor_mean_field = self.factor_mean_field
+        factor_mean_field = self._factor_mean_field.copy()
         factor_dist = factor_mean_field.pop(factor)
         cavity_dist = MeanField.prod(
             {v: 1. for v in factor_dist.all_variables},
@@ -135,13 +174,15 @@ class EPMeanField(AbstractNode):
     def variable_evidence(self) -> Dict[Variable, np.ndarray]:
         return {
             v: AbstractMessage.log_normalisation(*ms)
-            for v, ms in self.variable_messages.items()}
+            for v, ms in self.variable_messages.items()
+        }
 
     @property 
     def factor_evidence(self) -> Dict[Factor, np.ndarray]:
         return {
             factor: meanfield.log_norm 
-            for factor, meanfield in self.factor_mean_field.items()}
+            for factor, meanfield in self.factor_mean_field.items()
+        }
     
     @property
     def log_evidence(self):
@@ -182,8 +223,8 @@ class EPMeanField(AbstractNode):
 
     @property
     def is_valid(self) -> bool:
-        return all(
-            mean_field.is_valid for mean_field in self.factor_mean_field.values())
+        return all(mean_field.is_valid 
+                   for mean_field in self.factor_mean_field.values())
 
 
 class AbstractFactorOptimiser(ABC):

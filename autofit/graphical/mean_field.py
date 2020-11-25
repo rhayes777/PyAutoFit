@@ -139,7 +139,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
     __getitem__ = dict.__getitem__
         
     def _logpdf(self, **kwargs: np.ndarray) -> np.ndarray:
-        var_names = self.variable_names
+        var_names = self.name_variable_dict
         return self.logpdf(
             {var_names[k]: value for k, value in kwargs.items()})
 

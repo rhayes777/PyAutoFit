@@ -94,7 +94,7 @@ class AbstractNode(ABC):
         pass
 
     @property
-    def variable_names(self) -> Dict[str, Variable]:
+    def name_variable_dict(self) -> Dict[str, Variable]:
         return {
             variable.name: variable
             for variable in self.variables
@@ -268,7 +268,7 @@ class AbstractNode(ABC):
     def __hash__(self):
         return hash((
             self._factor, 
-            frozenset(self.variable_names.items()),
+            frozenset(self.name_variable_dict.items()),
             frozenset(self._deterministic_variables),))
 
     _numerical_func_jacobian = numerical_func_jacobian
