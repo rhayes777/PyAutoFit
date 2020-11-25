@@ -105,9 +105,42 @@ class AbstractPriorModel(AbstractModel):
             obj = t
         return obj
 
+    def take_attributes(
+            self,
+            source: object
+    ):
+        """
+        Take all attributes with a matching path from the source prior model.
+
+        For example, if this prior model has a prior "one" and a matching prior
+        is found associated with the source model then that attribute is attached
+        to this model.
+
+        If no matching attribute is found nothing happens.
+
+        Parameters
+        ----------
+        source
+            An instance or prior model from a previous phase from which attributes
+            are passed to this model.
+        """
+        for path, _ in self.path_priors_tuples + self.path_float_tuples:
+            item = source
+            try:
+                for attribute in path:
+                    item = getattr(item, attribute)
+            except AttributeError:
+                pass
+
+            target = self
+            for attribute in path[:-1]:
+                target = getattr(target, attribute)
+
+            setattr(target, path[-1], item)
+
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
-        Returnss a ModelInstance, which has an attribute and class instance corresponding
+        Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `PriorModel` attributed to this instance.
         This method takes as input a unit vector of parameter values, converting each to
         physical values via their priors.
@@ -253,7 +286,7 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=True
     ):
         """
-        Returnss a ModelInstance, which has an attribute and class instance corresponding
+        Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `PriorModel` attributed to this instance.
         This method takes as input a physical vector of parameter values, thus omitting
         the use of priors.
@@ -283,7 +316,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
-        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
+        Returns a new model mapper from a dictionary mapping_matrix existing priors to
         new priors, keeping existing priors where no mapping is provided.
         Parameters
         ----------
@@ -299,7 +332,7 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_prior_arguments(self, arguments):
         """
-        Returnss a new model mapper from a dictionary mapping_matrix existing priors to
+        Returns a new model mapper from a dictionary mapping_matrix existing priors to
         new priors.
         Parameters
         ----------
@@ -333,8 +366,7 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
-        Returnss a new model mapper from a list of floats describing the mean values
-        of gaussian priors. The widths of the new priors are taken from the
+        The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
         If a is not None then all priors are created with an absolute width of a.
@@ -423,7 +455,7 @@ class AbstractPriorModel(AbstractModel):
 
     def instance_from_prior_medians(self):
         """
-        Returnss a list of physical values from the median values of the priors.
+        Returns a list of physical values from the median values of the priors.
         Returns
         -------
         physical_values : [float]
@@ -459,7 +491,7 @@ class AbstractPriorModel(AbstractModel):
 
     def random_instance(self):
         """
-        Returnss a random instance of the model.
+        Returns a random instance of the model.
         """
         return self.instance_from_unit_vector(
             unit_vector=[random() for _ in self.prior_tuples]
@@ -839,7 +871,6 @@ class AbstractPriorModel(AbstractModel):
 
         subscripts = []
 
-        subscript_conf = conf.instance["notation"]["label"]["subscript"]
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
             try:

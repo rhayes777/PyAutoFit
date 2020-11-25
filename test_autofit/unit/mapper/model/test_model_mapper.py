@@ -213,7 +213,7 @@ class TestRegression:
         mm.one = mock.MockClassRelativeWidth
         mm.two = mock.MockClassRelativeWidth
 
-        assert mm.subscripts == ["r", "r", "r", "r", "r", "r"]
+        assert mm.subscripts == ['o', 't', 't', 'o', 't', 't']
 
     def test_name_for_prior(self):
         ls = af.CollectionPriorModel(
