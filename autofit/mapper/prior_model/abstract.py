@@ -105,6 +105,39 @@ class AbstractPriorModel(AbstractModel):
             obj = t
         return obj
 
+    def take_attributes(
+            self,
+            source: object
+    ):
+        """
+        Take all attributes with a matching path from the source prior model.
+
+        For example, if this prior model has a prior "one" and a matching prior
+        is found associated with the source model then that attribute is attached
+        to this model.
+
+        If no matching attribute is found nothing happens.
+
+        Parameters
+        ----------
+        source
+            An instance or prior model from a previous phase from which attributes
+            are passed to this model.
+        """
+        for path, _ in self.path_priors_tuples + self.path_float_tuples:
+            item = source
+            try:
+                for attribute in path:
+                    item = getattr(item, attribute)
+            except AttributeError:
+                pass
+
+            target = self
+            for attribute in path[:-1]:
+                target = getattr(target, attribute)
+
+            setattr(target, path[-1], item)
+
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
@@ -333,8 +366,12 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
+<<<<<<< HEAD
         Returns a new model mapper from a list of floats describing the mean values
         of gaussian priors. The widths of the new priors are taken from the
+=======
+        The widths of the new priors are taken from the
+>>>>>>> master
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
         If a is not None then all priors are created with an absolute width of a.
@@ -839,7 +876,6 @@ class AbstractPriorModel(AbstractModel):
 
         subscripts = []
 
-        subscript_conf = conf.instance["notation"]["label"]["subscript"]
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
             try:
