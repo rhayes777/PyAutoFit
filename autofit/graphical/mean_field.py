@@ -67,10 +67,6 @@ def project_on_to_factor_approx(
                     f"factor projection for {v} with {factor_approx.factor} is invalid",)
 
             factor_projection[v] = q_f1
-
-            #             if isinstance(q_cavity, AbstractMessage):
-#             log_norm += (np.sum(q_fit.log_norm)
-#                          - np.sum(q_f1.log_normalisation(q_cavity)))
         else:
             success = False
             messages += (
