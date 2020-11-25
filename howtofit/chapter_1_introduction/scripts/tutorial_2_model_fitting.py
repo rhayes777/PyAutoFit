@@ -340,7 +340,7 @@ print(log_likelihood)
 You can now perform model-fitting with **PyAutoFit**! All we have to do is guess lots of parameters, over and over and
 over again, until we hit a model with a high log_likelihood. Yay!
 
-Of course, you`re probably thinking, is that really it? Should we really be guessing models to find the best-fit?
+Of course, you're probably thinking, is that really it? Should we really be guessing models to find the best-fit?
 
 Obviously, the answer is no. Imagine our model was more complex, that it had many more parameters than just 3.
 Our approach of guessing parameters won't work - it could take days, maybe years, to find models with a high

@@ -312,7 +312,7 @@ At this point, you might be wondering, whats the big deal? Sure, its cool that w
 we can translate priors to parameters in this way, but how is this actually going to help me perform model fitting?
 With a bit of effort I could have written some code to do this myself!
 
-Well, you`re probably right, but this tutorial is covering just the backend of **PyAutoFit**, what holds everything
+Well, you're probably right, but this tutorial is covering just the backend of **PyAutoFit**, what holds everything
 together. Once you start using **PyAutoFit**, its unlikely that you`ll perform model mapping yourself, its the `magic` 
 behind the scenes that makes model-fitting work.
 

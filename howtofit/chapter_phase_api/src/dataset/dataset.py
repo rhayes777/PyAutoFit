@@ -33,7 +33,7 @@ module, `settings.py` for a more complete description of tagging.
 class SettingsDataset:
     def __init__(self, data_trim_left: int = None, data_trim_right: int = None):
         """
-        The settings of the `Dataset` class, that a phase uses to determine if the `Dataset` is trimmed from the left 
+        The settings of the `Dataset` class, that a phase uses to determine if the `Dataset` is trimmed from the left
         and / or right before model-fitting and how many pixels are trimmed.
 
         This class includes tags which are used to customize the output folders of a run dependent on the settings.
