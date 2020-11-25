@@ -294,7 +294,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
     __hash__ = Factor.__hash__ 
     
     @classmethod
-    def as_meanfield(
+    def from_dist(
         cls, 
         dist: Union[Dict[Variable, AbstractMessage], "MeanField"]
     ) -> "MeanField":
@@ -360,9 +360,9 @@ class FactorApproximation(AbstractNode):
         # Have to seperate FactorApproximation into two classes
         # in order to be able to redefine __new__
         self.factor = factor
-        self.cavity_dist = MeanField.as_meanfield(cavity_dist)
-        self.factor_dist = MeanField.as_meanfield(factor_dist)
-        self.model_dist = MeanField.as_meanfield(model_dist)
+        self.cavity_dist = MeanField.from_dist(cavity_dist)
+        self.factor_dist = MeanField.from_dist(factor_dist)
+        self.model_dist = MeanField.from_dist(model_dist)
 
         super().__init__(**factor._kwargs)
 
