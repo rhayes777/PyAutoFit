@@ -271,8 +271,8 @@ class EPHistory:
         elif i:
             last_approx = self.history[i-1, factor]
             return self._check_convergence(approx, last_approx)
-        else:
-            return False
+        
+        return False
 
     def _kl_convergence(
             self, 
@@ -291,8 +291,8 @@ class EPHistory:
         if last_evidence > evidence:
             # todo print warning?
             return False
-        else:
-            return evidence - last_evidence < self.evidence_tol
+            
+        return evidence - last_evidence < self.evidence_tol
 
     def _check_convergence(
             self, 
@@ -338,7 +338,7 @@ class EPOptimiser:
                 factor: factor_optimisers.get(factor, default_optimiser)
                 for factor in self.factors}
 
-        self.callback = EPHistory() if callback is None else callback
+        self.callback = callback or EPHistory()
 
     def run(
             self, 
