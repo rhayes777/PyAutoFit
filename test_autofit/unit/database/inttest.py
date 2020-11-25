@@ -6,6 +6,8 @@ import autofit as af
 from autofit.mock import mock as m
 from autofit import database as db
 
+from pathlib import Path
+
 
 @pytest.fixture(name="session")
 def make_session():
@@ -23,5 +25,18 @@ def test_commit(session):
     )
     serialized = db.Object(model)
     session.add(serialized)
+    session.commit()
+
+
+def test_read_in_directory(session):
+    aggregator = af.Aggregator(
+        Path(__file__).parent.parent.parent.parent.parent / "rjlens"
+    )
+    for item in aggregator:
+        session.add(
+            db.Object(
+                item.model
+            )
+        )
     session.commit()
 
