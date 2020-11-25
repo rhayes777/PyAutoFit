@@ -105,11 +105,32 @@ class AbstractPriorModel(AbstractModel):
             obj = t
         return obj
 
-    def take_attributes(self, source: "AbstractPriorModel"):
+    def take_attributes(
+            self,
+            source: object
+    ):
+        """
+        Take all attributes with a matching path from the source prior model.
+
+        For example, if this prior model has a prior "one" and a matching prior
+        is found associated with the source model then that attribute is attached
+        to this model.
+
+        If no matching attribute is found nothing happens.
+
+        Parameters
+        ----------
+        source
+            An instance or prior model from a previous phase from which attributes
+            are passed to this model.
+        """
         for path, _ in self.path_priors_tuples + self.path_float_tuples:
             item = source
-            for attribute in path:
-                item = getattr(item, attribute)
+            try:
+                for attribute in path:
+                    item = getattr(item, attribute)
+            except AttributeError:
+                pass
 
             target = self
             for attribute in path[:-1]:

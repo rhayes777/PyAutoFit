@@ -58,3 +58,23 @@ def test_in_collection(
     )
 
     assert target.gaussian.centre is prior
+
+
+def test_passing_float(
+        source_gaussian,
+        target_gaussian
+):
+    source_gaussian.centre = 2.0
+    target_gaussian.take_attributes(
+        source_gaussian
+    )
+
+    assert target_gaussian.centre == 2.0
+
+
+def test_missing_from_origin(
+    target_gaussian
+):
+    target_gaussian.take_attributes(
+        af.CollectionPriorModel()
+    )
