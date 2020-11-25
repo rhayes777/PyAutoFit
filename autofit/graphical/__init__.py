@@ -3,7 +3,7 @@ from .factor_graphs import \
     Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue, \
     DiagonalTransform, CholeskyTransform, VariableTransform, \
     FullCholeskyTransform 
-from .mean_field import FactorApproximation, MeanField, MeanFieldApproximation
+from .mean_field import FactorApproximation, MeanField
 from .expectation_propagation import EPMeanField, EPOptimiser
 from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage
 from .optimise import OptFactor, LaplaceFactorOptimiser, lstsq_laplace_factor_approx

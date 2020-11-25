@@ -36,7 +36,7 @@ def make_model_approx(
         model,
         x
 ):
-    return mp.MeanFieldApproximation.from_kws(
+    return mp.EPMeanField.from_kws(
         model,
         {x: autofit.graphical.messages.normal.NormalMessage(0, 1)}
     )
@@ -87,7 +87,7 @@ def test_looped_importance_sampling(
         probit_factor,
         x
 ):
-    model_approx = mp.MeanFieldApproximation.from_kws(
+    model_approx = mp.EPMeanField.from_kws(
         model,
         {x: autofit.graphical.messages.normal.NormalMessage(0, 1)}
     )
@@ -124,9 +124,9 @@ def test_looped_importance_sampling(
 
             # save and print current approximation
             history.append(model_approx)
-            print(i, factor, model_approx[x])
+            
 
-    result = history[-1][x]
+    result = history[-1].mean_field[x]
 
     assert result.mu == pytest.approx(-0.243, rel=0.1)
     assert result.sigma == pytest.approx(0.466, rel=0.1)

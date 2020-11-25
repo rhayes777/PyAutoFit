@@ -15,7 +15,7 @@ from autofit.graphical.factor_graphs.transform import \
     AbstractLinearTransform, identity_transform, CovarianceTransform
 from autofit.graphical.messages import FixedMessage
 from autofit.graphical.mean_field import \
-    MeanField, FactorApproximation, MeanFieldApproximation, Status
+    MeanField, FactorApproximation, Status
 from autofit.graphical.expectation_propagation import \
     EPMeanField, AbstractFactorOptimiser
 
@@ -356,7 +356,7 @@ def find_factor_mode(
     return res
 
 def laplace_factor_approx(
-        model_approx: MeanFieldApproximation,
+        model_approx: EPMeanField,
         factor: Factor,
         delta: float = 1., 
         status: Status = Status(), 
@@ -401,7 +401,7 @@ class LaplaceOptimiser:
         model_approx, 
         factors: Optional[List[Factor]] = None,
         status: Status = Status()
-    ) -> Iterator[Tuple[Factor, MeanFieldApproximation, Status]]:
+    ) -> Iterator[Tuple[Factor, EPMeanField, Status]]:
         new_approx = model_approx
         factors = (
             model_approx.factor_graph.factors 
@@ -417,10 +417,10 @@ class LaplaceOptimiser:
 
     def run(
         self, 
-        model_approx: MeanFieldApproximation, 
+        model_approx: EPMeanField, 
         factors: Optional[List[Factor]] = None,
         status: Status = Status()
-    ) -> MeanFieldApproximation:
+    ) -> EPMeanField:
         new_approx = model_approx
         for i in range(self.n_iter):
             for factor, new_approx, status in self.step(new_approx, factors):
@@ -542,7 +542,7 @@ class LeastSquaresOpt:
 
 
 def lstsq_laplace_factor_approx(
-        model_approx: MeanFieldApproximation,
+        model_approx: EPMeanField,
         factor: Factor,
         delta: float = 0.5,
         opt_kws: Optional[Dict[str, Any]] = None):

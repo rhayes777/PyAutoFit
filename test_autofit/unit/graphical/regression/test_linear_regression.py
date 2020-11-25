@@ -190,30 +190,3 @@ def test_importance_sampling(
     y_pred = model_approx.mean_field[z_].mean
     
     assert mp.utils.r2_score(y, y_pred) > 0.90
-
-    # history = {}
-    # n_iter = 3
-
-    # for i in range(n_iter):
-    #     for factor in model.factors:
-    #         # We have reduced the entire EP step into a single function
-    #         model_approx, _ = mp.sampling.project_model(
-    #             model_approx,
-    #             factor,
-    #             sampler,
-    #             force_sample=True,
-    #             delta=.8
-    #         )
-
-    #         # save and print current approximation
-    #         history[i, factor] = model_approx
-
-
-    # q_a = model_approx[a_]
-    # q_b = model_approx[b_]
-
-    # assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
-    # assert q_a.sigma[0][0] == pytest.approx(7.13, rel=1)
-
-    # assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
-    # assert q_b.sigma[0] == pytest.approx(6.8, rel=1)

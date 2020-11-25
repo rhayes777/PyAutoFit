@@ -494,7 +494,7 @@ class FactorApproximation(AbstractNode):
         return f"{type(self).__name__}({self.factor}, ...)"
 
     
-class MeanFieldApproximation:
+class _MeanFieldApproximation:
     '''
     TODO: delete this class
     '''

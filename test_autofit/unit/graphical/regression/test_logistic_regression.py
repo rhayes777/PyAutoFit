@@ -145,9 +145,3 @@ def test_importance_sampling(
 
     accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
     assert 0.9 > accuracy > 0.7
-
-    # assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
-    # assert q_a.sigma[0][0] == pytest.approx(0.08, rel=1)
-
-    # assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
-    # assert q_b.sigma[0] == pytest.approx(0.2, rel=2)

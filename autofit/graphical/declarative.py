@@ -6,7 +6,7 @@ import numpy as np
 from autofit import ModelInstance
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.mean_field import MeanFieldApproximation
+from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -83,11 +83,11 @@ class AbstractModelFactor(ABC):
             )
         )
 
-    def mean_field_approximation(self) -> MeanFieldApproximation:
+    def mean_field_approximation(self) -> EPMeanField:
         """
-        Returns a MeanFieldApproximation of the factor graph
+        Returns a EPMeanField of the factor graph
         """
-        return MeanFieldApproximation.from_kws(
+        return EPMeanField.from_approx_dists(
             self.graph,
             self.message_dict
         )
@@ -116,7 +116,7 @@ class AbstractModelFactor(ABC):
             in self.model_factors
         ])
         arguments = {
-            prior: updated_model[
+            prior: updated_model.mean_field[
                 prior
             ].as_prior()
             for prior

@@ -108,7 +108,7 @@ def test():
     LV_model = (likelihood * LV) * priors
     LV_model._name = 'LV_model'
 
-    model_approx = mp.MeanFieldApproximation.from_kws(
+    model_approx = mp.EPMeanField.from_kws(
         LV_model,
         {
             A_: autofit.graphical.messages.normal.NormalMessage.from_mode(A, 100.),
@@ -148,7 +148,8 @@ def test():
             )
             history[i, factor] = model_approx
 
-    model_mean = {v: d.mean for v, d in model_approx.approx.items()}
-    y_pred = LV_model(model_mean).deterministic_values[y_]
+    # model_mean = {v: d.mean for v, d in model_approx.mean_field.items()}
+    # y_pred = LV_model(model_mean).deterministic_values[y_]
+    y_pred = model_approx.mean_field[y_].mean
     
     assert np.square(y_pred - y).mean()**0.5 < 2

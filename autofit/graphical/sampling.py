@@ -8,7 +8,7 @@ import numpy as np
 from autofit.graphical.factor_graphs import Factor
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.mean_field import \
-    MeanField, MeanFieldApproximation, FactorApproximation, Status
+    MeanField, FactorApproximation, Status
 from autofit.graphical.expectation_propagation import \
     EPMeanField, AbstractFactorOptimiser
 from autofit.graphical.messages import map_dists
@@ -290,12 +290,12 @@ def project_factor_approx_sample(
 
 
 def project_model(
-        model_approx: MeanFieldApproximation,
+        model_approx: EPMeanField,
         factor: Factor,
         sampler: AbstractSampler,
         delta: float = 0.5,
         **kwargs
-) -> Tuple[MeanFieldApproximation, Status]:
+) -> Tuple[EPMeanField, Status]:
     """
     """
     factor_approx = model_approx.factor_approximation(factor)
