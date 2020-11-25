@@ -60,6 +60,24 @@ def test_in_collection(
     assert target.gaussian.centre is prior
 
 
+def test_unlabelled_in_collection(
+        source_gaussian,
+        target_gaussian,
+        prior
+):
+    target = af.CollectionPriorModel(
+        [target_gaussian]
+    )
+    source = af.CollectionPriorModel(
+        [source_gaussian]
+    )
+    target.take_attributes(
+        source
+    )
+
+    assert target[0].centre is prior
+
+
 def test_passing_float(
         source_gaussian,
         target_gaussian
@@ -73,7 +91,7 @@ def test_passing_float(
 
 
 def test_missing_from_origin(
-    target_gaussian
+        target_gaussian
 ):
     target_gaussian.take_attributes(
         af.CollectionPriorModel()
