@@ -111,13 +111,24 @@ class FactorJacobian(Factor):
             all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
         if direct_call:
             return self._factor(**values, _variables=variables)
+        else:
+            return self._multicall_factor(values, variables)
 
+    def _multicall_factor(
+            self,
+            values: Dict[str, np.ndarray],
+            variables: Optional[Tuple[str, ...]] = None, 
+    ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
+        """call the factor multiple times and aggregates 
+        the results together
+        """
         # Check dimensions of inputs match plates + 1
-        vectorised = (
-            all(dim + 1 == kwargs_dims[k]
-                for k, dim in self._kwargs_dims.items()))
+        vectorised = all(
+            dim + 1 == np.ndim(values[k]) 
+            for k, dim in self._kwargs_dims.items())
 
         if not vectorised:
+            kwargs_dims = {k: np.ndim(a) for k, a in values.items()}
             raise ValueError(
                 "input dimensions do not match required dims"
                 f"input: **kwargs={kwargs_dims}"
