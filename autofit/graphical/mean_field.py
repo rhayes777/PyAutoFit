@@ -475,9 +475,6 @@ class FactorApproximation(AbstractNode):
             messages += (
                 f"model projection for {self} is invalid",)
             factor_dist = factor_dist.update_invalid(self.factor_dist)
-        
-        # variable_norm = self.cavity_dist.log_normalisation(factor_dist)
-        # factor_dist.log_norm = np.sum(factor_dist.log_norm) - variable_norm
 
         new_approx = FactorApproximation(
             self.factor,

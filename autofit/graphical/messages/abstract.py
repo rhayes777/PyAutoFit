@@ -2,10 +2,12 @@ from abc import ABC, abstractmethod
 from functools import reduce
 from itertools import chain
 from operator import and_
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Iterator
 from inspect import getfullargspec
 
 import numpy as np
+
+from autofit.mapper.variable import Variable
 
 
 class AbstractMessage(ABC):
@@ -20,39 +22,40 @@ class AbstractMessage(ABC):
         pass
 
     @abstractmethod
-    def sample(self, n_samples=None):
+    def sample(self, n_samples: Optional[int] = None):
         pass
 
     @staticmethod
     @abstractmethod
-    def invert_natural_parameters(natural_parameters):
+    def invert_natural_parameters(natural_parameters: np.ndarray
+    ) -> Tuple[np.ndarray,  ...]:
         pass
 
     @staticmethod
     @abstractmethod
-    def to_canonical_form(x):
+    def to_canonical_form(x: np.ndarray) -> np.ndarray:
         pass
 
     @property
     @abstractmethod
-    def log_partition(self):
+    def log_partition(self) -> np.ndarray:
         pass
 
     @property
     @abstractmethod
-    def mean(self):
+    def mean(self) -> np.ndarray:
         pass
 
     @property
     @abstractmethod
-    def variance(self):
+    def variance(self) -> np.ndarray:
         pass
 
     @property
-    def scale(self):
+    def scale(self) -> np.ndarray:
         return self.variance ** 0.5
 
-    def __init__(self, parameters, log_norm=0.):
+    def __init__(self, parameters: Tuple[np.ndarray, ...], log_norm=0.):
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
         if self.shape:
@@ -62,33 +65,40 @@ class AbstractMessage(ABC):
             self.parameters = tuple(parameters)
 
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         return self._broadcast.shape
 
     @property
-    def ndim(self):
+    def ndim(self) -> int: 
         return self._broadcast.ndim
 
     @classmethod
-    def from_natural_parameters(cls, parameters, **kwargs):
+    def from_natural_parameters(
+            cls, 
+            parameters: Tuple[np.ndarray, ...], 
+            **kwargs
+    ) -> "AbstractMessage":
         args = cls.invert_natural_parameters(parameters)
         return cls(*args, **kwargs)
 
     @classmethod
     @abstractmethod
-    def invert_sufficient_statistics(cls, sufficient_statistics):
+    def invert_sufficient_statistics(cls, sufficient_statistics: np.ndarray
+    ) -> Tuple[np.ndarray, ...]:
         pass
 
     @classmethod
-    def from_sufficient_statistics(cls, suff_stats, **kwargs):
+    def from_sufficient_statistics(cls, suff_stats: np.ndarray, **kwargs
+    ) -> "AbstractMessage":
         natural_params = cls.invert_sufficient_statistics(suff_stats)
         return cls.from_natural_parameters(natural_params, **kwargs)
 
-    def sum_natural_parameters(self, *dists):
+    def sum_natural_parameters(self, *dists: "AbstractMessage"
+    ) -> "AbstractMessage":
         """return the unnormalised result of multiplying the pdf
         of this distribution with another distribution of the same
         type
@@ -100,7 +110,8 @@ class AbstractMessage(ABC):
         mul_dist = self.from_natural_parameters(new_params)
         return mul_dist
 
-    def sub_natural_parameters(self, other):
+    def sub_natural_parameters(self, other: "AbstractMessage"
+    ) -> "AbstractMessage":
         """return the unnormalised result of dividing the pdf
         of this distribution with another distribution of the same
         type"""
@@ -112,24 +123,24 @@ class AbstractMessage(ABC):
     _multiply = sum_natural_parameters
     _divide = sub_natural_parameters
 
-    def __mul__(self, other):
+    def __mul__(self, other: "AbstractMessage") -> "AbstractMessage":
         if np.isscalar(other):
             log_norm = self.log_norm + np.log(other)
             return type(self)(*self.parameters, log_norm=log_norm)
         else:
             return self._multiply(other)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: "AbstractMessage") -> "AbstractMessage":
         if np.isscalar(other):
             log_norm = self.log_norm - np.log(other)
             return type(self)(*self.parameters, log_norm=log_norm)
         else:
             return self._divide(other)
 
-    def __pow__(self, other):
+    def __pow__(self, other: "AbstractMessage") -> "AbstractMessage":
         natural = self.natural_parameters
         new_params = other * natural
         log_norm = other * self.log_norm
@@ -156,10 +167,10 @@ class AbstractMessage(ABC):
 
     __repr__ = __str__
 
-    def pdf(self, x):
+    def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
 
-    def logpdf(self, x):
+    def logpdf(self, x: np.ndarray) -> np.ndarray:
         shape = np.shape(x)
         if shape:
             x = np.asanyarray(x)
@@ -168,17 +179,18 @@ class AbstractMessage(ABC):
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
             log_base = self.log_base_measure
-            eta_t = np.multiply(eta, t).sum(0)  # TODO this can be made more efficient using tensordot
+            # TODO this can be made more efficient using tensordot
+            eta_t = np.multiply(eta, t).sum(0)  
             return log_base + eta_t - self.log_partition
         elif shape[1:] == self.shape:
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
             eta_t = np.multiply(eta[:, None, ...], t).sum(0)
             return self.log_base_measure + eta_t - self.log_partition
-            # return np.array([self.logpdf(x_) for x_ in x])
 
         raise ValueError(
-            f"shape of passed value {shape} does not match message shape {self.shape}")
+            f"shape of passed value {shape} does not "
+            f"match message shape {self.shape}")
 
     def numerical_logpdf_gradient(self, x: np.ndarray, eps: float=1e-6
     ) -> Tuple[np.ndarray, np.ndarray]:
@@ -257,7 +269,8 @@ class AbstractMessage(ABC):
     logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
-    def project(cls, samples, log_weights):
+    def project(cls, samples: np.ndarray, log_weights: np.ndarray
+    ) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
         that match the sufficient statistics
@@ -278,10 +291,12 @@ class AbstractMessage(ABC):
         return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
 
     @classmethod
-    def from_mode(cls, mode, covariance):
+    def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
+    ) -> "AbstractMessage":
         pass
 
-    def log_normalisation(self, *dists: Union["AbstractMessage", float]) -> np.ndarray:
+    def log_normalisation(self, *dists: Union["AbstractMessage", float]
+    ) -> np.ndarray:
         """
         Calculates the log of the integral of the product of a
         set of distributions
@@ -306,7 +321,7 @@ class AbstractMessage(ABC):
         return log_norm
 
     @staticmethod
-    def _iter_dists(dists):
+    def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
         for elem in dists:
             if isinstance(elem, AbstractMessage):
                 yield elem
@@ -322,7 +337,8 @@ class AbstractMessage(ABC):
             valid_parameters = (
                 np.where(valid, p, p_safe) for p, p_safe in zip(self, other))
         else:
-            valid_parameters = self if valid else other  # TODO: Fairly certain this would not work
+            # TODO: Fairly certain this would not work
+            valid_parameters = self if valid else other  
         return type(self)(*valid_parameters, log_norm=self.log_norm)
 
     def check_support(self) -> np.ndarray:
@@ -330,7 +346,8 @@ class AbstractMessage(ABC):
             return reduce(
                 and_,
                 ((p >= support[0]) & (p <= support[1])
-                 for p, support in zip(self.parameters, self._parameter_support)))
+                 for p, support in 
+                 zip(self.parameters, self._parameter_support)))
         elif self.ndim:
             return np.array(True, dtype=bool, ndmin=self.ndim)
         return np.array([True])
@@ -338,11 +355,11 @@ class AbstractMessage(ABC):
     def check_finite(self) -> np.ndarray:
         return np.isfinite(self.natural_parameters).all(0)
 
-    def check_valid(self):
+    def check_valid(self) -> np.ndarray:
         return self.check_finite() & self.check_support()
 
     @property
-    def is_valid(self):
+    def is_valid(self) -> bool:
         return np.all(self.check_finite()) and np.all(self.check_support())
 
     @staticmethod
@@ -367,7 +384,11 @@ class AbstractMessage(ABC):
                 f"must be (), {mean.shape}, or {mean.shape * 2}")
         return mean, variance
 
-    def __call__(self, x, _variables=('x')):
+    def __call__(
+        self, 
+        x: np.ndarray, 
+        _variables: Optional[Tuple[str]]=('x')
+    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         if _variables is None:
             return self.logpdf(x)
         else:
@@ -378,7 +399,8 @@ class AbstractMessage(ABC):
             else:
                 return self.logpdf(x), ()
 
-    def as_factor(self, variable, name=None):
+    def as_factor(self, variable: "Variable", name: Optional[str]=None
+    ) -> "FactorJacobian":
         from autofit.graphical import FactorJacobian
         if name is None:
             shape = self.shape
