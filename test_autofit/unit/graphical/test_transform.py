@@ -8,7 +8,7 @@ from scipy import stats, linalg, optimize
 import autofit.graphical as graph
 import autofit.graphical.factor_graphs.transform as transform
 
-def test_CholeskyTransform():
+def test_cholesky_transform():
     d = 10
     A = stats.wishart(d, np.eye(d)).rvs()
 
@@ -37,7 +37,7 @@ def test_CholeskyTransform():
     assert np.allclose(b * cho_factor, b @ U)
     assert np.allclose(b / cho_factor, b @ iU)
 
-def test_DiagonalTransform():
+def test_diagonal_transform():
     d = 3
 
     scale = np.random.rand(d)
