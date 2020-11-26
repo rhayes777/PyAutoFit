@@ -204,7 +204,7 @@ class EPMeanField(AbstractNode):
         Z = ∏ᵢ Zᵢ ∏ₐ Zₐ
         """
         variable_evidence = {
-            v: np.sum(Zi) for v, Zi in self.variable_evidence.items()}
+            v: np.sum(logz) for v, logz in self.variable_evidence.items()}
         factor_evidence = sum(
             np.sum(meanfield.log_norm)
             - sum(variable_evidence[v] for v in factor.all_variables)
