@@ -366,7 +366,12 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
+<<<<<<< HEAD
+        Returns a new model mapper from a list of floats describing the mean values
+        of gaussian priors. The widths of the new priors are taken from the
+=======
         The widths of the new priors are taken from the
+>>>>>>> master
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
         If a is not None then all priors are created with an absolute width of a.

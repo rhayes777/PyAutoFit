@@ -53,7 +53,7 @@ def subplot_dataset(
     if "show" in output_format:
         plt.show()
     elif "png" in output_format:
-        plt.savefig(output_path + output_filename + ".png")
+        plt.savefig(path.join(output_path, f"{output_filename}.png"))
     plt.clf()
 
 

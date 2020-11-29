@@ -20,6 +20,7 @@ workspace_path = str(here())
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
+import os
 from os import path
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,7 +51,9 @@ def plot_line(
     plt.title(title)
     plt.xlabel("x value of profile")
     plt.ylabel(ylabel)
-    plt.savefig(output_path + output_filename + ".png")
+    if not path.exists(output_path):
+        os.makedirs(output_path)
+    plt.savefig(path.join(output_path, f"{output_filename}.png"))
     plt.clf()
 
 
@@ -145,10 +148,10 @@ class Analysis(af.Analysis):
         # These functions save the objects we will later access using the aggregator. They are saved via the `pickle`
         # module in Python, which serializes the data on to the hard-disk.
 
-        with open(f"{paths.pickle_path}/data.pickle", "wb") as f:
+        with open(path.join(f"{paths.pickle_path}", "data.pickle"), "wb") as f:
             pickle.dump(self.data, f)
 
-        with open(f"{paths.pickle_path}/noise_map.pickle", "wb") as f:
+        with open(path.join(f"{paths.pickle_path}", "noise_map.pickle"), "wb") as f:
             pickle.dump(self.noise_map, f)
 
 
