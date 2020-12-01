@@ -126,7 +126,7 @@ class Analysis(af.Analysis):
             paths=paths, fit=fit, during_analysis=during_analysis
         )
 
-    def save_for_aggregator(self, paths):
+    def save_attributes_for_aggregator(self, paths):
         """Save files like the dataset, mask and settings as pickle files so they can be loaded in the ``Aggregator``"""
 
         # These functions save the objects we will later access using the aggregator. They are saved via the `pickle`

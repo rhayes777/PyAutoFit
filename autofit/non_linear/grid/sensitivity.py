@@ -122,11 +122,6 @@ class SensitivityResult:
         return len(self.results)
 
 
-class ImageAnalysis(Analysis, ABC):
-    def __init__(self, image: np.array):
-        self.image = image
-
-
 class Sensitivity:
     def __init__(
             self,
@@ -134,7 +129,7 @@ class Sensitivity:
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
             simulate_function: Callable,
-            analysis_class: Type[ImageAnalysis],
+            analysis_class: Type[Analysis],
             search: NonLinearSearch,
             step_size: Union[Tuple[float], float] = 0.1,
             number_of_cores: int = 2
@@ -182,7 +177,7 @@ class Sensitivity:
 
         self.step_size = step_size
         self.perturbation_model = perturbation_model
-        self.image_function = simulate_function
+        self.simulate_function = simulate_function
         self.number_of_cores = number_of_cores
 
     def run(self) -> SensitivityResult:
@@ -307,12 +302,12 @@ class Sensitivity:
             instance = ModelInstance()
             instance.model = self.instance
             instance.perturbation = perturbation_instance
-            image = self.image_function(
+            dataset = self.simulate_function(
                 instance
             )
             yield Job(
                 analysis=self.analysis_class(
-                    image
+                    dataset
                 ),
                 model=self.model,
                 perturbation_model=self.perturbation_model,

@@ -17,6 +17,7 @@ from autofit.mapper import model_mapper as mm
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
+from autofit.non_linear import samples as samps
 from autofit.non_linear.timer import Timer
 from autofit.text import formatter
 from autofit.text import text_util
@@ -243,7 +244,7 @@ class NonLinearSearch(ABC):
             self.save_search()
             self.save_model(model=model)
             self.move_pickle_files(pickle_files=pickle_files)
-            analysis.save_for_aggregator(paths=self.paths)
+            analysis.save_attributes_for_aggregator(paths=self.paths)
 
         if not path.exists(self.paths.has_completed_path):
 
@@ -258,11 +259,16 @@ class NonLinearSearch(ABC):
                 model=model, analysis=analysis, during_analysis=False
             )
 
+            analysis.save_results_for_aggregator(paths=self.paths, samples=samples)
+
         else:
 
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
             samples = self.samples_via_csv_json_from_model(model=model)
             self.save_samples(samples=samples)
+
+            if self.force_pickle_overwrite:
+                analysis.save_results_for_aggregator(paths=self.paths, samples=samples)
 
         self.paths.zip_remove()
 
@@ -531,7 +537,7 @@ class NonLinearSearch(ABC):
         self.paths.restore()
 
 
-class Analysis:
+class Analysis(ABC):
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
@@ -539,9 +545,11 @@ class Analysis:
     def visualize(self, paths : Paths, instance, during_analysis):
         pass
 
-    def save_for_aggregator(self, paths: Paths):
+    def save_attributes_for_aggregator(self, paths: Paths):
         pass
 
+    def save_results_for_aggregator(self, paths: Paths, samples : samps.OptimizerSamples):
+        pass
 
 class Result:
     """
