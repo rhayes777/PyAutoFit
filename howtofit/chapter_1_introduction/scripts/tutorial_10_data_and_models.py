@@ -61,7 +61,7 @@ We can use the `Aggregator` to load a generator of every fit`s data, by changing
 `data` attribute at the end of the aggregator.
 
 Note that in the `Analysis` class of tutorial 7, we specified that the `data` object would be saved to hard-disc using
-the `save_for_aggregator` method, so that the `Aggregator` can load it.
+the `save_attributes_for_aggregator` method, so that the `Aggregator` can load it.
 """
 
 # %%

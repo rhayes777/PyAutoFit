@@ -30,7 +30,7 @@ import pickle
 """
 We'll reuse the `plot_line` and `Analysis` classes of the previous tutorial.
 
-Note that the `Analysis` class has a new method, `save_for_aggregator`. This method specifies which properties of the
+Note that the `Analysis` class has a new method, `save_attributes_for_aggregator`. This method specifies which properties of the
 fit are output to hard-disc so that we can load them using the `Aggregator` in the next tutorial.
 """
 
@@ -142,7 +142,7 @@ class Analysis(af.Analysis):
             output_filename="chi_squared_map",
         )
 
-    def save_for_aggregator(self, paths):
+    def save_attributes_for_aggregator(self, paths):
         """Save files like the data and noise-map as pickle files so they can be loaded in the `Aggregator`"""
 
         # These functions save the objects we will later access using the aggregator. They are saved via the `pickle`
