@@ -42,15 +42,15 @@ class Object(Base):
     name = Column(String)
 
     @property
-    def priors(self):
+    def priors(self) -> List["Prior"]:
+        """
+        A list of prior database representations attached to this object
+        """
         return [
             child
             for child
             in self.children
-            if isinstance(
-                child,
-                Prior
-            )
+            if isinstance(child, Prior)
         ]
 
     __mapper_args__ = {
@@ -63,6 +63,23 @@ class Object(Base):
             source,
             **kwargs
     ):
+        """
+        Create a database object for an object in a model.
+
+        The specific database class used depends on the type of
+        the object.
+
+        Parameters
+        ----------
+        source
+            A model
+        kwargs
+            Additional arguments specified in the creation of an object
+
+        Returns
+        -------
+        An instance of a concrete child of this class
+        """
         if source is None:
             return None
         if isinstance(source, af.PriorModel):
@@ -77,10 +94,17 @@ class Object(Base):
             return object.__new__(StringValue)
         return object.__new__(Instance)
 
-    def _make_instance(self):
+    def _make_instance(self) -> object:
+        """
+        Create the real instance for this object
+        """
         return self.cls()
 
     def __call__(self):
+        """
+        Create the real instance for this object, with child
+        attributes attached
+        """
         instance = self._make_instance()
         for child in self.children:
             setattr(
@@ -97,6 +121,15 @@ class Object(Base):
                 Iterable[Tuple[str, Any]]
             ]
     ):
+        """
+        Add database representations of child attributes
+
+        Parameters
+        ----------
+        items
+            Attributes such as floats or priors that are associated
+            with the real object
+        """
         for key, value in items:
             self.children.append(
                 Object(
@@ -110,36 +143,56 @@ class Object(Base):
     )
 
     @property
-    def _class_path_array(self):
+    def _class_path_array(self) -> List[str]:
+        """
+        A list of strings describing the module and class of the
+        real object represented here
+        """
         return self.class_path.split(".")
 
     @property
-    def _class_name(self):
+    def _class_name(self) -> str:
+        """
+        The name of the real class
+        """
         return self._class_path_array[-1]
 
     @property
-    def _module_path(self):
+    def _module_path(self) -> str:
+        """
+        The path of the module containing the real class
+        """
         return ".".join(self._class_path_array[:-1])
 
     @property
     def _module(self):
+        """
+        The module containing the real class
+        """
         return importlib.import_module(
             self._module_path
         )
 
     @property
-    def cls(self):
+    def cls(self) -> type:
+        """
+        The class of the real object
+        """
         return getattr(
             self._module,
             self._class_name
         )
 
     @cls.setter
-    def cls(self, cls):
+    def cls(self, cls: type):
         self.class_path = re.search("'(.*)'", str(cls))[1]
 
 
 class Instance(Object):
+    """
+    An instance, such as a class instance
+    """
+
     __tablename__ = "instance"
 
     id = Column(
@@ -167,6 +220,10 @@ class Instance(Object):
 
 
 class Value(Object):
+    """
+    A float
+    """
+
     __tablename__ = "value"
 
     __mapper_args__ = {
@@ -198,6 +255,10 @@ class Value(Object):
 
 
 class StringValue(Object):
+    """
+    A string
+    """
+
     __tablename__ = "string_value"
 
     __mapper_args__ = {
@@ -229,6 +290,10 @@ class StringValue(Object):
 
 
 class CollectionPriorModel(Object):
+    """
+    A collection
+    """
+
     __tablename__ = "collection_prior_model"
 
     id = Column(
@@ -267,6 +332,10 @@ class CollectionPriorModel(Object):
 
 
 class PriorModel(Object):
+    """
+    A prior model
+    """
+
     __tablename__ = "prior_model"
 
     id = Column(
@@ -299,6 +368,10 @@ class PriorModel(Object):
 
 
 class Prior(Object):
+    """
+    A prior
+    """
+
     __tablename__ = "prior"
 
     id = Column(
