@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mapper.prior.prior import TuplePrior
 from autofit.mock import mock as m
 
 
@@ -60,6 +61,86 @@ def test_in_collection(
     assert target.gaussian.centre is prior
 
 
+def test_tuple(
+        source_gaussian,
+        target_gaussian,
+        prior
+):
+    source_gaussian.centre = (prior, 1.0)
+    target_gaussian.take_attributes(
+        source_gaussian
+    )
+
+    assert target_gaussian.centre == (prior, 1.0)
+
+
+def test_tuple_prior(
+        source_gaussian,
+        target_gaussian,
+        prior
+):
+    source_gaussian.centre = (prior, 1.0)
+    target_gaussian.centre = TuplePrior()
+    target_gaussian.take_attributes(
+        source_gaussian
+    )
+
+    assert target_gaussian.centre == (prior, 1.0)
+
+
+def test_tuple_in_instance(
+        target_gaussian,
+        prior
+):
+    # noinspection PyTypeChecker
+    source_gaussian = m.Gaussian(
+        centre=(prior, 1.0)
+    )
+    target_gaussian.take_attributes(
+        source_gaussian
+    )
+
+    assert target_gaussian.centre == (prior, 1.0)
+
+
+def test_tuple_in_collection(
+        source_gaussian,
+        target_gaussian,
+        prior
+):
+    source_gaussian.centre = (prior, 1.0)
+
+    source = af.CollectionPriorModel(
+        gaussian=source_gaussian
+    )
+    target = af.CollectionPriorModel(
+        gaussian=target_gaussian
+    )
+
+    target.take_attributes(source)
+    assert target.gaussian.centre == (prior, 1.0)
+
+
+def test_tuple_in_instance_in_collection(
+        target_gaussian,
+        prior
+):
+    # noinspection PyTypeChecker
+    source_gaussian = m.Gaussian(
+        centre=(prior, 1.0)
+    )
+
+    source = af.CollectionPriorModel(
+        gaussian=source_gaussian
+    )
+    target = af.CollectionPriorModel(
+        gaussian=target_gaussian
+    )
+
+    target.take_attributes(source)
+    assert target.gaussian.centre == (prior, 1.0)
+
+
 def test_source_is_dict(
         source_gaussian,
         target_gaussian,
@@ -94,6 +175,18 @@ def test_target_is_dict(
     target.take_attributes(source)
 
     assert target.collection.gaussian.centre is prior
+
+
+def test_missing_from_source(
+        target_gaussian,
+        prior
+):
+    target_gaussian.centre = prior
+
+    target_gaussian.take_attributes(
+        af.CollectionPriorModel()
+    )
+    assert target_gaussian.centre is prior
 
 
 def test_unlabelled_in_collection(

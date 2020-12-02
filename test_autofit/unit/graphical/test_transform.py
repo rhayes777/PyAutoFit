@@ -66,7 +66,9 @@ def test_diagonal_transform():
     assert np.allclose(b / diag_scale, b @ iD)
 
 
-def _test_simple_transform_cholesky():
+def test_simple_transform_cholesky():
+
+    np.random.seed(0)
 
     d = 5
     A = stats.wishart(d, np.eye(d)).rvs()
