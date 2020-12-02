@@ -104,10 +104,13 @@ def test_gaussian():
         y_model = instance(x)
         return np.sum(_likelihood(y_model, y))
 
-    factor_model = ep.ModelFactor(prior_model, likelihood_function=likelihood_function)
+    factor_model = ep.ModelFactor(
+        prior_model,
+        likelihood_function=likelihood_function
+    )
 
-    opt = ep.optimise.LaplaceOptimiser(n_iter=3)
-    model = factor_model.optimise(opt)
+    laplace = ep.LaplaceFactorOptimiser()
+    model = factor_model.optimise(laplace)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
     assert model.intensity.mean == pytest.approx(25, rel=0.1)
