@@ -203,7 +203,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-        Returns an instance of the prior model and evaluates it, forming
+            Returns an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters

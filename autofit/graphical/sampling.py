@@ -1,17 +1,21 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from collections import defaultdict
 from itertools import chain
 from typing import NamedTuple, Tuple, Dict, Optional, List
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import Factor
-from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.graphical.mean_field import \
-    MeanField, FactorApproximation, Status
 from autofit.graphical.expectation_propagation import \
+    (
     EPMeanField, AbstractFactorOptimiser
+)
+from autofit.graphical.factor_graphs import Factor
+from autofit.graphical.mean_field import \
+    (
+    MeanField, FactorApproximation, Status
+)
 from autofit.graphical.messages import map_dists
+from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import add_arrays
 
 
@@ -92,9 +96,9 @@ class AbstractSampler(AbstractFactorOptimiser):
         pass
 
     def optimise(
-            self, 
-            factor: Factor, 
-            model_approx: EPMeanField, 
+            self,
+            factor: Factor,
+            model_approx: EPMeanField,
             status: Status = Status(),
     ) -> Tuple[EPMeanField, Status]:
         delta = self.deltas[factor]
@@ -106,6 +110,7 @@ class AbstractSampler(AbstractFactorOptimiser):
         projection, status = factor_approx.project(model_dist, delta=delta)
         return model_approx.project(projection, status=status)
 
+
 class ImportanceSampler(AbstractSampler):
     def __init__(
             self,
@@ -115,8 +120,8 @@ class ImportanceSampler(AbstractSampler):
             max_samples: int = 1000,
             force_sample: bool = True,
             delta: float = 1.,
-            deltas = None, 
-            sample_kws = None, 
+            deltas=None,
+            sample_kws=None,
     ):
 
         self.params = dict(
@@ -151,7 +156,7 @@ class ImportanceSampler(AbstractSampler):
             (n_samples,) + tuple(1 for _ in range(factor.ndim)))
 
         sample = self._weight_samples(
-            factor, samples, fval.deterministic_values, 
+            factor, samples, fval.deterministic_values,
             log_factor, cavity_dist,
             deterministic_dist, proposal_dist, n_samples=n_samples)
 
@@ -180,7 +185,7 @@ class ImportanceSampler(AbstractSampler):
         log_measure = 0.
         for res in chain(map_dists(cavity_dist, samples),
                          map_dists(deterministic_dist, det_vars)):
-        # for res in map_dists(cavity_dist, {**det_vars, **samples}):
+            # for res in map_dists(cavity_dist, {**det_vars, **samples}):
             log_measure = add_arrays(
                 log_measure, factor.broadcast_variable(*res))
 
@@ -266,15 +271,14 @@ class ImportanceSampler(AbstractSampler):
 def project_factor_approx_sample(
         factor_approx: FactorApproximation,
         sample: SamplingResult) -> Dict[str, AbstractMessage]:
-
-    #Calculate log_norm
+    # Calculate log_norm
     log_weights = sample.log_weights
     # Need to collapse the weights to match the shapes of the different
     # variables
     variable_log_weights = {
         v: factor_approx.factor.collapse(v, log_weights, agg_func=np.sum)
         for v in factor_approx.cavity_dist}
-        
+
     log_weights = log_weights.sum(
         tuple(range(1, log_weights.ndim)))
     # subtract max log_weight for numerical stability
