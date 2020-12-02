@@ -6,20 +6,19 @@ import autofit.graphical as ep
 from test_autofit.unit.graphical.gaussian.model import Gaussian, make_data, Analysis
 
 
-def test_shared_intensity():
-    """
-    Here's a good example in which we have two Gaussians fit with a shared variable
-    """
-    n_observations = 100
-    x = np.arange(n_observations)
-
-    """
-    We have a shared intensity value and a shared intensity prior
-    """
-    intensity = 25.0
-    intensity_prior = af.GaussianPrior(mean=25, sigma=10)
-
-    def make_factor_model(centre: float, sigma: float) -> ep.ModelFactor:
+@pytest.fixture(
+    name="make_model_factor"
+)
+def make_make_model_factor(
+        intensity,
+        intensity_prior,
+        x
+):
+    def make_factor_model(
+            centre: float,
+            sigma: float,
+            optimiser=None
+    ) -> ep.ModelFactor:
         """
         We'll make a LikelihoodModel for each Gaussian we're fitting.
 
@@ -27,11 +26,18 @@ def test_shared_intensity():
 
         Note that the intensity value is shared.
         """
-        y = make_data(Gaussian(centre=centre, intensity=intensity, sigma=sigma), x)
+        y = make_data(
+            Gaussian(
+                centre=centre,
+                intensity=intensity,
+                sigma=sigma
+            ),
+            x
+        )
 
         """
         Next we need a prior model.
-        
+    
         Note that the intensity prior is shared.
         """
         prior_model = af.PriorModel(
@@ -51,19 +57,65 @@ def test_shared_intensity():
             analysis=Analysis(
                 x=x,
                 y=y
-            )
+            ),
+            # optimiser=optimiser
         )
 
+    return make_factor_model
+
+
+@pytest.fixture(
+    name="x"
+)
+def make_x():
+    return np.arange(100)
+
+
+@pytest.fixture(
+    name="intensity"
+)
+def make_intensity():
+    return 25.0
+
+
+@pytest.fixture(
+    name="intensity_prior"
+)
+def make_intensity_prior():
+    return af.GaussianPrior(mean=25, sigma=10)
+
+
+@pytest.fixture(
+    name="factor_model"
+)
+def make_factor_model_collection(
+        make_model_factor
+):
     """
+    Here's a good example in which we have two Gaussians fit with a shared variable
+
+    We have a shared intensity value and a shared intensity prior
+
     Multiplying together multiple LikelihoodModels gives us a factor model.
-    
+
     The factor model can compute all the variables and messages required as well as construct
     a factor graph representing a fit on the ensemble.
     """
-    factor_model = ep.ModelFactorCollection(
-        make_factor_model(centre=40, sigma=10), make_factor_model(centre=60, sigma=15)
+    return ep.ModelFactorCollection(
+        make_model_factor(
+            centre=40,
+            sigma=10
+        ),
+        make_model_factor(
+            centre=60,
+            sigma=15
+        )
     )
 
+
+def test_factor_model_attributes(
+        factor_model
+):
     """
     There are:
     - 5 messages - one for each prior 
@@ -72,6 +124,10 @@ def test_shared_intensity():
     assert len(factor_model.message_dict) == 5
     assert len(factor_model.graph.factors) == 7
 
+
+def test_optimise_factor_model(
+        factor_model
+):
     """
     We optimise that...
     """

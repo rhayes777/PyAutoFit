@@ -4,7 +4,7 @@ from typing import Callable, cast, Set, List, Dict
 import numpy as np
 
 from autofit import ModelInstance, Analysis
-from autofit.graphical.expectation_propagation import EPMeanField
+from autofit.graphical.expectation_propagation import EPMeanField, AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
@@ -93,7 +93,20 @@ class AbstractModelFactor(ABC):
             self.message_dict
         )
 
-    def optimise(self, optimiser) -> CollectionPriorModel:
+    def _make_ep_optimiser(
+            self,
+            optimiser: AbstractFactorOptimiser
+    ) -> EPOptimiser:
+        return EPOptimiser(
+            self.graph,
+            default_optimiser=optimiser
+        )
+
+    def optimise(
+            self,
+            optimiser:
+            AbstractFactorOptimiser
+    ) -> CollectionPriorModel:
         """
         Use an EP Optimiser to optimise the graph associated with this collection
         of factors and create a Collection to represent the results.
@@ -107,9 +120,8 @@ class AbstractModelFactor(ABC):
         -------
         A collection of prior models
         """
-        opt = EPOptimiser(
-            self.graph,
-            default_optimiser=optimiser
+        opt = self._make_ep_optimiser(
+            optimiser
         )
         updated_model = opt.run(
             self.mean_field_approximation()
