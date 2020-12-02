@@ -51,6 +51,9 @@ def make_make_model_factor(
         Finally we combine the likelihood function with the prior model to produce a likelihood
         factor - this will be converted into a ModelFactor which is like any other factor in the
         factor graph.
+        
+        We can also pass a custom optimiser in here that will be used to fit the factor instead
+        of the default optimiser.
         """
         return ep.ModelFactor(
             prior_model,

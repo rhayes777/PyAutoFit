@@ -212,6 +212,9 @@ class ModelFactor(Factor, AbstractModelFactor):
         analysis
             A class that implements a function which evaluates how well an
             instance of the model fits some data
+        optimiser
+            A custom optimiser that will be used to fit this factor specifically
+            instead of the default optimiser
         """
         self.prior_model = prior_model
         self.analysis = analysis
