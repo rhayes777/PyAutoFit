@@ -81,7 +81,7 @@ class Object(Base):
         An instance of a concrete child of this class
         """
         if source is None:
-            return None
+            return object.__new__(NoneInstance)
         if isinstance(source, af.PriorModel):
             return object.__new__(PriorModel)
         if isinstance(source, af.Prior):
@@ -186,6 +186,34 @@ class Object(Base):
     @cls.setter
     def cls(self, cls: type):
         self.class_path = re.search("'(.*)'", str(cls))[1]
+
+
+class NoneInstance(Object):
+    __tablename__ = "none"
+
+    id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        ),
+        primary_key=True,
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'instance'
+    }
+
+    def __init__(
+            self,
+            _,
+            **kwargs
+    ):
+        super().__init__(
+            **kwargs
+        )
+
+    def _make_instance(self) -> None:
+        return None
 
 
 class Instance(Object):

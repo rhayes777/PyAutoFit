@@ -123,6 +123,10 @@ class TestCollection:
         )
 
 
+def test_none():
+    assert db.Object(None)() is None
+
+
 def test_commit(session):
     model = af.PriorModel(
         m.Gaussian
