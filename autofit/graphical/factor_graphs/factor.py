@@ -221,7 +221,7 @@ class Factor(AbstractFactor):
             k: np.shape(x) for k, x in kwargs.items()}
         return self._var_shape(**var_shapes)
     
-    @lru_cache
+    @lru_cache()
     def _var_shape(self, **kwargs: Tuple[int, ...]) -> Tuple[int, ...]:
         """This is called by _function_shape
         
