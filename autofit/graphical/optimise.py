@@ -54,10 +54,13 @@ class OptFactor:
             transform: Optional[AbstractLinearTransform] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
             method: str = 'L-BFGS-B',
+            jac=False
     ):
         self.factor = factor
         self.param_shapes = param_shapes
         self._model_dist = model_dist
+
+        self.jac = jac
 
         self.transform = identity_transform if transform is None else transform
         self.param_bounds = bounds
@@ -220,10 +223,28 @@ class OptFactor:
         x0 = self.transform * self.param_shapes.flatten(arrays_dict)
         bounds = self.bounds if bounds is None else bounds
         method = self.method if method is None else method
+        if self.jac:
+            return minimize(
+                self.func_jacobian,
+                x0,
+                method=method,
+                jac=True,
+                bounds=bounds,
+                constraints=constraints,
+                tol=tol,
+                callback=callback,
+                options=options
+            )
         return minimize(
-            self.func_jacobian, x0, method=method, jac=True, bounds=bounds,
-            constraints=constraints, tol=tol, callback=callback,
-            options=options)
+            self,
+            x0,
+            method=method,
+            bounds=bounds,
+            constraints=constraints,
+            tol=tol,
+            callback=callback,
+            options=options
+        )
 
     def minimise(
             self,
