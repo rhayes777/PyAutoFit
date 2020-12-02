@@ -85,7 +85,7 @@ class TestPriors:
             self,
             serialized_model,
     ):
-        assert len(serialized_model.priors) == 3
+        assert len(serialized_model.children) == 3
 
     def test_deserialize(
             self,
@@ -109,7 +109,7 @@ class TestCollection:
             db.CollectionPriorModel
         )
         child, = serialized_collection.children
-        assert len(child.priors) == 3
+        assert len(child.children) == 3
 
     def test_deserialize(
             self,

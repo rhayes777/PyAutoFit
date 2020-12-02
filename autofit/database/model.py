@@ -41,18 +41,6 @@ class Object(Base):
 
     name = Column(String)
 
-    @property
-    def priors(self) -> List["Prior"]:
-        """
-        A list of prior database representations attached to this object
-        """
-        return [
-            child
-            for child
-            in self.children
-            if isinstance(child, Prior)
-        ]
-
     __mapper_args__ = {
         'polymorphic_identity': 'object',
         'polymorphic_on': type
@@ -85,10 +73,12 @@ class Object(Base):
         if source is None:
             instance = NoneInstance()
         elif isinstance(source, af.PriorModel):
+            from .prior import PriorModel
             instance = PriorModel._from_object(
                 source
             )
         elif isinstance(source, af.Prior):
+            from .prior import Prior
             instance = Prior._from_object(
                 source
             )
@@ -97,6 +87,7 @@ class Object(Base):
                 source
             )
         elif isinstance(source, (af.CollectionPriorModel, dict, list)):
+            from .prior import CollectionPriorModel
             instance = CollectionPriorModel._from_object(
                 source
             )
@@ -318,110 +309,3 @@ class StringValue(Object):
         instance.value = source
         return instance
 
-
-class CollectionPriorModel(Object):
-    """
-    A collection
-    """
-
-    __tablename__ = "collection_prior_model"
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'collection_prior_model'
-    }
-
-    @classmethod
-    def _from_object(
-            cls,
-            source: Union[
-                af.CollectionPriorModel,
-                list,
-                dict
-            ]
-    ):
-        instance = cls()
-        if not isinstance(
-                source,
-                af.CollectionPriorModel
-        ):
-            source = af.CollectionPriorModel(
-                source
-            )
-        instance._add_children(
-            source.items()
-        )
-        instance.cls = af.CollectionPriorModel
-        return instance
-
-
-class PriorModel(Object):
-    """
-    A prior model
-    """
-
-    __tablename__ = "prior_model"
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'prior_model'
-    }
-
-    @classmethod
-    def _from_object(
-            cls,
-            model: af.PriorModel,
-    ):
-        instance = cls()
-        instance.cls = model.cls
-        instance._add_children(model.items())
-        return instance
-
-    def _make_instance(self):
-        instance = object.__new__(af.PriorModel)
-        instance.cls = self.cls
-        return instance
-
-
-class Prior(Object):
-    """
-    A prior
-    """
-
-    __tablename__ = "prior"
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'prior'
-    }
-
-    @classmethod
-    def _from_object(
-            cls,
-            model: af.Prior
-    ):
-        instance = cls()
-        instance.cls = type(model)
-        instance._add_children(model.__dict__.items())
-        return instance
