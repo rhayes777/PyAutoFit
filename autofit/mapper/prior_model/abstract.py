@@ -125,21 +125,21 @@ class AbstractPriorModel(AbstractModel):
             are passed to this model.
         """
         for path, _ in self.path_priors_tuples + self.path_float_tuples:
-            item = source
-            if isinstance(item, dict):
-                from autofit.mapper.prior_model.collection import CollectionPriorModel
-                item = CollectionPriorModel(item)
             try:
+                item = source
+                if isinstance(item, dict):
+                    from autofit.mapper.prior_model.collection import CollectionPriorModel
+                    item = CollectionPriorModel(item)
                 for attribute in path:
                     item = getattr(item, attribute)
+
+                target = self
+                for attribute in path[:-1]:
+                    target = getattr(target, attribute)
+
+                setattr(target, path[-1], item)
             except AttributeError:
                 pass
-
-            target = self
-            for attribute in path[:-1]:
-                target = getattr(target, attribute)
-
-            setattr(target, path[-1], item)
 
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """

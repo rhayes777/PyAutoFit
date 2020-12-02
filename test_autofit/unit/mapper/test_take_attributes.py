@@ -96,6 +96,18 @@ def test_target_is_dict(
     assert target.collection.gaussian.centre is prior
 
 
+def test_missing_from_source(
+        target_gaussian,
+        prior
+):
+    target_gaussian.centre = prior
+
+    target_gaussian.take_attributes(
+        af.CollectionPriorModel()
+    )
+    assert target_gaussian.centre is prior
+
+
 def test_unlabelled_in_collection(
         source_gaussian,
         target_gaussian,

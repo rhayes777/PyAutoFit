@@ -68,6 +68,8 @@ def test_diagonal_transform():
 
 def test_simple_transform_cholesky():
 
+    np.random.seed(0)
+
     d = 5
     A = stats.wishart(d, np.eye(d)).rvs()
     b = np.random.rand(d)
