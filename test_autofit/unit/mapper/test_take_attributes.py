@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mapper.prior.prior import TuplePrior
 from autofit.mock import mock as m
 
 
@@ -66,6 +67,20 @@ def test_tuple(
         prior
 ):
     source_gaussian.centre = (prior, 1.0)
+    target_gaussian.take_attributes(
+        source_gaussian
+    )
+
+    assert target_gaussian.centre == (prior, 1.0)
+
+
+def test_tuple_prior(
+        source_gaussian,
+        target_gaussian,
+        prior
+):
+    source_gaussian.centre = (prior, 1.0)
+    target_gaussian.centre = TuplePrior()
     target_gaussian.take_attributes(
         source_gaussian
     )

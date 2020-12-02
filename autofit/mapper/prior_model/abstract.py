@@ -124,7 +124,11 @@ class AbstractPriorModel(AbstractModel):
             An instance or prior model from a previous phase from which attributes
             are passed to this model.
         """
-        for path, _ in self.path_priors_tuples + self.path_float_tuples:
+        for path, _ in sum(map(
+                self.path_instance_tuples_for_class,
+                (Prior, float, TuplePrior)),
+                []
+        ):
             try:
                 item = source
                 if isinstance(item, dict):
