@@ -77,8 +77,9 @@ def test_shared_intensity():
     """
     We optimise that...
     """
-    opt = ep.optimise.LaplaceOptimiser(n_iter=3)
-    collection = factor_model.optimise(opt)
+    laplace = ep.LaplaceFactorOptimiser()
+
+    collection = factor_model.optimise(laplace)
 
     """
     And what we get back is actually a PriorModelCollection

@@ -4,9 +4,9 @@ from typing import Callable, cast, Set, List, Dict
 import numpy as np
 
 from autofit import ModelInstance
+from autofit.graphical.expectation_propagation import EPMeanField, EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -106,7 +106,11 @@ class AbstractModelFactor(ABC):
         -------
         A collection of prior models
         """
-        updated_model, status = optimiser.run(
+        opt = EPOptimiser(
+            self.graph,
+            default_optimiser=optimiser
+        )
+        updated_model = opt.run(
             self.mean_field_approximation()
         )
 
