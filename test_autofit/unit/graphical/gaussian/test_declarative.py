@@ -75,8 +75,9 @@ def test_shared_intensity():
     """
     We optimise that...
     """
-    opt = ep.optimise.LaplaceOptimiser(n_iter=3)
-    collection = factor_model.optimise(opt)
+    laplace = ep.LaplaceFactorOptimiser()
+
+    collection = factor_model.optimise(laplace)
 
     """
     And what we get back is actually a PriorModelCollection
@@ -105,8 +106,8 @@ def test_gaussian():
         )
     )
 
-    opt = ep.optimise.LaplaceOptimiser(n_iter=3)
-    model = factor_model.optimise(opt)
+    laplace = ep.LaplaceFactorOptimiser()
+    model = factor_model.optimise(laplace)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
     assert model.intensity.mean == pytest.approx(25, rel=0.1)

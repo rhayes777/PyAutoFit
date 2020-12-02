@@ -5,6 +5,7 @@ import numpy as np
 
 from autofit import ModelInstance, Analysis
 from autofit.graphical.expectation_propagation import EPMeanField
+from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import NormalMessage
@@ -106,7 +107,11 @@ class AbstractModelFactor(ABC):
         -------
         A collection of prior models
         """
-        updated_model, status = optimiser.run(
+        opt = EPOptimiser(
+            self.graph,
+            default_optimiser=optimiser
+        )
+        updated_model = opt.run(
             self.mean_field_approximation()
         )
 
@@ -200,7 +205,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-        Returns an instance of the prior model and evaluates it, forming
+            Returns an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters
