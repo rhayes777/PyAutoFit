@@ -1,8 +1,16 @@
+import numpy as np
 import pytest
 from scipy import stats
 
 import autofit.mapper.variable
 from autofit import graphical as mp
+
+
+@pytest.fixture(
+    autouse=True
+)
+def set_seed():
+    np.random.seed(0)
 
 
 @pytest.fixture(name="x")
