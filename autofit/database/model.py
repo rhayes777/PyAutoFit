@@ -58,10 +58,12 @@ class Object(Base):
         'polymorphic_on': type
     }
 
-    def __new__(
+    # noinspection PyProtectedMember
+    @classmethod
+    def from_object(
             cls,
             source,
-            **kwargs
+            name=None
     ):
         """
         Create a database object for an object in a model.
@@ -73,26 +75,41 @@ class Object(Base):
         ----------
         source
             A model
-        kwargs
-            Additional arguments specified in the creation of an object
+        name
+            The name of the object wrt its parent
 
         Returns
         -------
         An instance of a concrete child of this class
         """
         if source is None:
-            return object.__new__(NoneInstance)
-        if isinstance(source, af.PriorModel):
-            return object.__new__(PriorModel)
-        if isinstance(source, af.Prior):
-            return object.__new__(Prior)
-        if isinstance(source, (float, int)):
-            return object.__new__(Value)
-        if isinstance(source, (af.CollectionPriorModel, dict, list)):
-            return object.__new__(CollectionPriorModel)
-        if isinstance(source, str):
-            return object.__new__(StringValue)
-        return object.__new__(Instance)
+            instance = NoneInstance()
+        elif isinstance(source, af.PriorModel):
+            instance = PriorModel._from_object(
+                source
+            )
+        elif isinstance(source, af.Prior):
+            instance = Prior._from_object(
+                source
+            )
+        elif isinstance(source, (float, int)):
+            instance = Value._from_object(
+                source
+            )
+        elif isinstance(source, (af.CollectionPriorModel, dict, list)):
+            instance = CollectionPriorModel._from_object(
+                source
+            )
+        elif isinstance(source, str):
+            instance = StringValue._from_object(
+                source
+            )
+        else:
+            instance = Instance._from_object(
+                source
+            )
+        instance.name = name
+        return instance
 
     def _make_instance(self) -> object:
         """
@@ -132,7 +149,7 @@ class Object(Base):
         """
         for key, value in items:
             self.children.append(
-                Object(
+                Object.from_object(
                     value,
                     name=key
                 )
@@ -203,15 +220,6 @@ class NoneInstance(Object):
         'polymorphic_identity': 'instance'
     }
 
-    def __init__(
-            self,
-            _,
-            **kwargs
-    ):
-        super().__init__(
-            **kwargs
-        )
-
     def _make_instance(self) -> None:
         return None
 
@@ -235,16 +243,15 @@ class Instance(Object):
         'polymorphic_identity': 'instance'
     }
 
-    def __init__(
-            self,
-            model,
-            **kwargs
+    @classmethod
+    def _from_object(
+            cls,
+            source
     ):
-        super().__init__(
-            **kwargs
-        )
-        self.cls = type(model)
-        self._add_children(model.__dict__.items())
+        instance = cls()
+        instance.cls = type(source)
+        instance._add_children(source.__dict__.items())
+        return instance
 
 
 class Value(Object):
@@ -268,15 +275,14 @@ class Value(Object):
 
     value = Column(Float)
 
-    def __init__(
-            self,
-            value,
-            **kwargs
+    @classmethod
+    def _from_object(
+            cls,
+            source
     ):
-        super().__init__(
-            **kwargs
-        )
-        self.value = value
+        instance = cls()
+        instance.value = source
+        return instance
 
     def __call__(self):
         return self.value
@@ -303,18 +309,14 @@ class StringValue(Object):
 
     value = Column(String)
 
-    def __init__(
-            self,
-            value,
-            **kwargs
+    @classmethod
+    def _from_object(
+            cls,
+            source
     ):
-        super().__init__(
-            **kwargs
-        )
-        self.value = value
-
-    def __call__(self):
-        return self.value
+        instance = cls()
+        instance.value = source
+        return instance
 
 
 class CollectionPriorModel(Object):
@@ -336,27 +338,28 @@ class CollectionPriorModel(Object):
         'polymorphic_identity': 'collection_prior_model'
     }
 
-    def __init__(
-            self,
-            collection: Union[
+    @classmethod
+    def _from_object(
+            cls,
+            source: Union[
                 af.CollectionPriorModel,
                 list,
                 dict
-            ],
-            **kwargs
+            ]
     ):
-        super().__init__(**kwargs)
+        instance = cls()
         if not isinstance(
-                collection,
+                source,
                 af.CollectionPriorModel
         ):
-            collection = af.CollectionPriorModel(
-                collection
+            source = af.CollectionPriorModel(
+                source
             )
-        self._add_children(
-            collection.items()
+        instance._add_children(
+            source.items()
         )
-        self.cls = af.CollectionPriorModel
+        instance.cls = af.CollectionPriorModel
+        return instance
 
 
 class PriorModel(Object):
@@ -378,16 +381,15 @@ class PriorModel(Object):
         'polymorphic_identity': 'prior_model'
     }
 
-    def __init__(
-            self,
+    @classmethod
+    def _from_object(
+            cls,
             model: af.PriorModel,
-            **kwargs
     ):
-        super().__init__(
-            **kwargs
-        )
-        self.cls = model.cls
-        self._add_children(model.items())
+        instance = cls()
+        instance.cls = model.cls
+        instance._add_children(model.items())
+        return instance
 
     def _make_instance(self):
         return af.PriorModel(
@@ -414,13 +416,12 @@ class Prior(Object):
         'polymorphic_identity': 'prior'
     }
 
-    def __init__(
-            self,
-            model: af.Prior,
-            **kwargs
+    @classmethod
+    def _from_object(
+            cls,
+            model: af.Prior
     ):
-        super().__init__(
-            **kwargs
-        )
-        self.cls = type(model)
-        self._add_children(model.__dict__.items())
+        instance = cls()
+        instance.cls = type(model)
+        instance._add_children(model.__dict__.items())
+        return instance

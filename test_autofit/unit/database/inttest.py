@@ -1,17 +1,22 @@
+from pathlib import Path
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import autofit as af
-from autofit.mock import mock as m
 from autofit import database as db
 
-from pathlib import Path
+directory = Path(__file__).parent
+database_path = f"{directory}/test.db"
 
 
-@pytest.fixture(name="session")
+@pytest.fixture(
+    name="session",
+    scope="module"
+)
 def make_session():
-    engine = create_engine("sqlite:///test.db")
+    engine = create_engine(f"sqlite:///{database_path}")
     session = sessionmaker(bind=engine)()
     db.Base.metadata.create_all(engine)
     yield session
@@ -19,24 +24,36 @@ def make_session():
     engine.dispose()
 
 
-def test_commit(session):
-    model = af.PriorModel(
-        m.Gaussian
-    )
-    serialized = db.Object(model)
-    session.add(serialized)
-    session.commit()
-
-
-def test_read_in_directory(session):
+@pytest.fixture(
+    autouse=True,
+    scope="module"
+)
+def read_in(session):
     aggregator = af.Aggregator(
-        Path(__file__).parent.parent.parent.parent.parent / "rjlens"
+        directory.parent.parent.parent.parent / "rjlens"
     )
     for item in aggregator:
-        session.add(
-            db.Object(
-                item.model
-            )
+        obj = db.Object.from_object(
+            item.model
         )
+        session.add(
+            obj
+        )
+    yield
+    # os.remove(database_path)
+
+
+def test_commit(session):
     session.commit()
 
+
+def test_instantiate(session):
+    model = session.query(
+        db.Object
+    ).filter(
+        db.Object.parent_id.is_(None)
+    ).first()
+    assert isinstance(
+        model(),
+        af.AbstractPriorModel
+    )

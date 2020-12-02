@@ -30,7 +30,7 @@ def make_model():
     name="serialized_model"
 )
 def make_serialized_model(model):
-    return db.Object(
+    return db.Object.from_object(
         model
     )
 
@@ -48,14 +48,14 @@ def make_collection(model):
     name="serialized_collection"
 )
 def make_serialized_collection(collection):
-    return db.Object(
+    return db.Object.from_object(
         collection
     )
 
 
 class TestInstance:
     def test_serialize(self):
-        serialized_instance = db.Object(
+        serialized_instance = db.Object.from_object(
             m.Gaussian()
         )
         assert len(
@@ -124,13 +124,13 @@ class TestCollection:
 
 
 def test_none():
-    assert db.Object(None)() is None
+    assert db.Object.from_object(None)() is None
 
 
 def test_commit(session):
     model = af.PriorModel(
         m.Gaussian
     )
-    serialized = db.Object(model)
+    serialized = db.Object.from_object(model)
     session.add(serialized)
     session.commit()
