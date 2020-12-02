@@ -1,20 +1,21 @@
+
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict 
 from itertools import count
 from typing import (
-    Dict, Tuple, Optional, List,
+    Dict, Tuple, Optional, NamedTuple, Iterator, List,
     Callable
 )
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import (
-    Factor, AbstractNode, FactorGraph
-)
-from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.graphical.utils import Status
+
+from autofit.graphical.factor_graphs import (
+    Factor, AbstractNode, FactorGraph)
 from autofit.mapper.variable import Variable
+from autofit.graphical.utils import Status, cached_property
+from autofit.graphical.mean_field import MeanField, FactorApproximation 
 
 
 class EPMeanField(AbstractNode):
@@ -59,7 +60,6 @@ class EPMeanField(AbstractNode):
         given the passed FactorApproximation, return a new `EPMeanField`
         object encoding the updated mean-field approximation
     '''
-
     def __init__(
             self,
             factor_graph: FactorGraph,
@@ -72,25 +72,25 @@ class EPMeanField(AbstractNode):
             for v in vs:
                 variable_factor.setdefault(v, set()).add(factor)
         self._variable_factor = variable_factor
-
+        
         super().__init__(**self.factor_graph._kwargs)
 
-    @property
+    @property 
     def name(self):
         return f"EP_{self.factor_graph.name}"
 
     @property
-    def variables(self):
+    def variables(self): 
         return self.factor_graph.variables
 
     @property
-    def deterministic_variables(self):
+    def deterministic_variables(self): 
         return self.factor_graph.deterministic_variables
 
     # @property
     # def variable_names(self) -> Dict[str, Variable]: 
     #     return self.factor_graph.variable_names
-
+ 
     @property
     def factor_mean_field(self) -> Dict[Factor, MeanField]:
         return self._factor_mean_field.copy()
@@ -115,7 +115,7 @@ class EPMeanField(AbstractNode):
             factor_mean_field)
 
     from_kws = from_approx_dists
-
+    
     def factor_approximation(self, factor: Factor) -> FactorApproximation:
         factor_mean_field = self._factor_mean_field.copy()
         factor_dist = factor_mean_field.pop(factor)
@@ -129,7 +129,7 @@ class EPMeanField(AbstractNode):
             factor, cavity_dist, factor_dist, model_dist)
 
     def project_factor_approx(
-            self, projection: FactorApproximation, status: Optional[Status] = None,
+        self, projection: FactorApproximation, status: Optional[Status] = None,
     ) -> "EPMeanField":
         """
         """
@@ -151,7 +151,7 @@ class EPMeanField(AbstractNode):
 
     @property
     def variable_factor_message(self
-                                ) -> Dict[Variable, Dict[Factor, AbstractMessage]]:
+    ) -> Dict[Variable, Dict[Factor, AbstractMessage]]:
         variable_factor_message = {
             v: {} for v in self.all_variables}
         for factor, meanfield in self.factor_mean_field.items():
@@ -167,7 +167,7 @@ class EPMeanField(AbstractNode):
         for meanfield in self.factor_mean_field.values():
             for v, message in meanfield.items():
                 variable_messages[v].append(message)
-
+        
         return variable_messages
 
     @property
@@ -177,13 +177,13 @@ class EPMeanField(AbstractNode):
             for v, ms in self.variable_messages.items()
         }
 
-    @property
+    @property 
     def factor_evidence(self) -> Dict[Factor, np.ndarray]:
         return {
-            factor: meanfield.log_norm
+            factor: meanfield.log_norm 
             for factor, meanfield in self.factor_mean_field.items()
         }
-
+    
     @property
     def log_evidence(self):
         """
@@ -223,27 +223,25 @@ class EPMeanField(AbstractNode):
 
     @property
     def is_valid(self) -> bool:
-        return all(mean_field.is_valid
+        return all(mean_field.is_valid 
                    for mean_field in self.factor_mean_field.values())
 
 
 class AbstractFactorOptimiser(ABC):
     @abstractmethod
     def optimise(
-            self,
-            factor: Factor,
-            model_approx: EPMeanField,
+            self, 
+            factor: Factor, 
+            model_approx: EPMeanField, 
             status: Optional[Status] = None
     ) -> Tuple[EPMeanField, Status]:
         pass
 
-
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
-
 
 class EPHistory:
     def __init__(
-            self,
+            self, 
             callbacks: Tuple[EPCallBack, ...] = (),
             kl_tol=1e-6,
             evidence_tol=None):
@@ -252,17 +250,17 @@ class EPHistory:
         self.statuses = {}
         self.factor_count = defaultdict(count)
 
-        self.kl_tol = kl_tol
+        self.kl_tol = kl_tol 
         self.evidence_tol = evidence_tol
 
     def __call__(
-            self,
-            factor: Factor,
-            approx: EPMeanField,
+            self, 
+            factor: Factor, 
+            approx: EPMeanField, 
             status: Status = Status()
     ) -> bool:
         i = next(self.factor_count[factor])
-        self.history[i, factor] = approx
+        self.history[i, factor] = approx 
         self.statuses[i, factor] = status
 
         stop = any([
@@ -271,35 +269,35 @@ class EPHistory:
         if stop:
             return True
         elif i:
-            last_approx = self.history[i - 1, factor]
+            last_approx = self.history[i-1, factor]
             return self._check_convergence(approx, last_approx)
-
+        
         return False
 
     def _kl_convergence(
-            self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
+            self, 
+            approx: EPMeanField, 
+            last_approx: EPMeanField, 
     ) -> bool:
         return approx.mean_field.kl(last_approx.mean_field) < self.kl_tol
 
     def _evidence_convergence(
-            self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
+            self, 
+            approx: EPMeanField, 
+            last_approx: EPMeanField, 
     ) -> bool:
         last_evidence = last_approx.log_evidence
-        evidence = approx.log_evidence
+        evidence = approx.log_evidence 
         if last_evidence > evidence:
             # todo print warning?
             return False
-
+            
         return evidence - last_evidence < self.evidence_tol
 
     def _check_convergence(
-            self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
+            self, 
+            approx: EPMeanField, 
+            last_approx: EPMeanField, 
     ) -> bool:
         stop = False
         if self.kl_tol:
@@ -311,30 +309,30 @@ class EPHistory:
         return stop
 
 
+
 class EPOptimiser:
     """
     """
-
     def __init__(
-            self,
+            self, 
             factor_graph: FactorGraph,
             default_optimiser: AbstractFactorOptimiser = None,
-            factor_optimisers: Dict[Factor, AbstractFactorOptimiser] = None,
+            factor_optimisers: Dict[Factor, AbstractFactorOptimiser] = {},
             callback: Optional[EPCallBack] = None,
-            factor_order: Optional[List[Factor]] = None
-    ):
-        factor_optimisers = factor_optimisers or {}
-        self.factor_graph = factor_graph
-        self.factors = factor_order or self.factor_graph.factors
+            factor_order: Optional[List[Factor]] = None):
 
+        self.factor_graph = factor_graph
+        self.factors = \
+            self.factor_graph.factors if factor_order is None else factor_order
+        
         if default_optimiser is None:
             self.factor_optimisers = factor_optimisers
             missing = set(self.factors) - self.factor_optimisers.keys()
             if missing:
-                raise (ValueError(
+                raise(ValueError(
                     f"missing optimisers for {missing}, "
                     "pass a default_optimiser or add missing optimsers"
-                ))
+                    ))
         else:
             self.factor_optimisers = {
                 factor: factor_optimisers.get(factor, default_optimiser)
@@ -343,17 +341,19 @@ class EPOptimiser:
         self.callback = callback or EPHistory()
 
     def run(
-            self,
-            model_approx: EPMeanField,
+            self, 
+            model_approx: EPMeanField, 
             max_steps=100,
     ) -> EPMeanField:
         for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
                 model_approx, status = optimiser.optimise(factor, model_approx)
                 if self.callback(factor, model_approx, status):
-                    break  # callback controls convergence
-            else:  # If no break do next iteration
+                    break # callback controls convergence
+            else: # If no break do next iteration
                 continue
             break  # stop iterations
 
         return model_approx
+
+        
