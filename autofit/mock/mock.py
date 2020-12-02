@@ -112,7 +112,7 @@ class MockSearch(af.NonLinearSearch):
                 # Return Chi squared
                 return -2 * log_likelihood
 
-        analysis.save_for_aggregator(paths=self.paths)
+        analysis.save_attributes_for_aggregator(paths=self.paths)
 
         fitness_function = Fitness(model.instance_from_vector)
         fitness_function(model.prior_count * [0.5])

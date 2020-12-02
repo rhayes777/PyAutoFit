@@ -21,8 +21,10 @@ workspace_path = str(here())
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
+import os
 from os import path
 import numpy as np
+import matplotlib.pyplot as plt
 
 # %%
 """
@@ -57,7 +59,9 @@ def plot_line(
     plt.title(title)
     plt.xlabel("x value of profile")
     plt.ylabel(ylabel)
-    plt.savefig(output_path + output_filename + ".png")
+    if not path.exists(output_path):
+        os.makedirs(output_path)
+    plt.savefig(path.join(output_path, f"{output_filename}.png"))
     plt.clf()
 
 
