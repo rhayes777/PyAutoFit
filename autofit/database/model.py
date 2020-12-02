@@ -2,7 +2,7 @@ import importlib
 import re
 from typing import List, Tuple, Any, Iterable, Union, ItemsView
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -71,6 +71,7 @@ class Object(Base):
         An instance of a concrete child of this class
         """
         if source is None:
+            from .instance import NoneInstance
             instance = NoneInstance()
         elif isinstance(source, af.PriorModel):
             from .prior import PriorModel
@@ -83,6 +84,7 @@ class Object(Base):
                 source
             )
         elif isinstance(source, (float, int)):
+            from .instance import Value
             instance = Value._from_object(
                 source
             )
@@ -92,10 +94,12 @@ class Object(Base):
                 source
             )
         elif isinstance(source, str):
+            from .instance import StringValue
             instance = StringValue._from_object(
                 source
             )
         else:
+            from .instance import Instance
             instance = Instance._from_object(
                 source
             )
@@ -194,118 +198,3 @@ class Object(Base):
     @cls.setter
     def cls(self, cls: type):
         self.class_path = re.search("'(.*)'", str(cls))[1]
-
-
-class NoneInstance(Object):
-    __tablename__ = "none"
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'none'
-    }
-
-    def _make_instance(self) -> None:
-        return None
-
-
-class Instance(Object):
-    """
-    An instance, such as a class instance
-    """
-
-    __tablename__ = "instance"
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'instance'
-    }
-
-    @classmethod
-    def _from_object(
-            cls,
-            source
-    ):
-        instance = cls()
-        instance.cls = type(source)
-        instance._add_children(source.__dict__.items())
-        return instance
-
-
-class Value(Object):
-    """
-    A float
-    """
-
-    __tablename__ = "value"
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'value'
-    }
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    value = Column(Float)
-
-    @classmethod
-    def _from_object(
-            cls,
-            source
-    ):
-        instance = cls()
-        instance.value = source
-        return instance
-
-    def __call__(self):
-        return self.value
-
-
-class StringValue(Object):
-    """
-    A string
-    """
-
-    __tablename__ = "string_value"
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'string_value'
-    }
-
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
-
-    value = Column(String)
-
-    @classmethod
-    def _from_object(
-            cls,
-            source
-    ):
-        instance = cls()
-        instance.value = source
-        return instance
-
