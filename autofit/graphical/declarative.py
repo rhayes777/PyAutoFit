@@ -3,10 +3,10 @@ from typing import Callable, cast, Set, List, Dict
 
 import numpy as np
 
-from autofit import ModelInstance
+from autofit import ModelInstance, Analysis
+from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.messages import NormalMessage
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -145,7 +145,7 @@ class AbstractModelFactor(ABC):
         The combined likelihood of all factors
         """
         likelihood = abs(
-            self.model_factors[0].likelihood_function(
+            self.model_factors[0].analysis.log_likelihood_function(
                 instance[0]
             )
         )
@@ -154,7 +154,7 @@ class AbstractModelFactor(ABC):
                 instance[1:]
         ):
             likelihood *= abs(
-                model_factor.likelihood_function(
+                model_factor.analysis.log_likelihood_function(
                     instance_
                 )
             )
@@ -176,7 +176,7 @@ class ModelFactor(Factor, AbstractModelFactor):
     def __init__(
             self,
             prior_model: AbstractPriorModel,
-            likelihood_function: Callable
+            analysis: Analysis
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -186,8 +186,9 @@ class ModelFactor(Factor, AbstractModelFactor):
         ----------
         prior_model
             A model with some dimensionality
-        likelihood_function
-            A function that evaluates how well an instance of the model fits some data
+        analysis
+            A class that implements a function which evaluates how well an
+            instance of the model fits some data
         """
         prior_variable_dict = {
             prior.name: prior
@@ -221,14 +222,16 @@ class ModelFactor(Factor, AbstractModelFactor):
             instance = prior_model.instance_for_arguments(
                 arguments
             )
-            return likelihood_function(instance)
+            return analysis.log_likelihood_function(
+                instance
+            )
 
         super().__init__(
             _factor,
             **prior_variable_dict
         )
-        self.likelihood_function = likelihood_function
         self.prior_model = prior_model
+        self.analysis = analysis
 
     @property
     def model_factors(self) -> List["ModelFactor"]:

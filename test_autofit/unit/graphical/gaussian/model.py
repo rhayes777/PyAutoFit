@@ -33,10 +33,10 @@ class Profile:
 
 class Gaussian(Profile):
     def __init__(
-        self,
-        centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-        intensity=0.1,  # <- are the Gaussian's model parameters.
-        sigma=0.01,
+            self,
+            centre=0.0,  # <- PyAutoFit recognises these constructor arguments
+            intensity=0.1,  # <- are the Gaussian's model parameters.
+            sigma=0.01,
     ):
         """Represents a 1D Gaussian profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a non-linear search.
@@ -77,3 +77,17 @@ def make_data(gaussian, x):
     noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, len(x))
     y = model_line + noise
     return y
+
+
+class Analysis:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def log_likelihood_function(self, instance: Gaussian) -> np.array:
+        """
+        This function takes an instance created by the PriorModel and computes the
+        likelihood that it fits the data.
+        """
+        y_model = instance(self.x)
+        return np.sum(_likelihood(y_model, self.y))
