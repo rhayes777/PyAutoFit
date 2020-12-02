@@ -217,7 +217,7 @@ class NoneInstance(Object):
     )
 
     __mapper_args__ = {
-        'polymorphic_identity': 'instance'
+        'polymorphic_identity': 'none'
     }
 
     def _make_instance(self) -> None:
@@ -392,9 +392,9 @@ class PriorModel(Object):
         return instance
 
     def _make_instance(self):
-        return af.PriorModel(
-            self.cls
-        )
+        instance = object.__new__(af.PriorModel)
+        instance.cls = self.cls
+        return instance
 
 
 class Prior(Object):

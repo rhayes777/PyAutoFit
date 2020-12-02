@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -40,7 +41,10 @@ def read_in(session):
             obj
         )
     yield
-    # os.remove(database_path)
+    try:
+        os.remove(database_path)
+    except FileNotFoundError:
+        pass
 
 
 def test_commit(session):
