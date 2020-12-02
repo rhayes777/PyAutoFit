@@ -1,5 +1,21 @@
-from autofit.graphical.factor_graphs.abstract import AbstractNode
-from autofit.graphical.factor_graphs.factor import FactorValue, Factor, AbstractFactor
-from autofit.graphical.factor_graphs.graph import DeterministicFactorNode, FactorGraph
-from autofit.graphical.factor_graphs.numerical import numerical_jacobian
-from autofit.mapper.variable import Variable, Plate
+from typing import Union
+from .abstract import \
+    Value, FactorValue, JacobianValue, HessianValue, AbstractNode, Variable, \
+    Plate
+from .factor import \
+    AbstractFactor, Factor, DeterministicFactor
+from .jacobians import \
+    FactorJacobian, DeterministicFactorJacobian
+from .graph import FactorGraph
+from .transform import \
+    DiagonalTransform, CholeskyTransform, VariableTransform, \
+    FullCholeskyTransform, identity_transform, TransformedNode
+
+FactorNode = Union[
+    Factor, 
+    FactorJacobian
+]
+DeterministicFactorNode = Union[
+    DeterministicFactor,
+    DeterministicFactorJacobian
+    ]

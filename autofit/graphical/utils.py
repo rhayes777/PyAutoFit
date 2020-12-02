@@ -1,13 +1,20 @@
 from functools import reduce
 from operator import mul
+from itertools import chain
 from typing import (
-    Iterable, Tuple, TypeVar, Dict
+    Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
 )
 
 import numpy as np
 from scipy import special
+from scipy.linalg import block_diag
+from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable
+
+class Status(NamedTuple):
+    success: bool = True
+    messages: Tuple[str, ...] = ()
 
 
 class FlattenArrays(dict):
@@ -32,8 +39,11 @@ class FlattenArrays(dict):
         self.splits = np.cumsum([
             np.prod(s) for s in self.values()], dtype=int)
         self.inds = [
-            np.arange(i0, i1, dtype=int) for i0, i1 in
+            slice(i0, i1) for i0, i1 in 
+            # np.arange(i0, i1, dtype=int) for i0, i1 in
             zip(np.r_[0, self.splits[:-1]], self.splits)]
+        self.sizes = {
+            k: np.prod(s, dtype=int) for k, s in self.items()}
 
     @classmethod
     def from_arrays(cls, **arrays: Dict[str, np.ndarray]) -> "FlattenArrays":
@@ -49,13 +59,24 @@ class FlattenArrays(dict):
         arr = np.asanyarray(arr)
         if ndim is None:
             ndim = arr.ndim
-        arrays = [arr[np.ix_(*(ind for _ in range(ndim)))] for ind in self.inds]
+        arrays = [
+            arr[(ind,) * ndim] for ind in self.inds]
         arr_shapes = [arr.shape[ndim:] for arr in arrays]
         return {
             k: arr.reshape(shape * ndim + arr_shape)
             if shape or arr_shape else arr.item()
             for (k, shape), arr_shape, arr in
             zip(self.items(), arr_shapes, arrays)}
+
+    def flatten2d(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
+        assert all(np.shape(values[k]) == shape * 2
+                   for k, shape in self.items())
+        return block_diag(*(
+            np.reshape(values[k], (n, n))
+            for k, n in self.sizes.items()
+        ))
+
+    unflatten2d = unflatten
 
     def __repr__(self):
         shapes = ", ".join(map("{0[0]}={0[1]}".format, self.items()))
@@ -65,6 +86,15 @@ class FlattenArrays(dict):
     def size(self):
         return self.splits[-1]
 
+
+class OptResult(NamedTuple):
+    mode: Dict[Variable, np.ndarray]
+    hess_inv: Dict[Variable, np.ndarray]
+    log_norm: float
+    full_hess_inv: np.ndarray
+    result: OptimizeResult
+    status: Status = Status()
+    
 
 def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     """Sums over broadcasting multidimensional arrays
@@ -83,10 +113,36 @@ def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     b = np.broadcast(*arrays)
     return sum(a * np.size(a) / b.size for a in arrays)
 
+Axis = Optional[Union[bool, int, Tuple[int, ...]]]
+
+def aggregate(array: np.ndarray, axis: Axis = False, **kwargs) -> np.ndarray:
+    """
+    aggregates the values of array
+    
+    if axis is False then aggregate returns the unmodified array
+
+    otherwise aggrate returns np.sum(array, axis=axis, **kwargs)
+    """
+    if axis is False:
+        return array
+    else:
+        return np.sum(array, axis=axis, **kwargs)
+    
+
+def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
+    array = np.asanyarray(array)
+    d1 = array.shape
+    if ds:
+        ds = (d1,) + ds
+    else:
+        ds = (d1, d1)
+
+    out = np.zeros(sum(ds, ()))
+    diag_inds = tuple(map(np.ravel, (i for d in ds for i in np.indices(d))))
+    out[diag_inds] = array.ravel()
+    return out
 
 _M = TypeVar('M')
-
-
 def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     """calculates the product of the passed iterable,
     much like sum, if a second argument is passed,
@@ -102,6 +158,33 @@ def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     """
     return reduce(mul, iterable, *arg)
 
+def r2_score(y_true, y_pred, axis=None):
+    y_true = np.asanyarray(y_true)
+    y_pred = np.asanyarray(y_pred)
+
+    mse = np.square(y_true - y_pred).mean(axis=axis)
+    var = y_true.var(axis=axis)
+
+    return 1 - mse/var
+
+class CachedProperty(object):
+    ''' 
+    A property that is only computed once per instance and then replaces
+    itself with an ordinary attribute. Deleting the attribute resets the
+    property. 
+    
+    Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
+    '''
+
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, obj, cls):
+        if obj is None: return self
+        value = obj.__dict__[self.func.__name__] = self.func(obj)
+        return value
+
+cached_property = CachedProperty
 
 def propagate_uncertainty(
         cov: np.ndarray, jac: np.ndarray) -> np.ndarray:
@@ -173,7 +256,7 @@ def invpsilog(c: np.ndarray) -> np.ndarray:
     x0 = -(1 - 0.5 * (1 + A * (-c) ** beta) ** -gamma) / c
 
     # do 4 iterations of Newton Raphson to refine estimate
-    for i in range(4):
+    for _ in range(4):
         f0 = psilog(x0) - c
         x0 = x0 - f0 / grad_psilog(x0)
 

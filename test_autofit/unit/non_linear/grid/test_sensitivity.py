@@ -5,7 +5,6 @@ import autofit as af
 from autofit.non_linear.grid import sensitivity as s
 from autofit.mock.mock import Gaussian
 from autofit.non_linear.grid.simple_grid import GridSearch
-from autofit.non_linear.grid.sensitivity import ImageAnalysis
 
 
 @pytest.fixture(name="perturbation_model")
@@ -37,7 +36,11 @@ def image_function(instance: af.ModelInstance):
     return image
 
 
-class Analysis(ImageAnalysis):
+class Analysis:
+
+    def __init__(self, image: np.array):
+        self.image = image
+
     def log_likelihood_function(self, instance):
         image = image_function(instance)
         return np.mean(np.multiply(-0.5, np.square(np.subtract(self.image, image))))

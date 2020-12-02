@@ -20,6 +20,7 @@ workspace_path = str(here())
 print(f"Working Directory has been set to `{workspace_path}`")
 
 import autofit as af
+import os
 from os import path
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,7 +30,7 @@ import pickle
 """
 We'll reuse the `plot_line` and `Analysis` classes of the previous tutorial.
 
-Note that the `Analysis` class has a new method, `save_for_aggregator`. This method specifies which properties of the
+Note that the `Analysis` class has a new method, `save_attributes_for_aggregator`. This method specifies which properties of the
 fit are output to hard-disc so that we can load them using the `Aggregator` in the next tutorial.
 """
 
@@ -50,7 +51,9 @@ def plot_line(
     plt.title(title)
     plt.xlabel("x value of profile")
     plt.ylabel(ylabel)
-    plt.savefig(output_path + output_filename + ".png")
+    if not path.exists(output_path):
+        os.makedirs(output_path)
+    plt.savefig(path.join(output_path, f"{output_filename}.png"))
     plt.clf()
 
 
@@ -139,16 +142,16 @@ class Analysis(af.Analysis):
             output_filename="chi_squared_map",
         )
 
-    def save_for_aggregator(self, paths):
+    def save_attributes_for_aggregator(self, paths):
         """Save files like the data and noise-map as pickle files so they can be loaded in the `Aggregator`"""
 
         # These functions save the objects we will later access using the aggregator. They are saved via the `pickle`
         # module in Python, which serializes the data on to the hard-disk.
 
-        with open(f"{paths.pickle_path}/data.pickle", "wb") as f:
+        with open(path.join(f"{paths.pickle_path}", "data.pickle"), "wb") as f:
             pickle.dump(self.data, f)
 
-        with open(f"{paths.pickle_path}/noise_map.pickle", "wb") as f:
+        with open(path.join(f"{paths.pickle_path}", "noise_map.pickle"), "wb") as f:
             pickle.dump(self.noise_map, f)
 
 

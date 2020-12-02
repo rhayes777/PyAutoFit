@@ -3,7 +3,7 @@ import pytest
 
 import autofit as af
 import autofit.graphical as ep
-from test_autofit.unit.graphical.gaussian.model import Gaussian, make_data, _likelihood
+from test_autofit.unit.graphical.gaussian.model import Gaussian, make_data, Analysis
 
 
 def test_shared_intensity():
@@ -41,20 +41,18 @@ def test_shared_intensity():
             sigma=af.GaussianPrior(mean=10, sigma=10),
         )
 
-        def likelihood_function(instance: Gaussian) -> np.array:
-            """
-            This function takes an instance created by the PriorModel and computes the
-            likelihood that it fits the data.
-            """
-            y_model = instance(x)
-            return np.sum(_likelihood(y_model, y))
-
         """
         Finally we combine the likelihood function with the prior model to produce a likelihood
         factor - this will be converted into a ModelFactor which is like any other factor in the
         factor graph.
         """
-        return ep.ModelFactor(prior_model, likelihood_function=likelihood_function)
+        return ep.ModelFactor(
+            prior_model,
+            analysis=Analysis(
+                x=x,
+                y=y
+            )
+        )
 
     """
     Multiplying together multiple LikelihoodModels gives us a factor model.
@@ -99,11 +97,13 @@ def test_gaussian():
         sigma=af.GaussianPrior(mean=10, sigma=10),
     )
 
-    def likelihood_function(instance):
-        y_model = instance(x)
-        return np.sum(_likelihood(y_model, y))
-
-    factor_model = ep.ModelFactor(prior_model, likelihood_function=likelihood_function)
+    factor_model = ep.ModelFactor(
+        prior_model,
+        analysis=Analysis(
+            x=x,
+            y=y
+        )
+    )
 
     opt = ep.optimise.LaplaceOptimiser(n_iter=3)
     model = factor_model.optimise(opt)
@@ -120,10 +120,15 @@ def make_prior_model():
 
 @pytest.fixture(name="likelihood_model")
 def make_factor_model(prior_model):
-    def likelihood_function(z):
-        return 1
+    class MockAnalysis(af.Analysis):
+        @staticmethod
+        def log_likelihood_function(*_):
+            return 1
 
-    return ep.ModelFactor(prior_model, likelihood_function=likelihood_function)
+    return ep.ModelFactor(
+        prior_model,
+        analysis=MockAnalysis()
+    )
 
 
 def test_messages(likelihood_model):

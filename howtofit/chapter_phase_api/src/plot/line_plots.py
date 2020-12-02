@@ -1,3 +1,5 @@
+import os
+from os import path
 import matplotlib.pyplot as plt
 
 """
@@ -52,6 +54,8 @@ def line(
         if "show" in output_format:
             plt.show()
         elif "png" in output_format:
-            plt.savefig(output_path + output_filename + ".png")
+            if not path.exists(output_path):
+                os.makedirs(output_path)
+            plt.savefig(path.join(output_path, f"{output_filename}.png"))
 
         plt.clf()

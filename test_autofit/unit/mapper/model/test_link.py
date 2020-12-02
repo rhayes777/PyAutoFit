@@ -1,7 +1,7 @@
 import os
-from os import path
 import shutil
 from importlib import reload
+from os import path
 
 import pytest
 
@@ -10,6 +10,18 @@ import autofit as af
 link_dir = path.join("{}".format(path.dirname(path.realpath(__file__))), "files")
 
 temp_folder_path = path.join(link_dir, "linked_folder")
+
+
+@pytest.fixture(
+    autouse=True
+)
+def make_files_directory():
+    try:
+        os.mkdir(link_dir)
+    except FileExistsError:
+        pass
+    yield
+    shutil.rmtree(link_dir, ignore_errors=True)
 
 
 def delete_trees(*paths):

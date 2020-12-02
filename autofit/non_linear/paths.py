@@ -344,7 +344,7 @@ class Paths:
         if self.remove_files:
             try:
                 shutil.rmtree(self.path)
-            except FileNotFoundError:
+            except (FileNotFoundError, PermissionError):
                 pass
 
     def restore(self):
