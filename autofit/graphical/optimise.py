@@ -38,6 +38,8 @@ from autofit.graphical.utils import (
     OptResult
 )
 
+ArraysDict = Dict[Variable, np.ndarray]
+
 
 class OptFactor:
     """
@@ -159,7 +161,13 @@ class OptFactor:
             for x0 in x0s
         )
 
-    def get_random_start(self, arrays_dict: Dict[Variable, np.ndarray] = {}):
+    def get_random_start(
+            self,
+            arrays_dict: Optional[
+                ArraysDict
+            ] = None
+    ):
+        arrays_dict = arrays_dict or {}
         values = {
             v: arrays_dict[v] if v in arrays_dict
             else self.model_dist[v].sample()
@@ -219,7 +227,7 @@ class OptFactor:
 
     def minimise(
             self,
-            arrays_dict: Dict[Variable, np.ndarray] = {},
+            arrays_dict: Optional[ArraysDict] = None,
             bounds=None,
             constraints=(),
             tol=None,
@@ -227,6 +235,7 @@ class OptFactor:
             options=None,
             status: Status = Status(),
     ):
+        arrays_dict = arrays_dict or {}
         self.sign = 1
         p0 = self.get_random_start(arrays_dict)
         res = self._minimise(
@@ -237,7 +246,12 @@ class OptFactor:
 
     def maximise(
             self,
-            arrays_dict: Dict[Variable, np.ndarray] = {},
+            arrays_dict: Optional[
+                Dict[
+                    Variable,
+                    np.ndarray
+                ]
+            ] = None,
             bounds=None,
             constraints=(),
             tol=None,
@@ -245,6 +259,7 @@ class OptFactor:
             options=None,
             status: Status = Status(),
     ):
+        arrays_dict = arrays_dict or {}
         self.sign = -1
         p0 = self.get_random_start(arrays_dict)
         res = self._minimise(
@@ -280,7 +295,8 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             whiten_optimiser=True,
             transforms=None,
             deltas=None,
-            opt_kws=None):
+            opt_kws=None
+    ):
 
         self.whiten_optimiser = whiten_optimiser
         self.transforms = defaultdict(lambda: identity_transform)
@@ -518,7 +534,8 @@ class LeastSquaresOpt:
         }
         return self.resid_shapes.flatten(residuals)
 
-    def least_squares(self, values={}):
+    def least_squares(self, values=None):
+        values = values or {}
         model_dist = self.factor_approx.model_dist
         p0 = {
             v: values[v] if v in values else model_dist[v].sample()
