@@ -67,6 +67,7 @@ def make_model_approx(
         }
     )
 
+
 def test_jacobians(
         model_approx
 ):
@@ -74,7 +75,8 @@ def test_jacobians(
         factor_approx = model_approx.factor_approximation(factor)
         opt = mp.optimise.OptFactor.from_approx(factor_approx)
         assert opt.numerically_verify_jacobian(
-            100, rtol=1e-2, atol=1e-2), factor    
+            100, rtol=1e-2, atol=1e-2), factor
+
 
 def test_laplace(
         model_approx,
@@ -85,12 +87,10 @@ def test_laplace(
 ):
     laplace = mp.LaplaceFactorOptimiser()
     opt = mp.EPOptimiser(
-        model_approx.factor_graph, 
-        default_optimiser=laplace)
+        model_approx.factor_graph,
+        default_optimiser=laplace
+    )
     model_approx = opt.run(model_approx)
-
-
-    # assert status.success
 
     q_a = model_approx.mean_field[a_]
     q_b = model_approx.mean_field[b_]
@@ -100,12 +100,12 @@ def test_laplace(
 
     assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
-    
+
     y = model_approx.mean_field[y_].mean
     y_pred = model_approx.mean_field[z_].mean > 0
     (tpr, fpr), (fnr, tnr) = np.dot(
-        np.array([y, 1-y]).reshape(2, -1),
-        np.array([y_pred, 1-y_pred]).reshape(2, -1).T)
+        np.array([y, 1 - y]).reshape(2, -1),
+        np.array([y_pred, 1 - y_pred]).reshape(2, -1).T)
 
     accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
     assert 0.9 > accuracy > 0.7
@@ -116,8 +116,8 @@ def test_importance_sampling(
         model_approx,
         a_,
         b_,
-        y_, 
-        z_, 
+        y_,
+        z_,
 ):
     sampler = mp.ImportanceSampler(n_samples=500)
     history = {}
@@ -130,7 +130,7 @@ def test_importance_sampling(
                 factor,
                 sampler,
                 force_sample=True,
-                delta=0.8, 
+                delta=0.8,
             )
 
             # save and print current approximation
@@ -140,8 +140,8 @@ def test_importance_sampling(
     y = model_approx.mean_field[y_].mean
     y_pred = q_z.mean > 0
     (tpr, fpr), (fnr, tnr) = np.dot(
-        np.array([y, 1-y]).reshape(2, -1),
-        np.array([y_pred, 1-y_pred]).reshape(2, -1).T)
+        np.array([y, 1 - y]).reshape(2, -1),
+        np.array([y_pred, 1 - y_pred]).reshape(2, -1).T)
 
     accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
     assert 0.9 > accuracy > 0.7
