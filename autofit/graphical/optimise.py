@@ -1,41 +1,62 @@
-from itertools import repeat
 from collections import defaultdict
+from itertools import repeat
 from typing import (
-    Optional, Dict, Tuple, NamedTuple, Any, List, Iterator)
+    Optional, Dict, Tuple, Any, List, Iterator
+)
 
 import numpy as np
-from scipy.optimize import \
-    minimize, OptimizeResult, least_squares, approx_fprime
+from scipy.optimize import (
+    minimize,
+    OptimizeResult,
+    least_squares,
+    approx_fprime
+)
 
-from autofit.graphical.utils import \
-    propagate_uncertainty, FlattenArrays, OptResult
-from autofit.graphical.factor_graphs import \
-    Variable, Factor, JacobianValue
-from autofit.graphical.factor_graphs.transform import \
-    AbstractLinearTransform, identity_transform, CovarianceTransform
+from autofit.graphical.expectation_propagation import (
+    EPMeanField,
+    AbstractFactorOptimiser
+)
+from autofit.graphical.factor_graphs import (
+    Variable,
+    Factor,
+    JacobianValue
+)
+from autofit.graphical.factor_graphs.transform import (
+    AbstractLinearTransform,
+    identity_transform,
+    CovarianceTransform
+)
+from autofit.graphical.mean_field import (
+    MeanField,
+    FactorApproximation,
+    Status
+)
 from autofit.graphical.messages import FixedMessage
-from autofit.graphical.mean_field import \
-    MeanField, FactorApproximation, Status
-from autofit.graphical.expectation_propagation import \
-    EPMeanField, AbstractFactorOptimiser
+from autofit.graphical.utils import (
+    propagate_uncertainty,
+    FlattenArrays,
+    OptResult
+)
+
 
 class OptFactor:
     """
     """
+
     def __init__(
             self,
             factor: Factor,
             param_shapes: FlattenArrays,
             fixed_kws: Optional[Dict[str, np.ndarray]] = None,
-            model_dist: Optional[MeanField] = None, 
-            transform: Optional[AbstractLinearTransform] = None, 
+            model_dist: Optional[MeanField] = None,
+            transform: Optional[AbstractLinearTransform] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
             method: str = 'L-BFGS-B',
     ):
         self.factor = factor
         self.param_shapes = param_shapes
         self._model_dist = model_dist
-        
+
         self.transform = identity_transform if transform is None else transform
         self.param_bounds = bounds
         self.free_vars = tuple(self.param_shapes.keys())
@@ -48,9 +69,8 @@ class OptFactor:
         # method needs to return Hessian information.
         if meth not in ('bfgs', 'l-bfgs-b'):
             raise ValueError('Unknown solver %s' % method)
-        
-        self.method = meth 
 
+        self.method = meth
 
         if bounds:
             # TODO check that this is correct for composite
@@ -62,7 +82,7 @@ class OptFactor:
         else:
             self.bounds = bounds
 
-    @property 
+    @property
     def model_dist(self):
         if self._model_dist is None:
             raise ValueError("Model dist not defined")
@@ -73,7 +93,7 @@ class OptFactor:
     def from_approx(
             cls,
             factor_approx: FactorApproximation,
-            transform: Optional[AbstractLinearTransform] = None, 
+            transform: Optional[AbstractLinearTransform] = None,
     ) -> 'OptFactor':
         value_shapes = {}
         fixed_kws = {}
@@ -90,8 +110,8 @@ class OptFactor:
             factor_approx,
             FlattenArrays(value_shapes),
             fixed_kws=fixed_kws,
-            model_dist=factor_approx.model_dist, 
-            transform=transform, 
+            model_dist=factor_approx.model_dist,
+            transform=transform,
             bounds=bounds,
         )
 
@@ -110,9 +130,9 @@ class OptFactor:
     def func_jacobian(self, x0):
         values = self.unflatten(self.transform.ldiv(x0))
         fval, jval = self.factor.func_jacobian(
-            values, self.free_vars, 
+            values, self.free_vars,
             axis=None, _calc_deterministic=True)
-        
+
         grad = self.flatten(jval) / self.transform
         return self.sign * fval.log_value, self.sign * grad
 
@@ -120,7 +140,7 @@ class OptFactor:
         return self.func_jacobian(args)[1]
 
     def numerically_verify_jacobian(
-            self, 
+            self,
             n_tries=10,
             eps=1e-6,
             rtol=1e-3,
@@ -141,10 +161,10 @@ class OptFactor:
 
     def get_random_start(self, arrays_dict: Dict[Variable, np.ndarray] = {}):
         values = {
-            v: arrays_dict[v] if v in arrays_dict 
+            v: arrays_dict[v] if v in arrays_dict
             else self.model_dist[v].sample()
             for v in self.free_vars
-        }      
+        }
         # transform values
         return self.unflatten(
             self.transform.ldiv(
@@ -152,9 +172,9 @@ class OptFactor:
             )
         )
 
-    def _parse_result( 
-            self, 
-            result: OptimizeResult, 
+    def _parse_result(
+            self,
+            result: OptimizeResult,
             status: Status = Status()) -> OptResult:
         success, messages = status
         success = result.success
@@ -175,14 +195,14 @@ class OptFactor:
         x = M.ldiv(result.x)
         full_hess_inv = M.ldiv(M.ldiv(full_hess_inv).T)
 
-        mode =  {**self.param_shapes.unflatten(x), **self.fixed_kws}
+        mode = {**self.param_shapes.unflatten(x), **self.fixed_kws}
         hess_inv = self.param_shapes.unflatten(full_hess_inv)
 
         return OptResult(
-            mode, 
+            mode,
             hess_inv,
-            self.sign * result.fun, # minimized negative logpdf of factor approximation
-            full_hess_inv, # full inverse hessian of optimisation
+            self.sign * result.fun,  # minimized negative logpdf of factor approximation
+            full_hess_inv,  # full inverse hessian of optimisation
             result,
             Status(success, messages))
 
@@ -201,11 +221,11 @@ class OptFactor:
             self,
             arrays_dict: Dict[Variable, np.ndarray] = {},
             bounds=None,
-            constraints=(), 
-            tol=None, 
+            constraints=(),
+            tol=None,
             callback=None,
             options=None,
-            status: Status = Status(), 
+            status: Status = Status(),
     ):
         self.sign = 1
         p0 = self.get_random_start(arrays_dict)
@@ -219,11 +239,11 @@ class OptFactor:
             self,
             arrays_dict: Dict[Variable, np.ndarray] = {},
             bounds=None,
-            constraints=(), 
-            tol=None, 
+            constraints=(),
+            tol=None,
             callback=None,
             options=None,
-            status: Status = Status(), 
+            status: Status = Status(),
     ):
         self.sign = -1
         p0 = self.get_random_start(arrays_dict)
@@ -235,6 +255,7 @@ class OptFactor:
 
     minimize = minimise
     maximize = maximise
+
 
 def update_det_cov(
         res: OptResult,
@@ -255,13 +276,13 @@ def update_det_cov(
 class LaplaceFactorOptimiser(AbstractFactorOptimiser):
 
     def __init__(
-        self, 
-        whiten_optimiser=True,
-        transforms=None,
-        deltas=None, 
-        opt_kws=None):
+            self,
+            whiten_optimiser=True,
+            transforms=None,
+            deltas=None,
+            opt_kws=None):
 
-        self.whiten_optimiser = whiten_optimiser 
+        self.whiten_optimiser = whiten_optimiser
         self.transforms = defaultdict(lambda: identity_transform)
         if transforms:
             self.transforms.update(transforms)
@@ -270,15 +291,15 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         if deltas:
             self.deltas.update(deltas)
 
-        self.opt_kws = defaultdict(dict) 
+        self.opt_kws = defaultdict(dict)
         if opt_kws:
             self.opt_kws.update(opt_kws)
 
     def optimise(
-            self, 
-            factor: Factor, 
-            model_approx: EPMeanField, 
-            status: Optional[Status] = Status(), 
+            self,
+            factor: Factor,
+            model_approx: EPMeanField,
+            status: Optional[Status] = Status(),
     ) -> Tuple[EPMeanField, Status]:
 
         whiten = self.transforms[factor]
@@ -300,7 +321,7 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
 
         self.transforms[factor] = CovarianceTransform.from_dense(
             res.full_hess_inv)
-        
+
         # Project Laplace's approximation
         new_model_dist = factor_approx.model_dist.project_mode(res)
         projection, status = factor_approx.project(
@@ -311,7 +332,10 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         new_approx, status = model_approx.project(projection, status)
         return new_approx, status
 
+
 LaplaceFactorOptimizer = LaplaceFactorOptimiser
+
+
 #################################################
 
 
@@ -328,17 +352,18 @@ def maximise_factor_approx(
 
 maximize_factor_approx = maximise_factor_approx
 
+
 def find_factor_mode(
         factor_approx: FactorApproximation,
         return_cov: bool = True,
-        status: Status = Status(), 
+        status: Status = Status(),
         min_iter: int = 2,
         opt_kws: Optional[dict] = None,
         **kwargs
-    ) -> OptResult:
+) -> OptResult:
     """
     """
-    opt_kws = {} if opt_kws is None else opt_kws 
+    opt_kws = {} if opt_kws is None else opt_kws
 
     opt = OptFactor.from_approx(factor_approx, **kwargs)
     res = opt.maximise(status=status, **opt_kws)
@@ -355,11 +380,12 @@ def find_factor_mode(
 
     return res
 
+
 def laplace_factor_approx(
         model_approx: EPMeanField,
         factor: Factor,
-        delta: float = 1., 
-        status: Status = Status(), 
+        delta: float = 1.,
+        status: Status = Status(),
         opt_kws: Optional[Dict[str, Any]] = None
 ):
     opt_kws = {} if opt_kws is None else opt_kws
@@ -397,14 +423,14 @@ class LaplaceOptimiser:
         self.opt_kws = {} if opt_kws is None else opt_kws
 
     def step(
-        self, 
-        model_approx, 
-        factors: Optional[List[Factor]] = None,
-        status: Status = Status()
+            self,
+            model_approx,
+            factors: Optional[List[Factor]] = None,
+            status: Status = Status()
     ) -> Iterator[Tuple[Factor, EPMeanField, Status]]:
         new_approx = model_approx
         factors = (
-            model_approx.factor_graph.factors 
+            model_approx.factor_graph.factors
             if factors is None else factors)
         for factor in factors:
             new_approx, status = laplace_factor_approx(
@@ -416,10 +442,10 @@ class LaplaceOptimiser:
             yield factor, new_approx, status
 
     def run(
-        self, 
-        model_approx: EPMeanField, 
-        factors: Optional[List[Factor]] = None,
-        status: Status = Status()
+            self,
+            model_approx: EPMeanField,
+            factors: Optional[List[Factor]] = None,
+            status: Status = Status()
     ) -> EPMeanField:
         new_approx = model_approx
         for i in range(self.n_iter):
