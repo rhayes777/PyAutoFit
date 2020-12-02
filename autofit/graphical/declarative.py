@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, cast, Set, List, Dict
+from typing import Callable, cast, Set, List, Dict, Optional
 
 import numpy as np
 
@@ -99,7 +99,12 @@ class AbstractModelFactor(ABC):
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
-            default_optimiser=optimiser
+            default_optimiser=optimiser,
+            factor_optimisers={
+                factor: factor.optimiser
+                for factor in self.model_factors
+                if factor.optimiser is not None
+            }
         )
 
     def optimise(
@@ -193,7 +198,8 @@ class ModelFactor(Factor, AbstractModelFactor):
     def __init__(
             self,
             prior_model: AbstractPriorModel,
-            analysis: Analysis
+            analysis: Analysis,
+            optimiser: Optional[AbstractFactorOptimiser] = None
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -207,6 +213,10 @@ class ModelFactor(Factor, AbstractModelFactor):
             A class that implements a function which evaluates how well an
             instance of the model fits some data
         """
+        self.prior_model = prior_model
+        self.analysis = analysis
+        self.optimiser = optimiser
+
         prior_variable_dict = {
             prior.name: prior
             for prior
@@ -247,8 +257,6 @@ class ModelFactor(Factor, AbstractModelFactor):
             _factor,
             **prior_variable_dict
         )
-        self.prior_model = prior_model
-        self.analysis = analysis
 
     @property
     def model_factors(self) -> List["ModelFactor"]:

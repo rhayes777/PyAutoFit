@@ -58,7 +58,7 @@ def make_make_model_factor(
                 x=x,
                 y=y
             ),
-            # optimiser=optimiser
+            optimiser=optimiser
         )
 
     return make_factor_model
@@ -113,6 +113,32 @@ def make_factor_model_collection(
     )
 
 
+def test_custom_optimiser(make_model_factor):
+    factor_1 = make_model_factor(
+        centre=40,
+        sigma=10,
+        optimiser="optimiser"
+    )
+    factor_2 = make_model_factor(
+        centre=60,
+        sigma=15
+    )
+
+    collection = ep.ModelFactorCollection(
+        factor_1,
+        factor_2
+    )
+
+    default_optimiser = ep.LaplaceFactorOptimiser()
+    ep_optimiser = collection._make_ep_optimiser(
+        default_optimiser
+    )
+
+    factor_optimisers = ep_optimiser.factor_optimisers
+    assert factor_optimisers[factor_1] == "optimiser"
+    assert factor_optimisers[factor_2] == default_optimiser
+
+
 def test_factor_model_attributes(
         factor_model
 ):
@@ -129,7 +155,7 @@ def test_optimise_factor_model(
         factor_model
 ):
     """
-    We optimise that...
+    We optimise the model
     """
     laplace = ep.LaplaceFactorOptimiser()
 
