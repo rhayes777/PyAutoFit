@@ -126,6 +126,9 @@ class AbstractPriorModel(AbstractModel):
         """
         for path, _ in self.path_priors_tuples + self.path_float_tuples:
             item = source
+            if isinstance(item, dict):
+                from autofit.mapper.prior_model.collection import CollectionPriorModel
+                item = CollectionPriorModel(item)
             try:
                 for attribute in path:
                     item = getattr(item, attribute)
@@ -366,12 +369,7 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
-<<<<<<< HEAD
-        Returns a new model mapper from a list of floats describing the mean values
-        of gaussian priors. The widths of the new priors are taken from the
-=======
         The widths of the new priors are taken from the
->>>>>>> master
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
         If a is not None then all priors are created with an absolute width of a.

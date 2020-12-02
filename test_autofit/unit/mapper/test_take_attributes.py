@@ -60,6 +60,42 @@ def test_in_collection(
     assert target.gaussian.centre is prior
 
 
+def test_source_is_dict(
+        source_gaussian,
+        target_gaussian,
+        prior
+):
+    source = dict(
+        gaussian=source_gaussian
+    )
+    target = af.CollectionPriorModel(
+        gaussian=target_gaussian
+    )
+    target.take_attributes(source)
+
+    assert target.gaussian.centre is prior
+
+
+def test_target_is_dict(
+        source_gaussian,
+        target_gaussian,
+        prior
+):
+    source = af.CollectionPriorModel(
+        collection=af.CollectionPriorModel(
+            gaussian=source_gaussian
+        )
+    )
+    target = af.CollectionPriorModel(
+        collection=dict(
+            gaussian=target_gaussian
+        )
+    )
+    target.take_attributes(source)
+
+    assert target.collection.gaussian.centre is prior
+
+
 def test_unlabelled_in_collection(
         source_gaussian,
         target_gaussian,
