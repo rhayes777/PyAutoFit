@@ -130,12 +130,17 @@ class AbstractPriorModel(AbstractModel):
                 []
         ):
             try:
-                item = source
+                item = copy.copy(source)
                 if isinstance(item, dict):
                     from autofit.mapper.prior_model.collection import CollectionPriorModel
                     item = CollectionPriorModel(item)
                 for attribute in path:
-                    item = getattr(item, attribute)
+                    item = copy.copy(
+                        getattr(
+                            item,
+                            attribute
+                        )
+                    )
 
                 target = self
                 for attribute in path[:-1]:
