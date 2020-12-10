@@ -285,7 +285,7 @@ class ModelFactor(Factor, AbstractModelFactor):
         )[0]
 
 
-class ModelFactorCollection(AbstractModelFactor):
+class GraphicalModel(AbstractModelFactor):
     def __init__(self, *model_factors: ModelFactor):
         """
         A collection of factors that describe models, which can be
