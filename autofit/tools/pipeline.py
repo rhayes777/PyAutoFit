@@ -111,7 +111,7 @@ class ResultsCollection:
 
 
 class Pipeline:
-    def __init__(self, pipeline_name, path_prefix, *phases):
+    def __init__(self, pipeline_name, path_prefix, results, *phases):
         """
         A pipeline of phases to be run sequentially. Results are passed between phases. Phases must have unique names.
 
@@ -122,6 +122,7 @@ class Pipeline:
         """
         self.pipeline_name = pipeline_name
         self.path_prefix = path_prefix
+        self.results = results
         self.phases = phases
         self.pipeline_tag = None
 
@@ -190,7 +191,11 @@ class Pipeline:
         results: ResultsCollection
             A collection of results
         """
-        results = ResultsCollection()
+        if self.results is None:
+            results = ResultsCollection()
+        else:
+            results = self.results
+
         for i, phase in enumerate(self.phases):
             logger.info(
                 "Running Phase {} (Number {})".format(

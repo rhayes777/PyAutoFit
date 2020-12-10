@@ -465,6 +465,13 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
+We have illustrated how we can compose and fit complex models in PyAutoFit. 
+
+To wrap up, we are going to illustrate 
+"""
+
+# %%
+"""
 And with that, we are complete. In this tutorial, we learned how to compose and fit complex models in **PyAutoFit**.
  
 To end, you should think again in more detail about your model fitting problem:
