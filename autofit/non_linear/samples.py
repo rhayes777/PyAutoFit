@@ -1,6 +1,7 @@
 import csv
 import json
 import math
+from collections import defaultdict
 from typing import List
 
 import numpy as np
@@ -9,38 +10,51 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 
 
-def load_from_table(filename, model):
+# parameters, log_likelihoods, log_priors, log_posteriors, weights
 
-    parameters = []
-    log_likelihoods = []
-    log_priors = []
-    log_posteriors = []
-    weights = []
+
+def load_from_table(filename, model: ModelMapper):
+    output = defaultdict(list)
 
     with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
-        for index, row in enumerate(reader):
-            if index > 0:
-                parameters.append(
-                    [float(param) for param in row[0: model.prior_count]]
+        headers = next(reader)
+        for row in reader:
+            for header, value in zip(
+                    headers,
+                    row
+            ):
+                output[header].append(
+                    float(value)
                 )
-                log_likelihoods.append(float(row[model.prior_count]))
-                log_priors.append(float(row[model.prior_count + 1]))
-                log_posteriors.append(float(row[model.prior_count + 2]))
-                weights.append(float(row[model.prior_count + 3]))
 
-    return parameters, log_likelihoods, log_priors, log_posteriors, weights
+    path_prior_tuples = model.path_priors_tuples
+    parameters = [
+        output["_".join(path)]
+        for path, _
+        in path_prior_tuples
+    ]
+
+    parameters = [
+        [
+            parameters[i][j]
+            for i in range(len(parameters))
+        ]
+        for j in range(len(parameters[0]))
+    ]
+
+    return parameters, output["log_likelihood"], output["log_prior"], output["log_posterior"], output["weights"]
 
 
 class OptimizerSamples:
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        time: float = None,
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            time: float = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
@@ -175,14 +189,14 @@ class OptimizerSamples:
 
 class PDFSamples(OptimizerSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        unconverged_sample_size: int = 100,
-        time: float = None,
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
@@ -215,7 +229,8 @@ class PDFSamples(OptimizerSamples):
             Where the table is to be written
         """
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename, model=model)
+        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename,
+                                                                                           model=model)
 
         return OptimizerSamples(
             model=model,
@@ -305,10 +320,10 @@ class PDFSamples(OptimizerSamples):
             return [(lower, upper) for lower, upper in zip(lower_errors, upper_errors)]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -642,20 +657,20 @@ class PDFSamples(OptimizerSamples):
 
 class MCMCSamples(PDFSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        auto_correlation_times: np.ndarray,
-        auto_correlation_check_size: int,
-        auto_correlation_required_length: int,
-        auto_correlation_change_threshold: float,
-        total_walkers: int,
-        total_steps: int,
-        unconverged_sample_size: int = 100,
-        time: float = None,
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            auto_correlation_times: np.ndarray,
+            auto_correlation_check_size: int,
+            auto_correlation_required_length: int,
+            auto_correlation_change_threshold: float,
+            total_walkers: int,
+            total_steps: int,
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """
         Attributes
@@ -696,7 +711,8 @@ class MCMCSamples(PDFSamples):
             Where the table is to be written
         """
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename, model=model)
+        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename,
+                                                                                           model=model)
 
         return OptimizerSamples(
             model=model,
@@ -709,13 +725,13 @@ class MCMCSamples(PDFSamples):
     def info_to_json(self, filename):
 
         info = {
-            "auto_correlation_times" : None,
-            "auto_correlation_check_size" : self.auto_correlation_check_size,
-            "auto_correlation_required_length" : self.auto_correlation_required_length,
-            "auto_correlation_change_threshold" : self.auto_correlation_change_threshold,
-            "total_walkers" : self.total_walkers,
+            "auto_correlation_times": None,
+            "auto_correlation_check_size": self.auto_correlation_check_size,
+            "auto_correlation_required_length": self.auto_correlation_required_length,
+            "auto_correlation_change_threshold": self.auto_correlation_change_threshold,
+            "total_walkers": self.total_walkers,
             "total_steps": self.total_steps,
-            "time" : self.time,
+            "time": self.time,
         }
 
         with open(filename, 'w') as outfile:
@@ -749,8 +765,8 @@ class MCMCSamples(PDFSamples):
     @property
     def relative_auto_correlation_times(self) -> [float]:
         return (
-            np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
-            / self.auto_correlation_times
+                np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
+                / self.auto_correlation_times
         )
 
     @property
@@ -816,10 +832,10 @@ class MCMCSamples(PDFSamples):
             ]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -830,17 +846,17 @@ class MCMCSamples(PDFSamples):
 
 class NestSamples(PDFSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        number_live_points: int,
-        log_evidence: float,
-        total_samples: int,
-        unconverged_sample_size: int = 100,
-        time: float = None,
+            self,
+            model: ModelMapper,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float],
+            number_live_points: int,
+            log_evidence: float,
+            total_samples: int,
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
@@ -875,13 +891,12 @@ class NestSamples(PDFSamples):
         self.log_evidence = log_evidence
 
     def info_to_json(self, filename):
-
         info = {
-            "log_evidence" : self.log_evidence,
-            "total_samples" : self.total_samples,
-            "unconverged_sample_size" : self.unconverged_sample_size,
-            "time" : self.time,
-            "number_live_points" : self.number_live_points
+            "log_evidence": self.log_evidence,
+            "total_samples": self.total_samples,
+            "unconverged_sample_size": self.unconverged_sample_size,
+            "time": self.time,
+            "number_live_points": self.number_live_points
         }
 
         with open(filename, 'w') as outfile:
