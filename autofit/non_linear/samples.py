@@ -10,9 +10,6 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 
 
-# parameters, log_likelihoods, log_priors, log_posteriors, weights
-
-
 def load_from_table(filename, model: ModelMapper):
     output = defaultdict(list)
 
