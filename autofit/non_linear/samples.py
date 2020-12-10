@@ -238,10 +238,7 @@ class PDFSamples(OptimizerSamples):
     def __init__(
             self,
             model: ModelMapper,
-            parameters: List[List[float]],
-            log_likelihoods: List[float],
-            log_priors: List[float],
-            weights: List[float],
+            samples: List[Sample],
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -256,10 +253,7 @@ class PDFSamples(OptimizerSamples):
 
         super().__init__(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             time=time,
         )
 
@@ -756,15 +750,11 @@ class MCMCSamples(PDFSamples):
             Where the table is to be written
         """
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename,
-                                                                                           model=model)
+        samples = load_from_table(filename=filename)
 
         return OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples
         )
 
     def info_to_json(self, filename):
@@ -893,13 +883,9 @@ class NestSamples(PDFSamples):
     def __init__(
             self,
             model: ModelMapper,
-            parameters: List[List[float]],
-            log_likelihoods: List[float],
-            log_priors: List[float],
-            weights: List[float],
+            samples: List[Sample],
             number_live_points: int,
             log_evidence: float,
-            total_samples: int,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -923,16 +909,12 @@ class NestSamples(PDFSamples):
 
         super().__init__(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
 
         self.number_live_points = number_live_points
-        self.total_samples = total_samples
         self.log_evidence = log_evidence
 
     def info_to_json(self, filename):

@@ -2,13 +2,13 @@ import math
 
 from autoconf import conf
 from autofit import exc
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import Analysis, Result
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.paths import convert_paths
-from autofit.non_linear.samples import PDFSamples
+from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
@@ -66,7 +66,7 @@ class MockSearch(NonLinearSearch):
         return MockResult(
             model=model,
             samples=MockSamples(
-                log_likelihoods=[fit],
+                samples=samples_with_log_likelihoods([fit]),
                 model=model,
                 gaussian_tuples=[
                     (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
@@ -85,7 +85,7 @@ class MockSearch(NonLinearSearch):
 
     def perform_update(self, model, analysis, during_analysis):
         return MockSamples(
-            log_likelihoods=[1.0, 2.0],
+            samples=samples_with_log_likelihoods([1.0, 2.0]),
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
@@ -114,24 +114,37 @@ class MockAnalysis(Analysis):
         self.data = data
 
 
+def samples_with_log_likelihoods(
+        log_likelihoods
+):
+    return [
+        Sample(
+            log_likelihood=log_likelihood,
+            log_prior=0,
+            weights=0
+        )
+        for log_likelihood
+        in log_likelihoods
+    ]
+
+
 class MockSamples(PDFSamples):
     def __init__(
             self,
             model=None,
+            samples=None,
             max_log_likelihood_instance=None,
-            log_likelihoods=None,
-            gaussian_tuples=None,
+            gaussian_tuples=None
     ):
 
-        if log_likelihoods is None:
-            log_likelihoods = [1.0, 2.0, 3.0]
+        if samples is None:
+            samples = samples_with_log_likelihoods(
+                [1.0, 2.0, 3.0]
+            )
 
         super().__init__(
             model=model,
-            parameters=[],
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=[],
+            samples=samples
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
