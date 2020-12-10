@@ -15,14 +15,16 @@ class Sample:
             log_likelihood,
             log_prior,
             weights,
-            log_posterior=None,
             **kwargs
     ):
         self.log_likelihood = log_likelihood
         self.log_prior = log_prior
-        self.log_posterior = log_posterior
         self.weights = weights
         self.kwargs = kwargs
+
+    @property
+    def log_posterior(self):
+        return self.log_likelihood + self.log_prior
 
     def parameters_for_model(self, model):
         path_prior_tuples = model.path_priors_tuples
@@ -116,7 +118,7 @@ class OptimizerSamples:
     @property
     def log_priors(self):
         return [
-            sample.log_likelihood
+            sample.log_prior
             for sample
             in self.samples
         ]
