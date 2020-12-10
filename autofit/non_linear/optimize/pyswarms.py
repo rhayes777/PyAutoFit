@@ -1,30 +1,30 @@
 import os
-import numpy as np
 import pickle
+
+import numpy as np
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.samples import OptimizerSamples
-from autofit.non_linear.paths import convert_paths
-
 from autofit.non_linear.log import logger
+from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
+from autofit.non_linear.paths import convert_paths
+from autofit.non_linear.samples import OptimizerSamples, Sample
 
 
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_particles=None,
-        iters=None,
-        cognitive=None,
-        social=None,
-        inertia=None,
-        ftol=None,
-        initializer=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_particles=None,
+            iters=None,
+            cognitive=None,
+            social=None,
+            inertia=None,
+            ftol=None,
+            initializer=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         A PySwarms Particle Swarm Optimizer global non-linear search.
@@ -238,7 +238,7 @@ class AbstractPySwarms(AbstractOptimizer):
                 total_iterations += iterations
 
                 with open(
-                    f"{self.paths.samples_path}/total_iterations.pickle", "wb"
+                        f"{self.paths.samples_path}/total_iterations.pickle", "wb"
                 ) as f:
                     pickle.dump(total_iterations, f)
 
@@ -246,7 +246,7 @@ class AbstractPySwarms(AbstractOptimizer):
                     pickle.dump(pso.pos_history, f)
 
                 with open(
-                    f"{self.paths.samples_path}/log_posteriors.pickle", "wb"
+                        f"{self.paths.samples_path}/log_posteriors.pickle", "wb"
                 ) as f:
                     pickle.dump([-0.5 * cost for cost in pso.cost_history], f)
 
@@ -325,21 +325,24 @@ class AbstractPySwarms(AbstractOptimizer):
         ]
         log_posteriors = self.load_log_posteriors
         log_likelihoods = [lp - prior for lp, prior in zip(log_posteriors, log_priors)]
-        weights = len(log_likelihoods)*[1.0]
+        weights = len(log_likelihoods) * [1.0]
 
         return OptimizerSamples(
             model=model,
-            parameters=[parameters.tolist()[0] for parameters in self.load_points],
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=Sample.from_lists(
+                parameters=[parameters.tolist()[0] for parameters in self.load_points],
+                log_likelihoods=log_likelihoods,
+                log_priors=log_priors,
+                weights=weights,
+                model=model
+            ),
             time=self.timer.time
         )
 
     @property
     def load_total_iterations(self):
         with open(
-            "{}/{}.pickle".format(self.paths.samples_path, "total_iterations"), "rb"
+                "{}/{}.pickle".format(self.paths.samples_path, "total_iterations"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -351,7 +354,7 @@ class AbstractPySwarms(AbstractOptimizer):
     @property
     def load_log_posteriors(self):
         with open(
-            "{}/{}.pickle".format(self.paths.samples_path, "log_posteriors"), "rb"
+                "{}/{}.pickle".format(self.paths.samples_path, "log_posteriors"), "rb"
         ) as f:
             return pickle.load(f)
 
@@ -360,19 +363,19 @@ class PySwarmsGlobal(AbstractPySwarms):
 
     @convert_paths
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_particles=None,
-        iters=None,
-        cognitive=None,
-        social=None,
-        inertia=None,
-        ftol=None,
-        initializer=None,
-        iterations_per_update=None,
-        remove_state_files_at_end=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_particles=None,
+            iters=None,
+            cognitive=None,
+            social=None,
+            inertia=None,
+            ftol=None,
+            initializer=None,
+            iterations_per_update=None,
+            remove_state_files_at_end=None,
+            number_of_cores=None,
     ):
         """ A PySwarms Particle Swarm Optimizer global non-linear search.
 
@@ -477,21 +480,21 @@ class PySwarmsLocal(AbstractPySwarms):
 
     @convert_paths
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_particles=None,
-        iters=None,
-        cognitive=None,
-        social=None,
-        inertia=None,
-        number_of_k_neighbors=None,
-        minkowski_p_norm=None,
-        ftol=None,
-        initializer=None,
-        iterations_per_update=None,
-        remove_state_files_at_end=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_particles=None,
+            iters=None,
+            cognitive=None,
+            social=None,
+            inertia=None,
+            number_of_k_neighbors=None,
+            minkowski_p_norm=None,
+            ftol=None,
+            initializer=None,
+            iterations_per_update=None,
+            remove_state_files_at_end=None,
+            number_of_cores=None,
     ):
         """ A PySwarms Particle Swarm Optimizer global non-linear search.
 

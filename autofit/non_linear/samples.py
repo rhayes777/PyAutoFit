@@ -34,6 +34,42 @@ class Sample:
             in path_prior_tuples
         ]
 
+    @classmethod
+    def from_lists(
+            cls,
+            model,
+            parameters,
+            log_likelihoods,
+            log_priors,
+            weights
+    ):
+        samples = list()
+
+        for params, log_likelihood, log_prior, weight in zip(
+                parameters,
+                log_likelihoods,
+                log_priors,
+                weights
+        ):
+            arg_dict = {
+                "_".join(t[0]): param
+                for t, param
+                in zip(
+                    model.path_priors_tuples,
+                    params
+                )
+            }
+
+            samples.append(
+                cls(
+                    log_likelihood=log_likelihood,
+                    log_prior=log_prior,
+                    weights=weight,
+                    **arg_dict
+                )
+            )
+        return samples
+
 
 def load_from_table(filename):
     samples = list()
@@ -698,10 +734,7 @@ class MCMCSamples(PDFSamples):
     def __init__(
             self,
             model: ModelMapper,
-            parameters: List[List[float]],
-            log_likelihoods: List[float],
-            log_priors: List[float],
-            weights: List[float],
+            samples: List[Sample],
             auto_correlation_times: np.ndarray,
             auto_correlation_check_size: int,
             auto_correlation_required_length: int,
@@ -723,10 +756,7 @@ class MCMCSamples(PDFSamples):
 
         super().__init__(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
@@ -886,6 +916,7 @@ class NestSamples(PDFSamples):
             samples: List[Sample],
             number_live_points: int,
             log_evidence: float,
+            total_samples: float,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -916,6 +947,11 @@ class NestSamples(PDFSamples):
 
         self.number_live_points = number_live_points
         self.log_evidence = log_evidence
+        self._total_samples = total_samples
+
+    @property
+    def total_samples(self):
+        return self._total_samples
 
     def info_to_json(self, filename):
         info = {

@@ -9,41 +9,6 @@ from autofit.non_linear.samples import OptimizerSamples, PDFSamples, Sample
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-def _make_samples(
-        model,
-        parameters,
-        log_likelihoods,
-        log_priors,
-        weights
-):
-    samples = list()
-
-    for params, log_likelihood, log_prior, weight in zip(
-            parameters,
-            log_likelihoods,
-            log_priors,
-            weights
-    ):
-        arg_dict = {
-            "_".join(t[0]): param
-            for t, param
-            in zip(
-                model.path_priors_tuples,
-                params
-            )
-        }
-
-        samples.append(
-            Sample(
-                log_likelihood=log_likelihood,
-                log_prior=log_prior,
-                weights=weight,
-                **arg_dict
-            )
-        )
-    return samples
-
-
 @pytest.fixture(name="samples")
 def make_samples():
     model = af.ModelMapper(mock_class_1=MockClassx4)
@@ -58,7 +23,7 @@ def make_samples():
 
     return OptimizerSamples(
         model=model,
-        samples=_make_samples(
+        samples=Sample.from_lists(
             model=model,
             parameters=parameters,
             log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
@@ -123,7 +88,7 @@ class TestOptimizerSamples:
 
         samples = OptimizerSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=parameters,
                 log_likelihoods=[1.0, 2.0, 3.0, 0.0, 5.0],
@@ -155,7 +120,7 @@ class TestOptimizerSamples:
         model = af.ModelMapper(mock_class=MockClassx4)
         samples = OptimizerSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=parameters,
                 log_likelihoods=[10.0, 0.0, 0.0, 0.0, 0.0],
@@ -189,7 +154,7 @@ class TestOptimizerSamples:
 
         samples = OptimizerSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=parameters,
                 log_likelihoods=[0.0, 0.0, 0.0, 0.0, 0.0],
@@ -252,7 +217,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=parameters,
                 log_likelihoods=log_likelihoods,
@@ -292,7 +257,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
 
                 model=model,
                 parameters=parameters,
@@ -329,7 +294,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=parameters,
                 log_likelihoods=log_likelihoods,
@@ -394,7 +359,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=parameters,
                 log_likelihoods=log_likelihoods,
@@ -435,7 +400,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=parameters,
                 log_likelihoods=log_likelihoods,
@@ -488,7 +453,7 @@ class TestPDFSamples:
 
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=5 * [[]],
                 log_likelihoods=log_likelihoods,
@@ -504,7 +469,7 @@ class TestPDFSamples:
 
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=5 * [[]],
                 log_likelihoods=log_likelihoods,
@@ -534,7 +499,7 @@ class TestPDFSamples:
 
         samples = PDFSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
 
                 model=model,
                 parameters=parameters,
@@ -556,15 +521,16 @@ class TestNestSamples:
 
         samples = af.NestSamples(
             model=model,
-            samples=_make_samples(
+            samples=Sample.from_lists(
                 model=model,
                 parameters=5 * [[]],
                 log_likelihoods=[1.0, 2.0, 3.0, 4.0, 5.0],
                 log_priors=5 * [0.0],
                 weights=5 * [0.0],
             ),
+            total_samples=10,
             log_evidence=0.0,
             number_live_points=5,
         )
 
-        assert samples.acceptance_ratio == 1.0
+        assert samples.acceptance_ratio == 0.5
