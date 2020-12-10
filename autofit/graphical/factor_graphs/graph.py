@@ -1,95 +1,15 @@
 from collections import Counter, defaultdict
-from typing import Tuple, Dict, Collection, List, Callable
+from typing import \
+    Tuple, Dict, Collection, List, Callable, Optional, Union
+from functools import reduce 
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import FactorValue, AbstractNode
-from autofit.graphical.factor_graphs.abstract import accept_variable_dict
+from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.utils import add_arrays
-
-
-class DeterministicFactorNode(Factor):
-    def __init__(
-            self,
-            factor: Callable,
-            variable: Variable,
-            *args: Variable,
-            **kwargs: Variable
-    ):
-        """
-        A deterministic factor is used to convert a function f(g(x)) to f(y)g(x) (integrating over y wit
-        a delta function) so that it can be represented in a factor graph.
-
-        Parameters
-        ----------
-        factor
-            The original factor to which the deterministic factor is associated
-        variable
-            The deterministic factor used
-        args
-            Variables for the original factor
-        kwargs
-            Variables for the original factor
-        """
-        super().__init__(
-            factor,
-            *args,
-            **kwargs
-        )
-        self._deterministic_variables = {
-            variable
-        }
-
-    @accept_variable_dict
-    def __call__(
-            self,
-            **kwargs: np.ndarray
-    ) -> FactorValue:
-        """
-        Call this factor with a set of arguments
-
-        Parameters
-        ----------
-        args
-            Positional arguments for the underlying factor
-        kwargs
-            Keyword arguments for the underlying factor
-
-        Returns
-        -------
-        An object encapsulating the value for the factor
-        """
-        res = self._call_factor(**kwargs)
-        shape = self._function_shape(**kwargs)
-        shift = len(shape) - self.ndim
-        plate_dim = dict(zip(self.plates, shape[shift:]))
-
-        det_shapes = {
-            v: shape[:shift] + tuple(
-                plate_dim[p] for v in self.deterministic_variables
-                for p in v.plates)
-            for v in self.deterministic_variables
-        }
-
-        if not (isinstance(res, tuple) or self.n_deterministic > 1):
-            res = res,
-
-        log_val = 0. if shape == () else np.zeros(np.ones_like(shape))
-        det_vals = {
-            k: np.reshape(val, det_shapes[k])
-            if det_shapes[k]
-            else val
-            for k, val
-            in zip(self._deterministic_variables, res)
-        }
-        return FactorValue(log_val, det_vals)
-
-    def __repr__(self) -> str:
-        factor_str = super().__repr__()
-        var_str = ", ".join(sorted(variable.name for variable in self._deterministic_variables))
-        return f"({factor_str} == ({var_str}))"
+from autofit.graphical.utils import \
+    add_arrays, aggregate, Axis, cached_property
 
 
 class FactorGraph(AbstractNode):
@@ -105,7 +25,7 @@ class FactorGraph(AbstractNode):
         factors
             Nodes wrapping individual factors in a model
         """
-        self._name = ".".join(f.name for f in factors)
+        self._name = "(%s)" % "*".join(f.name for f in factors)
 
         self._factors = tuple(factors)
 
@@ -126,10 +46,6 @@ class FactorGraph(AbstractNode):
         super().__init__(
             **_kwargs
         )
-
-    @property
-    def deterministic_variables(self):
-        return self._deterministic_variables
 
     def broadcast_plates(
             self,
@@ -175,29 +91,21 @@ class FactorGraph(AbstractNode):
                 "multiple factors"
             )
 
-    @property
-    def _variables(self):
-        return {
-            variable
-            for factor
-            in self.factors
-            for variable
-            in factor.variables
-        }
+    @cached_property
+    def all_variables(self):
+        return reduce(
+            set.union, 
+            (factor.all_variables for factor in self.factors))
 
-    @property
-    def _deterministic_variables(self):
-        return {
-            variable
-            for factor
-            in self.factors
-            for variable
-            in factor.deterministic_variables
-        }
+    @cached_property
+    def deterministic_variables(self):
+        return reduce(
+            set.union, 
+            (factor.deterministic_variables for factor in self.factors))
 
-    @property
+    @cached_property
     def variables(self):
-        return self._variables - self._deterministic_variables
+        return self.all_variables - self.deterministic_variables
 
     def _get_call_sequence(self) -> List[List[Factor]]:
         """
@@ -220,12 +128,10 @@ class FactorGraph(AbstractNode):
             calls = []
             new_variables = set()
             for factor in factors:
-                if isinstance(factor, DeterministicFactorNode):
-                    det_vars = factor.deterministic_variables
-                else:
-                    det_vars = set()
-
+                det_vars = factor.deterministic_variables
                 calls.append(factor)
+                # TODO: this might cause problems 
+                # if det_vars appear more than once
                 new_variables.update(det_vars)
 
             call_sequence.append(calls)
@@ -238,10 +144,10 @@ class FactorGraph(AbstractNode):
 
         return call_sequence
 
-    @accept_variable_dict
     def __call__(
             self,
-            **kwargs: np.ndarray
+            variable_dict: Dict[Variable, np.ndarray],
+            axis: Axis = False, 
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -251,9 +157,9 @@ class FactorGraph(AbstractNode):
 
         Parameters
         ----------
-        args
+        variable_dict
             Positional arguments
-        kwargs
+        axis
             Keyword arguments
 
         Returns
@@ -266,9 +172,9 @@ class FactorGraph(AbstractNode):
         # missing deterministic variables that need to be calculated
         log_value = 0.
         det_values = {}
-        variables = kwargs
+        variables = variable_dict.copy()
 
-        missing = set(self.kwarg_names) - variables.keys()
+        missing = set(v.name for v in self.variables).difference(v.name for v in variables)
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)
@@ -282,7 +188,7 @@ class FactorGraph(AbstractNode):
             for factor in calls:
                 ret = factor(variables)
                 ret_value = self.broadcast_plates(factor.plates, ret.log_value)
-                log_value = add_arrays(log_value, ret_value)
+                log_value = add_arrays(log_value, aggregate(ret_value, axis))
                 det_values.update(ret.deterministic_values)
                 variables.update(ret.deterministic_values)
 

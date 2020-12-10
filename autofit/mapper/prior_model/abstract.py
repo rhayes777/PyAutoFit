@@ -124,19 +124,26 @@ class AbstractPriorModel(AbstractModel):
             An instance or prior model from a previous phase from which attributes
             are passed to this model.
         """
-        for path, _ in self.path_priors_tuples + self.path_float_tuples:
-            item = source
+        for path, _ in sum(map(
+                self.path_instance_tuples_for_class,
+                (Prior, float, TuplePrior)),
+                []
+        ):
             try:
+                item = source
+                if isinstance(item, dict):
+                    from autofit.mapper.prior_model.collection import CollectionPriorModel
+                    item = CollectionPriorModel(item)
                 for attribute in path:
                     item = getattr(item, attribute)
+
+                target = self
+                for attribute in path[:-1]:
+                    target = getattr(target, attribute)
+
+                setattr(target, path[-1], item)
             except AttributeError:
                 pass
-
-            target = self
-            for attribute in path[:-1]:
-                target = getattr(target, attribute)
-
-            setattr(target, path[-1], item)
 
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
@@ -366,12 +373,7 @@ class AbstractPriorModel(AbstractModel):
             no_limits=False
     ):
         """
-<<<<<<< HEAD
-        Returns a new model mapper from a list of floats describing the mean values
-        of gaussian priors. The widths of the new priors are taken from the
-=======
         The widths of the new priors are taken from the
->>>>>>> master
         width_config. The new gaussian priors must be provided in the same order as
         the priors associated with model.
         If a is not None then all priors are created with an absolute width of a.

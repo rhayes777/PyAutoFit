@@ -4,6 +4,7 @@ from scipy import special
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import invpsilog
 
+from autofit.graphical.utils import cached_property
 
 class GammaMessage(AbstractMessage):
     @property
@@ -32,7 +33,7 @@ class GammaMessage(AbstractMessage):
             log_norm=log_norm
         )
 
-    @property
+    @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(
             self.alpha,
@@ -59,17 +60,18 @@ class GammaMessage(AbstractMessage):
         beta = alpha / X
         return cls.calc_natural_parameters(alpha, beta)
 
-    @property
+    @cached_property
     def mean(self):
         return self.alpha / self.beta
 
-    @property
+    @cached_property
     def variance(self):
         return self.alpha / self.beta ** 2
 
-    def sample(self, n_samples):
+    def sample(self, n_samples=None):
         a1, b1 = self.parameters
-        return np.random.gamma(a1, scale=1 / b1, size=(n_samples,) + self.shape)
+        shape = (n_samples,) + self.shape if n_samples else self.shape
+        return np.random.gamma(a1, scale=1 / b1, size=shape)
 
     @classmethod
     def from_mode(cls, mode, covariance):
@@ -78,3 +80,30 @@ class GammaMessage(AbstractMessage):
         alpha = 1 + m ** 2 * V  # match variance
         beta = alpha / m  # match mean
         return cls(alpha, beta)
+
+    def kl(self, dist):
+        P, Q = dist, self
+        logP = np.log(P.alpha)
+        # TODO check this is correct
+        # https://arxiv.org/pdf/0911.4863.pdf
+        return (
+            (P.alpha - Q.alpha) * special.psi(P.alpha)
+            - special.gammaln(P.alpha) + special.gammaln(Q.alpha)
+            + Q.alpha * (np.log(P.beta / Q.beta))
+            + P.alpha * (Q.beta/P.beta - 1)
+        )
+
+    def logpdf_gradient(self, x):
+        logl = self.logpdf(x)
+        eta1 = self.natural_parameters[0]
+        gradl = eta1/x - 1/self.beta 
+        return logl, gradl 
+
+    def logpdf_gradient_hessian(self, x):
+        logl = self.logpdf(x)
+        eta1 = self.natural_parameters[0]
+        gradl = eta1/x
+        hessl = - gradl/x
+        gradl -= 1/self.beta 
+        return logl, gradl, hessl
+    
