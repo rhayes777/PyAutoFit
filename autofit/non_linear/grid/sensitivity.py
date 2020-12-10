@@ -1,11 +1,10 @@
-from abc import ABC
+from copy import copy
+from copy import copy
 from itertools import count
 from os import path
 from typing import List, Generator, Callable, Type, Union, Tuple
 
-import numpy as np
-
-from autofit import AbstractPriorModel, ModelInstance, Paths, CollectionPriorModel, Result, Analysis, NonLinearSearch
+from autofit import AbstractPriorModel, ModelInstance, Paths, Result, Analysis, NonLinearSearch
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 
@@ -86,16 +85,13 @@ class Job(AbstractJob):
         -------
         An object comprising the results of the two fits
         """
-        model = CollectionPriorModel()
-        model.model = self.model
         result = self.search.fit(
-            model=model,
+            model=self.model,
             analysis=self.analysis
         )
 
-        perturbed_model = CollectionPriorModel()
+        perturbed_model = copy(self.model)
         perturbed_model.perturbation = self.perturbation_model
-        perturbed_model.model = self.model
 
         perturbed_result = self.perturbed_search.fit(
             model=perturbed_model,
@@ -299,8 +295,7 @@ class Sensitivity:
                 self._perturbation_instances,
                 self._searches
         ):
-            instance = ModelInstance()
-            instance.model = self.instance
+            instance = copy(self.instance)
             instance.perturbation = perturbation_instance
             dataset = self.simulate_function(
                 instance
