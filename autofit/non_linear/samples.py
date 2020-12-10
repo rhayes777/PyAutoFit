@@ -14,8 +14,8 @@ class Sample:
             self,
             log_likelihood,
             log_prior,
-            log_posterior,
             weights,
+            log_posterior=None,
             **kwargs
     ):
         self.log_likelihood = log_likelihood
@@ -43,7 +43,7 @@ def load_from_table(filename):
             samples.append(
                 Sample(
                     **{
-                        header: value
+                        header: float(value)
                         for header, value
                         in zip(
                             headers,

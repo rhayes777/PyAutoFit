@@ -3,10 +3,54 @@ import os
 import pytest
 
 import autofit as af
-from autofit.non_linear.samples import OptimizerSamples, PDFSamples
 from autofit.mock.mock import MockClassx2, MockClassx4
+from autofit.non_linear.samples import OptimizerSamples, PDFSamples, Sample
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
+
+
+def _make_samples(
+        model,
+        parameters,
+        log_likelihoods,
+        log_priors,
+        weights
+):
+    # parameters = [[
+    #     parameters[i][j]
+    #     for i in range(len(parameters))]
+    #     for j in range(len(parameters[0]))
+    # ]
+
+    samples = list()
+
+    for params, log_likelihood, log_prior, weight in zip(
+            parameters,
+            log_likelihoods,
+            log_priors,
+            weights
+    ):
+        arg_dict = {
+            "_".join(t[0]): param
+            for t, param
+            in zip(
+                model.path_priors_tuples,
+                params
+            )
+        }
+
+        samples.append(
+            Sample(
+                log_likelihood=log_likelihood,
+                log_prior=log_prior,
+                weights=weight,
+                **arg_dict
+            )
+        )
+    return OptimizerSamples(
+        model,
+        samples
+    )
 
 
 @pytest.fixture(name="samples")
@@ -21,7 +65,7 @@ def make_samples():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    return OptimizerSamples(
+    return _make_samples(
         model=model,
         parameters=parameters,
         log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
@@ -83,7 +127,7 @@ class TestOptimizerSamples:
             [21.0, 22.0, 23.0, 24.0],
         ]
 
-        samples = OptimizerSamples(
+        samples = _make_samples(
             model=model,
             parameters=parameters,
             log_likelihoods=[1.0, 2.0, 3.0, 0.0, 5.0],
@@ -112,7 +156,7 @@ class TestOptimizerSamples:
         ]
 
         model = af.ModelMapper(mock_class=MockClassx4)
-        samples = OptimizerSamples(
+        samples = _make_samples(
             model=model,
             parameters=parameters,
             log_likelihoods=[10.0, 0.0, 0.0, 0.0, 0.0],
@@ -143,7 +187,7 @@ class TestOptimizerSamples:
             [1.1, 2.1, 3.1, 4.1],
         ]
 
-        samples = OptimizerSamples(
+        samples = _make_samples(
             model=model,
             parameters=parameters,
             log_likelihoods=[0.0, 0.0, 0.0, 0.0, 0.0],
