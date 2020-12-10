@@ -124,11 +124,11 @@ class TestPySwarmsGlobalConfig:
 
         pyswarms = af.PySwarmsGlobal(paths=af.Paths())
 
-        model = af.ModelMapper(mock_class=mock.MockClassx4)
+        model = af.ModelMapper(mock_class=mock.MockClassx3)
         model.mock_class.one = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
         model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
         model.mock_class.three = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
-        model.mock_class.four = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
+        # model.mock_class.four = af.LogUniformPrior(lower_limit=0.0, upper_limit=100.0)
 
         samples = pyswarms.samples_via_sampler_from_model(model=model)
 

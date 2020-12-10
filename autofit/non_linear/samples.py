@@ -5,42 +5,179 @@ from typing import List
 
 import numpy as np
 
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 
 
-def load_from_table(filename, model):
+class Sample:
+    def __init__(
+            self,
+            log_likelihood: float,
+            log_prior: float,
+            weights: float,
+            **kwargs
+    ):
+        """
+        One sample taken during a search
 
-    parameters = []
-    log_likelihoods = []
-    log_priors = []
-    log_posteriors = []
-    weights = []
+        Parameters
+        ----------
+        log_likelihood
+            The likelihood associated with this instance
+        log_prior
+            A logarithmic prior of the instance
+        weights
+        kwargs
+            Dictionary mapping model paths to values for the sample
+        """
+        self.log_likelihood = log_likelihood
+        self.log_prior = log_prior
+        self.weights = weights
+        self.kwargs = kwargs
+
+    @property
+    def log_posterior(self) -> float:
+        """
+        Compute the posterior
+        """
+        return self.log_likelihood + self.log_prior
+
+    def parameters_for_model(
+            self,
+            model: AbstractPriorModel
+    ) -> List[float]:
+        """
+        Values for instantiating a model, in the same order as priors
+        from the model.
+
+        Parameters
+        ----------
+        model
+            The model from which this was a sample
+
+        Returns
+        -------
+        A list of physical values
+        """
+        path_prior_tuples = model.path_priors_tuples
+        return [
+            self.kwargs["_".join(path)]
+            for path, _
+            in path_prior_tuples
+        ]
+
+    @classmethod
+    def from_lists(
+            cls,
+            model: AbstractPriorModel,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float]
+    ) -> List["Sample"]:
+        """
+        Convenience method to create a list of samples
+        from lists of contained values
+
+        Parameters
+        ----------
+        model
+        parameters
+        log_likelihoods
+        log_priors
+        weights
+
+        Returns
+        -------
+        A list of samples
+        """
+        samples = list()
+
+        for params, log_likelihood, log_prior, weight in zip(
+                parameters,
+                log_likelihoods,
+                log_priors,
+                weights
+        ):
+            arg_dict = {
+                "_".join(t[0]): param
+                for t, param
+                in zip(
+                    model.path_priors_tuples,
+                    params
+                )
+            }
+
+            samples.append(
+                cls(
+                    log_likelihood=log_likelihood,
+                    log_prior=log_prior,
+                    weights=weight,
+                    **arg_dict
+                )
+            )
+        return samples
+
+    def instance_for_model(self, model: AbstractPriorModel):
+        """
+        Create an instance from this sample for a model
+
+        Parameters
+        ----------
+        model
+            The model the this sample was taken from
+
+        Returns
+        -------
+        The instance corresponding to this sample
+        """
+        return model.instance_from_vector(
+            self.parameters_for_model(model)
+        )
+
+
+def load_from_table(filename: str) -> List[Sample]:
+    """
+    Load samples from a table
+
+    Parameters
+    ----------
+    filename
+        The path to a CSV file
+
+    Returns
+    -------
+    A list of samples, one for each row in the CSV
+    """
+    samples = list()
 
     with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
-        for index, row in enumerate(reader):
-            if index > 0:
-                parameters.append(
-                    [float(param) for param in row[0: model.prior_count]]
+        headers = next(reader)
+        for row in reader:
+            samples.append(
+                Sample(
+                    **{
+                        header: float(value)
+                        for header, value
+                        in zip(
+                            headers,
+                            row
+                        )
+                    }
                 )
-                log_likelihoods.append(float(row[model.prior_count]))
-                log_priors.append(float(row[model.prior_count + 1]))
-                log_posteriors.append(float(row[model.prior_count + 2]))
-                weights.append(float(row[model.prior_count + 3]))
+            )
 
-    return parameters, log_likelihoods, log_priors, log_posteriors, weights
+    return samples
 
 
 class OptimizerSamples:
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        time: float = None,
+            self,
+            model: ModelMapper,
+            samples: List[Sample],
+            time: float = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
@@ -52,15 +189,53 @@ class OptimizerSamples:
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
         self.model = model
-        self.total_samples = len(log_likelihoods)
-        self.parameters = parameters
-        self.log_likelihoods = log_likelihoods
-        self.log_priors = log_priors
-        self.log_posteriors = [
-            lh + prior for lh, prior in zip(log_likelihoods, log_priors)
-        ]
-        self.weights = weights
+        self.samples = samples
         self.time = time
+
+    @property
+    def parameters(self):
+        return [
+            sample.parameters_for_model(
+                self.model
+            )
+            for sample in self.samples
+        ]
+
+    @property
+    def total_samples(self):
+        return len(self.samples)
+
+    @property
+    def weights(self):
+        return [
+            sample.weights
+            for sample
+            in self.samples
+        ]
+
+    @property
+    def log_likelihoods(self):
+        return [
+            sample.log_likelihood
+            for sample
+            in self.samples
+        ]
+
+    @property
+    def log_posteriors(self):
+        return [
+            sample.log_posterior
+            for sample
+            in self.samples
+        ]
+
+    @property
+    def log_priors(self):
+        return [
+            sample.log_prior
+            for sample
+            in self.samples
+        ]
 
     @property
     def parameters_extract(self):
@@ -117,19 +292,27 @@ class OptimizerSamples:
             json.dump(info, outfile)
 
     @property
-    def max_log_likelihood_index(self) -> int:
+    def max_log_likelihood_sample(self) -> Sample:
         """The index of the sample with the highest log likelihood."""
-        return int(np.argmax(self.log_likelihoods))
+        most_likely_sample = None
+        for sample in self.samples:
+            if most_likely_sample is None or sample.log_likelihood > most_likely_sample.log_likelihood:
+                most_likely_sample = sample
+        return most_likely_sample
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
         """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
-        return self.parameters[self.max_log_likelihood_index]
+        return self.max_log_likelihood_sample.parameters_for_model(
+            self.model
+        )
 
     @property
     def max_log_likelihood_instance(self) -> ModelInstance:
         """  The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance."""
-        return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
+        return self.max_log_likelihood_sample.instance_for_model(
+            self.model
+        )
 
     @property
     def max_log_posterior_index(self) -> int:
@@ -175,14 +358,11 @@ class OptimizerSamples:
 
 class PDFSamples(OptimizerSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        unconverged_sample_size: int = 100,
-        time: float = None,
+            self,
+            model: ModelMapper,
+            samples: List[Sample],
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
@@ -195,10 +375,7 @@ class PDFSamples(OptimizerSamples):
 
         super().__init__(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             time=time,
         )
 
@@ -215,14 +392,13 @@ class PDFSamples(OptimizerSamples):
             Where the table is to be written
         """
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename, model=model)
+        samples = load_from_table(
+            filename=filename
+        )
 
         return OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples
         )
 
     @property
@@ -305,10 +481,10 @@ class PDFSamples(OptimizerSamples):
             return [(lower, upper) for lower, upper in zip(lower_errors, upper_errors)]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -642,20 +818,17 @@ class PDFSamples(OptimizerSamples):
 
 class MCMCSamples(PDFSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        auto_correlation_times: np.ndarray,
-        auto_correlation_check_size: int,
-        auto_correlation_required_length: int,
-        auto_correlation_change_threshold: float,
-        total_walkers: int,
-        total_steps: int,
-        unconverged_sample_size: int = 100,
-        time: float = None,
+            self,
+            model: ModelMapper,
+            samples: List[Sample],
+            auto_correlation_times: np.ndarray,
+            auto_correlation_check_size: int,
+            auto_correlation_required_length: int,
+            auto_correlation_change_threshold: float,
+            total_walkers: int,
+            total_steps: int,
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """
         Attributes
@@ -669,10 +842,7 @@ class MCMCSamples(PDFSamples):
 
         super().__init__(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
@@ -696,26 +866,23 @@ class MCMCSamples(PDFSamples):
             Where the table is to be written
         """
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename, model=model)
+        samples = load_from_table(filename=filename)
 
         return OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples
         )
 
     def info_to_json(self, filename):
 
         info = {
-            "auto_correlation_times" : None,
-            "auto_correlation_check_size" : self.auto_correlation_check_size,
-            "auto_correlation_required_length" : self.auto_correlation_required_length,
-            "auto_correlation_change_threshold" : self.auto_correlation_change_threshold,
-            "total_walkers" : self.total_walkers,
+            "auto_correlation_times": None,
+            "auto_correlation_check_size": self.auto_correlation_check_size,
+            "auto_correlation_required_length": self.auto_correlation_required_length,
+            "auto_correlation_change_threshold": self.auto_correlation_change_threshold,
+            "total_walkers": self.total_walkers,
             "total_steps": self.total_steps,
-            "time" : self.time,
+            "time": self.time,
         }
 
         with open(filename, 'w') as outfile:
@@ -749,8 +916,8 @@ class MCMCSamples(PDFSamples):
     @property
     def relative_auto_correlation_times(self) -> [float]:
         return (
-            np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
-            / self.auto_correlation_times
+                np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
+                / self.auto_correlation_times
         )
 
     @property
@@ -816,10 +983,10 @@ class MCMCSamples(PDFSamples):
             ]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size :], axis=0)
+            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -830,17 +997,14 @@ class MCMCSamples(PDFSamples):
 
 class NestSamples(PDFSamples):
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        number_live_points: int,
-        log_evidence: float,
-        total_samples: int,
-        unconverged_sample_size: int = 100,
-        time: float = None,
+            self,
+            model: ModelMapper,
+            samples: List[Sample],
+            number_live_points: int,
+            log_evidence: float,
+            total_samples: float,
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
@@ -862,26 +1026,26 @@ class NestSamples(PDFSamples):
 
         super().__init__(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
 
         self.number_live_points = number_live_points
-        self.total_samples = total_samples
         self.log_evidence = log_evidence
+        self._total_samples = total_samples
+
+    @property
+    def total_samples(self):
+        return self._total_samples
 
     def info_to_json(self, filename):
-
         info = {
-            "log_evidence" : self.log_evidence,
-            "total_samples" : self.total_samples,
-            "unconverged_sample_size" : self.unconverged_sample_size,
-            "time" : self.time,
-            "number_live_points" : self.number_live_points
+            "log_evidence": self.log_evidence,
+            "total_samples": self.total_samples,
+            "unconverged_sample_size": self.unconverged_sample_size,
+            "time": self.time,
+            "number_live_points": self.number_live_points
         }
 
         with open(filename, 'w') as outfile:

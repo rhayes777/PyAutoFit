@@ -11,7 +11,7 @@ from autofit.non_linear.abstract_search import Result
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.paths import convert_paths
-from autofit.non_linear.samples import NestSamples
+from autofit.non_linear.samples import NestSamples, Sample
 from autofit.text import samples_text
 
 
@@ -432,10 +432,13 @@ class AbstractDynesty(AbstractNest):
 
         return NestSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=Sample.from_lists(
+                log_priors=log_priors,
+                log_likelihoods=log_likelihoods,
+                weights=weights,
+                model=model,
+                parameters=parameters
+            ),
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=sampler.results.nlive,
@@ -1131,10 +1134,12 @@ class DynestyDynamic(AbstractDynesty):
 
         return NestSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=Sample.from_lists(
+                log_likelihoods=log_likelihoods,
+                log_priors=log_priors,
+                weights=weights,
+                model=model
+            ),
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,
