@@ -1,7 +1,6 @@
 import csv
 import json
 import math
-from collections import defaultdict
 from typing import List
 
 import numpy as np
@@ -10,47 +9,58 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 
 
-def load_from_table(filename, model: ModelMapper):
-    output = defaultdict(list)
+class Sample:
+    def __init__(
+            self,
+            log_likelihood,
+            log_prior,
+            log_posterior,
+            weights,
+            **kwargs
+    ):
+        self.log_likelihood = log_likelihood
+        self.log_prior = log_prior
+        self.log_posterior = log_posterior
+        self.weights = weights
+        self.kwargs = kwargs
+
+    def parameters_for_model(self, model):
+        path_prior_tuples = model.path_priors_tuples
+        return [
+            self.kwargs["_".join(path)]
+            for path, _
+            in path_prior_tuples
+        ]
+
+
+def load_from_table(filename):
+    samples = list()
 
     with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
         headers = next(reader)
         for row in reader:
-            for header, value in zip(
-                    headers,
-                    row
-            ):
-                output[header].append(
-                    float(value)
+            samples.append(
+                Sample(
+                    **{
+                        header: value
+                        for header, value
+                        in zip(
+                            headers,
+                            row
+                        )
+                    }
                 )
+            )
 
-    path_prior_tuples = model.path_priors_tuples
-    parameters = [
-        output["_".join(path)]
-        for path, _
-        in path_prior_tuples
-    ]
-
-    parameters = [
-        [
-            parameters[i][j]
-            for i in range(len(parameters))
-        ]
-        for j in range(len(parameters[0]))
-    ]
-
-    return parameters, output["log_likelihood"], output["log_prior"], output["log_posterior"], output["weights"]
+    return samples
 
 
 class OptimizerSamples:
     def __init__(
             self,
             model: ModelMapper,
-            parameters: List[List[float]],
-            log_likelihoods: List[float],
-            log_priors: List[float],
-            weights: List[float],
+            samples: List[Sample],
             time: float = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of an search which only provides
@@ -63,15 +73,53 @@ class OptimizerSamples:
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
         self.model = model
-        self.total_samples = len(log_likelihoods)
-        self.parameters = parameters
-        self.log_likelihoods = log_likelihoods
-        self.log_priors = log_priors
-        self.log_posteriors = [
-            lh + prior for lh, prior in zip(log_likelihoods, log_priors)
-        ]
-        self.weights = weights
+        self.samples = samples
         self.time = time
+
+    @property
+    def parameters(self):
+        return [
+            sample.parameters_for_model(
+                self.model
+            )
+            for sample in self.samples
+        ]
+
+    @property
+    def total_samples(self):
+        return len(self.samples)
+
+    @property
+    def weights(self):
+        return [
+            sample.weights
+            for sample
+            in self.samples
+        ]
+
+    @property
+    def log_likelihoods(self):
+        return [
+            sample.log_likelihood
+            for sample
+            in self.samples
+        ]
+
+    @property
+    def log_posteriors(self):
+        return [
+            sample.log_posterior
+            for sample
+            in self.samples
+        ]
+
+    @property
+    def log_priors(self):
+        return [
+            sample.log_likelihood
+            for sample
+            in self.samples
+        ]
 
     @property
     def parameters_extract(self):
@@ -226,15 +274,13 @@ class PDFSamples(OptimizerSamples):
             Where the table is to be written
         """
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = load_from_table(filename=filename,
-                                                                                           model=model)
+        samples = load_from_table(
+            filename=filename
+        )
 
         return OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples
         )
 
     @property
