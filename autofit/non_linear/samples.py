@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 
@@ -12,21 +13,53 @@ from autofit.mapper.model_mapper import ModelMapper
 class Sample:
     def __init__(
             self,
-            log_likelihood,
-            log_prior,
-            weights,
+            log_likelihood: float,
+            log_prior: float,
+            weights: float,
             **kwargs
     ):
+        """
+        One sample taken during a search
+
+        Parameters
+        ----------
+        log_likelihood
+            The likelihood associated with this instance
+        log_prior
+            A logarithmic prior of the instance
+        weights
+        kwargs
+            Dictionary mapping model paths to values for the sample
+        """
         self.log_likelihood = log_likelihood
         self.log_prior = log_prior
         self.weights = weights
         self.kwargs = kwargs
 
     @property
-    def log_posterior(self):
+    def log_posterior(self) -> float:
+        """
+        Compute the posterior
+        """
         return self.log_likelihood + self.log_prior
 
-    def parameters_for_model(self, model):
+    def parameters_for_model(
+            self,
+            model: AbstractPriorModel
+    ) -> List[float]:
+        """
+        Values for instantiating a model, in the same order as priors
+        from the model.
+
+        Parameters
+        ----------
+        model
+            The model from which this was a sample
+
+        Returns
+        -------
+        A list of physical values
+        """
         path_prior_tuples = model.path_priors_tuples
         return [
             self.kwargs["_".join(path)]
@@ -37,12 +70,28 @@ class Sample:
     @classmethod
     def from_lists(
             cls,
-            model,
-            parameters,
-            log_likelihoods,
-            log_priors,
-            weights
-    ):
+            model: AbstractPriorModel,
+            parameters: List[List[float]],
+            log_likelihoods: List[float],
+            log_priors: List[float],
+            weights: List[float]
+    ) -> List["Sample"]:
+        """
+        Convenience method to create a list of samples
+        from lists of contained values
+
+        Parameters
+        ----------
+        model
+        parameters
+        log_likelihoods
+        log_priors
+        weights
+
+        Returns
+        -------
+        A list of samples
+        """
         samples = list()
 
         for params, log_likelihood, log_prior, weight in zip(
@@ -70,8 +119,37 @@ class Sample:
             )
         return samples
 
+    def instance_for_model(self, model: AbstractPriorModel):
+        """
+        Create an instance from this sample for a model
 
-def load_from_table(filename):
+        Parameters
+        ----------
+        model
+            The model the this sample was taken from
+
+        Returns
+        -------
+        The instance corresponding to this sample
+        """
+        return model.instance_from_vector(
+            self.parameters_for_model(model)
+        )
+
+
+def load_from_table(filename: str) -> List[Sample]:
+    """
+    Load samples from a table
+
+    Parameters
+    ----------
+    filename
+        The path to a CSV file
+
+    Returns
+    -------
+    A list of samples, one for each row in the CSV
+    """
     samples = list()
 
     with open(filename, "r+", newline="") as f:
@@ -214,19 +292,27 @@ class OptimizerSamples:
             json.dump(info, outfile)
 
     @property
-    def max_log_likelihood_index(self) -> int:
+    def max_log_likelihood_sample(self) -> Sample:
         """The index of the sample with the highest log likelihood."""
-        return int(np.argmax(self.log_likelihoods))
+        most_likely_sample = None
+        for sample in self.samples:
+            if most_likely_sample is None or sample.log_likelihood > most_likely_sample.log_likelihood:
+                most_likely_sample = sample
+        return most_likely_sample
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
         """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
-        return self.parameters[self.max_log_likelihood_index]
+        return self.max_log_likelihood_sample.parameters_for_model(
+            self.model
+        )
 
     @property
     def max_log_likelihood_instance(self) -> ModelInstance:
         """  The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance."""
-        return self.model.instance_from_vector(vector=self.max_log_likelihood_vector)
+        return self.max_log_likelihood_sample.instance_for_model(
+            self.model
+        )
 
     @property
     def max_log_posterior_index(self) -> int:
