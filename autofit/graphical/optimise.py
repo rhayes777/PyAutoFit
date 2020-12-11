@@ -68,7 +68,7 @@ class OptFactor:
         self.deterministic_variables = self.factor.deterministic_variables
 
         self.sign = 1
-        self.fixed_kws = fixed_kws
+        self.fixed_kws = fixed_kws or {}
 
         meth = method.lower()
         # method needs to return Hessian information.
@@ -171,17 +171,11 @@ class OptFactor:
             ] = None
     ):
         arrays_dict = arrays_dict or {}
-        values = {
+        return {
             v: arrays_dict[v] if v in arrays_dict
             else self.model_dist[v].sample()
             for v in self.free_vars
         }
-        # transform values
-        return self.unflatten(
-            self.transform.ldiv(
-                self.flatten(values)
-            )
-        )
 
     def _parse_result(
             self,
@@ -316,10 +310,15 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             whiten_optimiser=True,
             transforms=None,
             deltas=None,
+            initial_values=None,
             opt_kws=None
     ):
 
         self.whiten_optimiser = whiten_optimiser
+        self.initial_values = {}
+        if initial_values:
+            self.initial_values.update(initial_values)
+
         self.transforms = defaultdict(lambda: identity_transform)
         if transforms:
             self.transforms.update(transforms)
@@ -342,10 +341,11 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         whiten = self.transforms[factor]
         delta = self.deltas[factor]
         opt_kws = self.opt_kws[factor]
+        start = self.initial_values.get(factor)
 
         factor_approx = model_approx.factor_approximation(factor)
         opt = OptFactor.from_approx(factor_approx, transform=whiten)
-        res = opt.maximise(status=status, **opt_kws)
+        res = opt.maximise(start, status=status, **opt_kws)
 
         # Calculate covariance of deterministic values
         # TODO: estimate this Jacobian using Broyden's method

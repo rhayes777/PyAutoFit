@@ -17,7 +17,7 @@ from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
 
 
-class EPMeanField(AbstractNode):
+class EPMeanField(FactorGraph):
     '''
     this class encode the EP mean-field approximation to a factor graph
 
@@ -73,7 +73,7 @@ class EPMeanField(AbstractNode):
                 variable_factor.setdefault(v, set()).add(factor)
         self._variable_factor = variable_factor
 
-        super().__init__(**self.factor_graph._kwargs)
+        super().__init__(self.factor_graph.factors)
 
     @property
     def name(self):
@@ -149,6 +149,8 @@ class EPMeanField(AbstractNode):
             {v: 1. for v in self.all_variables},
             *self._factor_mean_field.values())
 
+    model_dist = mean_field
+
     @property
     def variable_factor_message(self
                                 ) -> Dict[Variable, Dict[Factor, AbstractMessage]]:
@@ -217,9 +219,6 @@ class EPMeanField(AbstractNode):
         return (
             f"{clsname}({self.factor_graph}, "
             f"log_evidence={self.log_evidence})")
-
-    def __call__(self, **kwargs: np.ndarray) -> np.ndarray:
-        return self.mean_field(**kwargs)
 
     @property
     def is_valid(self) -> bool:
