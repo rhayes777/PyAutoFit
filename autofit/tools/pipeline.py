@@ -168,6 +168,7 @@ class Pipeline:
                 other.pipeline_name
             ),
             None,
+            other.results,
             *(self.phases + other.phases),
         )
 

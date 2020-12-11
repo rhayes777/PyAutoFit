@@ -271,7 +271,6 @@ class NonLinearSearch(ABC):
                 analysis.save_results_for_aggregator(paths=self.paths, samples=samples)
 
         self.paths.zip_remove()
-
         return Result(samples=samples, previous_model=model, search=self)
 
     @abstractmethod

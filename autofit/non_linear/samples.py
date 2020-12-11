@@ -8,7 +8,7 @@ import numpy as np
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
-
+from autofit.tools import util
 
 class Sample:
     def __init__(
@@ -45,7 +45,8 @@ class Sample:
 
     def parameters_for_model(
             self,
-            model: AbstractPriorModel
+            model: AbstractPriorModel,
+            paths=None,
     ) -> List[float]:
         """
         Values for instantiating a model, in the same order as priors
@@ -60,12 +61,40 @@ class Sample:
         -------
         A list of physical values
         """
-        path_prior_tuples = model.path_priors_tuples
+
+        if paths is None:
+            paths = model.model_component_and_parameter_names
+
         return [
-            self.kwargs["_".join(path)]
-            for path, _
-            in path_prior_tuples
+            self.kwargs[path]
+            for path
+            in paths
         ]
+
+        #
+        #
+        # # TODO : The commented out code and try / except are equivalent, except the latter adds a _value string to a
+        # # TODO : path if the first is not found.
+        # # TODO: This is due to horrific backwards compaitbility issues which we currently cannot remove,
+        # # TODO: so it'll have to do for now. One day we'll delete this.
+        #
+        # # return [
+        # #     self.kwargs[path]
+        # #     for path
+        # #     in paths
+        # # ]
+        #
+        # parameters_bc = []
+        #
+        # print(self.kwargs)
+        #
+        # for path in paths:
+        #     try:
+        #         parameters_bc.append(self.kwargs[path])
+        #     except KeyError:
+        #         parameters_bc.append(self.kwargs[f"{path}_value"])
+        #
+        # return parameters_bc
 
     @classmethod
     def from_lists(
@@ -101,10 +130,10 @@ class Sample:
                 weights
         ):
             arg_dict = {
-                "_".join(t[0]): param
+                t: param
                 for t, param
                 in zip(
-                    model.path_priors_tuples,
+                    model.model_component_and_parameter_names,
                     params
                 )
             }
@@ -132,9 +161,16 @@ class Sample:
         -------
         The instance corresponding to this sample
         """
-        return model.instance_from_vector(
-            self.parameters_for_model(model)
-        )
+        try:
+            return model.instance_from_vector(
+                self.parameters_for_model(model)
+            )
+        except KeyError:
+            paths = model.model_component_and_parameter_names
+            paths = util.convert_paths_for_backwards_compatibility(paths=paths, kwargs=self.kwargs)
+            return model.instance_from_vector(
+                self.parameters_for_model(model, paths)
+            )
 
 
 def load_from_table(filename: str) -> List[Sample]:
@@ -194,12 +230,24 @@ class OptimizerSamples:
 
     @property
     def parameters(self):
-        return [
-            sample.parameters_for_model(
-                self.model
-            )
-            for sample in self.samples
-        ]
+
+        paths = self.model.model_component_and_parameter_names
+
+        try:
+            return [
+                sample.parameters_for_model(
+                    self.model, paths
+                )
+                for sample in self.samples
+            ]
+        except KeyError:
+            paths = util.convert_paths_for_backwards_compatibility(paths=paths, kwargs=self.samples[0].kwargs)
+            return [
+                sample.parameters_for_model(
+                    self.model, paths
+                )
+                for sample in self.samples
+            ]
 
     @property
     def total_samples(self):
@@ -249,6 +297,7 @@ class OptimizerSamples:
         """
         Headers for the samples table
         """
+
         return self.model.model_component_and_parameter_names + [
             "log_likelihood",
             "log_prior",
@@ -278,6 +327,7 @@ class OptimizerSamples:
         filename
             Where the table is to be written
         """
+
         with open(filename, "w+", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(self._headers)
