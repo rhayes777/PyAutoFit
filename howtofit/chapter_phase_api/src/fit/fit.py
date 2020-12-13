@@ -26,21 +26,21 @@ class FitDataset:
         chi_squared_map : np.ndarray
             The chi-squared-map of the fit ((data - model_data) / noise_maps ) **2.0
         chi_squared : float
-            The overall chi-squared of the model`s fit to the dataset, summed over every data point.
+            The overall chi-squared of the model's fit to the dataset, summed over every data point.
         reduced_chi_squared : float
-            The reduced chi-squared of the model`s fit to simulate (chi_squared / number of datas points), summed over \
+            The reduced chi-squared of the model's fit to simulate (chi_squared / number of datas points), summed over \
             every data point.
         noise_normalization : float
             The overall normalization term of the noise_map, summed over every data point.
         log_likelihood : float
-            The overall log likelihood of the model`s fit to the dataset, summed over evey data point.
+            The overall log likelihood of the model's fit to the dataset, summed over evey data point.
         """
 
         self.dataset = dataset
         self.model_data = model_data
 
     """
-    This is a convenience method that makes the dataset`s xvalues (used to generate the model data) directly
+    This is a convenience method that makes the dataset's xvalues (used to generate the model data) directly
     accessible to an instance of to fit class. It is used in the `plot.py` module.
     """
 

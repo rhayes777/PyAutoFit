@@ -265,6 +265,8 @@ class NonLinearSearch(ABC):
 
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
             samples = self.samples_via_csv_json_from_model(model=model)
+            samples.write_table(filename=self.paths.samples_file)
+            samples.info_to_json(filename=self.paths.info_file)
             self.save_samples(samples=samples)
 
             if self.force_pickle_overwrite:

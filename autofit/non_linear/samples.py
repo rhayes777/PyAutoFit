@@ -123,6 +123,9 @@ class Sample:
         """
         samples = list()
 
+        # Another speed up.
+        model_component_and_parameter_names = model.model_component_and_parameter_names
+
         for params, log_likelihood, log_prior, weight in zip(
                 parameters,
                 log_likelihoods,
@@ -133,7 +136,7 @@ class Sample:
                 t: param
                 for t, param
                 in zip(
-                    model.model_component_and_parameter_names,
+                    model_component_and_parameter_names,
                     params
                 )
             }
@@ -310,12 +313,18 @@ class OptimizerSamples:
         """
         Rows in the samples table
         """
+
+        log_likelihoods = self.log_likelihoods
+        log_priors = self.log_priors
+        log_posteriors = self.log_posteriors
+        weights = self.weights
+
         for index, row in enumerate(self.parameters):
             yield row + [
-                self.log_likelihoods[index],
-                self.log_priors[index],
-                self.log_posteriors[index],
-                self.weights[index],
+                log_likelihoods[index],
+                log_priors[index],
+                log_posteriors[index],
+                weights[index],
             ]
 
     def write_table(self, filename: str):

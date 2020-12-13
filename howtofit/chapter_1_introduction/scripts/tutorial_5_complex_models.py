@@ -162,7 +162,7 @@ def plot_line(
 # %%
 """
 Now we can create a model composed of multiple components we need to fit it to our data. To do this, we use updated 
-`Analysis` class that creates the `model_data` as a super position of all of the model`s individual `Profile`'s. For 
+`Analysis` class that creates the `model_data` as a super position of all of the model's individual `Profile`'s. For 
 example, in the model above, the `model_data` is the sum of the `Gaussian`'s  individual profile and `Exponential`'s 
 individual profile.
 """
@@ -253,7 +253,7 @@ class Analysis(af.Analysis):
         )
 
         """
-        For those not familiar with dictionary comprehensions, below I`ve included how one would use the instance to 
+        For those not familiar with dictionary comprehensions, below I've included how one would use the instance to 
         create the summed profile using a more simple for loop.
 
             model_data = np.zeros(shape=self.masked_dataset.xvalues.shape[0])
@@ -338,7 +338,7 @@ noise_map = af.util.numpy_array_from_json(
 
 # %%
 """
-Lets now perform the fit using our model which is composed of two `Profile`'s. You`ll note that the `Emcee`
+Lets now perform the fit using our model which is composed of two `Profile`'s. You'll note that the `Emcee`
 dimensionality has increased from N=3 to N=6, given that we are now fitting two `Profile`'s each with 3 free parameters.
 """
 
@@ -462,13 +462,6 @@ print(
 result = emcee.fit(model=model, analysis=analysis)
 
 print("Emcee has finished run - you may now continue the notebook.")
-
-# %%
-"""
-We have illustrated how we can compose and fit complex models in PyAutoFit. 
-
-To wrap up, we are going to illustrate 
-"""
 
 # %%
 """
