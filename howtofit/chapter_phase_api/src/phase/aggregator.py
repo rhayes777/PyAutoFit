@@ -97,7 +97,7 @@ def model_data_from_agg_obj(
     generator outputs such that the function can use the `Aggregator``s map function to to create a model-data generator.
 
      The model-data is created following the same method as the `Analysis` classes using an instance of the maximum
-     log likelihood model`s profiles.
+     log likelihood model's profiles.
 
     Parameters
     ----------

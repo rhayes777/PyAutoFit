@@ -3,7 +3,7 @@
 Tutorial 7: Fitting Multiple Datasets
 =====================================
 
-In this tutorial, we'll fit multiple dataset`s with the same `NonLinearSearch`, producing multiple sets of results on
+In this tutorial, we'll fit multiple dataset's with the same `NonLinearSearch`, producing multiple sets of results on
 our hard-disc. In the following tutorials, we then use these results and the `Aggregator` to load the results into
 our Jupyter notebook to interpret, inspect and plot the output results.
 

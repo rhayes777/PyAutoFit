@@ -339,6 +339,7 @@ class Paths:
         """
         Copy files from the sym linked search folder then remove the sym linked folder.
         """
+
         self.zip()
 
         if self.remove_files:
@@ -359,12 +360,15 @@ class Paths:
             os.remove(self.zip_path)
 
     def zip(self):
+
         try:
             with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
                 for root, dirs, files in os.walk(self.output_path):
+
                     for file in files:
 
                         # TODO : I removed lstrip("/") here, I think it is ok...
+
 
                         f.write(
                             path.join(root, file),

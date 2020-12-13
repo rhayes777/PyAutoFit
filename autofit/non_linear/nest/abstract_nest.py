@@ -213,8 +213,8 @@ class AbstractNest(NonLinearSearch):
 
     def samples_via_csv_json_from_model(self, model):
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
-            filename=self.paths.samples_file, model=model
+        samples = samp.load_from_table(
+            filename=self.paths.samples_file
         )
 
         with open(self.paths.info_file) as infile:
@@ -222,10 +222,7 @@ class AbstractNest(NonLinearSearch):
 
         return samp.NestSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             log_evidence=samples_info["log_evidence"],
             total_samples=samples_info["total_samples"],
             unconverged_sample_size=samples_info["unconverged_sample_size"],

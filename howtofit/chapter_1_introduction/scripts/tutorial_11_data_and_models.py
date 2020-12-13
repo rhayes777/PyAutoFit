@@ -102,7 +102,7 @@ print(list(noise_map_gen), "\n")
 
 # %%
 """
-We`re going to refit each dataset with the `max_log_likelihood_instance` of each model-fit and plot the residuals.
+We're going to refit each dataset with the `max_log_likelihood_instance` of each model-fit and plot the residuals.
 
 (If you are unsure what the `zip` is doing below, it essentially combines the `data_gen`, `noise_map_gen` and
  `samples_gen` into one list such that we can iterate over them simultaneously).
