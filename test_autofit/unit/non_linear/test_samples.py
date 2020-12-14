@@ -177,7 +177,6 @@ class TestOptimizerSamples:
         assert instance.mock_class.three == 7.0
         assert instance.mock_class.four == 8.0
 
-
 class TestPDFSamples:
     def test__from_csv_table(self, samples):
         filename = "samples.csv"
@@ -534,3 +533,46 @@ class TestNestSamples:
         )
 
         assert samples.acceptance_ratio == 0.5
+
+    def test__samples_within_parameter_range(self, samples):
+        model = af.ModelMapper(mock_class_1=MockClassx4)
+
+        parameters = [
+            [0.0, 1.0, 2.0, 3.0],
+            [0.0, 1.0, 2.0, 3.0],
+            [0.0, 1.0, 2.0, 3.0],
+            [21.0, 22.0, 23.0, 24.0],
+            [0.0, 1.0, 2.0, 3.0],
+        ]
+
+        samples = af.NestSamples(
+            model=model,
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
+                log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+                weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+            ),
+            total_samples=10,
+            log_evidence=0.0,
+            number_live_points=5,
+        )
+
+        samples_range = samples.samples_within_parameter_range(parameter_index=0, parameter_range=[-1.0, 100.0])
+
+        assert len(samples_range.parameters) == 5
+        assert samples.parameters[0] == samples_range.parameters[0]
+
+        samples_range = samples.samples_within_parameter_range(parameter_index=0, parameter_range=[1.0, 100.0])
+
+        assert len(samples_range.parameters) == 1
+        assert samples_range.parameters[0] == [21.0, 22.0, 23.0, 24.0]
+
+        samples_range = samples.samples_within_parameter_range(parameter_index=2, parameter_range=[1.5, 2.5])
+
+        assert len(samples_range.parameters) == 4
+        assert samples_range.parameters[0] == [0.0, 1.0, 2.0, 3.0]
+        assert samples_range.parameters[1] == [0.0, 1.0, 2.0, 3.0]
+        assert samples_range.parameters[2] == [0.0, 1.0, 2.0, 3.0]
+        assert samples_range.parameters[3] == [0.0, 1.0, 2.0, 3.0]
