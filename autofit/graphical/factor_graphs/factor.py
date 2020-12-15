@@ -8,7 +8,7 @@ from functools import lru_cache
 import numpy as np
 
 from autofit.graphical.utils import \
-    aggregate, Axis
+    aggregate, Axis, cached_property
 from autofit.graphical.factor_graphs.abstract import \
     AbstractNode, FactorValue, JacobianValue
 from autofit.mapper.variable import Variable
@@ -57,7 +57,7 @@ class AbstractFactor(AbstractNode, ABC):
             in self._kwargs.items()
         }
 
-    @property
+    @cached_property
     def _variable_plates(self) -> Dict[str, np.ndarray]:
         """
         Maps the name of each variable to the indices of its plates

@@ -53,8 +53,8 @@ class OptFactor:
             model_dist: Optional[MeanField] = None,
             transform: Optional[AbstractLinearTransform] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
-            method: str = 'L-BFGS-B',
-            jac=False
+            method: str = 'L-BFGS-B', jac=False, tol=None, options=None, 
+            callback=None, constraints=None
     ):
         self.factor = factor
         self.param_shapes = param_shapes
@@ -86,6 +86,17 @@ class OptFactor:
                 for b in repeat(bound, np.prod(s, dtype=int))]
         else:
             self.bounds = bounds
+
+        self.default_kws = {
+            'jac': self.jac,
+            'bounds': self.bounds, 
+            'method': self.method,
+            # Might want to automatically specify constraint from messages
+            'constraints': constraints, 
+            'tol': tol,
+            'callback': callback,
+            'options': options
+        }
 
     @property
     def model_dist(self):
@@ -211,52 +222,21 @@ class OptFactor:
             result,
             Status(success, messages))
 
-    def _minimise(self, arrays_dict, method=None, bounds=None,
-                  constraints=(), tol=None, callback=None,
-                  options=None):
+    def _minimise(self, arrays_dict, **kwargs):
         x0 = self.transform * self.param_shapes.flatten(arrays_dict)
-        bounds = self.bounds if bounds is None else bounds
-        method = self.method if method is None else method
-        if self.jac:
-            return minimize(
-                self.func_jacobian,
-                x0,
-                method=method,
-                jac=True,
-                bounds=bounds,
-                constraints=constraints,
-                tol=tol,
-                callback=callback,
-                options=options
-            )
-        return minimize(
-            self,
-            x0,
-            method=method,
-            bounds=bounds,
-            constraints=constraints,
-            tol=tol,
-            callback=callback,
-            options=options
-        )
+        opt_kws = {**self.default_kws, **kwargs} 
+        func = self.func_jacobian if opt_kws['jac'] else self
+        return minimize(func, x0, **opt_kws)
 
     def minimise(
             self,
             arrays_dict: Optional[ArraysDict] = None,
-            bounds=None,
-            constraints=(),
-            tol=None,
-            callback=None,
-            options=None,
             status: Status = Status(),
+            **kwargs, 
     ):
-        arrays_dict = arrays_dict or {}
         self.sign = 1
-        p0 = self.get_random_start(arrays_dict)
-        res = self._minimise(
-            p0,
-            bounds=bounds, constraints=constraints, tol=tol,
-            callback=callback, options=options)
+        p0 = self.get_random_start(arrays_dict or {})
+        res = self._minimise(p0, **kwargs)
         return self._parse_result(res, status=status)
 
     def maximise(
@@ -267,20 +247,12 @@ class OptFactor:
                     np.ndarray
                 ]
             ] = None,
-            bounds=None,
-            constraints=(),
-            tol=None,
-            callback=None,
-            options=None,
             status: Status = Status(),
+            **kwargs, 
     ):
-        arrays_dict = arrays_dict or {}
         self.sign = -1
-        p0 = self.get_random_start(arrays_dict)
-        res = self._minimise(
-            p0,
-            bounds=bounds, constraints=constraints, tol=tol,
-            callback=callback, options=options)
+        p0 = self.get_random_start(arrays_dict or {})
+        res = self._minimise(p0, **kwargs)
         return self._parse_result(res, status=status)
 
     minimize = minimise
@@ -311,7 +283,8 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             transforms=None,
             deltas=None,
             initial_values=None,
-            opt_kws=None
+            opt_kws=None,
+            default_opt_kws=None,
     ):
 
         self.whiten_optimiser = whiten_optimiser
@@ -327,7 +300,8 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         if deltas:
             self.deltas.update(deltas)
 
-        self.opt_kws = defaultdict(dict)
+        self.default_opt_kws = default_opt_kws or {}
+        self.opt_kws = defaultdict(self.default_opt_kws.copy)
         if opt_kws:
             self.opt_kws.update(opt_kws)
 
