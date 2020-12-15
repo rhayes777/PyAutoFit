@@ -244,7 +244,7 @@ class EPHistory:
     def __init__(
             self,
             callbacks: Tuple[EPCallBack, ...] = (),
-            kl_tol=1e-6,
+            kl_tol=1e-1,
             evidence_tol=None):
         self._callbacks = callbacks
         self.history = {}

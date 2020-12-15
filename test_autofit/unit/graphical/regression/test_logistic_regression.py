@@ -75,7 +75,7 @@ def test_jacobians(
         factor_approx = model_approx.factor_approximation(factor)
         opt = mp.optimise.OptFactor.from_approx(factor_approx)
         assert opt.numerically_verify_jacobian(
-            100, rtol=1e-2, atol=1e-2), factor
+            10, rtol=1e-2, atol=1e-2), factor
 
 
 def test_laplace(
