@@ -4,18 +4,35 @@ import pytest
 from autofit import graphical as mp
 
 
+def likelihood_jacobian(z, y, _variables=None):
+    expz = np.exp(-z)
+    logp = -np.log1p(expz)
+    log1p = -np.log1p(1 / expz)
+    loglike = y * logp + (1 - y) * log1p
+    if _variables is None:
+        return loglike
+    else:
+        jacs = ()
+        for v in _variables:
+            if v == 'z':
+                jacs += np.expand_dims(
+                    y - 1/(1 + expz),
+                    tuple(range(np.ndim(loglike)))),
+                
+            elif v == 'y':
+                jacs += np.expand_dims(
+                    logp - log1p,
+                    tuple(range(np.ndim(loglike)))),
+                
+        return loglike, jacs
+
 @pytest.fixture(
-    name="likelihood"
+    name="likelihood_factor_jac"
 )
-def make_likelihood():
-    def likelihood(z, y):
-        expz = np.exp(-z)
-        logp = -np.log1p(expz)
-        log1p = -np.log1p(1 / expz)
-        return y * logp + (1 - y) * log1p
-
-    return likelihood
-
+def make_likelihood_factor_jac(z_, y_, obs, dims):
+    factor = mp.FactorJacobian(likelihood_jacobian, z=z_, y=y_)
+    factor._plates = (obs, dims)
+    return factor
 
 @pytest.fixture(
     name="model"
@@ -23,10 +40,10 @@ def make_likelihood():
 def make_model(
         prior_a,
         prior_b,
-        likelihood_factor,
-        linear_factor
+        likelihood_factor_jac,
+        linear_factor_jac
 ):
-    return likelihood_factor * linear_factor * prior_a * prior_b
+    return likelihood_factor_jac * linear_factor_jac * prior_a * prior_b
 
 
 @pytest.fixture(
@@ -80,68 +97,53 @@ def test_jacobians(
 
 def test_laplace(
         model_approx,
-        a_,
-        b_,
         y_,
         z_,
 ):
-    laplace = mp.LaplaceFactorOptimiser()
+    laplace = mp.LaplaceFactorOptimiser(
+        default_opt_kws={'jac': True}
+    )
     opt = mp.EPOptimiser(
         model_approx.factor_graph,
         default_optimiser=laplace
     )
-    model_approx = opt.run(model_approx)
+    new_approx = opt.run(model_approx)
 
-    q_a = model_approx.mean_field[a_]
-    q_b = model_approx.mean_field[b_]
-
-    assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
-    assert q_a.sigma[0][0] == pytest.approx(0.09, rel=1)
-
-    assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
-    assert q_b.sigma[0] == pytest.approx(0.2, rel=2)
-
-    y = model_approx.mean_field[y_].mean
-    y_pred = model_approx.mean_field[z_].mean > 0
+    y = new_approx.mean_field[y_].mean
+    z_pred = new_approx(new_approx.mean_field.mean)[z_]
+    y_pred = z_pred > 0
     (tpr, fpr), (fnr, tnr) = np.dot(
         np.array([y, 1 - y]).reshape(2, -1),
         np.array([y_pred, 1 - y_pred]).reshape(2, -1).T)
 
     accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
-    assert 0.9 > accuracy > 0.7
+    assert 0.95 > accuracy > 0.7
 
 
 def test_importance_sampling(
-        model,
         model_approx,
-        a_,
-        b_,
         y_,
         z_,
 ):
     sampler = mp.ImportanceSampler(n_samples=500)
-    history = {}
 
-    for i in range(5):
-        for factor in model.factors:
-            # We have reduced the entire EP step into a single function
-            model_approx, status = mp.sampling.project_model(
-                model_approx,
-                factor,
-                sampler,
-                force_sample=True,
-                delta=0.8,
-            )
+    print_factor = lambda *args: print(args[0])
+    print_status = lambda *args: print(args[2])
+    callback = mp.expectation_propagation.EPHistory(
+        callbacks=(print_factor,print_status))
+    opt = mp.EPOptimiser(
+        model_approx.factor_graph,
+        default_optimiser=sampler,
+        callback=callback
+    )
+    new_approx = opt.run(model_approx, max_steps=5)
 
-            # save and print current approximation
-            history[i, factor] = model_approx
-
-    q_z = model_approx.mean_field[z_]
-    y = model_approx.mean_field[y_].mean
-    y_pred = q_z.mean > 0
+    y = new_approx.mean_field[y_].mean
+    z_pred = new_approx(new_approx.mean_field.mean)[z_]
+    y_pred = z_pred > 0
     (tpr, fpr), (fnr, tnr) = np.dot(
         np.array([y, 1 - y]).reshape(2, -1),
         np.array([y_pred, 1 - y_pred]).reshape(2, -1).T)
 
     accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
-    assert 0.9 > accuracy > 0.7
+    assert 0.95 > accuracy > 0.7
