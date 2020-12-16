@@ -1,37 +1,36 @@
-import os
-import emcee
-import numpy as np
 import json
-from autofit.non_linear import samples as samp
-
+import os
 from typing import List
 
-from autofit import exc
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
-from autofit.non_linear.samples import MCMCSamples
-from autofit.mapper.model_mapper import ModelMapper
-from autofit.non_linear.paths import convert_paths
+import emcee
+import numpy as np
 
+from autofit import exc
+from autofit.mapper.model_mapper import ModelMapper
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear import samples as samp
 from autofit.non_linear.log import logger
+from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
+from autofit.non_linear.paths import convert_paths
+from autofit.non_linear.samples import MCMCSamples, Sample
 
 
 class Emcee(AbstractMCMC):
 
     @convert_paths
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        nwalkers=None,
-        nsteps=None,
-        initializer=None,
-        auto_correlation_check_for_convergence=None,
-        auto_correlation_check_size=None,
-        auto_correlation_required_length=None,
-        auto_correlation_change_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            nwalkers=None,
+            nsteps=None,
+            initializer=None,
+            auto_correlation_check_for_convergence=None,
+            auto_correlation_check_size=None,
+            auto_correlation_required_length=None,
+            auto_correlation_change_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """ An Emcee non-linear search.
 
@@ -225,11 +224,11 @@ class Emcee(AbstractMCMC):
                 iterations = self.iterations_per_update
 
             for sample in emcee_sampler.sample(
-                initial_state=emcee_state,
-                iterations=iterations,
-                progress=True,
-                skip_initial_state_check=True,
-                store=True,
+                    initial_state=emcee_state,
+                    iterations=iterations,
+                    progress=True,
+                    skip_initial_state_check=True,
+                    store=True,
             ):
 
                 pass
@@ -319,10 +318,13 @@ class Emcee(AbstractMCMC):
 
         return EmceeSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=log_priors,
+                weights=weights
+            ),
             total_walkers=total_walkers,
             total_steps=total_steps,
             auto_correlation_times=auto_correlation_time,
@@ -337,8 +339,8 @@ class Emcee(AbstractMCMC):
 
         # TODO : Better design to remove repetition.
 
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
-            filename=self.paths.samples_file, model=model
+        samples = samp.load_from_table(
+            filename=self.paths.samples_file
         )
 
         with open(self.paths.info_file) as infile:
@@ -346,10 +348,7 @@ class Emcee(AbstractMCMC):
 
         return EmceeSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             auto_correlation_times=self.backend.get_autocorr_time(tol=0),
             auto_correlation_check_size=samples_info["auto_correlation_check_size"],
             auto_correlation_required_length=samples_info[
@@ -383,21 +382,18 @@ class Emcee(AbstractMCMC):
 class EmceeSamples(MCMCSamples):
 
     def __init__(
-        self,
-        model: ModelMapper,
-        parameters: List[List[float]],
-        log_likelihoods: List[float],
-        log_priors: List[float],
-        weights: List[float],
-        auto_correlation_times: np.ndarray,
-        auto_correlation_check_size: int,
-        auto_correlation_required_length: int,
-        auto_correlation_change_threshold: float,
-        total_walkers: int,
-        total_steps: int,
-        backend: emcee.backends.HDFBackend,
-        unconverged_sample_size: int = 100,
-        time: float = None,
+            self,
+            model: ModelMapper,
+            samples: List[Sample],
+            auto_correlation_times: np.ndarray,
+            auto_correlation_check_size: int,
+            auto_correlation_required_length: int,
+            auto_correlation_change_threshold: float,
+            total_walkers: int,
+            total_steps: int,
+            backend: emcee.backends.HDFBackend,
+            unconverged_sample_size: int = 100,
+            time: float = None,
     ):
         """
         Attributes
@@ -411,10 +407,7 @@ class EmceeSamples(MCMCSamples):
 
         super().__init__(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             auto_correlation_times=auto_correlation_times,
             auto_correlation_check_size=auto_correlation_check_size,
             auto_correlation_required_length=auto_correlation_required_length,

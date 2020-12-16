@@ -392,7 +392,7 @@ The Probability Density Functions (PDF`s) of the results can be plotted using th
 
  `corner.py`: https://corner.readthedocs.io/en/latest/
 
-(In built visualization for PDF`s and `NonLinearSearch`'s is a future feature of **PyAutoFit**, but for now you`ll 
+(In built visualization for PDF`s and `NonLinearSearch`'s is a future feature of **PyAutoFit**, but for now you'll 
 have to use the libraries yourself!).
 """
 

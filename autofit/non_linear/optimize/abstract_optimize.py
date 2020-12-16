@@ -11,14 +11,11 @@ class AbstractOptimizer(NonLinearSearch, ABC):
         return conf.instance["non_linear"]["optimize"]
 
     def samples_via_csv_json_from_model(self, model):
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
-            filename=self.paths.samples_file, model=model
+        samples = samp.load_from_table(
+            filename=self.paths.samples_file
         )
 
         return samp.OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples
         )

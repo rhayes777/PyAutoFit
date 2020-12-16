@@ -3,7 +3,7 @@
 Tutorial 3: Phase Customization
 ===============================
 
-In this tutorial, we`re going to use the `Settings` object of our `Phase` object to customize the analysis. we'll use
+In this tutorial, we're going to use the `Settings` object of our `Phase` object to customize the analysis. we'll use
 the specific example of two input parameters that trim our `Dataset` from the left and right before fitting it. This
 example is somewhat trivial, but it will serve to illustrate `Phase` settings and customization.
 
@@ -43,7 +43,7 @@ import src as htf
 
 # %%
 """
-We`re now going to perform multiple fits, where each fit trims the `Dataset` that is fitted.
+We're now going to perform multiple fits, where each fit trims the `Dataset` that is fitted.
 
 To do this, we'll set up `Phase`'s using a new class called `SettingsDataset`, which contains the settings that 
 customize how a `Dataset` is created. This has two inputs, `data_trim_left` and `data_trim_right`:
@@ -109,7 +109,7 @@ Okay, what happened differently in this `Phase`? To begin, lets note the output 
 There is a small change to this directory compared to chapter 1, there is a new folder `settings` within which the
 results are stored. It`ll be clear why this is in a moment.
 
-Next, we`re going to customize and run a phase using the `data_trim_left` and `data_trim_right` parameters. First, we 
+Next, we're going to customize and run a phase using the `data_trim_left` and `data_trim_right` parameters. First, we 
 create a `SettingsDataset` and `SettingsPhase` object using our input values of these parameters. 
 """
 
@@ -146,7 +146,7 @@ print("Emcee has finished run - you may now continue the notebook.")
 
 # %%
 """
-You`ll note the results are now in a slightly different directory to the fit performed above:
+You'll note the results are now in a slightly different directory to the fit performed above:
 
  `autofit_workspace/output/howtofit/chapter_phase_api/phase_t3/settings__dataset[trim_left_20__trim_right_30]`
 
@@ -162,7 +162,7 @@ By customizing the `PhaseSetting`'s, **PyAutoFit** has changed the output path u
 You should now check out the `settings.py` and `dataset.py` modules, to see how we implemented this.
 
 
-When reading through this tutorial`s example source code, you may have felt it was a bit clunky having multiple 
+When reading through this tutorial's example source code, you may have felt it was a bit clunky having multiple 
 `Settings` classes each of which was set up separately to customize the `Dataset` or the `Phase`. 
 
 In terms of the source code, it actually is quite clunky and could certainly be refactored to make the source code 

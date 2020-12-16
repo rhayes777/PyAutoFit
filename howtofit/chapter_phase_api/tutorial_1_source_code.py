@@ -8,7 +8,7 @@ load data and plot images were contained in the Jupyter notebooks of the tutoria
 parameterize and fit models quickly, chapter 1 taught us how to do that with **PyAutoFit**.
 
 However, for a long-term software development project, the code would not be contained in one script but instead make
-up the project`s source code. In this chapter, we will set up the code for the 1D Gaussian fitting example as if it
+up the project's source code. In this chapter, we will set up the code for the 1D Gaussian fitting example as if it
 were an actual software project with a clearly defined source code library. This source code can be found in the folder
 `/autofit_workspace/howtofit/chapter_phase_api/src`.
 
@@ -74,11 +74,14 @@ Many software projects tend not to do this, instead relying on the user explicit
 project that need, for example:
 
 `from src.dataset.dataset import Dataset`
+
 `from src.model.gaussian import Gaussian`
+
 `from src.plot import dataset_plots`
+
 `from src.plot import fit_plots`
 
-Clearly, this creates a burden on the user, as they have to understand the project structure! Furthermore, as you`ll 
+Clearly, this creates a burden on the user, as they have to understand the project structure! Furthermore, as you'll 
 see below, by controlling the project import in this way you can design an API that makes tasks like plotting results 
 more intuitive.
 """
@@ -109,7 +112,7 @@ dataset = htf.Dataset(data=data, noise_map=noise_map)
 # %%
 """
 Previously, we manually specified how to plot the `Dataset` using a `plot_line` method. These plotting functions are 
-now in the source code, in the `plot` package, check them out now! You`ll note we have separate modules for plotting 
+now in the source code, in the `plot` package, check them out now! You'll note we have separate modules for plotting 
 lines corresponding to the `Dataset` or to a fit.
 
 You should take note of two things:  
@@ -189,8 +192,8 @@ your software project.
 
 # %%
 """
-We`re finally ready to look at how our source code sets up the `NonLinearSearch` and model-fit. Whereas before we 
-manually set up the `PriorModel`, `Analysis` and `NonLinearSearch`, from now on we`re going to use **PyAutoFit**'s 
+We're finally ready to look at how our source code sets up the `NonLinearSearch` and model-fit. Whereas before we 
+manually set up the `PriorModel`, `Analysis` and `NonLinearSearch`, from now on we're going to use **PyAutoFit**'s 
 Phase API which uses the `phase` package, which contains 5 modules: `phase.py`, `analysis.py`, `result.py`, 
 `visualizer.py` and `settings.py`.
 
@@ -208,7 +211,7 @@ An over view of each is as follows:
  
   Is passed the data when run, which is set up for the analysis.
 
-`analysis.py` -> contains the `Analysis` class (and is a restructred version of the the previous tutorial`s 
+`analysis.py` -> contains the `Analysis` class (and is a restructred version of the the previous tutorial's 
   `Analysis` class):
 
  - Prepares the `Dataset` for fitting.
@@ -265,7 +268,7 @@ print("Emcee has finished run - you may now continue the notebook.")
 # %%
 """
 The phase returns a `Result` object, just like the model-fit performed in the previous tutorial did. However, in
-`result.py` you`ll have noted we extended the `Result` object to include a property containing an `instance` of the 
+`result.py` you'll have noted we extended the `Result` object to include a property containing an `instance` of the 
 maximum likelihood fit in the form of a `FitDataset` object. 
 
 This illustrates a benefit of containing the entire fit into one class, we can more easily return it to the user 
