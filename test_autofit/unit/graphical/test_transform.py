@@ -261,7 +261,7 @@ def test_complex_transform():
     ngrad = param_shapes.flatten(njac)
     grad = param_shapes.flatten(jac)
 
-    assert np.allclose(grad, ngrad)
+    assert np.allclose(grad, ngrad, atol=1e-3, rtol=1e-3)
 
     res = optimize.minimize(
         trans_factor.flatten(param_shapes).func_jacobian, 

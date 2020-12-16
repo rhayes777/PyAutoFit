@@ -38,6 +38,8 @@ from autofit.graphical.utils import (
     OptResult
 )
 
+ArraysDict = Dict[Variable, np.ndarray]
+
 
 class OptFactor:
     """
@@ -51,11 +53,14 @@ class OptFactor:
             model_dist: Optional[MeanField] = None,
             transform: Optional[AbstractLinearTransform] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
-            method: str = 'L-BFGS-B',
+            method: str = 'L-BFGS-B', jac=False, tol=None, options=None, 
+            callback=None, constraints=None
     ):
         self.factor = factor
         self.param_shapes = param_shapes
         self._model_dist = model_dist
+
+        self.jac = jac
 
         self.transform = identity_transform if transform is None else transform
         self.param_bounds = bounds
@@ -63,7 +68,7 @@ class OptFactor:
         self.deterministic_variables = self.factor.deterministic_variables
 
         self.sign = 1
-        self.fixed_kws = fixed_kws
+        self.fixed_kws = fixed_kws or {}
 
         meth = method.lower()
         # method needs to return Hessian information.
@@ -81,6 +86,17 @@ class OptFactor:
                 for b in repeat(bound, np.prod(s, dtype=int))]
         else:
             self.bounds = bounds
+
+        self.default_kws = {
+            'jac': self.jac,
+            'bounds': self.bounds, 
+            'method': self.method,
+            # Might want to automatically specify constraint from messages
+            'constraints': constraints, 
+            'tol': tol,
+            'callback': callback,
+            'options': options
+        }
 
     @property
     def model_dist(self):
@@ -159,18 +175,18 @@ class OptFactor:
             for x0 in x0s
         )
 
-    def get_random_start(self, arrays_dict: Dict[Variable, np.ndarray] = {}):
-        values = {
+    def get_random_start(
+            self,
+            arrays_dict: Optional[
+                ArraysDict
+            ] = None
+    ):
+        arrays_dict = arrays_dict or {}
+        return {
             v: arrays_dict[v] if v in arrays_dict
             else self.model_dist[v].sample()
             for v in self.free_vars
         }
-        # transform values
-        return self.unflatten(
-            self.transform.ldiv(
-                self.flatten(values)
-            )
-        )
 
     def _parse_result(
             self,
@@ -206,51 +222,37 @@ class OptFactor:
             result,
             Status(success, messages))
 
-    def _minimise(self, arrays_dict, method=None, bounds=None,
-                  constraints=(), tol=None, callback=None,
-                  options=None):
+    def _minimise(self, arrays_dict, **kwargs):
         x0 = self.transform * self.param_shapes.flatten(arrays_dict)
-        bounds = self.bounds if bounds is None else bounds
-        method = self.method if method is None else method
-        return minimize(
-            self.func_jacobian, x0, method=method, jac=True, bounds=bounds,
-            constraints=constraints, tol=tol, callback=callback,
-            options=options)
+        opt_kws = {**self.default_kws, **kwargs} 
+        func = self.func_jacobian if opt_kws['jac'] else self
+        return minimize(func, x0, **opt_kws)
 
     def minimise(
             self,
-            arrays_dict: Dict[Variable, np.ndarray] = {},
-            bounds=None,
-            constraints=(),
-            tol=None,
-            callback=None,
-            options=None,
+            arrays_dict: Optional[ArraysDict] = None,
             status: Status = Status(),
+            **kwargs, 
     ):
         self.sign = 1
-        p0 = self.get_random_start(arrays_dict)
-        res = self._minimise(
-            p0,
-            bounds=bounds, constraints=constraints, tol=tol,
-            callback=callback, options=options)
+        p0 = self.get_random_start(arrays_dict or {})
+        res = self._minimise(p0, **kwargs)
         return self._parse_result(res, status=status)
 
     def maximise(
             self,
-            arrays_dict: Dict[Variable, np.ndarray] = {},
-            bounds=None,
-            constraints=(),
-            tol=None,
-            callback=None,
-            options=None,
+            arrays_dict: Optional[
+                Dict[
+                    Variable,
+                    np.ndarray
+                ]
+            ] = None,
             status: Status = Status(),
+            **kwargs, 
     ):
         self.sign = -1
-        p0 = self.get_random_start(arrays_dict)
-        res = self._minimise(
-            p0,
-            bounds=bounds, constraints=constraints, tol=tol,
-            callback=callback, options=options)
+        p0 = self.get_random_start(arrays_dict or {})
+        res = self._minimise(p0, **kwargs)
         return self._parse_result(res, status=status)
 
     minimize = minimise
@@ -280,9 +282,16 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             whiten_optimiser=True,
             transforms=None,
             deltas=None,
-            opt_kws=None):
+            initial_values=None,
+            opt_kws=None,
+            default_opt_kws=None,
+    ):
 
         self.whiten_optimiser = whiten_optimiser
+        self.initial_values = {}
+        if initial_values:
+            self.initial_values.update(initial_values)
+
         self.transforms = defaultdict(lambda: identity_transform)
         if transforms:
             self.transforms.update(transforms)
@@ -291,7 +300,8 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         if deltas:
             self.deltas.update(deltas)
 
-        self.opt_kws = defaultdict(dict)
+        self.default_opt_kws = default_opt_kws or {}
+        self.opt_kws = defaultdict(self.default_opt_kws.copy)
         if opt_kws:
             self.opt_kws.update(opt_kws)
 
@@ -305,10 +315,11 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         whiten = self.transforms[factor]
         delta = self.deltas[factor]
         opt_kws = self.opt_kws[factor]
+        start = self.initial_values.get(factor)
 
         factor_approx = model_approx.factor_approximation(factor)
         opt = OptFactor.from_approx(factor_approx, transform=whiten)
-        res = opt.maximise(status=status, **opt_kws)
+        res = opt.maximise(start, status=status, **opt_kws)
 
         # Calculate covariance of deterministic values
         # TODO: estimate this Jacobian using Broyden's method
@@ -518,7 +529,8 @@ class LeastSquaresOpt:
         }
         return self.resid_shapes.flatten(residuals)
 
-    def least_squares(self, values={}):
+    def least_squares(self, values=None):
+        values = values or {}
         model_dist = self.factor_approx.model_dist
         p0 = {
             v: values[v] if v in values else model_dist[v].sample()
