@@ -39,7 +39,7 @@ To begin, let me quickly explain what a generator is in Python, for those unawar
 iterates over a function when it is called. The `Aggregator` creates all objects as generators, rather than lists, or 
 dictionaries, or whatever.
 
-Why? Because lists and dictionaries store every entry in memory simultaneously. If you fit many `Dataset`s, you`ll 
+Why? Because lists and dictionaries store every entry in memory simultaneously. If you fit many `Dataset`s, you'll 
 have lots of results and therefore use a lot of memory. This will crash your laptop! On the other hand, a generator 
 only stores the object in memory when it runs the function; it is free to overwrite it afterwards. Thus, your laptop 
 won't crash!

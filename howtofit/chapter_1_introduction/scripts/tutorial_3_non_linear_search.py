@@ -14,7 +14,7 @@ these models. As the algorithm progresses, it begins to guess more models using 
 log_likelihood solutions previously. If a set of parameters provided a good fit to the data previously, a model with
 similar values probably will too.
 
-This is called a `NonLinearSearch` and its a fairly common tool used by scientists in a wide range of fields. We`re
+This is called a `NonLinearSearch` and its a fairly common tool used by scientists in a wide range of fields. We're
 going to use a NonLinearSearch algorithm called `Emcee`, which for those familiar with statistic inference is a Markov
 Chain Monte Carlo (MCMC) method. For now, lets not worry about the details of how Emcee actually works. Instead, just
 picture that a `NonLinearSearch` in **PyAutoFit** operates as follows:
@@ -25,7 +25,7 @@ picture that a `NonLinearSearch` in **PyAutoFit** operates as follows:
  2) Use this model instance to generate model data and compare this model data to the data to compute a log likelihood.
 
  3) Repeat this many times, choosing models whose parameter values are near those of models which have higher log
- likelihood values. If a new model`s log likelihood is higher than previous models, new models will be chosen with
+ likelihood values. If a new model's log likelihood is higher than previous models, new models will be chosen with
  parameters nearer this model.
 
 The idea is that if we keep guessing models with higher log-likelihood values, we'll inevitably `climb` up the gradient
@@ -179,13 +179,13 @@ for a model-fit). Whilst you're waiting, checkout the folder:
 `autofit_workspace/output/howtofit/chapter_1`
 
 Here, the results of the model-fit are output to your hard-disk (on-the-fly) and you can inspect them as the non-linear
-search runs. In particular, you`ll find:
+search runs. In particular, you'll find:
 
  - `model.info`: A file listing every model component, parameter and prior in your model-fit.
 
  - `model.results`: A file giving the latest best-fit model, parameter estimates and errors of the fit.
  
- - `search`: A folder containing the `Emcee` output in hdf5 format.txt (you`ll probably never need to look at these, 
+ - `search`: A folder containing the `Emcee` output in hdf5 format.txt (you'll probably never need to look at these, 
    but its good to know what they are).
  
  - Other `metadata` which you can ignore for now.

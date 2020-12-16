@@ -4,7 +4,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 
-from autofit.non_linear.samples import NestSamples
+from autofit.non_linear.samples import NestSamples, Sample
 from autofit.mock.mock import MockClassx4
 
 directory = path.dirname(path.realpath(__file__))
@@ -25,10 +25,13 @@ def make_samples():
 
     return NestSamples(
         model=model,
-        parameters=parameters,
-        log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
-        log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-        weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+        samples=Sample.from_lists(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+        ),
         total_samples=500,
         log_evidence=2,
         unconverged_sample_size=300,

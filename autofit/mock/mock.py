@@ -2,6 +2,7 @@ import numpy as np
 
 import autofit as af
 from autoconf import conf
+from autofit.non_linear.samples import Sample
 from autofit.tools.phase import Dataset
 
 
@@ -67,10 +68,15 @@ class MockSamples(af.PDFSamples):
 
         super().__init__(
             model=None,
-            parameters=[],
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=[],
+            samples=[
+                Sample(
+                    log_likelihood=log_likelihood,
+                    log_prior=0.0,
+                    weights=0.0
+                )
+                for log_likelihood
+                in log_likelihoods
+            ]
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
@@ -167,6 +173,11 @@ class MockClassx4:
         self.two = two
         self.three = three
         self.four = four
+
+
+class MockClassx3(MockClassx4):
+    def __init__(self, one=1, two=2, three=3):
+        super().__init__(one, two, three)
 
 
 class MockClassx2Tuple:

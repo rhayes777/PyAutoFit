@@ -21,19 +21,19 @@ The chapter contains the following tutorials:
 `Tutorial 5: Complex Models  <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_5_complex_models.html>`_
 - Composing and fitting complex models.
 
-`Tutorial 6: Results and Samples <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_6_results_and_samples.html>`_
+`Tutorial 7: Results and Samples <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_7_results_and_samples.html>`_
 - The results of a model-fit output by **PyAutoFit**.
 
-`Tutorial 7: Fitting Multiple Datasets <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_7_fitting_multiple_datasets.html>`_
+`Tutorial 8: Fitting Multiple Datasets <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_8_fitting_multiple_datasets.html>`_
 - Fitting a model to multiple similar datasets.
 
-`Tutorial 8: Aggregator <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_8_aggregator.html>`_
+`Tutorial 9: Aggregator <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_9_aggregator.html>`_
 - Loading large libraries of results using in-built database tools.
 
-`Tutorial 9: Filtering <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_9_filtering.html>`_
+`Tutorial 10: Filtering <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_10_filtering.html>`_
 - Filtering the loaded results to find specific results of interest.
 
-`Tutorial 10: Data and Models <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_10_data_and_models.html>`_
+`Tutorial 11: Data and Models <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction/tutorial_11_data_and_models.html>`_
 - Replotting the model, data and fits of a set of results.
 
 .. toctree::
@@ -46,8 +46,8 @@ The chapter contains the following tutorials:
    tutorial_3_non_linear_search
    tutorial_4_visualization
    tutorial_5_complex_models
-   tutorial_6_results_and_samples
-   tutorial_7_fitting_multiple_datasets
-   tutorial_8_aggregator
-   tutorial_9_filtering
-   tutorial_10_data_and_models
+   tutorial_7_results_and_samples
+   tutorial_8_fitting_multiple_datasets
+   tutorial_9_aggregator
+   tutorial_10_filtering
+   tutorial_11_data_and_models

@@ -72,7 +72,7 @@ for info in agg.values("info"):
 
 # %%
 """
-We`re going to refit each `Dataset` with the `max_log_likelihood_instance` of each model-fit. To do this, we'll need 
+We're going to refit each `Dataset` with the `max_log_likelihood_instance` of each model-fit. To do this, we'll need 
 each `Phase`'s `Dataset`.
 
 (If you are unsure what the `zip` is doing below, it essentially combines the `dataset_gen` and `settings_gen` into 
@@ -233,7 +233,7 @@ htf.plot.FitDataset.residual_map(fit=list(fit_gen)[0])
 
 # %%
 """
-For your model-fitting project, you`ll need to update the `aggregator.py` module in the same way. This is why we have 
+For your model-fitting project, you'll need to update the `aggregator.py` module in the same way. This is why we have 
 emphasised the object-oriented design of our model-fitting project throughout. This design makes it very easy to 
 inspect results via the `Aggregator` later on!
 """

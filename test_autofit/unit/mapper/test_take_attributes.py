@@ -40,7 +40,7 @@ def test_simple(
         source_gaussian
     )
 
-    assert target_gaussian.centre is prior
+    assert target_gaussian.centre == prior
 
 
 def test_in_collection(
@@ -58,7 +58,7 @@ def test_in_collection(
         source
     )
 
-    assert target.gaussian.centre is prior
+    assert target.gaussian.centre == prior
 
 
 def test_tuple(
@@ -154,7 +154,7 @@ def test_source_is_dict(
     )
     target.take_attributes(source)
 
-    assert target.gaussian.centre is prior
+    assert target.gaussian.centre == prior
 
 
 def test_target_is_dict(
@@ -174,7 +174,7 @@ def test_target_is_dict(
     )
     target.take_attributes(source)
 
-    assert target.collection.gaussian.centre is prior
+    assert target.collection.gaussian.centre == prior
 
 
 def test_missing_from_source(
@@ -186,7 +186,7 @@ def test_missing_from_source(
     target_gaussian.take_attributes(
         af.CollectionPriorModel()
     )
-    assert target_gaussian.centre is prior
+    assert target_gaussian.centre == prior
 
 
 def test_unlabelled_in_collection(
@@ -204,7 +204,7 @@ def test_unlabelled_in_collection(
         source
     )
 
-    assert target[0].centre is prior
+    assert target[0].centre == prior
 
 
 def test_passing_float(

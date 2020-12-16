@@ -3,8 +3,9 @@ from typing import Callable, cast, Set, List, Dict, Optional
 
 import numpy as np
 
-from autofit import ModelInstance, Analysis
-from autofit.graphical.expectation_propagation import EPMeanField, AbstractFactorOptimiser
+from autofit import ModelInstance, Analysis, Paths
+from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
+from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
@@ -14,7 +15,7 @@ from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
 
 
-class AbstractModelFactor(ABC):
+class AbstractModelFactor(Analysis, ABC):
     @property
     @abstractmethod
     def model_factors(self) -> List["ModelFactor"]:
@@ -149,7 +150,37 @@ class AbstractModelFactor(ABC):
             arguments
         )
 
-    def global_likelihood(
+    def visualize(
+            self,
+            paths: Paths,
+            instance: ModelInstance,
+            during_analysis: bool
+    ):
+        """
+        Visualise the instances provided using each factor.
+
+        Instances in the ModelInstance must have the same order as the factors.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        instance
+            A collection of instances, each corresponding to a factor
+        during_analysis
+            Is this visualisation during analysis?
+        """
+        for model_factor, instance in zip(
+                self.model_factors,
+                instance
+        ):
+            model_factor.visualize(
+                paths,
+                instance,
+                during_analysis
+            )
+
+    def log_likelihood_function(
             self,
             instance: ModelInstance
     ) -> float:
@@ -283,7 +314,7 @@ class ModelFactor(Factor, AbstractModelFactor):
         )[0]
 
 
-class ModelFactorCollection(AbstractModelFactor):
+class GraphicalModel(AbstractModelFactor):
     def __init__(self, *model_factors: ModelFactor):
         """
         A collection of factors that describe models, which can be

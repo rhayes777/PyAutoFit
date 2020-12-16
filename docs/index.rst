@@ -195,5 +195,5 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    :maxdepth: 1
    :hidden:
 
-   overview/phase
+   advanced/phase
    advanced/pipelines
