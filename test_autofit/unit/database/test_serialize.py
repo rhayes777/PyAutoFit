@@ -1,20 +1,8 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import autofit as af
 from autofit import database as db
 from autofit.mock import mock as m
-
-
-@pytest.fixture(name="session")
-def make_session():
-    engine = create_engine('sqlite://')
-    session = sessionmaker(bind=engine)()
-    db.Base.metadata.create_all(engine)
-    yield session
-    session.close()
-    engine.dispose()
 
 
 @pytest.fixture(

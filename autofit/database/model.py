@@ -33,10 +33,12 @@ class Object(Base):
     )
     parent = relationship(
         "Object",
-        uselist=False
+        uselist=False,
+        remote_side=[id]
     )
     children: List["Object"] = relationship(
-        "Object"
+        "Object",
+        uselist=True,
     )
 
     name = Column(String)
@@ -143,11 +145,12 @@ class Object(Base):
             with the real object
         """
         for key, value in items:
+            child = Object.from_object(
+                value,
+                name=key
+            )
             self.children.append(
-                Object.from_object(
-                    value,
-                    name=key
-                )
+                child
             )
 
     class_path = Column(
