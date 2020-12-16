@@ -158,6 +158,8 @@ class AbstractPriorModel(AbstractModel):
         physical values via their priors.
         Parameters
         ----------
+        assert_priors_in_limits
+            If true then an exception is thrown if priors fall outside defined limits
         unit_vector: [float]
             A unit hypercube vector that is mapped to an instance of physical values via the priors.
         Returns
@@ -669,8 +671,10 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         assert_priors_in_limits
-            If true it is asserted that the physical values that replace piors are
-            within their limits
+            If true it is asserted that the physical values that replace priors are
+            within their limits.
+            If ignore_prior_limits is true in configuration then prior limits are
+            ignored regardless.
         arguments: {Prior: float}
             Dictionary mapping_matrix priors to attribute analysis_path and value pairs
         Returns
@@ -681,7 +685,7 @@ class AbstractPriorModel(AbstractModel):
             raise exc.PriorException(
                 "All promises must be populated prior to instantiation"
             )
-        if assert_priors_in_limits:
+        if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
             for prior, value in arguments.items():
                 if isinstance(value, Number):
                     prior.assert_within_limits(value)
