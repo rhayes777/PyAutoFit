@@ -124,6 +124,15 @@ class AbstractPriorModel(AbstractModel):
             An instance or prior model from a previous phase from which attributes
             are passed to this model.
         """
+
+        def assert_no_assertions(obj):
+            if len(getattr(obj, "_assertions", [])) > 0:
+                raise AssertionError(
+                    "take_attributes cannot be called once assertions have been added to the target"
+                )
+
+        assert_no_assertions(self)
+
         for path, _ in sum(map(
                 self.path_instance_tuples_for_class,
                 (Prior, float, TuplePrior)),
@@ -145,6 +154,7 @@ class AbstractPriorModel(AbstractModel):
                 target = self
                 for attribute in path[:-1]:
                     target = getattr(target, attribute)
+                    assert_no_assertions(target)
 
                 setattr(target, path[-1], item)
             except AttributeError:
