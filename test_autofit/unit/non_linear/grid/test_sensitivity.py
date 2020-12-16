@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit.non_linear.grid import sensitivity as s
 from autofit.mock.mock import Gaussian
+from autofit.non_linear.grid import sensitivity as s
 from autofit.non_linear.grid.simple_grid import GridSearch
 
 
@@ -15,9 +15,13 @@ def make_perturbation_model():
 @pytest.fixture(name="sensitivity")
 def make_sensitivity(perturbation_model):
     # noinspection PyTypeChecker
+    instance = af.ModelInstance()
+    instance.gaussian = Gaussian()
     return s.Sensitivity(
-        instance=Gaussian(),
-        model=af.PriorModel(Gaussian),
+        instance=instance,
+        model=af.Collection(
+            gaussian=af.PriorModel(Gaussian)
+        ),
         perturbation_model=perturbation_model,
         simulate_function=image_function,
         analysis_class=Analysis,
@@ -30,7 +34,7 @@ x = np.array(range(10))
 
 
 def image_function(instance: af.ModelInstance):
-    image = instance.model(x)
+    image = instance.gaussian(x)
     if hasattr(instance, "perturbation"):
         image += instance.perturbation(x)
     return image
@@ -83,12 +87,14 @@ def test_searches(sensitivity):
 
 def test_job(perturbation_model):
     instance = af.ModelInstance()
-    instance.model = Gaussian()
+    instance.gaussian = Gaussian()
     instance.perturbation = Gaussian()
     image = image_function(instance)
     # noinspection PyTypeChecker
     job = s.Job(
-        model=af.PriorModel(Gaussian),
+        model=af.Collection(
+            gaussian=af.PriorModel(Gaussian)
+        ),
         perturbation_model=af.PriorModel(Gaussian),
         analysis=Analysis(image),
         search=GridSearch(),

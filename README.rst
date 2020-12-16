@@ -13,6 +13,14 @@ Advanced statistical methods in **PyAutoFit** include:
 - **Non-Linear Search Grid-Search**: Simplify the fitting of highly complex parameters spaces by using a grid of non-linear searches, which can be performed simultaneously in an embarrassingly parallel fashion.
 - **Transdimensional Pipelines**: Chain together multiple fits of different models to streamline model comparison and automate complex model-fitting tasks.
 
+Getting Started
+---------------
+
+To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
+where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
+tutorials, detailed API documentation and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
+on how to integrate **PyAutoFit** into your modeling software.
+
 Installation
 ------------
 
@@ -141,14 +149,6 @@ We can now fit our model to the ``data`` using a ``NonLinearSearch``:
 
 The ``result`` contains information on the model-fit, for example the parameter samples, maximum log likelihood
 model and marginalized probability density functions.
-
-Getting Started
----------------
-
-To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
-where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
-tutorials, detailed API documentation and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
-on how to integrate **PyAutoFit** into your modeling software.
 
 Support
 -------

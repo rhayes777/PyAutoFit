@@ -43,7 +43,7 @@ print(xvalues)
 
 # %%
 """
-Lets plot the data and noise-map we`re going to fit.
+Lets plot the data and noise-map we're going to fit.
 """
 
 # %%
@@ -156,7 +156,7 @@ plt.clf()
 
 # %%
 """
-We`re getting close to a goodness-of-fit measure, but there is still a problem, we have negative and positive values
+We're getting close to a goodness-of-fit measure, but there is still a problem, we have negative and positive values
 in the normalized residual-map. A value of -0.2 represents just as good of a fit as a value of 0.2, so we want them
 to both be the same value.
 
@@ -227,7 +227,7 @@ print("Log Likelihood = ", log_likelihood)
 
 # %%
 """
-If you are familiar with model-fitting, you`ll have probably heard of terms like 'residuals', 'chi-squared' and
+If you are familiar with model-fitting, you'll have probably heard of terms like 'residuals', 'chi-squared' and
 'log_likelihood' before. These are the standard metrics by which a model-fit`s quality is measured. They are used for
 model fitting in general, so not just when your data is 1D but when its a 2D image, 3D datacube or something else
 entirely!
@@ -243,7 +243,7 @@ So to recap the previous tutorial and this one:
  - We can define a model components in **PyAutoFit**, like our `Gaussian`, using Python classes that follow a certain 
  format.
  
- - The model component`s parameters each have priors, which given a unit vector can be mapped to an instance of the
+ - The model component's parameters each have priors, which given a unit vector can be mapped to an instance of the
  `Gaussian` class.
  
  - We can use this model instance to create model data of our `Gaussian` and compare it to data and quantify the
@@ -255,10 +255,10 @@ That is, the model which maximizes the log likelihood.
 The most simple thing we can do is guess parameters, and when we guess parameters that give a good fit, guess another
 set of parameters near those values. We can then repeat this process, over and over, until we find a really good model!
 
-For our `Gaussian` this works pretty well, below I`ve fitted 5 different `Gaussian` models and ended up landing on
+For our `Gaussian` this works pretty well, below I've fitted 5 different `Gaussian` models and ended up landing on
 the best-fit model (the model I used to create the `Dataset` in the first place!).
 
-For convenience, I`ve create functions which compute the chi-squared-map and log likelihood of a model-fit, alongside a
+For convenience, I've create functions which compute the chi-squared-map and log likelihood of a model-fit, alongside a
 method to plot a profile, residual-map or chi-squared-map.
 """
 

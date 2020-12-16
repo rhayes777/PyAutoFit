@@ -4,7 +4,7 @@ import pytest
 from autoconf import conf
 import autofit as af
 
-from autofit.non_linear.samples import MCMCSamples
+from autofit.non_linear.samples import MCMCSamples, Sample
 from autofit.mock.mock import MockClassx4
 
 directory = path.dirname(path.realpath(__file__))
@@ -14,6 +14,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 @pytest.fixture(name="samples")
 def make_samples():
     model = af.ModelMapper(mock_class_1=MockClassx4)
+    print(model.path_priors_tuples)
 
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
@@ -23,12 +24,57 @@ def make_samples():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
+    samples = [
+        Sample(
+            log_likelihood=1.0,
+            log_prior=0.0,
+            weights=1.0,
+            mock_class_1_one=0.0,
+            mock_class_1_two=1.0,
+            mock_class_1_three=2.0,
+            mock_class_1_four=3.0
+        ),
+        Sample(
+            log_likelihood=2.0,
+            log_prior=0.0,
+            weights=1.0,
+            mock_class_1_one=0.0,
+            mock_class_1_two=1.0,
+            mock_class_1_three=2.0,
+            mock_class_1_four=3.0
+        ),
+        Sample(
+            log_likelihood=3.0,
+            log_prior=0.0,
+            weights=1.0,
+            mock_class_1_one=0.0,
+            mock_class_1_two=1.0,
+            mock_class_1_three=2.0,
+            mock_class_1_four=3.0
+        ),
+        Sample(
+            log_likelihood=10.0,
+            log_prior=0.0,
+            weights=1.0,
+            mock_class_1_one=21.0,
+            mock_class_1_two=22.0,
+            mock_class_1_three=23.0,
+            mock_class_1_four=24.0
+        ),
+        Sample(
+            log_likelihood=5.0,
+            log_prior=0.0,
+            weights=1.0,
+            mock_class_1_one=0.0,
+            mock_class_1_two=1.0,
+            mock_class_1_three=2.0,
+            mock_class_1_four=3.0
+        )
+    ]
+
     return MCMCSamples(
         model=model,
-        parameters=parameters,
-        log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
-        log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-        weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+        samples=samples,
         auto_correlation_times=1,
         auto_correlation_check_size=2,
         auto_correlation_required_length=3,
