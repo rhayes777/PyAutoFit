@@ -104,7 +104,7 @@ def make_factor_model_collection(
     The factor model can compute all the variables and messages required as well as construct
     a factor graph representing a fit on the ensemble.
     """
-    return ep.GraphicalModel(
+    return ep.FactorGraphModel(
         make_model_factor(
             centre=40,
             sigma=10
@@ -127,7 +127,7 @@ def test_custom_optimiser(make_model_factor):
         sigma=15
     )
 
-    factor_model = ep.GraphicalModel(
+    factor_model = ep.FactorGraphModel(
         factor_1, factor_2
     )
 
