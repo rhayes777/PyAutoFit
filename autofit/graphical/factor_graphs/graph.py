@@ -223,3 +223,72 @@ class FactorGraph(AbstractNode):
     @property
     def factor_all_variables(self) -> Dict[Factor, List[Variable]]:
         return self._factor_all_variables
+
+    @property
+    def graph(self):
+        try:
+            import networkx as nx
+        except ImportError as e:
+            raise ImportError("networkx required for graph") from e
+
+        G = nx.Graph()
+        G.add_nodes_from(self.factors, bipartite='factor')
+        G.add_nodes_from(self.all_variables, bipartite='variable')
+        G.add_edges_from(
+            (f, v) for f, vs in self.factor_all_variables.items() for v in vs)
+
+        return G
+
+    def draw_graph(
+            self, 
+            pos=None, ax=None, size=20, color='k', fill='w',
+            factor_shape='s', variable_shape='o',
+            factor_kws=None, variable_kws=None, edge_kws=None,
+            **kwargs
+    ):
+        try:
+            import matplotlib.pyplot as plt
+            import networkx as nx
+        except ImportError as e:
+            raise ImportError("Matplotlib and networkx required for draw_graph()") from e
+        except RuntimeError:
+            print("Matplotlib unable to open display")
+            raise
+
+        if ax is None:
+            ax = plt.gca()
+
+        G = self.graph
+        if pos is None:
+            pos = nx.spring_layout(G)
+
+        kwargs.setdefault('ms', size)
+        kwargs.setdefault('c', color)
+        kwargs.setdefault('mec', color)
+        kwargs.setdefault('mfc', fill)
+        kwargs.setdefault('ls', '')
+
+        factor_kws = factor_kws or {}
+        factor_kws.setdefault('marker', factor_shape)
+
+        variable_kws = variable_kws or {}
+        variable_kws.setdefault('marker', variable_shape)
+
+        # draw factors
+        xy = np.array([pos[f] for f in self.factors]).T
+        fs = ax.plot(*xy, **{**kwargs, **factor_kws})
+        # draw variables
+        xy = np.array([pos[f] for f in self.all_variables]).T
+        vs = ax.plot(*xy, **{**kwargs, **variable_kws})
+        # draw edges
+        edges = nx.draw_networkx_edges(G, pos, **(edge_kws or {}))
+        # remove ticks from axes
+        ax.tick_params(
+            axis="both",
+            which="both",
+            bottom=False,
+            left=False,
+            labelbottom=False,
+            labelleft=False,
+        )
+        return fs, vs, edges
