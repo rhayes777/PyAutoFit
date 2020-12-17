@@ -185,7 +185,6 @@ class GridSearchResult:
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
 
-
 class GridSearch:
     # TODO: this should be using paths
     def __init__(self, paths, search, number_of_steps=4, parallel=False):
