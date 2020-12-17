@@ -96,7 +96,7 @@ class GammaMessage(AbstractMessage):
     def logpdf_gradient(self, x):
         logl = self.logpdf(x)
         eta1 = self.natural_parameters[0]
-        gradl = eta1/x - 1/self.beta 
+        gradl = eta1/x - self.beta 
         return logl, gradl 
 
     def logpdf_gradient_hessian(self, x):
@@ -104,6 +104,6 @@ class GammaMessage(AbstractMessage):
         eta1 = self.natural_parameters[0]
         gradl = eta1/x
         hessl = - gradl/x
-        gradl -= 1/self.beta 
+        gradl -= self.beta 
         return logl, gradl, hessl
     
