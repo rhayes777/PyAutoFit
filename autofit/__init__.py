@@ -76,4 +76,4 @@ from .tools.pipeline import ResultsCollection
 
 conf.instance.register(__file__)
 
-__version__ = '1.7.1'
+__version__ = '0.71.2'
