@@ -27,9 +27,7 @@ class GammaMessage(AbstractMessage):
         self.alpha = alpha
         self.beta = beta
         super().__init__(
-            parameters=[
-                alpha, beta
-            ],
+            alpha, beta,
             log_norm=log_norm
         )
 

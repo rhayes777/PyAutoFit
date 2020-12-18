@@ -55,7 +55,7 @@ class AbstractMessage(ABC):
     def scale(self) -> np.ndarray:
         return self.variance ** 0.5
 
-    def __init__(self, parameters: Tuple[np.ndarray, ...], log_norm=0.):
+    def __init__(self, *parameters: np.ndarray, log_norm=0.):
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
         if self.shape:
@@ -289,6 +289,25 @@ class AbstractMessage(ABC):
 
         assert np.isfinite(suff_stats).all()
         return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
+
+    def has_exact_projection(self, x: "AbstractMessage") -> bool:
+        return type(self) == type(x)
+
+    def calc_exact_projection(self, x: "AbstractMessage"):
+        if type(self) == type(x):
+            projection = self * x 
+            projection.log_norm = self.log_normalisation(x)
+            return {'x': projection}
+        else:
+            raise NotImplementedError()
+
+    def calc_exact_update(self, x: "AbstractMessage"):
+        if type(self) == type(x):
+            log_norm = self.log_normalisation(x)
+            return {'x': type(x)(*self.parameters, log_norm=log_norm)}
+        else:
+            raise NotImplementedError()
+
 
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
