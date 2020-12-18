@@ -305,19 +305,19 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         if opt_kws:
             self.opt_kws.update(opt_kws)
 
-    def optimise(
+    def project(
             self,
-            factor: Factor,
+            factor_approx: FactorApproximation,
             model_approx: EPMeanField,
             status: Optional[Status] = Status(),
     ) -> Tuple[EPMeanField, Status]:
 
+        factor = factor_approx.factor
         whiten = self.transforms[factor]
         delta = self.deltas[factor]
         opt_kws = self.opt_kws[factor]
         start = self.initial_values.get(factor)
 
-        factor_approx = model_approx.factor_approximation(factor)
         opt = OptFactor.from_approx(factor_approx, transform=whiten)
         res = opt.maximise(start, status=status, **opt_kws)
 
@@ -340,8 +340,9 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             delta=delta,
             status=res.status
         )
-        new_approx, status = model_approx.project(projection, status)
-        return new_approx, status
+        return projection, status
+        # new_approx, status = model_approx.project(projection, status)
+        # return new_approx, status
 
 
 LaplaceFactorOptimizer = LaplaceFactorOptimiser

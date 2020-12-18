@@ -228,13 +228,22 @@ class EPMeanField(FactorGraph):
 
 class AbstractFactorOptimiser(ABC):
     @abstractmethod
+    def project(
+        self, 
+        factor_approx: FactorApproximation,
+        status: Status = Status()
+    ) -> Tuple[FactorApproximation, Status]:
+        pass
+
     def optimise(
             self,
             factor: Factor,
             model_approx: EPMeanField,
-            status: Optional[Status] = None
+            status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
-        pass
+        factor_approximation = model_approx.factor_approximation(factor)
+        projection, status = self.project(factor_approximation, status)
+        return model_approx.project(projection, status)
 
 
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
