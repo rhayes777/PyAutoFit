@@ -552,6 +552,7 @@ class Analysis(ABC):
     def save_results_for_aggregator(self, paths: Paths, samples : samps.OptimizerSamples):
         pass
 
+
 class Result:
     """
     @DynamicAttrs

@@ -37,14 +37,22 @@ Load the dataset from the `autofit_workspace/dataset` folder.
 
 We also load the unblurred `Gaussian` for comparison.
 """
-dataset_convolved_path = path.join("dataset", "howtofit", "chapter_1", "gaussian_x1_convolved")
-data_convolved = af.util.numpy_array_from_json(file_path=path.join(dataset_convolved_path, "data.json"))
+dataset_convolved_path = path.join(
+    "dataset", "howtofit", "chapter_1", "gaussian_x1_convolved"
+)
+data_convolved = af.util.numpy_array_from_json(
+    file_path=path.join(dataset_convolved_path, "data.json")
+)
 noise_map_convolved = af.util.numpy_array_from_json(
     file_path=path.join(dataset_convolved_path, "noise_map.json")
 )
 
-dataset_unconvolved_path = path.join("dataset", "howtofit", "chapter_1", "gaussian_x1_unconvolved")
-data_unconvolved = af.util.numpy_array_from_json(file_path=path.join(dataset_unconvolved_path, "data.json"))
+dataset_unconvolved_path = path.join(
+    "dataset", "howtofit", "chapter_1", "gaussian_x1_unconvolved"
+)
+data_unconvolved = af.util.numpy_array_from_json(
+    file_path=path.join(dataset_unconvolved_path, "data.json")
+)
 noise_map_unconvolved = af.util.numpy_array_from_json(
     file_path=path.join(dataset_unconvolved_path, "noise_map.json")
 )
@@ -57,19 +65,34 @@ To do this we use the `plot_line` convenience method fom the previous tutorial, 
 """
 
 # %%
-def plot_lines(xvalues, line_0, line_1, errors_0=None, errors_1=None, title=None,  ylabel=None):
+def plot_lines(
+    xvalues, line_0, line_1, errors_0=None, errors_1=None, title=None, ylabel=None
+):
 
     plt.errorbar(
-        x=xvalues, y=line_0, yerr=errors_0, color="k", ecolor="k", elinewidth=1, capsize=2
+        x=xvalues,
+        y=line_0,
+        yerr=errors_0,
+        color="k",
+        ecolor="k",
+        elinewidth=1,
+        capsize=2,
     )
     plt.errorbar(
-        x=xvalues, y=line_1, yerr=errors_1, color="b", ecolor="b", elinewidth=1, capsize=2
+        x=xvalues,
+        y=line_1,
+        yerr=errors_1,
+        color="b",
+        ecolor="b",
+        elinewidth=1,
+        capsize=2,
     )
     plt.title(title)
     plt.xlabel("x value of profile")
     plt.ylabel(ylabel)
     plt.show()
     plt.clf()
+
 
 xvalues = np.arange(data_convolved.shape[0])
 
@@ -80,5 +103,5 @@ plot_lines(
     errors_0=noise_map_convolved,
     errors_1=noise_map_unconvolved,
     title="Data",
-    ylabel="Data"
+    ylabel="Data",
 )
