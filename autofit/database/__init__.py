@@ -1,19 +1,21 @@
+from abc import ABC, abstractmethod
+
 from .instance import *
 from .model import *
 from .prior import *
 
 
-class NameQuery:
-    def __init__(self, name):
-        self.name = name
+class Query(ABC):
 
     @property
+    @abstractmethod
     def tables(self):
-        return ["object"]
+        pass
 
     @property
+    @abstractmethod
     def conditions(self):
-        return [f"name = '{self.name}'"]
+        pass
 
     @property
     def string(self):
@@ -25,25 +27,38 @@ class NameQuery:
         )
         return f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
 
+
+class NameQuery(Query):
+    def __init__(self, name):
+        self.name = name
+
+    @property
+    def tables(self):
+        return ["object"]
+
+    @property
+    def conditions(self):
+        return [f"name = '{self.name}'"]
+
     def __eq__(self, other):
         return EqualityQuery(
-            self.name,
+            self,
             other
         )
 
 
-class EqualityQuery(NameQuery):
-    def __init__(self, name, value):
-        super().__init__(name)
+class EqualityQuery(Query):
+    def __init__(self, name_query, value):
+        self.name_query = name_query
         self.value = value
 
     @property
     def tables(self):
-        return super().tables + ["value"]
+        return self.name_query.tables + ["value"]
 
     @property
     def conditions(self):
-        conditions = super().conditions + [
+        conditions = self.name_query.conditions + [
             f"value = {self.value}"
         ]
 
