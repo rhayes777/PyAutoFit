@@ -46,6 +46,34 @@ class NameQuery(Query):
             other
         )
 
+    def __lt__(self, other):
+        return EqualityQuery(
+            self,
+            other,
+            "<"
+        )
+
+    def __gt__(self, other):
+        return EqualityQuery(
+            self,
+            other,
+            ">"
+        )
+
+    def __ge__(self, other):
+        return EqualityQuery(
+            self,
+            other,
+            ">="
+        )
+
+    def __le__(self, other):
+        return EqualityQuery(
+            self,
+            other,
+            "<="
+        )
+
     def __getattr__(self, name):
         return PathQuery(
             self,
@@ -76,20 +104,30 @@ class PathQuery:
 
 
 class EqualityQuery(Query, ABC):
-    def __new__(cls, name, value):
+    def __new__(cls, name, value, symbol="="):
         if isinstance(value, str):
             return object.__new__(StringEqualityQuery)
         if isinstance(value, Real):
             return object.__new__(ValueEqualityQuery)
         if inspect.isclass(value):
+            if symbol != "=":
+                raise AssertionError(
+                    "Inequalities to types do not make sense"
+                )
             return object.__new__(TypeEqualityQuery)
         raise AssertionError(
             f"Cannot evaluate equality to type {type(value)}"
         )
 
-    def __init__(self, name_query, value):
+    def __init__(
+            self,
+            name_query,
+            value,
+            symbol="="
+    ):
         self.name_query = name_query
         self.value = value
+        self.symbol = symbol
 
 
 class RegularEqualityQuery(EqualityQuery, ABC):
@@ -129,7 +167,7 @@ class StringEqualityQuery(RegularEqualityQuery):
 
     @property
     def _condition(self):
-        return f"value = '{self.value}'"
+        return f"value {self.symbol} '{self.value}'"
 
 
 class ValueEqualityQuery(RegularEqualityQuery):
@@ -139,7 +177,7 @@ class ValueEqualityQuery(RegularEqualityQuery):
 
     @property
     def _condition(self):
-        return f"value = {self.value}"
+        return f"value {self.symbol} {self.value}"
 
 
 class TypeEqualityQuery(EqualityQuery):

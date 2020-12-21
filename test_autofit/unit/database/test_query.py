@@ -50,6 +50,16 @@ def test_equality_query(
     assert (aggregator.centre == 1).string == equality_query
 
 
+def test_inequality_query(
+        aggregator
+):
+    inequality_query = (
+        "SELECT parent_id FROM object, value "
+        "WHERE name = 'centre' AND value > 1 AND value.id = object.id"
+    )
+    assert (aggregator.centre > 1).string == inequality_query
+
+
 def test_string_equality_query(
         aggregator
 ):
