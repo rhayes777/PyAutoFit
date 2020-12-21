@@ -13,10 +13,26 @@ def make_aggregator(
     return db.Aggregator(session)
 
 
+@pytest.fixture(
+    name="centre_query"
+)
+def make_centre_query():
+    return "SELECT parent_id FROM object WHERE name = 'centre'"
+
+
 def test_attribute_query(
-        aggregator
+        aggregator,
+        centre_query
 ):
-    assert aggregator.centre.string == "SELECT parent_id FROM object WHERE name = 'centre'"
+    assert aggregator.centre.string == centre_query
+
+
+def test_embedded_attribute_query(
+        aggregator,
+        centre_query
+):
+    string = f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({centre_query})"
+    assert aggregator.lens.centre.string == string
 
 
 def test_equality_query(

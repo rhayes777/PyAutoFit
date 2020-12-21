@@ -46,6 +46,34 @@ class NameQuery(Query):
             other
         )
 
+    def __getattr__(self, name):
+        return PathQuery(
+            self,
+            NameQuery(
+                name
+            )
+        )
+
+
+class PathQuery:
+    def __init__(self, *queries):
+        self.queries = queries
+
+    def __eq__(self, other):
+        return PathQuery(
+            *self.queries[:-1],
+            self.queries[-1] == other
+        )
+
+    @property
+    def string(self):
+        query_string = self.queries[-1].string
+        for query in reversed(
+                self.queries[:-1]
+        ):
+            query_string = f"{query.string} AND id IN ({query_string})"
+        return query_string
+
 
 class EqualityQuery(Query):
     def __init__(self, name_query, value):
