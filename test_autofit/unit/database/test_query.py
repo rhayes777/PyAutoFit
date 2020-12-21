@@ -48,7 +48,19 @@ def test_query(
     session.commit()
 
     result = aggregator.filter(
+        aggregator.centre == 0
+    )
+
+    assert result == []
+
+    result = aggregator.filter(
         aggregator.centre == 1
     )
 
     assert result == [gaussian_1]
+
+    result = aggregator.filter(
+        aggregator.centre == 2
+    )
+
+    assert result == [gaussian_2]
