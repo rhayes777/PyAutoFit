@@ -60,6 +60,16 @@ def test_string_equality_query(
     assert (aggregator.centre == "one").string == string
 
 
+def test_type_equality_query(
+        aggregator
+):
+    string = (
+        "SELECT parent_id FROM object "
+        "WHERE name = 'centre' AND class_path = 'autofit.mock.mock.Gaussian'"
+    )
+    assert (aggregator.centre == m.Gaussian).string == string
+
+
 def test_embedded_equality_query(
         aggregator,
         equality_query

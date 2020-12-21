@@ -200,4 +200,8 @@ class Object(Base):
 
     @cls.setter
     def cls(self, cls: type):
-        self.class_path = re.search("'(.*)'", str(cls))[1]
+        self.class_path = get_class_path(cls)
+
+
+def get_class_path(cls):
+    return re.search("'(.*)'", str(cls))[1]
