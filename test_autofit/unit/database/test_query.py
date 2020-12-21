@@ -47,8 +47,17 @@ def test_equality_query(
         aggregator,
         equality_query
 ):
-    string = equality_query
-    assert (aggregator.centre == 1).string == string
+    assert (aggregator.centre == 1).string == equality_query
+
+
+def test_string_equality_query(
+        aggregator
+):
+    string = (
+        "SELECT parent_id FROM object, string_value "
+        "WHERE name = 'centre' AND value = 'one' AND string_value.id = object.id"
+    )
+    assert (aggregator.centre == "one").string == string
 
 
 def test_embedded_equality_query(

@@ -81,13 +81,29 @@ class EqualityQuery(Query):
         self.value = value
 
     @property
+    def _table(self):
+        if isinstance(
+            self.value, str
+        ):
+            return "string_value"
+        return "value"
+
+    @property
+    def _condition(self):
+        if isinstance(
+            self.value, str
+        ):
+            return f"value = '{self.value}'"
+        return f"value = {self.value}"
+
+    @property
     def tables(self):
-        return self.name_query.tables + ["value"]
+        return self.name_query.tables + [self._table]
 
     @property
     def conditions(self):
         conditions = self.name_query.conditions + [
-            f"value = {self.value}"
+            self._condition
         ]
 
         first_table = self.tables[0]
