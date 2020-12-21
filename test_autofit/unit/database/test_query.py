@@ -20,6 +20,13 @@ def make_centre_query():
     return "SELECT parent_id FROM object WHERE name = 'centre'"
 
 
+@pytest.fixture(
+    name="equality_query"
+)
+def make_equality_query():
+    return "SELECT parent_id FROM object, value WHERE name = 'centre' AND value = 1 AND value.id = object.id"
+
+
 def test_attribute_query(
         aggregator,
         centre_query
@@ -36,10 +43,19 @@ def test_embedded_attribute_query(
 
 
 def test_equality_query(
-        aggregator
+        aggregator,
+        equality_query
 ):
-    string = "SELECT parent_id FROM object, value WHERE name = 'centre' AND value = 1 AND value.id = object.id"
+    string = equality_query
     assert (aggregator.centre == 1).string == string
+
+
+def test_embedded_equality_query(
+        aggregator,
+        equality_query
+):
+    string = f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({equality_query})"
+    assert (aggregator.lens.centre == 1).string == string
 
 
 def test_query(
