@@ -64,20 +64,27 @@ def test_string_equality_query(
         aggregator
 ):
     string = (
-        "SELECT parent_id FROM object, string_value "
-        "WHERE name = 'centre' AND value = 'one' AND string_value.id = object.id"
+        "SELECT parent_id FROM object, string_value WHERE name = 'centre' AND "
+        "string_value.id = object.id AND value = 'one'"
     )
     assert (aggregator.centre == "one").string == string
 
 
-def test_type_equality_query(
-        aggregator
-):
-    string = (
-        "SELECT parent_id FROM object "
-        "WHERE name = 'centre' AND class_path = 'autofit.mock.mock.Gaussian'"
+@pytest.fixture(
+    name="type_equality_query"
+)
+def make_type_equality_query():
+    return (
+        "SELECT parent_id FROM object WHERE class_path = 'autofit.mock.mock.Gaussian' "
+        "AND name = 'centre'"
     )
-    assert (aggregator.centre == m.Gaussian).string == string
+
+
+def test_type_equality_query(
+        aggregator,
+        type_equality_query
+):
+    assert (aggregator.centre == m.Gaussian).string == type_equality_query
 
 
 def test_embedded_equality_query(
@@ -91,10 +98,27 @@ def test_embedded_equality_query(
     assert (aggregator.galaxies.lens.centre == 1).string == string
 
 
-def test_combined_query(
+def test_trivial_combined_query(
         aggregator
 ):
+    string = (
+        "SELECT parent_id FROM object WHERE class_path = 'autofit.mock.mock.Gaussian' "
+        "AND name = 'centre'"
+    )
+    query = (aggregator.centre == m.Gaussian) & (aggregator.centre == m.Gaussian)
+    assert query.string == string
+
+
+def test_combined_query(
+        aggregator,
+        type_equality_query,
+        equality_query
+):
     string = ((aggregator.lens == m.Gaussian) & (aggregator.lens.centre == 1)).string
+
+    assert string == (
+        f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({type_equality_query} AND id in {equality_query})"
+    )
 
 
 def test_embedded_query(

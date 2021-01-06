@@ -20,10 +20,10 @@ class Query(ABC):
     @property
     def string(self):
         tables_string = ", ".join(
-            self.tables
+            sorted(self.tables)
         )
         conditions_string = " AND ".join(
-            self.conditions
+            sorted(self.conditions)
         )
         return f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
 
@@ -143,6 +143,27 @@ class PathQuery:
         return query_string
 
 
+class ConjunctionQuery(Query):
+    def __init__(self, *child_queries):
+        self.child_queries = child_queries
+
+    @property
+    def tables(self):
+        return {
+            table
+            for query in self.child_queries
+            for table in query.tables
+        }
+
+    @property
+    def conditions(self):
+        return {
+            condition
+            for query in self.child_queries
+            for condition in query.conditions
+        }
+
+
 class EqualityQuery(Query, ABC):
     def __new__(cls, name, value, symbol="="):
         if isinstance(value, str):
@@ -168,6 +189,11 @@ class EqualityQuery(Query, ABC):
         self.name_query = name_query
         self.value = value
         self.symbol = symbol
+
+    def __and__(self, other):
+        return ConjunctionQuery(
+            self, other
+        )
 
 
 class RegularEqualityQuery(EqualityQuery, ABC):
