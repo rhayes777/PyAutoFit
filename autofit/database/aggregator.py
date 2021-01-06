@@ -43,25 +43,35 @@ class Query(ABC):
         string = f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
 
         if len(self.children) > 0:
-            string = f"{string} AND id IN ({self.children[0]._string})"
+            children_strings = " AND ".join(
+                f"id IN ({child._string})"
+                for child
+                in self.children
+            )
+            string = f"{string} AND {children_strings}"
 
         return string
 
     @property
-    def string(self):
+    def top_level(self):
         if self.parent is not None:
-            return self.parent.string
-        return self._string
+            return self.parent.top_level
+        return self
+
+    @property
+    def string(self):
+        return self.top_level._string
 
     def __and__(self, other):
-        if self.name == other.name:
-            return ConjunctionQuery(
-                self,
-                other,
-                parent=self.parent
+        top_level = self.top_level
+        other_top_level = other.top_level
+        if top_level.name == other_top_level.name:
+            top_level.children.extend(
+                other_top_level.children
             )
+            return top_level
         return BranchQuery(
-            self, other
+            top_level, other_top_level
         )
 
 
@@ -69,7 +79,8 @@ class BranchQuery:
     def __init__(self, *child_queries):
         self.child_queries = child_queries
 
-    def _string(self, child_query):
+    @property
+    def string(self):
         subqueries = [
             f"({query.string}) as t{number}"
             for number, query
@@ -85,15 +96,6 @@ class BranchQuery:
             ))
         ]
         return f"SELECT t0.parent_id FROM {', '.join(subqueries)} WHERE {'AND'.join(conditions)}"
-
-    # @property
-    # def string(self):
-    #     query_string = self.queries[-1].string
-    #     for query in reversed(
-    #             self.queries[:-1]
-    #     ):
-    #         query_string = f"{query.string} AND id IN ({query_string})"
-    #     return query_string
 
 
 class NameQuery(Query):

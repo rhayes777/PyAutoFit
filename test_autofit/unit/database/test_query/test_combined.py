@@ -44,5 +44,5 @@ def test_second_level(
     string = ((aggregator.lens.intensity == 0) & (aggregator.lens.centre == 1)).string
 
     assert string == (
-        f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({equality_query_2} AND id in {equality_query})"
+        f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({equality_query_2}) AND id IN ({equality_query})"
     )
