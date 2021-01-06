@@ -12,6 +12,9 @@ class Query(ABC):
             parent=None
     ):
         self.parent = parent
+        self.children = []
+        if self.parent is not None:
+            self.parent.children = [self]
 
     @property
     @abstractmethod
@@ -28,27 +31,27 @@ class Query(ABC):
     def conditions(self):
         pass
 
-    def _string(self, child_query=None):
+    @property
+    def _string(self):
         tables_string = ", ".join(
             sorted(self.tables)
         )
         conditions_string = " AND ".join(
             sorted(self.conditions)
         )
+
         string = f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
 
-        if child_query is not None:
-            string = f"{string} AND id IN ({child_query})"
+        if len(self.children) > 0:
+            string = f"{string} AND id IN ({self.children[0]._string})"
 
-        if self.parent is not None:
-            return self.parent._string(
-                string
-            )
         return string
 
     @property
     def string(self):
-        return self._string()
+        if self.parent is not None:
+            return self.parent.string
+        return self._string
 
     def __and__(self, other):
         if self.name == other.name:
@@ -116,44 +119,28 @@ class NameQuery(Query):
     def conditions(self):
         return [f"name = '{self.name}'"]
 
-    def __eq__(self, other):
+    def __comparison(self, symbol, other):
         return EqualityQuery(
             self,
             other,
+            symbol,
             parent=self.parent
         )
+
+    def __eq__(self, other):
+        return self.__comparison("=", other)
 
     def __lt__(self, other):
-        return EqualityQuery(
-            self,
-            other,
-            "<",
-            parent=self.parent
-        )
+        return self.__comparison("<", other)
 
     def __gt__(self, other):
-        return EqualityQuery(
-            self,
-            other,
-            ">",
-            parent=self.parent
-        )
+        return self.__comparison(">", other)
 
     def __ge__(self, other):
-        return EqualityQuery(
-            self,
-            other,
-            ">=",
-            parent=self.parent
-        )
+        return self.__comparison(">=", other)
 
     def __le__(self, other):
-        return EqualityQuery(
-            self,
-            other,
-            "<=",
-            parent=self.parent
-        )
+        return self.__comparison("<=", other)
 
     def __getattr__(self, name):
         return NameQuery(
@@ -221,7 +208,7 @@ class EqualityQuery(Query, ABC):
             value,
             symbol="=",
             *,
-            parent
+            parent=None
     ):
         super().__init__(parent)
         self.name_query = name_query
