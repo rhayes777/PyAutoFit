@@ -87,10 +87,50 @@ class PathQuery:
     def __init__(self, *queries):
         self.queries = queries
 
-    def __eq__(self, other):
+    def _with_terminating_operation(
+            self,
+            query
+    ):
         return PathQuery(
             *self.queries[:-1],
-            self.queries[-1] == other
+            query
+        )
+
+    @property
+    def _terminating_query(self):
+        return self.queries[-1]
+
+    def __eq__(self, other):
+        return self._with_terminating_operation(
+            self._terminating_query == other
+        )
+
+    def __gt__(self, other):
+        return self._with_terminating_operation(
+            self._terminating_query > other
+        )
+
+    def __lt__(self, other):
+        return self._with_terminating_operation(
+            self._terminating_query < other
+        )
+
+    def __ge__(self, other):
+        return self._with_terminating_operation(
+            self._terminating_query >= other
+        )
+
+    def __le__(self, other):
+        return self._with_terminating_operation(
+            self._terminating_query <= other
+        )
+
+    def __getattr__(self, name):
+        return PathQuery(
+            *self.queries,
+            NameQuery(
+                name
+            )
         )
 
     @property

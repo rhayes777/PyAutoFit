@@ -87,6 +87,15 @@ def test_embedded_equality_query(
     string = f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({equality_query})"
     assert (aggregator.lens.centre == 1).string == string
 
+    string = f"SELECT parent_id FROM object WHERE name = 'galaxies' AND id IN ({string})"
+    assert (aggregator.galaxies.lens.centre == 1).string == string
+
+
+def test_combined_query(
+        aggregator
+):
+    string = ((aggregator.lens == m.Gaussian) & (aggregator.lens.centre == 1)).string
+
 
 def test_embedded_query(
         session,
