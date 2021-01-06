@@ -1,3 +1,5 @@
+import pytest
+
 from autofit.mock import mock as m
 
 
@@ -29,8 +31,10 @@ def test_top_level(
     assert query.string == string
 
 
-def test_second_level(
-        aggregator,
+@pytest.fixture(
+    name="second_level_query"
+)
+def make_second_level_query(
         equality_query
 ):
     equality_query_2 = (
@@ -41,8 +45,19 @@ def test_second_level(
         "AND value.id = object.id"
     )
 
+    return (
+        f"SELECT parent_id "
+        f"FROM object "
+        f"WHERE name = 'lens' "
+        f"AND id IN ({equality_query_2}) "
+        f"AND id IN ({equality_query})"
+    )
+
+
+def test_second_level(
+        aggregator,
+        second_level_query
+):
     string = ((aggregator.lens.intensity == 0) & (aggregator.lens.centre == 1)).string
 
-    assert string == (
-        f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({equality_query_2}) AND id IN ({equality_query})"
-    )
+    assert string == second_level_query
