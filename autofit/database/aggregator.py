@@ -7,6 +7,12 @@ from .model import Object, get_class_path
 
 
 class Query(ABC):
+    def __init__(
+            self,
+            parent=None
+    ):
+        self.parent = parent
+
     @property
     @abstractmethod
     def name(self):
@@ -22,20 +28,34 @@ class Query(ABC):
     def conditions(self):
         pass
 
-    @property
-    def string(self):
+    def _string(self, child_query=None):
         tables_string = ", ".join(
             sorted(self.tables)
         )
         conditions_string = " AND ".join(
             sorted(self.conditions)
         )
-        return f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
+        string = f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
+
+        if child_query is not None:
+            string = f"{string} AND id IN ({child_query})"
+
+        if self.parent is not None:
+            return self.parent._string(
+                string
+            )
+        return string
+
+    @property
+    def string(self):
+        return self._string()
 
     def __and__(self, other):
         if self.name == other.name:
             return ConjunctionQuery(
-                self, other
+                self,
+                other,
+                parent=self.parent
             )
         return BranchQuery(
             self, other
@@ -46,8 +66,7 @@ class BranchQuery:
     def __init__(self, *child_queries):
         self.child_queries = child_queries
 
-    @property
-    def string(self):
+    def _string(self, child_query):
         subqueries = [
             f"({query.string}) as t{number}"
             for number, query
@@ -64,9 +83,25 @@ class BranchQuery:
         ]
         return f"SELECT t0.parent_id FROM {', '.join(subqueries)} WHERE {'AND'.join(conditions)}"
 
+    # @property
+    # def string(self):
+    #     query_string = self.queries[-1].string
+    #     for query in reversed(
+    #             self.queries[:-1]
+    #     ):
+    #         query_string = f"{query.string} AND id IN ({query_string})"
+    #     return query_string
+
 
 class NameQuery(Query):
-    def __init__(self, name):
+    def __init__(
+            self,
+            name,
+            parent=None
+    ):
+        super().__init__(
+            parent=parent
+        )
         self._name = name
 
     @property
@@ -84,108 +119,56 @@ class NameQuery(Query):
     def __eq__(self, other):
         return EqualityQuery(
             self,
-            other
+            other,
+            parent=self.parent
         )
 
     def __lt__(self, other):
         return EqualityQuery(
             self,
             other,
-            "<"
+            "<",
+            parent=self.parent
         )
 
     def __gt__(self, other):
         return EqualityQuery(
             self,
             other,
-            ">"
+            ">",
+            parent=self.parent
         )
 
     def __ge__(self, other):
         return EqualityQuery(
             self,
             other,
-            ">="
+            ">=",
+            parent=self.parent
         )
 
     def __le__(self, other):
         return EqualityQuery(
             self,
             other,
-            "<="
+            "<=",
+            parent=self.parent
         )
 
     def __getattr__(self, name):
-        return PathQuery(
-            self,
-            NameQuery(
-                name
-            )
+        return NameQuery(
+            name,
+            parent=self
         )
-
-
-class PathQuery:
-    def __init__(self, *queries):
-        self.queries = queries
-
-    def _with_terminating_operation(
-            self,
-            query
-    ):
-        return PathQuery(
-            *self.queries[:-1],
-            query
-        )
-
-    @property
-    def _terminating_query(self):
-        return self.queries[-1]
-
-    def __eq__(self, other):
-        return self._with_terminating_operation(
-            self._terminating_query == other
-        )
-
-    def __gt__(self, other):
-        return self._with_terminating_operation(
-            self._terminating_query > other
-        )
-
-    def __lt__(self, other):
-        return self._with_terminating_operation(
-            self._terminating_query < other
-        )
-
-    def __ge__(self, other):
-        return self._with_terminating_operation(
-            self._terminating_query >= other
-        )
-
-    def __le__(self, other):
-        return self._with_terminating_operation(
-            self._terminating_query <= other
-        )
-
-    def __getattr__(self, name):
-        return PathQuery(
-            *self.queries,
-            NameQuery(
-                name
-            )
-        )
-
-    @property
-    def string(self):
-        query_string = self.queries[-1].string
-        for query in reversed(
-                self.queries[:-1]
-        ):
-            query_string = f"{query.string} AND id IN ({query_string})"
-        return query_string
 
 
 class ConjunctionQuery(Query):
-    def __init__(self, *child_queries):
+    def __init__(
+            self,
+            *child_queries,
+            parent
+    ):
+        super().__init__(parent)
         self.child_queries = child_queries
 
     @property
@@ -210,7 +193,14 @@ class ConjunctionQuery(Query):
 
 
 class EqualityQuery(Query, ABC):
-    def __new__(cls, name, value, symbol="="):
+    def __new__(
+            cls,
+            name,
+            value,
+            symbol="=",
+            *,
+            parent
+    ):
         if isinstance(value, str):
             return object.__new__(StringEqualityQuery)
         if isinstance(value, Real):
@@ -229,8 +219,11 @@ class EqualityQuery(Query, ABC):
             self,
             name_query,
             value,
-            symbol="="
+            symbol="=",
+            *,
+            parent
     ):
+        super().__init__(parent)
         self.name_query = name_query
         self.value = value
         self.symbol = symbol
