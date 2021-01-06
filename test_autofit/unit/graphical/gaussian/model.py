@@ -80,9 +80,10 @@ def make_data(gaussian, x):
 
 
 class Analysis:
-    def __init__(self, x, y):
+    def __init__(self, x, y, sigma=.04):
         self.x = x
         self.y = y
+        self.sigma = sigma
 
     def log_likelihood_function(self, instance: Gaussian) -> np.array:
         """
@@ -90,4 +91,4 @@ class Analysis:
         likelihood that it fits the data.
         """
         y_model = instance(self.x)
-        return np.sum(_likelihood(y_model, self.y))
+        return np.sum(_likelihood(y_model, self.y) / self.sigma**2)

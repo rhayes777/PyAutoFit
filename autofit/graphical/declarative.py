@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Callable, cast, Set, List, Dict
+from typing import Callable, cast, Set, List, Dict, Optional
 
 import numpy as np
 
 from autofit import ModelInstance, Analysis, Paths
+from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
+from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import NormalMessage
@@ -92,7 +94,25 @@ class AbstractModelFactor(Analysis, ABC):
             self.message_dict
         )
 
-    def optimise(self, optimiser) -> CollectionPriorModel:
+    def _make_ep_optimiser(
+            self,
+            optimiser: AbstractFactorOptimiser
+    ) -> EPOptimiser:
+        return EPOptimiser(
+            self.graph,
+            default_optimiser=optimiser,
+            factor_optimisers={
+                factor: factor.optimiser
+                for factor in self.model_factors
+                if factor.optimiser is not None
+            }
+        )
+
+    def optimise(
+            self,
+            optimiser:
+            AbstractFactorOptimiser
+    ) -> CollectionPriorModel:
         """
         Use an EP Optimiser to optimise the graph associated with this collection
         of factors and create a Collection to represent the results.
@@ -106,7 +126,10 @@ class AbstractModelFactor(Analysis, ABC):
         -------
         A collection of prior models
         """
-        updated_model, status = optimiser.run(
+        opt = self._make_ep_optimiser(
+            optimiser
+        )
+        updated_model = opt.run(
             self.mean_field_approximation()
         )
 
@@ -206,7 +229,8 @@ class ModelFactor(Factor, AbstractModelFactor):
     def __init__(
             self,
             prior_model: AbstractPriorModel,
-            analysis: Analysis
+            analysis: Analysis,
+            optimiser: Optional[AbstractFactorOptimiser] = None
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -219,7 +243,14 @@ class ModelFactor(Factor, AbstractModelFactor):
         analysis
             A class that implements a function which evaluates how well an
             instance of the model fits some data
+        optimiser
+            A custom optimiser that will be used to fit this factor specifically
+            instead of the default optimiser
         """
+        self.prior_model = prior_model
+        self.analysis = analysis
+        self.optimiser = optimiser
+
         prior_variable_dict = {
             prior.name: prior
             for prior
@@ -230,7 +261,7 @@ class ModelFactor(Factor, AbstractModelFactor):
                 **kwargs: np.ndarray
         ) -> float:
             """
-        Returns an instance of the prior model and evaluates it, forming
+            Returns an instance of the prior model and evaluates it, forming
             a factor.
 
             Parameters
@@ -260,8 +291,6 @@ class ModelFactor(Factor, AbstractModelFactor):
             _factor,
             **prior_variable_dict
         )
-        self.prior_model = prior_model
-        self.analysis = analysis
 
     @property
     def model_factors(self) -> List["ModelFactor"]:
@@ -285,7 +314,7 @@ class ModelFactor(Factor, AbstractModelFactor):
         )[0]
 
 
-class GraphicalModel(AbstractModelFactor):
+class FactorGraphModel(AbstractModelFactor):
     def __init__(self, *model_factors: ModelFactor):
         """
         A collection of factors that describe models, which can be
