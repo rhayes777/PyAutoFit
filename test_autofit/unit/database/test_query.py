@@ -99,13 +99,28 @@ def test_embedded_equality_query(
 
 
 def test_trivial_combined_query(
-        aggregator
+        aggregator,
+        type_equality_query
 ):
-    string = (
-        "SELECT parent_id FROM object WHERE class_path = 'autofit.mock.mock.Gaussian' "
-        "AND name = 'centre'"
-    )
     query = (aggregator.centre == m.Gaussian) & (aggregator.centre == m.Gaussian)
+    assert query.string == type_equality_query
+
+
+def test_top_level_combined_query(
+        aggregator,
+        type_equality_query
+):
+    other_query = (
+        "SELECT parent_id FROM object WHERE class_path = 'autofit.mock.mock.ComplexClass' "
+        "AND name = 'other'"
+    )
+    string = (
+        f"SELECT t0.parent_id FROM "
+        f"({type_equality_query}) as t0, "
+        f"({other_query}) as t1 "
+        f"WHERE t0.parent_id = t1.parent_id"
+    )
+    query = (aggregator.centre == m.Gaussian) & (aggregator.other == m.ComplexClass)
     assert query.string == string
 
 

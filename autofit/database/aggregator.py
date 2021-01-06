@@ -1,15 +1,20 @@
 import inspect
 from abc import ABC, abstractmethod
 from numbers import Real
+from typing import Set
 
 from .model import Object, get_class_path
 
 
 class Query(ABC):
+    @property
+    @abstractmethod
+    def name(self):
+        pass
 
     @property
     @abstractmethod
-    def tables(self):
+    def tables(self) -> Set[str]:
         pass
 
     @property
@@ -27,14 +32,50 @@ class Query(ABC):
         )
         return f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
 
+    def __and__(self, other):
+        if self.name == other.name:
+            return ConjunctionQuery(
+                self, other
+            )
+        return BranchQuery(
+            self, other
+        )
+
+
+class BranchQuery:
+    def __init__(self, *child_queries):
+        self.child_queries = child_queries
+
+    @property
+    def string(self):
+        subqueries = [
+            f"({query.string}) as t{number}"
+            for number, query
+            in enumerate(
+                self.child_queries
+            )
+        ]
+        conditions = [
+            f"t0.parent_id = t{number}.parent_id"
+            for number
+            in range(1, len(
+                self.child_queries
+            ))
+        ]
+        return f"SELECT t0.parent_id FROM {', '.join(subqueries)} WHERE {'AND'.join(conditions)}"
+
 
 class NameQuery(Query):
     def __init__(self, name):
-        self.name = name
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def tables(self):
-        return ["object"]
+        return {"object"}
 
     @property
     def conditions(self):
@@ -148,6 +189,10 @@ class ConjunctionQuery(Query):
         self.child_queries = child_queries
 
     @property
+    def name(self):
+        return self.child_queries[0].name
+
+    @property
     def tables(self):
         return {
             table
@@ -190,10 +235,9 @@ class EqualityQuery(Query, ABC):
         self.value = value
         self.symbol = symbol
 
-    def __and__(self, other):
-        return ConjunctionQuery(
-            self, other
-        )
+    @property
+    def name(self):
+        return self.name_query.name
 
 
 class RegularEqualityQuery(EqualityQuery, ABC):
@@ -209,7 +253,7 @@ class RegularEqualityQuery(EqualityQuery, ABC):
 
     @property
     def tables(self):
-        return self.name_query.tables + [self._table]
+        return {*self.name_query.tables, self._table}
 
     @property
     def conditions(self):
@@ -217,8 +261,9 @@ class RegularEqualityQuery(EqualityQuery, ABC):
             self._condition
         ]
 
-        first_table = self.tables[0]
-        for table in self.tables[1:]:
+        tables = sorted(self.tables)
+        first_table = tables[0]
+        for table in tables[1:]:
             conditions.append(
                 f"{table}.id = {first_table}.id"
             )
