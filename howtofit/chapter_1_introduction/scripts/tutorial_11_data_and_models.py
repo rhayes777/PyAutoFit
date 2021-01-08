@@ -146,7 +146,7 @@ in memory on our hard-disk, likely crashing our laptop! To avoid this, we must w
 def plot_residuals_from_agg_obj(agg_obj):
 
     data = agg_obj.data
-    noise_map = agg_obj.noise_map
+    noise_map = agg_obj.figure_noise_map
     samples = agg_obj.samples
 
     instance = samples.max_log_likelihood_instance

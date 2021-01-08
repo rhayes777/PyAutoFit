@@ -110,7 +110,7 @@ class Phase(af.AbstractPhase):
         )
 
         return Analysis(
-            masked_dataset=masked_dataset, image_path=self.search.paths.image_path
+            masked_dataset=masked_dataset, image_path=self.search.paths.visualize_path
         )
 
     def make_result(self, result, analysis):

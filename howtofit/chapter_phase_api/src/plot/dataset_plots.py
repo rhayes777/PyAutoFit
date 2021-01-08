@@ -80,7 +80,7 @@ def data(
     bypass_show : bool
         If `True` the show or savefig function is bypassed. This is used when plotting subplots.
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=dataset.xvalues,
         line=dataset.data,
         errors=dataset.noise_map,
@@ -117,7 +117,7 @@ def noise_map(
     bypass_show : bool
         If `True` the show or savefig function is bypassed. This is used when plotting subplots.
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=dataset.xvalues,
         line=dataset.noise_map,
         title="Noise-Map",

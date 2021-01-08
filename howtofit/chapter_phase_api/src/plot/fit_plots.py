@@ -111,7 +111,7 @@ def data(
     output_format : str
         Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=fit.xvalues,
         line=fit.data,
         title="Data",
@@ -145,9 +145,9 @@ def noise_map(
     output_format : str
         Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=fit.xvalues,
-        line=fit.noise_map,
+        line=fit.figure_noise_map,
         title="Noise-Map",
         ylabel="Noise Map",
         color="k",
@@ -179,7 +179,7 @@ def model_data(
     output_format : str
         Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=fit.xvalues,
         line=fit.model_data,
         title="Model Data",
@@ -213,9 +213,9 @@ def residual_map(
     output_format : str
         Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=fit.xvalues,
-        line=fit.residual_map,
+        line=fit.figure_residual_map,
         title="Residual-Map",
         ylabel="Residual-Map",
         color="r",
@@ -247,9 +247,9 @@ def normalized_residual_map(
     output_format : str
         Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=fit.xvalues,
-        line=fit.normalized_residual_map,
+        line=fit.figure_normalized_residual_map,
         title="Normalized Residual-Map",
         ylabel="Normalized Residual-Map",
         color="r",
@@ -281,9 +281,9 @@ def chi_squared_map(
     output_format : str
         Whether the data is output as a `.png` file ("png") or displayed on the screen ("show").
     """
-    line_plots.line_plot(
+    line_plots.grid_plot(
         xvalues=fit.xvalues,
-        line=fit.chi_squared_map,
+        line=fit.figure_chi_squared_map,
         title="Chi-Squared Map",
         ylabel="Chi-Squared Map",
         color="r",

@@ -139,7 +139,7 @@ info = {"date_of_observation": "01-02-18", "exposure_time": 1000.0}
 
 # %%
 htf.plot.Dataset.data(dataset=dataset)
-htf.plot.Dataset.noise_map(dataset=dataset)
+htf.plot.dataset.noise_map(dataset=dataset)
 
 # %%
 """
@@ -171,9 +171,9 @@ model_data = gaussian.profile_from_xvalues(xvalues=dataset.xvalues)
 
 fit = htf.FitDataset(dataset=dataset, model_data=model_data)
 
-htf.plot.FitDataset.residual_map(fit=fit)
-htf.plot.FitDataset.normalized_residual_map(fit=fit)
-htf.plot.FitDataset.chi_squared_map(fit=fit)
+htf.plot.Fitdataset.residual_map(fit=fit)
+htf.plot.Fitdataset.normalized_residual_map(fit=fit)
+htf.plot.Fitdataset.chi_squared_map(fit=fit)
 
 # %%
 """
@@ -287,8 +287,8 @@ available in the results to our `plot` functions!
 
 # %%
 htf.plot.FitDataset.model_data(fit=result.max_log_likelihood_fit)
-htf.plot.FitDataset.residual_map(fit=result.max_log_likelihood_fit)
-htf.plot.FitDataset.chi_squared_map(fit=result.max_log_likelihood_fit)
+htf.plot.Fitdataset.residual_map(fit=result.max_log_likelihood_fit)
+htf.plot.Fitdataset.chi_squared_map(fit=result.max_log_likelihood_fit)
 
 # %%
 """

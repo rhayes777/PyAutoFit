@@ -3,15 +3,13 @@ PyAutoFit
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
-- Makes it straight forward to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
-- Handles the 'heavy lifting' of model fitting, including model composition and customization, outputting results in a structured path format and model-specific visualization.
-- Includes bespoke tools for **big-data** analysis, including massively parallel model fitting and database output structures so that large suites of results can be loaded into Jupyter notebooks post-analysis.
-
-Advanced statistical methods in **PyAutoFit** include:
-
-- **Graphical Models**: Combine fits to many different datasets and determine the global parameters of a model, using an `Expectation Propagation Bayesian framework <https://arxiv.org/abs/1412.4869v1>`_.
-- **Non-Linear Search Grid-Search**: Simplify the fitting of highly complex parameters spaces by using a grid of non-linear searches, which can be performed simultaneously in an embarrassingly parallel fashion.
-- **Transdimensional Pipelines**: Chain together multiple fits of different models to streamline model comparison and automate complex model-fitting tasks.
+- Makes it straight forward to compose and fit models using a range of Bayesian inference libraries,
+such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+- Handles the 'heavy lifting' of model fitting, including model composition and customization, outputting
+results in a structured path format and model-specific visualization.
+- Includes bespoke tools for **big-data** analysis, including massively parallel model fitting and database
+output structures so that large suites of results can be loaded into Jupyter notebooks post-analysis.
+- Provides advanced statistical methods for model comparison, transdimensional fiting and much more!
 
 Getting Started
 ---------------
