@@ -265,11 +265,9 @@ class NonLinearSearch(ABC):
 
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
             samples = self.samples_via_csv_json_from_model(model=model)
-            samples.write_table(filename=self.paths.samples_file)
-            samples.info_to_json(filename=self.paths.info_file)
-            self.save_samples(samples=samples)
 
             if self.force_pickle_overwrite:
+                self.save_samples(samples=samples)
                 analysis.save_results_for_aggregator(paths=self.paths, samples=samples)
 
         self.paths.zip_remove()
@@ -405,6 +403,7 @@ class NonLinearSearch(ABC):
     def save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
         with open(self.paths.file_model_info, "w+") as f:
+            f.write(f"Total Free Parameters = {model.prior_count} \n\n")
             f.write(model.info)
 
     def save_parameter_names_file(self, model):

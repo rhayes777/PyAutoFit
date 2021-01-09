@@ -60,6 +60,7 @@ class AbstractNode(ABC):
     _deterministic_variables: Set[Variable] = frozenset()
     _factor: callable = None
     _id = count()
+    _plates = None
 
     def __init__(
             self,
@@ -223,6 +224,16 @@ class AbstractNode(ABC):
 
     @cached_property
     def plates(self) -> Tuple[Plate]:
+        """
+        A tuple of the set of all plates in this graph
+
+        split into two properties to allow manual ordering 
+        of plate order
+        """
+        return self._plates or self.sorted_plates
+
+    @cached_property
+    def sorted_plates(self) -> Tuple[Plate]:
         """
         A tuple of the set of all plates in this graph, ordered by id
         """

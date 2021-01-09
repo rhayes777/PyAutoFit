@@ -157,9 +157,9 @@ We can now plot different components of the `Fit` (again benefiting from how we 
 
 # %%
 for fit in fits:
-    htf.plot.FitDataset.residual_map(fit=fit)
-    htf.plot.FitDataset.normalized_residual_map(fit=fit)
-    htf.plot.FitDataset.chi_squared_map(fit=fit)
+    htf.plot.Fitdataset.residual_map(fit=fit)
+    htf.plot.Fitdataset.normalized_residual_map(fit=fit)
+    htf.plot.Fitdataset.chi_squared_map(fit=fit)
 
 # %%
 """
@@ -188,9 +188,9 @@ def fit_from_agg_obj(agg_obj):
 fit_gen = agg.map(func=fit_from_agg_obj)
 
 for fit in fit_gen:
-    htf.plot.FitDataset.residual_map(fit=fit)
-    htf.plot.FitDataset.normalized_residual_map(fit=fit)
-    htf.plot.FitDataset.chi_squared_map(fit=fit)
+    htf.plot.Fitdataset.residual_map(fit=fit)
+    htf.plot.Fitdataset.normalized_residual_map(fit=fit)
+    htf.plot.Fitdataset.chi_squared_map(fit=fit)
 
 # %%
 """
@@ -211,7 +211,7 @@ fit_gen = htf.agg.fit_generator_from_aggregator(aggregator=agg)
 
 for fit in fit_gen:
 
-    htf.plot.FitDataset.residual_map(fit=fit)
+    htf.plot.Fitdataset.residual_map(fit=fit)
 
 # %%
 """
@@ -229,7 +229,7 @@ fit_gen = htf.agg.fit_generator_from_aggregator(
     aggregator=agg, settings_dataset=settings_dataset
 )
 
-htf.plot.FitDataset.residual_map(fit=list(fit_gen)[0])
+htf.plot.Fitdataset.residual_map(fit=list(fit_gen)[0])
 
 # %%
 """

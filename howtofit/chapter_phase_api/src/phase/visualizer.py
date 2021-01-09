@@ -83,7 +83,7 @@ class Visualizer:
 
         if self.plot_dataset_noise_map:
 
-            dataset_plots.noise_map(
+            dataset_plots.figure_noise_map(
                 dataset=dataset,
                 output_filename="dataset_noise_map",
                 output_path=paths.image_path,
@@ -112,7 +112,7 @@ class Visualizer:
 
         if self.plot_fit_noise_map or not during_analysis:
 
-            fit_plots.noise_map(
+            fit_plots.figure_noise_map(
                 fit=fit,
                 output_filename="fit_noise_map",
                 output_path=paths.image_path,
@@ -130,7 +130,7 @@ class Visualizer:
 
         if self.plot_fit_residual_map or not during_analysis:
 
-            fit_plots.residual_map(
+            fit_plots.figure_residual_map(
                 fit=fit,
                 output_filename="fit_residual_map",
                 output_path=paths.image_path,
@@ -139,7 +139,7 @@ class Visualizer:
 
         if self.plot_fit_normalized_residual_map or not during_analysis:
 
-            fit_plots.normalized_residual_map(
+            fit_plots.figure_normalized_residual_map(
                 fit=fit,
                 output_filename="fit_normalized_residual_map",
                 output_path=paths.image_path,
@@ -148,7 +148,7 @@ class Visualizer:
 
         if self.plot_fit_chi_squared_map or not during_analysis:
 
-            fit_plots.chi_squared_map(
+            fit_plots.figure_chi_squared_map(
                 fit=fit,
                 output_filename="fit_chi_squared_map",
                 output_path=paths.image_path,
