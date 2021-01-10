@@ -31,6 +31,10 @@ for more information
 How does PyAutoFit Work?
 ========================
 
+You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
+Binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/a023ec97bc792b7651ae7455455db47a209cac2d?filepath=overview.ipynb>`_.
+This allows you to run the code that is described below.
+
 Model components are written as Python classes, allowing **PyAutoFit** to define the *model* and
 associated *parameters* in an expressive way that is tied to the modeling software's API. Here is a simple example of
 how a *model* representing a 1D Gaussian is written:
