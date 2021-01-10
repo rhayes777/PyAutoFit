@@ -17,7 +17,7 @@ Why PyAutoFit?
 results, providing a more complete management of the *model-fitting* than other PPLs. **PyAutoFit** is particularly
 suited too:
 
-- **Big Data Projects**: All **PyAutoFit** model-fitting results are written as a SQL relational database so they can
+- **Big Data Projects**: All **PyAutoFit** model-fitting results are written as a database so they can
   easily be loaded in a Jupyter notebook after model-fitting is complete for analysis and inspection.
 - **High Performance Computing Projects**: **PyAutoFit** has deidicated functionality for scaling up model fitting
   to HPC architectures.
@@ -32,7 +32,7 @@ How does PyAutoFit Work?
 ========================
 
 You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
-Binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/a023ec97bc792b7651ae7455455db47a209cac2d?filepath=overview.ipynb>`_.
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
 This allows you to run the code that is described below.
 
 Model components are written as Python classes, allowing **PyAutoFit** to define the *model* and
@@ -110,7 +110,7 @@ Lets take a look at an example ``Analysis`` class:
 
 The ``Analysis`` class provides a model specific interface between **PyAutoFit** and the modeling software, allowing
 it to handle the 'heavy lifting' that comes with writing *model-fitting* software. This includes interfacing with the
-non-linear search, model-specific visualization during and outputting results in an SQL database.
+non-linear search, model-specific visualization during and outputting results in a database.
 
 Performing a fit with a non-linear search, for example ``emcee``, is performed as follows:
 

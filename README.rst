@@ -15,7 +15,7 @@ Getting Started
 ---------------
 
 You can try **PyAutoFit** right now without installation by checking out the `overview Jupyter Notebook on our
-Binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/a023ec97bc792b7651ae7455455db47a209cac2d?filepath=overview.ipynb>`_.
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
 
 On the **PyAutoFit** `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a
 complete overview of **PyAutoFit**'s features, examples scripts, and
