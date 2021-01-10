@@ -16,17 +16,13 @@ PyAutoFit
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
-- Makes it straight forward to compose and fit models using a range of Bayesian inference libraries,
-such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+- Makes it straight forward to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
 
-- Handles the 'heavy lifting' of model fitting, including model composition and customization, outputting
-results in a structured path format and model-specific visualization.
+- Handles the 'heavy lifting' of model fitting, including model composition and customization, outputting results in a structured path format and model-specific visualization.
 
-- Includes bespoke tools for **big-data** analysis, including massively parallel model fitting and database
-output structures so that large suites of results can be loaded into Jupyter notebooks post-analysis.
+- Includes bespoke tools for **big-data** analysis, including massively parallel model fitting and database output structures so that large suites of results can be loaded into Jupyter notebooks post-analysis.
 
-- Provides advanced statistical methods such as *transdimensional modeling*, *advanced model comparison*
-and *advanced grid-searches*.
+- Provides advanced statistical methods such as *transdimensional modeling*, *advanced model comparison* and *advanced grid-searches*.
 
 Getting Started
 ---------------
