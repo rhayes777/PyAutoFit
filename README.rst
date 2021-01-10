@@ -31,10 +31,13 @@ and *advanced grid-searches*.
 Getting Started
 ---------------
 
-To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
-where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
-tutorials, and the `HowToFit Jupyter notebook tutorials <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
-which introduces new users to **PyAutoFit**.
+You can try **PyAutoFit** right now without installation by checking out the `overview Jupyter Notebook on our
+Binder <>`.
+
+On the **PyAutoFit** `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a
+complete overview of **PyAutoFit**'s features, examples scripts, and
+the `HowToFit Jupyter notebook tutorials <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_ which
+introduces new users to **PyAutoFit**.
 
 Installation
 ------------

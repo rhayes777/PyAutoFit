@@ -62,7 +62,7 @@ how a *model* representing a 1D Gaussian is written:
             return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
                     np.exp(-0.5 * transformed_xvalues / self.sigma)
 
-A *model* fit then only requires that a **PyAutoFit** ``Analysis`` class is writen, which combines the data, model and
+A *model* fit then only requires that a **PyAutoFit** ``Analysis`` class is written, which combines the data, model and
 likelihood function and defines how the *model-fit* is performed using a `NonLinearSearch`
 (e.g. `dynesty <https://github.com/joshspeagle/dynesty>`_, `emcee <https://github.com/dfm/emcee>`_
 or `PySwarms <https://pyswarms.readthedocs.io/en/latest/>`_).
