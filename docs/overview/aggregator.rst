@@ -44,7 +44,7 @@ The results above are returned as lists containing entries for every *model-fit*
     print("intensity = ", instances[99].intensity)
     print("sigma = ", instances[99].sigma)
 
-The ``Aggregator`` can be used in Python scripts, however we recommend users adopt ``Jupyter Notebooks`` when
+The ``Aggregator`` can be used in Python scripts, however we recommend users adopt *Jupyter notebooks* when
 using the ``aggregator``. Notebooks allow results to be inspected and visualized with immediate feedback,
 such that one can more readily interpret the results.
 

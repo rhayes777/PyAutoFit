@@ -190,8 +190,8 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    :hidden:
 
    howtofit/howtofit
-   howtofit/chapter_1_introduction/index
-   howtofit/chapter_phase_api/index
+   howtofit/chapter_1_introduction
+   howtofit/chapter_phase_ap
 
 .. toctree::
    :caption: API Reference:

@@ -25,7 +25,8 @@ results in a structured path format and model-specific visualization.
 - Includes bespoke tools for **big-data** analysis, including massively parallel model fitting and database
 output structures so that large suites of results can be loaded into Jupyter notebooks post-analysis.
 
-- Provides advanced statistical methods for model comparison, transdimensional fitting and much more!
+- Provides advanced statistical methods such as *transdimensional modeling*, *advanced model comparison*
+and *advanced grid-searches*.
 
 Getting Started
 ---------------
