@@ -1,3 +1,5 @@
+.. _chapter_phase_api:
+
 Chapter: Phase API
 ==================
 
