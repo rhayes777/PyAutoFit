@@ -18,13 +18,3 @@ The chapter contains the following tutorials:
 
 `Tutorial 4: Aggregator <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_phase_api/tutorial_4_aggregator.html>`_
 - Designing your project to be exploit **PyAutoFit**'s `Aggregator`.
-
-.. toctree::
-   :caption: Tutorials:
-   :maxdepth: 1
-   :hidden:
-
-   tutorial_1_source_code
-   tutorial_2_visualization_and_configs
-   tutorial_3_phase_customization
-   tutorial_4_aggregator

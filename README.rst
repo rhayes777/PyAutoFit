@@ -1,15 +1,31 @@
 PyAutoFit
 =========
 
+.. |license| image:: https://img.shields.io/github/license/Jammy2211/PyAutoLens    :alt: GitHub license
+   :target: https://github.com/rhayes777/PyAutoFit/blob/master/LICENSE
+
+.. |nbsp| unicode:: 0xA0
+    :trim:
+
+.. |code-style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master)
+
+|license| |nbsp| |code-style| |nbsp|
+
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
 - Makes it straight forward to compose and fit models using a range of Bayesian inference libraries,
 such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+
 - Handles the 'heavy lifting' of model fitting, including model composition and customization, outputting
 results in a structured path format and model-specific visualization.
+
 - Includes bespoke tools for **big-data** analysis, including massively parallel model fitting and database
 output structures so that large suites of results can be loaded into Jupyter notebooks post-analysis.
-- Provides advanced statistical methods for model comparison, transdimensional fiting and much more!
+
+- Provides advanced statistical methods for model comparison, transdimensional fitting and much more!
 
 Getting Started
 ---------------

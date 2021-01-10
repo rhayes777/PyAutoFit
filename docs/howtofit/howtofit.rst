@@ -3,19 +3,16 @@
 HowToFit Lectures
 =================
 
-To build a **PyAutoFit** project, the best starting point is the **HowToFit** lecture series, which are found on
-the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_.
+To learn how to use **PyAutoFit**, the best starting point is the **HowToFit** lecture series, which are found on
+the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ and at our `binder <>`..
 
-The lectures are provided as ``Jupyter notebooks``, and they can be browsed on this readthedocs. We recommend
-you do them on your computer after installing **PyAutoFit** and downloading the notebooks.
+The lectures are provided as ``Jupyter notebooks`` and currently consist of 2 chapters (more chapters are planned in
+the future):
 
-The lectures consist of 2 chapter (more chapters are planned in the future):
+**Introduction**: How to perform model-fitting with **PyAutoFit** and analyse the results using the ``Aggregator``.
 
-**Introduction**: How to write a **PyAutoFit** project and use the ``phase`` API to exploit **PyAutoFits**'s
-advanced modeling features.
-
-**Results**: How results are output from a ``NonLinearSearch`` in **PyAutoFit** and integrating the ``Aggregator``
-into your project.
+**Phase API**: How to write a software project using the **PyAutoFit** phase API which fully exploits **PyAutoFit**'s
+features for managing model-fitting.
 
 Config File Path
 ----------------
