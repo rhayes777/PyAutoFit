@@ -1,41 +1,24 @@
 import inspect
 from abc import ABC, abstractmethod
 from numbers import Real
-from typing import List
+from typing import List, Set, Optional
 
-from .model import Object, get_class_path
-
-
-class Condition(ABC):
-    @abstractmethod
-    def __str__(self):
-        pass
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __eq__(self, other):
-        return str(self) == str(other)
+from . import condition as c
+from .model import Object
 
 
 class Query(ABC):
     def __init__(
             self,
+            name,
             parent=None,
-            tables=None
+            tables=None,
+            conditions: Optional[Set[c.Condition]] = None
     ):
+        self.name = name
         self.parent = parent
-        self.child_conditions = set()
-        self.tables = tables or set()
-
-    @property
-    def conditions(self):
-        return self.child_conditions
-
-    @property
-    @abstractmethod
-    def name(self):
-        pass
+        self.conditions = conditions or {c.NameCondition(self.name)}
+        self.tables = tables or {"object"}
 
     def __str__(self):
         return self._string
@@ -50,14 +33,6 @@ class Query(ABC):
         )
 
         string = f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
-
-        # if len(self.children) > 0:
-        #     children_strings = " AND ".join(
-        #         f"id IN ({child._string})"
-        #         for child
-        #         in self.children
-        #     )
-        #     string = f"{string} AND {children_strings}"
 
         return string
 
@@ -75,13 +50,51 @@ class Query(ABC):
         this = self.top_level
         that = other.top_level
         if this.name == that.name:
-            this.child_conditions.update(
-                that.child_conditions
+            this.conditions.update(
+                that.conditions
             )
             return this
         return BranchQuery(
             this, that
         )
+
+    def __comparison(self, symbol, other):
+        query = Comparison(
+            other,
+            symbol
+        )
+        self.conditions.update(
+            query.conditions
+        )
+        self.tables.update(
+            query.tables
+        )
+        return self
+
+    def __eq__(self, other):
+        return self.__comparison("=", other)
+
+    def __lt__(self, other):
+        return self.__comparison("<", other)
+
+    def __gt__(self, other):
+        return self.__comparison(">", other)
+
+    def __ge__(self, other):
+        return self.__comparison(">=", other)
+
+    def __le__(self, other):
+        return self.__comparison("<=", other)
+
+    def __getattr__(self, name):
+        query = Query(
+            name,
+            parent=self
+        )
+        self.conditions.add(
+            c.NestedQueryCondition(query)
+        )
+        return query
 
 
 class BranchQuery:
@@ -107,138 +120,22 @@ class BranchQuery:
         return f"SELECT t0.parent_id FROM {', '.join(subqueries)} WHERE {'AND'.join(conditions)}"
 
 
-class NestedQueryCondition(Condition):
-    def __init__(self, query):
-        self.query = query
-
-    def __str__(self):
-        return f"id IN ({str(self.query)})"
-
-
-class NameCondition(Condition):
-    def __str__(self):
-        return f"name = '{self.name}'"
-
-    def __init__(self, name):
-        self.name = name
-
-
-class JoinCondition(Condition):
-    def __str__(self):
-        conditions = []
-        for table in sorted(self.other_tables):
-            conditions.append(
-                f"{table}.id = {self.primary_table}.id"
-            )
-        return " AND ".join(conditions)
-
-    def __init__(self, primary_table, *other_tables):
-        self.primary_table = primary_table
-        self.other_tables = other_tables
-
-
-class ClassPathCondition(Condition):
-    def __init__(self, cls):
-        self.cls = cls
-
-    def __str__(self):
-        return f"class_path = '{get_class_path(self.cls)}'"
-
-
-class NameQuery(Query):
-    def __init__(
-            self,
-            name,
-            parent=None
-    ):
-        super().__init__(
-            parent=parent,
-            tables={"object"}
-        )
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
-
-    def __comparison(self, symbol, other):
-        query = ComparisonQuery(
-            other,
-            symbol
-        )
-        self.child_conditions.update(
-            query.conditions
-        )
-        self.tables.update(
-            query.tables
-        )
-        return self
-
-    @property
-    def conditions(self):
-        return {
-            *super().conditions,
-            NameCondition(self.name)
-        }
-
-    def __eq__(self, other):
-        return self.__comparison("=", other)
-
-    def __lt__(self, other):
-        return self.__comparison("<", other)
-
-    def __gt__(self, other):
-        return self.__comparison(">", other)
-
-    def __ge__(self, other):
-        return self.__comparison(">=", other)
-
-    def __le__(self, other):
-        return self.__comparison("<=", other)
-
-    def __getattr__(self, name):
-        query = NameQuery(
-            name,
-            parent=self
-        )
-        self.child_conditions.add(
-            NestedQueryCondition(query)
-        )
-        return query
-
-
-def wrap_string(value):
-    if isinstance(value, str):
-        return f"'{value}'"
-    return value
-
-
-class ComparisonCondition(Condition):
-    def __init__(self, column, value, symbol):
-        self.column = column
-        self.value = wrap_string(value)
-        self.symbol = symbol
-
-    def __str__(self):
-        return f"{self.column} {self.symbol} {self.value}"
-
-
-class ComparisonQuery:
+class Comparison:
     def __new__(
             cls,
             value,
             symbol="=",
     ):
         if isinstance(value, str):
-            return object.__new__(StringComparisonQuery)
+            return object.__new__(StringComparison)
         if isinstance(value, Real):
-            return object.__new__(ValueComparisonQuery)
+            return object.__new__(ValueComparison)
         if inspect.isclass(value):
             if symbol != "=":
                 raise AssertionError(
                     "Inequalities to types do not make sense"
                 )
-            return object.__new__(TypeComparisonQuery)
+            return object.__new__(TypeComparison)
         raise AssertionError(
             f"Cannot evaluate equality to type {type(value)}"
         )
@@ -262,15 +159,15 @@ class ComparisonQuery:
         pass
 
 
-class RegularComparisonQuery(ComparisonQuery, ABC):
+class RegularComparison(Comparison, ABC):
     @property
     def conditions(self):
         return [
-            JoinCondition(
+            c.JoinCondition(
                 "object",
                 *self.tables
             ),
-            ComparisonCondition(
+            c.ComparisonCondition(
                 column="value",
                 value=self.value,
                 symbol=self.symbol
@@ -278,27 +175,27 @@ class RegularComparisonQuery(ComparisonQuery, ABC):
         ]
 
 
-class StringComparisonQuery(RegularComparisonQuery):
+class StringComparison(RegularComparison):
     @property
     def tables(self):
         return ["string_value"]
 
 
-class ValueComparisonQuery(RegularComparisonQuery):
+class ValueComparison(RegularComparison):
     @property
     def tables(self):
         return ["value"]
 
 
-class TypeComparisonQuery(ComparisonQuery):
+class TypeComparison(Comparison):
     @property
     def tables(self):
         return []
 
     @property
-    def conditions(self) -> List[Condition]:
+    def conditions(self) -> List[c.Condition]:
         return [
-            ClassPathCondition(self.value)
+            c.ClassPathCondition(self.value)
         ]
 
 
@@ -307,7 +204,7 @@ class Aggregator:
         self.session = session
 
     def __getattr__(self, name):
-        return NameQuery(name)
+        return Query(name)
 
     def filter(self, predicate):
         objects_ids = {
