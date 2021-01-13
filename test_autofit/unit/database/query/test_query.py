@@ -14,7 +14,7 @@ def test_embedded_attribute_query(
         aggregator,
         centre_query
 ):
-    string = f"SELECT parent_id FROM object WHERE name = 'lens' AND id IN ({centre_query})"
+    string = f"SELECT parent_id FROM object WHERE id IN ({centre_query}) AND name = 'lens'"
     assert aggregator.lens.centre.string == string
 
 
