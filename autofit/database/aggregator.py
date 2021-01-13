@@ -46,9 +46,7 @@ class Query(ABC):
     def __and__(self, other):
         this = self.top_level
         that = other.top_level
-        if this.conditions.name_conditions.intersection(
-                that.conditions.name_conditions
-        ):
+        if this.conditions.name == that.conditions.name:
             this.conditions.update(
                 that.conditions
             )
@@ -87,7 +85,7 @@ class Query(ABC):
 
     def __getattr__(self, name):
         query = Query(
-            conditions=c.ConditionSet(c.NameCondition(name)),
+            conditions=c.ConditionSet(name),
             parent=self
         )
         self.conditions.add(
@@ -126,7 +124,7 @@ class Aggregator:
     def __getattr__(self, name):
         return Query(
             conditions=c.ConditionSet(
-                c.NameCondition(name)
+                name
             ),
         )
 

@@ -37,31 +37,47 @@ def test_top_level(
     assert query.string == string
 
 
-class X:
-    pass
-
-
-def test_complicated(
-        aggregator
-):
-    query = ((aggregator.a == 1) & (aggregator.a.b == 2))
-
-    string = (
+@pytest.fixture(
+    name="b_c_string"
+)
+def make_b_c_string():
+    return (
         "SELECT parent_id "
         "FROM object, value "
         "WHERE id IN ("
         "SELECT parent_id "
         "FROM object, value "
-        "WHERE name = 'b' "
+        "WHERE name = 'c' "
         "AND value = 2 "
         "AND value.id = object.id"
         ") "
-        "AND name = 'a' "
+        "AND name = 'b' "
         "AND value = 1 "
         "AND value.id = object.id"
     )
 
-    assert query.string == string
+
+def test_complicated(
+        aggregator,
+        b_c_string
+):
+    query = ((aggregator.b == 1) & (aggregator.b.c == 2))
+
+    assert query.string == b_c_string
+
+
+def test_second_level_complicated(
+        aggregator,
+        b_c_string
+):
+    query = ((aggregator.a.b == 1) & (aggregator.a.b.c == 2))
+
+    assert query.string == (
+        "SELECT parent_id "
+        "FROM object "
+        f"WHERE id IN ({b_c_string}) "
+        "AND name = 'a'"
+    )
 
 
 @pytest.fixture(

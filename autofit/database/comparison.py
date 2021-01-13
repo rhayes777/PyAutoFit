@@ -78,7 +78,7 @@ class TypeComparison(Comparison):
         return {}
 
     @property
-    def conditions(self) -> c.ConditionSet:
-        return c.ConditionSet(
+    def conditions(self):
+        return {
             c.ClassPathCondition(self.value)
-        )
+        }

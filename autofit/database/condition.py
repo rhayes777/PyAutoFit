@@ -15,35 +15,40 @@ class Condition(ABC):
     def __str__(self):
         pass
 
+    def __repr__(self):
+        return str(self)
+
     def __hash__(self):
         return hash(str(self))
 
     def __eq__(self, other):
         return str(self) == str(other)
 
+    def __gt__(self, other):
+        return str(self) > other
 
-class ConditionSet(Set):
-    def __init__(self, *conditions):
-        super().__init__(
-            conditions
+    def __lt__(self, other):
+        return str(self) < other
+
+
+class ConditionSet:
+    def __init__(self, name):
+        assert isinstance(name, str)
+
+        self.name = name
+
+        self.conditions = {
+            NameCondition(name)
+        }
+
+    def __getattr__(self, item):
+        return getattr(
+            self.conditions,
+            item
         )
 
-    def with_class(self, cls):
-        return ConditionSet(*[
-            condition
-            for condition
-            in self
-            if isinstance(
-                condition,
-                cls
-            )
-        ])
-
-    @property
-    def name_conditions(self):
-        return self.with_class(
-            NameCondition
-        )
+    def __iter__(self):
+        return iter(sorted(self.conditions))
 
 
 class NestedQueryCondition(Condition):
