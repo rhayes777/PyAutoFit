@@ -1,35 +1,41 @@
 import inspect
 from abc import ABC, abstractmethod
 from numbers import Real
-from typing import Set, List
+from typing import List
 
 from .model import Object, get_class_path
+
+
+class Condition(ABC):
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 class Query(ABC):
     def __init__(
             self,
-            parent=None
+            parent=None,
+            tables=None
     ):
         self.parent = parent
-        self.children = []
-        if self.parent is not None:
-            self.parent.children = [self]
+        self.child_conditions = []
+        self.tables = tables or set()
+
+    @property
+    def conditions(self):
+        return self.child_conditions
 
     @property
     @abstractmethod
     def name(self):
         pass
 
-    @property
-    @abstractmethod
-    def tables(self) -> Set[str]:
-        pass
-
-    @property
-    @abstractmethod
-    def conditions(self) -> List["Condition"]:
-        pass
+    def __str__(self):
+        return self._string
 
     @property
     def _string(self):
@@ -42,13 +48,13 @@ class Query(ABC):
 
         string = f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
 
-        if len(self.children) > 0:
-            children_strings = " AND ".join(
-                f"id IN ({child._string})"
-                for child
-                in self.children
-            )
-            string = f"{string} AND {children_strings}"
+        # if len(self.children) > 0:
+        #     children_strings = " AND ".join(
+        #         f"id IN ({child._string})"
+        #         for child
+        #         in self.children
+        #     )
+        #     string = f"{string} AND {children_strings}"
 
         return string
 
@@ -66,8 +72,8 @@ class Query(ABC):
         this = self.top_level
         that = other.top_level
         if this.name == that.name:
-            this.children.extend(
-                that.children
+            this.child_conditions.extend(
+                that.child_conditions
             )
             return this
         return BranchQuery(
@@ -98,25 +104,45 @@ class BranchQuery:
         return f"SELECT t0.parent_id FROM {', '.join(subqueries)} WHERE {'AND'.join(conditions)}"
 
 
-class Condition(ABC):
-    @abstractmethod
-    def __str__(self):
-        pass
+class NestedQueryCondition(Condition):
+    def __init__(self, query):
+        self.query = query
 
-    @abstractmethod
-    def __hash__(self):
-        pass
+    def __str__(self):
+        return f"id IN ({str(self.query)})"
 
 
 class NameCondition(Condition):
     def __str__(self):
         return f"name = '{self.name}'"
 
-    def __hash__(self):
-        return self.name
-
     def __init__(self, name):
         self.name = name
+
+
+class JoinCondition(Condition):
+    def __str__(self):
+        conditions = []
+        for table in sorted(self.other_tables):
+            conditions.append(
+                f"{table}.id = {self.primary_table}.id"
+            )
+        return " AND ".join(conditions)
+
+    def __init__(self, primary_table, *other_tables):
+        self.primary_table = primary_table
+        self.other_tables = other_tables
+
+
+class ClassPathCondition(Condition):
+    def __init__(self, cls):
+        self.cls = cls
+
+    def __hash__(self):
+        return self.cls
+
+    def __str__(self):
+        return f"class_path = '{get_class_path(self.cls)}'"
 
 
 class NameQuery(Query):
@@ -126,7 +152,8 @@ class NameQuery(Query):
             parent=None
     ):
         super().__init__(
-            parent=parent
+            parent=parent,
+            tables={"object"}
         )
         self._name = name
 
@@ -134,25 +161,24 @@ class NameQuery(Query):
     def name(self):
         return self._name
 
-    @property
-    def tables(self):
-        return {"object"}
-
-    @property
-    def conditions(self) -> List[Condition]:
-        return [
-            NameCondition(
-                self.name
-            )
-        ]
-
     def __comparison(self, symbol, other):
-        return ComparisonQuery(
-            self,
+        query = ComparisonQuery(
             other,
-            symbol,
-            parent=self.parent
+            symbol
         )
+        self.child_conditions.extend(
+            query.conditions
+        )
+        self.tables.update(
+            query.tables
+        )
+        return self
+
+    @property
+    def conditions(self):
+        return super().conditions + [
+            NameCondition(self.name)
+        ]
 
     def __eq__(self, other):
         return self.__comparison("=", other)
@@ -170,20 +196,31 @@ class NameQuery(Query):
         return self.__comparison("<=", other)
 
     def __getattr__(self, name):
-        return NameQuery(
+        query = NameQuery(
             name,
             parent=self
         )
+        self.child_conditions.append(
+            NestedQueryCondition(query)
+        )
+        return query
 
 
-class ComparisonQuery(Query, ABC):
+class ComparisonCondition(Condition):
+    def __init__(self, left, right, symbol):
+        self.left = left
+        self.right = right
+        self.symbol = symbol
+
+    def __str__(self):
+        return f"{self.left} {self.symbol} {self.right}"
+
+
+class ComparisonQuery:
     def __new__(
             cls,
-            name,
             value,
             symbol="=",
-            *,
-            parent
     ):
         if isinstance(value, str):
             return object.__new__(StringComparisonQuery)
@@ -201,92 +238,59 @@ class ComparisonQuery(Query, ABC):
 
     def __init__(
             self,
-            name_query,
             value,
             symbol="=",
-            *,
-            parent=None
     ):
-        super().__init__(parent)
-        self.name_query = name_query
         self.value = value
         self.symbol = symbol
 
     @property
-    def name(self):
-        return self.name_query.name
+    @abstractmethod
+    def tables(self):
+        pass
+
+    @property
+    @abstractmethod
+    def conditions(self):
+        pass
 
 
 class RegularComparisonQuery(ComparisonQuery, ABC):
     @property
-    @abstractmethod
-    def _table(self):
-        pass
-
-    @property
-    @abstractmethod
-    def _condition(self):
-        pass
-
-    @property
-    def tables(self):
-        return {*self.name_query.tables, self._table}
-
-    @property
     def conditions(self):
-        conditions = self.name_query.conditions + [
-            self._condition
-        ]
-
-        tables = sorted(self.tables)
-        first_table = tables[0]
-        for table in tables[1:]:
-            conditions.append(
-                f"{table}.id = {first_table}.id"
+        return [
+            JoinCondition(
+                "object",
+                *self.tables
+            ),
+            ComparisonCondition(
+                left="value",
+                right=self.value,
+                symbol=self.symbol
             )
-
-        return conditions
+        ]
 
 
 class StringComparisonQuery(RegularComparisonQuery):
     @property
-    def _table(self):
-        return "string_value"
-
-    @property
-    def _condition(self):
-        return f"value {self.symbol} '{self.value}'"
+    def tables(self):
+        return ["string_value"]
 
 
 class ValueComparisonQuery(RegularComparisonQuery):
     @property
-    def _table(self):
-        return "value"
-
-    @property
-    def _condition(self):
-        return f"value {self.symbol} {self.value}"
-
-
-class ClassPathCondition(Condition):
-    def __init__(self, cls):
-        self.cls = cls
-
-    def __hash__(self):
-        return self.cls
-
-    def __str__(self):
-        return f"class_path = '{get_class_path(self.cls)}'"
+    def tables(self):
+        return ["value"]
 
 
 class TypeComparisonQuery(ComparisonQuery):
     @property
     def tables(self):
-        return ["object"]
+        return []
 
     @property
     def conditions(self) -> List[Condition]:
-        return self.name_query.conditions + [
+        return [
             ClassPathCondition(self.value)
         ]
 
