@@ -122,7 +122,7 @@ class NameQuery(Query):
         return [f"name = '{self.name}'"]
 
     def __comparison(self, symbol, other):
-        return EqualityQuery(
+        return ComparisonQuery(
             self,
             other,
             symbol,
@@ -181,7 +181,7 @@ class ConjunctionQuery(Query):
         }
 
 
-class EqualityQuery(Query, ABC):
+class ComparisonQuery(Query, ABC):
     def __new__(
             cls,
             name,
@@ -191,15 +191,15 @@ class EqualityQuery(Query, ABC):
             parent
     ):
         if isinstance(value, str):
-            return object.__new__(StringEqualityQuery)
+            return object.__new__(StringComparisonQuery)
         if isinstance(value, Real):
-            return object.__new__(ValueEqualityQuery)
+            return object.__new__(ValueComparisonQuery)
         if inspect.isclass(value):
             if symbol != "=":
                 raise AssertionError(
                     "Inequalities to types do not make sense"
                 )
-            return object.__new__(TypeEqualityQuery)
+            return object.__new__(TypeComparisonQuery)
         raise AssertionError(
             f"Cannot evaluate equality to type {type(value)}"
         )
@@ -222,7 +222,7 @@ class EqualityQuery(Query, ABC):
         return self.name_query.name
 
 
-class RegularEqualityQuery(EqualityQuery, ABC):
+class RegularComparisonQuery(ComparisonQuery, ABC):
     @property
     @abstractmethod
     def _table(self):
@@ -253,7 +253,7 @@ class RegularEqualityQuery(EqualityQuery, ABC):
         return conditions
 
 
-class StringEqualityQuery(RegularEqualityQuery):
+class StringComparisonQuery(RegularComparisonQuery):
     @property
     def _table(self):
         return "string_value"
@@ -263,7 +263,7 @@ class StringEqualityQuery(RegularEqualityQuery):
         return f"value {self.symbol} '{self.value}'"
 
 
-class ValueEqualityQuery(RegularEqualityQuery):
+class ValueComparisonQuery(RegularComparisonQuery):
     @property
     def _table(self):
         return "value"
@@ -273,7 +273,7 @@ class ValueEqualityQuery(RegularEqualityQuery):
         return f"value {self.symbol} {self.value}"
 
 
-class TypeEqualityQuery(EqualityQuery):
+class TypeComparisonQuery(ComparisonQuery):
     @property
     def tables(self):
         return ["object"]
