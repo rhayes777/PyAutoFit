@@ -206,14 +206,20 @@ class NameQuery(Query):
         return query
 
 
+def wrap_string(value):
+    if isinstance(value, str):
+        return f"'{value}'"
+    return value
+
+
 class ComparisonCondition(Condition):
-    def __init__(self, left, right, symbol):
-        self.left = left
-        self.right = right
+    def __init__(self, column, value, symbol):
+        self.column = column
+        self.value = wrap_string(value)
         self.symbol = symbol
 
     def __str__(self):
-        return f"{self.left} {self.symbol} {self.right}"
+        return f"{self.column} {self.symbol} {self.value}"
 
 
 class ComparisonQuery:
@@ -264,8 +270,8 @@ class RegularComparisonQuery(ComparisonQuery, ABC):
                 *self.tables
             ),
             ComparisonCondition(
-                left="value",
-                right=self.value,
+                column="value",
+                value=self.value,
                 symbol=self.symbol
             )
         ]
