@@ -1,7 +1,7 @@
 import inspect
 from abc import ABC, abstractmethod
 from numbers import Real
-from typing import Set
+from typing import Set, List
 
 from .model import Object, get_class_path
 
@@ -28,7 +28,7 @@ class Query(ABC):
 
     @property
     @abstractmethod
-    def conditions(self):
+    def conditions(self) -> List["Condition"]:
         pass
 
     @property
@@ -37,7 +37,7 @@ class Query(ABC):
             sorted(self.tables)
         )
         conditions_string = " AND ".join(
-            sorted(self.conditions)
+            sorted(map(str, self.conditions))
         )
 
         string = f"SELECT parent_id FROM {tables_string} WHERE {conditions_string}"
@@ -98,6 +98,27 @@ class BranchQuery:
         return f"SELECT t0.parent_id FROM {', '.join(subqueries)} WHERE {'AND'.join(conditions)}"
 
 
+class Condition(ABC):
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @abstractmethod
+    def __hash__(self):
+        pass
+
+
+class NameCondition(Condition):
+    def __str__(self):
+        return f"name = '{self.name}'"
+
+    def __hash__(self):
+        return self.name
+
+    def __init__(self, name):
+        self.name = name
+
+
 class NameQuery(Query):
     def __init__(
             self,
@@ -118,8 +139,12 @@ class NameQuery(Query):
         return {"object"}
 
     @property
-    def conditions(self):
-        return [f"name = '{self.name}'"]
+    def conditions(self) -> List[Condition]:
+        return [
+            NameCondition(
+                self.name
+            )
+        ]
 
     def __comparison(self, symbol, other):
         return ComparisonQuery(
@@ -149,36 +174,6 @@ class NameQuery(Query):
             name,
             parent=self
         )
-
-
-class ConjunctionQuery(Query):
-    def __init__(
-            self,
-            *child_queries,
-            parent
-    ):
-        super().__init__(parent)
-        self.child_queries = child_queries
-
-    @property
-    def name(self):
-        return self.child_queries[0].name
-
-    @property
-    def tables(self):
-        return {
-            table
-            for query in self.child_queries
-            for table in query.tables
-        }
-
-    @property
-    def conditions(self):
-        return {
-            condition
-            for query in self.child_queries
-            for condition in query.conditions
-        }
 
 
 class ComparisonQuery(Query, ABC):
@@ -273,15 +268,26 @@ class ValueComparisonQuery(RegularComparisonQuery):
         return f"value {self.symbol} {self.value}"
 
 
+class ClassPathCondition(Condition):
+    def __init__(self, cls):
+        self.cls = cls
+
+    def __hash__(self):
+        return self.cls
+
+    def __str__(self):
+        return f"class_path = '{get_class_path(self.cls)}'"
+
+
 class TypeComparisonQuery(ComparisonQuery):
     @property
     def tables(self):
         return ["object"]
 
     @property
-    def conditions(self):
+    def conditions(self) -> List[Condition]:
         return self.name_query.conditions + [
-            f"class_path = '{get_class_path(self.value)}'"
+            ClassPathCondition(self.value)
         ]
 
 
