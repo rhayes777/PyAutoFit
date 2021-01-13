@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Set
 
 from .model import get_class_path
 
@@ -19,6 +20,9 @@ class Condition(ABC):
 
     def __eq__(self, other):
         return str(self) == str(other)
+
+
+ConditionSet = Set[Condition]
 
 
 class NestedQueryCondition(Condition):

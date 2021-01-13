@@ -1,7 +1,7 @@
 import inspect
 from abc import ABC, abstractmethod
 from numbers import Real
-from typing import List, Set, Optional
+from typing import Optional
 
 from . import condition as c
 from .model import Object
@@ -13,7 +13,7 @@ class Query(ABC):
             name,
             parent=None,
             tables=None,
-            conditions: Optional[Set[c.Condition]] = None
+            conditions: Optional[c.ConditionSet] = None
     ):
         self.name = name
         self.parent = parent
@@ -162,7 +162,7 @@ class Comparison:
 class RegularComparison(Comparison, ABC):
     @property
     def conditions(self):
-        return [
+        return {
             c.JoinCondition(
                 "object",
                 *self.tables
@@ -172,31 +172,31 @@ class RegularComparison(Comparison, ABC):
                 value=self.value,
                 symbol=self.symbol
             )
-        ]
+        }
 
 
 class StringComparison(RegularComparison):
     @property
     def tables(self):
-        return ["string_value"]
+        return {"string_value"}
 
 
 class ValueComparison(RegularComparison):
     @property
     def tables(self):
-        return ["value"]
+        return {"value"}
 
 
 class TypeComparison(Comparison):
     @property
     def tables(self):
-        return []
+        return {}
 
     @property
-    def conditions(self) -> List[c.Condition]:
-        return [
+    def conditions(self) -> c.ConditionSet:
+        return {
             c.ClassPathCondition(self.value)
-        ]
+        }
 
 
 class Aggregator:
