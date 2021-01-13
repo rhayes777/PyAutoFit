@@ -2,6 +2,12 @@ import pytest
 
 from autofit.mock import mock as m
 
+"""
+- Immutable object returning
+- Top level vs lower levels
+- Same path vs change in path
+"""
+
 
 def test_trivial(
         aggregator,
@@ -61,3 +67,17 @@ def test_second_level(
     string = ((aggregator.lens.intensity == 0) & (aggregator.lens.centre == 1)).string
 
     assert string == second_level_query
+
+
+# def test_third_level(
+#         aggregator,
+#         second_level_query
+# ):
+#     string = ((aggregator.galaxies.lens.intensity == 0) & (aggregator.galaxies.lens.centre == 1)).string
+#
+#     assert string == (
+#         "SELECT parent_id "
+#         "FROM object "
+#         "WHERE name = 'galaxies' "
+#         f"AND id IN ({second_level_query})"
+#     )

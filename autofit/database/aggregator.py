@@ -63,15 +63,15 @@ class Query(ABC):
         return self.top_level._string
 
     def __and__(self, other):
-        top_level = self.top_level
-        other_top_level = other.top_level
-        if top_level.name == other_top_level.name:
-            top_level.children.extend(
-                other_top_level.children
+        this = self.top_level
+        that = other.top_level
+        if this.name == that.name:
+            this.children.extend(
+                that.children
             )
-            return top_level
+            return this
         return BranchQuery(
-            top_level, other_top_level
+            this, that
         )
 
 
