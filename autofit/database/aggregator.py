@@ -14,6 +14,9 @@ class Condition(ABC):
     def __hash__(self):
         return hash(str(self))
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
 
 class Query(ABC):
     def __init__(
@@ -22,7 +25,7 @@ class Query(ABC):
             tables=None
     ):
         self.parent = parent
-        self.child_conditions = []
+        self.child_conditions = set()
         self.tables = tables or set()
 
     @property
@@ -72,7 +75,7 @@ class Query(ABC):
         this = self.top_level
         that = other.top_level
         if this.name == that.name:
-            this.child_conditions.extend(
+            this.child_conditions.update(
                 that.child_conditions
             )
             return this
@@ -138,9 +141,6 @@ class ClassPathCondition(Condition):
     def __init__(self, cls):
         self.cls = cls
 
-    def __hash__(self):
-        return self.cls
-
     def __str__(self):
         return f"class_path = '{get_class_path(self.cls)}'"
 
@@ -166,7 +166,7 @@ class NameQuery(Query):
             other,
             symbol
         )
-        self.child_conditions.extend(
+        self.child_conditions.update(
             query.conditions
         )
         self.tables.update(
@@ -176,9 +176,10 @@ class NameQuery(Query):
 
     @property
     def conditions(self):
-        return super().conditions + [
+        return {
+            *super().conditions,
             NameCondition(self.name)
-        ]
+        }
 
     def __eq__(self, other):
         return self.__comparison("=", other)
@@ -200,7 +201,7 @@ class NameQuery(Query):
             name,
             parent=self
         )
-        self.child_conditions.append(
+        self.child_conditions.add(
             NestedQueryCondition(query)
         )
         return query
