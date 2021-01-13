@@ -22,7 +22,28 @@ class Condition(ABC):
         return str(self) == str(other)
 
 
-ConditionSet = Set[Condition]
+class ConditionSet(Set):
+    def __init__(self, *conditions):
+        super().__init__(
+            conditions
+        )
+
+    def with_class(self, cls):
+        return ConditionSet(*[
+            condition
+            for condition
+            in self
+            if isinstance(
+                condition,
+                cls
+            )
+        ])
+
+    @property
+    def name_conditions(self):
+        return self.with_class(
+            NameCondition
+        )
 
 
 class NestedQueryCondition(Condition):

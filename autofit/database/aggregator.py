@@ -10,14 +10,12 @@ from .model import Object
 class Query(ABC):
     def __init__(
             self,
-            name,
             parent=None,
             tables=None,
             conditions: Optional[c.ConditionSet] = None
     ):
-        self.name = name
         self.parent = parent
-        self.conditions = conditions or {c.NameCondition(self.name)}
+        self.conditions = conditions or set()
         self.tables = tables or {"object"}
 
     def __str__(self):
@@ -49,7 +47,9 @@ class Query(ABC):
     def __and__(self, other):
         this = self.top_level
         that = other.top_level
-        if this.name == that.name:
+        if this.conditions.name_conditions.intersection(
+                that.conditions.name_conditions
+        ):
             this.conditions.update(
                 that.conditions
             )
@@ -88,7 +88,7 @@ class Query(ABC):
 
     def __getattr__(self, name):
         query = Query(
-            name,
+            conditions=c.ConditionSet(c.NameCondition(name)),
             parent=self
         )
         self.conditions.add(
@@ -194,9 +194,9 @@ class TypeComparison(Comparison):
 
     @property
     def conditions(self) -> c.ConditionSet:
-        return {
+        return c.ConditionSet(
             c.ClassPathCondition(self.value)
-        }
+        )
 
 
 class Aggregator:
@@ -204,7 +204,11 @@ class Aggregator:
         self.session = session
 
     def __getattr__(self, name):
-        return Query(name)
+        return Query(
+            conditions=c.ConditionSet(
+                c.NameCondition(name)
+            ),
+        )
 
     def filter(self, predicate):
         objects_ids = {
