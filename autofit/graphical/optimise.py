@@ -35,7 +35,8 @@ from autofit.graphical.messages import FixedMessage
 from autofit.graphical.utils import (
     propagate_uncertainty,
     FlattenArrays,
-    OptResult
+    OptResult,
+    numerical_jacobian,
 )
 
 ArraysDict = Dict[Variable, np.ndarray]
@@ -110,6 +111,7 @@ class OptFactor:
             cls,
             factor_approx: FactorApproximation,
             transform: Optional[AbstractLinearTransform] = None,
+            **kwargs
     ) -> 'OptFactor':
         value_shapes = {}
         fixed_kws = {}
@@ -129,6 +131,7 @@ class OptFactor:
             model_dist=factor_approx.model_dist,
             transform=transform,
             bounds=bounds,
+            **kwargs, 
         )
 
     def flatten(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
@@ -154,6 +157,12 @@ class OptFactor:
 
     def jacobian(self, args):
         return self.func_jacobian(args)[1]
+
+    def hessian(self, args, eps=1e-8):
+        hess = numerical_jacobian(args, self.jacobian, eps=1e-8)
+        hess /= 2
+        hess += np.transpose(hess)
+        return hess
 
     def numerically_verify_jacobian(
             self,
@@ -305,13 +314,11 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         if opt_kws:
             self.opt_kws.update(opt_kws)
 
-    def project(
+    def find_factor_mode(
             self,
             factor_approx: FactorApproximation,
-            model_approx: EPMeanField,
             status: Optional[Status] = Status(),
-    ) -> Tuple[EPMeanField, Status]:
-
+    ) -> Tuple[EPMeanField, OptResult]:
         factor = factor_approx.factor
         whiten = self.transforms[factor]
         delta = self.deltas[factor]
@@ -335,9 +342,41 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
 
         # Project Laplace's approximation
         new_model_dist = factor_approx.model_dist.project_mode(res)
+        return new_model_dist, res
+
+    def project(
+            self,
+            factor_approx: FactorApproximation,
+            status: Optional[Status] = Status(),
+    ) -> Tuple[EPMeanField, Status]:
+
+        # factor = factor_approx.factor
+        # whiten = self.transforms[factor]
+        # delta = self.deltas[factor]
+        # opt_kws = self.opt_kws[factor]
+        # start = self.initial_values.get(factor)
+
+        # opt = OptFactor.from_approx(factor_approx, transform=whiten)
+        # res = opt.maximise(start, status=status, **opt_kws)
+
+        # # Calculate covariance of deterministic values
+        # # TODO: estimate this Jacobian using Broyden's method
+        # # https://en.wikipedia.org/wiki/Broyden%27s_method
+        # value = factor_approx.factor(res.mode)
+        # res.mode.update(value.deterministic_values)
+        # jacobian = factor_approx.factor.jacobian(
+        #     res.mode, opt.free_vars, axis=None)
+        # update_det_cov(res, jacobian)
+
+        # self.transforms[factor] = CovarianceTransform.from_dense(
+        #     res.full_hess_inv)
+
+        # # Project Laplace's approximation
+        # new_model_dist = factor_approx.model_dist.project_mode(res)
+        new_model_dist, res = self.find_factor_mode(factor_approx, status)
         projection, status = factor_approx.project(
             new_model_dist,
-            delta=delta,
+            delta=self.deltas[factor_approx.factor],
             status=res.status
         )
         return projection, status
