@@ -357,7 +357,13 @@ class EPOptimiser:
     ) -> EPMeanField:
         for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
-                model_approx, status = optimiser.optimise(factor, model_approx)
+                try:
+                    model_approx, status = optimiser.optimise(factor, model_approx)
+                except (ValueError, ArithmeticError, RuntimeError) as e:
+                    status = Status(
+                        False, 
+                        f"Factor: {factor} experienced error {e}")
+
                 if self.callback(factor, model_approx, status):
                     break  # callback controls convergence
             else:  # If no break do next iteration
