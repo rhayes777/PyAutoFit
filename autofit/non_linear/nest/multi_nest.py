@@ -3,8 +3,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
-from autofit.non_linear.samples import NestSamples
 from autofit.non_linear.paths import convert_paths
+from autofit.non_linear.samples import NestSamples, Sample
 
 
 class MultiNest(abstract_nest.AbstractNest):
@@ -406,10 +406,13 @@ class MultiNest(abstract_nest.AbstractNest):
 
         return NestSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=Sample.from_lists(
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=log_priors,
+                weights=weights,
+                model=model
+            ),
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,

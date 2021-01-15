@@ -1,10 +1,11 @@
-import autofit as af
-from autofit.text import samples_text
-import pytest
-
 from os import path
 
+import pytest
+
+import autofit as af
 from autofit.mock.mock import MockClassx2
+from autofit.non_linear.samples import Sample
+from autofit.text import samples_text
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
 
@@ -22,15 +23,17 @@ def make_samples(model):
 
     return af.PDFSamples(
         model=model,
-        parameters=parameters,
-        log_likelihoods=log_likelihoods,
-        log_priors=[],
-        weights=log_likelihoods,
+        samples=Sample.from_lists(
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=[0.0, 0.0],
+            weights=log_likelihoods,
+            model=model
+        )
     )
 
 
 def test__summary(samples):
-
     results_at_sigma = samples_text.summary(samples=samples, sigma=3.0)
 
     assert "one       1.00 (1.00, 1.20)" in results_at_sigma
@@ -38,7 +41,6 @@ def test__summary(samples):
 
 
 def test__latex(samples):
-
     latex_results_at_sigma = samples_text.latex(samples=samples, sigma=3.0)
 
     assert r"one_label_{\mathrm{o}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma

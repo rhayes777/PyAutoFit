@@ -110,6 +110,8 @@ print(
 Filters can be combined to load precisely only the result that you want, below we use all the above filters to 
 load only the results of the fit to the first lens in our sample.
 """
+
+# %%
 agg_filter_multiple = agg.filter(
     agg.phase == "tutorial_7_multi", agg.directory.contains("gaussian_x1_0")
 )

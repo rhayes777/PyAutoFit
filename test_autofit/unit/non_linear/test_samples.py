@@ -3,8 +3,8 @@ import os
 import pytest
 
 import autofit as af
-from autofit.non_linear.samples import OptimizerSamples, PDFSamples
 from autofit.mock.mock import MockClassx2, MockClassx4
+from autofit.non_linear.samples import OptimizerSamples, PDFSamples, Sample
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -23,10 +23,13 @@ def make_samples():
 
     return OptimizerSamples(
         model=model,
-        parameters=parameters,
-        log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
-        log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-        weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+        samples=Sample.from_lists(
+            model=model,
+            parameters=parameters,
+            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+        )
     )
 
 
@@ -85,10 +88,13 @@ class TestOptimizerSamples:
 
         samples = OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=[1.0, 2.0, 3.0, 0.0, 5.0],
-            log_priors=[1.0, 2.0, 3.0, 10.0, 6.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=[1.0, 2.0, 3.0, 0.0, 5.0],
+                log_priors=[1.0, 2.0, 3.0, 10.0, 6.0],
+                weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+            )
         )
 
         assert samples.log_posteriors == [2.0, 4.0, 6.0, 10.0, 11.0]
@@ -114,11 +120,14 @@ class TestOptimizerSamples:
         model = af.ModelMapper(mock_class=MockClassx4)
         samples = OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=[10.0, 0.0, 0.0, 0.0, 0.0],
-            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
-        )
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=[10.0, 0.0, 0.0, 0.0, 0.0],
+                log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+                weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+
+            ))
 
         gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
 
@@ -145,11 +154,14 @@ class TestOptimizerSamples:
 
         samples = OptimizerSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=[0.0, 0.0, 0.0, 0.0, 0.0],
-            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
-        )
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=[0.0, 0.0, 0.0, 0.0, 0.0],
+                log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
+                weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+
+            ))
 
         instance = samples.instance_from_sample_index(sample_index=0)
 
@@ -205,11 +217,13 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=10 * [0.0],
+                weights=weights,
+            ))
 
         assert samples.pdf_converged == True
 
@@ -243,13 +257,16 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
+            samples=Sample.from_lists(
 
-        assert samples.pdf_converged == False
+                model=model,
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=10 * [0.0],
+                weights=weights,
+            ))
+
+        assert samples.pdf_converged is False
 
         median_pdf_vector = samples.median_pdf_vector
 
@@ -277,11 +294,13 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=10 * [0.0],
+                weights=weights,
+            ))
 
         assert samples.pdf_converged == True
 
@@ -340,11 +359,13 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=10 * [0.0],
+                weights=weights,
+            ))
 
         assert samples.pdf_converged == False
 
@@ -379,11 +400,13 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = PDFSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
+            samples=Sample.from_lists(
+                model=model,
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=10 * [0.0],
+                weights=weights,
+            ))
 
         assert samples.pdf_converged == True
 
@@ -430,10 +453,14 @@ class TestPDFSamples:
 
         samples = PDFSamples(
             model=model,
-            parameters=[[]],
-            log_likelihoods=log_likelihoods,
-            log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weights=weights,
+            samples=Sample.from_lists(
+                model=model,
+                parameters=5 * [[]],
+                log_likelihoods=log_likelihoods,
+                log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
+                weights=weights,
+
+            ),
             unconverged_sample_size=2,
         )
 
@@ -442,10 +469,13 @@ class TestPDFSamples:
 
         samples = PDFSamples(
             model=model,
-            parameters=[[]],
-            log_likelihoods=log_likelihoods,
-            log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weights=weights,
+            samples=Sample.from_lists(
+                model=model,
+                parameters=5 * [[]],
+                log_likelihoods=log_likelihoods,
+                log_priors=[1.0, 1.0, 1.0, 1.0, 1.0],
+                weights=weights,
+            ),
             unconverged_sample_size=6,
         )
 
@@ -469,11 +499,14 @@ class TestPDFSamples:
 
         samples = PDFSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[],
-            weights=weights,
-        )
+            samples=Sample.from_lists(
+
+                model=model,
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=10 * [0.0],
+                weights=weights,
+            ))
 
         offset_values = samples.offset_vector_from_input_vector(
             input_vector=[1.0, 1.0, 2.0, 3.0]
@@ -488,13 +521,16 @@ class TestNestSamples:
 
         samples = af.NestSamples(
             model=model,
-            parameters=[[]],
-            log_likelihoods=[1.0, 2.0, 3.0, 4.0, 5.0],
-            log_priors=[],
-            weights=[],
+            samples=Sample.from_lists(
+                model=model,
+                parameters=5 * [[]],
+                log_likelihoods=[1.0, 2.0, 3.0, 4.0, 5.0],
+                log_priors=5 * [0.0],
+                weights=5 * [0.0],
+            ),
+            total_samples=10,
             log_evidence=0.0,
             number_live_points=5,
-            total_samples=10,
         )
 
         assert samples.acceptance_ratio == 0.5

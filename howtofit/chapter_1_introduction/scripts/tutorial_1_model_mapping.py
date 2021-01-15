@@ -101,7 +101,7 @@ plt.show()
 # %%
 """
 Its not until tutorial 3 that we'll actually fit this image with a model. But its worth us looking at it now so we
-can understand the model we`re going to fit. So what is the model?
+can understand the model we're going to fit. So what is the model?
 
 Clearly, its a one-dimensional `Gaussian` defined as:
 
@@ -313,10 +313,10 @@ we can translate priors to parameters in this way, but how is this actually goin
 With a bit of effort I could have written some code to do this myself!
 
 Well, you're probably right, but this tutorial is covering just the backend of **PyAutoFit**, what holds everything
-together. Once you start using **PyAutoFit**, its unlikely that you`ll perform model mapping yourself, its the `magic` 
+together. Once you start using **PyAutoFit**, its unlikely that you'll perform model mapping yourself, its the `magic` 
 behind the scenes that makes model-fitting work.
 
-So, we`re pretty much ready to move on to tutorial 2, where we'll actually fit this model to some data. However,
+So, we're pretty much ready to move on to tutorial 2, where we'll actually fit this model to some data. However,
 first, I want you to quickly think about the model you want to fit. How would you write it as a class using the
 **PyAutoFit** format above? What are the free parameters of you model? Are there multiple model components you are 
 going to want to fit to your data?

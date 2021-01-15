@@ -8,7 +8,7 @@ import autofit.mapper.variable
 from autofit import graphical as mp
 
 
-def test():
+def _test():
     ## define parameters of model
     np.random.seed(1)
 
