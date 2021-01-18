@@ -14,47 +14,13 @@ PyAutoFit
 Getting Started
 ---------------
 
-You can try **PyAutoFit** right now without installation by checking out the `overview Jupyter Notebook on our
+You can try **PyAutoFit** now by following the `overview Jupyter Notebook on
 Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
 
-On the **PyAutoFit** `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a
-complete overview of **PyAutoFit**'s features, examples scripts, and
+On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a complete overview
+of **PyAutoFit**'s features, examples scripts, and
 the `HowToFit Jupyter notebook tutorials <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_ which
 introduces new users to **PyAutoFit**.
-
-Installation
-------------
-
-**PyAutoFit** requires Python 3.6+ and you can install it via pip or conda (see
-`this link <https://pyautofit.readthedocs.io/en/latest/installation/conda.html>`_
-for conda instructions).
-
-.. code-block:: bash
-
-    pip install autofit
-
-Next, clone the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_, which includes **PyAutoFit**
-configuration files, example scripts and more!
-
-.. code-block:: bash
-
-   cd /path/on/your/computer/you/want/to/put/the/autofit_workspace
-   git clone https://github.com/Jammy2211/autofit_workspace --depth 1
-   cd autofit_workspace
-
-Finally, run *welcome.py* in the ``autofit_workspace`` to get started!
-
-.. code-block:: bash
-
-   python3 welcome.py
-
-If your installation had an error, please check the
-`troubleshooting section <https://pyautofit.readthedocs.io/en/latest/installation/troubleshooting.html>`_ on
-our readthedocs.
-
-If you would prefer to Fork / Clone the **PyAutoFit** GitHub repo, please read the
-`cloning section <https://pyautofit.readthedocs.io/en/latest/installation/source.html>`_ on our
-readthedocs first.
 
 API Overview
 ------------
