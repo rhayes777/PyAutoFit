@@ -273,14 +273,16 @@ class EPHistory:
         self.history[i, factor] = approx
         self.statuses[i, factor] = status
 
-        stop = any([
-            callback(factor, approx, status) for callback in self._callbacks
-        ])
-        if stop:
-            return True
-        elif i:
-            last_approx = self.history[i - 1, factor]
-            return self._check_convergence(approx, last_approx)
+        if status.success:
+            stop = any([
+                callback(factor, approx, status) 
+                for callback in self._callbacks
+            ])
+            if stop:
+                return True
+            elif i:
+                last_approx = self.history[i - 1, factor]
+                return self._check_convergence(approx, last_approx)
 
         return False
 
