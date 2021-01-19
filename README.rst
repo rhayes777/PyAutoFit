@@ -4,56 +4,23 @@ PyAutoFit
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
 - Makes it straight forward to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+
 - Handles the 'heavy lifting' of model fitting, including model composition and customization, outputting results in a structured path format and model-specific visualization.
+
 - Includes bespoke tools for **big-data** analysis, including massively parallel model fitting and database output structures so that large suites of results can be loaded into Jupyter notebooks post-analysis.
 
-Advanced statistical methods in **PyAutoFit** include:
-
-- **Graphical Models**: Combine fits to many different datasets and determine the global parameters of a model, using an `Expectation Propagation Bayesian framework <https://arxiv.org/abs/1412.4869v1>`_.
-- **Non-Linear Search Grid-Search**: Simplify the fitting of highly complex parameters spaces by using a grid of non-linear searches, which can be performed simultaneously in an embarrassingly parallel fashion.
-- **Transdimensional Pipelines**: Chain together multiple fits of different models to streamline model comparison and automate complex model-fitting tasks.
+- Provides advanced statistical methods such as *transdimensional modeling*, *advanced model comparison* and *advanced grid-searches*.
 
 Getting Started
 ---------------
 
-To get started checkout our `readthedocs <https://pyautofit.readthedocs.io/>`_,
-where you'll find our installation guide, a complete overview of **PyAutoFit**'s features, examples scripts and
-tutorials, detailed API documentation and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
-on how to integrate **PyAutoFit** into your modeling software.
+You can try **PyAutoFit** now by following the `overview Jupyter Notebook on
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
 
-Installation
-------------
-
-**PyAutoFit** requires Python 3.6+ and you can install it via pip or conda (see
-`this link <https://pyautofit.readthedocs.io/en/latest/installation/conda.html>`_
-for conda instructions).
-
-.. code-block:: bash
-
-    pip install autofit
-
-Next, clone the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_, which includes **PyAutoFit**
-configuration files, example scripts and more!
-
-.. code-block:: bash
-
-   cd /path/on/your/computer/you/want/to/put/the/autofit_workspace
-   git clone https://github.com/Jammy2211/autofit_workspace --depth 1
-   cd autofit_workspace
-
-Finally, run *welcome.py* in the ``autofit_workspace`` to get started!
-
-.. code-block:: bash
-
-   python3 welcome.py
-
-If your installation had an error, please check the
-`troubleshooting section <https://pyautofit.readthedocs.io/en/latest/installation/troubleshooting.html>`_ on
-our readthedocs.
-
-If you would prefer to Fork / Clone the **PyAutoFit** GitHub repo, please read the
-`cloning section <https://pyautofit.readthedocs.io/en/latest/installation/source.html>`_ on our
-readthedocs first.
+On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a complete overview
+of **PyAutoFit**'s features, examples scripts, and
+the `HowToFit Jupyter notebook tutorials <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_ which
+introduces new users to **PyAutoFit**.
 
 API Overview
 ------------

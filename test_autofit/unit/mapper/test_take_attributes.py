@@ -43,6 +43,41 @@ def test_simple(
     assert target_gaussian.centre == prior
 
 
+def test_assertions(
+        source_gaussian,
+        target_gaussian
+):
+    target_gaussian.add_assertion(
+        target_gaussian.centre <= target_gaussian.intensity
+    )
+
+    with pytest.raises(AssertionError):
+        target_gaussian.take_attributes(
+            source_gaussian
+        )
+
+
+def test_assertions_collection(
+        source_gaussian,
+        target_gaussian
+):
+    target_gaussian.add_assertion(
+        target_gaussian.centre <= target_gaussian.intensity
+    )
+
+    target_collection = af.Collection(
+        gaussian=target_gaussian
+    )
+    source_collection = af.Collection(
+        gaussian=source_gaussian
+    )
+
+    with pytest.raises(AssertionError):
+        target_collection.take_attributes(
+            source_collection
+        )
+
+
 def test_in_collection(
         source_gaussian,
         target_gaussian,

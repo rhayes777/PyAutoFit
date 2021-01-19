@@ -3,19 +3,16 @@
 HowToFit Lectures
 =================
 
-To build a **PyAutoFit** project, the best starting point is the **HowToFit** lecture series, which are found on
-the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_.
+To learn how to use **PyAutoFit**, the best starting point is the **HowToFit** lecture series, which are found on
+the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ and at our `binder <>`..
 
-The lectures are provided as ``Jupyter notebooks``, and they can be browsed on this readthedocs. We recommend
-you do them on your computer after installing **PyAutoFit** and downloading the notebooks.
+The lectures are provided as *Jupyter notebooks* and currently consist of 2 chapters (more chapters are planned in
+the future):
 
-The lectures consist of 2 chapter (more chapters are planned in the future):
+**Introduction**: How to perform model-fitting with **PyAutoFit** and analyse the results using the ``Aggregator``.
 
-**Introduction**: How to write a **PyAutoFit** project and use the ``phase`` API to exploit **PyAutoFits**'s
-advanced modeling features.
-
-**Results**: How results are output from a ``NonLinearSearch`` in **PyAutoFit** and integrating the ``Aggregator``
-into your project.
+**Phase API**: How to write a software project using the **PyAutoFit** phase API which fully exploits **PyAutoFit**'s
+features for managing model-fitting.
 
 Config File Path
 ----------------
@@ -28,8 +25,8 @@ fix this.
 Jupyter Notebooks
 -----------------
 
-The tutorials are supplied as ``Juypter Notebooks``, which come with a ``.ipynb`` suffix. For those new to
-Python, ``Juypter Notebooks`` are a different way to write, view and use Python code. Compared to the
+The tutorials are supplied as *Jupyter notebooks*, which come with a ``.ipynb`` suffix. For those new to
+Python, *Jupyter notebooks* are a different way to write, view and use Python code. Compared to the
 traditional Python scripts, they allow:
 
 - Small blocks of code to be viewed and run at a time
@@ -37,7 +34,7 @@ traditional Python scripts, they allow:
 - Text script to appear between the blocks of code.
 
 This makes them an ideal way for us to present the HowToFit lecture series, therefore I recommend you get
-yourself a Juypter notebook viewer (https://jupyter.org/) if you havent done so already.
+yourself a Jupyter notebook viewer (https://jupyter.org/) if you havent done so already.
 
 If you *really* want to use Python scripts, all tutorials are supplied a ``.py`` python files in the ``scripts``
 folder of each chapter.

@@ -6,19 +6,38 @@ to a diverse range of problems across academia and industry. Packages such as
 `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_ and
 `STAN <https://github.com/stan-dev/stan>`_ offer general-purpose frameworks where users can specify a generative
 model and fit it to data using a variety of non-linear fitting techniques. Each package is specialized to problems
-of a certain nature, with many focused on problems like generalized linear modeling or determining the
-distribution(s) from which the data was drawn. For these problems the *model* is typically composed of linear equations
-which are easily expressed syntactically, such that the PPL API offers an expressive way to define the *model* and
-extensions can be implemented in an intuitive and straightforward way.
+of a certain nature, for example generalized linear models. In these packages the *model* is composed of linear
+equations which are easily expressed syntactically, such that the interface of each PPL offers an expressive way to
+define the *model* and extensions can be implemented in an intuitive and straightforward way.
 
 Why PyAutoFit?
 ==============
 
 **PyAutoFit** is a PPL whose core design is providing a direct interface with the model, data, fitting procedure and 
-results, allowing it to provide more complete management of the *model-fitting* task than other PPLs and making it 
-suited to longer term software projects. Model components are written as Python classes, allowing **PyAutoFit** to 
-define the *model* and associated *parameters* in an expressive way that is tied to the modeling software's API. Here is
-a simple example of how a *model* representing a 1D Gaussian is written:
+results, providing a more complete management of the *model-fitting* than other PPLs. **PyAutoFit** is particularly
+suited too:
+
+- **Big Data Projects**: All **PyAutoFit** model-fitting results are written as a database so they can
+  easily be loaded in a Jupyter notebook after model-fitting is complete for analysis and inspection.
+- **High Performance Computing Projects**: **PyAutoFit** has deidicated functionality for scaling up model fitting
+  to HPC architectures.
+- **Long term software development projects**: **PyAutoFit** includes many tools for managing model composition,
+  fitting and outputting results that streamline development.
+
+**PyAutoFit** also support many advanced statistic methods, such as *transdimensional modeling*,
+*advanced model comparison* and *advanced grid-searches*. Checkout the 'advanced features' tab of the readthedocs
+for more information
+
+How does PyAutoFit Work?
+========================
+
+You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
+This allows you to run the code that is described below.
+
+Model components are written as Python classes, allowing **PyAutoFit** to define the *model* and
+associated *parameters* in an expressive way that is tied to the modeling software's API. Here is a simple example of
+how a *model* representing a 1D Gaussian is written:
 
 .. code-block:: python
 
@@ -47,10 +66,12 @@ a simple example of how a *model* representing a 1D Gaussian is written:
             return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
                     np.exp(-0.5 * transformed_xvalues / self.sigma)
 
-A *model* fit then only requires that a **PyAutoFit** ``Analysis`` class is writen, which combines the data, *model* and
+A *model* fit then only requires that a **PyAutoFit** ``Analysis`` class is written, which combines the data, model and
 likelihood function and defines how the *model-fit* is performed using a `NonLinearSearch`
 (e.g. `dynesty <https://github.com/joshspeagle/dynesty>`_, `emcee <https://github.com/dfm/emcee>`_
-or `PySwarms <https://pyswarms.readthedocs.io/en/latest/>`_). Lets take a look at an example ``Analysis`` class:
+or `PySwarms <https://pyswarms.readthedocs.io/en/latest/>`_).
+
+Lets take a look at an example ``Analysis`` class:
 
 .. code-block:: python
 
@@ -87,11 +108,11 @@ or `PySwarms <https://pyswarms.readthedocs.io/en/latest/>`_). Lets take a look a
 
             return log_likelihood
 
-The ``Analysis`` class provides a *model* specific interface between **PyAutoFit** and the modeling software, allowing
+The ``Analysis`` class provides a model specific interface between **PyAutoFit** and the modeling software, allowing
 it to handle the 'heavy lifting' that comes with writing *model-fitting* software. This includes interfacing with the
-non-linear search, outputting results in a structured path format and model-specific visualization during and 
-after the non-linear search. Performing a fit with a non-linear search, for example ``emcee``, is performed as
-follows:
+non-linear search, model-specific visualization during and outputting results in a database.
+
+Performing a fit with a non-linear search, for example ``emcee``, is performed as follows:
 
 .. code-block:: python
 
@@ -103,13 +124,6 @@ follows:
 
     result = emcee.fit(model=model, analysis=analysis)
 
-
-The results are output in a database structure with metadata that allows the ``Aggregator`` tool to load results
-post-analysis via a ``Python`` script or ``Jupyter notebook``. This includes methods for summarizing the results of
-every fit, filtering results to inspect subsets of *model* fits and visualizing results. Results are loaded
-as ``Python`` generators, ensuring the ``Aggregator`` can be used to interpret large result datasets in a memory
-efficient way. **PyAutoFit** is therefore suited to 'big data' problems where independent fits to large homogeneous
-data-sets using an identical *model-fitting* procedure are performed.
 
 Model Abstraction and Composition
 =================================
@@ -180,8 +194,8 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    :hidden:
 
    howtofit/howtofit
-   howtofit/chapter_1_introduction/index
-   howtofit/chapter_phase_api/index
+   howtofit/chapter_1_introduction
+   howtofit/chapter_phase_api
 
 .. toctree::
    :caption: API Reference:

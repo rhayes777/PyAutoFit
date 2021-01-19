@@ -1,9 +1,10 @@
+from autoconf import conf
 from autofit import exc
 
 from autofit.non_linear.log import logger
 
 import configparser
-
+import numpy as np
 
 class Initializer:
     def __init__(self, lower_limit, upper_limit):
@@ -46,7 +47,8 @@ class Initializer:
             )
 
     def initial_samples_from_model(self, total_points, model, fitness_function):
-        """Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
+        """
+        Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
         distribution between the ball_lower_limit and ball_upper_limit values.
 
         Parameters
@@ -57,6 +59,9 @@ class Initializer:
             An object that represents possible instances of some model with a given dimensionality which is the number
             of free dimensions of the model.
         """
+
+        if conf.instance["general"]["test"]["test_mode"]:
+            return self.initial_samples_in_test_mode(total_points=total_points, model=model)
 
         logger.info("Generating initial samples of model, which are subject to prior limits and other constraints.")
 
@@ -77,6 +82,10 @@ class Initializer:
                 figure_of_merit = fitness_function.figure_of_merit_from_parameters(
                     parameters=parameters
                 )
+
+                if np.isnan(figure_of_merit):
+                    raise exc.FitException
+
                 initial_unit_parameters.append(unit_parameters)
                 initial_parameters.append(parameters)
                 initial_figures_of_merit.append(figure_of_merit)
@@ -86,6 +95,43 @@ class Initializer:
 
         return initial_unit_parameters, initial_parameters, initial_figures_of_merit
 
+    def initial_samples_in_test_mode(self, total_points, model):
+        """
+        Generate the initial points of the non-linear search in test mode. Like normal, test model draws points, by
+        randomly drawing unit values from a uniform distribution between the ball_lower_limit and ball_upper_limit
+        values.
+
+        However, the log likelihood function is bypassed and all likelihoods are returned with a value -1.0e99. This
+        is so that integration testing of large-scale model-fitting projects can be performed efficiently by bypassing
+        sampling of points using the `log_likelihood_function`.
+
+        Parameters
+        ----------
+        total_points : int
+            The number of points in non-linear paramemter space which initial points are created for.
+        model : ModelMapper
+            An object that represents possible instances of some model with a given dimensionality which is the number
+            of free dimensions of the model.
+        """
+
+        initial_unit_parameters = []
+        initial_parameters = []
+        initial_figures_of_merit = []
+
+        point_index = 0
+
+        while point_index < total_points:
+
+            unit_parameters = model.random_unit_vector_within_limits(
+                lower_limit=self.lower_limit, upper_limit=self.upper_limit
+            )
+            parameters = model.vector_from_unit_vector(unit_vector=unit_parameters)
+            initial_unit_parameters.append(unit_parameters)
+            initial_parameters.append(parameters)
+            initial_figures_of_merit.append(-1.0e99)
+            point_index += 1
+
+        return initial_unit_parameters, initial_parameters, initial_figures_of_merit
 
 class InitializerPrior(Initializer):
     def __init__(self):

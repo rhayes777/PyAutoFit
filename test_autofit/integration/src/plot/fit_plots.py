@@ -31,7 +31,7 @@ def noise_map(fit, output_path=None, output_filename=None, output_format="show")
     """
     line_plots.line(
         xvalues=fit.xvalues,
-        line=fit.noise_map,
+        line=fit.figure_noise_map,
         ylabel="Noise Map",
         output_path=output_path,
         output_filename=output_filename,
@@ -51,7 +51,7 @@ def signal_to_noise_map(
     """
     line_plots.line(
         xvalues=fit.xvalues,
-        line=fit.signal_to_noise_map,
+        line=fit.figure_signal_to_noise_map,
         ylabel="Signal-To-Noise Map",
         output_path=output_path,
         output_filename=output_filename,
@@ -87,7 +87,7 @@ def residual_map(fit, output_path=None, output_filename=None, output_format="sho
     """
     line_plots.line(
         xvalues=fit.xvalues,
-        line=fit.residual_map,
+        line=fit.figure_residual_map,
         ylabel="Residual Map",
         output_path=output_path,
         output_filename=output_filename,
@@ -107,7 +107,7 @@ def normalized_residual_map(
     """
     line_plots.line(
         xvalues=fit.xvalues,
-        line=fit.normalized_residual_map,
+        line=fit.figure_normalized_residual_map,
         ylabel="Normalized Residual Map",
         output_path=output_path,
         output_filename=output_filename,
@@ -125,7 +125,7 @@ def chi_squared_map(fit, output_path=None, output_filename=None, output_format="
     """
     line_plots.line(
         xvalues=fit.xvalues,
-        line=fit.chi_squared_map,
+        line=fit.figure_chi_squared_map,
         ylabel="Chi-Squared Map",
         output_path=output_path,
         output_filename=output_filename,

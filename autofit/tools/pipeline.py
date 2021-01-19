@@ -1,5 +1,5 @@
 import logging
-
+import copy
 from autofit import exc
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,10 @@ class Pipeline:
         """
         self.pipeline_name = pipeline_name
         self.path_prefix = path_prefix
-        self.results = results
+        if results is not None:
+            self.results = results.copy()
+        else:
+            self.results = None
         self.phases = phases
         self.pipeline_tag = None
 
