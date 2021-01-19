@@ -112,5 +112,5 @@ run the command we showed above:
 
 If you'd like to see the ``Aggregator`` in action, checkout the
 `aggregator examples <https://github.com/Jammy2211/autofit_workspace/tree/master/examples/aggregator>`_ on the
-``autofit_workspace``. We detail further how it works in chapter 2 of
+``autofit_workspace``. We detail further how it works in tutoaisl 7-11 of chapter 1 of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.
