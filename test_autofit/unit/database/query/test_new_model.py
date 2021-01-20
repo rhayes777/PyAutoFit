@@ -1,9 +1,33 @@
 from autofit.database import query_model as q
 
 
+class TestCombination:
+    def test_simple(self):
+        less_than = q.V(
+            "<", 1
+        )
+        greater_than = q.V(
+            ">", 0
+        )
+
+        assert q.Q(
+            "a",
+            less_than
+        ) & q.Q(
+            "a",
+            greater_than
+        ) == q.Q(
+            "a",
+            q.And(
+                less_than,
+                greater_than
+            )
+        )
+
+
 class TestString:
     def test_named_query(self):
-        query = q.NamedQuery(
+        query = q.Q(
             "a"
         )
 
@@ -14,9 +38,9 @@ class TestString:
         )
 
     def test_with_value(self):
-        query = q.NamedQuery(
+        query = q.Q(
             "a",
-            q.ValueCondition(
+            q.V(
                 "=",
                 1
             )
