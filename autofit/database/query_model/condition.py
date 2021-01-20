@@ -39,6 +39,12 @@ class AbstractCondition(ABC):
             other
         )
 
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
 
 class ValueCondition(AbstractCondition):
     def __init__(self, symbol, value):
@@ -94,6 +100,17 @@ class And(AbstractCondition):
 
     def __bool__(self):
         return bool(self.condition_1) and bool(self.condition_2)
+
+    def __new__(cls, condition_1, condition_2):
+        if condition_1 == condition_2:
+            return condition_1
+        if condition_1 is None:
+            return condition_2
+        if condition_2 is None:
+            return condition_1
+        if condition_1 is None and condition_2 is None:
+            return None
+        return object.__new__(And)
 
     @property
     def tables(self):
