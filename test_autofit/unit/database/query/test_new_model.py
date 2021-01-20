@@ -1,15 +1,32 @@
+import pytest
+
 from autofit.database import query_model as q
 
 
-class TestCombination:
-    def test_simple(self):
-        less_than = q.V(
-            "<", 1
-        )
-        greater_than = q.V(
-            ">", 0
-        )
+@pytest.fixture(
+    name="less_than"
+)
+def make_less_than():
+    return q.V(
+        "<", 1
+    )
 
+
+@pytest.fixture(
+    name="greater_than"
+)
+def make_greater_than():
+    return q.V(
+        ">", 0
+    )
+
+
+class TestCombination:
+    def test_simple(
+            self,
+            less_than,
+            greater_than
+    ):
         assert q.Q(
             "a",
             less_than
@@ -23,6 +40,27 @@ class TestCombination:
                 greater_than
             )
         )
+
+    def test_second_level(
+            self,
+            less_than,
+            greater_than
+    ):
+        first = q.Q("a", less_than)
+        second = q.Q(
+            'a',
+            q.Q('b', greater_than)
+        )
+
+        combined = q.Q(
+            "a",
+            q.And(
+                less_than,
+                q.Q('b', greater_than)
+            )
+        )
+
+        assert first & second == combined
 
 
 class TestString:

@@ -1,7 +1,7 @@
-from autofit.database.query_model.condition import NameCondition, And
+from autofit.database.query_model.condition import NameCondition, And, AbstractCondition
 
 
-class NamedQuery:
+class NamedQuery(AbstractCondition):
     def __init__(
             self,
             name,
@@ -29,7 +29,11 @@ class NamedQuery:
 
         if self.condition is not None:
             condition &= self.condition
-        return f"SELECT parent_id FROM {condition.tables_string} WHERE {self.condition}"
+        return f"SELECT parent_id FROM {condition.tables_string} WHERE {condition}"
 
     def __eq__(self, other):
         return str(self) == str(other)
+
+    @property
+    def tables(self):
+        return self.condition.tables
