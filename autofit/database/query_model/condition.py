@@ -98,20 +98,6 @@ class And(AbstractCondition):
         self.condition_1 = condition_1
         self.condition_2 = condition_2
 
-    def __bool__(self):
-        return bool(self.condition_1) and bool(self.condition_2)
-
-    def __new__(cls, condition_1, condition_2):
-        if condition_1 == condition_2:
-            return condition_1
-        if condition_1 is None:
-            return condition_2
-        if condition_2 is None:
-            return condition_1
-        if condition_1 is None and condition_2 is None:
-            return None
-        return object.__new__(And)
-
     @property
     def tables(self):
         tables = set()
@@ -123,12 +109,10 @@ class And(AbstractCondition):
                 tables.update(
                     condition.tables
                 )
-        return tables
+        return {
+            *self.condition_1.tables,
+            *self.condition_2.tables
+        }
 
     def __str__(self):
-        if self.condition_1 and self.condition_2:
-            return f"{self.condition_1} AND {self.condition_2}"
-        if self.condition_1:
-            return str(self.condition_1)
-        if self.condition_2:
-            return str(self.condition_2)
+        return f"{self.condition_1} AND {self.condition_2}"
