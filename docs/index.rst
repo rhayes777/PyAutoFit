@@ -1,39 +1,23 @@
 Probabilistic Programming
 =========================
 
-Probabilistic programming languages (PPLs) have enabled contemporary statistical inference techniques to be applied
-to a diverse range of problems across academia and industry. Packages such as
-`PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_ and
-`STAN <https://github.com/stan-dev/stan>`_ offer general-purpose frameworks where users can specify a generative
-model and fit it to data using a variety of non-linear fitting techniques. Each package is specialized to problems
-of a certain nature, for example generalized linear models. In these packages the *model* is composed of linear
-equations which are easily expressed syntactically, such that the interface of each PPL offers an expressive way to
-define the *model* and extensions can be implemented in an intuitive and straightforward way.
+A probabilistic programming language provides a framework that allows users to easily specify a probabilistic
+model and perform inference automatically. **PyAutoFit** is a Python-based probabilistic programming language which:
 
-Why PyAutoFit?
-==============
+- Makes it simple to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
 
-**PyAutoFit** is a PPL whose core design is providing a direct interface with the model, data, fitting procedure and 
-results, providing a more complete management of the *model-fitting* than other PPLs. **PyAutoFit** is particularly
-suited too:
+- Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, visualization and parameter inference.
 
-- **Big Data Projects**: All **PyAutoFit** model-fitting results are written as a database so they can
-  easily be loaded in a Jupyter notebook after model-fitting is complete for analysis and inspection.
-- **High Performance Computing Projects**: **PyAutoFit** has deidicated functionality for scaling up model fitting
-  to HPC architectures.
-- **Long term software development projects**: **PyAutoFit** includes many tools for managing model composition,
-  fitting and outputting results that streamline development.
+- Is built for *big-data* analysis, whereby results are output as a database which can be loaded after model-fitting is complete.
 
-**PyAutoFit** also support many advanced statistic methods, such as *transdimensional modeling*,
-*advanced model comparison* and *advanced grid-searches*. Checkout the 'advanced features' tab of the readthedocs
-for more information
-
-How does PyAutoFit Work?
-========================
+**PyAutoFit** supports advanced statistical methods such as *transdimensional modeling*, *model comparison* and *massively parallel grid-searches*.
 
 You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
 Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
 This allows you to run the code that is described below.
+
+How does PyAutoFit Work?
+========================
 
 Model components are written as Python classes, allowing **PyAutoFit** to define the *model* and
 associated *parameters* in an expressive way that is tied to the modeling software's API. Here is a simple example of
@@ -133,9 +117,9 @@ physical system. For example, our child project `PyAutoLens <https://github.com/
 *model components* represent the light and mass of galaxies. For these problems the likelihood function is typically a
 sequence of numerical processes (e.g. convolutions, Fourier transforms, linear algebra) and extensions to the *model* 
 often requires the addition of new *model components* in a way that is non-trivially included in the fitting process
-and likelihood function. Existing PPLs have tools for these problems (e.g. `black-box' likelihood functions in PyMC3),
-however these solutions decouple *model composition* from the data and fitting procedure, making the *model* 
-less expressive, restricting *model customization* and reducing flexibility in how the *model-fit* is performed.
+and likelihood function. Existing PPLs have tools for these problems, however they decouple *model composition* from the
+data and fitting procedure, making the *model* less expressive, restricting *model customization* and reducing
+flexibility in how the *model-fit* is performed.
 
 By writing *model components* as ``Python`` classes, the *model* and its associated *parameters* are defined in an
 expressive way that is tied to the modeling software’s API. *Model composition* with **PyAutoFit** allows complex
