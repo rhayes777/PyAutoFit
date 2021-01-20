@@ -11,13 +11,14 @@ class NamedQuery(AbstractCondition):
         self.condition = condition
 
     def __and__(self, other):
-        return NamedQuery(
-            self.name,
-            And(
-                self.condition,
-                other.condition
+        if self.name == other.name:
+            return NamedQuery(
+                self.name,
+                And(
+                    self.condition,
+                    other.condition
+                )
             )
-        )
 
     def __repr__(self):
         return str(self)
@@ -28,7 +29,7 @@ class NamedQuery(AbstractCondition):
             self.name
         )
 
-        if self.condition is not None:
+        if self.condition:
             condition &= self.condition
         return f"SELECT parent_id FROM {condition.tables_string} WHERE {condition}"
 

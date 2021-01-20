@@ -92,12 +92,26 @@ class And(AbstractCondition):
         self.condition_1 = condition_1
         self.condition_2 = condition_2
 
+    def __bool__(self):
+        return bool(self.condition_1) and bool(self.condition_2)
+
     @property
     def tables(self):
-        return {
-            *self.condition_1.tables,
-            *self.condition_2.tables
-        }
+        tables = set()
+        for condition in (
+                self.condition_1,
+                self.condition_2
+        ):
+            if condition:
+                tables.update(
+                    condition.tables
+                )
+        return tables
 
     def __str__(self):
-        return f"{self.condition_1} AND {self.condition_2}"
+        if self.condition_1 and self.condition_2:
+            return f"{self.condition_1} AND {self.condition_2}"
+        if self.condition_1:
+            return str(self.condition_1)
+        if self.condition_2:
+            return str(self.condition_2)
