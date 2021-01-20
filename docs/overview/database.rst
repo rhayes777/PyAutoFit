@@ -1,7 +1,7 @@
-.. _aggregator:
+.. _database:
 
-Aggregator
-----------
+Database
+--------
 
 In the previous example, we discussed the ``Result``'s object, which contains information on the
 ``NonLinearSearch`` ``Samples``, the maximum likelihood model and parameter estimates and errors.
@@ -10,7 +10,8 @@ the model to many datasets? How do you analyse, interpret and combine the result
 
 Lets extend our example of fitting a 1D ``Gaussian`` and pretend we've fitted 100 independent datasets,
 such that the results of every ``NonLinearSearch`` are in the structured paths created by **PyAutoFit**
-on our hard-disk. We can use the ``Aggregator`` to load the results of all 100 ``NonLinearSearch``'s:
+on our hard-disk. We can use **PyAutoFit**'s database ``Aggregator`` to load the results of all
+100 ``NonLinearSearch``'s:
 
 .. code-block:: bash
 
@@ -111,5 +112,5 @@ run the command we showed above:
 
 If you'd like to see the ``Aggregator`` in action, checkout the
 `aggregator examples <https://github.com/Jammy2211/autofit_workspace/tree/master/examples/aggregator>`_ on the
-``autofit_workspace``. We detail further how it works in chapter 2 of
+``autofit_workspace``. We detail further how it works in tutoaisl 7-11 of chapter 1 of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.
