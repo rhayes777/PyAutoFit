@@ -22,7 +22,8 @@ class NamedQuery(AbstractCondition):
     def __repr__(self):
         return str(self)
 
-    def __str__(self):
+    @property
+    def query(self):
         condition = NameCondition(
             self.name
         )
@@ -31,8 +32,14 @@ class NamedQuery(AbstractCondition):
             condition &= self.condition
         return f"SELECT parent_id FROM {condition.tables_string} WHERE {condition}"
 
+    def __str__(self):
+        return f"id IN ({self.query})"
+
     def __eq__(self, other):
-        return str(self) == str(other)
+        try:
+            return str(other) == str(self) or other == self.query or other.query == self.query
+        except AttributeError:
+            return False
 
     @property
     def tables(self):
