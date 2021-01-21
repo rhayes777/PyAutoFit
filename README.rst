@@ -7,7 +7,7 @@ PyAutoFit
 
 - Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, model-specific visualization and posterior analysis.
 
-- Is built for *big-data* analysis, whereby results are output as a relational database which can be loaded after model-fitting is complete.
+- Is built for *big-data* analysis, whereby results are output as a database which can be loaded after model-fitting is complete.
 
 **PyAutoFit** supports advanced statistical methods such as *transdimensional modeling*, *model comparison* and *massively parallel grid-searches*.
 
@@ -21,6 +21,25 @@ On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installati
 of **PyAutoFit**'s features, examples scripts, and
 the `HowToFit Jupyter notebook tutorials <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_ which
 introduces new users to **PyAutoFit**.
+
+Why PyAutoFit?
+--------------
+
+**PyAutoFit** is developed by Astronomers for fitting large imaging datasets of galaxies. We found that existing
+probabilistic programming languages (e.g `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_,
+`STAN <https://github.com/stan-dev/stan>`_) were not suited to the type of model fitting problems Astronomers faced,
+for example:
+
+- Fitting large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
+
+- Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
+
+- Fitting many different models to the same dataset with tools that streamline model comparison.
+
+- Long-term software development projects which benefit from the PPL providing a more complete management of every aspect of the modeling.
+
+If these sounds like the sort of challenges you're used to facing than **PyAutoFit** might be the probabilistic programming
+language you've been looking for!
 
 API Overview
 ------------
