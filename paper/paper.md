@@ -45,14 +45,14 @@ to a diverse range of problems across academia and industry. Packages such as Py
 Pyro [@Bingham2019] and STAN [@Carpenter2017] offer general-purpose frameworks where users can specify a generative 
 model and fit it to data using a variety of non-linear fitting techniques. Each package is specialized to problems 
 of a certain nature, with many focused on problems like generalized linear modeling or determining the 
-distribution(s) from which the data was drawn. For these problems the model is typically composed of linear equations 
-which are easily expressed syntactically, such that the PPL API offers an expressive way to define the model and 
-extensions can be implemented in an intuitive and straightforward way.
+distribution(s) from which the data was drawn. For these problems the model is typically composed of the equations and
+distributions that are fitted to the data, which are easily expressed syntactically such that the PPL API offers an 
+expressive way to define the model and extensions can be implemented in an intuitive and straightforward way.
 
 # Software Description
 
 `PyAutoFit` is a PPL whose core design is providing a direct interface with the model, data, fitting procedure and 
-results, allowing it to provide more complete management of the model-fitting task than other PPLs and making it 
+results, allowing it to provide comprehensive management of many different aspects of model-fitting and making it 
 suited to longer term software projects. Model components are written as Python classes, allowing `PyAutoFit` to 
 define the model and associated parameters in an expressive way that is tied to the modeling software's API. A 
 model fit then only requires that a `PyAutoFit` `Analysis` class is writen, which combines the data, model and 
