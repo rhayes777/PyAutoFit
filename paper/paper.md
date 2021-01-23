@@ -12,9 +12,14 @@ authors:
     affiliation: 1
   - name: Richard G. Hayes
     affiliation: 1
+  - name: Matthew Griffiths
+    orcid: 0000-0002-2553-2447
+    affiliation: 2 
 affiliations:
   - name: Institute for Computational Cosmology, Stockton Rd, Durham, United Kingdom, DH1 3LE
     index: 1
+  - name: ConcR Ltd, London, UK
+    index: 2    
 date: 17 July 2020
 codeRepository: https://github.com/rhayes777/PyAutoFit
 license: MIT
