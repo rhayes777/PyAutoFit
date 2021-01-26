@@ -1,7 +1,8 @@
 PyAutoFit
 =========
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD)
+.. |license| image:: https://mybinder.org/badge_logo.svg    :alt: GitHub license
+   :target: https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
