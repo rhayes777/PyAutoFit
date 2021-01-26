@@ -1,5 +1,5 @@
-PyAutoFit
-=========
+PyAutoFit: Classy Probabilistic Programming
+===========================================
 
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD
