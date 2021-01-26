@@ -187,20 +187,10 @@ and one global parameter.
 
 Graphical models are an in development feature and the following functionality is currently in development:
 
- - Searches: Currently a graphical model must be fitted using the `LaplaceOptimiser` class. They therefore do not
- support `NonLinearSearch`'s like `Emcee` and `Dynesty` nor do they support results output, visualization or database
- outputs. Graphical models will soon fully support all `NonLinearSearch`'s objects and therefore also outputs,
- visualization and database features.
+- Searches: Currently a graphical model must be fitted using the `LaplaceOptimiser` class. They therefore do not support `NonLinearSearch`'s like `Emcee` and `Dynesty` nor do they support results output, visualization or database outputs. Graphical models will soon fully support all `NonLinearSearch`'s objects and therefore also outputs, visualization and database features.
 
- - Message passing: The graphical model above fitted all 7 parameters simultaneously. If the dataset was large the
- number of parameters would increase drastically, making it inefficient or impossible to fit the model (for example,
- with 1000 `Gaussian`'s our model would have had 2001 parameters!). Graphical models in **PyAutoFit** support the
- message passing framework below, which allows one to fit the local model to every dataset individually and pass
- messages 'up and down' the graph to infer the global parameters efficiently.
+- Message passing: The graphical model above fitted all 7 parameters simultaneously. If the dataset was large the number of parameters would increase drastically, making it inefficient or impossible to fit the model (for example, with 1000 `Gaussian`'s our model would have had 2001 parameters!). Graphical models in **PyAutoFit** support the message passing framework below, which allows one to fit the local model to every dataset individually and pass messages 'up and down' the graph to infer the global parameters efficiently.
 
  https://arxiv.org/pdf/1412.4869.pdf
 
- - More advanced models: The model above fitted a single global parameter which was shared across the dataset. The
- framework will allow one to fit for the distributions from which parameters are draw or for trends between parameters.
- The graphical model framework itself can already do this, we simply need to write the **HowToFit** tutorials that will
- demonstrate how!
+- More advanced models: The model above fitted a single global parameter which was shared across the dataset. The framework will allow one to fit for the distributions from which parameters are draw or for trends between parameters. The graphical model framework itself can already do this, we simply need to write the **HowToFit** tutorials that will demonstrate how!

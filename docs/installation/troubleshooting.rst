@@ -12,7 +12,7 @@ that, when you run an example script, you should run it from the ``autofit_works
 .. code-block:: bash
 
     cd path/to/autofit_workspace (if you are not already in the autofit_workspace).
-    python3 examples/model/beginner/mass_total__source_parametric.py
+    python3 scripts/overview/simple/fit.py
 
 The reasons for this are so that **PyAutoFit** can:
 

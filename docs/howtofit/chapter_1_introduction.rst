@@ -6,7 +6,7 @@ Chapter 1: Introduction
 In chapter 1, we introduce you to the **PyAutoFit** and describe how to set up your own model, fit it to data via
 a non-linear search and inspect and interpret the results.
 
-You can start the tutorials right now by going to `our binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91>`
+You can start the tutorials right now by going to `our binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91>`_
 and navigating to the folder `notebooks/howtofit/chapter_1_introduction`. They are also on the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_.
 
 The chapter contains the following tutorials:

@@ -169,7 +169,7 @@ json config
     width_modifier
         When the results of a phase are linked to a subsequent phase to set up the priors of its ``NonLinearSearch``,
         this entry describes how the ``Prior`` is passed. For a full description of prior passing, checkout the examples
-        in ``autofit_workspace/examples/complex/linking``.
+        in ``autofit_workspace/notebooks/features/search_chaining``.
     gaussian_limits
         When the results of a phase are linked to a subsequent phase, they are passed using a ``GaussianPrior``. The
         ``gaussian_limits`` set the physical lower and upper limits of this ``GaussianPrior``, such that parameter samples

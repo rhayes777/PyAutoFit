@@ -184,6 +184,6 @@ This completes our basic introduction to the **PyAutoFit** API. Next, we'll cove
 models using multiple *model components* and *customize* the model parameterization.
 
 If you'd like to perform the fit shown in this script, checkout the
-`simple examples <https://github.com/Jammy2211/autofit_workspace/tree/master/examples/simple>`_ on the
+`simple examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/simple>`_ on the
 ``autofit_workspace``. We also detail how **PyAutoFit** works in the first 3 tutorials of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.

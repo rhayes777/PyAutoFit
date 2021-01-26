@@ -179,6 +179,7 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/feat
 
    howtofit/howtofit
    howtofit/chapter_1_introduction
+   howtofit/chapter_graphical_models
    howtofit/chapter_phase_api
 
 .. toctree::
