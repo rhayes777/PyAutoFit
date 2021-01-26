@@ -178,23 +178,17 @@ Here are what the two most extreme simulated datasets look like, corresponding t
 We can now combine all of the objects created above and perform sensitivity mapping. The inputs to the ``Sensitivity``
 object below are:
 
-- base_instance: This is an instance of the model used to simulate every dataset that is fitted. In this example it
-contains an instance of the ``gaussian_main`` model component.
+- ``base_instance``: This is an instance of the model used to simulate every dataset that is fitted. In this example it contains an instance of the ``gaussian_main`` model component.
 
-- base_model: This is the simpler model that is fitted to every simulated dataset, which in this example is composed of
-a single ``Gaussian`` called the ``gaussian_main``.
+- ``base_model``: This is the simpler model that is fitted to every simulated dataset, which in this example is composed of a single ``Gaussian`` called the ``gaussian_main``.
 
-- perturbation_model: This is the extra model component that alongside the ``base_model`` is fitted to every simulated
-dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
+- ``perturbation_model``: This is the extra model component that alongside the ``base_model`` is fitted to every simulated dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
 
-- simulate_function: This is the function that uses the ``instance`` and many instances of the ``pertubation_model`` to
-simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
+- ``simulate_function``: This is the function that uses the ``instance`` and many instances of the ``pertubation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
 
-- step_size: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example,
-intensity has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will
-simulate and fit just 2 datasets where the intensity is 1e-4 and 1e2.
+- ``step_size``: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example, intensity has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the intensity is 1e-4 and 1e2.
 
-- number_of_cores: The number of cores over which the sensitivity mapping is performed, enabling parallel processing.
+- ``number_of_cores``: The number of cores over which the sensitivity mapping is performed, enabling parallel processing.
 
 (Note that for brevity we have omitted a couple of extra inputs in this example, which can be found by going to the
 full example script on the ``autofit_workspace``).

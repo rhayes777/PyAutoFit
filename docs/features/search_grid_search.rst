@@ -15,17 +15,11 @@ cell by setting these as the lower and upper limits of a ``UniformPrior``.
 
 The benefits of using a search grid search are:
 
- - For problems with complex and multi-model parameters spaces it can be difficult to robustly and efficiently perform
- model-fitting. If specific parameters are known to drive the multi-modality then sampling over a grid can ensure the
- parameter space of each individual model-fit is not multi-modal and therefore sampled more accurately and efficiently.
+- For problems with complex and multi-model parameters spaces it can be difficult to robustly and efficiently perform model-fitting. If specific parameters are known to drive the multi-modality then sampling over a grid can ensure the parameter space of each individual model-fit is not multi-modal and therefore sampled more accurately and efficiently.
 
- - It can provide a goodness-of-fit measure (e.g. the Bayesian evidence) of many model-fits over the grid. This can
- provide additional insight into where the model does and does not fit the data well, in a way that a standard
- non-linear search does not.
+- It can provide a goodness-of-fit measure (e.g. the Bayesian evidence) of many model-fits over the grid. This can provide additional insight into where the model does and does not fit the data well, in a way that a standard non-linear search does not.
 
- - The search grid search is embarrassingly parallel, and if sufficient computing facilities are available one can
- perform model-fitting faster in real-time than a single non-linear search. The **PyAutoFit** search grid search
- includes an option for parallel model-fitting via the Python ``multiprocessing`` module.
+- The search grid search is embarrassingly parallel, and if sufficient computing facilities are available one can perform model-fitting faster in real-time than a single non-linear search. The **PyAutoFit** search grid search includes an option for parallel model-fitting via the Python ``multiprocessing`` module.
 
 In this example we will demonstrate the search grid search feature, again using the example of fitting 1D Gaussian's
 in noisy data. This 1D data includes a small feature to the right of the central ``Gaussian``, a second ``Gaussian``
@@ -77,13 +71,12 @@ Lets now perform the search grid search using the ``SearchGridSearch`` object:
     )
 
 
-To the ``grid_search`` we specified two settings:
+We specified two new inputs to the ``SearchGridSearch``:
 
-``number_of_steps``: The number of steps in the grid search that are performed which is set to 5 below.
-
-Because the prior on the parameter ``centre`` is a ``UniformPrior`` from 0.0 -> 100.0, this means the first grid search
-will set the prior on the centre to be a ``UniformPrior`` from 0.0 -> 20.0. The second will run from 20.0 -> 40.0,
-the third 40.0 -> 60.0, and so on.
+``number_of_steps``: The number of steps in the grid search that are performed which is set to 5 below. Because the
+prior on the parameter ``centre`` is a ``UniformPrior`` from 0.0 -> 100.0, this means the first grid search will
+set the prior on the centre to be a ``UniformPrior`` from 0.0 -> 20.0. The second will run from 20.0 -> 40.0, the
+third 40.0 -> 60.0, and so on.
 
 ``parallel``: If ``True``, each grid search is performed in parallel on your laptop across multiple CPUs.
 

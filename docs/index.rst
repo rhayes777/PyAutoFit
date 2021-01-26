@@ -196,4 +196,5 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/feat
    features/search_grid_search
    features/search_chaining
    features/sensitivity_mapping
+   features/graphical_models
    features/phase
