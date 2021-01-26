@@ -18,8 +18,8 @@ def make_sensitivity(perturbation_model):
     instance = af.ModelInstance()
     instance.gaussian = Gaussian()
     return s.Sensitivity(
-        instance=instance,
-        model=af.Collection(
+        base_instance=instance,
+        base_model=af.Collection(
             gaussian=af.PriorModel(Gaussian)
         ),
         perturbation_model=perturbation_model,

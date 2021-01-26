@@ -185,9 +185,10 @@ class GridSearchResult:
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
 
+
 class GridSearch:
     # TODO: this should be using paths
-    def __init__(self, paths, search, number_of_steps=4, parallel=False):
+    def __init__(self, search, paths=None, number_of_steps=4, parallel=False):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -200,7 +201,11 @@ class GridSearch:
         search: class
             The class of the search that is run at each step
         """
-        self.paths = paths
+
+        if paths is None:
+            self.paths = search.paths
+        else:
+            self.paths = paths
 
         self.parallel = parallel
         self.number_of_cores = conf.instance["non_linear"]["GridSearch"]["general"]["number_of_cores"]
@@ -522,7 +527,7 @@ class Job(AbstractJob):
 
 def grid(fitness_function, no_dimensions, step_size):
     """
-    Grid search using a fitness function over a given number of dimensions and a given step size between inclusive
+    Grid2D search using a fitness function over a given number of dimensions and a given step size between inclusive
     limits of 0 and 1.
 
     Parameters

@@ -121,8 +121,8 @@ class SensitivityResult:
 class Sensitivity:
     def __init__(
             self,
-            instance,
-            model: AbstractPriorModel,
+            base_instance,
+            base_model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
             simulate_function: Callable,
             analysis_class: Type[Analysis],
@@ -144,10 +144,10 @@ class Sensitivity:
 
         Parameters
         ----------
-        instance
+        base_instance
             An instance of a model to which perturbations are applied prior to
             images being generated
-        model
+        base_model
             A model that fits the instance well
         search
             A NonLinear search class which is copied and used to evaluate fitness
@@ -165,8 +165,8 @@ class Sensitivity:
         number_of_cores
             How many cores does this computer have? Minimum 2.
         """
-        self.instance = instance
-        self.model = model
+        self.instance = base_instance
+        self.model = base_model
 
         self.search = search
         self.analysis_class = analysis_class

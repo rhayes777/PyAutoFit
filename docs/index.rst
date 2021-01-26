@@ -135,7 +135,7 @@ To see this in action, checkout the `overview section <https://pyautofit.readthe
 of our readthedocs and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
 on how to integrate **PyAutoFit** into your modeling software. More statistically minded readers may be interested
 in **PyAutoFit**'s advanced statistical methods, such
-as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html>`_.
+as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/features/pipelines.html>`_.
 
 .. toctree::
    :caption: Overview:
@@ -146,7 +146,7 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    overview/model_complex
    overview/non_linear_search
    overview/result
-   overview/aggregator
+   overview/database
 
 .. toctree::
    :caption: Installation:
@@ -189,9 +189,11 @@ as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/adva
    api/api
 
 .. toctree::
-   :caption: Advanced:
+   :caption: Features:
    :maxdepth: 1
    :hidden:
 
-   advanced/phase
-   advanced/pipelines
+   features/search_grid_search
+   features/search_chaining
+   features/sensitivity_mapping
+   features/phase

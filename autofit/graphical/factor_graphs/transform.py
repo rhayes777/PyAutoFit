@@ -12,7 +12,7 @@ from autofit.graphical.factor_graphs import \
     AbstractNode, Variable, Value, FactorValue, JacobianValue, HessianValue
 from autofit.graphical.utils import cached_property, Axis, FlattenArrays
 
-class AbstractLinearTransform(ABC):
+class AbstractLine1DarTransform(ABC):
     @abstractmethod
     def __mul__(self, x:np.ndarray) -> np.ndarray:
         pass 
@@ -56,7 +56,7 @@ class AbstractLinearTransform(ABC):
         else:    
             return NotImplemented
 
-class IdentityTransform(AbstractLinearTransform):
+class IdentityTransform(AbstractLine1DarTransform):
     def __init__(self):
         pass
 
@@ -173,7 +173,7 @@ def _wrap_rightop(method):
 
     return rightmethod
 
-class CholeskyTransform(AbstractLinearTransform):
+class CholeskyTransform(AbstractLine1DarTransform):
     """ This performs the whitening transforms for the passed
     cholesky factor of the Hessian/inverse covariance of the system.
 
@@ -243,7 +243,7 @@ class CovarianceTransform(CholeskyTransform):
         return - np.sum(np.log(self.U.diagonal()))
 
 
-class DiagonalTransform(AbstractLinearTransform):
+class DiagonalTransform(AbstractLine1DarTransform):
     def __init__(self, scale, inv_scale=None):
         self.scale = scale
         self.inv_scale = 1/scale if inv_scale is None else scale

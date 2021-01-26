@@ -36,7 +36,7 @@ modelling (e.g. the model, data, fitting procedure, visulization, results, etc.)
 management of modeling than other PPLs. This includes composing high-dimensionality models from individual model 
 components, customizing the fitting procedure and performing data augmentation before a model-fit. Advanced features 
 include database tools for analysing large suites of modeling results and exploiting domain-specific knowledge of a 
-problem via transdimensional model-fitting pipelines. Accompanying `PyAutoFit` is 
+problem via non-linear search chaining. Accompanying `PyAutoFit` is 
 the [autofit workspace](https://github.com/Jammy2211/autofit_workspace), which includes example scripts and 
 the `HowToFit` lecture series which introduces non-experts to model-fitting and provides a guide on how to write a 
 software project using `PyAutoFit`. To get started readers should go to 
@@ -102,7 +102,7 @@ experience users may know that certain model components share minimal covariance
 model component (in parameter spaces of reduced dimensionality) can be performed before fitting them simultaneously. 
 The results of these simplified fits can then be used to initialize fits using a higher dimensionality model. 
 Breaking down a model-fit in this way 
-uses `PyAutoFit`'s [transdimensional model-fitting pipelines](https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html), 
+uses `PyAutoFit`'s [non-linear search chaining](https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html), 
 which granularize the non-linear fitting procedure into a series of linked non-linear searches. Initial model-fits 
 are followed by fits that gradually increase the model complexity, using the information gained throughout the 
 pipeline to guide each `NonLinearSearch` and thus enable accurate fitting of models of arbitrary complexity.
