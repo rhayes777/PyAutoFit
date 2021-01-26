@@ -1,7 +1,7 @@
 Probabilistic Programming
 =========================
 
-A probabilistic programming language provides a framework that allows users to easily specify a probabilistic
+Probabilistic programming languages provides a framework that allows users to easily specify a probabilistic
 model and perform inference automatically. **PyAutoFit** is a Python-based probabilistic programming language which:
 
 - Makes it simple to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
@@ -10,11 +10,28 @@ model and perform inference automatically. **PyAutoFit** is a Python-based proba
 
 - Is built for *big-data* analysis, whereby results are output as a database which can be loaded after model-fitting is complete.
 
-**PyAutoFit** supports advanced statistical methods such as *transdimensional modeling*, *model comparison* and *massively parallel grid-searches*.
+**PyAutoFit** supports advanced statistical methods such as `massively parallel non-linear search grid-searches <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_, `chaining together model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_  and `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_.
+
+Try it now
+----------
 
 You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
 Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
 This allows you to run the code that is described below.
+
+Why PyAutoFit?
+--------------
+
+**PyAutoFit** is developed by Astronomers for fitting large imaging datasets of galaxies. We found that existing
+probabilistic programming languages (e.g `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_,
+`STAN <https://github.com/stan-dev/stan>`_) were not suited to the type of model fitting problems Astronomers faced,
+for example:
+
+- Fitting large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
+
+- Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
+
+- Fitting many different models to the same dataset with tools that streamline model comparison.
 
 How does PyAutoFit Work?
 ========================
@@ -50,12 +67,8 @@ how a *model* representing a 1D Gaussian is written:
             return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
                     np.exp(-0.5 * transformed_xvalues / self.sigma)
 
-A *model* fit then only requires that a **PyAutoFit** ``Analysis`` class is written, which combines the data, model and
-likelihood function and defines how the *model-fit* is performed using a `NonLinearSearch`
-(e.g. `dynesty <https://github.com/joshspeagle/dynesty>`_, `emcee <https://github.com/dfm/emcee>`_
-or `PySwarms <https://pyswarms.readthedocs.io/en/latest/>`_).
-
-Lets take a look at an example ``Analysis`` class:
+A model-fit requires that a **PyAutoFit** ``Analysis`` class is written, which combines the data and model via
+likelihood function:
 
 .. code-block:: python
 
@@ -108,6 +121,8 @@ Performing a fit with a non-linear search, for example ``emcee``, is performed a
 
     result = emcee.fit(model=model, analysis=analysis)
 
+The ``result`` contains information on the model-fit, for example the parameter samples, maximum log likelihood
+model and marginalized probability density functions.
 
 Model Abstraction and Composition
 =================================
@@ -129,13 +144,11 @@ fixing or coupling of parameters between *model components* and removing regions
 assertions. Adding new *model components* to a **PyAutoFit** project is straightforward, whereby adding a new
 ``Python`` class means it works within the entire modeling framework. **PyAutoFit** is therefore ideal for
 problems where there is a desire to *compose*, *fit* and *compare* many similar (but slightly different) models to a
-single dataset, with the **Aggregator** including tools to facilitate this.
+single dataset, with **Database** tools available to facilitate this.
 
-To see this in action, checkout the `overview section <https://pyautofit.readthedocs.io/en/latest/overview/model_fit.html>`_
-of our readthedocs and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
-on how to integrate **PyAutoFit** into your modeling software. More statistically minded readers may be interested
-in **PyAutoFit**'s advanced statistical methods, such
-as `transdimensional pipielines <https://pyautofit.readthedocs.io/en/latest/features/pipelines.html>`_.
+The `overview section <https://pyautofit.readthedocs.io/en/latest/overview/model_fit.html>`_ gives a run-down of
+**PyAutoFit**'s core features and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
+provides new users with a more detailed introduction to **PyAutoFit**.
 
 .. toctree::
    :caption: Overview:
