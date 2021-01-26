@@ -1,6 +1,8 @@
 PyAutoFit
 =========
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD)
+
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
 - Makes it simple to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
@@ -14,8 +16,8 @@ PyAutoFit
 Getting Started
 ---------------
 
-You can try **PyAutoFit** now by following the `overview Jupyter Notebook on
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
+You can try **PyAutoFit** now by following the `introduction Jupyter Notebook on
+Binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/7586a67b726dca612404cf5fab1d77d8738f3737?filepath=introduction.ipynb>`_.
 
 On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a complete overview
 of **PyAutoFit**'s features, examples scripts, and

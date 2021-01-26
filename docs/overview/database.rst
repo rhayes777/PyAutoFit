@@ -111,6 +111,6 @@ run the command we showed above:
     agg = af.Aggregator(directory="/path/to/gaussian_x100_fits")
 
 If you'd like to see the ``Aggregator`` in action, checkout the
-`aggregator examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/database>`_ on the
+`database example <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/overview/database.ipynb>`_ on the
 ``autofit_workspace``. We detail further how it works in tutoaisl 7-11 of chapter 1 of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.
