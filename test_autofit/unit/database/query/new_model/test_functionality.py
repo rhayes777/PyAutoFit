@@ -7,3 +7,11 @@ def test_trivial():
 
 def test_second():
     assert q.Q("a") & q.Q("a", q.Q("b")) == q.Q("a", q.Q("b"))
+
+
+def test_and_commutativity():
+    a_and_b = q.And(q.Q("a"), q.Q("b"))
+    combined = a_and_b & q.Q("c")
+
+    assert combined == q.And(q.Q("a"), q.Q("b"), q.Q("c"))
+    assert len(combined.conditions) == 3

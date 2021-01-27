@@ -3,6 +3,9 @@ import pytest
 from autofit.database import query_model as q
 
 
+# Need the model with and without child Named Queries
+
+
 class TestCombination:
     def test_simple(
             self,

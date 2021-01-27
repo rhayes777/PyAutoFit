@@ -45,6 +45,12 @@ class AbstractCondition(ABC):
     def __eq__(self, other):
         return str(self) == str(other)
 
+    def __gt__(self, other):
+        return str(self) > str(other)
+
+    def __lt__(self, other):
+        return str(self) < str(other)
+
 
 class ValueCondition(AbstractCondition):
     def __init__(self, symbol, value):
@@ -92,27 +98,36 @@ class TypeCondition(AbstractCondition):
 class And(AbstractCondition):
     def __init__(
             self,
-            condition_1: AbstractCondition,
-            condition_2: AbstractCondition
+            *conditions: AbstractCondition
     ):
-        self.condition_1 = condition_1
-        self.condition_2 = condition_2
+        self.conditions = set()
+        for condition in conditions:
+            if isinstance(
+                    condition,
+                    And
+            ):
+                for sub_condition in condition:
+                    self.conditions.add(sub_condition)
+            else:
+                self.conditions.add(condition)
+
+    def __iter__(self):
+        return iter(sorted(self.conditions))
 
     @property
     def tables(self):
-        tables = set()
-        for condition in (
-                self.condition_1,
-                self.condition_2
-        ):
-            if condition:
-                tables.update(
-                    condition.tables
-                )
         return {
-            *self.condition_1.tables,
-            *self.condition_2.tables
+            table
+            for condition
+            in self.conditions
+            for table
+            in condition.tables
         }
 
     def __str__(self):
-        return f"{self.condition_1} AND {self.condition_2}"
+        return " AND ".join(map(
+            str,
+            sorted(
+                self.conditions
+            )
+        ))

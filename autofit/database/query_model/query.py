@@ -50,6 +50,9 @@ class NamedQuery(AbstractCondition):
         except AttributeError:
             return False
 
+    def __hash__(self):
+        return hash(str(self))
+
     @property
     def tables(self):
         return self.condition.tables
