@@ -6,6 +6,38 @@ def test_simple(aggregator):
     assert aggregator.centre == q.Q("centre")
 
 
+def test_and(aggregator):
+    construction = ((aggregator.centre == mock.Gaussian) & (aggregator.centre.x == 0))
+    assert construction == q.Q(
+        "centre",
+        q.And(
+            q.T(mock.Gaussian),
+            q.Q(
+                "x",
+                q.V(
+                    "=", 0
+                )
+            )
+        )
+    )
+
+
+def test_or(aggregator):
+    construction = ((aggregator.centre == mock.Gaussian) | (aggregator.centre.x == 0))
+    assert construction == q.Q(
+        "centre",
+        q.Or(
+            q.T(mock.Gaussian),
+            q.Q(
+                "x",
+                q.V(
+                    "=", 0
+                )
+            )
+        )
+    )
+
+
 def test_with_value(aggregator):
     assert (aggregator.centre == 1) == q.Q("centre", q.V("=", 1))
 

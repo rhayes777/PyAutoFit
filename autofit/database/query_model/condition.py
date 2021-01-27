@@ -6,14 +6,32 @@ from autofit.database.model import get_class_path
 
 
 class Table:
-    def __init__(self, name):
+    def __init__(self, name: str):
+        """
+        A table containing some type of object in the database.
+
+        object is parent to all other tables.
+        value contains any numeric values.
+        string_value contains any string values.
+
+        Parameters
+        ----------
+        name
+            The name of the table
+        """
         self.name = name
 
     @property
-    def abbreviation(self):
+    def abbreviation(self) -> str:
+        """
+        A one letter abbreviation used as an alias for this table
+        """
         return "".join(part[0] for part in self.name.split("_"))
 
     def __str__(self):
+        """
+        Describes the table in the FROM or JOIN statement
+        """
         return f"{self.name} AS {self.abbreviation}"
 
     def __eq__(self, other):
@@ -37,10 +55,25 @@ string_value_table = Table("string_value")
 class AbstractCondition(ABC):
     @abstractmethod
     def __str__(self):
-        pass
+        """
+        The condition written as SQL
+        """
 
-    def __and__(self, other):
+    def __and__(
+            self,
+            other:
+            "AbstractCondition"
+    ) -> "And":
         return And(
+            self,
+            other
+        )
+
+    def __or__(
+            self,
+            other: "AbstractCondition"
+    ) -> "Or":
+        return Or(
             self,
             other
         )
