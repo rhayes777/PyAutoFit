@@ -6,7 +6,24 @@ import autofit.database.query_model.condition as c
 from autofit.database.query_model.junction import AbstractJunction
 
 
-def _make_comparison(symbol, other):
+def _make_comparison(
+        symbol: str,
+        other
+) -> c.AbstractCondition:
+    """
+    Create the appropriate comparison class, depending on the type of other.
+
+    Parameters
+    ----------
+    symbol
+        The symbol by which the condition will compare
+    other
+        Some object to be compared to entries in the database
+
+    Returns
+    -------
+    A condition
+    """
     if isinstance(other, str):
         return c.StringValueCondition(
             symbol, other
@@ -31,14 +48,36 @@ def _make_comparison(symbol, other):
 class NamedQuery(c.AbstractCondition):
     def __init__(
             self,
-            name,
+            name: str,
             condition: Optional[c.AbstractCondition] = None
     ):
+        """
+        An object which can be converted into SQL and used to query the database.
+
+        Model instances are flat packed into the database using the name of an
+        attribute and a foreign key of the parent's id to express the original
+        parent - attribute relationships.
+
+        Queries can be constructed on these models.
+
+        e.g.
+        aggregator.galaxies.lens == al.lp.SersicLightProfile
+
+        This class is responsible for the construction of queries from this syntax.
+        The name is the name in the path, e.g. galaxies.
+
+        Parameters
+        ----------
+        name
+            The name of an attribute that is stored in the database
+        condition
+            A child condition combined with the name to produce a query
+        """
         self.name = name
         self.other_condition = condition
 
     @property
-    def condition(self):
+    def condition(self) -> c.AbstractCondition:
         condition = c.NameCondition(
             self.name
         )
@@ -46,12 +85,16 @@ class NamedQuery(c.AbstractCondition):
             condition &= self.other_condition
         return condition
 
+    @property
+    def tables(self):
+        return self.condition.tables
+
     def __repr__(self):
         return self.query
 
     @property
     def tables_string(self):
-        tables = sorted(self.condition.tables)
+        tables = sorted(self.tables)
         first = tables[0]
 
         string = str(first)

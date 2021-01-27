@@ -52,6 +52,13 @@ string_value_table = Table("string_value")
 
 
 class AbstractCondition(ABC):
+    @property
+    @abstractmethod
+    def tables(self) -> Set[Table]:
+        """
+        The set of tables this condition applies to
+        """
+
     @abstractmethod
     def __str__(self):
         """
