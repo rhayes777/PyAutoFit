@@ -1,6 +1,6 @@
 import inspect
 from numbers import Real
-from typing import Optional
+from typing import Optional, Set
 
 import autofit.database.query_model.condition as c
 from autofit.database.query_model.junction import AbstractJunction
@@ -78,6 +78,12 @@ class NamedQuery(c.AbstractCondition):
 
     @property
     def condition(self) -> c.AbstractCondition:
+        """
+        The combined condition that forms the WHERE statement of the query.
+
+        This is at least a check on the name in the object table, but may
+        include subqueries of arbitrary complexity expressed by 'other_condition'
+        """
         condition = c.NameCondition(
             self.name
         )
@@ -86,14 +92,24 @@ class NamedQuery(c.AbstractCondition):
         return condition
 
     @property
-    def tables(self):
+    def tables(self) -> Set[c.Table]:
+        """
+        The set of tables used in the FROM component of the query
+        """
         return self.condition.tables
 
     def __repr__(self):
         return self.query
 
     @property
-    def tables_string(self):
+    def tables_string(self) -> str:
+        """
+        A string found in the FROM component. Includes aliasing and join
+        statements if there is more than one table.
+
+        Currently it is assumed that only the object table and up to one
+        further table are required to execute any given query.
+        """
         tables = sorted(self.tables)
         first = tables[0]
 
@@ -110,13 +126,41 @@ class NamedQuery(c.AbstractCondition):
         return string
 
     @property
-    def query(self):
+    def query(self) -> str:
+        """
+        The SQL string produced by this query. This is applied directly to the database.
+        """
         return f"SELECT parent_id FROM {self.tables_string} WHERE {self.condition}"
 
     def __str__(self):
         return f"o.id IN ({self.query})"
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str):
+        """
+        Used to extend the query.
+
+        Supports the syntax:
+        galaxies.lens.intensity
+
+        Child queries are recursively searched until one with a None child is found.
+        A new query is constructed to replace this None, extending the linked list
+        of Named queries.
+
+        If any child query is not a Named query then an exception is thrown as this
+        does not make sense.
+
+        For example, (one.two.three == 1).four does not make sense.
+
+        Parameters
+        ----------
+        item
+            The name of an attribute
+
+        Returns
+        -------
+        A newly created query that is the same as this query but with an additional
+        NamedQuery added on the end for the new attribute.
+        """
         if self.other_condition is None:
             return NamedQuery(
                 self.name,
@@ -185,7 +229,32 @@ class NamedQuery(c.AbstractCondition):
     def __hash__(self):
         return hash(str(self))
 
-    def _recursive_comparison(self, symbol, other):
+    def _recursive_comparison(
+            self,
+            symbol: str,
+            other
+    ) -> "NamedQuery":
+        """
+        Create a new NamedQuery, recursing through each sub NamedQuery until
+        one without a child query is found. The final NamedQuery is given a
+        child query.
+
+        This supports the syntax:
+        aggregator.galaxies.centre.intensity >= 1
+
+        The final query added on the end is the comparison query ">= 1"
+
+        Parameters
+        ----------
+        symbol
+            =, >=, <=, >, <
+        other
+            An object to compare to values in the database.
+
+        Returns
+        -------
+        A new NamedQuery with the comparison query added on the end
+        """
         if self.other_condition is None:
             return NamedQuery(
                 self.name,
