@@ -68,13 +68,57 @@ class NamedQuery(c.AbstractCondition):
         if isinstance(other, NamedQuery):
             return other.query == self.query
 
+        return self._recursive_comparison(
+            "=",
+            other
+        )
+
+    def __gt__(self, other):
+        if isinstance(other, c.AbstractCondition):
+            return super().__gt__(other)
+        return self._recursive_comparison(
+            ">",
+            other
+        )
+
+    def __ge__(self, other):
+        return self._recursive_comparison(
+            ">=",
+            other
+        )
+
+    def __lt__(self, other):
+        if isinstance(other, c.AbstractCondition):
+            return super().__lt__(other)
+        return self._recursive_comparison(
+            "<",
+            other
+        )
+
+    def __le__(self, other):
+        return self._recursive_comparison(
+            "<=",
+            other
+        )
+
+    def __hash__(self):
+        return hash(str(self))
+
+    @property
+    def tables(self):
+        return self.condition.tables
+
+    def _recursive_comparison(self, symbol, other):
         if isinstance(
                 self._condition,
                 c.NullCondition
         ):
             return NamedQuery(
                 self.name,
-                self._make_comparison(other)
+                self._make_comparison(
+                    symbol,
+                    other
+                )
             )
 
         if isinstance(
@@ -98,27 +142,20 @@ class NamedQuery(c.AbstractCondition):
             f"Cannot evaluate equality to type {type(other)}"
         )
 
-    def __hash__(self):
-        return hash(str(self))
-
-    @property
-    def tables(self):
-        return self.condition.tables
-
-    def _make_comparison(self, other):
+    def _make_comparison(self, symbol, other):
         if isinstance(other, str):
             return c.StringValueCondition(
-                "=", other
+                symbol, other
             )
         if isinstance(other, Real):
             return c.ValueCondition(
-                "=", other
+                symbol, other
             )
         if inspect.isclass(other):
-            # if symbol != "=":
-            #     raise AssertionError(
-            #         "Inequalities to types do not make sense"
-            #     )
+            if symbol != "=":
+                raise AssertionError(
+                    "Inequalities to types do not make sense"
+                )
             return c.TypeCondition(
                 other
             )
