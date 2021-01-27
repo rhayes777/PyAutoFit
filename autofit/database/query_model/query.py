@@ -1,4 +1,4 @@
-from autofit.database.query_model.condition import NameCondition, And, AbstractCondition
+from autofit.database.query_model.condition import NameCondition, AbstractCondition
 
 
 class NullCondition:
@@ -17,13 +17,6 @@ class NamedQuery(AbstractCondition):
     ):
         self.name = name
         self._condition = condition
-
-    def __and__(self, other):
-        if self.name == other.name:
-            return NamedQuery(
-                self.name,
-                self._condition & other._condition
-            )
 
     @property
     def condition(self):

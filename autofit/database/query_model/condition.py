@@ -51,6 +51,9 @@ class AbstractCondition(ABC):
     def __lt__(self, other):
         return str(self) < str(other)
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {str(self)}>"
+
 
 class ValueCondition(AbstractCondition):
     def __init__(self, symbol, value):
@@ -96,6 +99,11 @@ class TypeCondition(AbstractCondition):
 
 
 class And(AbstractCondition):
+    def __new__(cls, *conditions):
+        if len(conditions) == 1:
+            return conditions[0]
+        return object.__new__(And)
+
     def __init__(
             self,
             *conditions: AbstractCondition
