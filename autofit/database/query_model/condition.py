@@ -183,6 +183,7 @@ class AbstractJunction(AbstractCondition, ABC):
         add_conditions(conditions)
 
         for name, queries in named_query_dict.items():
+            # noinspection PyTypeChecker
             self.conditions.add(
                 NamedQuery(
                     name,
@@ -201,10 +202,15 @@ class AbstractJunction(AbstractCondition, ABC):
 
     @property
     def tables(self):
+        from .query import NamedQuery
         return {
             table
             for condition
             in self.conditions
+            if not isinstance(
+                condition,
+                NamedQuery
+            )
             for table
             in condition.tables
         }
