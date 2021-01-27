@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import wraps
+from typing import Set
 
 from autofit.database.model import get_class_path
 
@@ -64,6 +65,11 @@ class AbstractCondition(ABC):
             other:
             "AbstractCondition"
     ) -> "And":
+        """
+        Combine this and another query with an AND statement.
+        
+        Simplification is applied so that the query will execute as fast as possible.
+        """
         return And(
             self,
             other
@@ -73,6 +79,11 @@ class AbstractCondition(ABC):
             self,
             other: "AbstractCondition"
     ) -> "Or":
+        """
+        Combine this and another query with an AND statement.
+
+        Simplification is applied so that the query will execute as fast as possible.
+        """
         return Or(
             self,
             other
@@ -95,14 +106,28 @@ class AbstractCondition(ABC):
 
 
 class AbstractValueCondition(AbstractCondition, ABC):
-    def __init__(self, symbol, value):
+    def __init__(
+            self,
+            symbol: str,
+            value
+    ):
+        """
+        A condition which compares the named column to a value
+
+        Parameters
+        ----------
+        symbol
+            =, <=, >=, < or >
+        value
+            A string, int or float
+        """
         self.value = value
         self.symbol = symbol
 
 
 class ValueCondition(AbstractValueCondition):
     @property
-    def tables(self):
+    def tables(self) -> Set[Table]:
         return {value_table}
 
     def __str__(self):
