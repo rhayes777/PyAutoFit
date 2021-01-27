@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Optional
 
+from autofit.database import query_model as q
 from . import condition as c
 from .comparison import Comparison
 from .model import Object
@@ -122,11 +123,7 @@ class Aggregator:
         self.session = session
 
     def __getattr__(self, name):
-        return Query(
-            conditions=c.ConditionSet(
-                name
-            ),
-        )
+        return q.Q(name)
 
     def filter(self, predicate):
         objects_ids = {

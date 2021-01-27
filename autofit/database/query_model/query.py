@@ -1,18 +1,21 @@
-from autofit.database.query_model.condition import NameCondition, AbstractCondition, NullCondition
+import inspect
+from numbers import Real
+
+import autofit.database.query_model.condition as c
 
 
-class NamedQuery(AbstractCondition):
+class NamedQuery(c.AbstractCondition):
     def __init__(
             self,
             name,
-            condition=NullCondition()
+            condition: c.AbstractCondition = c.NullCondition()
     ):
         self.name = name
         self._condition = condition
 
     @property
     def condition(self):
-        condition = NameCondition(
+        condition = c.NameCondition(
             self.name
         )
         if self._condition:
@@ -30,10 +33,44 @@ class NamedQuery(AbstractCondition):
         return f"id IN ({self.query})"
 
     def __eq__(self, other):
-        try:
-            return str(other) == str(self) or other == self.query or other.query == self.query
-        except AttributeError:
-            return False
+        if isinstance(
+                other,
+                c.AbstractCondition
+        ):
+            try:
+                return str(other) == str(self) or other == self.query or other.query == self.query
+            except AttributeError:
+                return False
+
+        if isinstance(
+                self._condition,
+                c.NullCondition
+        ):
+            return NamedQuery(
+                self.name,
+                self._make_comparison(other)
+            )
+
+        if isinstance(
+                self._condition,
+                NamedQuery
+        ):
+            return NamedQuery(
+                self.name,
+                self._condition == other
+            )
+
+        if isinstance(
+                self._condition,
+                c.AbstractJunction
+        ):
+            raise AssertionError(
+                "Cannot compare a complex query"
+            )
+
+        raise AssertionError(
+            f"Cannot evaluate equality to type {type(other)}"
+        )
 
     def __hash__(self):
         return hash(str(self))
@@ -41,3 +78,24 @@ class NamedQuery(AbstractCondition):
     @property
     def tables(self):
         return self.condition.tables
+
+    def _make_comparison(self, other):
+        if isinstance(other, str):
+            return c.StringValueCondition(
+                "=", other
+            )
+        if isinstance(other, Real):
+            return c.ValueCondition(
+                "=", other
+            )
+        if inspect.isclass(other):
+            # if symbol != "=":
+            #     raise AssertionError(
+            #         "Inequalities to types do not make sense"
+            #     )
+            return c.TypeCondition(
+                other
+            )
+        raise AssertionError(
+            f"Cannot evaluate equality to type {type(other)}"
+        )

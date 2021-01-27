@@ -7,7 +7,7 @@ class TestString:
             "a"
         )
 
-        assert query == (
+        assert query.query == (
             "SELECT parent_id "
             "FROM object AS o "
             "WHERE o.name = 'a'"
@@ -22,7 +22,7 @@ class TestString:
             )
         )
 
-        assert query == (
+        assert query.query == (
             "SELECT parent_id "
             "FROM object AS o, "
             "string_value AS sv "
@@ -39,7 +39,7 @@ class TestString:
             )
         )
 
-        assert query == (
+        assert query.query == (
             "SELECT parent_id "
             "FROM object AS o, "
             "value AS v "
@@ -51,7 +51,7 @@ class TestString:
             self,
             simple_and
     ):
-        assert simple_and == (
+        assert simple_and.query == (
             "SELECT parent_id "
             "FROM object AS o, "
             "value AS v "
@@ -64,7 +64,7 @@ class TestString:
             self,
             simple_or
     ):
-        assert simple_or == (
+        assert simple_or.query == (
             "SELECT parent_id "
             "FROM object AS o, "
             "value AS v "
@@ -77,7 +77,7 @@ class TestString:
             self,
             second_level
     ):
-        assert second_level == (
+        assert second_level.query == (
             "SELECT parent_id "
             "FROM object AS o, "
             "value AS v "

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import wraps
 
-from autofit.database import get_class_path
+from autofit.database.model import get_class_path
 
 
 class Table:
