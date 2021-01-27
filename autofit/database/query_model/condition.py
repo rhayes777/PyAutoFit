@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import defaultdict
 
 from autofit.database import get_class_path
 
@@ -108,16 +109,42 @@ class And(AbstractCondition):
             self,
             *conditions: AbstractCondition
     ):
+        from .query import NamedQuery
+
         self.conditions = set()
-        for condition in conditions:
-            if isinstance(
-                    condition,
-                    And
-            ):
-                for sub_condition in condition:
-                    self.conditions.add(sub_condition)
-            else:
-                self.conditions.add(condition)
+
+        named_query_dict = defaultdict(set)
+
+        def add_conditions(conditions_):
+            for condition in conditions_:
+                if isinstance(
+                        condition,
+                        And
+                ):
+                    add_conditions(condition)
+                elif isinstance(
+                        condition,
+                        NamedQuery
+                ):
+                    named_query_dict[
+                        condition.name
+                    ].add(
+                        condition
+                    )
+                else:
+                    self.conditions.add(condition)
+
+        add_conditions(conditions)
+
+        for name, conditions in named_query_dict.items():
+            self.conditions.add(
+                NamedQuery(
+                    name,
+                    And(
+                        *conditions
+                    )
+                )
+            )
 
     def __iter__(self):
         return iter(sorted(self.conditions))
