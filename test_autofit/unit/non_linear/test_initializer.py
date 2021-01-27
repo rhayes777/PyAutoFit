@@ -40,7 +40,41 @@ class TestInitializePrior:
         assert 0.399 < initial_parameters[0][3] < 0.401
         assert 0.399 < initial_parameters[1][3] < 0.401
 
-        assert initial_figures_of_merit == 2 * [1.0]
+        assert initial_figures_of_merit == [1.0, 1.0]
+
+    def test__initial_samples_in_test_model(self):
+
+        model = af.PriorModel(MockClassx4)
+        model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
+        model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
+        model.three = af.UniformPrior(lower_limit=0.299, upper_limit=0.301)
+        model.four = af.UniformPrior(lower_limit=0.399, upper_limit=0.401)
+
+        initializer = af.InitializerPrior()
+
+        initial_unit_parameters, initial_parameters, initial_figures_of_merit = initializer.initial_samples_in_test_mode(
+            total_points=2, model=model,
+        )
+
+        assert 0.0 < initial_unit_parameters[0][0] < 1.0
+        assert 0.0 < initial_unit_parameters[1][0] < 1.0
+        assert 0.0 < initial_unit_parameters[0][1] < 1.0
+        assert 0.0 < initial_unit_parameters[1][1] < 1.0
+        assert 0.0 < initial_unit_parameters[0][2] < 1.0
+        assert 0.0 < initial_unit_parameters[1][2] < 1.0
+        assert 0.0 < initial_unit_parameters[0][3] < 1.0
+        assert 0.0 < initial_unit_parameters[1][3] < 1.0
+
+        assert 0.099 < initial_parameters[0][0] < 0.101
+        assert 0.099 < initial_parameters[1][0] < 0.101
+        assert 0.199 < initial_parameters[0][1] < 0.201
+        assert 0.199 < initial_parameters[1][1] < 0.201
+        assert 0.299 < initial_parameters[0][2] < 0.301
+        assert 0.299 < initial_parameters[1][2] < 0.301
+        assert 0.399 < initial_parameters[0][3] < 0.401
+        assert 0.399 < initial_parameters[1][3] < 0.401
+
+        assert initial_figures_of_merit == [-1.0e99, -1.0e99]
 
 
 class TestInitializeBall:

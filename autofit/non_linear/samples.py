@@ -1121,6 +1121,67 @@ class NestSamples(PDFSamples):
         """The ratio of accepted samples to total samples."""
         return self.total_accepted_samples / self.total_samples
 
+    def samples_within_parameter_range(
+            self,
+            parameter_index : int,
+            parameter_range : [float, float]
+    ) -> "NestSamples":
+        """
+        Returns a new set of Samples where all points without parameter values inside a specified range removed.
+
+        For example, if our `Samples` object was for a model with 4 parameters are consistent of the following 3 sets
+        of parameters:
+
+        [[1.0, 2.0, 3.0, 4.0]]
+        [[100.0, 2.0, 3.0, 4.0]]
+        [[1.0, 2.0, 3.0, 4.0]]
+
+        This function for `parameter_index=0` and `parameter_range=[0.0, 99.0]` would remove the second sample because
+        the value 100.0 is outside the range 0.0 -> 99.0.
+
+        Parameters
+        ----------
+        parameter_index : int
+            The 1D index of the parameter (in the model's vector representation) whose values lie between the parameter
+            range if a sample is kept.
+        parameter_range : [float, float]
+            The minimum and maximum values of the range of parameter values this parameter must lie between for it
+            to be kept.
+        """
+
+        parameter_list = []
+        log_likelihoods = []
+        log_priors = []
+        weights = []
+
+        for sample in self.samples:
+
+            parameters = sample.parameters_for_model(model=self.model)
+
+            if (parameters[parameter_index] > parameter_range[0]) and (parameters[parameter_index] < parameter_range[1]):
+
+                parameter_list.append(parameters)
+                log_likelihoods.append(sample.log_likelihood)
+                log_priors.append(sample.log_prior)
+                weights.append(sample.weights)
+
+        samples = Sample.from_lists(
+            model=self.model,
+            parameters=parameter_list,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights
+        )
+
+        return NestSamples(
+            model=self.model,
+            samples=samples,
+            number_live_points=self.number_live_points,
+            log_evidence=self.log_evidence,
+            total_samples=self.total_samples,
+            unconverged_sample_size=self.unconverged_sample_size,
+            time=self.time
+        )
 
 def quantile(x, q, weights=None):
     """

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
 Usage
-
 ./add_notebook_quotes.py /path/to/input /path/to/output
 """
 

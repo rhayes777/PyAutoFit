@@ -19,6 +19,14 @@ Samples:
       range of values for that parameter.
     - parameters_for_param_index method (or use the name).
 
+Feature grouping:
+
+- ABC
+- Graphical models.
+- Model Comparison (Model comp, sensitivty maps).
+- Transdimensional (phase linking, pipeline, coordinate ascent).
+- Misc (Non linear search grid search).
+
 Future:
 
 Ideas / Other:

@@ -1,12 +1,26 @@
-@ARTICLE{numpy,
-  author={S. {van der Walt} and S. C. {Colbert} and G. {Varoquaux}},
-  journal={Computing in Science   Engineering},
-  title={The NumPy Array: A Structure for Efficient Numerical Computation},
-  doi={10.1109/MCSE.2011.37},
-  year={2011},
-  volume={13},
-  number={2},
-  pages={22-30},}
+@Article{         numpy,
+ title         = {Array2D programming with {NumPy}},
+ author        = {Charles R. Harris and K. Jarrod Millman and St{'{e}}fan J.
+                 van der Walt and Ralf Gommers and Pauli Virtanen and David
+                 Cournapeau and Eric Wieser and Julian Taylor and Sebastian
+                 Berg and Nathaniel J. Smith and Robert Kern and Matti Picus
+                 and Stephan Hoyer and Marten H. van Kerkwijk and Matthew
+                 Brett and Allan Haldane and Jaime Fern{'{a}}ndez del
+                 R{'{\i}}o and Mark Wiebe and Pearu Peterson and Pierre
+                 G{'{e}}rard-Marchant and Kevin Sheppard and Tyler Reddy and
+                 Warren Weckesser and Hameer Abbasi and Christoph Gohlke and
+                 Travis E. Oliphant},
+ year          = {2020},
+ month         = sep,
+ journal       = {Nature},
+ volume        = {585},
+ number        = {7825},
+ pages         = {357--362},
+ doi           = {10.1038/s41586-020-2649-2},
+ publisher     = {Springer Science and Business Media {LLC}},
+ url           = {https://doi.org/10.1038/s41586-020-2649-2}
+}
+
 @article{corner,
   doi = {10.21105/joss.00024},
   url = {https://doi.org/10.21105/joss.00024},
@@ -30,39 +44,41 @@
     doi     = {10.21105/joss.00433},
     url     = {https://doi.org/10.21105/joss.00433}
 }
+
 @article{dynesty,
-abstract = {We present dynesty, a public, open-source, python package to estimate Bayesian posteriors and evidences (marginal likelihoods) using the dynamic nested sampling methods developed by Higson et al. By adaptively allocating samples based on posterior structure, dynamic nested sampling has the benefits of Markov chain Monte Carlo (MCMC) algorithms that focus exclusively on posterior estimation while retaining nested sampling's ability to estimate evidences and sample from complex, multimodal distributions. We provide an overview of nested sampling, its extension to dynamic nested sampling, the algorithmic challenges involved, and the various approaches taken to solve them in this and previous work. We then examine dynesty's performance on a variety of toy problems along with several astronomical applications. We find in particular problems dynesty can provide substantial improvements in sampling efficiency compared to popular MCMC approaches in the astronomical literature. More detailed statistical results related to nested sampling are also included in the appendix.},
-archivePrefix = {arXiv},
-arxivId = {1904.02180},
-author = {Speagle, Joshua S},
-doi = {10.1093/mnras/staa278},
-eprint = {1904.02180},
-file = {:home/jammy/Documents/Papers/PPLs/Dynesty.pdf:pdf},
-issn = {0035-8711},
-journal = {Monthly Notices of the Royal Astronomical Society},
-keywords = {data analysis,methods,statistical},
-number = {3},
-pages = {3132--3158},
-title = {{dynesty: a dynamic nested sampling package for estimating Bayesian posteriors and evidences}},
-volume = {493},
-year = {2020}
+    author = {Speagle, Joshua S},
+    title = "{dynesty: a dynamic nested sampling package for estimating Bayesian posteriors and evidences}",
+    journal = {Monthly Notices of the Royal Astronomical Society},
+    volume = {493},
+    number = {3},
+    pages = {3132-3158},
+    year = {2020},
+    month = {02},
+    abstract = "{We present dynesty, a public, open-source, python package to estimate Bayesian posteriors and evidences (marginal likelihoods) using the dynamic nested sampling methods developed by Higson et al. By adaptively allocating samples based on posterior structure, dynamic nested sampling has the benefits of Markov chain Monte Carlo (MCMC) algorithms that focus exclusively on posterior estimation while retaining nested sampling’s ability to estimate evidences and sample from complex, multimodal distributions. We provide an overview of nested sampling, its extension to dynamic nested sampling, the algorithmic challenges involved, and the various approaches taken to solve them in this and previous work. We then examine dynesty’s performance on a variety of toy problems along with several astronomical applications. We find in particular problems dynesty can provide substantial improvements in sampling efficiency compared to popular MCMC approaches in the astronomical literature. More detailed statistical results related to nested sampling are also included in the appendix.}",
+    issn = {0035-8711},
+    doi = {10.1093/mnras/staa278},
+    url = {https://doi.org/10.1093/mnras/staa278},
+    eprint = {https://academic.oup.com/mnras/article-pdf/493/3/3132/32890730/staa278.pdf},
 }
-@article{emcee,
-abstract = {We introduce a stable, well tested Python implementation of the affine-invariant ensemble sampler for Markov chain Monte Carlo (MCMC) proposed by Goodman {\&} Weare (2010). The code is open source and has already been used in several published projects in the astrophysics literature. The algorithm behind emcee has several advantages over traditional MCMC sampling methods and it has excellent performance as measured by the autocorrelation time (or function calls per independent sample). One major advantage of the algorithm is that it requires hand-tuning of only 1 or 2 parameters compared to {\$}\backslashsim N{\^{}}2{\$} for a traditional algorithm in an N-dimensional parameter space. In this document, we describe the algorithm and the details of our implementation and API. Exploiting the parallelism of the ensemble method, emcee permits any user to take advantage of multiple CPU cores without extra effort. The code is available online at http://dan.iel.fm/emcee under the MIT License.},
+
+@ARTICLE{emcee,
+       author = {{Foreman-Mackey}, Daniel and {Hogg}, David W. and {Lang}, Dustin and {Goodman}, Jonathan},
+        title = "{emcee: The MCMC Hammer}",
+      journal = {Publications of the Astronomical Society of the Pacific},
+     keywords = {Astrophysics - Instrumentation and Methods for Astrophysics, Physics - Computational Physics, Statistics - Computation},
+         year = 2013,
+        month = mar,
+       volume = {125},
+       number = {925},
+        pages = {306},
+          doi = {10.1086/670067},
 archivePrefix = {arXiv},
-arxivId = {1202.3665},
-author = {Foreman-Mackey, Daniel and Hogg, David W. and Lang, Dustin and Goodman, Jonathan},
-doi = {10.1086/670067},
-eprint = {1202.3665},
-file = {:home/jammy/Documents/Papers/PPLs/Emcee.pdf:pdf},
-issn = {00046280},
-journal = {Publications of the Astronomical Society of the Pacific},
-number = {925},
-pages = {306--312},
-title = {{emcee : The MCMC Hammer }},
-volume = {125},
-year = {2013}
+       eprint = {1202.3665},
+ primaryClass = {astro-ph.IM},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2013PASP..125..306F},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
+
 @Article{matplotlib,
   Author    = {Hunter, J. D.},
   Title     = {Matplotlib: A 2D graphics environment},

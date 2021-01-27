@@ -17,8 +17,8 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return af.NonLinearSearchGridSearch(
-        af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
+    return af.SearchGridSearch(
+        paths=af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
     )
 
 
@@ -58,8 +58,8 @@ class TestGridSearchablePriors:
         assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        grid_search = af.NonLinearSearchGridSearch(
-            af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
+        grid_search = af.SearchGridSearch(
+            paths=af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
         )
 
         mappers = list(
@@ -156,7 +156,7 @@ class TestGridSearchablePriors:
 
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05():
-    return af.NonLinearSearchGridSearch(
+    return af.SearchGridSearch(
         search=MockOptimizer(), number_of_steps=2, paths=af.Paths(name="sample_name")
     )
 
@@ -188,7 +188,7 @@ class TestGridNLOBehaviour:
         assert len(result.results) == 4
         assert result.no_dimensions == 2
 
-        grid_search = af.NonLinearSearchGridSearch(
+        grid_search = af.SearchGridSearch(
             search=MockOptimizer(),
             number_of_steps=10,
             paths=af.Paths(name="sample_name"),
@@ -207,7 +207,7 @@ class TestGridNLOBehaviour:
         assert result.max_log_likelihood_values.shape == (10, 10)
 
     # def test_results_parallel(self, mapper, container):
-    #     grid_search = af.NonLinearSearchGridSearch(
+    #     grid_search = af.SearchGridSearch(
     #         search=container.MockOptimizer,
     #         number_of_steps=10,
     #         paths=af.Paths(name="sample_name"),
@@ -253,8 +253,8 @@ class TestGridNLOBehaviour:
     #         assert instance.component.centre[1] == 2
 
     def test_passes_attributes(self):
-        grid_search = af.NonLinearSearchGridSearch(
-            af.Paths(name=""), number_of_steps=10, search=af.DynestyStatic()
+        grid_search = af.SearchGridSearch(
+            paths=af.Paths(name=""), number_of_steps=10, search=af.DynestyStatic()
         )
 
         grid_search.n_live_points = 20

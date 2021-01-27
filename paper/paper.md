@@ -12,9 +12,14 @@ authors:
     affiliation: 1
   - name: Richard G. Hayes
     affiliation: 1
+  - name: Matthew Griffiths
+    orcid: 0000-0002-2553-2447
+    affiliation: 2 
 affiliations:
   - name: Institute for Computational Cosmology, Stockton Rd, Durham, United Kingdom, DH1 3LE
     index: 1
+  - name: ConcR Ltd, London, UK
+    index: 2    
 date: 17 July 2020
 codeRepository: https://github.com/rhayes777/PyAutoFit
 license: MIT
@@ -31,7 +36,7 @@ modelling (e.g. the model, data, fitting procedure, visulization, results, etc.)
 management of modeling than other PPLs. This includes composing high-dimensionality models from individual model 
 components, customizing the fitting procedure and performing data augmentation before a model-fit. Advanced features 
 include database tools for analysing large suites of modeling results and exploiting domain-specific knowledge of a 
-problem via transdimensional model-fitting pipelines. Accompanying `PyAutoFit` is 
+problem via non-linear search chaining. Accompanying `PyAutoFit` is 
 the [autofit workspace](https://github.com/Jammy2211/autofit_workspace), which includes example scripts and 
 the `HowToFit` lecture series which introduces non-experts to model-fitting and provides a guide on how to write a 
 software project using `PyAutoFit`. To get started readers should go to 
@@ -45,14 +50,14 @@ to a diverse range of problems across academia and industry. Packages such as Py
 Pyro [@Bingham2019] and STAN [@Carpenter2017] offer general-purpose frameworks where users can specify a generative 
 model and fit it to data using a variety of non-linear fitting techniques. Each package is specialized to problems 
 of a certain nature, with many focused on problems like generalized linear modeling or determining the 
-distribution(s) from which the data was drawn. For these problems the model is typically composed of linear equations 
-which are easily expressed syntactically, such that the PPL API offers an expressive way to define the model and 
-extensions can be implemented in an intuitive and straightforward way.
+distribution(s) from which the data was drawn. For these problems the model is typically composed of the equations and
+distributions that are fitted to the data, which are easily expressed syntactically such that the PPL API offers an 
+expressive way to define the model and extensions can be implemented in an intuitive and straightforward way.
 
 # Software Description
 
 `PyAutoFit` is a PPL whose core design is providing a direct interface with the model, data, fitting procedure and 
-results, allowing it to provide more complete management of the model-fitting task than other PPLs and making it 
+results, allowing it to provide comprehensive management of many different aspects of model-fitting and making it 
 suited to longer term software projects. Model components are written as Python classes, allowing `PyAutoFit` to 
 define the model and associated parameters in an expressive way that is tied to the modeling software's API. A 
 model fit then only requires that a `PyAutoFit` `Analysis` class is writen, which combines the data, model and 
@@ -97,7 +102,7 @@ experience users may know that certain model components share minimal covariance
 model component (in parameter spaces of reduced dimensionality) can be performed before fitting them simultaneously. 
 The results of these simplified fits can then be used to initialize fits using a higher dimensionality model. 
 Breaking down a model-fit in this way 
-uses `PyAutoFit`'s [transdimensional model-fitting pipelines](https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html), 
+uses `PyAutoFit`'s [non-linear search chaining](https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html), 
 which granularize the non-linear fitting procedure into a series of linked non-linear searches. Initial model-fits 
 are followed by fits that gradually increase the model complexity, using the information gained throughout the 
 pipeline to guide each `NonLinearSearch` and thus enable accurate fitting of models of arbitrary complexity.
