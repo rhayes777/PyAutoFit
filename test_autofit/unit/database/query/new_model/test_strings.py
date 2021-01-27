@@ -30,17 +30,30 @@ class TestString:
             "AND v.value = 1"
         )
 
-    def test_simple_combination(
+    def test_simple_and(
             self,
-            simple_combination
+            simple_and
     ):
-        assert simple_combination == (
+        assert simple_and == (
             "SELECT parent_id "
             "FROM object AS o, "
             "value AS v "
             "WHERE o.name = 'a' "
             "AND v.value < 1 "
             "AND v.value > 0"
+        )
+
+    def test_simple_or(
+            self,
+            simple_or
+    ):
+        assert simple_or == (
+            "SELECT parent_id "
+            "FROM object AS o, "
+            "value AS v "
+            "WHERE o.name = 'a' "
+            "AND v.value < 1 "
+            "OR v.value > 0"
         )
 
     def test_second_level(

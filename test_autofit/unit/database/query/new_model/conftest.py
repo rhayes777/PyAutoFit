@@ -22,15 +22,31 @@ def make_greater_than():
 
 
 @pytest.fixture(
-    name="simple_combination"
+    name="simple_and"
 )
-def make_simple_combination(
+def make_simple_and(
         less_than,
         greater_than
 ):
     return q.Q(
         "a",
         q.And(
+            less_than,
+            greater_than
+        )
+    )
+
+
+@pytest.fixture(
+    name="simple_or"
+)
+def make_simple_or(
+        less_than,
+        greater_than
+):
+    return q.Q(
+        "a",
+        q.Or(
             less_than,
             greater_than
         )

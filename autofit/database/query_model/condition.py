@@ -123,12 +123,12 @@ def exclude_null(func):
     return wrapper
 
 
-class And(AbstractCondition):
+class AbstractJunction(AbstractCondition, ABC):
     @exclude_null
     def __new__(cls, *conditions):
         if len(conditions) == 1:
             return conditions[0]
-        return object.__new__(And)
+        return object.__new__(cls)
 
     @exclude_null
     def __init__(
@@ -145,7 +145,7 @@ class And(AbstractCondition):
             for condition in conditions_:
                 if isinstance(
                         condition,
-                        And
+                        self.__class__
                 ):
                     add_conditions(condition)
                 elif isinstance(
@@ -166,7 +166,7 @@ class And(AbstractCondition):
             self.conditions.add(
                 NamedQuery(
                     name,
-                    And(
+                    self.__class__(
                         *[
                             query._condition
                             for query
@@ -189,10 +189,27 @@ class And(AbstractCondition):
             in condition.tables
         }
 
+    @property
+    @abstractmethod
+    def join(self):
+        pass
+
     def __str__(self):
-        return " AND ".join(map(
+        return f" {self.join} ".join(map(
             str,
             sorted(
                 self.conditions
             )
         ))
+
+
+class And(AbstractJunction):
+    @property
+    def join(self):
+        return "AND"
+
+
+class Or(AbstractJunction):
+    @property
+    def join(self):
+        return "OR"

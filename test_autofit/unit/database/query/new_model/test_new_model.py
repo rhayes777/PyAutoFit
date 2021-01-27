@@ -6,7 +6,7 @@ class TestCombination:
             self,
             less_than,
             greater_than,
-            simple_combination
+            simple_and
     ):
         assert q.Q(
             "a",
@@ -14,7 +14,7 @@ class TestCombination:
         ) & q.Q(
             "a",
             greater_than
-        ) == simple_combination
+        ) == simple_and
 
     def test_second_level(
             self,
