@@ -1,6 +1,7 @@
 import pytest
 
 from autofit import database as db
+from autofit.database import query_model as q
 
 
 @pytest.fixture(
@@ -13,24 +14,66 @@ def make_aggregator(
 
 
 @pytest.fixture(
-    name="centre_query"
+    name="less_than"
 )
-def make_centre_query():
-    return "SELECT parent_id FROM object WHERE name = 'centre'"
+def make_less_than():
+    return q.V(
+        "<", 1
+    )
 
 
 @pytest.fixture(
-    name="equality_query"
+    name="greater_than"
 )
-def make_equality_query():
-    return "SELECT parent_id FROM object, value WHERE name = 'centre' AND value = 1 AND value.id = object.id"
+def make_greater_than():
+    return q.V(
+        ">", 0
+    )
 
 
 @pytest.fixture(
-    name="type_equality_query"
+    name="simple_and"
 )
-def make_type_equality_query():
-    return (
-        "SELECT parent_id FROM object WHERE class_path = 'autofit.mock.mock.Gaussian' "
-        "AND name = 'centre'"
+def make_simple_and(
+        less_than,
+        greater_than
+):
+    return q.Q(
+        "a",
+        q.And(
+            less_than,
+            greater_than
+        )
+    )
+
+
+@pytest.fixture(
+    name="simple_or"
+)
+def make_simple_or(
+        less_than,
+        greater_than
+):
+    return q.Q(
+        "a",
+        q.Or(
+            less_than,
+            greater_than
+        )
+    )
+
+
+@pytest.fixture(
+    name="second_level"
+)
+def make_second_level(
+        less_than,
+        greater_than
+):
+    return q.Q(
+        "a",
+        q.And(
+            less_than,
+            q.Q('b', greater_than)
+        )
     )

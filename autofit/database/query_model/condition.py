@@ -16,6 +16,18 @@ class Table:
     def __str__(self):
         return f"{self.name} AS {self.abbreviation}"
 
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
+    def __hash__(self):
+        return hash(self.name)
+
 
 object_table = Table("object")
 value_table = Table("value")
@@ -27,10 +39,6 @@ class AbstractCondition(ABC):
     @abstractmethod
     def tables(self):
         pass
-
-    @property
-    def tables_string(self):
-        return ", ".join(sorted(map(str, self.tables)))
 
     @abstractmethod
     def __str__(self):

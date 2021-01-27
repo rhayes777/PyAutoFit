@@ -4,6 +4,28 @@ from numbers import Real
 import autofit.database.query_model.condition as c
 
 
+def _make_comparison(symbol, other):
+    if isinstance(other, str):
+        return c.StringValueCondition(
+            symbol, other
+        )
+    if isinstance(other, Real):
+        return c.ValueCondition(
+            symbol, other
+        )
+    if inspect.isclass(other):
+        if symbol != "=":
+            raise AssertionError(
+                "Inequalities to types do not make sense"
+            )
+        return c.TypeCondition(
+            other
+        )
+    raise AssertionError(
+        f"Cannot evaluate equality to type {type(other)}"
+    )
+
+
 class NamedQuery(c.AbstractCondition):
     def __init__(
             self,
@@ -26,11 +48,28 @@ class NamedQuery(c.AbstractCondition):
         return self.query
 
     @property
+    def tables_string(self):
+        tables = sorted(self.condition.tables)
+        first = tables[0]
+
+        string = str(first)
+
+        if len(tables) == 2:
+            second = tables[1]
+            string = f"{string} JOIN {second} ON {first.abbreviation}.id = {second.abbreviation}.id"
+        if len(tables) > 2:
+            raise AssertionError(
+                "Currently maximum of 2 tables supported"
+            )
+
+        return string
+
+    @property
     def query(self):
-        return f"SELECT parent_id FROM {self.condition.tables_string} WHERE {self.condition}"
+        return f"SELECT parent_id FROM {self.tables_string} WHERE {self.condition}"
 
     def __str__(self):
-        return f"id IN ({self.query})"
+        return f"o.id IN ({self.query})"
 
     def __getattr__(self, item):
         if isinstance(
@@ -115,7 +154,7 @@ class NamedQuery(c.AbstractCondition):
         ):
             return NamedQuery(
                 self.name,
-                self._make_comparison(
+                _make_comparison(
                     symbol,
                     other
                 )
@@ -138,27 +177,6 @@ class NamedQuery(c.AbstractCondition):
                 "Cannot compare a complex query"
             )
 
-        raise AssertionError(
-            f"Cannot evaluate equality to type {type(other)}"
-        )
-
-    def _make_comparison(self, symbol, other):
-        if isinstance(other, str):
-            return c.StringValueCondition(
-                symbol, other
-            )
-        if isinstance(other, Real):
-            return c.ValueCondition(
-                symbol, other
-            )
-        if inspect.isclass(other):
-            if symbol != "=":
-                raise AssertionError(
-                    "Inequalities to types do not make sense"
-                )
-            return c.TypeCondition(
-                other
-            )
         raise AssertionError(
             f"Cannot evaluate equality to type {type(other)}"
         )
