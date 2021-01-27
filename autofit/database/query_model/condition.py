@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from functools import wraps
 
 from autofit.database import get_class_path
 
@@ -99,12 +100,37 @@ class TypeCondition(AbstractCondition):
         return f"{object_table.abbreviation}.class_path = '{self.class_path}'"
 
 
+class NullCondition:
+    def __bool__(self):
+        return False
+
+    def __and__(self, other):
+        return other
+
+
+def exclude_null(func):
+    @wraps(func)
+    def wrapper(arg, *conditions):
+        conditions = list(filter(
+            lambda condition: not isinstance(
+                condition,
+                NullCondition
+            ),
+            conditions
+        ))
+        return func(arg, *conditions)
+
+    return wrapper
+
+
 class And(AbstractCondition):
+    @exclude_null
     def __new__(cls, *conditions):
         if len(conditions) == 1:
             return conditions[0]
         return object.__new__(And)
 
+    @exclude_null
     def __init__(
             self,
             *conditions: AbstractCondition
@@ -136,12 +162,16 @@ class And(AbstractCondition):
 
         add_conditions(conditions)
 
-        for name, conditions in named_query_dict.items():
+        for name, queries in named_query_dict.items():
             self.conditions.add(
                 NamedQuery(
                     name,
                     And(
-                        *conditions
+                        *[
+                            query._condition
+                            for query
+                            in queries
+                        ]
                     )
                 )
             )

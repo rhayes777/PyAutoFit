@@ -1,12 +1,4 @@
-from autofit.database.query_model.condition import NameCondition, AbstractCondition
-
-
-class NullCondition:
-    def __bool__(self):
-        return False
-
-    def __and__(self, other):
-        return other
+from autofit.database.query_model.condition import NameCondition, AbstractCondition, NullCondition
 
 
 class NamedQuery(AbstractCondition):
