@@ -173,22 +173,11 @@ class TypeCondition(AbstractCondition):
         return f"{object_table.abbreviation}.class_path = '{self.class_path}'"
 
 
-class NullCondition:
-    def __bool__(self):
-        return False
-
-    def __and__(self, other):
-        return other
-
-
 def exclude_null(func):
     @wraps(func)
     def wrapper(arg, *conditions):
         conditions = list(filter(
-            lambda condition: not isinstance(
-                condition,
-                NullCondition
-            ),
+            None,
             conditions
         ))
         return func(arg, *conditions)

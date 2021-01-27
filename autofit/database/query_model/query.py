@@ -1,5 +1,6 @@
 import inspect
 from numbers import Real
+from typing import Optional
 
 import autofit.database.query_model.condition as c
 
@@ -30,7 +31,7 @@ class NamedQuery(c.AbstractCondition):
     def __init__(
             self,
             name,
-            condition: c.AbstractCondition = c.NullCondition()
+            condition: Optional[c.AbstractCondition] = None
     ):
         self.name = name
         self.other_condition = condition
@@ -72,10 +73,7 @@ class NamedQuery(c.AbstractCondition):
         return f"o.id IN ({self.query})"
 
     def __getattr__(self, item):
-        if isinstance(
-                self.other_condition,
-                c.NullCondition
-        ):
+        if self.other_condition is None:
             return NamedQuery(
                 self.name,
                 NamedQuery(
@@ -144,10 +142,7 @@ class NamedQuery(c.AbstractCondition):
         return hash(str(self))
 
     def _recursive_comparison(self, symbol, other):
-        if isinstance(
-                self.other_condition,
-                c.NullCondition
-        ):
+        if self.other_condition is None:
             return NamedQuery(
                 self.name,
                 _make_comparison(
