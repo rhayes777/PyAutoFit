@@ -3,6 +3,7 @@ from numbers import Real
 from typing import Optional
 
 import autofit.database.query_model.condition as c
+from autofit.database.query_model.junction import AbstractJunction
 
 
 def _make_comparison(symbol, other):
@@ -95,7 +96,7 @@ class NamedQuery(c.AbstractCondition):
 
         if isinstance(
                 self.other_condition,
-                c.AbstractJunction
+                AbstractJunction
         ):
             raise AssertionError(
                 "Cannot extend a complex query"
@@ -162,7 +163,7 @@ class NamedQuery(c.AbstractCondition):
 
         if isinstance(
                 self._condition,
-                c.AbstractJunction
+                AbstractJunction
         ):
             raise AssertionError(
                 "Cannot compare a complex query"
