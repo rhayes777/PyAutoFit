@@ -13,6 +13,23 @@ class TestString:
             "WHERE o.name = 'a'"
         )
 
+    def test_with_string(self):
+        query = q.Q(
+            "a",
+            q.SV(
+                "=",
+                'value'
+            )
+        )
+
+        assert query == (
+            "SELECT parent_id "
+            "FROM object AS o, "
+            "string_value AS sv "
+            "WHERE o.name = 'a' "
+            "AND sv.value = 'value'"
+        )
+
     def test_with_value(self):
         query = q.Q(
             "a",

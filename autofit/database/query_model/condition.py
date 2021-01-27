@@ -11,7 +11,7 @@ class Table:
 
     @property
     def abbreviation(self):
-        return self.name[0]
+        return "".join(part[0] for part in self.name.split("_"))
 
     def __str__(self):
         return f"{self.name} AS {self.abbreviation}"
@@ -19,6 +19,7 @@ class Table:
 
 object_table = Table("object")
 value_table = Table("value")
+string_value_table = Table("string_value")
 
 
 class AbstractCondition(ABC):
@@ -57,17 +58,28 @@ class AbstractCondition(ABC):
         return f"<{self.__class__.__name__} {str(self)}>"
 
 
-class ValueCondition(AbstractCondition):
+class AbstractValueCondition(AbstractCondition, ABC):
     def __init__(self, symbol, value):
         self.value = value
         self.symbol = symbol
 
+
+class ValueCondition(AbstractValueCondition):
     @property
     def tables(self):
         return {value_table}
 
     def __str__(self):
         return f"{value_table.abbreviation}.value {self.symbol} {self.value}"
+
+
+class StringValueCondition(AbstractValueCondition):
+    @property
+    def tables(self):
+        return {string_value_table}
+
+    def __str__(self):
+        return f"{string_value_table.abbreviation}.value {self.symbol} '{self.value}'"
 
 
 class NameCondition(AbstractCondition):
