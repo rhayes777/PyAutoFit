@@ -32,15 +32,41 @@ class NamedQuery(c.AbstractCondition):
     def __str__(self):
         return f"id IN ({self.query})"
 
-    def __eq__(self, other):
+    def __getattr__(self, item):
         if isinstance(
-                other,
-                c.AbstractCondition
+                self._condition,
+                c.NullCondition
         ):
-            try:
-                return str(other) == str(self) or other == self.query or other.query == self.query
-            except AttributeError:
-                return False
+            return NamedQuery(
+                self.name,
+                NamedQuery(
+                    item
+                )
+            )
+
+        if isinstance(
+                self._condition,
+                NamedQuery
+        ):
+            return NamedQuery(
+                self.name,
+                getattr(
+                    self._condition,
+                    item
+                )
+            )
+
+        if isinstance(
+                self._condition,
+                c.AbstractJunction
+        ):
+            raise AssertionError(
+                "Cannot extend a complex query"
+            )
+
+    def __eq__(self, other):
+        if isinstance(other, NamedQuery):
+            return other.query == self.query
 
         if isinstance(
                 self._condition,
