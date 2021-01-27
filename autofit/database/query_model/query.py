@@ -181,13 +181,9 @@ class NamedQuery(c.AbstractCondition):
                 )
             )
 
-        if isinstance(
-                self.other_condition,
-                AbstractJunction
-        ):
-            raise AssertionError(
-                "Cannot extend a complex query"
-            )
+        raise AssertionError(
+            "Can only extend a simple path query"
+        )
 
     def __eq__(self, other):
         if isinstance(other, NamedQuery):
