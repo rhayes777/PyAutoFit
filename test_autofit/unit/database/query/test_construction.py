@@ -14,6 +14,10 @@ def test_second_level(aggregator):
     assert (aggregator.lens.centre == 1) == q.Q("lens", q.Q("centre", q.V("=", 1)))
 
 
+def test_third_level(aggregator):
+    assert (aggregator.lens.centre.x == 1) == q.Q("lens", q.Q("centre", q.Q("x", q.V("=", 1))))
+
+
 def test_with_type(aggregator):
     assert (aggregator.centre == mock.Gaussian) == q.Q("centre", q.T(mock.Gaussian))
 
@@ -32,3 +36,7 @@ def test_less_than(aggregator):
 
 def test_less_than_equals(aggregator):
     assert (aggregator.centre <= 1) == q.Q("centre", q.V("<=", 1))
+
+
+def test_greater_than_equals(aggregator):
+    assert (aggregator.centre >= 1) == q.Q("centre", q.V(">=", 1))

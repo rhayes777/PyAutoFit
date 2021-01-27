@@ -33,15 +33,15 @@ class NamedQuery(c.AbstractCondition):
             condition: c.AbstractCondition = c.NullCondition()
     ):
         self.name = name
-        self._condition = condition
+        self.other_condition = condition
 
     @property
     def condition(self):
         condition = c.NameCondition(
             self.name
         )
-        if self._condition:
-            condition &= self._condition
+        if self.other_condition:
+            condition &= self.other_condition
         return condition
 
     def __repr__(self):
@@ -73,7 +73,7 @@ class NamedQuery(c.AbstractCondition):
 
     def __getattr__(self, item):
         if isinstance(
-                self._condition,
+                self.other_condition,
                 c.NullCondition
         ):
             return NamedQuery(
@@ -84,19 +84,19 @@ class NamedQuery(c.AbstractCondition):
             )
 
         if isinstance(
-                self._condition,
+                self.other_condition,
                 NamedQuery
         ):
             return NamedQuery(
                 self.name,
                 getattr(
-                    self._condition,
+                    self.other_condition,
                     item
                 )
             )
 
         if isinstance(
-                self._condition,
+                self.other_condition,
                 c.AbstractJunction
         ):
             raise AssertionError(
@@ -143,13 +143,9 @@ class NamedQuery(c.AbstractCondition):
     def __hash__(self):
         return hash(str(self))
 
-    @property
-    def tables(self):
-        return self.condition.tables
-
     def _recursive_comparison(self, symbol, other):
         if isinstance(
-                self._condition,
+                self.other_condition,
                 c.NullCondition
         ):
             return NamedQuery(
@@ -161,12 +157,12 @@ class NamedQuery(c.AbstractCondition):
             )
 
         if isinstance(
-                self._condition,
+                self.other_condition,
                 NamedQuery
         ):
             return NamedQuery(
                 self.name,
-                self._condition == other
+                self.other_condition == other
             )
 
         if isinstance(

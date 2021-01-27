@@ -35,11 +35,6 @@ string_value_table = Table("string_value")
 
 
 class AbstractCondition(ABC):
-    @property
-    @abstractmethod
-    def tables(self):
-        pass
-
     @abstractmethod
     def __str__(self):
         pass
@@ -189,7 +184,7 @@ class AbstractJunction(AbstractCondition, ABC):
                     name,
                     self.__class__(
                         *[
-                            query._condition
+                            query.other_condition
                             for query
                             in queries
                         ]
