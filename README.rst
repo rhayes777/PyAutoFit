@@ -20,7 +20,7 @@ Getting Started
 ---------------
 
 You can try **PyAutoFit** now by following the `introduction Jupyter Notebook on
-Binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/7586a67b726dca612404cf5fab1d77d8738f3737?filepath=introduction.ipynb>`_.
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/f7b68b6e613fb657881d0e7fadf78ab014a25e06?filepath=introduction.ipynb>`_.
 
 On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a complete overview
 of **PyAutoFit**'s features, examples scripts, and
