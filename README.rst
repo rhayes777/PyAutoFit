@@ -41,6 +41,8 @@ for example:
 
 - Fitting many different models to the same dataset with tools that streamline model comparison.
 
+If these challenges sound familiar, then **PyAutoFit** may be the right software for your model-fitting needs!
+
 API Overview
 ------------
 
@@ -81,7 +83,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
                     np.exp(-0.5 * transformed_xvalues / self.sigma)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
-a `NonLinearSearch` like `emcee <https://github.com/dfm/emcee>`_.
+a ``NonLinearSearch`` like `emcee <https://github.com/dfm/emcee>`_.
 
 To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a
 ``log_likelihood_function`` describing how to fit the ``data`` with the model:

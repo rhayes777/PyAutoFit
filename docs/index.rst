@@ -1,7 +1,7 @@
 Probabilistic Programming
 =========================
 
-Probabilistic programming languages provides a framework that allows users to easily specify a probabilistic
+Probabilistic programming languages provide a framework that allows users to easily specify a probabilistic
 model and perform inference automatically. **PyAutoFit** is a Python-based probabilistic programming language which:
 
 - Makes it simple to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
@@ -177,8 +177,8 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :maxdepth: 1
    :hidden:
 
-   general/installation
    general/workspace
+   general/adding_a_model_component
    general/configs
    general/software
    general/citations
