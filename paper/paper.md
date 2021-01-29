@@ -61,8 +61,9 @@ results, allowing it to provide comprehensive management of many different aspec
 suited to longer term software projects. Model components are written as Python classes, allowing `PyAutoFit` to 
 define the model and associated parameters in an expressive way that is tied to the modeling software's API. A 
 model fit then only requires that a `PyAutoFit` `Analysis` class is writen, which combines the data, model and 
-likelihood function and defines how the model-fit is performed using a `NonLinearSearch` 
-(e.g. `dynesty` [@dynesty], `emcee` [@emcee] or `PySwarms` [@pyswarms]). 
+likelihood function and defines how the model-fit is performed using a `NonLinearSearch`. The `NonLinearSearch`
+procedure is defined using an external inference library such as `dynesty` [@dynesty], `emcee` [@emcee]
+or `PySwarms` [@pyswarms]. 
 
 The `Analysis` class provides a model specific interface between `PyAutoFit` and the modeling software, allowing it 
 to handle the 'heavy lifting' that comes with writing model-fitting software. This includes interfacing with the 
@@ -70,7 +71,7 @@ non-linear search, outputting results in a structured path format and model-spec
 after the non-linear search. Results are output in a database structure with metadata that allows 
 the `Aggregator` tool to load results post-analysis via a Python script or Jupyter notebook. This includes methods 
 for summarizing the results of every fit, filtering results to inspect subsets of model fits and visualizing results. 
-Results are loaded as `Python` generators, ensuring the `Aggregator` can be used to interpret large result datasets 
+Results are loaded as `Python` generators, ensuring the `Aggregator` can be used to interpret large files 
 in a memory efficient way. `PyAutoFit` is therefore suited to 'big data' problems where independent fits to large 
 homogeneous data-sets using an identical model-fitting procedure are performed. 
 
@@ -78,10 +79,10 @@ homogeneous data-sets using an identical model-fitting procedure are performed.
 
 For many modeling problems the model comprises abstract model components representing objects or processes in a 
 physical system. For example, galaxy morphology studies in astrophysics where model components represent the light 
-profile of stars [@Haussler2013] [@Nightingale2019]. For these problems the likelihood function is typically a 
+profile of stars [@Haussler2013; @Nightingale2019]. For these problems the likelihood function is typically a 
 sequence of numerical processes (e.g. convolutions, Fourier transforms, linear algebra) and extensions to the model 
 often requires the addition of new model components in a way that is non-trivially included in the fitting process 
-and likelihood function. Existing PPLs have tools for these problems, for example `black-box' likelihood functions 
+and likelihood function. Existing PPLs have tools for these problems, for example 'black-box' likelihood functions 
 in PyMC3. However, these solutions decouple model composition from the data and fitting procedure, making the model 
 less expressive, restricting model customization and reducing flexibility in how the model-fit is performed.
 
@@ -113,7 +114,7 @@ pipeline to guide each `NonLinearSearch` and thus enable accurate fitting of mod
 developed to analyse images of gravitationally lensed galaxies. Modeling gravitational lenses historically requires 
 large amounts of human time and supervision, an approach which does not scale to the incoming samples of $100000$ 
 objects. Domain exploitation enabled full automation of the lens modeling 
-procedure [@Nightingale2015] [@Nightingale2018], with model customization and the aggregator enabling one to fit 
+procedure [@Nightingale2015; @Nightingale2018], with model customization and the aggregator enabling one to fit 
 large datasets with many different models. More recently, `PyAutoFit` has been applied to calibrating radiation 
 damage to charge coupled imaging devices and a model of cancer tumour growth.  
  
