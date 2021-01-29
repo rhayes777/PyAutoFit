@@ -28,20 +28,21 @@ bibliography: paper.bib
 
 # Summary
 
-A major trend in academia and data science is the rapid adoption of Bayesian statistics for data analysis and modelling, 
+A major trend in academia and data science is the rapid adoption of Bayesian statistics for data analysis and modeling, 
 leading to the development of probabilistic programming languages (PPL). A PPL provides a framework that allows users 
 to easily specify a probabilistic model and perform inference automatically. `PyAutoFit` is a Python-based PPL aimed 
 at model fitting problems tackled by long-term software development projects. By interfacing with all aspects of the 
-modelling (e.g. the model, data, fitting procedure, visulization, results, etc.), `PyAutoFit` provides a more complete 
-management of modeling than other PPLs. This includes composing high-dimensionality models from individual model 
+modeling (e.g. the model, data, fitting procedure, visualization, results, etc.), `PyAutoFit` provides complete 
+management of every aspect of modeling. This includes composing high-dimensionality models from individual model 
 components, customizing the fitting procedure and performing data augmentation before a model-fit. Advanced features 
 include database tools for analysing large suites of modeling results and exploiting domain-specific knowledge of a 
 problem via non-linear search chaining. Accompanying `PyAutoFit` is 
 the [autofit workspace](https://github.com/Jammy2211/autofit_workspace), which includes example scripts and 
 the `HowToFit` lecture series which introduces non-experts to model-fitting and provides a guide on how to write a 
-software project using `PyAutoFit`. To get started readers should go to 
-our [readthedocs](https://pyautofit.readthedocs.io/en/latest/) and contact us to join 
-the [PyAutoFit Slack channel](https://pyautofit.slack.com/) where we are building our online community.
+software project using `PyAutoFit`. Readers can try `PyAutoFit` right now by 
+going to [the introduction Jupyter notebook on Binder](https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD)
+or checkout our [readthedocs](https://pyautofit.readthedocs.io/en/latest/) for a complete overview
+of **PyAutoFit**'s features.
 
 # Background of Probabilistic Programming
 
@@ -60,7 +61,7 @@ expressive way to define the model and extensions can be implemented in an intui
 results, allowing it to provide comprehensive management of many different aspects of model-fitting and making it 
 suited to longer term software projects. Model components are written as Python classes, allowing `PyAutoFit` to 
 define the model and associated parameters in an expressive way that is tied to the modeling software's API. A 
-model fit then only requires that a `PyAutoFit` `Analysis` class is writen, which combines the data, model and 
+model fit then only requires that a `PyAutoFit` `Analysis` class is written, which combines the data, model and 
 likelihood function and defines how the model-fit is performed using a `NonLinearSearch`. The `NonLinearSearch`
 procedure is defined using an external inference library such as `dynesty` [@dynesty], `emcee` [@emcee]
 or `PySwarms` [@pyswarms]. 
@@ -103,10 +104,10 @@ experience users may know that certain model components share minimal covariance
 model component (in parameter spaces of reduced dimensionality) can be performed before fitting them simultaneously. 
 The results of these simplified fits can then be used to initialize fits using a higher dimensionality model. 
 Breaking down a model-fit in this way 
-uses `PyAutoFit`'s [non-linear search chaining](https://pyautofit.readthedocs.io/en/latest/advanced/pipelines.html), 
-which granularize the non-linear fitting procedure into a series of linked non-linear searches. Initial model-fits 
-are followed by fits that gradually increase the model complexity, using the information gained throughout the 
-pipeline to guide each `NonLinearSearch` and thus enable accurate fitting of models of arbitrary complexity.
+uses `PyAutoFit`'s non-linear search chaining, which granularizes the non-linear fitting procedure into a series of 
+linked non-linear searches. Initial model-fits  are followed by fits that gradually increase the model complexity, 
+using the information gained throughout the  pipeline to guide each `NonLinearSearch` and thus enable accurate 
+fitting of models of arbitrary complexity.
 
 # History
 
@@ -121,12 +122,12 @@ damage to charge coupled imaging devices and a model of cancer tumour growth.
 # Workspace and HowToFit Tutorials
 
 `PyAutoFit` is distributed with the [autofit workspace](https://github.com/Jammy2211/autofit_workspace), which 
-contains example scripts for composing a model, performing a fit and using the _Aggregator_. Also included are 
-the `HowToFit` tutorials, a series of Jupyter notebooks aimed at non-experts, introducing them to model-fitting and 
-Bayesian inference. They teach users how to write a `phase` package in `PyAutoFit`, which interfaces with their 
-modeling software and ensures the design follows the concepts of object-oriented design which cleanly separates 
-different parts of the modeling problem. The lectures can be viewed on 
-our [readthedocs](https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html).
+contains example scripts for composing a model, performing a fit, using the _Aggregator_ and `PyAutoFit`'s advanced 
+statistical inference methods. Also included are the `HowToFit` tutorials, a series of Jupyter notebooks aimed at 
+non-experts, introducing them to model-fitting and Bayesian inference. They teach users how to write model-components 
+and `Analysis` classes in `PyAutoFit`, use these to fit a dataset and interpret the model-fitting results. The lectures 
+are available on our [Binder](https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD) and may therefore be 
+taken without a local `PyAutoFit` installation.
 
 # Software Citations
 
