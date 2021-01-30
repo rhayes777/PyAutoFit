@@ -180,7 +180,7 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    general/workspace
    general/adding_a_model_component
    general/configs
-   general/road_map
+   general/roadmap
    general/software
    general/citations
    general/credits
