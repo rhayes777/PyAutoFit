@@ -412,6 +412,24 @@ class UniformPrior(Prior):
 class LogUniformPrior(UniformPrior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
+    def __init__(self, lower_limit=1e-6, upper_limit=1.0):
+        """
+        An object used to mappers a unit value to an attribute value for a specific
+        class attribute.
+
+        Parameters
+        ----------
+        lower_limit: Float
+            The lowest value this prior can return
+        upper_limit: Float
+            The highest value this prior can return
+        """
+        super().__init__(lower_limit=lower_limit, upper_limit=upper_limit)
+        if (self.lower_limit <= 0.0):
+            raise exc.PriorException(
+                "The lower limit of a LogUniformPrior cannot be zero or negative."
+            )
+
     def value_for(self, unit):
         """
 
