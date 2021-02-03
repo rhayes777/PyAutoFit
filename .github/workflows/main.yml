@@ -33,4 +33,5 @@ jobs:
         run: |
           ls
           pwd
+          export PYTHONPATH="$PYTHONPATH:$(pwd)"
           pytest
