@@ -1,5 +1,10 @@
-PyAutoFit
-=========
+PyAutoFit: Classy Probabilistic Programming
+===========================================
+
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD
+
+|binder|
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
@@ -14,8 +19,8 @@ PyAutoFit
 Getting Started
 ---------------
 
-You can try **PyAutoFit** now by following the `overview Jupyter Notebook on
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
+You can try **PyAutoFit** now by following the `introduction Jupyter Notebook on
+Binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/7586a67b726dca612404cf5fab1d77d8738f3737?filepath=introduction.ipynb>`_.
 
 On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a complete overview
 of **PyAutoFit**'s features, examples scripts, and
@@ -35,6 +40,8 @@ for example:
 - Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
 
 - Fitting many different models to the same dataset with tools that streamline model comparison.
+
+If these challenges sound familiar, then **PyAutoFit** may be the right software for your model-fitting needs!
 
 API Overview
 ------------
@@ -76,7 +83,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
                     np.exp(-0.5 * transformed_xvalues / self.sigma)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
-a `NonLinearSearch` like `emcee <https://github.com/dfm/emcee>`_.
+a ``NonLinearSearch`` like `emcee <https://github.com/dfm/emcee>`_.
 
 To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a
 ``log_likelihood_function`` describing how to fit the ``data`` with the model:
