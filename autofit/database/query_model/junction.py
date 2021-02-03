@@ -133,12 +133,13 @@ class AbstractJunction(AbstractCondition, ABC):
         """
         SQL string expressing combined query
         """
-        return f" {self.join} ".join(map(
+        string = f" {self.join} ".join(map(
             str,
             sorted(
                 self.conditions
             )
         ))
+        return f"({string})"
 
 
 class And(AbstractJunction):

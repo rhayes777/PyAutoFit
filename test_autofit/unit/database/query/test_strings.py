@@ -27,8 +27,8 @@ class TestString:
             "FROM object AS o "
             "JOIN string_value AS sv "
             "ON o.id = sv.id "
-            "WHERE o.name = 'a' "
-            "AND sv.value = 'value'"
+            "WHERE (o.name = 'a' "
+            "AND sv.value = 'value')"
         )
 
     def test_with_value(self):
@@ -45,8 +45,8 @@ class TestString:
             "FROM object AS o "
             "JOIN value AS v "
             "ON o.id = v.id "
-            "WHERE o.name = 'a' "
-            "AND v.value = 1"
+            "WHERE (o.name = 'a' "
+            "AND v.value = 1)"
         )
 
     def test_simple_and(
@@ -58,9 +58,9 @@ class TestString:
             "FROM object AS o "
             "JOIN value AS v "
             "ON o.id = v.id "
-            "WHERE o.name = 'a' "
+            "WHERE (o.name = 'a' "
             "AND v.value < 1 "
-            "AND v.value > 0"
+            "AND v.value > 0)"
         )
 
     def test_simple_or(
@@ -72,9 +72,9 @@ class TestString:
             "FROM object AS o "
             "JOIN value AS v "
             "ON o.id = v.id "
-            "WHERE o.name = 'a' "
-            "AND v.value < 1 "
-            "OR v.value > 0"
+            "WHERE ((v.value < 1 "
+            "OR v.value > 0) "
+            "AND o.name = 'a')"
         )
 
     def test_second_level(
@@ -82,18 +82,17 @@ class TestString:
             second_level
     ):
         assert second_level.query == (
-            "SELECT parent_id "
-            "FROM object AS o "
-            "JOIN value AS v "
-            "ON o.id = v.id "
-            "WHERE o.id IN ("
-            "SELECT parent_id "
-            "FROM object AS o "
-            "JOIN value AS v "
-            "ON o.id = v.id "
-            "WHERE o.name = 'b' "
-            "AND v.value > 0"
-            ") "
+            'SELECT parent_id '
+            'FROM object AS o '
+            'JOIN value AS v '
+            'ON o.id = v.id '
+            'WHERE (o.id IN ('
+            'SELECT parent_id '
+            'FROM object AS o '
+            'JOIN value AS v '
+            'ON o.id = v.id '
+            "WHERE (o.name = 'b' "
+            "AND v.value > 0)) "
             "AND o.name = 'a' "
-            "AND v.value < 1"
+            "AND v.value < 1)"
         )
