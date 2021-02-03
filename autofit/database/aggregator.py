@@ -60,18 +60,20 @@ class Aggregator:
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) & (lens.disk == EllipticalSersic))
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) | (lens.disk == EllipticalSersic))
         """
-        objects_ids = {
+        query = f"SELECT id FROM fit WHERE instance_id IN ({predicate.query})"
+
+        fit_ids = {
             row[0]
             for row
             in self.session.execute(
-                predicate.query
+                query
             )
         }
         return self.session.query(
-            m.Object
+            m.Fit
         ).filter(
-            m.Object.id.in_(
-                objects_ids
+            m.Fit.id.in_(
+                fit_ids
             )
         ).all()
 
