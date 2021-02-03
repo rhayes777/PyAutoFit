@@ -50,10 +50,13 @@ class Aggregator:
         Examples
         --------
         >>> from autogalaxy.profiles.light_profiles import EllipticalSersic, EllipticalCoreSersic
+        >>>
         >>> aggregator = Aggregator.from_database(
         >>>     "my_database.sqlite"
         >>> )
+        >>>
         >>> lens = aggregator.galaxies.lens
+        >>>
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) & (lens.disk == EllipticalSersic))
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) | (lens.disk == EllipticalSersic))
         """
