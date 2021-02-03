@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import wraps
-from typing import Set
+from typing import Set, Iterable
 
 from .condition import AbstractCondition, Table
 
@@ -32,11 +32,11 @@ class AbstractJunction(AbstractCondition, ABC):
         If only a single extant condition is passed in then that
         condition should simply be returned.
         """
+        conditions = cls._match_conditions(conditions)
         if len(conditions) == 1:
-            return conditions[0]
+            return list(conditions)[0]
         return object.__new__(cls)
 
-    @exclude_none
     def __init__(
             self,
             *conditions: AbstractCondition
@@ -61,10 +61,18 @@ class AbstractJunction(AbstractCondition, ABC):
         conditions
             A list of SQL conditions
         """
-        self.conditions = self.match_conditions(conditions)
+        self.conditions = self._match_conditions(conditions)
 
     @classmethod
-    def match_conditions(cls, conditions):
+    def _match_conditions(
+            cls,
+            conditions: Iterable[AbstractCondition]
+    ):
+        """
+        Simplifies the query by matching named queries and combining junctions.
+
+        See __init__
+        """
         from .query import NamedQuery
 
         new_conditions = set()
@@ -73,6 +81,8 @@ class AbstractJunction(AbstractCondition, ABC):
 
         def add_conditions(conditions_):
             for condition in conditions_:
+                if condition is None:
+                    continue
                 if isinstance(
                         condition,
                         cls
