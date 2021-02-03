@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from autofit.database import query as q
-from .model import Object, Base
+from . import model as m
 
 
 class Aggregator:
@@ -34,7 +34,7 @@ class Aggregator:
     def __getattr__(self, name):
         return q.Q(name)
 
-    def query(self, predicate: q.Q) -> List[Object]:
+    def query(self, predicate: q.Q) -> List[m.Object]:
         """
         Apply a query on the model.
 
@@ -68,12 +68,17 @@ class Aggregator:
             )
         }
         return self.session.query(
-            Object
+            m.Object
         ).filter(
-            Object.id.in_(
+            m.Object.id.in_(
                 objects_ids
             )
         ).all()
+
+    def __len__(self):
+        return self.session.query(
+            m.Fit
+        ).count()
 
     def add_directory(self, directory: str):
         """
@@ -95,11 +100,14 @@ class Aggregator:
             directory
         )
         for item in aggregator:
-            obj = Object.from_object(
+            model = m.Object.from_object(
                 item.model
             )
+            fit = m.Fit(
+                model=model
+            )
             self.session.add(
-                obj
+                fit
             )
         self.session.commit()
 
@@ -128,7 +136,7 @@ class Aggregator:
         session = sessionmaker(
             bind=engine
         )()
-        Base.metadata.create_all(
+        m.Base.metadata.create_all(
             engine
         )
         return Aggregator(
