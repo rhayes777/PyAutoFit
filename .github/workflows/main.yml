@@ -14,9 +14,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        python-version: 3.8    
-        activate-environment: ccbio
     - name: Install dependencies
       shell: bash -l {0}
       run: |
