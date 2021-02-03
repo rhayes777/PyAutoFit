@@ -50,6 +50,11 @@ class TestInstance:
             serialized_instance.children
         ) == 3
 
+    def test_tuple(self):
+        assert db.Object.from_object(
+            (1, 2)
+        )() == (1, 2)
+
 
 class TestModel:
     def test_serialize(

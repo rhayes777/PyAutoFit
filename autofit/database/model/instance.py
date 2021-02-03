@@ -22,6 +22,51 @@ class NoneInstance(Object):
         return None
 
 
+class Collection(Object):
+    """
+    A tuple or list
+    """
+
+    __tablename__ = "collection"
+
+    id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        ),
+        primary_key=True
+    )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'collection'
+    }
+
+    @classmethod
+    def _from_object(
+            cls,
+            source
+    ):
+        instance = cls()
+        instance.cls = type(source)
+        instance._add_children([
+            (str(i), item)
+            for i, item in enumerate(
+                source
+            )
+        ])
+        return instance
+
+    def __call__(self) -> tuple:
+        return self.cls([
+            child()
+            for child
+            in sorted(
+                self.children,
+                key=lambda child: int(child.name)
+            )
+        ])
+
+
 class Instance(Object):
     """
     An instance, such as a class instance

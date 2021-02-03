@@ -1,3 +1,4 @@
+import builtins
 import importlib
 import re
 from typing import List, Tuple, Any, Iterable, Union, ItemsView
@@ -88,6 +89,11 @@ class Object(Base):
         elif isinstance(source, (float, int)):
             from .instance import Value
             instance = Value._from_object(
+                source
+            )
+        elif isinstance(source, (tuple, list)):
+            from .instance import Collection
+            instance = Collection._from_object(
                 source
             )
         elif isinstance(source, (af.CollectionPriorModel, dict, list)):
@@ -184,9 +190,12 @@ class Object(Base):
         """
         The module containing the real class
         """
-        return importlib.import_module(
-            self._module_path
-        )
+        try:
+            return importlib.import_module(
+                self._module_path
+            )
+        except ValueError:
+            return builtins
 
     @property
     def cls(self) -> type:
