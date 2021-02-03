@@ -7,8 +7,16 @@ from .model import Object, Base
 
 
 class Aggregator:
-    def __init__(self, session):
+    def __init__(
+            self,
+            session,
+            filename=None
+    ):
         self.session = session
+        self.filename = filename
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.filename}>"
 
     def __getattr__(self, name):
         return q.Q(name)
@@ -53,4 +61,7 @@ class Aggregator:
         Base.metadata.create_all(
             engine
         )
-        return Aggregator(session)
+        return Aggregator(
+            session,
+            filename
+        )

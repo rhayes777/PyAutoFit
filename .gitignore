@@ -1,3 +1,4 @@
+*.sqlite
 test_autofit/unit/non_linear/samples.csv
 
 test_autofit/unit/tools/files/path/
