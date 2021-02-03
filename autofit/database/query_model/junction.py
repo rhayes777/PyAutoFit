@@ -1,29 +1,11 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from functools import wraps
 from typing import Set, Iterable
 
 from .condition import AbstractCondition, Table
 
 
-def exclude_none(func):
-    """
-    Decorator that filters None from an argument list of conditions
-    """
-
-    @wraps(func)
-    def wrapper(arg, *conditions):
-        conditions = list(filter(
-            None,
-            conditions
-        ))
-        return func(arg, *conditions)
-
-    return wrapper
-
-
 class AbstractJunction(AbstractCondition, ABC):
-    @exclude_none
     def __new__(
             cls,
             *conditions: AbstractCondition
