@@ -1,5 +1,9 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from autofit.database import query_model as q
-from .model import Object
+from .model import Object, Base
 
 
 class Aggregator:
@@ -24,3 +28,29 @@ class Aggregator:
                 objects_ids
             )
         ).all()
+
+    def add_directory(self, directory):
+        aggregator = ClassicAggregator(
+            directory
+        )
+        for item in aggregator:
+            obj = Object.from_object(
+                item.model
+            )
+            self.session.add(
+                obj
+            )
+        self.session.commit()
+
+    @classmethod
+    def from_database(cls, filename):
+        engine = create_engine(
+            f'sqlite:///{filename}'
+        )
+        session = sessionmaker(
+            bind=engine
+        )()
+        Base.metadata.create_all(
+            engine
+        )
+        return Aggregator(session)
