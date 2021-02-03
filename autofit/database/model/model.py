@@ -151,6 +151,11 @@ class Object(Base):
             with the real object
         """
         for key, value in items:
+            if isinstance(
+                value,
+                property
+            ):
+                continue
             child = Object.from_object(
                 value,
                 name=key
