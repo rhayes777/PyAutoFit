@@ -1,6 +1,6 @@
 import pytest
 
-from autofit.database import query_model as q
+from autofit.database import query as q
 
 
 def test_trivial():

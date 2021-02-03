@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
-from autofit.database import query_model as q
+from autofit.database import query as q
 from .model import Object, Base
 
 

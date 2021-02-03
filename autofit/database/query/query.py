@@ -2,8 +2,8 @@ import inspect
 from numbers import Real
 from typing import Optional, Set
 
-import autofit.database.query_model.condition as c
-from autofit.database.query_model.junction import AbstractJunction
+import autofit.database.query.condition as c
+from autofit.database.query.junction import AbstractJunction
 
 
 def _make_comparison(
