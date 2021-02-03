@@ -61,9 +61,13 @@ class AbstractJunction(AbstractCondition, ABC):
         conditions
             A list of SQL conditions
         """
+        self.conditions = self.match_conditions(conditions)
+
+    @classmethod
+    def match_conditions(cls, conditions):
         from .query import NamedQuery
 
-        self.conditions = set()
+        new_conditions = set()
 
         named_query_dict = defaultdict(set)
 
@@ -71,7 +75,7 @@ class AbstractJunction(AbstractCondition, ABC):
             for condition in conditions_:
                 if isinstance(
                         condition,
-                        self.__class__
+                        cls
                 ):
                     add_conditions(condition)
                 elif isinstance(
@@ -84,16 +88,16 @@ class AbstractJunction(AbstractCondition, ABC):
                         condition
                     )
                 else:
-                    self.conditions.add(condition)
+                    new_conditions.add(condition)
 
         add_conditions(conditions)
 
         for name, queries in named_query_dict.items():
             # noinspection PyTypeChecker
-            self.conditions.add(
+            new_conditions.add(
                 NamedQuery(
                     name,
-                    self.__class__(
+                    cls(
                         *[
                             query.other_condition
                             for query
@@ -102,6 +106,7 @@ class AbstractJunction(AbstractCondition, ABC):
                     )
                 )
             )
+        return new_conditions
 
     def __iter__(self):
         return iter(sorted(self.conditions))

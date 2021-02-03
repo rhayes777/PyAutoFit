@@ -65,12 +65,12 @@ class TestCombination:
             q.Q(
                 "b",
                 q.And(
-                    q.And(
-                        q.Q(
-                            "c",
-                            less_than
-                        ),
-                        greater_than
+                    q.Q(
+                        "c",
+                        q.And(
+                            less_than,
+                            greater_than
+                        )
                     ),
                     greater_than
                 )
