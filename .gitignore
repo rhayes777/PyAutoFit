@@ -139,6 +139,7 @@ test_autofit/unit/samples.csv
 test_autofit/unit/non_linear/files/pickles/test.pickle
 test_autofit/unit/non_linear/nest/files/dynesty/output/dynesty_static[nlive_150__bound_multi_vol_dec_0.5_vol_check_2.0__enlarge_1.0__sample_auto]/samples/dynesty.pickle
 =======
+>>>>>>> develop
 test.db
 test_autofit/unit/text/files/textmodel.results
 test_autofit/unit/tools/files/patharray_out.json

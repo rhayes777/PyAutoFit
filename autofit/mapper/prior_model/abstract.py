@@ -586,6 +586,9 @@ class AbstractPriorModel(AbstractModel):
             return result.as_model()
         return result
 
+    def items(self):
+        return self.direct_prior_tuples + self.direct_instance_tuples + self.direct_prior_model_tuples
+
     @property
     @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
@@ -599,6 +602,11 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
+        return self.direct_tuples_with_type(AbstractPriorModel)
+
+    @property
+    @cast_collection(PriorModelNameValue)
+    def direct_prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
@@ -636,11 +644,6 @@ class AbstractPriorModel(AbstractModel):
         """
         # noinspection PyUnresolvedReferences
         return self.attribute_tuples_with_type(Prior)
-
-    @property
-    @cast_collection(PriorModelNameValue)
-    def direct_prior_model_tuples(self):
-        return self.direct_tuples_with_type(AbstractPriorModel)
 
     def __eq__(self, other):
         return (
