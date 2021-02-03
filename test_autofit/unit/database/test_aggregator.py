@@ -5,7 +5,7 @@ from autofit.database.aggregator import Aggregator
 directory = Path(__file__).parent
 
 
-def test_load(session):
+def _test_load(session):
     aggregator = Aggregator(
         session
     )
