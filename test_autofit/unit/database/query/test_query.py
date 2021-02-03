@@ -27,19 +27,19 @@ def test_embedded_query(
         model_2
     ])
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 0
     )
 
     assert result == []
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.gaussian.centre == 1
     )
 
     assert result == [model_1]
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.gaussian.centre == 2
     )
 
@@ -66,19 +66,19 @@ def test_query(
         gaussian_2
     ])
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 0
     )
 
     assert result == []
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 1
     )
 
     assert result == [gaussian_1]
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 2
     )
 
