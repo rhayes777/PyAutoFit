@@ -103,8 +103,13 @@ class Aggregator:
             model = m.Object.from_object(
                 item.model
             )
+            samples = item.samples
+            instance = m.Object.from_object(
+                samples.max_log_likelihood_instance
+            )
             fit = m.Fit(
-                model=model
+                model=model,
+                instance=instance
             )
             self.session.add(
                 fit

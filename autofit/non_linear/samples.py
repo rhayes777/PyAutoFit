@@ -5,10 +5,11 @@ from typing import List
 
 import numpy as np
 
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.tools import util
+
 
 class Sample:
     def __init__(
@@ -1123,8 +1124,8 @@ class NestSamples(PDFSamples):
 
     def samples_within_parameter_range(
             self,
-            parameter_index : int,
-            parameter_range : [float, float]
+            parameter_index: int,
+            parameter_range: [float, float]
     ) -> "NestSamples":
         """
         Returns a new set of Samples where all points without parameter values inside a specified range removed.
@@ -1158,7 +1159,8 @@ class NestSamples(PDFSamples):
 
             parameters = sample.parameters_for_model(model=self.model)
 
-            if (parameters[parameter_index] > parameter_range[0]) and (parameters[parameter_index] < parameter_range[1]):
+            if (parameters[parameter_index] > parameter_range[0]) and (
+                    parameters[parameter_index] < parameter_range[1]):
 
                 parameter_list.append(parameters)
                 log_likelihoods.append(sample.log_likelihood)
@@ -1182,6 +1184,7 @@ class NestSamples(PDFSamples):
             unconverged_sample_size=self.unconverged_sample_size,
             time=self.time
         )
+
 
 def quantile(x, q, weights=None):
     """

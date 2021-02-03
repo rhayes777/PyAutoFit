@@ -12,14 +12,28 @@ class Fit(Base):
         primary_key=True,
     )
 
-    model = relationship(
-        "Object",
-        uselist=False,
-        backref="fit"
-    )
     model_id = Column(
         Integer,
         ForeignKey(
             "object.id"
         )
+    )
+    model = relationship(
+        "Object",
+        uselist=False,
+        backref="fit_model",
+        foreign_keys=[model_id]
+    )
+
+    instance_id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        )
+    )
+    instance = relationship(
+        "Object",
+        uselist=False,
+        backref="fit_instance",
+        foreign_keys=[instance_id]
     )
