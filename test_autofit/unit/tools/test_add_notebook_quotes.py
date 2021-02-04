@@ -1,7 +1,7 @@
 from autofit.tools.add_notebook_quotes import add_notebook_quotes
 
 
-def test()
+def test():
 
     lines = [
         '"""',
