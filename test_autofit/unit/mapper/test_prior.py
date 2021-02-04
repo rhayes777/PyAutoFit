@@ -290,7 +290,7 @@ class TestLogUniformPrior:
 
     def test__log_prior_from_value(self):
 
-        gaussian_simple = af.LogUniformPrior(lower_limit=0.0, upper_limit=1.0)
+        gaussian_simple = af.LogUniformPrior(lower_limit=1e-8, upper_limit=1.0)
 
         log_prior = gaussian_simple.log_prior_from_value(value=1.0)
 
@@ -327,6 +327,7 @@ class TestLogUniformPrior:
         with pytest.raises(exc.PriorException):
 
             af.LogUniformPrior(lower_limit=0.0, upper_limit=1.0)
+
 
 class TestGaussianPrior:
     def test__simple_assumptions(self):

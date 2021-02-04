@@ -513,7 +513,7 @@ class TestModelInstancesRealClasses:
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(mock.MockClassx2)
         mapper.mock_class.one = af.GaussianPrior(mean=1.0, sigma=2.0)
-        mapper.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+        mapper.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
         log_priors = mapper.log_priors_from_vector(vector=[0.0, 5.0])
 
