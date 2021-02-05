@@ -56,7 +56,7 @@ expressive way to define the model and extensions can be implemented in an intui
 # Statement of Need
 
 `PyAutoFit` is a PPL whose core design is providing a direct interface with the model, data, fitting procedure and 
-results, allowing it to provide comprehensive management of many different aspects of model-fitting. **PyAutoFit** began  
+results, allowing it to provide comprehensive management of many different aspects of model-fitting. **PyAutoFit** began 
 as an Astronomy project for fitting large imaging datasets of galaxies, after the developers found that existing PPLs 
 were not suited to the type of model fitting problems Astronomers faced. This includes efficiently analysing large and 
 homogenous datasets with an identical model fitting procedure, making it straight forward to fit many models to 
