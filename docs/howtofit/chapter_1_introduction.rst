@@ -7,7 +7,7 @@ In chapter 1, we introduce you to the **PyAutoFit** and describe how to set up y
 a non-linear search and inspect and interpret the results.
 
 You can start the tutorials right now by going to `our binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD>`_
-and navigating to the folder `notebooks/howtofit/chapter_1_introduction`. They are also on the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_.
+and navigating to the folder ``notebooks/howtofit/chapter_1_introduction``. They are also on the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_.
 
 The chapter contains the following tutorials:
 

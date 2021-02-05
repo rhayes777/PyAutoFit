@@ -35,12 +35,12 @@ introduces new users to **PyAutoFit**.
 Why PyAutoFit?
 --------------
 
-**PyAutoFit** is developed by Astronomers for fitting large imaging datasets of galaxies. We found that existing
-probabilistic programming languages (e.g `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_,
-`STAN <https://github.com/stan-dev/stan>`_) were not suited to the type of model fitting problems Astronomers faced,
-for example:
+**PyAutoFit** began
+as an Astronomy project for fitting large imaging datasets of galaxies after the developers found that existing PPLs
+(e.g., `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_, `STAN <https://github.com/stan-dev/stan>`_)
+were not suited to the type of model fitting problems Astronomers faced. This includes:
 
-- Fitting large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
+- Efficiently analysing large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
 
 - Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
 
