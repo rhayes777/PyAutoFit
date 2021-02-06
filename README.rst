@@ -4,11 +4,14 @@ PyAutoFit: Classy Probabilistic Programming
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD
 
-|binder|
+.. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.02550/status.svg
+   :target: https://doi.org/10.21105/joss.02550
+
+|binder| |JOSS|
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
 `readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
-`Overview on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/f7b68b6e613fb657881d0e7fadf78ab014a25e06?filepath=introduction.ipynb>`_ |
+`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_ |
 `HowToFit <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
@@ -25,7 +28,7 @@ Getting Started
 ---------------
 
 You can try **PyAutoFit** now by following the `introduction Jupyter Notebook on
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/f7b68b6e613fb657881d0e7fadf78ab014a25e06?filepath=introduction.ipynb>`_.
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_.
 
 On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a complete overview
 of **PyAutoFit**'s features, examples scripts, and
