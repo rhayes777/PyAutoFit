@@ -29,11 +29,11 @@ Getting Started
 
 The following links are useful for new starters:
 
-- Try **PyAutoFit** in a web browser (without installation) by following the `introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_.
+- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
 
-- The **PyAutoFit** `documentation on readthedocs <https://pyautofit.readthedocs.io/en/latest>`_, which includes the `PyAutoFit installation guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ and an overview of **PyAutoFit**'s core features.
+- `The PyAutoFit readthedocs <https://pyautofit.readthedocs.io/en/latest>`_, which includes an `installation guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ and an overview of **PyAutoFit**'s core features.
 
-- The `autofit_workspace GitHub repository <https://github.com/Jammy2211/autofit_workspace>`_, which includes example scripts and the `HowToFit Jupyter notebook tutorials <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/howtofit>`_ which give new users a step-by-step introduction to **PyAutoFit**.
+- `The autofit_workspace GitHub repository <https://github.com/Jammy2211/autofit_workspace>`_, which includes example scripts and the `HowToFit Jupyter notebook tutorials <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/howtofit>`_ which give new users a step-by-step introduction to **PyAutoFit**.
 
 Why PyAutoFit?
 --------------
