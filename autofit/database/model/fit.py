@@ -4,10 +4,15 @@ from typing import List
 from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
+from autofit import AbstractPriorModel
 from .model import Base, Object
 
 
 class Pickle(Base):
+    """
+    A pickled python object that was found in the pickles directory
+    """
+
     __tablename__ = "pickle"
 
     def __init__(self, **kwargs):
@@ -37,6 +42,9 @@ class Pickle(Base):
 
     @property
     def value(self):
+        """
+        The unpickled object
+        """
         return pickle.loads(
             self.string
         )
@@ -62,15 +70,21 @@ class Fit(Base):
         )
 
     @property
-    def model(self):
+    def model(self) -> AbstractPriorModel:
+        """
+        The model that was fit
+        """
         return self.__model()
 
     @property
     def instance(self):
+        """
+        The instance of the model that had the highest likelihood
+        """
         return self.__instance()
 
     @model.setter
-    def model(self, model):
+    def model(self, model: AbstractPriorModel):
         self.__model = Object.from_object(
             model
         )
@@ -85,7 +99,22 @@ class Fit(Base):
         "Pickle"
     )
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str):
+        """
+        Retrieve an object that was a pickle
+
+        Parameters
+        ----------
+        item
+            The name of the pickle.
+
+            e.g. if the file were 'samples.pickle' then 'samples' would
+            retrieve the unpickled object.
+
+        Returns
+        -------
+        An unpickled object
+        """
         for p in self.pickles:
             if p.name == item:
                 return p.value
@@ -94,7 +123,24 @@ class Fit(Base):
             item
         )
 
-    def __setitem__(self, key, value):
+    def __setitem__(
+            self,
+            key: str,
+            value
+    ):
+        """
+        Add a pickle.
+
+        If a deserialised object is given then it is serialised
+        before being added to the database.
+
+        Parameters
+        ----------
+        key
+            The name of the pickle
+        value
+            A string, bytes or object
+        """
         new = Pickle(
             name=key
         )

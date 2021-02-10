@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -11,10 +11,16 @@ from . import model as m
 
 
 class AbstractAggregator(ABC):
+    """
+    Abstract collection of historical fits
+    """
+
     @property
     @abstractmethod
-    def fits(self):
-        pass
+    def fits(self) -> List[m.Fit]:
+        """
+        All fits in the collection
+        """
 
     def __iter__(self):
         return iter(
@@ -24,7 +30,20 @@ class AbstractAggregator(ABC):
     def __getitem__(self, item):
         return self.fits[0]
 
-    def values(self, name):
+    def values(self, name: str) -> list:
+        """
+        Retrieve the value associated with each fit with the given
+        parameter name
+
+        Parameters
+        ----------
+        name
+            The name of some pickle, such as 'samples'
+
+        Returns
+        -------
+        A list of objects, one for each fit
+        """
         return [
             fit[name]
             for fit
@@ -34,6 +53,11 @@ class AbstractAggregator(ABC):
     def __len__(self):
         return len(self.fits)
 
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self.fits == other
+        return super().__eq__(other)
+
 
 class ListAggregator(AbstractAggregator):
     def __init__(self, fits):
@@ -42,11 +66,6 @@ class ListAggregator(AbstractAggregator):
     @property
     def fits(self):
         return self._fits
-
-    def __eq__(self, other):
-        if isinstance(other, list):
-            return self._fits == other
-        return super().__eq__(other)
 
 
 class Aggregator(AbstractAggregator):
@@ -118,7 +137,24 @@ class Aggregator(AbstractAggregator):
             )
         )
 
-    def _fits_for_query(self, query: str):
+    def _fits_for_query(
+            self,
+            query: str
+    ) -> List[m.Fit]:
+        """
+        Execute a raw SQL query and return a Fit object
+        for each Fit id returned by the query
+
+        Parameters
+        ----------
+        query
+            A SQL query that selects ids from the fit table
+
+        Returns
+        -------
+        A list of fit objects, one for each id returned by the
+        query
+        """
         fit_ids = {
             row[0]
             for row
@@ -142,6 +178,9 @@ class Aggregator(AbstractAggregator):
         """
         Recursively search a directory for autofit results
         and add them to this database.
+
+        Any pickles found in the pickles file are implicitly added
+        to the fit object.
 
         Warnings
         --------
