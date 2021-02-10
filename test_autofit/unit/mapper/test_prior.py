@@ -3,6 +3,7 @@ import math
 import pytest
 
 import autofit as af
+from autofit import exc
 from autofit.mock import mock
 
 
@@ -272,6 +273,7 @@ class TestUniformPrior:
 
 
 class TestLogUniformPrior:
+
     def test__simple_assumptions(self):
         log_uniform_simple = af.LogUniformPrior(lower_limit=1.0e-8, upper_limit=1.0)
 
@@ -288,7 +290,7 @@ class TestLogUniformPrior:
 
     def test__log_prior_from_value(self):
 
-        gaussian_simple = af.LogUniformPrior(lower_limit=0.0, upper_limit=1.0)
+        gaussian_simple = af.LogUniformPrior(lower_limit=1e-8, upper_limit=1.0)
 
         log_prior = gaussian_simple.log_prior_from_value(value=1.0)
 
@@ -315,6 +317,16 @@ class TestLogUniformPrior:
         log_prior = gaussian_simple.log_prior_from_value(value=4.0)
 
         assert log_prior == 0.25
+
+    def test__lower_limit_zero_or_below_raises_error(self):
+
+        with pytest.raises(exc.PriorException):
+
+            af.LogUniformPrior(lower_limit=-1.0, upper_limit=1.0)
+
+        with pytest.raises(exc.PriorException):
+
+            af.LogUniformPrior(lower_limit=0.0, upper_limit=1.0)
 
 
 class TestGaussianPrior:

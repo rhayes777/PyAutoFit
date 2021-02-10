@@ -25,7 +25,7 @@ the ``autofit_workspace``, reducing the download size):
    git clone https://github.com/Jammy2211/autofit_workspace --depth 1
    cd autofit_workspace
 
-Run the `welcome.py` script to get started!
+Run the ``welcome.py`` script to get started!
 
 .. code-block:: bash
 

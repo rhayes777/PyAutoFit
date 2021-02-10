@@ -4,7 +4,15 @@ PyAutoFit: Classy Probabilistic Programming
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD
 
-|binder|
+.. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.02550/status.svg
+   :target: https://doi.org/10.21105/joss.02550
+
+|binder| |JOSS|
+
+`Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
+`readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
+`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_ |
+`HowToFit <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
@@ -19,23 +27,22 @@ PyAutoFit: Classy Probabilistic Programming
 Getting Started
 ---------------
 
-You can try **PyAutoFit** now by following the `introduction Jupyter Notebook on
-Binder <https://gesis.mybinder.org/binder/v2/gh/Jammy2211/autofit_workspace/7586a67b726dca612404cf5fab1d77d8738f3737?filepath=introduction.ipynb>`_.
+The following links are useful for new starters:
 
-On `readthedocs <https://pyautofit.readthedocs.io/>`_ you'll find the installation guide, a complete overview
-of **PyAutoFit**'s features, examples scripts, and
-the `HowToFit Jupyter notebook tutorials <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_ which
-introduces new users to **PyAutoFit**.
+- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
+
+- `The PyAutoFit readthedocs <https://pyautofit.readthedocs.io/en/latest>`_, which includes an `installation guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ and an overview of **PyAutoFit**'s core features.
+
+- `The autofit_workspace GitHub repository <https://github.com/Jammy2211/autofit_workspace>`_, which includes example scripts and the `HowToFit Jupyter notebook tutorials <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/howtofit>`_ which give new users a step-by-step introduction to **PyAutoFit**.
 
 Why PyAutoFit?
 --------------
 
-**PyAutoFit** is developed by Astronomers for fitting large imaging datasets of galaxies. We found that existing
-probabilistic programming languages (e.g `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_,
-`STAN <https://github.com/stan-dev/stan>`_) were not suited to the type of model fitting problems Astronomers faced,
-for example:
+**PyAutoFit** began as an Astronomy project for fitting large imaging datasets of galaxies after the developers found that existing PPLs
+(e.g., `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_, `STAN <https://github.com/stan-dev/stan>`_)
+were not suited to the type of model fitting problems Astronomers faced. This includes:
 
-- Fitting large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
+- Efficiently analysing large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
 
 - Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
 
@@ -141,10 +148,9 @@ model and marginalized probability density functions.
 Support
 -------
 
-Support for installation issues and integrating your modeling software with **PyAutoFit** is available by
-`raising an issue on the autofit_workspace GitHub page <https://github.com/Jammy2211/autofit_workspace/issues>`_. or
-joining the **PyAutoFit** `Slack channel <https://pyautofit.slack.com/>`_, where we also provide the latest updates on
-**PyAutoFit**.
+Support for installation issues, help with Fit modeling and using **PyAutoFit** is available by
+`raising an issue on the GitHub issues page <https://github.com/rhayes777/PyAutoFit/issues>`_.
 
-Slack is invitation-only, so if you'd like to join send an `email <https://github.com/Jammy2211>`_ requesting an
-invite.
+We also offer support on the **PyAutoFit** `Slack channel <https://pyautoFit.slack.com/>`_, where we also provide the 
+latest updates on **PyAutoFit**. Slack is invitation-only, so if you'd like to join send 
+an `email <https://github.com/Jammy2211>`_ requesting an invite.

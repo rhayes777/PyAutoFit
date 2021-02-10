@@ -372,7 +372,7 @@ class TestMulitNest:
         create_summary_4_parameters(file_path=multi_nest.paths.samples_path)
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
-        model.mock_class.two = af.LogUniformPrior(lower_limit=0.0, upper_limit=10.0)
+        model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
         samples = multi_nest.samples_via_sampler_from_model(model=model)
 
