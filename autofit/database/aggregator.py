@@ -27,12 +27,24 @@ class Aggregator:
         """
         self.session = session
         self.filename = filename
+        self._fits = None
+
+    @property
+    def fits(self):
+        if self._fits is None:
+            self._fits = self._fits_for_query(
+                "SELECT id FROM fit"
+            )
+        return self._fits
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename}>"
 
     def __getattr__(self, name):
         return q.Q(name)
+
+    def __getitem__(self, item):
+        return self.fits[0]
 
     def query(self, predicate: q.Q) -> List[m.Object]:
         """
@@ -62,6 +74,11 @@ class Aggregator:
         """
         query = f"SELECT id FROM fit WHERE instance_id IN ({predicate.query})"
 
+        return self._fits_for_query(
+            query
+        )
+
+    def _fits_for_query(self, query: str):
         fit_ids = {
             row[0]
             for row
@@ -111,7 +128,10 @@ class Aggregator:
             )
             fit = m.Fit(
                 model=model,
-                instance=instance
+                instance=instance,
+                samples=m.Object.from_object(
+                    samples
+                )
             )
             self.session.add(
                 fit

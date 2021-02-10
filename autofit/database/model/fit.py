@@ -37,3 +37,16 @@ class Fit(Base):
         backref="fit_instance",
         foreign_keys=[instance_id]
     )
+
+    samples_id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        )
+    )
+    samples = relationship(
+        "Object",
+        uselist=False,
+        backref="fit_samples",
+        foreign_keys=[samples_id]
+    )
