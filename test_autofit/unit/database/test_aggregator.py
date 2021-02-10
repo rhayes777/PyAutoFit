@@ -34,14 +34,9 @@ def make_aggregator(
         session
     )
     aggregator.add_directory(
-        str(directory),
-        # auto_commit=False
+        str(directory)
     )
     return aggregator
-
-
-def test_nothing(aggregator):
-    pass
 
 
 @pytest.fixture(
