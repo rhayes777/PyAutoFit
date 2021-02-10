@@ -4,8 +4,7 @@
 name: Python application
 
 on:
-  push:
-    branches
+  push
 
 jobs:
   build:
