@@ -1,16 +1,8 @@
 from codecs import open
 from os.path import abspath, dirname, join
+from os import environ
 
 from setuptools import find_packages, setup
-
-
-def version():
-    with open("autofit/__init__.py") as f:
-        lines = f.read().split("\n")
-    for line in lines:
-        if "__version__" in line:
-            return line.split("=")[1].strip(" '\"")
-
 
 this_dir = abspath(dirname(__file__))
 with open(join(this_dir, "README.rst"), encoding="utf-8") as file:
@@ -21,7 +13,7 @@ with open(join(this_dir, "requirements.txt")) as f:
 
 setup(
     name="autofit",
-    version=version(),
+    version=environ.get("VERSION", "1.0.dev0"),
     description="Classy Probabilistic Programming",
     long_description=long_description,
     long_description_content_type="text/markdown",
