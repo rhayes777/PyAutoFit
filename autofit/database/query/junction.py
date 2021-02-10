@@ -1,29 +1,11 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from functools import wraps
-from typing import Set
+from typing import Set, Iterable
 
 from .condition import AbstractCondition, Table
 
 
-def exclude_none(func):
-    """
-    Decorator that filters None from an argument list of conditions
-    """
-
-    @wraps(func)
-    def wrapper(arg, *conditions):
-        conditions = list(filter(
-            None,
-            conditions
-        ))
-        return func(arg, *conditions)
-
-    return wrapper
-
-
 class AbstractJunction(AbstractCondition, ABC):
-    @exclude_none
     def __new__(
             cls,
             *conditions: AbstractCondition
@@ -32,11 +14,11 @@ class AbstractJunction(AbstractCondition, ABC):
         If only a single extant condition is passed in then that
         condition should simply be returned.
         """
+        conditions = cls._match_conditions(conditions)
         if len(conditions) == 1:
-            return conditions[0]
+            return list(conditions)[0]
         return object.__new__(cls)
 
-    @exclude_none
     def __init__(
             self,
             *conditions: AbstractCondition
@@ -61,17 +43,31 @@ class AbstractJunction(AbstractCondition, ABC):
         conditions
             A list of SQL conditions
         """
+        self.conditions = self._match_conditions(conditions)
+
+    @classmethod
+    def _match_conditions(
+            cls,
+            conditions: Iterable[AbstractCondition]
+    ):
+        """
+        Simplifies the query by matching named queries and combining junctions.
+
+        See __init__
+        """
         from .query import NamedQuery
 
-        self.conditions = set()
+        new_conditions = set()
 
         named_query_dict = defaultdict(set)
 
         def add_conditions(conditions_):
             for condition in conditions_:
+                if condition is None:
+                    continue
                 if isinstance(
                         condition,
-                        self.__class__
+                        cls
                 ):
                     add_conditions(condition)
                 elif isinstance(
@@ -84,16 +80,16 @@ class AbstractJunction(AbstractCondition, ABC):
                         condition
                     )
                 else:
-                    self.conditions.add(condition)
+                    new_conditions.add(condition)
 
         add_conditions(conditions)
 
         for name, queries in named_query_dict.items():
             # noinspection PyTypeChecker
-            self.conditions.add(
+            new_conditions.add(
                 NamedQuery(
                     name,
-                    self.__class__(
+                    cls(
                         *[
                             query.other_condition
                             for query
@@ -102,6 +98,7 @@ class AbstractJunction(AbstractCondition, ABC):
                     )
                 )
             )
+        return new_conditions
 
     def __iter__(self):
         return iter(sorted(self.conditions))
@@ -136,12 +133,13 @@ class AbstractJunction(AbstractCondition, ABC):
         """
         SQL string expressing combined query
         """
-        return f" {self.join} ".join(map(
+        string = f" {self.join} ".join(map(
             str,
             sorted(
                 self.conditions
             )
         ))
+        return f"({string})"
 
 
 class And(AbstractJunction):

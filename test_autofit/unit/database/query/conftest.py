@@ -1,7 +1,7 @@
 import pytest
 
 from autofit import database as db
-from autofit.database import query_model as q
+from autofit.database import query as q
 
 
 @pytest.fixture(

@@ -2,8 +2,8 @@ import inspect
 from numbers import Real
 from typing import Optional, Set
 
-import autofit.database.query_model.condition as c
-from autofit.database.query_model.junction import AbstractJunction
+import autofit.database.query.condition as c
+from autofit.database.query.junction import AbstractJunction
 
 
 def _make_comparison(
@@ -100,6 +100,11 @@ class NamedQuery(c.AbstractCondition):
 
     def __repr__(self):
         return self.query
+
+    def __call__(self, *args, **kwargs):
+        raise AttributeError(
+            f"'Aggregator' object has no attribute '{self.name}'"
+        )
 
     @property
     def tables_string(self) -> str:

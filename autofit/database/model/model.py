@@ -1,4 +1,6 @@
+import builtins
 import importlib
+import inspect
 import re
 from typing import List, Tuple, Any, Iterable, Union, ItemsView
 
@@ -48,6 +50,9 @@ class Object(Base):
         'polymorphic_on': type
     }
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.name}>"
+
     # noinspection PyProtectedMember
     @classmethod
     def from_object(
@@ -90,6 +95,11 @@ class Object(Base):
             instance = Value._from_object(
                 source
             )
+        elif isinstance(source, (tuple, list)):
+            from .instance import Collection
+            instance = Collection._from_object(
+                source
+            )
         elif isinstance(source, (af.CollectionPriorModel, dict, list)):
             from .prior import CollectionPriorModel
             instance = CollectionPriorModel._from_object(
@@ -108,11 +118,19 @@ class Object(Base):
         instance.name = name
         return instance
 
+    @property
+    def _constructor_args(self):
+        return set(
+            inspect.getfullargspec(
+                self.cls
+            ).args[1:]
+        )
+
     def _make_instance(self) -> object:
         """
         Create the real instance for this object
         """
-        return self.cls()
+        return object.__new__(self.cls)
 
     def __call__(self):
         """
@@ -145,6 +163,11 @@ class Object(Base):
             with the real object
         """
         for key, value in items:
+            if isinstance(
+                    value,
+                    property
+            ):
+                continue
             child = Object.from_object(
                 value,
                 name=key
@@ -184,9 +207,12 @@ class Object(Base):
         """
         The module containing the real class
         """
-        return importlib.import_module(
-            self._module_path
-        )
+        try:
+            return importlib.import_module(
+                self._module_path
+            )
+        except ValueError:
+            return builtins
 
     @property
     def cls(self) -> type:

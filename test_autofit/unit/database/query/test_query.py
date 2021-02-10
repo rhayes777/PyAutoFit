@@ -7,15 +7,15 @@ def test_embedded_query(
         session,
         aggregator
 ):
-    model_1 = db.Object.from_object(
-        af.Collection(
+    model_1 = db.Fit(
+        instance=af.Collection(
             gaussian=m.Gaussian(
                 centre=1
             )
         )
     )
-    model_2 = db.Object.from_object(
-        af.Collection(
+    model_2 = db.Fit(
+        instance=af.Collection(
             gaussian=m.Gaussian(
                 centre=2
             )
@@ -27,19 +27,19 @@ def test_embedded_query(
         model_2
     ])
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 0
     )
 
     assert result == []
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.gaussian.centre == 1
     )
 
     assert result == [model_1]
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.gaussian.centre == 2
     )
 
@@ -50,13 +50,13 @@ def test_query(
         session,
         aggregator
 ):
-    gaussian_1 = db.Object.from_object(
-        m.Gaussian(
+    gaussian_1 = db.Fit(
+        instance=m.Gaussian(
             centre=1
         )
     )
-    gaussian_2 = db.Object.from_object(
-        m.Gaussian(
+    gaussian_2 = db.Fit(
+        instance=m.Gaussian(
             centre=2
         )
     )
@@ -66,19 +66,19 @@ def test_query(
         gaussian_2
     ])
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 0
     )
 
     assert result == []
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 1
     )
 
     assert result == [gaussian_1]
 
-    result = aggregator.filter(
+    result = aggregator.query(
         aggregator.centre == 2
     )
 

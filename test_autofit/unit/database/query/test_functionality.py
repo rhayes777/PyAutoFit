@@ -1,4 +1,6 @@
-from autofit.database import query_model as q
+import pytest
+
+from autofit.database import query as q
 
 
 def test_trivial():
@@ -22,3 +24,17 @@ def test_single_argument():
         q.And(q.Q("a")),
         q.Q
     )
+
+
+def test_already_compared(
+        aggregator
+):
+    with pytest.raises(
+            AssertionError
+    ):
+        print((aggregator.centre == 1) == 1)
+
+    with pytest.raises(
+            AssertionError
+    ):
+        print((aggregator.centre == 1).intesity)

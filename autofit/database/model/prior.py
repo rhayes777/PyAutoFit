@@ -81,6 +81,7 @@ class PriorModel(Object):
     def _make_instance(self):
         instance = object.__new__(af.PriorModel)
         instance.cls = self.cls
+        instance._assertions = []
         return instance
 
 

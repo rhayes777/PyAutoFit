@@ -1,4 +1,4 @@
-from autofit.database import query_model as q
+from autofit.database import query as q
 from autofit.mock import mock
 
 
