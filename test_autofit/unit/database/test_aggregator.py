@@ -56,7 +56,7 @@ def make_fit(
 def test_samples(
         fit
 ):
-    assert fit.samples
+    assert fit["samples"]
 
 
 def test_load(aggregator):

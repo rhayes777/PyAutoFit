@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -25,7 +26,7 @@ class AbstractAggregator(ABC):
 
     def values(self, name):
         return [
-            getattr(fit, name)
+            fit[name]
             for fit
             in self
         ]
@@ -165,9 +166,24 @@ class Aggregator(AbstractAggregator):
             instance = samples.max_log_likelihood_instance
             fit = m.Fit(
                 model=model,
-                instance=instance,
-                samples=samples
+                instance=instance
             )
+
+            pickle_path = item.pickle_path
+            for pickle_name in os.listdir(
+                    pickle_path
+            ):
+                with open(
+                        os.path.join(
+                            pickle_path,
+                            pickle_name
+                        ),
+                        "r+b"
+                ) as f:
+                    fit[pickle_name.replace(
+                        ".pickle",
+                        ""
+                    )] = f.read()
             self.session.add(
                 fit
             )

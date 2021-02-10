@@ -1,9 +1,51 @@
 import pickle
+from typing import List
 
 from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 from .model import Base, Object
+
+
+class Pickle(Base):
+    __tablename__ = "pickle"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    name = Column(
+        String
+    )
+    string = Column(
+        String
+    )
+    fit_id = Column(
+        Integer,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    fit = relationship(
+        "Fit",
+        uselist=False
+    )
+
+    @property
+    def value(self):
+        return pickle.loads(
+            self.string
+        )
+
+    @value.setter
+    def value(self, value):
+        self.string = pickle.dumps(
+            value
+        )
 
 
 class Fit(Base):
@@ -14,6 +56,11 @@ class Fit(Base):
         primary_key=True,
     )
 
+    def __init__(self, **kwargs):
+        super().__init__(
+            **kwargs
+        )
+
     @property
     def model(self):
         return self.__model()
@@ -21,10 +68,6 @@ class Fit(Base):
     @property
     def instance(self):
         return self.__instance()
-
-    @property
-    def samples(self):
-        return pickle.loads(self.__samples)
 
     @model.setter
     def model(self, model):
@@ -38,9 +81,38 @@ class Fit(Base):
             instance
         )
 
-    @samples.setter
-    def samples(self, samples):
-        self.__samples = pickle.dumps(samples)
+    pickles: List[Pickle] = relationship(
+        "Pickle"
+    )
+
+    def __getitem__(self, item):
+        for p in self.pickles:
+            if p.name == item:
+                return p.value
+        return getattr(
+            self,
+            item
+        )
+
+    def __setitem__(self, key, value):
+        new = Pickle(
+            name=key
+        )
+        if isinstance(
+                value,
+                (str, bytes)
+        ):
+            new.string = value
+        else:
+            new.value = value
+        self.pickles = [
+                           p
+                           for p
+                           in self.pickles
+                           if p.name != key
+                       ] + [
+                           new
+                       ]
 
     model_id = Column(
         Integer,
@@ -67,5 +139,3 @@ class Fit(Base):
         backref="fit_instance",
         foreign_keys=[instance_id]
     )
-
-    __samples = Column(String)
