@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from autofit import database as db
+from autofit import database as db, NestSamples
 from autofit.database.aggregator import Aggregator
 
 directory = Path(__file__).parent
@@ -67,20 +67,28 @@ def test_values(
         aggregator,
         fit
 ):
-    assert aggregator.values(
+    sample, = aggregator.values(
         "samples"
-    ) == [fit.samples]
+    )
+    assert isinstance(
+        sample,
+        NestSamples
+    )
 
 
 def test_values_on_filtered(
         aggregator,
         fit
 ):
-    assert aggregator.query(
+    sample, = aggregator.query(
         aggregator.galaxies
     ).values(
         "samples"
-    ) == [fit.samples]
+    )
+    assert isinstance(
+        sample,
+        NestSamples
+    )
 
 
 def test_random_api(
