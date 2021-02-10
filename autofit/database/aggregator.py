@@ -37,6 +37,11 @@ class Aggregator:
             )
         return self._fits
 
+    def __iter__(self):
+        return iter(
+            self.fits
+        )
+
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename}>"
 
@@ -45,6 +50,13 @@ class Aggregator:
 
     def __getitem__(self, item):
         return self.fits[0]
+
+    def value(self, name):
+        return [
+            getattr(fit, name)
+            for fit
+            in self
+        ]
 
     def query(self, predicate: q.Q) -> List[m.Object]:
         """

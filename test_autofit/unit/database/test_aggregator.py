@@ -58,4 +58,10 @@ def test_load(aggregator):
     assert len(aggregator) == 1
 
 
-# def
+def test_value(
+        aggregator,
+        fit
+):
+    assert aggregator.value(
+        "samples"
+    ) == [fit.samples]
