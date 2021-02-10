@@ -1,4 +1,5 @@
-from typing import Optional, List
+from abc import ABC, abstractmethod
+from typing import Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -8,7 +9,46 @@ from autofit.database import query as q
 from . import model as m
 
 
-class Aggregator:
+class AbstractAggregator(ABC):
+    @property
+    @abstractmethod
+    def fits(self):
+        pass
+
+    def __iter__(self):
+        return iter(
+            self.fits
+        )
+
+    def __getitem__(self, item):
+        return self.fits[0]
+
+    def values(self, name):
+        return [
+            getattr(fit, name)
+            for fit
+            in self
+        ]
+
+    def __len__(self):
+        return len(self.fits)
+
+
+class ListAggregator(AbstractAggregator):
+    def __init__(self, fits):
+        self._fits = fits
+
+    @property
+    def fits(self):
+        return self._fits
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self._fits == other
+        return super().__eq__(other)
+
+
+class Aggregator(AbstractAggregator):
     def __init__(
             self,
             session: Session,
@@ -37,28 +77,13 @@ class Aggregator:
             )
         return self._fits
 
-    def __iter__(self):
-        return iter(
-            self.fits
-        )
-
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename}>"
 
     def __getattr__(self, name):
         return q.Q(name)
 
-    def __getitem__(self, item):
-        return self.fits[0]
-
-    def value(self, name):
-        return [
-            getattr(fit, name)
-            for fit
-            in self
-        ]
-
-    def query(self, predicate: q.Q) -> List[m.Object]:
+    def query(self, predicate: q.Q) -> ListAggregator:
         """
         Apply a query on the model.
 
@@ -86,8 +111,10 @@ class Aggregator:
         """
         query = f"SELECT id FROM fit WHERE instance_id IN ({predicate.query})"
 
-        return self._fits_for_query(
-            query
+        return ListAggregator(
+            self._fits_for_query(
+                query
+            )
         )
 
     def _fits_for_query(self, query: str):
@@ -106,12 +133,11 @@ class Aggregator:
             )
         ).all()
 
-    def __len__(self):
-        return self.session.query(
-            m.Fit
-        ).count()
-
-    def add_directory(self, directory: str):
+    def add_directory(
+            self,
+            directory: str,
+            auto_commit=True
+    ):
         """
         Recursively search a directory for autofit results
         and add them to this database.
@@ -123,6 +149,9 @@ class Aggregator:
 
         Parameters
         ----------
+        auto_commit
+            If True the session is committed writing the new objects
+            to the database
         directory
             A directory containing autofit results embedded in a
             file structure
@@ -131,24 +160,19 @@ class Aggregator:
             directory
         )
         for item in aggregator:
-            model = m.Object.from_object(
-                item.model
-            )
+            model = item.model
             samples = item.samples
-            instance = m.Object.from_object(
-                samples.max_log_likelihood_instance
-            )
+            instance = samples.max_log_likelihood_instance
             fit = m.Fit(
                 model=model,
                 instance=instance,
-                samples=m.Object.from_object(
-                    samples
-                )
+                samples=samples
             )
             self.session.add(
                 fit
             )
-        self.session.commit()
+        if auto_commit:
+            self.session.commit()
 
     @classmethod
     def from_database(

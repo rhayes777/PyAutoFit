@@ -18,7 +18,7 @@ class NoneInstance(Object):
         'polymorphic_identity': 'none'
     }
 
-    def _make_instance(self) -> None:
+    def __call__(self):
         return None
 
 
@@ -160,3 +160,6 @@ class StringValue(Object):
         instance = cls()
         instance.value = source
         return instance
+
+    def __call__(self):
+        return self.value

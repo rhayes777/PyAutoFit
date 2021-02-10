@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit import database as db
+from autofit import database as db, OptimizerSamples
 from autofit.mock import mock as m
 
 
@@ -114,6 +114,22 @@ class TestCollection:
             collection.model,
             af.PriorModel
         )
+
+
+class TestClasses:
+    def test_samples(self):
+        db.Object.from_object(
+            OptimizerSamples(
+                af.ModelMapper(),
+                [],
+                None
+            )
+        )()
+
+    def test_string(self):
+        assert "string" == db.Object.from_object(
+            "string"
+        )()
 
 
 def test_none():

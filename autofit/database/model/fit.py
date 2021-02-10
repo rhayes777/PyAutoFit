@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, ForeignKey
+import pickle
+
+from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
-from .model import Base
+from .model import Base, Object
 
 
 class Fit(Base):
@@ -12,13 +14,41 @@ class Fit(Base):
         primary_key=True,
     )
 
+    @property
+    def model(self):
+        return self.__model()
+
+    @property
+    def instance(self):
+        return self.__instance()
+
+    @property
+    def samples(self):
+        return pickle.loads(self.__samples)
+
+    @model.setter
+    def model(self, model):
+        self.__model = Object.from_object(
+            model
+        )
+
+    @instance.setter
+    def instance(self, instance):
+        self.__instance = Object.from_object(
+            instance
+        )
+
+    @samples.setter
+    def samples(self, samples):
+        self.__samples = pickle.dumps(samples)
+
     model_id = Column(
         Integer,
         ForeignKey(
             "object.id"
         )
     )
-    model = relationship(
+    __model = relationship(
         "Object",
         uselist=False,
         backref="fit_model",
@@ -31,22 +61,11 @@ class Fit(Base):
             "object.id"
         )
     )
-    instance = relationship(
+    __instance = relationship(
         "Object",
         uselist=False,
         backref="fit_instance",
         foreign_keys=[instance_id]
     )
 
-    samples_id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        )
-    )
-    samples = relationship(
-        "Object",
-        uselist=False,
-        backref="fit_samples",
-        foreign_keys=[samples_id]
-    )
+    __samples = Column(String)

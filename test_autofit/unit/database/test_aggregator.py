@@ -34,9 +34,14 @@ def make_aggregator(
         session
     )
     aggregator.add_directory(
-        str(directory)
+        str(directory),
+        # auto_commit=False
     )
     return aggregator
+
+
+def test_nothing(aggregator):
+    pass
 
 
 @pytest.fixture(
@@ -58,10 +63,32 @@ def test_load(aggregator):
     assert len(aggregator) == 1
 
 
-def test_value(
+def test_values(
         aggregator,
         fit
 ):
-    assert aggregator.value(
+    assert aggregator.values(
         "samples"
     ) == [fit.samples]
+
+
+def test_values_on_filtered(
+        aggregator,
+        fit
+):
+    assert aggregator.query(
+        aggregator.galaxies
+    ).values(
+        "samples"
+    ) == [fit.samples]
+
+
+def test_random_api(
+        aggregator
+):
+    for samples in aggregator.values("samples"):
+        print("log(likelihood), log(prior), log(posterior) and weight of the tenth sample.")
+        print(samples.log_likelihoods[9])
+        print(samples.log_priors[9])
+        print(samples.log_posteriors[9])
+        print(samples.weights[9])

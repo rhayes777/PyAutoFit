@@ -1,5 +1,6 @@
 import builtins
 import importlib
+import inspect
 import re
 from typing import List, Tuple, Any, Iterable, Union, ItemsView
 
@@ -48,6 +49,9 @@ class Object(Base):
         'polymorphic_identity': 'object',
         'polymorphic_on': type
     }
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.name}>"
 
     # noinspection PyProtectedMember
     @classmethod
@@ -114,11 +118,19 @@ class Object(Base):
         instance.name = name
         return instance
 
+    @property
+    def _constructor_args(self):
+        return set(
+            inspect.getfullargspec(
+                self.cls
+            ).args[1:]
+        )
+
     def _make_instance(self) -> object:
         """
         Create the real instance for this object
         """
-        return self.cls()
+        return object.__new__(self.cls)
 
     def __call__(self):
         """
@@ -152,8 +164,8 @@ class Object(Base):
         """
         for key, value in items:
             if isinstance(
-                value,
-                property
+                    value,
+                    property
             ):
                 continue
             child = Object.from_object(
