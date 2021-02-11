@@ -14,7 +14,7 @@ This work uses the following software packages:
 - `matplotlib` https://github.com/matplotlib/matplotlib [@matplotlib]
 - `NumPy` https://github.com/numpy/numpy [@numpy]
 - `PyAutoFit` https://github.com/rhayes777/PyAutoFit [@pyautofit]
-- `PyMulitNest` https://github.com/JohannesBuchner/PyMultiNest [@multinest] [@pymultinest]
+- `PyMultiNest` https://github.com/JohannesBuchner/PyMultiNest [@multinest] [@pymultinest]
 - `PySwarms` https://github.com/ljvmiranda921/pyswarms [@pyswarms]
 - `Python` https://www.python.org/ [@python]
 - `Scipy` https://github.com/scipy/scipy [@scipy]

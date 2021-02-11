@@ -66,7 +66,14 @@ class Job(AbstractJob):
 
         paths = search.paths
 
-        self.search = search
+        self.search = search.copy_with_paths(
+            Paths(
+                name=paths.name,
+                tag=paths.tag + "[base]",
+                path_prefix=paths.path_prefix,
+                remove_files=paths.remove_files,
+            )
+        )
         self.perturbed_search = search.copy_with_paths(
             Paths(
                 name=paths.name,
@@ -105,7 +112,9 @@ class Job(AbstractJob):
 
 
 class SensitivityResult:
+
     def __init__(self, results: List[JobResult]):
+
         self.results = sorted(results)
 
     def __getitem__(self, item):
@@ -119,6 +128,7 @@ class SensitivityResult:
 
 
 class Sensitivity:
+
     def __init__(
             self,
             base_instance,

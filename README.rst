@@ -87,7 +87,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
             transformed_xvalues = xvalues - self.centre
 
             return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
-                    np.exp(-0.5 * transformed_xvalues / self.sigma)
+                    np.exp(-0.5 * (transformed_xvalues / self.sigma) ** 2.0)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
 a ``NonLinearSearch`` like `emcee <https://github.com/dfm/emcee>`_.

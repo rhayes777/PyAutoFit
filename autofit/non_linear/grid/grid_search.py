@@ -187,7 +187,7 @@ class GridSearchResult:
 
 
 class GridSearch:
-    # TODO: this should be using paths
+
     def __init__(self, search, paths=None, number_of_steps=4, parallel=False):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on

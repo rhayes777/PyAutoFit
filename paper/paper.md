@@ -144,7 +144,7 @@ taken without a local `PyAutoFit` installation.
 - `emcee` https://github.com/dfm/emcee [@emcee]
 - `matplotlib` https://github.com/matplotlib/matplotlib [@matplotlib]
 - `NumPy` https://github.com/numpy/numpy [@numpy]
-- `PyMulitNest` https://github.com/JohannesBuchner/PyMultiNest [@multinest] [@pymultinest]
+- `PyMultiNest` https://github.com/JohannesBuchner/PyMultiNest [@multinest] [@pymultinest]
 - `PySwarms` https://github.com/ljvmiranda921/pyswarms [@pyswarms]
 - `Scipy` https://github.com/scipy/scipy [@scipy]
 
