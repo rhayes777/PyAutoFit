@@ -1,0 +1,371 @@
+{
+  "Gaussian": {
+    "centre": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 1.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "intensity": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 1.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "sigma": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 1.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  },
+  "MockClassx2": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 1.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 2.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 2.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 2.0
+      }
+    }
+  },
+  "MockClassx2Tuple": {
+    "one_tuple_0": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "one_tuple_1": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 2.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 2.0
+      }
+    }
+  },
+  "MockClassx3TupleFloat": {
+    "one_tuple_0": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "one_tuple_1": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 2.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 2.0
+      }
+    },
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 2.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 2.0
+      }
+    }
+  },
+  "MockClassx4": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": -120.0,
+      "upper_limit": 120.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 1.0
+      },
+      "gaussian_limits": {
+        "lower": -120.0,
+        "upper": 120.0
+      }
+    },
+    "two": {
+      "type": "Uniform",
+      "lower_limit": -120.0,
+      "upper_limit": 120.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 2.0
+      },
+      "gaussian_limits": {
+        "lower": -120.0,
+        "upper": 120.0
+      }
+    },
+    "three": {
+      "type": "Uniform",
+      "lower_limit": -120.0,
+      "upper_limit": 120.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 2.0
+      },
+      "gaussian_limits": {
+        "lower": -120.0,
+        "upper": 120.0
+      }
+    },
+    "four": {
+      "type": "Uniform",
+      "lower_limit": -120.0,
+      "upper_limit": 120.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 2.0
+      },
+      "gaussian_limits": {
+        "lower": -120.0,
+        "upper": 120.0
+      }
+    }
+  },
+  "MockClassInf": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": "-inf",
+      "upper_limit": 0.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": "inf",
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  },
+  "MockPositionClass": {
+    "position_0": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0
+    },
+    "position_1": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0
+    }
+  },
+  "MockDistanceClass": {
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "one": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  },
+  "MockComponents": {
+    "parameter": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  },
+  "MockClassRelativeWidth": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.1
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.5
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "three": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 1.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  },
+  "DeferredClass": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0
+    },
+    "two": {
+      "type": "Deferred"
+    }
+  },
+  "WithFloat": {
+    "value": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  },
+  "WithTuple": {
+    "tup_0": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "tup_1": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 0.2
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    }
+  }
+}
