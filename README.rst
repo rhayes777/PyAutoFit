@@ -56,7 +56,7 @@ API Overview
 To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
 noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/toy_model_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/files/toy_model_fit.png
   :width: 400
   :alt: Alternative text
 
