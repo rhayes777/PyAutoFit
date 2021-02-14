@@ -20,7 +20,9 @@ def set_config_path():
 
 
 class TestEmceeConfig:
+
     def test__loads_from_config_file_correct(self):
+        
         emcee = af.Emcee(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nwalkers=51,
