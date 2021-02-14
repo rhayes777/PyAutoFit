@@ -1,7 +1,7 @@
 .. _model_complex:
 
-Model Composition & Customization
----------------------------------
+Model Composition
+-----------------
 
 Lets extend our example of fitting a 1D ``Gaussian`` profile to noisy data, to a problem where the
 data contains a signal from two profiles. Specifically, it contains signals from a 1D ``Gaussian`` signal

@@ -15,7 +15,7 @@ on our hard-disk. We can use **PyAutoFit**'s database ``Aggregator`` to load the
 
 .. code-block:: bash
 
-    agg = af.Aggregator(directory="/path/to/gaussian_x100_fits")
+    agg = af.Aggregator(directory="/path/to/output/gaussian_x100_fits")
 
 We can now use the ``Aggregator`` to load the ``Samples`` object of all 100 model-fits. This object
 (and all objects returned by the ``Aggregator``) are returned as a generator, as opposed to a list,

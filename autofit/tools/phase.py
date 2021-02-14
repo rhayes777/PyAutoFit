@@ -265,9 +265,8 @@ class AbstractSettingsPhase:
 
         This changes the phase settings folder is tagged as follows:
 
-        bin_up_factor = 1 -> settings
-        bin_up_factor = 2 -> settings_bin_up_factor_2
-        bin_up_factor = 2 -> settings_bin_up_factor_2
+        log_likelihood_cap = None -> settings
+        log_likelihood_cap = 2 -> settings_lh_cap_2
         """
         if self.log_likelihood_cap is None:
             return ""
