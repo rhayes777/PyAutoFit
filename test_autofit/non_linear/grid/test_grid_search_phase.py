@@ -33,7 +33,8 @@ class TestMixin:
         assert isinstance(result.best_result, af.Result)
 
     def test_parallel_flag(self):
-        my_phase = af.as_grid_search(af.AbstractPhase, parallel=True)(
+
+        my_phase = af.as_grid_search(af.AbstractPhase, number_of_cores=2)(
             search=mock.MockSearch()
         )
         assert my_phase.search.parallel

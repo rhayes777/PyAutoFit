@@ -253,6 +253,7 @@ class TestGridNLOBehaviour:
     #         assert instance.component.centre[1] == 2
 
     def test_passes_attributes(self):
+
         grid_search = af.SearchGridSearch(
             paths=af.Paths(name=""), number_of_steps=10, search=af.DynestyStatic()
         )
@@ -283,6 +284,7 @@ def make_grid_search_result():
 
 
 class TestGridSearchResult:
+
     def test_best_result(self, grid_search_result):
         assert grid_search_result.best_result.log_likelihood == 2
 

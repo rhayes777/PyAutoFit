@@ -67,7 +67,7 @@ Lets now perform the search grid search using the ``SearchGridSearch`` object:
     grid_search = af.SearchGridSearch(
         search=dynesty,
         number_of_steps=5,
-        parallel=False
+        number_of_cores=1,
     )
 
 
@@ -78,7 +78,9 @@ prior on the parameter ``centre`` is a ``UniformPrior`` from 0.0 -> 100.0, this 
 set the prior on the centre to be a ``UniformPrior`` from 0.0 -> 20.0. The second will run from 20.0 -> 40.0, the
 third 40.0 -> 60.0, and so on.
 
-``parallel``: If ``True``, each grid search is performed in parallel on your laptop across multiple CPUs.
+``number_of_cores``: The number of cores the grid search will parallelize the run over. If ``number_of_cores=1``, the
+search is run in serial. For > 1 core, 1 core is reserved as a farmer, e.g., if ``number_of_cores=4`` then up to 3
+searches will be run in parallel.
 
 We can now run the grid search, where we specify the parameter over which the grid search is performed, in this case
 the ``centre`` of the ``gaussian_feature`` in our model.

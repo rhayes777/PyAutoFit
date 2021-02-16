@@ -6,7 +6,9 @@ from autofit.non_linear.grid.grid_search import make_lists
 
 
 class GridSearch:
+
     def __init__(self, step_size=0.5):
+
         self.step_size = step_size
         self.paths = af.Paths()
 

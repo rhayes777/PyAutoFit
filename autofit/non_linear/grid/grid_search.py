@@ -14,6 +14,7 @@ from autofit.non_linear.paths import Paths
 
 
 class GridSearchResult:
+
     def __init__(
             self,
             results: List[Result],
@@ -188,7 +189,7 @@ class GridSearchResult:
 
 class GridSearch:
 
-    def __init__(self, search, paths=None, number_of_steps=4, parallel=False):
+    def __init__(self, search, paths=None, number_of_steps=4, number_of_cores=1):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -207,8 +208,12 @@ class GridSearch:
         else:
             self.paths = paths
 
-        self.parallel = parallel
-        self.number_of_cores = conf.instance["non_linear"]["GridSearch"]["general"]["number_of_cores"]
+        self.number_of_cores = number_of_cores
+
+        if self.number_of_cores == 1:
+            self.parallel = False
+        else:
+            self.parallel = True
 
         self.number_of_steps = number_of_steps
         self.search = search

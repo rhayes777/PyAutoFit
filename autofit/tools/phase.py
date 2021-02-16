@@ -134,6 +134,7 @@ class Dataset(ABC):
 
 
 class Phase(AbstractPhase):
+
     def __init__(
             self,
             *,
@@ -176,7 +177,7 @@ class Phase(AbstractPhase):
         return self.make_result(result=result, analysis=None)
 
 
-def as_grid_search(phase_class, parallel=False):
+def as_grid_search(phase_class, number_of_cores=1):
     """
         Returns a grid search phase class from a regular phase class. Instead of the phase
     being optimised by a single non-linear optimiser, a new optimiser is created for
@@ -199,6 +200,7 @@ def as_grid_search(phase_class, parallel=False):
     """
 
     class GridSearchExtension(phase_class):
+
         def __init__(
                 self,
                 *,
@@ -206,16 +208,18 @@ def as_grid_search(phase_class, parallel=False):
                 number_of_steps=4,
                 **kwargs,
         ):
+
             super().__init__(search=search, **kwargs)
 
             self.search = grid_search.GridSearch(
                 paths=self.paths,
                 number_of_steps=number_of_steps,
                 search=search,
-                parallel=parallel,
+                number_of_cores=number_of_cores,
             )
 
         def save_grid_search_result(self, grid_search_result):
+
             with open(
                     path.join(self.paths.pickle_path, "grid_search_result.pickle"),
                     "wb+"
@@ -226,6 +230,7 @@ def as_grid_search(phase_class, parallel=False):
 
         # noinspection PyMethodMayBeStatic,PyUnusedLocal
         def make_result(self, result, analysis):
+
             self.save_grid_search_result(grid_search_result=result)
             open(self.paths.has_completed_path, "w+").close()
 
@@ -237,6 +242,7 @@ def as_grid_search(phase_class, parallel=False):
             )
 
         def run_analysis(self, analysis, **kwargs):
+
             self.search.search.paths = self.paths
             self.search.paths = self.paths
 

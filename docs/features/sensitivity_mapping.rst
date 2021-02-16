@@ -109,13 +109,13 @@ We are performing sensitivity mapping to determine how bright the ``gaussian_fea
 detectable. However, every simulated dataset must include the ``main_gaussian``, as its presence in the data will effect
 the detectability of the ``gaussian_feature``.
 
-We can pass the ``main_gaussian`` into the sensitivity mapping as the ``base_instance``, meaning that it will be used
+We can pass the ``main_gaussian`` into the sensitivity mapping as the ``simulation_instance``, meaning that it will be used
 in the simulation of every dataset. For this example we use the inferred ``main_gaussian`` from one of the model-fits
 performed above.
 
 .. code-block:: bash
 
-    base_instance = result_single.instance
+    simulation_instance = result_single.instance
 
 We now write the ``simulate_function``, which takes the ``instance`` of our model (defined above) and uses it to
 simulate a dataset which is subsequently fitted.
@@ -178,7 +178,7 @@ Here are what the two most extreme simulated datasets look like, corresponding t
 We can now combine all of the objects created above and perform sensitivity mapping. The inputs to the ``Sensitivity``
 object below are:
 
-- ``base_instance``: This is an instance of the model used to simulate every dataset that is fitted. In this example it contains an instance of the ``gaussian_main`` model component.
+- ``simulation_instance``: This is an instance of the model used to simulate every dataset that is fitted. In this example it contains an instance of the ``gaussian_main`` model component.
 
 - ``base_model``: This is the simpler model that is fitted to every simulated dataset, which in this example is composed of a single ``Gaussian`` called the ``gaussian_main``.
 
@@ -197,7 +197,7 @@ full example script on the ``autofit_workspace``).
 
     sensitivity = s.Sensitivity(
         search=search,
-        base_instance=base_instance,
+        simulation_instance=simulation_instance,
         base_model=base_model,
         perturbation_model=perturbation_model,
         simulate_function=simulate_function,
