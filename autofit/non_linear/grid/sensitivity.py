@@ -34,6 +34,7 @@ class JobResult(AbstractJobResult):
 
 
 class Job(AbstractJob):
+
     _number = count()
 
     def __init__(
@@ -59,6 +60,7 @@ class Job(AbstractJob):
             A non-linear search
         """
         super().__init__()
+
         self.analysis = analysis
         self.model = model
 
@@ -137,7 +139,7 @@ class Sensitivity:
             simulate_function: Callable,
             analysis_class: Type[Analysis],
             search: NonLinearSearch,
-            step_size: Union[Tuple[float], float] = 0.1,
+            number_of_steps: Union[Tuple[int], int] = 4,
             number_of_cores: int = 2
     ):
         """
@@ -181,10 +183,22 @@ class Sensitivity:
         self.search = search
         self.analysis_class = analysis_class
 
-        self.step_size = step_size
+        self.number_of_steps = number_of_steps
         self.perturbation_model = perturbation_model
         self.simulate_function = simulate_function
         self.number_of_cores = number_of_cores
+
+    @property
+    def step_size(self):
+        """
+        Returns
+        -------
+        step_size: float
+            The size of a step in any given dimension in hyper space.
+        """
+        if isinstance(self.number_of_steps, tuple):
+            return tuple([1 / number_of_steps for number_of_steps in self.number_of_steps])
+        return 1 / self.number_of_steps
 
     def run(self) -> SensitivityResult:
         """

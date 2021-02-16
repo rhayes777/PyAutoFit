@@ -2,6 +2,7 @@ import autofit as af
 
 
 def test__phase_settings_tag():
+
     settings = af.AbstractSettingsPhase(log_likelihood_cap=None)
     assert settings.log_likelihood_cap_tag == ""
 

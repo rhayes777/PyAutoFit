@@ -219,11 +219,11 @@ class GridSearch:
         self.search = search
 
     @property
-    def hyper_step_size(self):
+    def step_size(self):
         """
         Returns
         -------
-        hyper_step_size: float
+        step_size: float
             The size of a step in any given dimension in hyper space.
         """
         return 1 / self.number_of_steps
@@ -250,7 +250,7 @@ class GridSearch:
         lists: [[float]]
         """
         return make_lists(
-            len(grid_priors), step_size=self.hyper_step_size, centre_steps=False
+            len(grid_priors), step_size=self.step_size, centre_steps=False
         )
 
     def make_arguments(self, values, grid_priors):
@@ -266,7 +266,7 @@ class GridSearch:
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
             upper_limit = (
                     grid_prior.lower_limit
-                    + (value + self.hyper_step_size) * grid_prior.width
+                    + (value + self.step_size) * grid_prior.width
             )
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior

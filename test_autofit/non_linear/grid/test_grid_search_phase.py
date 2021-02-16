@@ -3,8 +3,11 @@ from autofit.mock import mock
 
 
 class TestMixin:
+
     def test_mixin(self):
-        class MyPhase(af.as_grid_search(af.AbstractPhase)):
+
+        class MyPhase(af.as_grid_search(af.AbstractPhase, number_of_steps=2)):
+
             Result = mock.MockResult
 
             @property
@@ -16,7 +19,6 @@ class TestMixin:
                 return self.run_analysis(analysis)
 
         my_phase = MyPhase(
-            number_of_steps=2,
             search=mock.MockSearch(
                 samples=mock.MockSamples(gaussian_tuples=[(0.5, 0.5), (0.5, 0.5)])
             ),
@@ -34,7 +36,7 @@ class TestMixin:
 
     def test_parallel_flag(self):
 
-        my_phase = af.as_grid_search(af.AbstractPhase, number_of_cores=2)(
+        my_phase = af.as_grid_search(af.AbstractPhase, number_of_steps=2, number_of_cores=2)(
             search=mock.MockSearch()
         )
         assert my_phase.search.parallel

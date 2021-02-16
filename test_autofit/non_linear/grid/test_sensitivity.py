@@ -26,7 +26,7 @@ def make_sensitivity(perturbation_model):
         simulate_function=image_function,
         analysis_class=Analysis,
         search=GridSearch(),
-        step_size=0.5,
+        number_of_steps=2,
     )
 
 
@@ -63,7 +63,9 @@ def test_sensitivity(sensitivity):
 
 
 def test_tuple_step_size(sensitivity):
-    sensitivity.step_size = (0.5, 0.5, 0.25)
+
+    sensitivity.number_of_steps = (2, 2, 4)
+
     assert len(sensitivity._lists) == 16
 
 

@@ -177,7 +177,7 @@ class Phase(AbstractPhase):
         return self.make_result(result=result, analysis=None)
 
 
-def as_grid_search(phase_class, number_of_cores=1):
+def as_grid_search(phase_class, number_of_steps=4, number_of_cores=1):
     """
         Returns a grid search phase class from a regular phase class. Instead of the phase
     being optimised by a single non-linear optimiser, a new optimiser is created for
@@ -205,7 +205,6 @@ def as_grid_search(phase_class, number_of_cores=1):
                 self,
                 *,
                 search,
-                number_of_steps=4,
                 **kwargs,
         ):
 
@@ -213,8 +212,8 @@ def as_grid_search(phase_class, number_of_cores=1):
 
             self.search = grid_search.GridSearch(
                 paths=self.paths,
-                number_of_steps=number_of_steps,
                 search=search,
+                number_of_steps=number_of_steps,
                 number_of_cores=number_of_cores,
             )
 
