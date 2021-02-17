@@ -11,3 +11,4 @@ from .sampling import ImportanceSampler, project_factor_approx_sample
 from ..mapper.variable import Variable, Plate
 
 from . import optimise as optimize
+from . import utils

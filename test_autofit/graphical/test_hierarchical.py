@@ -1,6 +1,8 @@
 import numpy as np
-from networkx.drawing.tests.test_pylab import plt
+import pytest
 from scipy import stats
+
+from autofit import graphical as g
 
 
 def normal_loglike(x, centre, precision, _variables=None):
@@ -36,20 +38,34 @@ def normal_loglike_t(x, centre, precision, _variables=None):
     return val
 
 
-def generate_data():
+n = 10
+
+
+@pytest.fixture(
+    name="centres"
+)
+def make_centres():
     mu = .5
     sigma = 0.5
     centre_dist = stats.norm(loc=mu, scale=sigma)
 
+    return centre_dist.rvs(n)
+
+
+@pytest.fixture(
+    name="widths"
+)
+def make_widths():
     a = 10
     b = 4000
     precision_dist = stats.invgamma(a, scale=b)
 
-    n = 10
+    return precision_dist.rvs(n) ** -0.5
 
-    centres = centre_dist.rvs(n)
-    widths = precision_dist.rvs(n) ** -0.5
 
+def compute_posteriors(
+        centres
+):
     mu0 = centres.mean()
     lambda0 = n
     alpha0 = n / 2
@@ -68,17 +84,44 @@ def generate_data():
     t_cov = beta0 ** 2 / (alpha0 - 1)
 
     x = np.linspace(-1.5, 2.5, 200)
-    f, (ax1, ax2) = plt.subplots(2)
-
-    for c, w in zip(centres, widths):
-        ax1.plot(x, stats.norm(c, scale=w).pdf(x))
-
-    plt.plot(x, posterior_mean.pdf(x), label='Pr(mu|D)')
-    plt.plot(x, posterior_x.pdf(x), label='Pr(x|D)')
-    # plt.plot(x, posterior_t.pdf(x), label='Pr(t|D)')
-    plt.plot(x, stats.norm(loc=mu, scale=sigma).pdf(x), label='Pr(x)')
-    plt.legend()
 
 
-def test():
-    generate_data()
+@pytest.fixture(
+    name="model"
+)
+def define_model(
+        centres,
+        widths
+):
+    centres_ = [g.Variable(f'x_{i}') for i in range(n)]
+    mu_ = g.Variable('mu')
+    logt_ = g.Variable('logt')
+
+    centre_likelihoods = [
+        g.NormalMessage(c, w).as_factor(x)
+        for c, w, x in zip(centres, widths, centres_)
+    ]
+    normal_likelihoods = [
+        g.FactorJacobian(
+            normal_loglike_t, x=centre, centre=mu_, precision=logt_)
+        for centre in centres_
+    ]
+
+    model = g.utils.prod(centre_likelihoods + normal_likelihoods)
+
+    model_approx = g.EPMeanField.from_approx_dists(
+        model,
+        {
+            mu_: g.NormalMessage(0, 10),
+            logt_: g.NormalMessage(0, 10),
+            **{
+                x_: g.NormalMessage(0, 10) for x_ in centres_
+            },
+        }
+    )
+
+    return model_approx
+
+
+def test(model):
+    print(model)
