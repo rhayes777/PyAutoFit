@@ -151,7 +151,7 @@ _M = TypeVar('M')
 def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     """calculates the product of the passed iterable,
     much like sum, if a second argument is passed,
-    this is the inital value of the calculation
+    this is the initial value of the calculation
 
     Examples
     --------

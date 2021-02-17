@@ -87,23 +87,35 @@ def compute_posteriors(
 
 
 @pytest.fixture(
-    name="model"
+    name="model_approx"
 )
-def define_model(
+def make_model_approx(
         centres,
         widths
 ):
-    centres_ = [g.Variable(f'x_{i}') for i in range(n)]
+    centres_ = [
+        g.Variable(f'x_{i}')
+        for i in range(n)
+    ]
     mu_ = g.Variable('mu')
     logt_ = g.Variable('logt')
 
     centre_likelihoods = [
         g.NormalMessage(c, w).as_factor(x)
-        for c, w, x in zip(centres, widths, centres_)
+        for c, w, x
+        in zip(
+            centres,
+            widths,
+            centres_
+        )
     ]
     normal_likelihoods = [
         g.FactorJacobian(
-            normal_loglike_t, x=centre, centre=mu_, precision=logt_)
+            normal_loglike_t,
+            x=centre,
+            centre=mu_,
+            precision=logt_
+        )
         for centre in centres_
     ]
 
@@ -123,5 +135,15 @@ def define_model(
     return model_approx
 
 
-def test(model):
-    print(model)
+def test(model_approx):
+    laplace = g.LaplaceFactorOptimiser(
+        opt_kws={'jac': True},
+    )
+    ep_opt = g.EPOptimiser(
+        model_approx,
+        default_optimiser=laplace)
+    new_approx = ep_opt.run(
+        model_approx,
+        max_steps=10
+    )
+    print(new_approx)
