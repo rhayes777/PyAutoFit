@@ -1,6 +1,7 @@
 from collections import Counter, defaultdict
 from typing import \
     Tuple, Dict, Collection, List, Callable, Optional, Union
+from itertools import count
 from functools import reduce 
 
 import numpy as np
@@ -244,6 +245,7 @@ class FactorGraph(AbstractNode):
             pos=None, ax=None, size=20, color='k', fill='w',
             factor_shape='s', variable_shape='o',
             factor_kws=None, variable_kws=None, edge_kws=None,
+            factors=None,
             **kwargs
     ):
         try:
@@ -260,7 +262,7 @@ class FactorGraph(AbstractNode):
 
         G = self.graph
         if pos is None:
-            pos = nx.spring_layout(G)
+            pos = bipartite_layout(factors or self.factors)
 
         kwargs.setdefault('ms', size)
         kwargs.setdefault('c', color)
@@ -282,6 +284,7 @@ class FactorGraph(AbstractNode):
         vs = ax.plot(*xy, **{**kwargs, **variable_kws})
         # draw edges
         edges = nx.draw_networkx_edges(G, pos, **(edge_kws or {}))
+
         # remove ticks from axes
         ax.tick_params(
             axis="both",
@@ -292,3 +295,60 @@ class FactorGraph(AbstractNode):
             labelleft=False,
         )
         return fs, vs, edges
+
+    def draw_graph_labels(
+            self, 
+            pos, 
+            factor_labels=None, 
+            variable_labels=None, 
+            shift = 0.1,
+            f_shift = None, 
+            v_shift = None, 
+            f_horizontalalignment='right', 
+            v_horizontalalignment='left', 
+            f_kws=None, 
+            v_kws=None,
+            graph = None, 
+            **kwargs
+    ):
+        try:
+            import networkx as nx
+        except ImportError as e:
+            raise ImportError("Matplotlib and networkx required for draw_graph()") from e
+        
+        graph = graph or self.graph
+        factor_labels = (
+            factor_labels or {f: f.name for f in self.factors})
+        variable_labels = (
+            variable_labels or {v: v.name for v in self.all_variables})
+        f_kws = f_kws or {'horizontalalignment': 'right'}
+        v_kws = v_kws or {'horizontalalignment': 'left'}
+
+        f_shift = f_shift or shift 
+        f_pos = {f: (x - f_shift, y) for f, (x, y) in pos.items()}
+        v_shift = v_shift or shift 
+        v_pos = {f: (x + v_shift, y) for f, (x, y) in pos.items()}
+        
+        return {
+            **nx.draw_networkx_labels(
+                graph, f_pos, labels=factor_labels, **f_kws, **kwargs),
+            **nx.draw_networkx_labels(
+                graph, v_pos, labels=variable_labels, **v_kws, **kwargs)}
+
+
+
+def bipartite_layout(factors):
+    n_factors = len(factors)
+    n_variables = len(set().union(*(f.variables for f in factors)))
+    n = max(n_factors, n_variables)
+    factor_count = count()
+    variable_count = count()    
+
+    pos = {}
+    for factor in factors:
+        pos[factor] = 0, next(factor_count) * n / n_factors
+        for v in factor.variables:
+            if v not in pos:
+                pos[v] = 1, next(variable_count) * n / n_variables
+
+    return pos
