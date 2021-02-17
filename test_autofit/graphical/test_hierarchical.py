@@ -63,29 +63,6 @@ def make_widths():
     return precision_dist.rvs(n) ** -0.5
 
 
-def compute_posteriors(
-        centres
-):
-    mu0 = centres.mean()
-    lambda0 = n
-    alpha0 = n / 2
-    beta0 = centres.var() / 2 * n
-
-    # Marginal Posterior Distributions from Normal-Gamma distributions
-    posterior_mean = stats.t(
-        alpha0 * 2, loc=mu0,
-        scale=np.sqrt(beta0 / alpha0 / lambda0))
-    posterior_x = stats.t(
-        alpha0 * 2, loc=mu0,
-        scale=np.sqrt(beta0 / alpha0))
-    posterior_t = stats.gamma(alpha0, scale=1 / beta0)
-
-    t_mode = (alpha0 - 1) / beta0
-    t_cov = beta0 ** 2 / (alpha0 - 1)
-
-    x = np.linspace(-1.5, 2.5, 200)
-
-
 @pytest.fixture(
     name="model_approx"
 )
