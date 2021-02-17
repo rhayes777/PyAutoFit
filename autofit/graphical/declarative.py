@@ -110,8 +110,7 @@ class AbstractModelFactor(Analysis, ABC):
 
     def optimise(
             self,
-            optimiser:
-            AbstractFactorOptimiser
+            optimiser: AbstractFactorOptimiser
     ) -> CollectionPriorModel:
         """
         Use an EP Optimiser to optimise the graph associated with this collection
@@ -315,7 +314,7 @@ class ModelFactor(Factor, AbstractModelFactor):
 
 
 class FactorGraphModel(AbstractModelFactor):
-    def __init__(self, *model_factors: ModelFactor):
+    def __init__(self, *model_factors: AbstractModelFactor):
         """
         A collection of factors that describe models, which can be
         used to create a graph and messages.
@@ -326,7 +325,12 @@ class FactorGraphModel(AbstractModelFactor):
         ----------
         model_factors
         """
-        self._model_factors = model_factors
+        self._model_factors = list(model_factors)
+
+    def add(self, model_factor: AbstractModelFactor):
+        self._model_factors.append(
+            model_factor
+        )
 
     @property
     def model_factors(self):
