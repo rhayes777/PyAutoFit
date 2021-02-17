@@ -1,12 +1,26 @@
-@ARTICLE{numpy,
-  author={S. {van der Walt} and S. C. {Colbert} and G. {Varoquaux}},
-  journal={Computing in Science   Engineering},
-  title={The NumPy Array: A Structure for Efficient Numerical Computation},
-  doi={10.1109/MCSE.2011.37},
-  year={2011},
-  volume={13},
-  number={2},
-  pages={22-30},}
+@Article{         numpy,
+ title         = {Array2D programming with {NumPy}},
+ author        = {Charles R. Harris and K. Jarrod Millman and St{'{e}}fan J.
+                 van der Walt and Ralf Gommers and Pauli Virtanen and David
+                 Cournapeau and Eric Wieser and Julian Taylor and Sebastian
+                 Berg and Nathaniel J. Smith and Robert Kern and Matti Picus
+                 and Stephan Hoyer and Marten H. van Kerkwijk and Matthew
+                 Brett and Allan Haldane and Jaime Fern{'{a}}ndez del
+                 R{'{\i}}o and Mark Wiebe and Pearu Peterson and Pierre
+                 G{'{e}}rard-Marchant and Kevin Sheppard and Tyler Reddy and
+                 Warren Weckesser and Hameer Abbasi and Christoph Gohlke and
+                 Travis E. Oliphant},
+ year          = {2020},
+ month         = sep,
+ journal       = {Nature},
+ volume        = {585},
+ number        = {7825},
+ pages         = {357--362},
+ doi           = {10.1038/s41586-020-2649-2},
+ publisher     = {Springer Science and Business Media {LLC}},
+ url           = {https://doi.org/10.1038/s41586-020-2649-2}
+}
+
 @article{corner,
   doi = {10.21105/joss.00024},
   url = {https://doi.org/10.21105/joss.00024},
@@ -30,39 +44,40 @@
     doi     = {10.21105/joss.00433},
     url     = {https://doi.org/10.21105/joss.00433}
 }
+
 @article{dynesty,
-abstract = {We present dynesty, a public, open-source, python package to estimate Bayesian posteriors and evidences (marginal likelihoods) using the dynamic nested sampling methods developed by Higson et al. By adaptively allocating samples based on posterior structure, dynamic nested sampling has the benefits of Markov chain Monte Carlo (MCMC) algorithms that focus exclusively on posterior estimation while retaining nested sampling's ability to estimate evidences and sample from complex, multimodal distributions. We provide an overview of nested sampling, its extension to dynamic nested sampling, the algorithmic challenges involved, and the various approaches taken to solve them in this and previous work. We then examine dynesty's performance on a variety of toy problems along with several astronomical applications. We find in particular problems dynesty can provide substantial improvements in sampling efficiency compared to popular MCMC approaches in the astronomical literature. More detailed statistical results related to nested sampling are also included in the appendix.},
-archivePrefix = {arXiv},
-arxivId = {1904.02180},
-author = {Speagle, Joshua S},
-doi = {10.1093/mnras/staa278},
-eprint = {1904.02180},
-file = {:home/jammy/Documents/Papers/PPLs/Dynesty.pdf:pdf},
-issn = {0035-8711},
-journal = {Monthly Notices of the Royal Astronomical Society},
-keywords = {data analysis,methods,statistical},
-number = {3},
-pages = {3132--3158},
-title = {{dynesty: a dynamic nested sampling package for estimating Bayesian posteriors and evidences}},
-volume = {493},
-year = {2020}
+    author = {Speagle, Joshua S},
+    title = "{dynesty: a dynamic nested sampling package for estimating Bayesian posteriors and evidences}",
+    journal = {Monthly Notices of the Royal Astronomical Society},
+    volume = {493},
+    number = {3},
+    pages = {3132-3158},
+    year = {2020},
+    month = {02},
+    issn = {0035-8711},
+    doi = {10.1093/mnras/staa278},
+    url = {https://doi.org/10.1093/mnras/staa278},
+    eprint = {https://academic.oup.com/mnras/article-pdf/493/3/3132/32890730/staa278.pdf},
 }
-@article{emcee,
-abstract = {We introduce a stable, well tested Python implementation of the affine-invariant ensemble sampler for Markov chain Monte Carlo (MCMC) proposed by Goodman {\&} Weare (2010). The code is open source and has already been used in several published projects in the astrophysics literature. The algorithm behind emcee has several advantages over traditional MCMC sampling methods and it has excellent performance as measured by the autocorrelation time (or function calls per independent sample). One major advantage of the algorithm is that it requires hand-tuning of only 1 or 2 parameters compared to {\$}\backslashsim N{\^{}}2{\$} for a traditional algorithm in an N-dimensional parameter space. In this document, we describe the algorithm and the details of our implementation and API. Exploiting the parallelism of the ensemble method, emcee permits any user to take advantage of multiple CPU cores without extra effort. The code is available online at http://dan.iel.fm/emcee under the MIT License.},
+
+@ARTICLE{emcee,
+       author = {{Foreman-Mackey}, Daniel and {Hogg}, David W. and {Lang}, Dustin and {Goodman}, Jonathan},
+        title = "{emcee: The MCMC Hammer}",
+      journal = {Publications of the Astronomical Society of the Pacific},
+     keywords = {Astrophysics - Instrumentation and Methods for Astrophysics, Physics - Computational Physics, Statistics - Computation},
+         year = 2013,
+        month = mar,
+       volume = {125},
+       number = {925},
+        pages = {306},
+          doi = {10.1086/670067},
 archivePrefix = {arXiv},
-arxivId = {1202.3665},
-author = {Foreman-Mackey, Daniel and Hogg, David W. and Lang, Dustin and Goodman, Jonathan},
-doi = {10.1086/670067},
-eprint = {1202.3665},
-file = {:home/jammy/Documents/Papers/PPLs/Emcee.pdf:pdf},
-issn = {00046280},
-journal = {Publications of the Astronomical Society of the Pacific},
-number = {925},
-pages = {306--312},
-title = {{emcee : The MCMC Hammer }},
-volume = {125},
-year = {2013}
+       eprint = {1202.3665},
+ primaryClass = {astro-ph.IM},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2013PASP..125..306F},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
+
 @Article{matplotlib,
   Author    = {Hunter, J. D.},
   Title     = {Matplotlib: A 2D graphics environment},
@@ -101,7 +116,6 @@ year = {2013}
       doi = {10.1038/s41592-019-0686-2},
 }
 @article{Haussler2013,
-abstract = {In this paper, we demonstrate a new method for fitting galaxy profiles which makes use of the full multiwavelength data provided by modern large optical-near-infrared imaging surveys. We present a new version of GALAPAGOS, which utilizes a recently developed multiwavelength version of GALFIT, and enables the automated measurement of wavelength-dependent S{\'{e}}rsic profile parameters for very large samples of galaxies. Our newtechnique is extensively tested to assess the reliability of both pieces of software, GALFIT and GALAPAGOS on both real ugrizY JHK imaging data from the Galaxy And Mass Assembly survey and simulated data made to the same specifications. We find that fitting galaxy light profiles with multiwavelength data increases the stability and accuracy of the measured parameters, and hence produces more complete and meaningful multiwavelength photometry than has been available previously. The improvement is particularly significant for magnitudes in low-S/N bands and for structural parameters like half-light radius re and S{\'{e}}rsic index n for which a prior is used by constraining these parameters to a polynomial as a function of wavelength. This allows the fitting routines to push the magnitude of galaxies for which sensible values can be derived to fainter limits. The technique utilizes a smooth transition of galaxy parameters with wavelength, creating more physically meaningful transitions than single-band fitting and allows accurate interpolation between passbands, perfect for derivation of rest-frame values. {\textcopyright} 2013 The Authors. Published by Oxford University Press on behalf of the Royal Astronomical Society.},
 archivePrefix = {arXiv},
 arxivId = {1212.3332},
 author = {H{\"{a}}u{\ss}ler, Boris and Bamford, Steven P. and Vika, Marina and Rojas, Alex L. and Barden, Marco and Kelvin, Lee S. and Alpaslan, Mehmet and Robotham, Aaron S.G. and Driver, Simon P. and Baldry, I. K. and Brough, Sarah and Hopkins, Andrew M. and Liske, Jochen and Nichol, Robert C. and Popescu, Cristina C. and Tuffs, Richard J.},
@@ -118,7 +132,6 @@ volume = {430},
 year = {2013}
 }
 @article{Nightingale2015,
-abstract = {We present a new pixelized method for the inversion of gravitationally lensed extended source images which we term adaptive semi-linear inversion (SLI). At the heart of the method is an h-means clustering algorithm which is used to derive a source plane pixelization that adapts to the lens model magnification. The distinguishing feature of adaptive SLI is that every pixelization is derived from a random initialization, ensuring that data discretization is performed in a completely different and unique way for every lens model parameter set. We compare standard SLI on a fixed source pixel grid with the new method and demonstrate the shortcomings of the former when modelling singular power-law ellipsoid (SPLE) lens profiles. In particular, we demonstrate the superior reliability and efficiency of adaptive SLI which, by design, fixes the number of degrees of freedom (NDOF) of the optimization and thereby removes biases present with other methods that allow the NDOF to vary. In addition, we highlight the importance of data discretization in pixel-based inversion methods, showing that adaptive SLI averages over significant systematics that are present when a fixed source pixel grid is used. In the case of the SPLE lens profile, we show how the method successfully samples its highly degenerate posterior probability distribution function with a single nonlinear search. The robustness of adaptive SLI provides a firm foundation for the development of a strong lens modelling pipeline, which will become necessary in the short-term future to cope with the increasing rate of discovery of new strong lens systems.},
 archivePrefix = {arXiv},
 arxivId = {1412.7436},
 author = {Nightingale, J. W. and Dye, S.},
@@ -135,7 +148,6 @@ volume = {452},
 year = {2015}
 }
 @article{Nightingale2018,
-abstract = {This work presents AutoLens, the first entirely automated modeling suite for the analysis of galaxy-scale strong gravitational lenses. AutoLens simultaneously models the lens galaxy's light and mass whilst reconstructing the extended source galaxy on an adaptive pixel-grid. The method's approach to source-plane discretization is amorphous, adapting its clustering and regularization to the intrinsic properties of the lensed source. The lens's light is fitted using a superposition of Sersic functions, allowing AutoLens to cleanly deblend its light from the source. Single-component mass models representing the lens's total mass density profile are demonstrated, which in conjunction with light modeling can detect central images using a centrally cored profile. Decomposed mass modeling is also shown, which can fully decouple a lens's light and dark matter and determine whether the two components are geometrically aligned. The complexity of the light and mass models is automatically chosen via Bayesian model comparison. These steps form AutoLens's automated analysis pipeline, such that all results in this work are generated without any user intervention. This is rigorously tested on a large suite of simulated images, assessing its performance on a broad range of lens profiles, source morphologies, and lensing geometries. The method's performance is excellent, with accurate light, mass, and source profiles inferred for data sets representative of both existing Hubble imaging and future Euclid wide-field observations.},
 archivePrefix = {arXiv},
 arxivId = {1708.07377},
 author = {Nightingale, J. W. and Dye, S. and Massey, Richard J.},
@@ -153,10 +165,9 @@ volume = {478},
 year = {2018}
 }
 @article{Nightingale2019,
-abstract = {We investigate how strong gravitational lensing can test contemporary models of massive elliptical (ME) galaxy formation, by combining a traditional decomposition of their visible stellar distribution with a lensing analysis of their mass distribution. As a proof of concept, we study a sample of three ME lenses, observing that all are composed of two distinct baryonic structures, a 'red' central bulge surrounded by an extended envelope of stellar material. Whilst these two components look photometrically similar, their distinct lensing effects permit a clean decomposition of their mass structure. This allows us to infer two key pieces of information about each lens galaxy: (i) the stellar mass distribution (without invoking stellar populations models) and (ii) the inner dark matter halo mass. We argue that these two measurements are crucial to testing models of ME formation, as the stellar mass profile provides a diagnostic of baryonic accretion and feedback whilst the dark matter mass places each galaxy in the context of LCDM large-scale structure formation. We also detect large rotational offsets between the two stellar components and a lopsidedness in their outer mass distributions, which hold further information on the evolution of each ME. Finally, we discuss how this approach can be extended to galaxies of all Hubble types and what implication our results have for studies of strong gravitational lensing.},
 archivePrefix = {arXiv},
 arxivId = {1901.07801},
-author = {Nightingale, James W. and Massey, Richard J. and Harvey, David R. and Cooper, Andrew P. and Etherington, Amy and Tam, Sut Ieng and Hayes, Richard G.},
+author = {Nightingale, J. W. and Massey, Richard J. and Harvey, David R. and Cooper, Andrew P. and Etherington, Amy and Tam, Sut Ieng and Hayes, Richard G.},
 doi = {10.1093/mnras/stz2220},
 eprint = {1901.07801},
 file = {:home/jammy/Documents/Papers{\_}Me/Gal{\_}Structure{\_}Final/GalaxyStructure.pdf:pdf},
@@ -171,7 +182,6 @@ volume = {489},
 year = {2019}
 }
 @article{Salvatier2016,
-abstract = {Probabilistic programming allows for automatic Bayesian inference on user-defined probabilistic models. Recent advances in Markov chain Monte Carlo (MCMC) sampling allow inference on increasingly complex models. This class of MCMC, known as Hamiltonian Monte Carlo, requires gradient information which is often not readily available. PyMC3 is a new open source probabilistic programming framework written in Python that uses Theano to compute gradients via automatic differentiation as well as compile probabilistic programs on-the-fly to C for increased speed. Contrary to other probabilistic programming languages, PyMC3 allows model specification directly in Python code. The lack of a domain specific language allows for great flexibility and direct interaction with the model. This paper is a tutorial-style introduction to this software package.},
 archivePrefix = {arXiv},
 arxivId = {1507.08050},
 author = {Salvatier, John and Wiecki, Thomas V. and Fonnesbeck, Christopher},
@@ -188,7 +198,6 @@ volume = {2016},
 year = {2016}
 }
 @article{Carpenter2017,
-abstract = {Stan is a probabilistic programming language for specifying statistical models. A Stan program imperatively defines a log probability function over parameters conditioned on specified data and constants. As of version 2.14.0, Stan provides full Bayesian inference for continuous-variable models through Markov chain Monte Carlo methods such as the No-U-Turn sampler, an adaptive form of Hamiltonian Monte Carlo sampling. Penalized maximum likelihood estimates are calculated using optimization methods such as the limited memory Broyden-Fletcher-Goldfarb-Shanno algorithm. Stan is also a platform for computing log densities and their gradients and Hessians, which can be used in alternative algorithms such as variational Bayes, expectation propagation, and marginal inference using approximate integration. To this end, Stan is set up so that the densities, gradients, and Hessians, along with intermediate quantities of the algorithm such as acceptance probabilities, are easily accessible. Stan can be called from the command line using the cmdstan package, through R using the rstan package, and through Python using the pystan package. All three interfaces support sampling and optimization-based inference with diagnostics and posterior analysis. rstan and pystan also provide access to log probabilities, gradients, Hessians, parameter transforms, and specialized plotting.},
 author = {Carpenter, Bob and Gelman, Andrew and Hoffman, Matthew D. and Lee, Daniel and Goodrich, Ben and Betancourt, Michael and Brubaker, Marcus A. and Guo, Jiqiang and Li, Peter and Riddell, Allen},
 doi = {10.18637/jss.v076.i01},
 file = {:home/jammy/Documents/Papers/PPLs/STAN.pdf:pdf},
@@ -201,7 +210,6 @@ volume = {76},
 year = {2017}
 }
 @article{Bingham2019,
-abstract = {Pyro is a probabilistic programming language built on Python as a platform for developing advanced probabilistic models in AI research. To scale to large data sets and high-dimensional models, Pyro uses stochastic variational inference algorithms and probability distributions built on top of PyTorch, a modern GPU-accelerated deep learning framework. To accommodate complex or model-specific algorithmic behavior, Pyro leverages Poutine, a library of composable building blocks for modifying the behavior of probabilistic programs.},
 archivePrefix = {arXiv},
 arxivId = {1810.09538},
 author = {Bingham, Eli and Chen, Jonathan P. and Jankowiak, Martin and Obermeyer, F. and Pradhan, Neeraj and Karaletsos, Theofanis and Singh, Rohit and Szerlip, Paul and Horsfall, Paul and Goodman, Noah D.},
@@ -235,7 +243,6 @@ archivePrefix = {arXiv},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 @article{pymultinest,
-abstract = {Context. Aims. Active galactic nuclei are known to have complex X-ray spectra that depend on both the properties of the accreting super-massive black hole (e.g. mass, accretion rate) and the distribution of obscuring material in its vicinity (i.e. the "torus"). Often however, simple and even unphysical models are adopted to represent the X-ray spectra of AGN, which do not capture the complexity and diversity of the observations. In the case of blank field surveys in particular, this should have an impact on e.g. the determination of the AGN luminosity function, the inferred accretion history of the Universe and also on our understanding of the relation between AGN and their host galaxies. Methods. We develop a Bayesian framework for model comparison and parameter estimation of X-ray spectra. We take into account uncertainties associated with both the Poisson nature of X-ray data and the determination of source redshift using photometric methods. We also demonstrate how Bayesian model comparison can be used to select among ten different physically motivated X-ray spectral models the one that provides a better representation of the observations. This methodology is applied to X-ray AGN in the 4 Ms Chandra Deep Field South. Results. For the {\~{}}350 AGN in that field, our analysis identifies four components needed to represent the diversity of the observed X-ray spectra: (1) an intrinsic power law; (2) a cold obscurer which reprocesses the radiation due to photo-electric absorption, Compton scattering and Fe-K fluorescence; (3) an unabsorbed power law associated with Thomson scattering off ionised clouds; and (4) Compton reflection, most noticeable from a stronger-than-expected Fe-K line. Simpler models, such as a photo-electrically absorbed power law with a Thomson scattering component, are ruled out with decisive evidence (B {\textgreater} 100). We also find that ignoring the Thomson scattering component results in underestimation of the inferred column density, NH, of the obscurer. Regarding the geometry of the obscurer, there is strong evidence against both a completely closed (e.g. sphere), or entirely open (e.g. blob of material along the line of sight), toroidal geometry in favour of an intermediate case. Conclusions. Despite the use of low-count spectra, our methodology is able to draw strong inferences on the geometry of the torus. Simpler models are ruled out in favour of a geometrically extended structure with significant Compton scattering. We confirm the presence of a soft component, possibly associated with Thomson scattering off ionised clouds in the opening angle of the torus. The additional Compton reflection required by data over that predicted by toroidal geometry models, may be a sign of a density gradient in the torus or reflection off the accretion disk. Finally, we release a catalogue of AGN in the CDFS with estimated parameters such as the accretion luminosity in the 2-10 keV band and the column density, NH, of the obscurer. {\textcopyright} ESO, 2014.},
 archivePrefix = {arXiv},
 arxivId = {1402.0004},
 author = {Buchner, J. and Georgakakis, A. and Nandra, K. and Hsu, L. and Rangel, C. and Brightman, M. and Merloni, A. and Salvato, M. and Donley, J. and Kocevski, D.},
@@ -251,7 +258,6 @@ volume = {564},
 year = {2014}
 }
 @article{multinest,
-abstract = {We present further development and the first public release of our multimodal nested sampling algorithm, called MultiNest. This Bayesian inference tool calculates the evidence, with an associated error estimate, and produces posterior samples from distributions that may contain multiple modes and pronounced (curving) degeneracies in high dimensions. The developments presented here lead to further substantial improvements in sampling efficiency and robustness, as compared to the original algorithm presented in Feroz and Hobson, which itself significantly outperformed existing Markov chain Monte Carlo techniques in a wide range of astrophysical inference problems. The accuracy and economy of the MultiNest algorithm are demonstrated by application to two toy problems and to a cosmological inference problem focusing on the extension of the vanilla $\Lambda$ cold dark matter model to include spatial curvature and a varying equation of state for dark energy. The MultiNest software, which is fully parallelized using MPI and includes an interface to CosmoMC, is available at http://www.mrao.cam.ac.uk/software/multinest/. It will also be released as part of the SuperBayeS package, for the analysis of supersymmetric theories of particle physics, at http://www.superbayes.org. {\textcopyright} 2009 RAS.},
 archivePrefix = {arXiv},
 arxivId = {0809.3437},
 author = {Feroz, F. and Hobson, M. P. and Bridges, M.},

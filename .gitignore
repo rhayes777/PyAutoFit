@@ -1,6 +1,7 @@
-test_autofit/unit/non_linear/samples.csv
+*.sqlite
+test_autofit/non_linear/samples.csv
 
-test_autofit/unit/tools/files/path/
+test_autofit/tools/files/path/
 test_autofit/samples.csv
 .envr
 test_autofit/test_files/
@@ -127,7 +128,7 @@ test_autofit/test_files/text/
 fit/test_autofit/optimize/test_fit
 *.DS_Store
 
-test_autofit/unit/config/priors/old
+test_autofit/config/priors/old
 
 # docs
 docs/_build
@@ -135,14 +136,14 @@ docs/_static
 docs/_templates
 docs/generated
 docs/api/generated
-test_autofit/unit/samples.csv
-test_autofit/unit/non_linear/files/pickles/test.pickle
-test_autofit/unit/non_linear/nest/files/dynesty/output/dynesty_static[nlive_150__bound_multi_vol_dec_0.5_vol_check_2.0__enlarge_1.0__sample_auto]/samples/dynesty.pickle
-=======
+test_autofit/samples.csv
+test_autofit/non_linear/files/pickles/test.pickle
+test_autofit/non_linear/nest/files/dynesty/output/dynesty_static[nlive_150__bound_multi_vol_dec_0.5_vol_check_2.0__enlarge_1.0__sample_auto]/samples/dynesty.pickle
+
 test.db
-test_autofit/unit/text/files/textmodel.results
-test_autofit/unit/tools/files/patharray_out.json
-test_autofit/unit/tools/files/path/
+test_autofit/text/files/textmodel.results
+test_autofit/tools/files/patharray_out.json
+test_autofit/tools/files/path/
 test_autofit/samples.csv
 .envr
 test_autofit/test_files/
@@ -266,7 +267,7 @@ test_autofit/test_files/text/
 fit/test_autofit/optimize/test_fit
 *.DS_Store
 
-test_autofit/unit/config/priors/old
+test_autofit/config/priors/old
 
 # docs
 docs/_build
@@ -274,6 +275,6 @@ docs/_static
 docs/_templates
 docs/generated
 docs/api/generated
-test_autofit/unit/samples.csv
-test_autofit/unit/non_linear/files/pickles/test.pickle
-test_autofit/unit/non_linear/nest/files/dynesty/output/dynesty_static[nlive_150__bound_multi_vol_dec_0.5_vol_check_2.0__enlarge_1.0__sample_auto]/samples/dynesty.pickle
+test_autofit/samples.csv
+test_autofit/non_linear/files/pickles/test.pickle
+test_autofit/non_linear/nest/files/dynesty/output/dynesty_static[nlive_150__bound_multi_vol_dec_0.5_vol_check_2.0__enlarge_1.0__sample_auto]/samples/dynesty.pickle

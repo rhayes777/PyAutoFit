@@ -152,6 +152,6 @@ profiles for every individual line profile in the model:
     max_log_likelihood_profile_list = results.max_log_likelihood_profile_list
 
 More information on the ``Result`` class can be found at the
-`results examples <https://github.com/Jammy2211/autofit_workspace/blob/master/examples/simple/result.py>`_ on
-the ``autofit_workspace``. More details are provided in chapter 2 of
+`results examples <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/overview/simple/result.ipynb>`_ on
+the ``autofit_workspace``. More details are provided in tutorial 7 or chapter 1 of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_

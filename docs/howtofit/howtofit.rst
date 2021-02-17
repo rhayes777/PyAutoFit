@@ -4,12 +4,14 @@ HowToFit Lectures
 =================
 
 To learn how to use **PyAutoFit**, the best starting point is the **HowToFit** lecture series, which are found on
-the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ and at our `binder <>`..
+the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ and at
+our `binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD>`_.
 
-The lectures are provided as *Jupyter notebooks* and currently consist of 2 chapters (more chapters are planned in
-the future):
+The lectures are provided as *Jupyter notebooks* and currently consist of 3 chapters:
 
 **Introduction**: How to perform model-fitting with **PyAutoFit** and analyse the results using the ``Aggregator``.
+
+**Graphical Models**: How to compose and fit graphical models to large datasets (notebooks + feature are in development).
 
 **Phase API**: How to write a software project using the **PyAutoFit** phase API which fully exploits **PyAutoFit**'s
 features for managing model-fitting.

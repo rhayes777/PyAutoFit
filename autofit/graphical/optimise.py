@@ -22,7 +22,7 @@ from autofit.graphical.factor_graphs import (
     JacobianValue
 )
 from autofit.graphical.factor_graphs.transform import (
-    AbstractLinearTransform,
+    AbstractArray1DarTransform,
     identity_transform,
     CovarianceTransform
 )
@@ -52,7 +52,7 @@ class OptFactor:
             param_shapes: FlattenArrays,
             fixed_kws: Optional[Dict[str, np.ndarray]] = None,
             model_dist: Optional[MeanField] = None,
-            transform: Optional[AbstractLinearTransform] = None,
+            transform: Optional[AbstractArray1DarTransform] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
             method: str = 'L-BFGS-B', jac=False, tol=None, options=None, 
             callback=None, constraints=None
@@ -110,7 +110,7 @@ class OptFactor:
     def from_approx(
             cls,
             factor_approx: FactorApproximation,
-            transform: Optional[AbstractLinearTransform] = None,
+            transform: Optional[AbstractArray1DarTransform] = None,
             **kwargs
     ) -> 'OptFactor':
         value_shapes = {}

@@ -43,7 +43,8 @@ from .non_linear.abstract_search import Analysis
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import PriorPasser
 from .non_linear.abstract_search import Result
-from autofit.non_linear.grid.grid_search import GridSearch as NonLinearSearchGridSearch
+from autofit.non_linear.grid.grid_search import GridSearch as SearchGridSearch
+# from autofit.non_linear.grid.sensitivity import Sensitivity
 from autofit.non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
@@ -76,4 +77,4 @@ from .tools.pipeline import ResultsCollection
 
 conf.instance.register(__file__)
 
-__version__ = '0.71.5'
+__version__ = '0.73.1'

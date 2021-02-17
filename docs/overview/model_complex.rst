@@ -1,7 +1,7 @@
 .. _model_complex:
 
-Model Composition & Customization
----------------------------------
+Model Composition
+-----------------
 
 Lets extend our example of fitting a 1D ``Gaussian`` profile to noisy data, to a problem where the
 data contains a signal from two profiles. Specifically, it contains signals from a 1D ``Gaussian`` signal
@@ -220,6 +220,6 @@ Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its
 than that of the ``Exponential``.
 
 If you'd like to perform the fit shown in this script, checkout the
-`complex examples <https://github.com/Jammy2211/autofit_workspace/tree/master/examples/complex>`_ on the
+`complex examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/complex>`_ on the
 ``autofit_workspace``. We provide more details **PyAutoFit** works in the tutorials 5 and 6 of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_

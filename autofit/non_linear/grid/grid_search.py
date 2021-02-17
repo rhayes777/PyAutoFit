@@ -14,6 +14,7 @@ from autofit.non_linear.paths import Paths
 
 
 class GridSearchResult:
+
     def __init__(
             self,
             results: List[Result],
@@ -185,9 +186,10 @@ class GridSearchResult:
             tuple(self.side_length for _ in range(self.no_dimensions)),
         )
 
+
 class GridSearch:
-    # TODO: this should be using paths
-    def __init__(self, paths, search, number_of_steps=4, parallel=False):
+
+    def __init__(self, search, paths=None, number_of_steps=4, number_of_cores=1):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -200,20 +202,28 @@ class GridSearch:
         search: class
             The class of the search that is run at each step
         """
-        self.paths = paths
 
-        self.parallel = parallel
-        self.number_of_cores = conf.instance["non_linear"]["GridSearch"]["general"]["number_of_cores"]
+        if paths is None:
+            self.paths = search.paths
+        else:
+            self.paths = paths
+
+        self.number_of_cores = number_of_cores
+
+        if self.number_of_cores == 1:
+            self.parallel = False
+        else:
+            self.parallel = True
 
         self.number_of_steps = number_of_steps
         self.search = search
 
     @property
-    def hyper_step_size(self):
+    def step_size(self):
         """
         Returns
         -------
-        hyper_step_size: float
+        step_size: float
             The size of a step in any given dimension in hyper space.
         """
         return 1 / self.number_of_steps
@@ -240,7 +250,7 @@ class GridSearch:
         lists: [[float]]
         """
         return make_lists(
-            len(grid_priors), step_size=self.hyper_step_size, centre_steps=False
+            len(grid_priors), step_size=self.step_size, centre_steps=False
         )
 
     def make_arguments(self, values, grid_priors):
@@ -256,7 +266,7 @@ class GridSearch:
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
             upper_limit = (
                     grid_prior.lower_limit
-                    + (value + self.hyper_step_size) * grid_prior.width
+                    + (value + self.step_size) * grid_prior.width
             )
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
@@ -522,7 +532,7 @@ class Job(AbstractJob):
 
 def grid(fitness_function, no_dimensions, step_size):
     """
-    Grid search using a fitness function over a given number of dimensions and a given step size between inclusive
+    Grid2D search using a fitness function over a given number of dimensions and a given step size between inclusive
     limits of 0 and 1.
 
     Parameters

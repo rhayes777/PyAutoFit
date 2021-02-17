@@ -34,6 +34,7 @@ class JobResult(AbstractJobResult):
 
 
 class Job(AbstractJob):
+
     _number = count()
 
     def __init__(
@@ -59,6 +60,7 @@ class Job(AbstractJob):
             A non-linear search
         """
         super().__init__()
+
         self.analysis = analysis
         self.model = model
 
@@ -66,7 +68,14 @@ class Job(AbstractJob):
 
         paths = search.paths
 
-        self.search = search
+        self.search = search.copy_with_paths(
+            Paths(
+                name=paths.name,
+                tag=paths.tag + "[base]",
+                path_prefix=paths.path_prefix,
+                remove_files=paths.remove_files,
+            )
+        )
         self.perturbed_search = search.copy_with_paths(
             Paths(
                 name=paths.name,
@@ -105,7 +114,9 @@ class Job(AbstractJob):
 
 
 class SensitivityResult:
+
     def __init__(self, results: List[JobResult]):
+
         self.results = sorted(results)
 
     def __getitem__(self, item):
@@ -119,15 +130,16 @@ class SensitivityResult:
 
 
 class Sensitivity:
+
     def __init__(
             self,
-            instance,
-            model: AbstractPriorModel,
+            base_model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
+            simulation_instance,
             simulate_function: Callable,
             analysis_class: Type[Analysis],
             search: NonLinearSearch,
-            step_size: Union[Tuple[float], float] = 0.1,
+            number_of_steps: Union[Tuple[int], int] = 4,
             number_of_cores: int = 2
     ):
         """
@@ -144,10 +156,10 @@ class Sensitivity:
 
         Parameters
         ----------
-        instance
+        simulation_instance
             An instance of a model to which perturbations are applied prior to
             images being generated
-        model
+        base_model
             A model that fits the instance well
         search
             A NonLinear search class which is copied and used to evaluate fitness
@@ -165,16 +177,28 @@ class Sensitivity:
         number_of_cores
             How many cores does this computer have? Minimum 2.
         """
-        self.instance = instance
-        self.model = model
+        self.instance = simulation_instance
+        self.model = base_model
 
         self.search = search
         self.analysis_class = analysis_class
 
-        self.step_size = step_size
+        self.number_of_steps = number_of_steps
         self.perturbation_model = perturbation_model
         self.simulate_function = simulate_function
         self.number_of_cores = number_of_cores
+
+    @property
+    def step_size(self):
+        """
+        Returns
+        -------
+        step_size: float
+            The size of a step in any given dimension in hyper space.
+        """
+        if isinstance(self.number_of_steps, tuple):
+            return tuple([1 / number_of_steps for number_of_steps in self.number_of_steps])
+        return 1 / self.number_of_steps
 
     def run(self) -> SensitivityResult:
         """

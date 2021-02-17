@@ -38,6 +38,7 @@ class AbstractJob(ABC):
 
 
 class Process(multiprocessing.Process):
+
     def __init__(self, name: str, job_queue: multiprocessing.Queue):
         """
         A parallel process that consumes Jobs through the job queue and outputs results through its own queue.

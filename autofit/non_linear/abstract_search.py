@@ -455,6 +455,7 @@ class NonLinearSearch(ABC):
         """
         Save the final-result samples associated with the phase as a pickle
         """
+
         with open(self.paths.make_samples_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(samples))
 

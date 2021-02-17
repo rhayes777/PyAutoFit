@@ -81,11 +81,14 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
                 return value
     except KeyError:
         pass
-    raise configparser.NoSectionError(
+
+    logger.warning(
         "Could not find an entry for the parameter {} in the label_format.ini config at path {}".format(
             parameter_name, conf.instance.path
         )
     )
+
+    return "{:.4f}"
 
 
 def convert_name_to_label(parameter_name, name_to_label):

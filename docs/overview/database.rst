@@ -15,7 +15,7 @@ on our hard-disk. We can use **PyAutoFit**'s database ``Aggregator`` to load the
 
 .. code-block:: bash
 
-    agg = af.Aggregator(directory="/path/to/gaussian_x100_fits")
+    agg = af.Aggregator(directory="/path/to/output/gaussian_x100_fits")
 
 We can now use the ``Aggregator`` to load the ``Samples`` object of all 100 model-fits. This object
 (and all objects returned by the ``Aggregator``) are returned as a generator, as opposed to a list,
@@ -111,6 +111,6 @@ run the command we showed above:
     agg = af.Aggregator(directory="/path/to/gaussian_x100_fits")
 
 If you'd like to see the ``Aggregator`` in action, checkout the
-`aggregator examples <https://github.com/Jammy2211/autofit_workspace/tree/master/examples/aggregator>`_ on the
-``autofit_workspace``. We detail further how it works in chapter 2 of
+`database example <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/overview/database.ipynb>`_ on the
+``autofit_workspace``. We detail further how it works in tutoaisl 7-11 of chapter 1 of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.
