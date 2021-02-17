@@ -1,4 +1,7 @@
+import math
+
 import numpy as np
+from scipy.special import erfcinv
 
 import autofit as af
 from autoconf import conf
@@ -326,3 +329,10 @@ class Gaussian(Profile):
             np.divide(self.intensity, self.sigma * np.sqrt(2.0 * np.pi)),
             np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
         )
+
+    def inverse(
+            self,
+            y
+    ):
+        # noinspection PyCallingNonCallable
+        return self.centre + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - y)))

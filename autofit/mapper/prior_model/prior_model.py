@@ -323,3 +323,4 @@ class PriorModel(AbstractPriorModel):
             )
 
         return new_model
+

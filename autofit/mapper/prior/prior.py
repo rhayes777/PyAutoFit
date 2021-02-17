@@ -1,5 +1,6 @@
 import inspect
 import math
+import random
 import sys
 from abc import ABC, abstractmethod
 from typing import Union, Tuple
@@ -195,6 +196,14 @@ class Prior(Variable, ABC, ArithmeticMixin):
     @property
     def width(self):
         return self.upper_limit - self.lower_limit
+
+    def random(self) -> float:
+        """
+        A random value sampled from this prior
+        """
+        return self.value_for(
+            random.random()
+        )
 
     @abstractmethod
     def value_for(self, unit: float) -> float:
