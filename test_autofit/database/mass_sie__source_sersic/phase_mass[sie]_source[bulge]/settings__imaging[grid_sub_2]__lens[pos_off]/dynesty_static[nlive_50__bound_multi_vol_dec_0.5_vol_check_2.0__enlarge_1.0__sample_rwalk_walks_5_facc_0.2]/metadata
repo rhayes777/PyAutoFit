@@ -1,0 +1,5 @@
+name=phase_mass[sie]_source[bulge]
+tag=settings__imaging[grid_sub_2]__lens[pos_off]
+non_linear_search=dynestystaticname=phase_mass[sie]_source[bulge]
+tag=settings__imaging[grid_sub_2]__lens[pos_off]
+non_linear_search=dynestystatic

@@ -1,0 +1,25 @@
+Total Free Parameters = 12 
+
+galaxies
+    lens
+        redshift                                                                          0.5
+        mass
+            centre
+                centre_0                                                                  GaussianPrior, mean = 0.0, sigma = 0.001
+                centre_1                                                                  GaussianPrior, mean = 0.0, sigma = 0.001
+            elliptical_comps
+                elliptical_comps_0                                                        UniformPrior, lower_limit = 0.052, upper_limit = 0.053
+                elliptical_comps_1                                                        UniformPrior, lower_limit = -0.005, upper_limit = 0.005
+            einstein_radius                                                               UniformPrior, lower_limit = 1.59, upper_limit = 1.61
+    source
+        redshift                                                                          1.0
+        bulge
+            centre
+                centre_0                                                                  GaussianPrior, mean = 0.0, sigma = 0.3
+                centre_1                                                                  GaussianPrior, mean = 0.0, sigma = 0.3
+            elliptical_comps
+                elliptical_comps_0                                                        UniformPrior, lower_limit = -1.0, upper_limit = 1.0
+                elliptical_comps_1                                                        UniformPrior, lower_limit = -1.0, upper_limit = 1.0
+            intensity                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            effective_radius                                                              LogUniformPrior, lower_limit = 0.0001, upper_limit = 30.0
+            sersic_index                                                                  UniformPrior, lower_limit = 0.5, upper_limit = 8.0
