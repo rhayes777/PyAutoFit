@@ -1,5 +1,11 @@
+import numpy as np
+import pytest
+
 import autofit as af
 from autofit.mock.mock import Gaussian
+from ..gaussian.model import make_data
+
+x = np.arange(100)
 
 
 class Sampling(af.AbstractPriorModel):
@@ -34,10 +40,15 @@ class Sampling(af.AbstractPriorModel):
         )
 
 
-def test():
-    samples = Sampling(
+@pytest.fixture(
+    name="sampling"
+)
+def make_sampling():
+    return Sampling(
         af.PriorModel(
-            Gaussian
+            Gaussian,
+            centre=25,
+            sigma=15
         ),
         Gaussian.inverse,
         y=af.UniformPrior(
@@ -46,7 +57,34 @@ def test():
         )
     )
 
+
+def test(sampling):
+    centres = [
+        sampling.instance_from_prior_medians()
+        for _ in range(10)
+    ]
+    gaussians = [
+        Gaussian(
+            centre=centre,
+            intensity=1,
+            sigma=10
+        )
+        for centre
+        in centres
+    ]
+    datasets = [
+        make_data(
+            gaussian,
+            x
+        )
+        for gaussian
+        in gaussians    
+    ]
+    print(datasets)
+
+
+def test_sample(sampling):
     assert isinstance(
-        samples.instance_from_prior_medians(),
+        sampling.instance_from_prior_medians(),
         float
     )
