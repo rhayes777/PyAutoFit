@@ -184,7 +184,7 @@ object below are:
 
 - ``perturbation_model``: This is the extra model component that alongside the ``base_model`` is fitted to every simulated dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
 
-- ``simulate_function``: This is the function that uses the ``instance`` and many instances of the ``pertubation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
+- ``simulate_function``: This is the function that uses the ``instance`` and many instances of the ``perturbation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
 
 - ``step_size``: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example, intensity has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the intensity is 1e-4 and 1e2.
 
@@ -219,6 +219,6 @@ feature.
   :width: 600
   :alt: Alternative text
 
-The key point to note is that for every dataset, we now have a model-fit with and without the model ``pertubation``. By
+The key point to note is that for every dataset, we now have a model-fit with and without the model ``perturbation``. By
 compairing the Bayesian evidence of every pair of fits for every value of ``intensity`` we are able to determine when
 our model was sensitivity to the ``Gaussian`` feature and therefore could detect it!
