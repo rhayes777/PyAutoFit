@@ -21,6 +21,7 @@ from .mapper.prior.prior import AbsoluteWidthModifier
 from .mapper.prior.prior import GaussianPrior
 from .mapper.prior.prior import LogUniformPrior
 from .mapper.prior.prior import Prior
+from .mapper.prior.prior import TuplePrior
 from .mapper.prior.prior import RelativeWidthModifier
 from .mapper.prior.prior import UniformPrior
 from .mapper.prior.prior import WidthModifier
