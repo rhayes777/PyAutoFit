@@ -1,15 +1,7 @@
-from typing import Optional
-
-import numpy as np
-
-from autofit import ModelInstance, Analysis
-from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
-from autofit.graphical.factor_graphs.factor import Factor
+from autofit import ModelInstance
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
 
-
-
+from .abstract import AbstractModelFactor
 
 
 class FactorGraphModel(AbstractModelFactor):
