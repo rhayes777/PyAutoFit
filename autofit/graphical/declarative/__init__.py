@@ -1,2 +1,2 @@
 from .collection import FactorGraphModel
-from .factor import ModelFactor
+from .factor import AnalysisFactor

@@ -1,4 +1,4 @@
-from .declarative import ModelFactor, FactorGraphModel
+from .declarative import AnalysisFactor, FactorGraphModel
 from .factor_graphs import \
     Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue, \
     DiagonalTransform, CholeskyTransform, VariableTransform, \

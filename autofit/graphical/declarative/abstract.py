@@ -14,9 +14,9 @@ from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 
 
-class AbstractModelFactor(Analysis, ABC):
+class AbstractDeclarativeFactor(Analysis, ABC):
     @property
-    def model_factors(self) -> List["AbstractModelFactor"]:
+    def model_factors(self) -> List["AbstractDeclarativeFactor"]:
         return [self]
 
     @property

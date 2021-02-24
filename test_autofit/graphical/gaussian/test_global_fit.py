@@ -16,14 +16,14 @@ class Analysis(af.Analysis):
 def make_model_factor():
     model = af.Collection(one=af.UniformPrior())
 
-    return g.ModelFactor(model, Analysis(0.5))
+    return g.AnalysisFactor(model, Analysis(0.5))
 
 
 @pytest.fixture(name="model_factor_2")
 def make_model_factor_2():
     model_2 = af.Collection(one=af.UniformPrior())
 
-    return g.ModelFactor(model_2, Analysis(0.0))
+    return g.AnalysisFactor(model_2, Analysis(0.0))
 
 
 class TestGlobalLikelihood:

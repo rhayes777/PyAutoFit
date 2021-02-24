@@ -18,7 +18,7 @@ def make_make_model_factor(
             centre: float,
             sigma: float,
             optimiser=None
-    ) -> ep.ModelFactor:
+    ) -> ep.AnalysisFactor:
         """
         We'll make a LikelihoodModel for each Gaussian we're fitting.
 
@@ -55,7 +55,7 @@ def make_make_model_factor(
         We can also pass a custom optimiser in here that will be used to fit the factor instead
         of the default optimiser.
         """
-        return ep.ModelFactor(
+        return ep.AnalysisFactor(
             prior_model,
             analysis=Analysis(
                 x=x,
@@ -182,7 +182,7 @@ def test_gaussian():
         sigma=af.GaussianPrior(mean=10, sigma=10),
     )
 
-    factor_model = ep.ModelFactor(
+    factor_model = ep.AnalysisFactor(
         prior_model,
         analysis=Analysis(
             x=x,
@@ -210,7 +210,7 @@ def make_factor_model(prior_model):
         def log_likelihood_function(*_):
             return 1
 
-    return ep.ModelFactor(
+    return ep.AnalysisFactor(
         prior_model,
         analysis=MockAnalysis()
     )
