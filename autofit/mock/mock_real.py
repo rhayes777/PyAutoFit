@@ -1,10 +1,9 @@
-import inspect
+import math
+
 import autofit as af
 # noinspection PyAbstractClass
 from autofit.mapper.prior_model import attribute_pair
 
-
-import math
 
 class Circle:
     def __init__(self, radius):
@@ -265,10 +264,9 @@ class EllipticalExponential(EllipticalSersic):
         )
 
 
-
 class EllipticalGaussian(EllipticalProfile):
     def __init__(
-        self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
+            self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
     ):
         """ The elliptical Gaussian profile.
 
@@ -317,22 +315,14 @@ class Tracer:
         self.source_galaxy = source_galaxy
         self.grid = grid
 
-# noinspection PyAbstractClass
-class GalaxyModel(af.AbstractPriorModel):
-    def instance_for_arguments(self, arguments):
-        try:
-            return Galaxy(redshift=self.redshift.instance_for_arguments(arguments))
-        except AttributeError:
-            return Galaxy()
 
+# noinspection PyAbstractClass
+class GalaxyModel(af.PriorModel):
     def __init__(self, model_redshift=False, **kwargs):
-        super().__init__()
-        self.redshift = af.PriorModel(Redshift) if model_redshift else None
-        self.__dict__.update(
-            {
-                key: af.PriorModel(value) if inspect.isclass(value) else value
-                for key, value in kwargs.items()
-            }
+        super().__init__(
+            Galaxy,
+            redshift=af.PriorModel(Redshift) if model_redshift else None,
+            **kwargs
         )
 
     @property
