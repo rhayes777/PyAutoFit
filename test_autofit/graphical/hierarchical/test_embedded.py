@@ -7,7 +7,7 @@ from autofit.mock.mock import Gaussian
 from test_autofit.graphical.gaussian.model import Analysis
 
 x = np.arange(100)
-n = 10
+n = 3
 
 
 @pytest.fixture(
