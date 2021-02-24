@@ -1,9 +1,9 @@
 from abc import ABC
-from typing import Optional
+from typing import Optional, Set
 
 import numpy as np
 
-from autofit import ModelInstance, Analysis
+from autofit import ModelInstance, Analysis, Prior
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
@@ -71,6 +71,8 @@ class HierarchicalFactor(AbstractModelFactor):
             argument_prior,
             optimiser=None,
     ):
+        self.argument_prior = argument_prior
+
         def _factor(
                 **kwargs
         ):
@@ -107,6 +109,14 @@ class HierarchicalFactor(AbstractModelFactor):
 
     def log_likelihood_function(self, instance):
         return instance
+
+    @property
+    def priors(self) -> Set[Prior]:
+        priors = super().priors
+        priors.add(
+            self.argument_prior
+        )
+        return priors
 
 
 class AnalysisFactor(AbstractModelFactor):

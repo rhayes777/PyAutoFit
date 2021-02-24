@@ -44,6 +44,7 @@ def test_hierarchical_factor(
     laplace = g.LaplaceFactorOptimiser()
 
     collection = factor.optimise(laplace)
+    print(collection)
 
 
 @pytest.fixture(
