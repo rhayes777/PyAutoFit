@@ -3,6 +3,8 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
+from autofit.mock.mock import Gaussian
+from test_autofit.graphical.gaussian.model import Analysis
 
 x = np.arange(100)
 n = 10
@@ -55,12 +57,15 @@ def generate_data(
 ):
     data = []
     for _ in range(n):
-        instance = centre_model.random_instance()
+        centre = centre_model.random_instance().value_for(0.5)
+        gaussian = Gaussian(
+            centre=centre,
+            intensity=20,
+            sigma=5,
+        )
+
         data.append(
-            np.array(list(map(
-                instance,
-                x
-            )))
+            gaussian(x)
         )
     return data
 
@@ -70,16 +75,37 @@ def test_generate_data(
 ):
     print(data)
 
-# class Analysis:
-#     def __init__(self, x, y, sigma=.04):
-#         self.x = x
-#         self.y = y
-#         self.sigma = sigma
-#
-#     def log_likelihood_function(self, instance: Gaussian) -> np.array:
-#         """
-#         This function takes an instance created by the PriorModel and computes the
-#         likelihood that it fits the data.
-#         """
-#         y_model = instance(self.x)
-#         return np.sum(_likelihood(y_model, self.y) / self.sigma**2)
+
+def test_full_fit(centre_model, data):
+    graph = g.FactorGraphModel()
+    for y in data:
+        centre_argument = af.GaussianPrior(
+            mean=50,
+            sigma=20
+        )
+        prior_model = af.PriorModel(
+            Gaussian,
+            centre=centre_argument,
+            intensity=20,
+            sigma=5
+        )
+        graph.add(
+            g.AnalysisFactor(
+                prior_model,
+                analysis=Analysis(
+                    x=x,
+                    y=y
+                )
+            )
+        )
+        graph.add(
+            g.HierarchicalFactor(
+                centre_model,
+                centre_argument
+            )
+        )
+
+    laplace = g.LaplaceFactorOptimiser()
+
+    collection = graph.optimise(laplace)
+    print(collection)
