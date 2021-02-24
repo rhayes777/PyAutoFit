@@ -23,7 +23,8 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
             self,
             prior_model: AbstractPriorModel,
             factor,
-            optimiser: Optional[AbstractFactorOptimiser] = None
+            optimiser: Optional[AbstractFactorOptimiser],
+            prior_variable_dict
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -39,12 +40,6 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
         """
         self._prior_model = prior_model
         self._optimiser = optimiser
-
-        prior_variable_dict = {
-            prior.name: prior
-            for prior
-            in prior_model.priors
-        }
 
         super().__init__(
             factor,
@@ -67,6 +62,51 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
         return super().optimise(
             optimiser
         )[0]
+
+
+class HierarchicalFactor(AbstractModelFactor):
+    def __init__(
+            self,
+            prior_model,
+            argument_prior,
+            optimiser=None,
+    ):
+        def _factor(
+                **kwargs
+        ):
+            argument = kwargs.pop(
+                "argument"
+            )
+            arguments = dict()
+            for name, array in kwargs.items():
+                prior_id = int(name.split("_")[1])
+                prior = prior_model.prior_with_id(
+                    prior_id
+                )
+                arguments[prior] = array
+            return prior_model.instance_for_arguments(
+                arguments
+            )(argument)
+
+        prior_variable_dict = {
+            prior.name: prior
+            for prior
+            in prior_model.priors
+        }
+
+        prior_variable_dict[
+            "argument"
+        ] = argument_prior
+
+        super().__init__(
+            prior_model=prior_model,
+            factor=_factor,
+            optimiser=optimiser,
+            prior_variable_dict=prior_variable_dict
+        )
+
+    def log_likelihood_function(self, instance):
+        return instance
 
 
 class AnalysisFactor(AbstractModelFactor):
@@ -131,10 +171,17 @@ class AnalysisFactor(AbstractModelFactor):
                 instance
             )
 
+        prior_variable_dict = {
+            prior.name: prior
+            for prior
+            in prior_model.priors
+        }
+
         super().__init__(
             prior_model=prior_model,
             factor=_factor,
             optimiser=optimiser,
+            prior_variable_dict=prior_variable_dict
         )
 
     def log_likelihood_function(

@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 import autofit as af
+from autofit import graphical as g
 
 x = np.arange(100)
 n = 10
@@ -31,6 +32,18 @@ def test_embedded_priors(
         centre_model.random_instance().value_for(0.5),
         float
     )
+
+
+def test_hierarchical_factor(
+        centre_model
+):
+    factor = g.HierarchicalFactor(
+        centre_model,
+        af.GaussianPrior(50, 10)
+    )
+    laplace = g.LaplaceFactorOptimiser()
+
+    collection = factor.optimise(laplace)
 
 
 @pytest.fixture(
