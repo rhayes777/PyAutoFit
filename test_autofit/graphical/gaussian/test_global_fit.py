@@ -31,7 +31,7 @@ class TestGlobalLikelihood:
     def test_single_factor(self, model_factor, unit_value, likelihood):
         assert (
                 model_factor.log_likelihood_function(
-                    model_factor.global_prior_model.instance_from_unit_vector([unit_value])
+                    model_factor.global_prior_model.instance_from_unit_vector([unit_value])[0]
                 )
                 == likelihood
         )

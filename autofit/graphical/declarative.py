@@ -179,39 +179,6 @@ class AbstractModelFactor(Analysis, ABC):
                 during_analysis
             )
 
-    def log_likelihood_function(
-            self,
-            instance: ModelInstance
-    ) -> float:
-        """
-        Compute the combined likelihood of each factor from a collection of instances
-        with the same ordering as the factors.
-
-        Parameters
-        ----------
-        instance
-            A collection of instances, one corresponding to each factor
-
-        Returns
-        -------
-        The combined likelihood of all factors
-        """
-        likelihood = abs(
-            self.model_factors[0].analysis.log_likelihood_function(
-                instance[0]
-            )
-        )
-        for model_factor, instance_ in zip(
-                self.model_factors[1:],
-                instance[1:]
-        ):
-            likelihood *= abs(
-                model_factor.analysis.log_likelihood_function(
-                    instance_
-                )
-            )
-        return -likelihood
-
     @property
     def global_prior_model(self) -> CollectionPriorModel:
         """
@@ -291,6 +258,12 @@ class ModelFactor(Factor, AbstractModelFactor):
             **prior_variable_dict
         )
 
+    def log_likelihood_function(
+            self,
+            instance: ModelInstance
+    ) -> float:
+        return self.analysis.log_likelihood_function(instance)
+
     @property
     def model_factors(self) -> List["ModelFactor"]:
         return [self]
@@ -331,6 +304,39 @@ class FactorGraphModel(AbstractModelFactor):
         self._model_factors.append(
             model_factor
         )
+
+    def log_likelihood_function(
+            self,
+            instance: ModelInstance
+    ) -> float:
+        """
+        Compute the combined likelihood of each factor from a collection of instances
+        with the same ordering as the factors.
+
+        Parameters
+        ----------
+        instance
+            A collection of instances, one corresponding to each factor
+
+        Returns
+        -------
+        The combined likelihood of all factors
+        """
+        likelihood = abs(
+            self.model_factors[0].log_likelihood_function(
+                instance[0]
+            )
+        )
+        for model_factor, instance_ in zip(
+                self.model_factors[1:],
+                instance[1:]
+        ):
+            likelihood *= abs(
+                model_factor.log_likelihood_function(
+                    instance_
+                )
+            )
+        return -likelihood
 
     @property
     def model_factors(self):
