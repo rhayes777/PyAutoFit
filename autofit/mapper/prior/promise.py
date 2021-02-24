@@ -311,6 +311,8 @@ class Promise(AbstractPromise):
             phase.model.object_for_path(path)
 
     def __str__(self):
+        if self._phase is None:
+            return super().__str__()
         return f"{self._phase.name}.{super().__str__()}"
 
     def __getstate__(self):

@@ -587,7 +587,12 @@ class AbstractPriorModel(AbstractModel):
         return result
 
     def items(self):
-        return self.direct_prior_tuples + self.direct_instance_tuples + self.direct_prior_model_tuples
+        return (
+                self.direct_prior_tuples
+                + self.direct_instance_tuples
+                + self.direct_prior_model_tuples
+                + self.direct_tuple_priors
+        )
 
     @property
     @cast_collection(PriorNameValue)
@@ -608,6 +613,11 @@ class AbstractPriorModel(AbstractModel):
     @cast_collection(PriorModelNameValue)
     def direct_prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
+
+    @property
+    @cast_collection(PriorModelNameValue)
+    def direct_tuple_priors(self):
+        return self.direct_tuples_with_type(TuplePrior)
 
     @property
     @cast_collection(PriorNameValue)
@@ -695,8 +705,13 @@ class AbstractPriorModel(AbstractModel):
             An instance of the class
         """
         if self.promise_count > 0:
+            unpopulated_string = "\n".join(
+                f"{promise} -> {path}"
+                for path, promise
+                in self.unique_promise_tuples
+            )
             raise exc.PriorException(
-                "All promises must be populated prior to instantiation"
+                f"All promises must be populated prior to instantiation.\n\nUnpopulated promises:\n{unpopulated_string}"
             )
         if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
             for prior, value in arguments.items():

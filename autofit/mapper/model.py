@@ -1,4 +1,5 @@
 import copy
+import inspect
 from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
@@ -139,13 +140,12 @@ def populate(obj, collection: ResultsCollection):
     from autofit.mapper.prior.promise import AbstractPromise
     if isinstance(obj, AbstractPromise):
         return obj.populate(collection)
-    try:
-        new = copy.copy(obj)
-        for key, value in obj.__dict__.items():
-            setattr(new, key, populate(value, collection))
-        return new
-    except (AttributeError, TypeError):
+    if not hasattr(obj, "__dict__") or inspect.isclass(obj):
         return obj
+    new = copy.copy(obj)
+    for key, value in obj.__dict__.items():
+        setattr(new, key, populate(value, collection))
+    return new
 
 
 @DynamicRecursionCache()
