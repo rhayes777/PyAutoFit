@@ -79,7 +79,7 @@ class CentreAnalysis(af.Analysis):
         return instance
 
 
-def test(sampling):
+def _test(sampling):
     parent_centre = af.GaussianPrior(
         mean=50,
         sigma=10,
