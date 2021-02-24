@@ -79,10 +79,10 @@ def search_summary_from_samples(samples) -> [str]:
     return line
 
 
-def search_summary_to_file(samples, filename):
+def search_summary_to_file(samples, log_likelihood_function_time, filename):
 
     summary = search_summary_from_samples(samples=samples)
-
+    summary.append(f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}")
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)
 
 

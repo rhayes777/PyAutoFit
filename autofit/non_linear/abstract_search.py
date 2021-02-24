@@ -7,6 +7,7 @@ import pickle
 import shutil
 from abc import ABC, abstractmethod
 from time import sleep
+import time
 from typing import Dict
 
 import numpy as np
@@ -374,7 +375,15 @@ class NonLinearSearch(ABC):
                 during_analysis=during_analysis,
             )
 
-            text_util.search_summary_to_file(samples=samples, filename=self.paths.file_search_summary)
+            start = time.time()
+            analysis.log_likelihood_function(instance=instance)
+            log_likelihood_function_time = (time.time() - start)
+
+            text_util.search_summary_to_file(
+                samples=samples,
+                log_likelihood_function_time=log_likelihood_function_time,
+                filename=self.paths.file_search_summary
+            )
 
         if not during_analysis and self.remove_state_files_at_end:
             try:
