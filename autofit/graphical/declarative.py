@@ -17,11 +17,18 @@ from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorMode
 
 class AbstractModelFactor(Analysis, ABC):
     @property
+    def model_factors(self) -> List["AbstractModelFactor"]:
+        return [self]
+
+    @property
     @abstractmethod
-    def model_factors(self) -> List["ModelFactor"]:
-        """
-        A list of factors that comprise a PriorModel and corresponding fitness function
-        """
+    def prior_model(self):
+        pass
+
+    @property
+    @abstractmethod
+    def optimiser(self):
+        pass
 
     @property
     def priors(self) -> Set[Prior]:
@@ -191,7 +198,21 @@ class AbstractModelFactor(Analysis, ABC):
         ])
 
 
+class HierarchicalFactor(Factor, AbstractModelFactor):
+
+    def log_likelihood_function(self, instance):
+        pass
+
+
 class ModelFactor(Factor, AbstractModelFactor):
+    @property
+    def prior_model(self):
+        return self._prior_model
+
+    @property
+    def optimiser(self):
+        return self._optimiser
+
     def __init__(
             self,
             prior_model: AbstractPriorModel,
@@ -213,9 +234,9 @@ class ModelFactor(Factor, AbstractModelFactor):
             A custom optimiser that will be used to fit this factor specifically
             instead of the default optimiser
         """
-        self.prior_model = prior_model
+        self._prior_model = prior_model
         self.analysis = analysis
-        self.optimiser = optimiser
+        self._optimiser = optimiser
 
         prior_variable_dict = {
             prior.name: prior
@@ -264,10 +285,6 @@ class ModelFactor(Factor, AbstractModelFactor):
     ) -> float:
         return self.analysis.log_likelihood_function(instance)
 
-    @property
-    def model_factors(self) -> List["ModelFactor"]:
-        return [self]
-
     def optimise(self, optimiser) -> PriorModel:
         """
         Optimise this factor on its own returning a PriorModel
@@ -287,6 +304,18 @@ class ModelFactor(Factor, AbstractModelFactor):
 
 
 class FactorGraphModel(AbstractModelFactor):
+    @property
+    def prior_model(self):
+        return CollectionPriorModel(
+            factor.prior_model
+            for factor
+            in self.model_factors
+        )
+
+    @property
+    def optimiser(self):
+        raise NotImplemented()
+
     def __init__(self, *model_factors: AbstractModelFactor):
         """
         A collection of factors that describe models, which can be
