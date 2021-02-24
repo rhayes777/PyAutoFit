@@ -695,8 +695,13 @@ class AbstractPriorModel(AbstractModel):
             An instance of the class
         """
         if self.promise_count > 0:
+            unpopulated_string = "\n".join(
+                f"{promise} -> {path}"
+                for path, promise
+                in self.unique_promise_tuples
+            )
             raise exc.PriorException(
-                "All promises must be populated prior to instantiation"
+                f"All promises must be populated prior to instantiation.\n\nUnpopulated promises:\n{unpopulated_string}"
             )
         if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
             for prior, value in arguments.items():
