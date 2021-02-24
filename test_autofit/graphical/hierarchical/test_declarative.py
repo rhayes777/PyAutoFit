@@ -49,15 +49,29 @@ def make_sampling():
     return Sampling(
         af.PriorModel(
             Gaussian,
-            centre=25,
-            sigma=15
+            centre=0,
+            sigma=2,
+            intensity=10
         ),
         Gaussian.inverse,
         y=af.UniformPrior(
-            lower_limit=0.0,
+            lower_limit=-1.0,
             upper_limit=1.0
         )
     )
+
+
+@pytest.mark.parametrize(
+    "x",
+    [
+        0.1, 0.2, 0.3
+    ]
+)
+def test_inverse(x):
+    gaussian = Gaussian()
+    assert gaussian.inverse(
+        gaussian(x)
+    ) == x
 
 
 class CentreAnalysis(af.Analysis):
@@ -67,11 +81,11 @@ class CentreAnalysis(af.Analysis):
 
 def test(sampling):
     parent_centre = af.GaussianPrior(
-        mean=25,
-        sigma=10
+        mean=50,
+        sigma=10,
     )
     parent_sigma = af.GaussianPrior(
-        mean=15,
+        mean=10,
         sigma=10
     )
 
@@ -81,21 +95,20 @@ def test(sampling):
         centre = sampling.instance_from_prior_medians()
         gaussian = Gaussian(
             centre=centre,
-            intensity=1,
+            intensity=25,
             sigma=10
         )
 
-        y = make_data(
-            gaussian,
-            x
-        )
+        y = gaussian(x)
+
+        print(y)
 
         centre = af.GaussianPrior(mean=50, sigma=20)
 
         prior_model = af.PriorModel(
             Gaussian,
             centre=centre,
-            intensity=1,
+            intensity=25,
             sigma=10,
         )
 
@@ -116,7 +129,7 @@ def test(sampling):
                         Gaussian,
                         centre=parent_centre,
                         sigma=parent_sigma,
-                        intensity=1
+                        intensity=25
                     ),
                     Gaussian.__call__,
                     xvalues=centre

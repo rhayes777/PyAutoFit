@@ -30,9 +30,7 @@ def check_assertions(func):
             assertion
             for assertion
             in s._assertions
-            if assertion is False or assertion is not True and not assertion.instance_for_arguments(
-                arguments
-            )
+            if assertion is False or assertion is not True and not assertion.instance_for_arguments(arguments, )
         ]
         number_of_failed_assertions = len(failed_assertions)
         if number_of_failed_assertions > 0:

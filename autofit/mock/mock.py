@@ -1,7 +1,6 @@
 import math
 
 import numpy as np
-from scipy.special import erfcinv
 
 import autofit as af
 from autoconf import conf
@@ -334,5 +333,18 @@ class Gaussian(Profile):
             self,
             y
     ):
-        # noinspection PyCallingNonCallable
-        return self.centre + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - y)))
+        print(y)
+        print(f"centre = {self.centre}")
+        print(f"sigma = {self.sigma}")
+        print(f"intensity = {self.intensity}")
+        a = self.intensity / (
+                y * self.sigma * math.sqrt(2 * math.pi)
+        )
+        print(f"a = {a}")
+        b = 2 * math.log(
+            a
+        )
+        print(f"b = {b}")
+        return self.centre + self.sigma * math.sqrt(
+            b
+        )
