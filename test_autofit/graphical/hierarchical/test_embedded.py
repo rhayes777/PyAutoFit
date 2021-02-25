@@ -58,6 +58,7 @@ def generate_data(
     data = []
     for _ in range(n):
         centre = centre_model.random_instance().value_for(0.5)
+        print(centre)
         gaussian = Gaussian(
             centre=centre,
             intensity=20,
@@ -108,4 +109,5 @@ def test_full_fit(centre_model, data):
     laplace = g.LaplaceFactorOptimiser()
 
     collection = graph.optimise(laplace)
-    print(collection)
+    for obj in collection:
+        print(obj.centre)

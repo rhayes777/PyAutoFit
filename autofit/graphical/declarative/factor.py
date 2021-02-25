@@ -1,3 +1,4 @@
+import json
 from abc import ABC
 from typing import Optional, Set
 
@@ -76,6 +77,7 @@ class HierarchicalFactor(AbstractModelFactor):
         def _factor(
                 **kwargs
         ):
+            print(kwargs)
             argument = kwargs.pop(
                 "argument"
             )
@@ -86,9 +88,10 @@ class HierarchicalFactor(AbstractModelFactor):
                     prior_id
                 )
                 arguments[prior] = array
-            return prior_model.instance_for_arguments(
+            result = prior_model.instance_for_arguments(
                 arguments
             )(argument)
+            return result
 
         prior_variable_dict = {
             prior.name: prior
