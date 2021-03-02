@@ -1,4 +1,5 @@
 from os import path
+import shutil
 
 import autofit as af
 from autoconf import conf
@@ -11,6 +12,10 @@ conf.instance = conf.Config(path.join(directory, "files", "config"))
 
 
 def make_pipeline_1(name):
+
+    if path.exists(path.join(conf.instance.output_path, "phase_1")):
+        shutil.rmtree(path.join(conf.instance.output_path, "phase_1"))
+
     search = MockSearch(
         name="phase_1", samples=MockSamples(gaussian_tuples=[(0.5, 0.5)])
     )
@@ -23,6 +28,10 @@ def make_pipeline_1(name):
 
 
 def make_pipeline_2(name):
+
+    if path.exists(path.join(conf.instance.output_path, "phase_2")):
+        shutil.rmtree(path.join(conf.instance.output_path, "phase_2"))
+
     search = MockSearch(
         name="phase_2", samples=MockSamples(gaussian_tuples=[(0.5, 0.5)])
     )
@@ -42,6 +51,7 @@ def make_pipeline(name,):
 
 
 def test_pipeline_composition():
+
     pipeline = make_pipeline("test")
     results = pipeline.run(mock.MockDataset())
     assert results[0].model.parameter.mean == results[1].model.parameter.mean

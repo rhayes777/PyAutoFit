@@ -9,16 +9,8 @@ import autofit as af
 from autoconf import conf
 from autofit.mock import mock
 
-directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
-
-@pytest.fixture(autouse=True)
-def set_config_path():
-    conf.instance.push(
-        new_path=path.join(directory, "files", "dynesty", "config"),
-        output_path=path.join(directory, "files", "dynesty", "output"),
-    )
 
 
 class MockDynestyResults:
@@ -37,7 +29,9 @@ class MockDynestySampler:
 
 
 class TestDynestyConfig:
+
     def test__loads_from_config_file_if_not_input(self):
+
         dynesty = af.DynestyStatic(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=151,
@@ -301,7 +295,7 @@ class TestDynestyConfig:
 
         sampler = MockDynestySampler(results=results)
 
-        paths = af.Paths()
+        paths = af.Paths(path_prefix=path.join("non_linear", "dynesty"))
 
         dynesty = af.DynestyStatic(paths=paths)
 

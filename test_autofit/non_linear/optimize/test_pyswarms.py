@@ -5,16 +5,7 @@ from autoconf import conf
 import autofit as af
 from autofit.mock import mock
 
-directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
-
-
-@pytest.fixture(autouse=True)
-def set_config_path():
-    conf.instance.push(
-        new_path=path.join(directory, "files", "pyswarms", "config"),
-        output_path=path.join(directory, "files", "pyswarms", "output"),
-    )
 
 
 class TestPySwarmsGlobalConfig:
@@ -122,7 +113,7 @@ class TestPySwarmsGlobalConfig:
 
     def test__samples_from_model(self):
 
-        pyswarms = af.PySwarmsGlobal(paths=af.Paths())
+        pyswarms = af.PySwarmsGlobal(paths=af.Paths(path_prefix=path.join("non_linear", "pyswarms")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx3)
         model.mock_class.one = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)

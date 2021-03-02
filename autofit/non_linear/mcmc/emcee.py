@@ -306,6 +306,8 @@ class Emcee(AbstractMCMC):
             etc.
         """
 
+        print(self.backend.filename)
+
         parameters = self.backend.get_chain(flat=True).tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
