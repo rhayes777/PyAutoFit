@@ -93,7 +93,11 @@ class Instance(Object):
     ):
         instance = cls()
         instance.cls = type(source)
-        instance._add_children(source.__dict__.items())
+        if hasattr(
+                source,
+                "__dict__"
+        ):
+            instance._add_children(source.__dict__.items())
         return instance
 
 
