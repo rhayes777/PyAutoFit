@@ -1,7 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-
-import matplotlib.pyplot as plt
 
 import autofit as af
 from autofit import graphical as g
@@ -57,14 +56,27 @@ def test_hierarchical_factor(
 
 
 @pytest.fixture(
+    name="centres"
+)
+def make_centre(
+        centre_model
+):
+    centres = list()
+    for _ in range(n):
+        centres.append(
+            centre_model.random_instance().value_for(0.5)
+        )
+    return centres
+
+
+@pytest.fixture(
     name="data"
 )
 def generate_data(
-        centre_model
+        centres
 ):
     data = []
-    for _ in range(n):
-        centre = centre_model.random_instance().value_for(0.5)
+    for centre in centres:
         gaussian = Gaussian(
             centre=centre,
             intensity=20,
@@ -84,6 +96,34 @@ def test_generate_data(
         for gaussian in data:
             plt.plot(x, gaussian)
         plt.show()
+
+
+def test_model_factor(
+        data,
+        centres
+):
+    y = data[0]
+    centre_argument = af.GaussianPrior(
+        mean=50,
+        sigma=20
+    )
+    prior_model = af.PriorModel(
+        Gaussian,
+        centre=centre_argument,
+        intensity=20,
+        sigma=5
+    )
+    factor = g.AnalysisFactor(
+        prior_model,
+        analysis=Analysis(
+            x=x,
+            y=y
+        )
+    )
+    laplace = g.LaplaceFactorOptimiser()
+
+    gaussian = factor.optimise(laplace)
+    assert gaussian.centre.mean == pytest.approx(centres[0], abs=0.1)
 
 
 def test_full_fit(centre_model, data):
@@ -114,6 +154,8 @@ def test_full_fit(centre_model, data):
                 centre_argument
             )
         )
+
+
 
     laplace = g.LaplaceFactorOptimiser()
 
