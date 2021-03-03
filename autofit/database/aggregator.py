@@ -221,7 +221,8 @@ class Aggregator(AbstractAggregator):
             instance = samples.max_log_likelihood_instance
             fit = m.Fit(
                 model=model,
-                instance=instance
+                instance=instance,
+                phase_name=item.name
             )
 
             pickle_path = item.pickle_path

@@ -53,6 +53,7 @@ def make_fit(
 
 def test_name_attributes(fit):
     assert fit.dataset_name is not None
+    assert fit.phase_name is not None
 
 
 def test_samples(
