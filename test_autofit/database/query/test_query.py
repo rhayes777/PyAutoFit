@@ -82,6 +82,7 @@ def test_query_dataset(
         gaussian_1,
         gaussian_2
     ])
+    session.commit()
 
     result = aggregator.query(
         aggregator.dataset == "dataset 1"
