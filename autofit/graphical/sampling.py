@@ -95,20 +95,18 @@ class AbstractSampler(AbstractFactorOptimiser):
                  last_samples: Optional[SamplingResult] = None) -> SamplingResult:
         pass
 
-    def optimise(
+    def project(
             self,
-            factor: Factor,
-            model_approx: EPMeanField,
+            factor_approx: FactorApproximation,
             status: Status = Status(),
-    ) -> Tuple[EPMeanField, Status]:
+    ) -> Tuple[FactorApproximation, Status]:
+        factor = factor_approx.factor
         delta = self.deltas[factor]
         sample_kws = self.sample_kws[factor]
-
-        factor_approx = model_approx.factor_approximation(factor)
         sample = self(factor_approx, **sample_kws)
         model_dist = project_factor_approx_sample(factor_approx, sample)
         projection, status = factor_approx.project(model_dist, delta=delta)
-        return model_approx.project(projection, status=status)
+        return projection, status
 
 
 class ImportanceSampler(AbstractSampler):

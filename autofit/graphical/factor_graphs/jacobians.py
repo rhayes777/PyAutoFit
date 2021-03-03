@@ -62,7 +62,8 @@ class FactorJacobian(Factor):
     ):
         self.vectorised = vectorised
         self.is_scalar = is_scalar
-        self._factor = factor_jacobian
+        self._set_factor(factor_jacobian)
+
         AbstractFactor.__init__(
             self, 
             **kwargs,
