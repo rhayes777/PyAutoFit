@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+import matplotlib.pyplot as plt
+
 import autofit as af
 from autofit import graphical as g
 from autofit.mock.mock import Gaussian
@@ -8,6 +10,8 @@ from test_autofit.graphical.gaussian.model import Analysis
 
 x = np.arange(100)
 n = 3
+
+should_plot = True
 
 
 @pytest.fixture(
@@ -61,7 +65,6 @@ def generate_data(
     data = []
     for _ in range(n):
         centre = centre_model.random_instance().value_for(0.5)
-        print(centre)
         gaussian = Gaussian(
             centre=centre,
             intensity=20,
@@ -77,7 +80,10 @@ def generate_data(
 def test_generate_data(
         data
 ):
-    print(data)
+    if should_plot:
+        for gaussian in data:
+            plt.plot(x, gaussian)
+        plt.show()
 
 
 def test_full_fit(centre_model, data):

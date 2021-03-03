@@ -30,9 +30,6 @@ def make_session():
 def make_aggregator(
         session
 ):
-
-    print(directory)
-
     aggregator = Aggregator(
         session
     )
