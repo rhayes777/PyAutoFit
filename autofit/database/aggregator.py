@@ -4,6 +4,7 @@ from typing import Optional, List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from autofit.database import query as q
@@ -63,6 +64,17 @@ class AbstractAggregator(ABC):
         return str(self.fits)
 
 
+fit_attributes = {
+    key
+    for key, value
+    in m.Fit.__dict__.items()
+    if isinstance(
+        value,
+        InstrumentedAttribute
+    )
+}
+
+
 class ListAggregator(AbstractAggregator):
     def __init__(self, fits):
         self._fits = fits
@@ -105,11 +117,9 @@ class Aggregator(AbstractAggregator):
         return f"<{self.__class__.__name__} {self.filename}>"
 
     def __getattr__(self, name):
+        if name in fit_attributes:
+            return q.A("dataset")
         return q.Q(name)
-
-    @property
-    def dataset(self):
-        return q.A("dataset")
 
     def query(self, predicate: AbstractQuery) -> ListAggregator:
         """
