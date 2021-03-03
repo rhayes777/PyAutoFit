@@ -69,7 +69,7 @@ def test__search_summary_to_file(model):
         time=None,
     )
 
-    text_util.search_summary_to_file(samples=samples, filename=file_search_summary)
+    text_util.search_summary_to_file(samples=samples, log_likelihood_function_time=1.0, filename=file_search_summary)
 
     results = open(file_search_summary)
     lines = results.readlines()
@@ -91,7 +91,7 @@ def test__search_summary_to_file(model):
         log_evidence=1.0,
     )
 
-    text_util.search_summary_to_file(samples=samples, filename=file_search_summary)
+    text_util.search_summary_to_file(samples=samples, log_likelihood_function_time=1.0, filename=file_search_summary)
 
     results = open(file_search_summary)
     lines = results.readlines()
@@ -99,4 +99,5 @@ def test__search_summary_to_file(model):
     assert lines[1] == "Total Accepted Samples = 2\n"
     assert lines[2] == "Acceptance Ratio = 0.2\n"
     assert lines[3] == "Time To Run = 2\n"
+    assert lines[4] == "Log Likelihood Function Evaluation Time (seconds) = 1.0"
     results.close()

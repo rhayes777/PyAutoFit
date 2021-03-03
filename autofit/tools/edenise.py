@@ -2,7 +2,7 @@ import re
 import shutil
 from os import walk
 from uuid import uuid1
-
+from configparser import ConfigParser
 
 class Line:
     def __init__(self, string):
@@ -138,6 +138,25 @@ class Converter:
             for line in matched_lines
         )
         return f"{import_string}\n{string}"
+
+
+def edenise_directory(
+        root_directory
+):
+    try:
+        config = ConfigParser()
+        config.read(
+            f"{root_directory}/eden.ini"
+        )
+
+        edenise(
+            root_directory,
+            config.get("eden", "name"),
+            config.get("eden", "prefix")
+        )
+    except ValueError:
+        print("Usage: ./edenise.py root_directory")
+        exit(1)
 
 
 def edenise(
