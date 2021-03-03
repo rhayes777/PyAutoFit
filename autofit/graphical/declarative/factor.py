@@ -1,6 +1,4 @@
 from abc import ABC
-from collections import Counter
-from itertools import count
 from typing import Optional, Set
 
 import numpy as np
@@ -9,22 +7,8 @@ from autofit import ModelInstance, Analysis, Prior
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
+from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
-
-_placeholders = count()
-
-
-class Namer:
-    def __init__(self):
-        self.counter = Counter()
-
-    def __call__(self, name):
-        number = self.counter[name]
-        self.counter[name] += 1
-        return f"{name}{number}"
-
-
-namer = Namer()
 
 
 class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):

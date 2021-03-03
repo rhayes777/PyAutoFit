@@ -1,6 +1,6 @@
 from autofit import ModelInstance
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-
+from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
 
 
@@ -17,7 +17,11 @@ class FactorGraphModel(AbstractDeclarativeFactor):
     def optimiser(self):
         raise NotImplemented()
 
-    def __init__(self, *model_factors: AbstractDeclarativeFactor):
+    def __init__(
+            self,
+            *model_factors: AbstractDeclarativeFactor,
+            name=None
+    ):
         """
         A collection of factors that describe models, which can be
         used to create a graph and messages.
@@ -29,6 +33,11 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         model_factors
         """
         self._model_factors = list(model_factors)
+        self._name = name or namer(self.__class__.__name__)
+
+    @property
+    def name(self):
+        return self._name
 
     def add(self, model_factor: AbstractDeclarativeFactor):
         self._model_factors.append(

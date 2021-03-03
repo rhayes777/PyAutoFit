@@ -16,6 +16,11 @@ from autofit.mapper.prior_model.collection import CollectionPriorModel
 
 class AbstractDeclarativeFactor(Analysis, ABC):
     @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    @property
     def model_factors(self) -> List["AbstractDeclarativeFactor"]:
         return [self]
 
@@ -138,11 +143,11 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             self.mean_field_approximation()
         )
 
-        collection = CollectionPriorModel([
-            factor.prior_model
+        collection = CollectionPriorModel({
+            factor.name: factor.prior_model
             for factor
             in self.model_factors
-        ])
+        })
         arguments = {
             prior: updated_model.mean_field[
                 prior

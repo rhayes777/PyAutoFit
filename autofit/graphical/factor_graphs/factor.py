@@ -186,7 +186,6 @@ class Factor(AbstractFactor):
             }
         }
 
-
         super().__init__(
             **kwargs,
             name=name or factor.__name__
