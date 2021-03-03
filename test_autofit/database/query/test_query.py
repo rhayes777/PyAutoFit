@@ -84,10 +84,17 @@ def test_query_dataset(
     ])
     session.commit()
 
-    result = aggregator.query(
+    assert aggregator.query(
         aggregator.dataset == "dataset 1"
-    )
-    assert result == [gaussian_1]
+    ) == [gaussian_1]
+    assert aggregator.query(
+        aggregator.dataset == "dataset 2"
+    ) == [gaussian_2]
+    assert aggregator.query(
+        aggregator.dataset.contains(
+            "dataset"
+        )
+    ) == [gaussian_1, gaussian_2]
 
 
 def test_query(

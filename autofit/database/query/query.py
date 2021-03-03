@@ -68,43 +68,28 @@ class AbstractQuery(c.AbstractCondition, ABC):
         return {c.fit_table}
 
 
-class AttributeCondition(c.AbstractCondition):
-    def __init__(self, attribute, comparator, value):
-        self.attribute = attribute
-        self.comparator = comparator
-        self.value = value
-
-    @property
-    def tables(self) -> Set[Table]:
-        return {c.fit_table}
-
-    def __str__(self):
-        value = self.value
-        if isinstance(
-                value,
-                str
-        ):
-            value = f"'{value}'"
-        return f"{value} {self.comparator} {self.attribute}"
-
-
 class Attribute:
     def __init__(self, attribute):
         self.attribute = attribute
 
-    def _make_query(self, comparator, value):
+    def _make_query(self, cls, value):
         return AttributeQuery(
-            AttributeCondition(
+            cls(
                 attribute=self.attribute,
-                comparator=comparator,
                 value=value
             )
         )
 
     def __eq__(self, other):
         return self._make_query(
-            comparator="=",
+            cls=c.EqualityAttributeCondition,
             value=other
+        )
+
+    def contains(self, item):
+        return self._make_query(
+            cls=c.ContainsAttributeCondition,
+            value=item
         )
 
 
@@ -147,9 +132,6 @@ class NamedQuery(AbstractQuery):
         """
         super().__init__(condition)
         self.name = name
-
-    def __str__(self):
-        return self.query
 
     @property
     def condition(self) -> c.AbstractCondition:
