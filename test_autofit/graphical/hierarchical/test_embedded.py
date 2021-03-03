@@ -43,10 +43,13 @@ def test_hierarchical_factor(
         centre_model,
         af.GaussianPrior(50, 10)
     )
+
+    assert len(factor.priors) == 3
+
     laplace = g.LaplaceFactorOptimiser()
 
-    collection = factor.optimise(laplace)
-    print(collection)
+    gaussian = factor.optimise(laplace)
+    assert gaussian.instance_from_prior_medians().mean == pytest.approx(50, abs=0.1)
 
 
 @pytest.fixture(
