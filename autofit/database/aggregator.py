@@ -239,6 +239,8 @@ class Aggregator(AbstractAggregator):
                         ".pickle",
                         ""
                     )] = f.read()
+
+            fit.dataset_name = fit["dataset"].name
             self.session.add(
                 fit
             )
