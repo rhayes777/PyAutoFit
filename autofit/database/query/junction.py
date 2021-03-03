@@ -45,6 +45,18 @@ class AbstractJunction(AbstractCondition, ABC):
         """
         self.conditions = self._match_conditions(conditions)
 
+    @property
+    def fit_query(self):
+        subqueries = [
+            f"id IN ({condition.fit_query})"
+            for condition
+            in self.conditions
+        ]
+        condition_string = f" {self.join} ".join(
+            subqueries
+        )
+        return f"SELECT id FROM fit WHERE {condition_string}"
+
     @classmethod
     def _match_conditions(
             cls,
