@@ -49,6 +49,7 @@ class Table:
 object_table = Table("object")
 value_table = Table("value")
 string_value_table = Table("string_value")
+fit_table = Table("fit")
 
 
 class AbstractCondition(ABC):

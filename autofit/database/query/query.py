@@ -1,8 +1,10 @@
 import inspect
+from abc import ABC, abstractmethod
 from numbers import Real
 from typing import Optional, Set
 
 import autofit.database.query.condition as c
+from autofit.database.query.condition import Table
 from autofit.database.query.junction import AbstractJunction
 
 
@@ -45,7 +47,77 @@ def _make_comparison(
     )
 
 
-class NamedQuery(c.AbstractCondition):
+class AbstractQuery(c.AbstractCondition, ABC):
+    def __init__(self, condition: Optional[c.AbstractCondition] = None):
+        self._condition = condition
+
+    @property
+    def condition(self):
+        return self._condition
+
+    @property
+    @abstractmethod
+    def fit_query(self):
+        pass
+
+    def __str__(self):
+        return self.fit_query
+
+    @property
+    def tables(self) -> Set[Table]:
+        return {c.fit_table}
+
+
+class AttributeCondition(c.AbstractCondition):
+    def __init__(self, attribute, comparator, value):
+        self.attribute = attribute
+        self.comparator = comparator
+        self.value = value
+
+    @property
+    def tables(self) -> Set[Table]:
+        return {c.fit_table}
+
+    def __str__(self):
+        value = self.value
+        if isinstance(
+                value,
+                str
+        ):
+            value = f"'{value}'"
+        return f"{value} {self.comparator} {self.attribute}"
+
+
+class Attribute:
+    def __init__(self, attribute):
+        self.attribute = attribute
+
+    def _make_query(self, comparator, value):
+        return AttributeQuery(
+            AttributeCondition(
+                attribute=self.attribute,
+                comparator=comparator,
+                value=value
+            )
+        )
+
+    def __eq__(self, other):
+        return self._make_query(
+            comparator="=",
+            value=other
+        )
+
+
+class AttributeQuery(AbstractQuery):
+    @property
+    def fit_query(self) -> str:
+        """
+        The SQL string produced by this query. This is applied directly to the database.
+        """
+        return f"SELECT id FROM fit WHERE {self.condition}"
+
+
+class NamedQuery(AbstractQuery):
     def __init__(
             self,
             name: str,
@@ -73,8 +145,11 @@ class NamedQuery(c.AbstractCondition):
         condition
             A child condition combined with the name to produce a query
         """
+        super().__init__(condition)
         self.name = name
-        self.other_condition = condition
+
+    def __str__(self):
+        return self.query
 
     @property
     def condition(self) -> c.AbstractCondition:
@@ -87,8 +162,8 @@ class NamedQuery(c.AbstractCondition):
         condition = c.NameCondition(
             self.name
         )
-        if self.other_condition:
-            condition &= self.other_condition
+        if super().condition:
+            condition &= super().condition
         return condition
 
     @property
@@ -105,6 +180,17 @@ class NamedQuery(c.AbstractCondition):
         raise AttributeError(
             f"'Aggregator' object has no attribute '{self.name}'"
         )
+
+    @property
+    def query(self) -> str:
+        """
+        The SQL string produced by this query. This is applied directly to the database.
+        """
+        return f"SELECT parent_id FROM {self.tables_string} WHERE {self.condition}"
+
+    @property
+    def fit_query(self) -> str:
+        return f"SELECT id FROM fit WHERE instance_id IN ({self.query})"
 
     @property
     def tables_string(self) -> str:
@@ -129,13 +215,6 @@ class NamedQuery(c.AbstractCondition):
             )
 
         return string
-
-    @property
-    def query(self) -> str:
-        """
-        The SQL string produced by this query. This is applied directly to the database.
-        """
-        return f"SELECT parent_id FROM {self.tables_string} WHERE {self.condition}"
 
     def __str__(self):
         return f"o.id IN ({self.query})"

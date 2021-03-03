@@ -1,3 +1,5 @@
+import pytest
+
 import autofit as af
 from autofit import database as db
 from autofit.mock import mock as m
@@ -46,21 +48,53 @@ def test_embedded_query(
     assert result == [model_2]
 
 
-def test_query(
-        session,
-        aggregator
-):
-    gaussian_1 = db.Fit(
+@pytest.fixture(
+    name="gaussian_1"
+)
+def make_gaussian_1():
+    return db.Fit(
         instance=m.Gaussian(
             centre=1
-        )
-    )
-    gaussian_2 = db.Fit(
-        instance=m.Gaussian(
-            centre=2
-        )
+        ),
+        dataset="dataset 1"
     )
 
+
+@pytest.fixture(
+    name="gaussian_2"
+)
+def make_gaussian_2():
+    return db.Fit(
+        instance=m.Gaussian(
+            centre=2
+        ),
+        dataset="dataset 2"
+    )
+
+
+def test_query_dataset(
+        gaussian_1,
+        gaussian_2,
+        aggregator,
+        session
+):
+    session.add_all([
+        gaussian_1,
+        gaussian_2
+    ])
+
+    result = aggregator.query(
+        aggregator.dataset == "dataset 1"
+    )
+    assert result == [gaussian_1]
+
+
+def test_query(
+        session,
+        aggregator,
+        gaussian_1,
+        gaussian_2
+):
     session.add_all([
         gaussian_1,
         gaussian_2

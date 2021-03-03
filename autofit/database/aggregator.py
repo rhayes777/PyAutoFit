@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from autofit.database import query as q
 from . import model as m
+from .query.query import AbstractQuery
 
 
 class AbstractAggregator(ABC):
@@ -58,6 +59,9 @@ class AbstractAggregator(ABC):
             return self.fits == other
         return super().__eq__(other)
 
+    def __repr__(self):
+        return str(self.fits)
+
 
 class ListAggregator(AbstractAggregator):
     def __init__(self, fits):
@@ -103,7 +107,11 @@ class Aggregator(AbstractAggregator):
     def __getattr__(self, name):
         return q.Q(name)
 
-    def query(self, predicate: q.Q) -> ListAggregator:
+    @property
+    def dataset(self):
+        return q.A("dataset")
+
+    def query(self, predicate: AbstractQuery) -> ListAggregator:
         """
         Apply a query on the model.
 
@@ -129,11 +137,9 @@ class Aggregator(AbstractAggregator):
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) & (lens.disk == EllipticalSersic))
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) | (lens.disk == EllipticalSersic))
         """
-        query = f"SELECT id FROM fit WHERE instance_id IN ({predicate.query})"
-
         return ListAggregator(
             self._fits_for_query(
-                query
+                predicate.fit_query
             )
         )
 

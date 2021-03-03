@@ -63,6 +63,9 @@ class Fit(Base):
         Integer,
         primary_key=True,
     )
+    dataset = Column(
+        String
+    )
 
     def __init__(self, **kwargs):
         super().__init__(
