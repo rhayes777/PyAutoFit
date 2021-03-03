@@ -11,16 +11,7 @@ from autoconf import conf
 from autofit.mock import mock
 from autofit.mock.mock_search import MockSamples
 
-directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
-
-
-@pytest.fixture(autouse=True)
-def set_config_path():
-    conf.instance.push(
-        new_path=path.join(directory, "files", "nlo", "config"),
-        output_path=path.join(directory, "files", "nlo", "output"),
-    )
 
 
 @pytest.fixture(name="mapper")
@@ -87,43 +78,6 @@ class TestCopyWithNameExtension:
         assert search.paths.tag == copy.paths.tag
 
 
-@pytest.fixture(name="nlo_setup_path")
-def test_nlo_setup():
-    nlo_setup_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "nlo", "setup")
-
-    if path.exists(nlo_setup_path):
-        shutil.rmtree(nlo_setup_path)
-
-    os.mkdir(nlo_setup_path)
-
-    return nlo_setup_path
-
-
-@pytest.fixture(name="nlo_model_info_path")
-def test_nlo_model_info():
-    nlo_model_info_path = path.join(
-        "{}".format(path.dirname(path.realpath(__file__))), "file", "nlo", "model_info"
-    )
-
-    if path.exists(nlo_model_info_path):
-        shutil.rmtree(nlo_model_info_path)
-
-    return nlo_model_info_path
-
-
-@pytest.fixture(name="nlo_wrong_info_path")
-def test_nlo_wrong_info():
-    nlo_wrong_info_path = path.join("{}".format(
-        path.dirname(path.realpath(__file__))
-    ), "files", "nlo", "wrong_info")
-
-    if path.exists(nlo_wrong_info_path):
-        shutil.rmtree(nlo_wrong_info_path)
-
-    os.mkdir(nlo_wrong_info_path)
-
-    return nlo_wrong_info_path
-
 
 class TestLabels:
     def test_param_names(self):
@@ -150,24 +104,11 @@ test_path = path.join(
 class TestMovePickleFiles:
     def test__move_pickle_files(self):
 
-        output_path = path.join(
-            "{}".format(path.dirname(path.realpath(__file__))),
-            "files",
-            "nlo",
-            "output",
-            "test_phase",
-            "mock",
-            "pickles",
-        )
-
-        if path.exists(output_path):
-            shutil.rmtree(output_path)
-
-        search = af.MockSearch(paths=af.Paths(name="test_phase"))
+        search = af.MockSearch(paths=af.Paths(name="pickles", path_prefix=path.join("non_linear", "abstract_search")))
 
         pickle_paths = [
             path.join(
-                "{}".format(path.dirname(path.realpath(__file__))), "files", "pickles"
+                conf.instance.output_path, "non_linear", "abstract_search", "pickles"
             )
         ]
 
@@ -178,8 +119,9 @@ class TestMovePickleFiles:
 
         pickle_paths = [
             path.join(
-                "{}".format(path.dirname(path.realpath(__file__))),
-                "files",
+                conf.instance.output_path,
+                "non_linear",
+                "abstract_search",
                 "pickles",
                 "test.pickle",
             )
@@ -187,7 +129,7 @@ class TestMovePickleFiles:
 
         search.move_pickle_files(pickle_files=pickle_paths)
 
-        with open(path.join(output_path, "test.pickle"), "rb") as f:
+        with open(path.join(pickle_paths[0]), "rb") as f:
             arr_load = pickle.load(f)
 
         assert (arr == arr_load).all()

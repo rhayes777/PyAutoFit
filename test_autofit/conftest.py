@@ -28,14 +28,6 @@ def set_config_path():
     )
 
 
-@pytest.fixture(autouse=True)
-def remove_output():
-    try:
-        shutil.rmtree(path.join(directory, "output"))
-    except FileNotFoundError:
-        pass
-
-
 @pytest.fixture
 def model():
     return af.ModelMapper()

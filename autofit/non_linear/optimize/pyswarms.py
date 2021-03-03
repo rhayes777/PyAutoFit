@@ -348,6 +348,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
     @property
     def load_points(self):
+        print("{}/{}.pickle".format(self.paths.samples_path, "points"))
         with open("{}/{}.pickle".format(self.paths.samples_path, "points"), "rb") as f:
             return pickle.load(f)
 

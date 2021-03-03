@@ -14,19 +14,10 @@ directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-@pytest.fixture(autouse=True)
-def set_config_path():
-    conf.instance.push(
-        new_path=path.join(directory, "files", "multinest", "config"),
-        output_path=path.join(directory, "files", "multinest", "output"),
-    )
-
-
 @pytest.fixture(name="multi_nest_summary_path")
 def test_multi_nest_summary():
-    multi_nest_summary_path = path.join("{}".format(
-        path.dirname(path.realpath(__file__))
-    ), "files", "multinest", "summary")
+
+    multi_nest_summary_path = path.join(conf.instance.output_path, "non_linear", "multinest", "summary")
 
     if path.exists(multi_nest_summary_path):
         shutil.rmtree(multi_nest_summary_path)
@@ -38,9 +29,8 @@ def test_multi_nest_summary():
 
 @pytest.fixture(name="multi_nest_samples_path")
 def test_multi_nest_samples():
-    multi_nest_samples_path = path.join("{}".format(
-        path.dirname(path.realpath(__file__))
-    ), "files", "multinest", "samples")
+
+    multi_nest_samples_path = path.join(conf.instance.output_path, "non_linear", "multinest", "samples")
 
     if path.exists(multi_nest_samples_path):
         shutil.rmtree(multi_nest_samples_path)
@@ -52,9 +42,8 @@ def test_multi_nest_samples():
 
 @pytest.fixture(name="multi_nest_resume_path")
 def test_multi_nest_resume():
-    multi_nest_resume_path = path.join("{}".format(
-        path.dirname(path.realpath(__file__))
-    ), "files","multinest","resume")
+
+    multi_nest_resume_path = path.join(conf.instance.output_path, "non_linear", "multinest", "resume")
 
     if path.exists(multi_nest_resume_path):
         shutil.rmtree(multi_nest_resume_path)
@@ -76,6 +65,7 @@ def create_path(func):
 
 @create_path
 def create_summary_4_parameters(file_path):
+
     summary = open(path.join(file_path, "multinestsummary.txt"), "w")
     summary.write(
         "    0.100000000000000000E+01   -0.200000000000000000E+01    0.300000000000000000E+01"
@@ -288,9 +278,8 @@ class TestMulitNest:
         assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
 
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):
-        conf.instance.output_path = path.join(multi_nest_samples_path, "1_class")
 
-        multi_nest = af.MultiNest()
+        multi_nest = af.MultiNest(paths=af.Paths(path_prefix=path.join("non_linear", "multinest")))
 
         create_weighted_samples_4_parameters(file_path=multi_nest.paths.path)
 
@@ -327,7 +316,6 @@ class TestMulitNest:
         assert weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
 
     def test__read_total_samples_from_file_resume(self, multi_nest_resume_path):
-        conf.instance.output_path = path.join(multi_nest_resume_path, "1_class")
 
         multi_nest = af.MultiNest()
 
@@ -340,16 +328,8 @@ class TestMulitNest:
         assert total_samples == 12345
 
     def test__log_evidence_from_file_summary(self, multi_nest_summary_path):
-        conf.instance.output_path = path.join(multi_nest_summary_path, "1_class")
 
-        multi_nest = af.MultiNest()
-
-        log_evidence = mn.log_evidence_from_file_summary(
-            file_summary=path.join(multi_nest.paths.samples_path, "multinestsummary.txt"),
-            prior_count=4,
-        )
-
-        assert log_evidence == -1e99
+        multi_nest = af.MultiNest(paths=af.Paths(path_prefix=path.join("non_linear", "multinest")))
 
         create_summary_4_parameters(file_path=multi_nest.paths.samples_path)
 
@@ -363,9 +343,8 @@ class TestMulitNest:
     def test__samples_from_model(
         self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
     ):
-        conf.instance.output_path = path.join(multi_nest_samples_path, "1_class")
 
-        multi_nest = af.MultiNest()
+        multi_nest = af.MultiNest(paths=af.Paths(path_prefix=path.join("non_linear", "multinest")))
 
         create_weighted_samples_4_parameters(file_path=multi_nest.paths.samples_path)
         create_resume(file_path=multi_nest.paths.samples_path)

@@ -7,7 +7,6 @@ import autofit as af
 from autofit.non_linear.samples import NestSamples, Sample
 from autofit.mock.mock import MockClassx4
 
-directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
@@ -40,18 +39,11 @@ def make_samples():
     )
 
 
-@pytest.fixture(autouse=True)
-def set_config_path():
-    conf.instance.push(
-        new_path=path.join(directory, "files", "dynesty", "config"),
-        output_path=path.join(directory, "files", "dynesty", "output"),
-    )
-
 
 class TestJsonCSV:
     def test__from_csv_table_and_json_info(self, samples):
 
-        nest = af.DynestyStatic()
+        nest = af.DynestyStatic(paths=af.Paths(path_prefix=path.join("non_linear", "dynesty")))
 
         samples.write_table(filename=path.join(nest.paths.samples_path, "samples.csv"))
         samples.info_to_json(filename=path.join(nest.paths.samples_path, "info.json"))

@@ -7,16 +7,7 @@ import autofit as af
 from autoconf import conf
 from autofit.mock import mock
 
-directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
-
-
-@pytest.fixture(autouse=True)
-def set_config_path():
-    conf.instance.push(
-        new_path=path.join(directory, "files", "emcee", "config"),
-        output_path=path.join(directory, "files", "emcee", "output"),
-    )
 
 
 class TestEmceeConfig:
@@ -69,14 +60,8 @@ class TestEmceeConfig:
         assert emcee.tag == "emcee[nwalkers_11]"
 
     def test__samples_from_model(self):
-        emcee = af.Emcee(paths=af.Paths())
 
-        shutil.copy(
-            path.join(directory, "files", "emcee.hdf"),
-            path.join(
-                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
-            ),
-        )
+        emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
@@ -103,13 +88,8 @@ class TestEmceeConfig:
 
 class TestEmceeOutput:
     def test__median_pdf_parameters(self):
-        emcee = af.Emcee(paths=af.Paths())
-        shutil.copy(
-            path.join(directory, "files", "emcee.hdf"),
-            path.join(
-                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
-            ),
-        )
+
+        emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
@@ -121,14 +101,8 @@ class TestEmceeOutput:
         )
 
     def test__vector_at_sigma__uses_output_files(self):
-        emcee = af.Emcee(paths=af.Paths())
 
-        shutil.copy(
-            path.join(directory, "files", "emcee.hdf"),
-            path.join(
-                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
-            ),
-        )
+        emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
@@ -144,14 +118,8 @@ class TestEmceeOutput:
         assert parameters[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
     def test__autocorrelation_times(self):
-        emcee = af.Emcee(paths=af.Paths())
 
-        shutil.copy(
-            path.join(directory, "files", "emcee.hdf"),
-            path.join(
-                directory, "files", "emcee", "output", "emcee[nwalkers_50]", "samples"
-            ),
-        )
+        emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)

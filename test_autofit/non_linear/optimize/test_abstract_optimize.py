@@ -3,11 +3,9 @@ from os import path
 import pytest
 
 import autofit as af
-from autoconf import conf
 from autofit.mock.mock import MockClassx4
 from autofit.non_linear.samples import OptimizerSamples, Sample
 
-directory = path.dirname(path.realpath(__file__))
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
@@ -35,17 +33,10 @@ def make_samples():
     )
 
 
-@pytest.fixture(autouse=True)
-def set_config_path():
-    conf.instance.push(
-        path.join(directory, "files", "pyswarms", "config"),
-        output_path=path.join(directory, "files", "pyswarms", "output"),
-    )
-
-
 class TestJsonCSV:
     def test__from_csv_table_and_json_info(self, samples):
-        optimize = af.PySwarmsGlobal()
+
+        optimize = af.PySwarmsGlobal(paths=af.Paths(path_prefix=path.join("non_linear", "pyswarms")))
 
         samples.write_table(filename=path.join(optimize.paths.samples_path, "samples.csv"))
         samples.info_to_json(filename=path.join(optimize.paths.samples_path, "info.json"))
