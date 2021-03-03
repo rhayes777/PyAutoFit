@@ -1,17 +1,32 @@
-from typing import Set
+from typing import Set, Optional
 
-from autofit import Prior
+from autofit import Prior, AbstractPriorModel
 from .abstract import AbstractModelFactor
 
 
 class HierarchicalFactor(AbstractModelFactor):
     def __init__(
             self,
-            prior_model,
-            argument_prior,
+            prior_model: AbstractPriorModel,
+            argument_prior: Prior,
             optimiser=None,
-            name=None
+            name: Optional[str] = None
     ):
+        """
+        A factor that links a variable to a parameterised distribution.
+
+        Parameters
+        ----------
+        prior_model
+            A prior model which parameterises a distribution from which it
+            is assumed the variable is drawn
+        argument_prior
+            A prior representing a variable which was drawn from the distribution
+        optimiser
+            An optional optimiser for optimisation of this factor
+        name
+            An optional name to distinguish this factor
+        """
         self.argument_prior = argument_prior
 
         def _factor(
@@ -55,6 +70,11 @@ class HierarchicalFactor(AbstractModelFactor):
 
     @property
     def priors(self) -> Set[Prior]:
+        """
+        The set of priors associated with this factor. This is the priors used
+        to parameterise the distribution, plus an additional prior for the
+        variable drawn from the distribution.
+        """
         priors = super().priors
         priors.add(
             self.argument_prior

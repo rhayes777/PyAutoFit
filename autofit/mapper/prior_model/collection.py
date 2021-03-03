@@ -61,8 +61,12 @@ class CollectionPriorModel(AbstractPriorModel):
 
     def with_prefix(
             self,
-            prefix
+            prefix: str
     ):
+        """
+        Filter members of the collection, only returning those that start
+        with a given prefix as a new collection.
+        """
         return CollectionPriorModel({
             key: value
             for key, value
@@ -73,14 +77,12 @@ class CollectionPriorModel(AbstractPriorModel):
         })
 
     def as_model(self):
-        return CollectionPriorModel(
-            {
-                key: value.as_model()
-                if isinstance(value, AbstractPriorModel)
-                else value
-                for key, value in self.dict.items()
-            }
-        )
+        return CollectionPriorModel({
+            key: value.as_model()
+            if isinstance(value, AbstractPriorModel)
+            else value
+            for key, value in self.dict.items()
+        })
 
     def __init__(self, *arguments, **kwargs):
         """

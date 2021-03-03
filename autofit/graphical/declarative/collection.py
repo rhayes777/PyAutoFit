@@ -7,11 +7,11 @@ from .abstract import AbstractDeclarativeFactor
 class FactorGraphModel(AbstractDeclarativeFactor):
     @property
     def prior_model(self):
-        return CollectionPriorModel(
-            factor.prior_model
+        return CollectionPriorModel({
+            factor.name: factor.prior_model
             for factor
             in self.model_factors
-        )
+        })
 
     @property
     def optimiser(self):
