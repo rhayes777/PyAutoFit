@@ -48,7 +48,21 @@ def _make_comparison(
 
 
 class AbstractQuery(c.AbstractCondition, ABC):
-    def __init__(self, condition: Optional[c.AbstractCondition] = None):
+    def __init__(
+            self,
+            condition: Optional[
+                c.AbstractCondition
+            ] = None
+    ):
+        """
+        A query run to find Fit instances that match given
+        criteria
+
+        Parameters
+        ----------
+        condition
+            An optional condition
+        """
         self._condition = condition
 
     @property
@@ -57,8 +71,11 @@ class AbstractQuery(c.AbstractCondition, ABC):
 
     @property
     @abstractmethod
-    def fit_query(self):
-        pass
+    def fit_query(self) -> str:
+        """
+        A full query that can be executed against the database to obtain
+        fit ids
+        """
 
     def __str__(self):
         return self.fit_query
@@ -68,31 +85,6 @@ class AbstractQuery(c.AbstractCondition, ABC):
         return {c.fit_table}
 
 
-class Attribute:
-    def __init__(self, attribute):
-        self.attribute = attribute
-
-    def _make_query(self, cls, value):
-        return AttributeQuery(
-            cls(
-                attribute=self.attribute,
-                value=value
-            )
-        )
-
-    def __eq__(self, other):
-        return self._make_query(
-            cls=c.EqualityAttributeCondition,
-            value=other
-        )
-
-    def contains(self, item):
-        return self._make_query(
-            cls=c.ContainsAttributeCondition,
-            value=item
-        )
-
-
 class AttributeQuery(AbstractQuery):
     @property
     def fit_query(self) -> str:
@@ -100,6 +92,65 @@ class AttributeQuery(AbstractQuery):
         The SQL string produced by this query. This is applied directly to the database.
         """
         return f"SELECT id FROM fit WHERE {self.condition}"
+
+
+class Attribute:
+    def __init__(self, attribute: str):
+        """
+        Some direct attribute of the Fit class
+
+        Parameters
+        ----------
+        attribute
+            The name of that attribute
+        """
+        self.attribute = attribute
+
+    def _make_query(
+            self,
+            cls,
+            value
+    ) -> AttributeQuery:
+        """
+        Create a query against this attribute
+
+        Parameters
+        ----------
+        cls
+            An AttributeCondition that describes the query
+        value
+            The value that the attribute is compared to
+
+        Returns
+        -------
+        A query on ids of the fit table
+        """
+        return AttributeQuery(
+            cls(
+                attribute=self.attribute,
+                value=value
+            )
+        )
+
+    def __eq__(self, other) -> AttributeQuery:
+        """
+        Check whether an attribute, such as a phase name, is equal
+        to some value
+        """
+        return self._make_query(
+            cls=c.EqualityAttributeCondition,
+            value=other
+        )
+
+    def contains(self, item: str) -> AttributeQuery:
+        """
+        Check whether an attribute, such as a phase name, contains
+        some string
+        """
+        return self._make_query(
+            cls=c.ContainsAttributeCondition,
+            value=item
+        )
 
 
 class NamedQuery(AbstractQuery):
