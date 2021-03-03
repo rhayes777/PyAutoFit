@@ -1,3 +1,11 @@
+"""
+Singleton to provide globally unique names
+
+namer("hello") -> "hello0"
+namer("hello") -> "hello1"
+namer("world") -> "hello"
+"""
+
 from collections import Counter
 
 
