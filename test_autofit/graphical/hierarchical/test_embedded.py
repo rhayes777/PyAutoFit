@@ -8,7 +8,7 @@ from autofit.mock.mock import Gaussian
 from test_autofit.graphical.gaussian.model import Analysis
 
 x = np.arange(100)
-n = 3
+n = 1
 
 should_plot = True
 
@@ -126,9 +126,9 @@ def test_model_factor(
     assert gaussian.centre.mean == pytest.approx(centres[0], abs=0.1)
 
 
-def test_full_fit(centre_model, data):
+def test_full_fit(centre_model, data, centres):
     graph = g.FactorGraphModel()
-    for y in data:
+    for i, y in enumerate(data):
         centre_argument = af.GaussianPrior(
             mean=50,
             sigma=20
@@ -155,10 +155,17 @@ def test_full_fit(centre_model, data):
             )
         )
 
-
-
     laplace = g.LaplaceFactorOptimiser()
 
     collection = graph.optimise(laplace)
-    for obj in collection:
-        print(obj.centre)
+
+    for gaussian, centre in zip(
+            collection.with_prefix(
+                "AnalysisFactor"
+            ),
+            centres
+    ):
+        assert gaussian.instance_from_prior_medians().centre == pytest.approx(
+            centre,
+            abs=0.1
+        )
