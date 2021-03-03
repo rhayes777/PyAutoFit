@@ -56,7 +56,8 @@ def make_gaussian_1():
         instance=m.Gaussian(
             centre=1
         ),
-        dataset="dataset 1"
+        dataset_name="dataset 1",
+        phase_name="phase"
     )
 
 
@@ -68,7 +69,8 @@ def make_gaussian_2():
         instance=m.Gaussian(
             centre=2
         ),
-        dataset="dataset 2"
+        dataset_name="dataset 2",
+        phase_name="phase"
     )
 
 
@@ -93,13 +95,13 @@ def test_query_dataset(
         aggregator
 ):
     assert aggregator.query(
-        aggregator.dataset == "dataset 1"
+        aggregator.dataset_name == "dataset 1"
     ) == [gaussian_1]
     assert aggregator.query(
-        aggregator.dataset == "dataset 2"
+        aggregator.dataset_name == "dataset 2"
     ) == [gaussian_2]
     assert aggregator.query(
-        aggregator.dataset.contains(
+        aggregator.dataset_name.contains(
             "dataset"
         )
     ) == [gaussian_1, gaussian_2]
@@ -110,13 +112,29 @@ def test_combine(
         gaussian_1
 ):
     assert aggregator.query(
-        (aggregator.dataset == "dataset 1") & (aggregator.centre == 1)
+        (aggregator.dataset_name == "dataset 1") & (aggregator.centre == 1)
     ) == [gaussian_1]
     assert aggregator.query(
-        (aggregator.dataset == "dataset 2") & (aggregator.centre == 1)
+        (aggregator.dataset_name == "dataset 2") & (aggregator.centre == 1)
     ) == []
     assert aggregator.query(
-        (aggregator.dataset == "dataset 1") & (aggregator.centre == 2)
+        (aggregator.dataset_name == "dataset 1") & (aggregator.centre == 2)
+    ) == []
+
+
+def test_combine_attributes(
+        aggregator,
+        gaussian_1,
+        gaussian_2
+):
+    assert aggregator.query(
+        (aggregator.dataset_name == "dataset 1") & (aggregator.phase_name == "phase")
+    ) == [gaussian_1]
+    assert aggregator.query(
+        (aggregator.dataset_name == "dataset 2") & (aggregator.phase_name == "phase")
+    ) == [gaussian_2]
+    assert aggregator.query(
+        (aggregator.dataset_name == "dataset 1") & (aggregator.phase_name == "face")
     ) == []
 
 

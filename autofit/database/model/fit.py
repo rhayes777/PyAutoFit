@@ -63,7 +63,10 @@ class Fit(Base):
         Integer,
         primary_key=True,
     )
-    dataset = Column(
+    dataset_name = Column(
+        String
+    )
+    phase_name = Column(
         String
     )
 

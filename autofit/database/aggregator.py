@@ -118,7 +118,7 @@ class Aggregator(AbstractAggregator):
 
     def __getattr__(self, name):
         if name in fit_attributes:
-            return q.A("dataset")
+            return q.A(name)
         return q.Q(name)
 
     def query(self, predicate: AbstractQuery) -> ListAggregator:
