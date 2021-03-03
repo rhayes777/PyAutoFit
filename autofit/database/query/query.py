@@ -134,6 +134,10 @@ class NamedQuery(AbstractQuery):
         self.name = name
 
     @property
+    def other_condition(self) -> c.AbstractCondition:
+        return self._condition
+
+    @property
     def condition(self) -> c.AbstractCondition:
         """
         The combined condition that forms the WHERE statement of the query.
