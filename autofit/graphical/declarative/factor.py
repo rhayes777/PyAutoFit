@@ -1,4 +1,6 @@
 from abc import ABC
+from collections import Counter
+from itertools import count
 from typing import Optional, Set
 
 import numpy as np
@@ -8,6 +10,21 @@ from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
 from .abstract import AbstractDeclarativeFactor
+
+_placeholders = count()
+
+
+class Namer:
+    def __init__(self):
+        self.counter = Counter()
+
+    def __call__(self, name):
+        number = self.counter[name]
+        self.counter[name] += 1
+        return f"{name}{number}"
+
+
+namer = Namer()
 
 
 class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
@@ -24,7 +41,8 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
             prior_model: AbstractPriorModel,
             factor,
             optimiser: Optional[AbstractFactorOptimiser],
-            prior_variable_dict
+            prior_variable_dict,
+            name=None
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -43,7 +61,8 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
 
         super().__init__(
             factor,
-            **prior_variable_dict
+            **prior_variable_dict,
+            name=name or namer(self.__class__.__name__)
         )
 
     def optimise(self, optimiser) -> PriorModel:
@@ -70,19 +89,20 @@ class HierarchicalFactor(AbstractModelFactor):
             prior_model,
             argument_prior,
             optimiser=None,
+            name=None
     ):
         self.argument_prior = argument_prior
 
         def _factor(
                 **kwargs
         ):
-            print(kwargs)
+            # print(kwargs)
             argument = kwargs.pop(
                 "argument"
             )
             arguments = dict()
-            for name, array in kwargs.items():
-                prior_id = int(name.split("_")[1])
+            for name_, array in kwargs.items():
+                prior_id = int(name_.split("_")[1])
                 prior = prior_model.prior_with_id(
                     prior_id
                 )
@@ -106,7 +126,8 @@ class HierarchicalFactor(AbstractModelFactor):
             prior_model=prior_model,
             factor=_factor,
             optimiser=optimiser,
-            prior_variable_dict=prior_variable_dict
+            prior_variable_dict=prior_variable_dict,
+            name=name
         )
 
     def log_likelihood_function(self, instance):
@@ -134,7 +155,8 @@ class AnalysisFactor(AbstractModelFactor):
             self,
             prior_model: AbstractPriorModel,
             analysis: Analysis,
-            optimiser: Optional[AbstractFactorOptimiser] = None
+            optimiser: Optional[AbstractFactorOptimiser] = None,
+            name=None
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -170,8 +192,8 @@ class AnalysisFactor(AbstractModelFactor):
             Calculated likelihood
             """
             arguments = dict()
-            for name, array in kwargs.items():
-                prior_id = int(name.split("_")[1])
+            for name_, array in kwargs.items():
+                prior_id = int(name_.split("_")[1])
                 prior = prior_model.prior_with_id(
                     prior_id
                 )
@@ -193,7 +215,8 @@ class AnalysisFactor(AbstractModelFactor):
             prior_model=prior_model,
             factor=_factor,
             optimiser=optimiser,
-            prior_variable_dict=prior_variable_dict
+            prior_variable_dict=prior_variable_dict,
+            name=name
         )
 
     def log_likelihood_function(
