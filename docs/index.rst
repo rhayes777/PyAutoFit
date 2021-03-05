@@ -159,7 +159,6 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    overview/model_complex
    overview/non_linear_search
    overview/result
-   overview/database
 
 .. toctree::
    :caption: Installation:
@@ -192,6 +191,7 @@ provides new users with a more detailed introduction to **PyAutoFit**.
 
    howtofit/howtofit
    howtofit/chapter_1_introduction
+   howtofit/chapter_database
    howtofit/chapter_graphical_models
    howtofit/chapter_phase_api
 
@@ -207,6 +207,7 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :maxdepth: 1
    :hidden:
 
+   features/database
    features/search_grid_search
    features/search_chaining
    features/sensitivity_mapping

@@ -1,5 +1,3 @@
-import pytest
-
 import autofit as af
 from autofit import database as db
 from autofit.mock import mock as m
@@ -48,101 +46,26 @@ def test_embedded_query(
     assert result == [model_2]
 
 
-@pytest.fixture(
-    name="gaussian_1"
-)
-def make_gaussian_1():
-    return db.Fit(
+def test_query(
+        session,
+        aggregator
+):
+    gaussian_1 = db.Fit(
         instance=m.Gaussian(
             centre=1
-        ),
-        dataset_name="dataset 1",
-        phase_name="phase"
+        )
     )
-
-
-@pytest.fixture(
-    name="gaussian_2"
-)
-def make_gaussian_2():
-    return db.Fit(
+    gaussian_2 = db.Fit(
         instance=m.Gaussian(
             centre=2
-        ),
-        dataset_name="dataset 2",
-        phase_name="phase"
+        )
     )
 
-
-@pytest.fixture(
-    autouse=True
-)
-def add_to_session(
-        gaussian_1,
-        gaussian_2,
-        session
-):
     session.add_all([
         gaussian_1,
         gaussian_2
     ])
-    session.commit()
 
-
-def test_query_dataset(
-        gaussian_1,
-        gaussian_2,
-        aggregator
-):
-    assert aggregator.query(
-        aggregator.dataset_name == "dataset 1"
-    ) == [gaussian_1]
-    assert aggregator.query(
-        aggregator.dataset_name == "dataset 2"
-    ) == [gaussian_2]
-    assert aggregator.query(
-        aggregator.dataset_name.contains(
-            "dataset"
-        )
-    ) == [gaussian_1, gaussian_2]
-
-
-def test_combine(
-        aggregator,
-        gaussian_1
-):
-    assert aggregator.query(
-        (aggregator.dataset_name == "dataset 1") & (aggregator.centre == 1)
-    ) == [gaussian_1]
-    assert aggregator.query(
-        (aggregator.dataset_name == "dataset 2") & (aggregator.centre == 1)
-    ) == []
-    assert aggregator.query(
-        (aggregator.dataset_name == "dataset 1") & (aggregator.centre == 2)
-    ) == []
-
-
-def test_combine_attributes(
-        aggregator,
-        gaussian_1,
-        gaussian_2
-):
-    assert aggregator.query(
-        (aggregator.dataset_name == "dataset 1") & (aggregator.phase_name == "phase")
-    ) == [gaussian_1]
-    assert aggregator.query(
-        (aggregator.dataset_name == "dataset 2") & (aggregator.phase_name == "phase")
-    ) == [gaussian_2]
-    assert aggregator.query(
-        (aggregator.dataset_name == "dataset 1") & (aggregator.phase_name == "face")
-    ) == []
-
-
-def test_query(
-        aggregator,
-        gaussian_1,
-        gaussian_2
-):
     result = aggregator.query(
         aggregator.centre == 0
     )

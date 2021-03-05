@@ -4,12 +4,10 @@ from typing import Optional, List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from autofit.database import query as q
 from . import model as m
-from .query.query import AbstractQuery
 
 
 class AbstractAggregator(ABC):
@@ -60,20 +58,6 @@ class AbstractAggregator(ABC):
             return self.fits == other
         return super().__eq__(other)
 
-    def __repr__(self):
-        return str(self.fits)
-
-
-fit_attributes = {
-    key
-    for key, value
-    in m.Fit.__dict__.items()
-    if isinstance(
-        value,
-        InstrumentedAttribute
-    )
-}
-
 
 class ListAggregator(AbstractAggregator):
     def __init__(self, fits):
@@ -117,11 +101,9 @@ class Aggregator(AbstractAggregator):
         return f"<{self.__class__.__name__} {self.filename}>"
 
     def __getattr__(self, name):
-        if name in fit_attributes:
-            return q.A(name)
         return q.Q(name)
 
-    def query(self, predicate: AbstractQuery) -> ListAggregator:
+    def query(self, predicate: q.Q) -> ListAggregator:
         """
         Apply a query on the model.
 
@@ -147,9 +129,11 @@ class Aggregator(AbstractAggregator):
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) & (lens.disk == EllipticalSersic))
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) | (lens.disk == EllipticalSersic))
         """
+        query = f"SELECT id FROM fit WHERE instance_id IN ({predicate.query})"
+
         return ListAggregator(
             self._fits_for_query(
-                predicate.fit_query
+                query
             )
         )
 
@@ -221,8 +205,7 @@ class Aggregator(AbstractAggregator):
             instance = samples.max_log_likelihood_instance
             fit = m.Fit(
                 model=model,
-                instance=instance,
-                phase_name=item.name
+                instance=instance
             )
 
             pickle_path = item.pickle_path
@@ -240,8 +223,6 @@ class Aggregator(AbstractAggregator):
                         ".pickle",
                         ""
                     )] = f.read()
-
-            fit.dataset_name = fit["dataset"].name
             self.session.add(
                 fit
             )

@@ -49,7 +49,6 @@ class Table:
 object_table = Table("object")
 value_table = Table("value")
 string_value_table = Table("string_value")
-fit_table = Table("fit")
 
 
 class AbstractCondition(ABC):
@@ -222,36 +221,3 @@ class TypeCondition(AbstractCondition):
         return get_class_path(
             self.cls
         )
-
-
-class AttributeCondition(AbstractCondition, ABC):
-    def __init__(self, attribute, value):
-        self.attribute = attribute
-        self._value = value
-
-    @property
-    def tables(self) -> Set[Table]:
-        return {fit_table}
-
-    @abstractmethod
-    def __str__(self):
-        pass
-
-
-class EqualityAttributeCondition(AttributeCondition):
-    @property
-    def value(self):
-        if isinstance(
-                self._value,
-                str
-        ):
-            return f"'{self._value}'"
-        return self._value
-
-    def __str__(self):
-        return f"{self.attribute} = {self.value}"
-
-
-class ContainsAttributeCondition(AttributeCondition):
-    def __str__(self):
-        return f"{self.attribute} LIKE '%{self._value}%'"

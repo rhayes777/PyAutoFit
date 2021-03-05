@@ -46,7 +46,7 @@ from .non_linear.abstract_search import PriorPasser
 from .non_linear.abstract_search import Result
 from autofit.non_linear.grid.grid_search import GridSearch as SearchGridSearch
 # from autofit.non_linear.grid.sensitivity import Sensitivity
-from autofit.non_linear.grid.grid_search import GridSearchResult
+from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
 from .non_linear.mcmc.emcee import Emcee

@@ -26,20 +26,5 @@ The chapter contains the following tutorials:
 `Tutorial 5: Complex Models <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_5_complex_models.ipynb>`_
 - Composing and fitting complex models.
 
-`Tutorial 6: Data Extensions <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_6_data_extensions.ipynb>`_
-- Extending the Analysis class with model-specific data strructures and visualization.
-
-`Tutorial 7: Results and Samples <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_7_results_and_samples.ipynb>`_
+`Tutorial 6: Results and Samples <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_6_results_and_samples.ipynb>`_
 - The results of a model-fit output by **PyAutoFit**.
-
-`Tutorial 8: Fitting Multiple Datasets <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_8_fitting_multiple_datasets.ipynb>`_
-- Fitting a model to multiple similar datasets.
-
-`Tutorial 9: Aggregator <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_9_aggregator.ipynb>`_
-- Loading large libraries of results using in-built database tools.
-
-`Tutorial 10: Filtering <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_10_filtering.ipynb>`_
-- Filtering the loaded results to find specific results of interest.
-
-`Tutorial 11: Data and Models <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_11_data_and_models.ipynb>`_
-- Replotting the model, data and fits of a set of results.

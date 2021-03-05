@@ -1,10 +1,8 @@
 import inspect
-from abc import ABC, abstractmethod
 from numbers import Real
 from typing import Optional, Set
 
 import autofit.database.query.condition as c
-from autofit.database.query.condition import Table
 from autofit.database.query.junction import AbstractJunction
 
 
@@ -47,113 +45,7 @@ def _make_comparison(
     )
 
 
-class AbstractQuery(c.AbstractCondition, ABC):
-    def __init__(
-            self,
-            condition: Optional[
-                c.AbstractCondition
-            ] = None
-    ):
-        """
-        A query run to find Fit instances that match given
-        criteria
-
-        Parameters
-        ----------
-        condition
-            An optional condition
-        """
-        self._condition = condition
-
-    @property
-    def condition(self):
-        return self._condition
-
-    @property
-    @abstractmethod
-    def fit_query(self) -> str:
-        """
-        A full query that can be executed against the database to obtain
-        fit ids
-        """
-
-    def __str__(self):
-        return self.fit_query
-
-    @property
-    def tables(self) -> Set[Table]:
-        return {c.fit_table}
-
-
-class AttributeQuery(AbstractQuery):
-    @property
-    def fit_query(self) -> str:
-        """
-        The SQL string produced by this query. This is applied directly to the database.
-        """
-        return f"SELECT id FROM fit WHERE {self.condition}"
-
-
-class Attribute:
-    def __init__(self, attribute: str):
-        """
-        Some direct attribute of the Fit class
-
-        Parameters
-        ----------
-        attribute
-            The name of that attribute
-        """
-        self.attribute = attribute
-
-    def _make_query(
-            self,
-            cls,
-            value
-    ) -> AttributeQuery:
-        """
-        Create a query against this attribute
-
-        Parameters
-        ----------
-        cls
-            An AttributeCondition that describes the query
-        value
-            The value that the attribute is compared to
-
-        Returns
-        -------
-        A query on ids of the fit table
-        """
-        return AttributeQuery(
-            cls(
-                attribute=self.attribute,
-                value=value
-            )
-        )
-
-    def __eq__(self, other) -> AttributeQuery:
-        """
-        Check whether an attribute, such as a phase name, is equal
-        to some value
-        """
-        return self._make_query(
-            cls=c.EqualityAttributeCondition,
-            value=other
-        )
-
-    def contains(self, item: str) -> AttributeQuery:
-        """
-        Check whether an attribute, such as a phase name, contains
-        some string
-        """
-        return self._make_query(
-            cls=c.ContainsAttributeCondition,
-            value=item
-        )
-
-
-class NamedQuery(AbstractQuery):
+class NamedQuery(c.AbstractCondition):
     def __init__(
             self,
             name: str,
@@ -181,12 +73,8 @@ class NamedQuery(AbstractQuery):
         condition
             A child condition combined with the name to produce a query
         """
-        super().__init__(condition)
         self.name = name
-
-    @property
-    def other_condition(self) -> c.AbstractCondition:
-        return self._condition
+        self.other_condition = condition
 
     @property
     def condition(self) -> c.AbstractCondition:
@@ -199,8 +87,8 @@ class NamedQuery(AbstractQuery):
         condition = c.NameCondition(
             self.name
         )
-        if super().condition:
-            condition &= super().condition
+        if self.other_condition:
+            condition &= self.other_condition
         return condition
 
     @property
@@ -217,17 +105,6 @@ class NamedQuery(AbstractQuery):
         raise AttributeError(
             f"'Aggregator' object has no attribute '{self.name}'"
         )
-
-    @property
-    def query(self) -> str:
-        """
-        The SQL string produced by this query. This is applied directly to the database.
-        """
-        return f"SELECT parent_id FROM {self.tables_string} WHERE {self.condition}"
-
-    @property
-    def fit_query(self) -> str:
-        return f"SELECT id FROM fit WHERE instance_id IN ({self.query})"
 
     @property
     def tables_string(self) -> str:
@@ -252,6 +129,13 @@ class NamedQuery(AbstractQuery):
             )
 
         return string
+
+    @property
+    def query(self) -> str:
+        """
+        The SQL string produced by this query. This is applied directly to the database.
+        """
+        return f"SELECT parent_id FROM {self.tables_string} WHERE {self.condition}"
 
     def __str__(self):
         return f"o.id IN ({self.query})"
