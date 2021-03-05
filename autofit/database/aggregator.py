@@ -241,7 +241,7 @@ class Aggregator(AbstractAggregator):
                         ""
                     )] = f.read()
 
-            fit.dataset_name = fit["dataset"].name
+        #    fit.dataset_name = fit["dataset"].name
             self.session.add(
                 fit
             )
