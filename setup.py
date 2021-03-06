@@ -17,7 +17,7 @@ requirements.extend([
 
 setup(
     name="autofit",
-    version=environ.get("VERSION", "1.0.dev0"),
+    version=environ.get("VERSION", "0.74.0"),
     description="Classy Probabilistic Programming",
     long_description=long_description,
     long_description_content_type="text/markdown",
