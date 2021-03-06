@@ -11,7 +11,7 @@ PyAutoFit: Classy Probabilistic Programming
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
 `readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
-`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_ |
+`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/7a002d90ad3f5573ced6fa5d16f50bb71ad3e4a3?filepath=introduction.ipynb>`_ |
 `HowToFit <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
@@ -29,7 +29,7 @@ Getting Started
 
 The following links are useful for new starters:
 
-- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
+- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/7a002d90ad3f5573ced6fa5d16f50bb71ad3e4a3?filepath=introduction.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
 
 - `The PyAutoFit readthedocs <https://pyautofit.readthedocs.io/en/latest>`_, which includes an `installation guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ and an overview of **PyAutoFit**'s core features.
 

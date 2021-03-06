@@ -78,7 +78,6 @@ class TestCopyWithNameExtension:
         assert search.paths.tag == copy.paths.tag
 
 
-
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)

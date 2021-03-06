@@ -253,6 +253,7 @@ class NonLinearSearch(ABC):
             self.timer.paths = self.paths
             self.timer.start()
 
+            analysis = analysis.modify_before_fit(model=model, paths=path)
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
             open(self.paths.has_completed_path, "w+").close()
 
@@ -272,7 +273,7 @@ class NonLinearSearch(ABC):
                 analysis.save_results_for_aggregator(paths=self.paths, samples=samples)
 
         self.paths.zip_remove()
-        return Result(samples=samples, previous_model=model, search=self)
+        return analysis.make_result(samples=samples, model=model, search=self)
 
     @abstractmethod
     def _fit(self, model, analysis, log_likelihood_cap=None):
@@ -555,12 +556,17 @@ class Analysis(ABC):
     def visualize(self, paths : Paths, instance, during_analysis):
         pass
 
+    def modify_before_fit(self, model, paths : Paths):
+        return self
+
     def save_attributes_for_aggregator(self, paths: Paths):
         pass
 
     def save_results_for_aggregator(self, paths: Paths, samples : samps.OptimizerSamples):
         pass
 
+    def make_result(self, samples, model, search):
+        return Result(samples=samples, previous_model=model, search=search)
 
 class Result:
     """
