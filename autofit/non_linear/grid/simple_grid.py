@@ -48,5 +48,5 @@ class GridSearch:
                 log_likelihoods=likelihoods,
                 gaussian_tuples=None
             ),
-            previous_model=model
+            model=model
         )

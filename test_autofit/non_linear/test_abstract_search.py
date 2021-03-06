@@ -31,7 +31,7 @@ def make_result():
     # noinspection PyTypeChecker
     return af.Result(
         samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
-        previous_model=mapper,
+        model=mapper,
         search=mock.MockSearch(),
     )
 

@@ -235,7 +235,7 @@ def as_grid_search(phase_class, number_of_steps=4, number_of_cores=1):
 
             return self.Result(
                 samples=result.samples,
-                previous_model=result.model,
+                model=result.model,
                 analysis=analysis,
                 search=self.search,
             )

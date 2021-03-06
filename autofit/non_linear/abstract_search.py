@@ -566,27 +566,27 @@ class Analysis(ABC):
         pass
 
     def make_result(self, samples, model, search):
-        return Result(samples=samples, previous_model=model, search=search)
+        return Result(samples=samples, model=model, search=search)
 
 class Result:
     """
     @DynamicAttrs
     """
 
-    def __init__(self, samples, previous_model, search=None):
+    def __init__(self, samples, model, search=None):
         """
         The result of an optimization.
 
         Parameters
         ----------
-        previous_model
+        model
             The model mapper from the stage that produced this result
         """
 
         self.samples = samples
-        self.previous_model = previous_model
         self.search = search
 
+        self._model = model
         self.__model = None
 
         self._instance = (
@@ -611,7 +611,7 @@ class Result:
             tuples = self.samples.gaussian_priors_at_sigma(
                 sigma=self.search.prior_passer.sigma
             )
-            self.__model = self.previous_model.mapper_from_gaussian_tuples(
+            self.__model = self._model.mapper_from_gaussian_tuples(
                 tuples,
                 use_errors=self.search.prior_passer.use_errors,
                 use_widths=self.search.prior_passer.use_widths
@@ -641,7 +641,7 @@ class Result:
         A model mapper created by taking results from this phase and creating priors with the defined absolute
         width.
         """
-        return self.previous_model.mapper_from_gaussian_tuples(
+        return self.model.mapper_from_gaussian_tuples(
             self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), a=a
         )
 
@@ -657,7 +657,7 @@ class Result:
         A model mapper created by taking results from this phase and creating priors with the defined relative
         width.
         """
-        return self.previous_model.mapper_from_gaussian_tuples(
+        return self.model.mapper_from_gaussian_tuples(
             self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
         )
 

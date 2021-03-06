@@ -995,7 +995,7 @@ class DynestyDynamic(AbstractDynesty):
         samples = self._fit(model=model, analysis=analysis)
         open(self.paths.has_completed_path, "w+").close()
 
-        return Result(samples=samples, previous_model=model, search=self)
+        return Result(samples=samples, model=model, search=self)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> NestSamples:
         """

@@ -24,7 +24,7 @@ def make_grid_search(mapper):
 
 def test_unpickle_result():
     result = af.GridSearchResult(
-        [af.Result(samples=None, previous_model=None)],
+        [af.Result(samples=None, model=None)],
         lower_limit_lists=[[1]],
         physical_lower_limits_lists=[[1]],
     )

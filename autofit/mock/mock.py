@@ -29,7 +29,6 @@ class MockResult:
             self,
             samples=None,
             instance=None,
-            previous_model=None,
             model=None,
             analysis=None,
             search=None,
@@ -38,11 +37,10 @@ class MockResult:
         self.model = model or af.ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
 
-        self.previous_model = model
         self.gaussian_tuples = None
         self.analysis = analysis
         self.search = search
-        self.previous_model = previous_model
+        self.model = model
 
     def model_absolute(self, absolute):
         return self.model
