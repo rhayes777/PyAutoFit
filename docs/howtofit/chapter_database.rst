@@ -17,7 +17,7 @@ The chapter contains the following tutorials:
 `Tutorial 2: Aggregator <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_2_aggregator.ipynb>`_
 - Loading large libraries of results using in-built database tools.
 
-`Tutorial 3: Filtering <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_3_filtering.ipynb>`_
+`Tutorial 3: Filtering <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_3_querying.ipynb>`_
 - Filtering the loaded results to find specific results of interest.
 
 `Tutorial 4: Data and Models <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_1_introduction/tutorial_4_data_and_models.ipynb>`_
