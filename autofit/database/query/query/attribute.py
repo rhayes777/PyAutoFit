@@ -72,6 +72,10 @@ class Attribute:
 
 
 class BooleanAttribute(Attribute, AttributeQuery):
-    @property
-    def condition(self):
-        return self.attribute
+    def __init__(self, attribute):
+        super().__init__(attribute)
+        super(AttributeQuery, self).__init__(
+            c.AttributeCondition(
+                attribute
+            )
+        )

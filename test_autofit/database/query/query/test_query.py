@@ -1,19 +1,19 @@
-import autofit as af
-from autofit import database as db
-from autofit.mock import mock as m
-
-
 def test_is_complete(
         gaussian_1,
-        gaussian_2,
         aggregator
 ):
     assert aggregator.query(
         aggregator.is_complete
     ) == [gaussian_1]
+
+
+def test_is_not_complete(
+        gaussian_2,
+        aggregator
+):
     assert aggregator.query(
         ~aggregator.is_complete
-    ) == [gaussian_1]
+    ) == [gaussian_2]
 
 
 def test_query_dataset(

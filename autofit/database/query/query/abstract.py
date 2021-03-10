@@ -68,6 +68,6 @@ class AbstractQuery(c.AbstractCondition, ABC):
         """
         inverted = copy.deepcopy(self)
         inverted._condition = NotCondition(
-            self
+            self._condition
         )
         return inverted

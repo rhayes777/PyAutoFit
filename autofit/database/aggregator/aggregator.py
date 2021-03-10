@@ -4,26 +4,26 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 from autofit.database import query as q
-from .abstract import AbstractAggregator
 from .scrape import scrape_directory
 from .. import model as m
 from ..query.query import AbstractQuery
 
 
-class ListAggregator(AbstractAggregator):
-    def __init__(self, fits):
-        self._fits = fits
-
+class NullPredicate(AbstractQuery):
     @property
-    def fits(self):
-        return self._fits
+    def fit_query(self) -> str:
+        return "SELECT id FROM fit"
+
+    def __and__(self, other):
+        return other
 
 
-class Aggregator(AbstractAggregator):
+class Aggregator:
     def __init__(
             self,
             session: Session,
-            filename: Optional[str] = None
+            filename: Optional[str] = None,
+            predicate: AbstractQuery = NullPredicate()
     ):
         """
         Query results from an intermediary SQLite database.
@@ -39,12 +39,49 @@ class Aggregator(AbstractAggregator):
         self.session = session
         self.filename = filename
         self._fits = None
+        self._predicate = predicate
+
+    def __iter__(self):
+        return iter(
+            self.fits
+        )
+
+    def __getitem__(self, item):
+        return self.fits[0]
+
+    def values(self, name: str) -> list:
+        """
+        Retrieve the value associated with each fit with the given
+        parameter name
+
+        Parameters
+        ----------
+        name
+            The name of some pickle, such as 'samples'
+
+        Returns
+        -------
+        A list of objects, one for each fit
+        """
+        return [
+            fit[name]
+            for fit
+            in self
+        ]
+
+    def __len__(self):
+        return len(self.fits)
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self.fits == other
+        return super().__eq__(other)
 
     @property
     def fits(self):
         if self._fits is None:
             self._fits = self._fits_for_query(
-                "SELECT id FROM fit"
+                self._predicate.fit_query
             )
         return self._fits
 
@@ -60,7 +97,10 @@ class Aggregator(AbstractAggregator):
             return q.A(name)
         return q.Q(name)
 
-    def query(self, predicate: AbstractQuery) -> ListAggregator:
+    def __call__(self, predicate) -> "Aggregator":
+        return self.query(predicate)
+
+    def query(self, predicate: AbstractQuery) -> "Aggregator":
         # noinspection PyUnresolvedReferences
         """
         Apply a query on the model.
@@ -86,10 +126,10 @@ class Aggregator(AbstractAggregator):
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) & (lens.disk == EllipticalSersic))
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) | (lens.disk == EllipticalSersic))
         """
-        return ListAggregator(
-            self._fits_for_query(
-                predicate.fit_query
-            )
+        return Aggregator(
+            session=self.session,
+            filename=self.filename,
+            predicate=self._predicate & predicate
         )
 
     def _fits_for_query(
