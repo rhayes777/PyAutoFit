@@ -1,5 +1,6 @@
 from autofit import database as db
 
+
 def test_is_complete(
         gaussian_1,
         aggregator
