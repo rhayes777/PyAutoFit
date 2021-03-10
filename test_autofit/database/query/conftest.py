@@ -5,15 +5,6 @@ from autofit.database import query as q
 
 
 @pytest.fixture(
-    name="aggregator"
-)
-def make_aggregator(
-        session
-):
-    return db.Aggregator(session)
-
-
-@pytest.fixture(
     name="less_than"
 )
 def make_less_than():

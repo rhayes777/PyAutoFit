@@ -49,6 +49,13 @@ class Aggregator:
     def __getitem__(self, item):
         return self.fits[0]
 
+    @property
+    def info(self):
+        """
+        Query info associated with the fit in the info dictionary
+        """
+        return q.AnonymousInfo()
+
     def values(self, name: str) -> list:
         """
         Retrieve the value associated with each fit with the given
@@ -194,8 +201,6 @@ class Aggregator:
         for fit in scrape_directory(
                 directory
         ):
-
-            #    fit.dataset_name = fit["dataset"].name
             self.session.add(
                 fit
             )

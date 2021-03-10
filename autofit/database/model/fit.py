@@ -3,7 +3,6 @@ from typing import List
 
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from autofit import AbstractPriorModel
 from .model import Base, Object
@@ -57,6 +56,29 @@ class Pickle(Base):
         )
 
 
+class Info(Base):
+    __tablename__ = "info"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    key = Column(String)
+    value = Column(String)
+
+    fit_id = Column(
+        Integer,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    fit = relationship(
+        "Fit",
+        uselist=False
+    )
+
+
 class Fit(Base):
     __tablename__ = "fit"
 
@@ -64,20 +86,38 @@ class Fit(Base):
         Integer,
         primary_key=True,
     )
-    dataset_name = Column(
-        String
-    )
-    phase_name = Column(
-        String
-    )
     is_complete = Column(
         Boolean
+    )
+
+    _info: List[Info] = relationship(
+        "Info"
     )
 
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs
         )
+
+    @property
+    def info(self):
+        return {
+            info.key: info.value
+            for info
+            in self._info
+        }
+
+    @info.setter
+    def info(self, info):
+        if info is not None:
+            self._info = [
+                Info(
+                    key=key,
+                    value=value
+                )
+                for key, value
+                in info.items()
+            ]
 
     @property
     def model(self) -> AbstractPriorModel:
