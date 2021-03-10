@@ -106,6 +106,17 @@ class AbstractModel(ModelObject):
             )
         )
 
+    def model_tuples_with_type(self, cls):
+        from .prior_model.prior_model import PriorModel
+        return [
+            (path, model)
+            for path, model
+            in self.attribute_tuples_with_type(
+                PriorModel
+            )
+            if model.cls == cls
+        ]
+
     def attribute_tuples_with_type(self, class_type, ignore_class=None):
         return [
             (t[0][-1], t[1])

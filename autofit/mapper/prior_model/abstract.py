@@ -338,6 +338,16 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=assert_priors_in_limits
         )
 
+    def has_instance(self, cls):
+        return len(
+            self.attribute_tuples_with_type(cls)
+        ) > 0
+
+    def has_model(self, cls):
+        return len(
+            self.model_tuples_with_type(cls)
+        ) > 0
+
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Returns a new model mapper from a dictionary mapping_matrix existing priors to
