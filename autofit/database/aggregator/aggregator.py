@@ -49,6 +49,10 @@ class Aggregator:
     def __getitem__(self, item):
         return self.fits[0]
 
+    @property
+    def info(self):
+        return q.AnonymousInfo()
+
     def values(self, name: str) -> list:
         """
         Retrieve the value associated with each fit with the given
