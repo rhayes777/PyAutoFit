@@ -1,12 +1,10 @@
-import copy
 import inspect
-from abc import ABC, abstractmethod
 from numbers import Real
 from typing import Optional, Set
 
 import autofit.database.query.condition as c
-from autofit.database.query.condition import Table
 from autofit.database.query.junction import AbstractJunction
+from .abstract import AbstractQuery
 
 
 def _make_comparison(
@@ -46,147 +44,6 @@ def _make_comparison(
     raise AssertionError(
         f"Cannot evaluate equality to type {type(other)}"
     )
-
-
-class NotCondition:
-    def __init__(self, condition: c.AbstractCondition):
-        """
-        Prepend the condition with a 'not'
-
-        Parameters
-        ----------
-        condition
-            Some condition such equality to a value
-        """
-        self._condition = condition
-
-    def __str__(self):
-        return f"not ({self._condition})"
-
-
-class AbstractQuery(c.AbstractCondition, ABC):
-    def __init__(
-            self,
-            condition: Optional[
-                c.AbstractCondition
-            ] = None
-    ):
-        """
-        A query run to find Fit instances that match given
-        criteria
-
-        Parameters
-        ----------
-        condition
-            An optional condition
-        """
-        self._condition = condition
-
-    @property
-    def condition(self):
-        return self._condition
-
-    @property
-    @abstractmethod
-    def fit_query(self) -> str:
-        """
-        A full query that can be executed against the database to obtain
-        fit ids
-        """
-
-    def __str__(self):
-        return self.fit_query
-
-    @property
-    def tables(self) -> Set[Table]:
-        return {c.fit_table}
-
-    def __invert__(self):
-        """
-        Take ~ of this object.
-
-        The object is copied and its condition is prepended
-        with a 'not'.
-        """
-        inverted = copy.deepcopy(self)
-        inverted._condition = NotCondition(
-            self
-        )
-        return inverted
-
-
-class AttributeQuery(AbstractQuery):
-    @property
-    def fit_query(self) -> str:
-        """
-        The SQL string produced by this query. This is applied directly to the database.
-        """
-        return f"SELECT id FROM fit WHERE {self.condition}"
-
-
-class Attribute:
-    def __init__(self, attribute: str):
-        """
-        Some direct attribute of the Fit class
-
-        Parameters
-        ----------
-        attribute
-            The name of that attribute
-        """
-        self.attribute = attribute
-
-    def _make_query(
-            self,
-            cls,
-            value
-    ) -> AttributeQuery:
-        """
-        Create a query against this attribute
-
-        Parameters
-        ----------
-        cls
-            An AttributeCondition that describes the query
-        value
-            The value that the attribute is compared to
-
-        Returns
-        -------
-        A query on ids of the fit table
-        """
-        return AttributeQuery(
-            cls(
-                attribute=self.attribute,
-                value=value
-            )
-        )
-
-    def __eq__(self, other) -> AttributeQuery:
-        """
-        Check whether an attribute, such as a phase name, is equal
-        to some value
-        """
-        return self._make_query(
-            cls=c.EqualityAttributeCondition,
-            value=other
-        )
-
-    def contains(self, item: str) -> AttributeQuery:
-        """
-        Check whether an attribute, such as a phase name, contains
-        some string
-        """
-        return self._make_query(
-            cls=c.ContainsAttributeCondition,
-            value=item
-        )
-
-
-class BooleanAttribute(Attribute, AttributeQuery):
-    @property
-    def condition(self):
-        return self.attribute
 
 
 class NamedQuery(AbstractQuery):
