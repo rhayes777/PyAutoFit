@@ -16,6 +16,15 @@ def test_is_not_complete(
     ) == [gaussian_2]
 
 
+def test_call(
+        gaussian_1,
+        aggregator
+):
+    assert aggregator(
+        aggregator.is_complete
+    ) == [gaussian_1]
+
+
 def test_query_dataset(
         gaussian_1,
         gaussian_2,
