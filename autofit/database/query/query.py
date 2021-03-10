@@ -49,7 +49,15 @@ def _make_comparison(
 
 
 class NotCondition:
-    def __init__(self, condition):
+    def __init__(self, condition: c.AbstractCondition):
+        """
+        Prepend the condition with a 'not'
+
+        Parameters
+        ----------
+        condition
+            Some condition such equality to a value
+        """
         self._condition = condition
 
     def __str__(self):
@@ -94,6 +102,12 @@ class AbstractQuery(c.AbstractCondition, ABC):
         return {c.fit_table}
 
     def __invert__(self):
+        """
+        Take ~ of this object.
+
+        The object is copied and its condition is prepended
+        with a 'not'.
+        """
         inverted = copy.deepcopy(self)
         inverted._condition = NotCondition(
             self
