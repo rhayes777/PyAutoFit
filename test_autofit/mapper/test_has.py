@@ -28,3 +28,35 @@ def test_model():
     assert collection.has_instance(
         m.Gaussian
     ) is False
+
+
+def test_both():
+    collection = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            m.Gaussian
+        ),
+        gaussian_2=m.Gaussian()
+    )
+
+    assert collection.has_model(
+        m.Gaussian
+    ) is True
+    assert collection.has_instance(
+        m.Gaussian
+    ) is True
+
+
+def test_embedded():
+    collection = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            m.Gaussian,
+            centre=m.Gaussian()
+        ),
+    )
+
+    assert collection.has_model(
+        m.Gaussian
+    ) is True
+    assert collection.has_instance(
+        m.Gaussian
+    ) is True
