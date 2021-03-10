@@ -60,3 +60,26 @@ def test_embedded():
     assert collection.has_instance(
         m.Gaussian
     ) is True
+
+
+def test_is_only_model():
+    collection = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            m.Gaussian
+        ),
+        gaussian_2=af.PriorModel(
+            m.Gaussian
+        )
+    )
+
+    assert collection.is_only_model(
+        m.Gaussian
+    ) is True
+
+    collection.other = af.PriorModel(
+        m.MockClassx2
+    )
+
+    assert collection.is_only_model(
+        m.Gaussian
+    ) is False

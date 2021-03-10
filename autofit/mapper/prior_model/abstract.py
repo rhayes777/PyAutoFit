@@ -348,6 +348,16 @@ class AbstractPriorModel(AbstractModel):
             self.model_tuples_with_type(cls)
         ) > 0
 
+    def is_only_model(self, cls):
+        from .prior_model import PriorModel
+        return len(
+            self.model_tuples_with_type(cls)
+        ) == len(
+            self.attribute_tuples_with_type(
+                PriorModel
+            )
+        )
+
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Returns a new model mapper from a dictionary mapping_matrix existing priors to
