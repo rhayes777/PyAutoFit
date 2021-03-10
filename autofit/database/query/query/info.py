@@ -5,7 +5,15 @@ from autofit.database.query.query import AbstractQuery
 
 
 class InfoQueryCondition(AbstractCondition):
-    def __init__(self, key, value):
+    def __init__(self, key: str, value: str):
+        """
+        Query some item stored in the fit info dictionary
+
+        Parameters
+        ----------
+        key
+        value
+        """
         self.key = key
         self.value = value
 

@@ -51,6 +51,9 @@ class Aggregator:
 
     @property
     def info(self):
+        """
+        Query info associated with the fit in the info dictionary
+        """
         return q.AnonymousInfo()
 
     def values(self, name: str) -> list:

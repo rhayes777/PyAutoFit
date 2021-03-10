@@ -33,7 +33,8 @@ def scrape_directory(directory: str):
             model=model,
             instance=instance,
             phase_name=item.name,
-            is_complete=is_complete
+            is_complete=is_complete,
+            info=item.info
         )
 
         pickle_path = item.pickle_path
