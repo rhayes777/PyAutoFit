@@ -53,6 +53,10 @@ class Aggregator(AbstractAggregator):
 
     def __getattr__(self, name):
         if name in m.fit_attributes:
+            if m.fit_attributes[
+                name
+            ].type.python_type == bool:
+                return q.BA(name)
             return q.A(name)
         return q.Q(name)
 

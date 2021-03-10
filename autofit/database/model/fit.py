@@ -1,7 +1,7 @@
 import pickle
 from typing import List
 
-from sqlalchemy import Column, Integer, ForeignKey, String, Boolean
+from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
@@ -197,12 +197,4 @@ class Fit(Base):
     )
 
 
-fit_attributes = {
-    key
-    for key, value
-    in Fit.__dict__.items()
-    if isinstance(
-        value,
-        InstrumentedAttribute
-    )
-}
+fit_attributes = inspect(Fit).columns

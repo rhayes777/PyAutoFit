@@ -1,3 +1,4 @@
+import copy
 import inspect
 from abc import ABC, abstractmethod
 from numbers import Real
@@ -47,6 +48,14 @@ def _make_comparison(
     )
 
 
+class NotCondition:
+    def __init__(self, condition):
+        self._condition = condition
+
+    def __str__(self):
+        return f"not ({self._condition})"
+
+
 class AbstractQuery(c.AbstractCondition, ABC):
     def __init__(
             self,
@@ -83,6 +92,13 @@ class AbstractQuery(c.AbstractCondition, ABC):
     @property
     def tables(self) -> Set[Table]:
         return {c.fit_table}
+
+    def __invert__(self):
+        inverted = copy.deepcopy(self)
+        inverted._condition = NotCondition(
+            self
+        )
+        return inverted
 
 
 class AttributeQuery(AbstractQuery):
@@ -151,6 +167,12 @@ class Attribute:
             cls=c.ContainsAttributeCondition,
             value=item
         )
+
+
+class BooleanAttribute(Attribute, AttributeQuery):
+    @property
+    def condition(self):
+        return self.attribute
 
 
 class NamedQuery(AbstractQuery):

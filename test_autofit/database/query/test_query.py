@@ -57,7 +57,8 @@ def make_gaussian_1():
             centre=1
         ),
         dataset_name="dataset 1",
-        phase_name="phase"
+        phase_name="phase",
+        is_complete=True
     )
 
 
@@ -70,8 +71,22 @@ def make_gaussian_2():
             centre=2
         ),
         dataset_name="dataset 2",
-        phase_name="phase"
+        phase_name="phase",
+        is_complete=False
     )
+
+
+def test_is_complete(
+        gaussian_1,
+        gaussian_2,
+        aggregator
+):
+    assert aggregator.query(
+        aggregator.is_complete
+    ) == [gaussian_1]
+    assert aggregator.query(
+        ~aggregator.is_complete
+    ) == [gaussian_1]
 
 
 @pytest.fixture(
