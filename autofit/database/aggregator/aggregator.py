@@ -205,7 +205,8 @@ class Aggregator:
     @classmethod
     def from_database(
             cls,
-            filename: str
+            filename: str,
+            completed_only: bool = False
     ) -> "Aggregator":
         """
         Create an instance from a sqlite database file.
@@ -214,6 +215,7 @@ class Aggregator:
 
         Parameters
         ----------
+        completed_only
         filename
             The name of the database file.
 
@@ -230,7 +232,12 @@ class Aggregator:
         m.Base.metadata.create_all(
             engine
         )
-        return Aggregator(
+        aggregator = Aggregator(
             session,
             filename
         )
+        if completed_only:
+            return aggregator(
+                aggregator.is_complete
+            )
+        return aggregator

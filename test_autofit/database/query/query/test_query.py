@@ -1,3 +1,5 @@
+from autofit import database as db
+
 def test_is_complete(
         gaussian_1,
         aggregator
@@ -23,6 +25,18 @@ def test_call(
     assert aggregator(
         aggregator.is_complete
     ) == [gaussian_1]
+
+
+def test_completed_only(
+        gaussian_1,
+        session
+):
+    aggregator = db.Aggregator.from_database(
+        '',
+        completed_only=True
+    )
+    aggregator.session = session
+    assert aggregator == [gaussian_1]
 
 
 def test_query_dataset(
