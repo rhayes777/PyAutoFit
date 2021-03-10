@@ -280,3 +280,6 @@ test_autofit/non_linear/files/pickles/test.pickle
 test_autofit/non_linear/nest/files/dynesty/output/dynesty_static[nlive_150__bound_multi_vol_dec_0.5_vol_check_2.0__enlarge_1.0__sample_auto]/samples/dynesty.pickle
 test_autofit/non_linear/nest/files/
 
+test_autofit/output/non_linear/abstract_search/pickles/mock/pickles/test.pickle
+test_autofit/output/non_linear/abstract_search/pickles/test.pickle
+test_autofit/output/non_linear/dynesty/dynesty_static[nlive_150__bound_multi_vol_dec_0.5_vol_check_2.0__enlarge_1.0__sample_auto]/samples/dynesty.pickle
