@@ -1,7 +1,7 @@
 import pickle
 from typing import List
 
-from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy import Column, Integer, ForeignKey, String, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
@@ -69,6 +69,9 @@ class Fit(Base):
     )
     phase_name = Column(
         String
+    )
+    is_complete = Column(
+        Boolean
     )
 
     def __init__(self, **kwargs):

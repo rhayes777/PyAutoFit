@@ -22,13 +22,18 @@ def scrape_directory(directory: str):
         directory
     )
     for item in aggregator:
+        is_complete = os.path.exists(
+            f"{item.directory}/.completed"
+        )
+
         model = item.model
         samples = item.samples
         instance = samples.max_log_likelihood_instance
         fit = m.Fit(
             model=model,
             instance=instance,
-            phase_name=item.name
+            phase_name=item.name,
+            is_complete=is_complete
         )
 
         pickle_path = item.pickle_path

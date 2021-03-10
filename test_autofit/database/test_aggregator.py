@@ -30,9 +30,6 @@ def make_session():
 def make_aggregator(
         session
 ):
-
-    print(directory)
-
     aggregator = Aggregator(
         session
     )
@@ -64,6 +61,7 @@ def test_samples(
 
 def test_load(aggregator):
     assert len(aggregator) == 1
+    assert aggregator[0].is_complete is True
 
 
 def test_values(
