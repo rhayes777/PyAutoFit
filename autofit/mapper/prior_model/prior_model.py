@@ -2,9 +2,10 @@ import copy
 import inspect
 import logging
 
+from autoconf.exc import ConfigException
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.deferred import DeferredInstance
+from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.promise import Promise
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
@@ -166,7 +167,10 @@ class PriorModel(AbstractPriorModel):
         if not inspect.isclass(cls):
             # noinspection PyProtectedMember
             cls = inspect._findclass(cls)
-        return Prior.for_class_and_attribute_name(cls, attribute_name)
+        try:
+            return Prior.for_class_and_attribute_name(cls, attribute_name)
+        except ConfigException as e:
+            return e
 
     def __setattr__(self, key, value):
         if key not in (

@@ -1,3 +1,4 @@
+import autofit as af
 from autofit import database as db
 
 
@@ -8,6 +9,20 @@ def test_is_complete(
     assert aggregator.query(
         aggregator.is_complete
     ) == [gaussian_1]
+
+
+class NovelClass:
+    def __init__(self, argument: float):
+        self.argument = argument
+
+
+def test_():
+    model = af.PriorModel(
+        NovelClass
+    )
+    model.argument = af.UniformPrior()
+    instance = model.instance_from_prior_medians()
+    print(instance.argument)
 
 
 def test_is_not_complete(
