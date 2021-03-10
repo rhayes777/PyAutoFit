@@ -1,28 +1,45 @@
-import os
-from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 
-from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from autofit.database import query as q
-from . import model as m
-from .query.query import AbstractQuery
+from .scrape import scrape_directory
+from .. import model as m
+from ..query.query import AbstractQuery
 
 
-class AbstractAggregator(ABC):
-    """
-    Abstract collection of historical fits
-    """
-
+class NullPredicate(AbstractQuery):
     @property
-    @abstractmethod
-    def fits(self) -> List[m.Fit]:
+    def fit_query(self) -> str:
+        return "SELECT id FROM fit"
+
+    def __and__(self, other):
+        return other
+
+
+class Aggregator:
+    def __init__(
+            self,
+            session: Session,
+            filename: Optional[str] = None,
+            predicate: AbstractQuery = NullPredicate()
+    ):
         """
-        All fits in the collection
+        Query results from an intermediary SQLite database.
+
+        Results can be scraped from a directory structure and stored in the database.
+
+        Parameters
+        ----------
+        session
+            A session for communicating with the database.
+        filename
         """
+        self.session = session
+        self.filename = filename
+        self._fits = None
+        self._predicate = predicate
 
     def __iter__(self):
         return iter(
@@ -60,56 +77,11 @@ class AbstractAggregator(ABC):
             return self.fits == other
         return super().__eq__(other)
 
-    def __repr__(self):
-        return str(self.fits)
-
-
-fit_attributes = {
-    key
-    for key, value
-    in m.Fit.__dict__.items()
-    if isinstance(
-        value,
-        InstrumentedAttribute
-    )
-}
-
-
-class ListAggregator(AbstractAggregator):
-    def __init__(self, fits):
-        self._fits = fits
-
-    @property
-    def fits(self):
-        return self._fits
-
-
-class Aggregator(AbstractAggregator):
-    def __init__(
-            self,
-            session: Session,
-            filename: Optional[str] = None
-    ):
-        """
-        Query results from an intermediary SQLite database.
-
-        Results can be scraped from a directory structure and stored in the database.
-
-        Parameters
-        ----------
-        session
-            A session for communicating with the database.
-        filename
-        """
-        self.session = session
-        self.filename = filename
-        self._fits = None
-
     @property
     def fits(self):
         if self._fits is None:
             self._fits = self._fits_for_query(
-                "SELECT id FROM fit"
+                self._predicate.fit_query
             )
         return self._fits
 
@@ -117,11 +89,19 @@ class Aggregator(AbstractAggregator):
         return f"<{self.__class__.__name__} {self.filename}>"
 
     def __getattr__(self, name):
-        if name in fit_attributes:
+        if name in m.fit_attributes:
+            if m.fit_attributes[
+                name
+            ].type.python_type == bool:
+                return q.BA(name)
             return q.A(name)
         return q.Q(name)
 
-    def query(self, predicate: AbstractQuery) -> ListAggregator:
+    def __call__(self, predicate) -> "Aggregator":
+        return self.query(predicate)
+
+    def query(self, predicate: AbstractQuery) -> "Aggregator":
+        # noinspection PyUnresolvedReferences
         """
         Apply a query on the model.
 
@@ -136,7 +116,6 @@ class Aggregator(AbstractAggregator):
 
         Examples
         --------
-        >>> from autogalaxy.profiles.light_profiles import EllipticalSersic, EllipticalCoreSersic
         >>>
         >>> aggregator = Aggregator.from_database(
         >>>     "my_database.sqlite"
@@ -147,10 +126,10 @@ class Aggregator(AbstractAggregator):
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) & (lens.disk == EllipticalSersic))
         >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) | (lens.disk == EllipticalSersic))
         """
-        return ListAggregator(
-            self._fits_for_query(
-                predicate.fit_query
-            )
+        return Aggregator(
+            session=self.session,
+            filename=self.filename,
+            predicate=self._predicate & predicate
         )
 
     def _fits_for_query(
@@ -212,36 +191,11 @@ class Aggregator(AbstractAggregator):
             A directory containing autofit results embedded in a
             file structure
         """
-        aggregator = ClassicAggregator(
-            directory
-        )
-        for item in aggregator:
-            model = item.model
-            samples = item.samples
-            instance = samples.max_log_likelihood_instance
-            fit = m.Fit(
-                model=model,
-                instance=instance,
-                phase_name=item.name
-            )
+        for fit in scrape_directory(
+                directory
+        ):
 
-            pickle_path = item.pickle_path
-            for pickle_name in os.listdir(
-                    pickle_path
-            ):
-                with open(
-                        os.path.join(
-                            pickle_path,
-                            pickle_name
-                        ),
-                        "r+b"
-                ) as f:
-                    fit[pickle_name.replace(
-                        ".pickle",
-                        ""
-                    )] = f.read()
-
-        #    fit.dataset_name = fit["dataset"].name
+            #    fit.dataset_name = fit["dataset"].name
             self.session.add(
                 fit
             )
@@ -251,7 +205,8 @@ class Aggregator(AbstractAggregator):
     @classmethod
     def from_database(
             cls,
-            filename: str
+            filename: str,
+            completed_only: bool = False
     ) -> "Aggregator":
         """
         Create an instance from a sqlite database file.
@@ -260,6 +215,7 @@ class Aggregator(AbstractAggregator):
 
         Parameters
         ----------
+        completed_only
         filename
             The name of the database file.
 
@@ -276,7 +232,12 @@ class Aggregator(AbstractAggregator):
         m.Base.metadata.create_all(
             engine
         )
-        return Aggregator(
+        aggregator = Aggregator(
             session,
             filename
         )
+        if completed_only:
+            return aggregator(
+                aggregator.is_complete
+            )
+        return aggregator

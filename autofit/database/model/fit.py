@@ -1,8 +1,9 @@
 import pickle
 from typing import List
 
-from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from autofit import AbstractPriorModel
 from .model import Base, Object
@@ -68,6 +69,9 @@ class Fit(Base):
     )
     phase_name = Column(
         String
+    )
+    is_complete = Column(
+        Boolean
     )
 
     def __init__(self, **kwargs):
@@ -191,3 +195,6 @@ class Fit(Base):
         backref="fit_instance",
         foreign_keys=[instance_id]
     )
+
+
+fit_attributes = inspect(Fit).columns

@@ -255,3 +255,15 @@ class EqualityAttributeCondition(AttributeCondition):
 class ContainsAttributeCondition(AttributeCondition):
     def __str__(self):
         return f"{self.attribute} LIKE '%{self._value}%'"
+
+
+class AttributeCondition(AbstractCondition):
+    def __init__(self, attribute):
+        self.attribute = attribute
+
+    @property
+    def tables(self) -> Set[Table]:
+        return {fit_table}
+
+    def __str__(self):
+        return self.attribute
