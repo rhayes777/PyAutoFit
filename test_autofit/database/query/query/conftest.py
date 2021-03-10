@@ -12,8 +12,6 @@ def make_gaussian_1():
         instance=m.Gaussian(
             centre=1
         ),
-        dataset_name="dataset 1",
-        phase_name="phase",
         is_complete=True
     )
 
@@ -26,8 +24,6 @@ def make_gaussian_2():
         instance=m.Gaussian(
             centre=2
         ),
-        dataset_name="dataset 2",
-        phase_name="phase",
         is_complete=False
     )
 

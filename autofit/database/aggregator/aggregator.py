@@ -201,8 +201,6 @@ class Aggregator:
         for fit in scrape_directory(
                 directory
         ):
-
-            #    fit.dataset_name = fit["dataset"].name
             self.session.add(
                 fit
             )
