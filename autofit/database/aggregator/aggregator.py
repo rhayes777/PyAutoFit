@@ -1,78 +1,14 @@
 import os
-from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from autofit.database import query as q
-from . import model as m
-from .query.query import AbstractQuery
-
-
-class AbstractAggregator(ABC):
-    """
-    Abstract collection of historical fits
-    """
-
-    @property
-    @abstractmethod
-    def fits(self) -> List[m.Fit]:
-        """
-        All fits in the collection
-        """
-
-    def __iter__(self):
-        return iter(
-            self.fits
-        )
-
-    def __getitem__(self, item):
-        return self.fits[0]
-
-    def values(self, name: str) -> list:
-        """
-        Retrieve the value associated with each fit with the given
-        parameter name
-
-        Parameters
-        ----------
-        name
-            The name of some pickle, such as 'samples'
-
-        Returns
-        -------
-        A list of objects, one for each fit
-        """
-        return [
-            fit[name]
-            for fit
-            in self
-        ]
-
-    def __len__(self):
-        return len(self.fits)
-
-    def __eq__(self, other):
-        if isinstance(other, list):
-            return self.fits == other
-        return super().__eq__(other)
-
-    def __repr__(self):
-        return str(self.fits)
-
-
-fit_attributes = {
-    key
-    for key, value
-    in m.Fit.__dict__.items()
-    if isinstance(
-        value,
-        InstrumentedAttribute
-    )
-}
+from .abstract import AbstractAggregator
+from .. import model as m
+from ..query.query import AbstractQuery
 
 
 class ListAggregator(AbstractAggregator):
@@ -117,11 +53,12 @@ class Aggregator(AbstractAggregator):
         return f"<{self.__class__.__name__} {self.filename}>"
 
     def __getattr__(self, name):
-        if name in fit_attributes:
+        if name in m.fit_attributes:
             return q.A(name)
         return q.Q(name)
 
     def query(self, predicate: AbstractQuery) -> ListAggregator:
+        # noinspection PyUnresolvedReferences
         """
         Apply a query on the model.
 
@@ -136,7 +73,6 @@ class Aggregator(AbstractAggregator):
 
         Examples
         --------
-        >>> from autogalaxy.profiles.light_profiles import EllipticalSersic, EllipticalCoreSersic
         >>>
         >>> aggregator = Aggregator.from_database(
         >>>     "my_database.sqlite"
@@ -241,7 +177,7 @@ class Aggregator(AbstractAggregator):
                         ""
                     )] = f.read()
 
-        #    fit.dataset_name = fit["dataset"].name
+            #    fit.dataset_name = fit["dataset"].name
             self.session.add(
                 fit
             )

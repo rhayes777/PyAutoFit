@@ -3,6 +3,7 @@ from typing import List
 
 from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from autofit import AbstractPriorModel
 from .model import Base, Object
@@ -191,3 +192,14 @@ class Fit(Base):
         backref="fit_instance",
         foreign_keys=[instance_id]
     )
+
+
+fit_attributes = {
+    key
+    for key, value
+    in Fit.__dict__.items()
+    if isinstance(
+        value,
+        InstrumentedAttribute
+    )
+}
