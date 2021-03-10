@@ -338,19 +338,34 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=assert_priors_in_limits
         )
 
-    def has_instance(self, cls):
+    def has_instance(self, cls) -> bool:
+        """
+        True iff this model contains an instance of type
+        cls, recursively.
+        """
         return len(
             self.attribute_tuples_with_type(cls)
         ) > 0
 
-    def has_model(self, cls):
+    def has_model(self, cls) -> bool:
+        """
+        True iff this model contains a PriorModel of type
+        cls, recursively.
+        """
         return len(
             self.model_tuples_with_type(cls)
         ) > 0
 
-    def is_only_model(self, cls):
+    def is_only_model(self, cls) -> bool:
+        """
+        True iff this model contains at least one PriorModel
+        of type cls and contains no PriorModels that are not
+        of type cls, recursively.
+        """
         from .prior_model import PriorModel
-        return len(
+        return self.has_model(
+            cls
+        ) and len(
             self.model_tuples_with_type(cls)
         ) == len(
             self.attribute_tuples_with_type(
