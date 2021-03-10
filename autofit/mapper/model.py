@@ -106,7 +106,37 @@ class AbstractModel(ModelObject):
             )
         )
 
-    def attribute_tuples_with_type(self, class_type, ignore_class=None):
+    def model_tuples_with_type(self, cls):
+        from .prior_model.prior_model import PriorModel
+        return [
+            (path, model)
+            for path, model
+            in self.attribute_tuples_with_type(
+                PriorModel
+            )
+            if model.cls == cls
+        ]
+
+    def attribute_tuples_with_type(
+            self,
+            class_type,
+            ignore_class=None
+    ) -> List[tuple]:
+        """
+        Tuples describing the name and instance for attributes in the model
+        with a given type, recursively.
+
+        Parameters
+        ----------
+        class_type
+            The type of the objects to find
+        ignore_class
+            Any classes which should not be recursively searched
+
+        Returns
+        -------
+        Tuples containing the name and instance of each attribute with the type
+        """
         return [
             (t[0][-1], t[1])
             for t in self.path_instance_tuples_for_class(
