@@ -5,4 +5,5 @@ from .condition import (
     TypeCondition as T
 )
 from .junction import And, Or
-from .query import NamedQuery as Q, Attribute as A
+from .query import NamedQuery as Q, Attribute as A, BooleanAttribute as BA
+from .query.info import *

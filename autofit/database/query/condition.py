@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Set
+from typing import Set, Optional
 
 from autofit.database.model import get_class_path
 
 
 class Table:
-    def __init__(self, name: str):
+    def __init__(
+            self,
+            name: str,
+            abbreviation: Optional[str] = None
+    ):
         """
         A table containing some type of object in the database.
 
@@ -19,12 +23,15 @@ class Table:
             The name of the table
         """
         self.name = name
+        self._abbreviation = abbreviation
 
     @property
     def abbreviation(self) -> str:
         """
         A one letter abbreviation used as an alias for this table
         """
+        if self._abbreviation is not None:
+            return self._abbreviation
         return "".join(part[0] for part in self.name.split("_"))
 
     def __str__(self):
@@ -50,6 +57,7 @@ object_table = Table("object")
 value_table = Table("value")
 string_value_table = Table("string_value")
 fit_table = Table("fit")
+info_table = Table("info", "info")
 
 
 class AbstractCondition(ABC):
@@ -255,3 +263,15 @@ class EqualityAttributeCondition(AttributeCondition):
 class ContainsAttributeCondition(AttributeCondition):
     def __str__(self):
         return f"{self.attribute} LIKE '%{self._value}%'"
+
+
+class AttributeCondition(AbstractCondition):
+    def __init__(self, attribute):
+        self.attribute = attribute
+
+    @property
+    def tables(self) -> Set[Table]:
+        return {fit_table}
+
+    def __str__(self):
+        return self.attribute

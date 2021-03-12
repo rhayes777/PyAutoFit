@@ -13,3 +13,12 @@ def make_session():
     yield session
     session.close()
     engine.dispose()
+
+
+@pytest.fixture(
+    name="aggregator"
+)
+def make_aggregator(
+        session
+):
+    return db.Aggregator(session)
