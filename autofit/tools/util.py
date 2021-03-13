@@ -74,6 +74,13 @@ def numpy_array_from_json(file_path: str):
     with open(file_path, "r") as f:
         return np.asarray(json.load(f))
 
+def update_kwarg(path_for_kwargs, old_path, new_path, kwargs):
+    if old_path in path_for_kwargs:
+        if new_path in kwargs:
+            return new_path
+
+    return path_for_kwargs
+
 def convert_paths_for_backwards_compatibility(paths, kwargs):
 
     paths_for_kwargs = []

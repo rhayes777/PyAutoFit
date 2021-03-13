@@ -245,7 +245,7 @@ class OptimizerSamples:
                 for sample in self.samples
             ]
         except KeyError:
-            paths = util.convert_paths_for_backwards_compatibility(paths=paths, kwargs=self.kwargs)
+            paths = util.convert_paths_for_backwards_compatibility(paths=paths, kwargs=self.samples[0].kwargs)
             return [
                 sample.parameters_for_model(
                     self.model, paths
