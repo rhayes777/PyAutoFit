@@ -28,3 +28,26 @@ def test_model():
             upper_limit=0.5
         )
     ).identifier
+
+
+def test_collection():
+    identifier = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            Gaussian,
+            centre=af.UniformPrior()
+        )
+    ).identifier
+    assert identifier == af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            Gaussian,
+            centre=af.UniformPrior()
+        )
+    ).identifier
+    assert identifier != af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            Gaussian,
+            centre=af.UniformPrior(
+                upper_limit=0.5
+            )
+        )
+    ).identifier
