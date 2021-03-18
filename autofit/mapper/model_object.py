@@ -1,5 +1,6 @@
 import itertools
 from collections import Iterable
+from hashlib import md5
 
 
 class ModelObject:
@@ -38,15 +39,13 @@ class ModelObject:
                     add_value_to_hash_list(
                         value
                     )
-            else:
-                try:
-                    h = hash(value)
-
-                    hash_list.append(
-                        h
-                    )
-                except ValueError:
-                    pass
+            elif isinstance(
+                    value,
+                    (str, float, int)
+            ):
+                hash_list.append(
+                    str(value)
+                )
 
         def add_value_to_hash_list(value):
             if hasattr(value, "identifier"):
@@ -59,4 +58,6 @@ class ModelObject:
                 )
 
         _add_value_to_hash_list(self)
-        return hash(tuple(hash_list))
+        return md5(".".join(
+            hash_list
+        ).encode("utf-8")).hexdigest()
