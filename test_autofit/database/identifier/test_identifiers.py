@@ -51,3 +51,17 @@ def test_collection():
             )
         )
     ).identifier
+
+
+def test_instance():
+    identifier = af.CollectionPriorModel(
+        gaussian=Gaussian()
+    ).identifier
+    assert identifier == af.CollectionPriorModel(
+        gaussian=Gaussian()
+    ).identifier
+    assert identifier != af.CollectionPriorModel(
+        gaussian=Gaussian(
+            centre=0.5
+        )
+    ).identifier
