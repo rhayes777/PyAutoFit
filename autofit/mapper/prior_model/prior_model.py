@@ -2,9 +2,10 @@ import copy
 import inspect
 import logging
 
+from autoconf.exc import ConfigException
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.deferred import DeferredInstance
+from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.promise import Promise
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
@@ -110,13 +111,15 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, tuple_prior)
             elif arg in annotations and annotations[arg] != float:
                 spec = annotations[arg]
+
                 # noinspection PyUnresolvedReferences
                 if inspect.isclass(spec) and issubclass(spec, float):
                     from autofit.mapper.prior_model.annotation import (
                         AnnotationPriorModel,
                     )
-
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
+                elif hasattr(spec, "__args__") and type(None) in spec.__args__:
+                    setattr(self, arg, None)
                 else:
                     setattr(self, arg, PriorModel(annotations[arg]))
             else:
@@ -166,7 +169,10 @@ class PriorModel(AbstractPriorModel):
         if not inspect.isclass(cls):
             # noinspection PyProtectedMember
             cls = inspect._findclass(cls)
-        return Prior.for_class_and_attribute_name(cls, attribute_name)
+        try:
+            return Prior.for_class_and_attribute_name(cls, attribute_name)
+        except ConfigException as e:
+            return e
 
     def __setattr__(self, key, value):
         if key not in (

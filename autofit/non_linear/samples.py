@@ -171,6 +171,7 @@ class Sample:
             )
         except KeyError:
             paths = model.model_component_and_parameter_names
+            paths = util.convert_paths_for_backwards_compatibility(paths=paths, kwargs=self.kwargs)
             return model.instance_from_vector(
                 self.parameters_for_model(model, paths)
             )
@@ -244,6 +245,7 @@ class OptimizerSamples:
                 for sample in self.samples
             ]
         except KeyError:
+            paths = util.convert_paths_for_backwards_compatibility(paths=paths, kwargs=self.samples[0].kwargs)
             return [
                 sample.parameters_for_model(
                     self.model, paths

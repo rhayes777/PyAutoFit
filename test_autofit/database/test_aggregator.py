@@ -30,9 +30,6 @@ def make_session():
 def make_aggregator(
         session
 ):
-
-    print(directory)
-
     aggregator = Aggregator(
         session
     )
@@ -51,9 +48,8 @@ def make_fit(
     return aggregator[0]
 
 
-# def test_name_attributes(fit):
-#     assert fit.dataset_name is not None
-#     assert fit.phase_name is not None
+def test_name_attributes(fit):
+    assert fit.info["dataset"] == "dataset"
 
 
 def test_samples(
@@ -64,6 +60,7 @@ def test_samples(
 
 def test_load(aggregator):
     assert len(aggregator) == 1
+    assert aggregator[0].is_complete is True
 
 
 def test_values(

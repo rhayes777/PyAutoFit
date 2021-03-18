@@ -1,5 +1,6 @@
 import copy
 import inspect
+import logging
 from functools import wraps
 from numbers import Number
 from random import random
@@ -8,6 +9,7 @@ from typing import Tuple, Optional
 import numpy as np
 
 from autoconf import conf
+from autoconf.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel
@@ -20,6 +22,10 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 def check_assertions(func):
@@ -181,6 +187,19 @@ class AbstractPriorModel(AbstractModel):
         exc.FitException
             If any assertion attached to this object returns False.
         """
+        exception_tuples = self.attribute_tuples_with_type(
+            ConfigException
+        )
+        if len(exception_tuples) > 0:
+            for name, exception in exception_tuples:
+                logger.exception(
+                    f"Could not load {name} because:\n\n{exception}"
+                )
+            names = [name for name, _ in exception_tuples]
+            raise ConfigException(
+                f"No configuration was found for some attributes ({', '.join(names)})"
+            )
+
         arguments = dict(
             map(
                 lambda prior_tuple, unit: (
