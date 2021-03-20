@@ -6,13 +6,17 @@ logger = logging.getLogger(__name__)
 
 
 class ResultsCollection:
-    def __init__(self):
+    def __init__(self, result_list=None):
         """
         A collection of results from previous phases. Results can be obtained using an index or the name of the phase
         from whence they came.
         """
         self.__result_list = []
         self.__result_dict = {}
+
+        if result_list is not None:
+            for result in result_list:
+                self.add(name="", result=result)
 
     def copy(self):
         collection = ResultsCollection()

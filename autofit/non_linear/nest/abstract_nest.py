@@ -187,16 +187,6 @@ class AbstractNest(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
 
-    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
-        copy = super().copy_with_name_extension(
-            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
-        )
-        copy.prior_passer = self.prior_passer
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
-        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
-        return copy
-
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
         return self.__class__.Fitness(

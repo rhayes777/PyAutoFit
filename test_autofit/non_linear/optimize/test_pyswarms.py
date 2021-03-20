@@ -140,25 +140,3 @@ class TestPySwarmsGlobalConfig:
         assert len(samples.parameters) == 500
         assert len(samples.log_likelihoods) == 500
 
-
-class TestCopyWithNameExtension:
-    @staticmethod
-    def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == path.join("name", "one")
-
-    def test__pyswarms(self):
-        search = af.PySwarmsGlobal(af.Paths("name"))
-
-        copy = search.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy)
-        assert isinstance(copy, af.PySwarmsGlobal)
-        assert copy.prior_passer is search.prior_passer
-        assert copy.n_particles is search.n_particles
-        assert copy.iters is search.iters
-        assert copy.cognitive == search.cognitive
-        assert copy.social == search.social
-        assert copy.inertia == search.inertia
-        assert copy.ftol is search.ftol
-        assert copy.initializer is search.initializer
-        assert copy.iterations_per_update is search.iterations_per_update
-        assert copy.number_of_cores is search.number_of_cores

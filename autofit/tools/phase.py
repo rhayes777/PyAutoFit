@@ -256,24 +256,3 @@ def as_grid_search(phase_class, number_of_steps=4, number_of_cores=1):
 
     return GridSearchExtension
 
-
-class AbstractSettingsPhase:
-
-    def __init__(self, log_likelihood_cap=None):
-
-        self.log_likelihood_cap = log_likelihood_cap
-
-    @property
-    def log_likelihood_cap_tag(self):
-        """Generate a bin up tag, to customize phase names based on the resolutioon the image is binned up by for faster \
-        run times.
-
-        This changes the phase settings folder is tagged as follows:
-
-        log_likelihood_cap = None -> settings
-        log_likelihood_cap = 2 -> settings_lh_cap_2
-        """
-        if self.log_likelihood_cap is None:
-            return ""
-        return f"__{conf.instance['notation']['settings_tags']['phase']['log_likelihood_cap']}" \
-               + "_{0:.1f}".format(self.log_likelihood_cap)

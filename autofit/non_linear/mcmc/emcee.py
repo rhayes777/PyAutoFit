@@ -258,28 +258,6 @@ class Emcee(AbstractMCMC):
 
         return f"{name_tag}[{nwalkers_tag}]"
 
-    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
-        """Copy this instance of the emcee `NonLinearSearch` with all associated attributes.
-
-        This is used to set up the `NonLinearSearch` on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
-        )
-        copy.prior_passer = self.prior_passer
-        copy.nwalkers = self.nwalkers
-        copy.nsteps = self.nsteps
-        copy.auto_correlation_check_for_convergence = (
-            self.auto_correlation_check_for_convergence
-        )
-        copy.auto_correlation_check_size = self.auto_correlation_check_size
-        copy.auto_correlation_required_length = self.auto_correlation_required_length
-        copy.auto_correlation_change_threshold = self.auto_correlation_change_threshold
-        copy.initializer = self.initializer
-        copy.iterations_per_update = self.iterations_per_update
-        copy.number_of_cores = self.number_of_cores
-
-        return copy
-
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
         return Emcee.Fitness(

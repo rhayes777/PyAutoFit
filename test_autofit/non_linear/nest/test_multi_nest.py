@@ -243,40 +243,6 @@ class TestMulitNest:
 
         assert multi_nest.tag == "multinest[nlive_41_eff_0.6_const_mm_is]"
 
-    @staticmethod
-    def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == path.join("name", "one")
-
-    def test__copy_with_name_extension(self):
-        search = af.MultiNest(af.Paths("name"))
-
-        copy = search.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy)
-        assert isinstance(copy, af.MultiNest)
-        assert copy.prior_passer is search.prior_passer
-        assert copy.importance_nested_sampling is search.importance_nested_sampling
-        assert copy.multimodal is search.multimodal
-        assert copy.const_efficiency_mode is search.const_efficiency_mode
-        assert copy.n_live_points is search.n_live_points
-        assert copy.evidence_tolerance is search.evidence_tolerance
-        assert copy.sampling_efficiency is search.sampling_efficiency
-        assert copy.n_iter_before_update is search.n_iter_before_update
-        assert copy.null_log_evidence is search.null_log_evidence
-        assert copy.max_modes is search.max_modes
-        assert copy.mode_tolerance is search.mode_tolerance
-        assert copy.seed is search.seed
-        assert copy.verbose is search.verbose
-        assert copy.resume is search.resume
-        assert copy.context is search.context
-        assert copy.write_output is search.write_output
-        assert copy.log_zero is search.log_zero
-        assert copy.max_iter is search.max_iter
-        assert copy.init_MPI is search.init_MPI
-        assert (
-            copy.terminate_at_acceptance_ratio is search.terminate_at_acceptance_ratio
-        )
-        assert copy.acceptance_ratio_threshold is search.acceptance_ratio_threshold
-
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):
 
         multi_nest = af.MultiNest(paths=af.Paths(path_prefix=path.join("non_linear", "multinest")))

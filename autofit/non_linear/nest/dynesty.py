@@ -361,37 +361,6 @@ class AbstractDynesty(AbstractNest):
             ):
                 finished = True
 
-    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
-        """Copy this instance of the dynesty `NonLinearSearch` with all associated attributes.
-
-        This is used to set up the `NonLinearSearch` on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
-        )
-        copy.n_live_points = self.n_live_points
-        copy.iterations_per_update = self.iterations_per_update
-        copy.evidence_tolerance = self.evidence_tolerance
-        copy.bound = self.bound
-        copy.sample = self.sample
-        copy.update_interval = self.update_interval
-        copy.bootstrap = self.bootstrap
-        copy.enlarge = self.enlarge
-        copy.vol_dec = self.vol_dec
-        copy.vol_check = self.vol_check
-        copy.walks = self.walks
-        copy.facc = self.facc
-        copy.slices = self.slices
-        copy.fmove = self.fmove
-        copy.max_move = self.max_move
-        copy.initializer = self.initializer
-        copy.iterations_per_update = self.iterations_per_update
-        copy.number_of_cores = self.number_of_cores
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
-        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
-
-        return copy
-
     @property
     def load_sampler(self):
         with open("{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb") as f:

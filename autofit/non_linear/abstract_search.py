@@ -284,29 +284,6 @@ class NonLinearSearch(ABC):
         """Tag the output folder of the non-linear search, based on the non linear search settings"""
         raise NotImplementedError
 
-    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
-        name = path.join(self.paths.name, extension)
-
-        if path_prefix is None:
-            path_prefix = self.paths.path_prefix
-
-        if remove_phase_tag:
-            tag = ""
-        else:
-            tag = self.paths.tag
-
-        new_instance = self.__class__(
-            paths=Paths(
-                name=name,
-                tag=tag,
-                path_prefix=path_prefix,
-                non_linear_name=self.paths.non_linear_name,
-                remove_files=self.paths.remove_files,
-            )
-        )
-
-        return new_instance
-
     @property
     def config_type(self):
         raise NotImplementedError()

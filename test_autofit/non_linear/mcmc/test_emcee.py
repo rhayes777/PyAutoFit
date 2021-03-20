@@ -133,33 +133,3 @@ class TestEmceeOutput:
             [31.98507, 36.51001, 73.47629, 67.67495], 1.0e-4
         )
 
-
-class TestCopyWithNameExtension:
-    @staticmethod
-    def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == path.join("name", "one")
-
-    def test_emcee(self):
-        search = af.Emcee(af.Paths("name"))
-
-        copy = search.copy_with_name_extension("one")
-        self.assert_non_linear_attributes_equal(copy)
-        assert isinstance(copy, af.Emcee)
-        assert copy.prior_passer is search.prior_passer
-        assert copy.nwalkers is search.nwalkers
-        assert copy.nsteps is search.nsteps
-        assert copy.initializer is search.initializer
-        assert (
-            copy.auto_correlation_check_for_convergence
-            is search.auto_correlation_check_for_convergence
-        )
-        assert copy.auto_correlation_check_size is search.auto_correlation_check_size
-        assert (
-            copy.auto_correlation_required_length
-            is search.auto_correlation_required_length
-        )
-        assert (
-            copy.auto_correlation_change_threshold
-            is search.auto_correlation_change_threshold
-        )
-        assert copy.number_of_cores is search.number_of_cores

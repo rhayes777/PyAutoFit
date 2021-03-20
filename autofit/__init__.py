@@ -68,7 +68,6 @@ from .text import formatter
 from .text import samples_text
 from .tools import util
 from .tools.phase import AbstractPhase
-from .tools.phase import AbstractSettingsPhase
 from .tools.phase import Dataset
 from .tools.phase import Phase
 from .tools.phase import as_grid_search

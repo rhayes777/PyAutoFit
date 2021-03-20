@@ -331,37 +331,6 @@ class MultiNest(abstract_nest.AbstractNest):
 
         return f"{name_tag}[{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}]"
 
-    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
-        """Copy this instance of the multinest `NonLinearSearch` with all associated attributes.
-
-        This is used to set up the `NonLinearSearch` on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
-        )
-        copy.prior_passer = self.prior_passer
-        copy.importance_nested_sampling = self.importance_nested_sampling
-        copy.multimodal = self.multimodal
-        copy.const_efficiency_mode = self.const_efficiency_mode
-        copy.n_live_points = self.n_live_points
-        copy.evidence_tolerance = self.evidence_tolerance
-        copy.sampling_efficiency = self.sampling_efficiency
-        copy.n_iter_before_update = self.n_iter_before_update
-        copy.null_log_evidence = self.null_log_evidence
-        copy.max_modes = self.max_modes
-        copy.mode_tolerance = self.mode_tolerance
-        copy.seed = self.seed
-        copy.verbose = self.verbose
-        copy.resume = self.resume
-        copy.context = self.context
-        copy.write_output = self.write_output
-        copy.log_zero = self.log_zero
-        copy.max_iter = self.max_iter
-        copy.init_MPI = self.init_MPI
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
-        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
-        return copy
-
     def samples_via_sampler_from_model(self, model: AbstractPriorModel):
         """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
