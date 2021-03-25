@@ -73,7 +73,6 @@ class Job(AbstractJob):
                 name=paths.name,
                 tag=paths.tag + "[base]",
                 path_prefix=paths.path_prefix,
-                remove_files=paths.remove_files,
             )
         )
         self.perturbed_search = search.copy_with_paths(
@@ -81,7 +80,6 @@ class Job(AbstractJob):
                 name=paths.name,
                 tag=paths.tag + "[perturbed]",
                 path_prefix=paths.path_prefix,
-                remove_files=paths.remove_files,
             )
         )
 
@@ -302,7 +300,6 @@ class Sensitivity:
                 name=name_path,
                 tag=paths.tag,
                 path_prefix=paths.path_prefix,
-                remove_files=paths.remove_files,
             )
         )
 

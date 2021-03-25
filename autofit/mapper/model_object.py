@@ -18,11 +18,6 @@ class Identifier:
                     self.add_value_to_hash_list(
                         value
                     )
-        elif isinstance(value, Iterable):
-            for value in value:
-                self.add_value_to_hash_list(
-                    value
-                )
         elif isinstance(
                 value,
                 (str, float, int, bool)
@@ -30,6 +25,11 @@ class Identifier:
             self.hash_list.append(
                 str(value)
             )
+        elif isinstance(value, Iterable):
+            for value in value:
+                self.add_value_to_hash_list(
+                    value
+                )
 
     def add_value_to_hash_list(self, value):
         if hasattr(value, "identifier"):
