@@ -1,3 +1,4 @@
+import json
 import os
 import pickle
 import shutil
@@ -8,6 +9,7 @@ from os import path
 
 from autoconf import conf
 from autofit.mapper import link
+from autofit.non_linear import samples
 from autofit.non_linear.log import logger
 from autofit.text import formatter
 
@@ -262,11 +264,11 @@ non_linear_search={search_name}
         return path.join(self.output_path, "samples")
 
     @property
-    def samples_file(self) -> str:
+    def _samples_file(self) -> str:
         return path.join(self.samples_path, "samples.csv")
 
     @property
-    def info_file(self) -> str:
+    def _info_file(self) -> str:
         return path.join(self.samples_path, "info.json")
 
     @property
@@ -427,3 +429,12 @@ non_linear_search={search_name}
 
         except FileNotFoundError:
             pass
+
+    def load_samples(self):
+        return samples.load_from_table(
+            filename=self._samples_file
+        )
+
+    def load_samples_info(self):
+        with open(self._info_file) as infile:
+            return json.load(infile)

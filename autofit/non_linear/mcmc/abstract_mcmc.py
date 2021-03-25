@@ -12,7 +12,7 @@ class AbstractMCMC(NonLinearSearch):
 
     def samples_via_csv_json_from_model(self, model):
         parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
-            filename=self.paths.samples_file, model=model
+            filename=self.paths.samples_file
         )
 
         with open(self.paths.info_file) as infile:

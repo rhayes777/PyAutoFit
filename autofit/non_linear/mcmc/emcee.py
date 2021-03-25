@@ -1,4 +1,3 @@
-import json
 import os
 from typing import List
 
@@ -8,7 +7,6 @@ import numpy as np
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear import samples as samp
 from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.paths import convert_paths
@@ -341,12 +339,8 @@ class Emcee(AbstractMCMC):
 
         # TODO : Better design to remove repetition.
 
-        samples = samp.load_from_table(
-            filename=self.paths.samples_file
-        )
-
-        with open(self.paths.info_file) as infile:
-            samples_info = json.load(infile)
+        samples = self.paths.load_samples()
+        samples_info = self.paths.load_samples_info()
 
         return EmceeSamples(
             model=model,

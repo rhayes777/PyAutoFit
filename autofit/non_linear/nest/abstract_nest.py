@@ -1,5 +1,3 @@
-import json
-
 import numpy as np
 
 from autoconf import conf
@@ -76,16 +74,16 @@ class AbstractNest(NonLinearSearch):
 
     class Fitness(NonLinearSearch.Fitness):
         def __init__(
-            self,
-            paths,
-            analysis,
-            model,
-            samples_from_model,
-            stagger_resampling_likelihood,
-            terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold,
-            log_likelihood_cap=None,
-            pool_ids=None
+                self,
+                paths,
+                analysis,
+                model,
+                samples_from_model,
+                stagger_resampling_likelihood,
+                terminate_at_acceptance_ratio,
+                acceptance_ratio_threshold,
+                log_likelihood_cap=None,
+                pool_ids=None
         ):
 
             super().__init__(
@@ -213,12 +211,8 @@ class AbstractNest(NonLinearSearch):
 
     def samples_via_csv_json_from_model(self, model):
 
-        samples = samp.load_from_table(
-            filename=self.paths.samples_file
-        )
-
-        with open(self.paths.info_file) as infile:
-            samples_info = json.load(infile)
+        samples = self.paths.load_samples()
+        samples_info = self.paths.load_samples_info()
 
         return samp.NestSamples(
             model=model,
