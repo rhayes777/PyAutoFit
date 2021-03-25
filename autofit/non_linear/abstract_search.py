@@ -16,7 +16,6 @@ from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.non_linear.timer import Timer
-from autofit.text import text_util
 
 
 class NonLinearSearch(ABC):
@@ -357,21 +356,13 @@ class NonLinearSearch(ABC):
             )
 
         if self.should_output_model_results() or not during_analysis:
-
-            text_util.results_to_file(
-                samples=samples,
-                filename=self.paths.file_results,
-                during_analysis=during_analysis,
-            )
-
             start = time.time()
             analysis.log_likelihood_function(instance=instance)
             log_likelihood_function_time = (time.time() - start)
 
-            text_util.search_summary_to_file(
+            self.paths.save_summary(
                 samples=samples,
-                log_likelihood_function_time=log_likelihood_function_time,
-                filename=self.paths.file_search_summary
+                log_likelihood_function_time=log_likelihood_function_time
             )
 
         if not during_analysis and self.remove_state_files_at_end:

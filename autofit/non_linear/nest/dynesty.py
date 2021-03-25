@@ -12,7 +12,6 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.paths import convert_paths
 from autofit.non_linear.samples import NestSamples, Sample
-from autofit.text import samples_text
 
 
 class AbstractDynesty(AbstractNest):
@@ -516,31 +515,31 @@ class DynestyStatic(AbstractDynesty):
 
     @convert_paths
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_live_points=None,
-        facc=None,
-        evidence_tolerance=None,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        maxiter=None,
-        maxcall=None,
-        logl_max=None,
-        n_effective=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_live_points=None,
+            facc=None,
+            evidence_tolerance=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         A Dynesty `NonLinearSearch` using a static number of live points.
@@ -727,31 +726,31 @@ class DynestyStatic(AbstractDynesty):
 
 class DynestyDynamic(AbstractDynesty):
     def __init__(
-        self,
-        paths=None,
-        prior_passer=None,
-        n_live_points=None,
-        evidence_tolerance=None,
-        facc=None,
-        bound=None,
-        sample=None,
-        bootstrap=None,
-        enlarge=None,
-        update_interval=None,
-        vol_dec=None,
-        vol_check=None,
-        walks=None,
-        slices=None,
-        fmove=None,
-        max_move=None,
-        maxiter=None,
-        maxcall=None,
-        logl_max=None,
-        n_effective=None,
-        terminate_at_acceptance_ratio=None,
-        acceptance_ratio_threshold=None,
-        iterations_per_update=None,
-        number_of_cores=None,
+            self,
+            paths=None,
+            prior_passer=None,
+            n_live_points=None,
+            evidence_tolerance=None,
+            facc=None,
+            bound=None,
+            sample=None,
+            bootstrap=None,
+            enlarge=None,
+            update_interval=None,
+            vol_dec=None,
+            vol_check=None,
+            walks=None,
+            slices=None,
+            fmove=None,
+            max_move=None,
+            maxiter=None,
+            maxcall=None,
+            logl_max=None,
+            n_effective=None,
+            terminate_at_acceptance_ratio=None,
+            acceptance_ratio_threshold=None,
+            iterations_per_update=None,
+            number_of_cores=None,
     ):
         """
         A Dynesty non-linear search, using a dynamically changing number of live points.
@@ -1089,14 +1088,9 @@ class DynestyDynamic(AbstractDynesty):
 
         if self.should_output_model_results() or not during_analysis:
 
-            samples_text.results_to_file(
+            self.paths.save_summary(
                 samples=samples,
-                filename=self.paths.file_results,
-                during_analysis=during_analysis,
-            )
-
-            samples_text.search_summary_to_file(
-                samples=samples, filename=self.paths.file_search_summary
+                log_likelihood_function_time=-1
             )
 
         self.paths.zip_remove()

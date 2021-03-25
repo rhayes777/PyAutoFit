@@ -11,7 +11,7 @@ from autoconf import conf
 from autofit.mapper import link
 from autofit.non_linear import samples as s
 from autofit.non_linear.log import logger
-from autofit.text import formatter
+from autofit.text import formatter, text_util
 
 
 def make_path(func):
@@ -203,13 +203,23 @@ non_linear_search={search_name}
             list_of_strings=parameter_name_and_label
         )
 
-    @property
-    def file_search_summary(self) -> str:
-        return path.join(self.output_path, "search.summary")
+    def save_summary(self, samples, log_likelihood_function_time):
+        text_util.results_to_file(
+            samples=samples,
+            filename=path.join(
+                self.output_path,
+                "model.results"
+            )
+        )
 
-    @property
-    def file_results(self):
-        return path.join(self.output_path, "model.results")
+        text_util.search_summary_to_file(
+            samples=samples,
+            log_likelihood_function_time=log_likelihood_function_time,
+            filename=path.join(
+                self.output_path,
+                "search.summary"
+            )
+        )
 
     def _save_info(self, info):
         """
@@ -267,7 +277,18 @@ non_linear_search={search_name}
 
     @property
     def path(self):
-        return link.make_linked_folder(self.sym_path)
+        return link.make_linked_folder(self._sym_path)
+
+    @property
+    @make_path
+    def _sym_path(self) -> str:
+        return path.join(
+            conf.instance.output_path,
+            self.path_prefix,
+            self.name,
+            self.tag,
+            self.non_linear_tag,
+        )
 
     def __eq__(self, other):
         return isinstance(other, Paths) and all(
@@ -346,17 +367,6 @@ non_linear_search={search_name}
 
     @property
     @make_path
-    def sym_path(self) -> str:
-        return path.join(
-            conf.instance.output_path,
-            self.path_prefix,
-            self.name,
-            self.tag,
-            self.non_linear_tag,
-        )
-
-    @property
-    @make_path
     def pickle_path(self) -> str:
         return path.join(self._make_path(), "pickles")
 
@@ -428,5 +438,3 @@ non_linear_search={search_name}
             self.tag,
             self.non_linear_tag,
         )
-
-
