@@ -234,8 +234,6 @@ class NonLinearSearch(ABC):
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
         if not self.paths.is_complete:
-
-            # TODO : Better way to handle?
             self.timer.samples_path = self.paths.samples_path
             self.timer.start()
 
