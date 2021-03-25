@@ -30,7 +30,10 @@ def frozen_cache(func):
 def assert_not_frozen(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        if "_is_frozen" not in args and hasattr(self, "_is_frozen") and self._is_frozen:
+        if "_is_frozen" not in filter(
+                lambda arg: isinstance(arg, str),
+                args
+        ) and hasattr(self, "_is_frozen") and self._is_frozen:
             raise AssertionError(
                 "Frozen models cannot be modified"
             )
