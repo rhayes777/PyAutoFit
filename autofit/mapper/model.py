@@ -9,6 +9,23 @@ from autofit.tools.pipeline import ResultsCollection
 
 
 def frozen_cache(func):
+    """
+    Decorator that caches results from function calls when
+    a model is frozen.
+
+    Value is cached by function name, instance and arguments.
+
+    Parameters
+    ----------
+    func
+        Some function attached to a freezable, hashable object
+        that takes hashable arguments
+
+    Returns
+    -------
+    Function with cache
+    """
+
     @wraps(func)
     def cache(self, *args, **kwargs):
         if hasattr(self, "_is_frozen") and self._is_frozen:
@@ -28,6 +45,23 @@ def frozen_cache(func):
 
 
 def assert_not_frozen(func):
+    """
+    Decorator that asserts a function is not called when an object
+    is frozen. For example, it should not be possible to set an
+    attribute on a frozen model as that might invalidate the results
+    in the cache.
+
+    Parameters
+    ----------
+    func
+        Some function
+
+    Raises
+    ------
+    AssertionError
+        If the function is called when the object is frozen
+    """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         if "_is_frozen" not in filter(
@@ -49,10 +83,32 @@ class AbstractModel(ModelObject):
         self._frozen_cache = dict()
 
     def freeze(self):
+        """
+        Freeze this object.
+
+        A frozen object caches results for some function calls
+        and does not allow its state to be modified.
+        """
+        tuples = self.direct_tuples_with_type(
+            AbstractModel
+        )
+        for _, model in tuples:
+            if model is not self:
+                model.freeze()
         self._is_frozen = True
 
     def unfreeze(self):
+        """
+        Unfreeze this object. Allows modification and removes
+        caches associated with some functions.
+        """
         self._is_frozen = False
+        tuples = self.direct_tuples_with_type(
+            AbstractModel
+        )
+        for _, model in tuples:
+            if model is not self:
+                model.unfreeze()
         self._frozen_cache = dict()
 
     def __add__(self, other):

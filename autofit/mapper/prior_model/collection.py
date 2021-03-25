@@ -75,13 +75,12 @@ class CollectionPriorModel(AbstractPriorModel):
             A list classes, prior_models or instances
         """
         super().__init__()
+        self.item_number = 0
         arguments = list(arguments)
         if len(arguments) == 0:
             self.add_dict_items(kwargs)
         elif len(arguments) == 1:
             arguments = arguments[0]
-
-            self.item_number = 0
 
             if isinstance(arguments, list):
                 for argument in arguments:
@@ -91,6 +90,7 @@ class CollectionPriorModel(AbstractPriorModel):
         else:
             self.__init__(arguments)
 
+    @assert_not_frozen
     def add_dict_items(self, item_dict):
         for key, value in item_dict.items():
             setattr(self, key, AbstractPriorModel.from_object(value))
@@ -103,6 +103,7 @@ class CollectionPriorModel(AbstractPriorModel):
                 return False
         return True
 
+    @assert_not_frozen
     def append(self, item):
         setattr(self, str(self.item_number), AbstractPriorModel.from_object(item))
         self.item_number += 1
