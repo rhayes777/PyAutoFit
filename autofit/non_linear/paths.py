@@ -135,25 +135,28 @@ class Paths:
             logger.exception(e)
 
     def save_all(self, model, info, search, pickle_files):
-        self.save_model_info(model=model)
-        self.save_parameter_names_file(model=model)
-        self.save_info(info=info)
-        self.save_search(search=search)
-        self.save_model(model=model)
-        self.save_metadata(
+        self._save_model_info(model=model)
+        self._save_parameter_names_file(model=model)
+        self._save_info(info=info)
+        self._save_search(search=search)
+        self._save_model(model=model)
+        self._save_metadata(
             search_name=type(self).__name__.lower()
         )
-        self.move_pickle_files(pickle_files=pickle_files)
+        self._move_pickle_files(pickle_files=pickle_files)
 
-    def save_metadata(self, search_name):
+    def _save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
         with open(path.join(self.make_path(), "metadata"), "a") as f:
-            f.write(self.make_metadata_text(search_name))
+            f.write(f"""name={self.name}
+tag={self.tag}
+non_linear_search={search_name}
+""")
 
-    def move_pickle_files(self, pickle_files):
+    def _move_pickle_files(self, pickle_files):
         """
         Move extra files a user has input the full path + filename of from the location specified to the
         pickles folder of the Aggregator, so that they can be accessed via the aggregator.
@@ -161,19 +164,13 @@ class Paths:
         if pickle_files is not None:
             [shutil.copy(file, self.pickle_path) for file in pickle_files]
 
-    def make_metadata_text(self, search_name):
-        return f"""name={self.name}
-tag={self.tag}
-non_linear_search={search_name}
-"""
-
-    def save_model_info(self, model):
+    def _save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
         with open(self.file_model_info, "w+") as f:
             f.write(f"Total Free Parameters = {model.prior_count} \n\n")
             f.write(model.info)
 
-    def save_parameter_names_file(self, model):
+    def _save_parameter_names_file(self, model):
         """Create the param_names file listing every parameter's label and Latex tag, which is used for *corner.py*
         visualization.
 
@@ -197,21 +194,21 @@ non_linear_search={search_name}
             file=self.file_param_names, list_of_strings=parameter_name_and_label
         )
 
-    def save_info(self, info):
+    def _save_info(self, info):
         """
         Save the dataset associated with the phase
         """
         with open(path.join(self.pickle_path, "info.pickle"), "wb") as f:
             pickle.dump(info, f)
 
-    def save_search(self, search):
+    def _save_search(self, search):
         """
         Save the search associated with the phase as a pickle
         """
         with open(self.make_search_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(search))
 
-    def save_model(self, model):
+    def _save_model(self, model):
         """
         Save the model associated with the phase as a pickle
         """
@@ -222,6 +219,8 @@ non_linear_search={search_name}
         """
         Save the final-result samples associated with the phase as a pickle
         """
+        samples.write_table(filename=self.samples_file)
+        samples.info_to_json(filename=self.info_file)
 
         with open(self.make_samples_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(samples))

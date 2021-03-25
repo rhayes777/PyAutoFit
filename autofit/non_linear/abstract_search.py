@@ -341,8 +341,6 @@ class NonLinearSearch(ABC):
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model)
-        samples.write_table(filename=self.paths.samples_file)
-        samples.info_to_json(filename=self.paths.info_file)
 
         self.paths.save_samples(samples=samples)
 
@@ -352,7 +350,11 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-            analysis.visualize(paths=self.paths, instance=instance, during_analysis=during_analysis)
+            analysis.visualize(
+                paths=self.paths,
+                instance=instance,
+                during_analysis=during_analysis
+            )
 
         if self.should_output_model_results() or not during_analysis:
 
