@@ -136,6 +136,156 @@ class Paths:
         except NoSectionError as e:
             logger.exception(e)
 
+    def save_samples(self, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+        samples.write_table(filename=self._samples_file)
+        samples.info_to_json(filename=self._info_file)
+
+        with open(path.join(
+                self.pickle_path,
+                "samples.pickle"
+        ), "w+b") as f:
+            f.write(pickle.dumps(samples))
+
+    @property
+    def non_linear_tag(self):
+        return self.non_linear_tag_function()
+
+    @property
+    def path(self):
+        return link.make_linked_folder(self._sym_path)
+
+    @property
+    @make_path
+    def samples_path(self) -> str:
+        """
+        The path to the samples folder.
+        """
+        return path.join(self.output_path, "samples")
+
+    @property
+    def image_path(self) -> str:
+        """
+        The path to the image folder.
+        """
+        return path.join(self.output_path, "image")
+
+    @property
+    def zip_path(self) -> str:
+        return f"{self.output_path}.zip"
+
+    @property
+    @make_path
+    def output_path(self) -> str:
+        """
+        The path to the output information for a phase.
+        """
+        strings = (
+            list(filter(
+                len,
+                [
+                    str(conf.instance.output_path),
+                    self.path_prefix,
+                    self.name,
+                    self.tag,
+                    self.non_linear_tag,
+                ],
+            )
+            )
+        )
+
+        return path.join("", *strings)
+
+    @property
+    def is_complete(self):
+        return path.exists(
+            self._has_completed_path
+        )
+
+    def completed(self):
+        open(self._has_completed_path, "w+").close()
+
+    @property
+    @make_path
+    def pickle_path(self) -> str:
+        return path.join(self._make_path(), "pickles")
+
+    def zip_remove(self):
+        """
+        Copy files from the sym linked search folder then remove the sym linked folder.
+        """
+
+        self.zip()
+
+        if self.remove_files:
+            try:
+                shutil.rmtree(self.path)
+            except (FileNotFoundError, PermissionError):
+                pass
+
+    def restore(self):
+        """
+        Copy files from the ``.zip`` file to the samples folder.
+        """
+
+        if path.exists(self.zip_path):
+            with zipfile.ZipFile(self.zip_path, "r") as f:
+                f.extractall(self.output_path)
+
+            os.remove(self.zip_path)
+
+    def zip(self):
+
+        try:
+            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
+                for root, dirs, files in os.walk(self.output_path):
+
+                    for file in files:
+
+                        # TODO : I removed lstrip("/") here, I think it is ok...
+
+                        f.write(
+                            path.join(root, file),
+                            path.join(
+                                root[len(self.output_path):], file
+                            ),
+                        )
+
+            if self.remove_files:
+                shutil.rmtree(self.output_path)
+
+        except FileNotFoundError:
+            pass
+
+    def load_samples(self):
+        return s.load_from_table(
+            filename=self._samples_file
+        )
+
+    def load_samples_info(self):
+        with open(self._info_file) as infile:
+            return json.load(infile)
+
+    def save_summary(self, samples, log_likelihood_function_time):
+        text_util.results_to_file(
+            samples=samples,
+            filename=path.join(
+                self.output_path,
+                "model.results"
+            )
+        )
+
+        text_util.search_summary_to_file(
+            samples=samples,
+            log_likelihood_function_time=log_likelihood_function_time,
+            filename=path.join(
+                self.output_path,
+                "search.summary"
+            )
+        )
+
     def save_all(self, model, info, search, pickle_files):
         self._save_model_info(model=model)
         self._save_parameter_names_file(model=model)
@@ -203,24 +353,6 @@ non_linear_search={search_name}
             list_of_strings=parameter_name_and_label
         )
 
-    def save_summary(self, samples, log_likelihood_function_time):
-        text_util.results_to_file(
-            samples=samples,
-            filename=path.join(
-                self.output_path,
-                "model.results"
-            )
-        )
-
-        text_util.search_summary_to_file(
-            samples=samples,
-            log_likelihood_function_time=log_likelihood_function_time,
-            filename=path.join(
-                self.output_path,
-                "search.summary"
-            )
-        )
-
     def _save_info(self, info):
         """
         Save the dataset associated with the phase
@@ -248,19 +380,6 @@ non_linear_search={search_name}
         ), "w+b") as f:
             f.write(pickle.dumps(model))
 
-    def save_samples(self, samples):
-        """
-        Save the final-result samples associated with the phase as a pickle
-        """
-        samples.write_table(filename=self._samples_file)
-        samples.info_to_json(filename=self._info_file)
-
-        with open(path.join(
-                self.pickle_path,
-                "samples.pickle"
-        ), "w+b") as f:
-            f.write(pickle.dumps(samples))
-
     def __getstate__(self):
         state = self.__dict__.copy()
         state["non_linear_tag"] = state.pop("non_linear_tag_function")()
@@ -270,14 +389,6 @@ non_linear_search={search_name}
         non_linear_tag = state.pop("non_linear_tag")
         self.non_linear_tag_function = lambda: non_linear_tag
         self.__dict__.update(state)
-
-    @property
-    def non_linear_tag(self):
-        return self.non_linear_tag_function()
-
-    @property
-    def path(self):
-        return link.make_linked_folder(self._sym_path)
 
     @property
     @make_path
@@ -301,14 +412,6 @@ non_linear_search={search_name}
         )
 
     @property
-    @make_path
-    def samples_path(self) -> str:
-        """
-        The path to the samples folder.
-        """
-        return path.join(self.output_path, "samples")
-
-    @property
     def _samples_file(self) -> str:
         return path.join(self.samples_path, "samples.csv")
 
@@ -317,114 +420,11 @@ non_linear_search={search_name}
         return path.join(self.samples_path, "info.json")
 
     @property
-    def image_path(self) -> str:
-        """
-        The path to the image folder.
-        """
-        return path.join(self.output_path, "image")
-
-    @property
-    def zip_path(self) -> str:
-        return f"{self.output_path}.zip"
-
-    @property
-    @make_path
-    def output_path(self) -> str:
-        """
-        The path to the output information for a phase.
-        """
-        strings = (
-            list(filter(
-                len,
-                [
-                    str(conf.instance.output_path),
-                    self.path_prefix,
-                    self.name,
-                    self.tag,
-                    self.non_linear_tag,
-                ],
-            )
-            )
-        )
-
-        return path.join("", *strings)
-
-    @property
-    def is_complete(self):
-        return path.exists(
-            self._has_completed_path
-        )
-
-    def completed(self):
-        open(self._has_completed_path, "w+").close()
-
-    @property
     def _has_completed_path(self) -> str:
         """
         A file indicating that a `NonLinearSearch` has been completed previously
         """
         return path.join(self.output_path, ".completed")
-
-    @property
-    @make_path
-    def pickle_path(self) -> str:
-        return path.join(self._make_path(), "pickles")
-
-    def zip_remove(self):
-        """
-        Copy files from the sym linked search folder then remove the sym linked folder.
-        """
-
-        self.zip()
-
-        if self.remove_files:
-            try:
-                shutil.rmtree(self.path)
-            except (FileNotFoundError, PermissionError):
-                pass
-
-    def restore(self):
-        """
-        Copy files from the ``.zip`` file to the samples folder.
-        """
-
-        if path.exists(self.zip_path):
-            with zipfile.ZipFile(self.zip_path, "r") as f:
-                f.extractall(self.output_path)
-
-            os.remove(self.zip_path)
-
-    def zip(self):
-
-        try:
-            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
-                for root, dirs, files in os.walk(self.output_path):
-
-                    for file in files:
-
-                        # TODO : I removed lstrip("/") here, I think it is ok...
-
-                        f.write(
-                            path.join(root, file),
-                            path.join(
-                                root[len(self.output_path):], file
-                            ),
-                        )
-
-            if self.remove_files:
-                shutil.rmtree(self.output_path)
-
-        except FileNotFoundError:
-            pass
-
-    def load_samples(self):
-        return s.load_from_table(
-            filename=self._samples_file
-        )
-
-    def load_samples_info(self):
-        with open(self._info_file) as infile:
-            return json.load(infile)
 
     @make_path
     def _make_path(self) -> str:
