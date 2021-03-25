@@ -1,14 +1,15 @@
 import os
-from os import path
+import pickle
 import shutil
 import zipfile
 from configparser import NoSectionError
 from functools import wraps
-import copy
+from os import path
 
 from autoconf import conf
 from autofit.mapper import link
 from autofit.non_linear.log import logger
+from autofit.text import formatter
 
 
 def make_path(func):
@@ -117,8 +118,6 @@ class Paths:
             A prefixed path that appears after the output_path but beflore the name variable.
         non_linear_name : str
             The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
-        remove_files : bool
-            If `True`, all output results except their ``.zip`` files are removed. If `False` they are not removed.
         """
 
         self.path_prefix = path_prefix or ""
@@ -134,6 +133,87 @@ class Paths:
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+    def save_metadata(self, search_name):
+        """
+        Save metadata associated with the phase, such as the name of the pipeline, the
+        name of the phase and the name of the dataset being fit
+        """
+        with open(path.join(self.make_path(), "metadata"), "a") as f:
+            f.write(self.make_metadata_text(search_name))
+
+    def move_pickle_files(self, pickle_files):
+        """
+        Move extra files a user has input the full path + filename of from the location specified to the
+        pickles folder of the Aggregator, so that they can be accessed via the aggregator.
+        """
+        if pickle_files is not None:
+            [shutil.copy(file, self.pickle_path) for file in pickle_files]
+
+    def make_metadata_text(self, search_name):
+        return f"""name={self.name}
+tag={self.tag}
+non_linear_search={search_name}
+"""
+
+    def save_model_info(self, model):
+        """Save the model.info file, which summarizes every parameter and prior."""
+        with open(self.file_model_info, "w+") as f:
+            f.write(f"Total Free Parameters = {model.prior_count} \n\n")
+            f.write(model.info)
+
+    def save_parameter_names_file(self, model):
+        """Create the param_names file listing every parameter's label and Latex tag, which is used for *corner.py*
+        visualization.
+
+        The parameter labels are determined using the label.ini and label_format.ini config files."""
+
+        parameter_names = model.model_component_and_parameter_names
+        parameter_labels = model.parameter_labels
+        subscripts = model.subscripts
+        parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in
+                                           zip(parameter_labels, subscripts)]
+
+        parameter_name_and_label = []
+
+        for i in range(model.prior_count):
+            line = formatter.add_whitespace(
+                str0=parameter_names[i], str1=parameter_labels_with_subscript[i], whitespace=70
+            )
+            parameter_name_and_label += [f"{line}\n"]
+
+        formatter.output_list_of_strings_to_file(
+            file=self.file_param_names, list_of_strings=parameter_name_and_label
+        )
+
+    def save_info(self, info):
+        """
+        Save the dataset associated with the phase
+        """
+        with open(path.join(self.pickle_path, "info.pickle"), "wb") as f:
+            pickle.dump(info, f)
+
+    def save_search(self, search):
+        """
+        Save the search associated with the phase as a pickle
+        """
+        with open(self.make_search_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(search))
+
+    def save_model(self, model):
+        """
+        Save the model associated with the phase as a pickle
+        """
+        with open(self.make_model_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(model))
+
+    def save_samples(self, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+
+        with open(self.make_samples_pickle_path(), "w+b") as f:
+            f.write(pickle.dumps(samples))
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -164,6 +244,7 @@ class Paths:
         )
 
     @property
+    @make_path
     def samples_path(self) -> str:
         """
         The path to the samples folder.
@@ -198,14 +279,14 @@ class Paths:
         strings = (
             list(filter(
                 len,
-                    [
-                        str(conf.instance.output_path),
-                        self.path_prefix,
-                        self.name,
-                        self.tag,
-                        self.non_linear_tag,
-                    ],
-                )
+                [
+                    str(conf.instance.output_path),
+                    self.path_prefix,
+                    self.name,
+                    self.tag,
+                    self.non_linear_tag,
+                ],
+            )
             )
         )
 
@@ -367,7 +448,6 @@ class Paths:
                     for file in files:
 
                         # TODO : I removed lstrip("/") here, I think it is ok...
-
 
                         f.write(
                             path.join(root, file),
