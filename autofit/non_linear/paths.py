@@ -134,6 +134,17 @@ class Paths:
         except NoSectionError as e:
             logger.exception(e)
 
+    def save_all(self, model, info, search, pickle_files):
+        self.save_model_info(model=model)
+        self.save_parameter_names_file(model=model)
+        self.save_info(info=info)
+        self.save_search(search=search)
+        self.save_model(model=model)
+        self.save_metadata(
+            search_name=type(self).__name__.lower()
+        )
+        self.move_pickle_files(pickle_files=pickle_files)
+
     def save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
