@@ -320,18 +320,6 @@ non_linear_search={search_name}
         return path.join(self.output_path, ".completed")
 
     @property
-    def execution_time_path(self) -> str:
-        """
-        The path to the output information for a phase.
-        """
-        return path.join(self.name_folder, "execution_time")
-
-    @property
-    @make_path
-    def name_folder(self):
-        return path.join(conf.instance.output_path, self.path_prefix, self.name)
-
-    @property
     @make_path
     def sym_path(self) -> str:
         return path.join(
@@ -347,10 +335,6 @@ non_linear_search={search_name}
         return path.join(self.samples_path, "model.paramnames")
 
     @property
-    def file_model_promises(self) -> str:
-        return path.join(self.output_path, "model.promises")
-
-    @property
     def file_model_info(self) -> str:
         return path.join(self.output_path, "model.info")
 
@@ -361,14 +345,6 @@ non_linear_search={search_name}
     @property
     def file_results(self):
         return path.join(self.output_path, "model.results")
-
-    @property
-    @make_path
-    def pdf_path(self) -> str:
-        """
-        The path to the directory in which images are stored.
-        """
-        return path.join(self.image_path, "pdf")
 
     @property
     @make_path
@@ -415,10 +391,6 @@ non_linear_search={search_name}
     @property
     def file_weighted_samples(self):
         return path.join(self.samples_path, "multinest.txt")
-
-    @property
-    def file_phys_live(self) -> str:
-        return path.join(self.samples_path, "multinestphys_live.points")
 
     @property
     def file_resume(self) -> str:
