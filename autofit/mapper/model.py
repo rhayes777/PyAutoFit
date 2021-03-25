@@ -1,5 +1,6 @@
 import copy
 import inspect
+from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
@@ -7,7 +8,50 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.tools.pipeline import ResultsCollection
 
 
+def frozen_cache(func):
+    @wraps(func)
+    def cache(self, *args, **kwargs):
+        if self._is_frozen:
+            key = (func.__name__, self, *args,) + tuple(
+                kwargs.items()
+            )
+            if key not in self._frozen_cache:
+                self._frozen_cache[
+                    key
+                ] = func(self, *args, **kwargs)
+            return self._frozen_cache[
+                key
+            ]
+        return func(self, *args, **kwargs)
+
+    return cache
+
+
+def assert_not_frozen(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if "_is_frozen" not in args and hasattr(self, "_is_frozen") and self._is_frozen:
+            raise AssertionError(
+                "Frozen models cannot be modified"
+            )
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class AbstractModel(ModelObject):
+    def __init__(self):
+        super().__init__()
+        self._is_frozen = False
+        self._frozen_cache = dict()
+
+    def freeze(self):
+        self._is_frozen = True
+
+    def unfreeze(self):
+        self._is_frozen = False
+        self._frozen_cache = dict()
+
     def __add__(self, other):
         instance = self.__class__()
 
@@ -71,6 +115,7 @@ class AbstractModel(ModelObject):
                 instance = getattr(instance, name)
         return instance
 
+    @frozen_cache
     def path_instance_tuples_for_class(
             self,
             cls: Union[Tuple, Type],
@@ -98,6 +143,7 @@ class AbstractModel(ModelObject):
             ignore_class=ignore_class
         )
 
+    @frozen_cache
     def direct_tuples_with_type(self, class_type):
         return list(
             filter(
@@ -106,6 +152,7 @@ class AbstractModel(ModelObject):
             )
         )
 
+    @frozen_cache
     def model_tuples_with_type(self, cls):
         from .prior_model.prior_model import PriorModel
         return [
@@ -117,6 +164,7 @@ class AbstractModel(ModelObject):
             if model.cls == cls
         ]
 
+    @frozen_cache
     def attribute_tuples_with_type(
             self,
             class_type,

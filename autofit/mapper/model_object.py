@@ -25,7 +25,7 @@ class Identifier:
                 )
         elif isinstance(
                 value,
-                (str, float, int)
+                (str, float, int, bool)
         ):
             self.hash_list.append(
                 str(value)

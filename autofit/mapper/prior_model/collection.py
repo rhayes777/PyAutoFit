@@ -1,5 +1,5 @@
 from autofit import exc
-from autofit.mapper.model import ModelInstance
+from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
@@ -107,6 +107,7 @@ class CollectionPriorModel(AbstractPriorModel):
         setattr(self, str(self.item_number), AbstractPriorModel.from_object(item))
         self.item_number += 1
 
+    @assert_not_frozen
     def __setitem__(self, key, value):
         obj = AbstractPriorModel.from_object(value)
         try:
@@ -115,6 +116,7 @@ class CollectionPriorModel(AbstractPriorModel):
             pass
         setattr(self, str(key), obj)
 
+    @assert_not_frozen
     def __setattr__(self, key, value):
         if key.startswith("_"):
             super().__setattr__(key, value)

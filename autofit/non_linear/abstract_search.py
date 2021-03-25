@@ -235,8 +235,9 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if (not path.exists(self.paths.has_completed_path)) or \
-                self.force_pickle_overwrite:
+        if (not path.exists(
+                self.paths.has_completed_path
+        )) or self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
             self.save_parameter_names_file(model=model)
@@ -299,8 +300,7 @@ class NonLinearSearch(ABC):
                 name=name,
                 tag=tag,
                 path_prefix=path_prefix,
-                non_linear_name=self.paths.non_linear_name,
-                remove_files=self.paths.remove_files,
+                non_linear_name=self.paths.non_linear_name
             )
         )
 

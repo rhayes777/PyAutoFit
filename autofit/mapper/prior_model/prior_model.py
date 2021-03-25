@@ -3,6 +3,7 @@ import inspect
 import logging
 
 from autoconf.exc import ConfigException
+from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.prior import TuplePrior, Prior
@@ -43,13 +44,6 @@ class PriorModel(AbstractPriorModel):
             )
         return super().__add__(other)
 
-    @property
-    def constructor_argument_names(self):
-        try:
-            return inspect.getfullargspec(self.cls).args[1:]
-        except TypeError:
-            return []
-
     def __init__(self, cls, **kwargs):
         """
         Parameters
@@ -62,6 +56,11 @@ class PriorModel(AbstractPriorModel):
             return
 
         self.cls = cls
+
+        try:
+            self.constructor_argument_names = inspect.getfullargspec(self.cls).args[1:]
+        except TypeError:
+            self.constructor_argument_names = []
 
         try:
             annotations = inspect.getfullargspec(cls).annotations
@@ -172,12 +171,14 @@ class PriorModel(AbstractPriorModel):
         except ConfigException as e:
             return e
 
+    @assert_not_frozen
     def __setattr__(self, key, value):
         if key not in (
                 "component_number",
                 "phase_property_position",
                 "mapping_name",
                 "id",
+                "_is_frozen"
         ):
             try:
                 if "_" in key:
@@ -196,8 +197,12 @@ class PriorModel(AbstractPriorModel):
             logger.exception(key)
 
     def __getattr__(self, item):
+        print(item)
         try:
-            if "_" in item:
+            if "_" in item and item not in (
+                    "_is_frozen",
+                    "tuple_prior_tuples"
+            ):
                 return getattr(
                     [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
                         0
@@ -303,7 +308,9 @@ class PriorModel(AbstractPriorModel):
         new_model: ModelMapper
             A new model mapper populated with Gaussian priors
         """
+        self.unfreeze()
         new_model = copy.deepcopy(self)
+
         new_model._assertions = list()
 
         model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}
