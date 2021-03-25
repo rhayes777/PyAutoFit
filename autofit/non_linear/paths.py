@@ -42,36 +42,15 @@ def convert_paths(func):
         if first_arg is None:
             first_arg = kwargs.pop("name", None)
 
-        # TODO : Using the class nam avoids us needing to mak an sintance - still cant get the kwargs.get() to work
-        # TODO : nicely though.
-
-        search = kwargs.get("search")
-
-        if search is not None:
-
-            search = kwargs["search"]
-            search_name = search._config("tag", "name", str)
-
-            def non_linear_tag_function():
-                return search.tag
-
-        else:
-
-            search_name = None
-
-            def non_linear_tag_function():
-                return ""
+        def non_linear_tag_function():
+            return ""
 
         paths = Paths(
             name=first_arg,
             tag=kwargs.pop("phase_tag", None),
             path_prefix=kwargs.pop("path_prefix", None),
-            non_linear_name=search_name,
             non_linear_tag_function=non_linear_tag_function,
         )
-
-        if search is not None:
-            search.paths = paths
 
         func(self, paths=paths, **kwargs)
 
