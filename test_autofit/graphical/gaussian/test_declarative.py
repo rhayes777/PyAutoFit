@@ -156,8 +156,6 @@ def test_factor_model_attributes(
 def test_optimise_factor_model(
         factor_model
 ):
-    factor_model.freeze()
-
     """
     We optimise the model
     """

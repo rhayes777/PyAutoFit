@@ -130,6 +130,8 @@ class AbstractModelFactor(Analysis, ABC):
         -------
         A collection of prior models
         """
+        self.freeze()
+
         opt = self._make_ep_optimiser(
             optimiser
         )
