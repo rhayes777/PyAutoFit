@@ -67,7 +67,7 @@ class TestPipeline:
         phase.model.profile = mock.MockClassx2Tuple
 
         try:
-            os.makedirs(phase.paths.make_path())
+            os.makedirs(phase.paths._make_path())
         except FileExistsError:
             pass
 

@@ -9,7 +9,7 @@ from os import path
 
 from autoconf import conf
 from autofit.mapper import link
-from autofit.non_linear import samples
+from autofit.non_linear import samples as s
 from autofit.non_linear.log import logger
 from autofit.text import formatter
 
@@ -152,7 +152,7 @@ class Paths:
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open(path.join(self.make_path(), "metadata"), "a") as f:
+        with open(path.join(self._make_path(), "metadata"), "a") as f:
             f.write(f"""name={self.name}
 tag={self.tag}
 non_linear_search={search_name}
@@ -168,7 +168,10 @@ non_linear_search={search_name}
 
     def _save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
-        with open(self.file_model_info, "w+") as f:
+        with open(path.join(
+                self.output_path,
+                "model.info"
+        ), "w+") as f:
             f.write(f"Total Free Parameters = {model.prior_count} \n\n")
             f.write(model.info)
 
@@ -193,8 +196,20 @@ non_linear_search={search_name}
             parameter_name_and_label += [f"{line}\n"]
 
         formatter.output_list_of_strings_to_file(
-            file=self.file_param_names, list_of_strings=parameter_name_and_label
+            file=path.join(
+                self.samples_path,
+                "model.paramnames"
+            ),
+            list_of_strings=parameter_name_and_label
         )
+
+    @property
+    def file_search_summary(self) -> str:
+        return path.join(self.output_path, "search.summary")
+
+    @property
+    def file_results(self):
+        return path.join(self.output_path, "model.results")
 
     def _save_info(self, info):
         """
@@ -207,24 +222,33 @@ non_linear_search={search_name}
         """
         Save the search associated with the phase as a pickle
         """
-        with open(self.make_search_pickle_path(), "w+b") as f:
+        with open(path.join(
+                self.pickle_path,
+                "search.pickle"
+        ), "w+b") as f:
             f.write(pickle.dumps(search))
 
     def _save_model(self, model):
         """
         Save the model associated with the phase as a pickle
         """
-        with open(self.make_model_pickle_path(), "w+b") as f:
+        with open(path.join(
+                self.pickle_path,
+                "model.pickle"
+        ), "w+b") as f:
             f.write(pickle.dumps(model))
 
     def save_samples(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        samples.write_table(filename=self.samples_file)
-        samples.info_to_json(filename=self.info_file)
+        samples.write_table(filename=self._samples_file)
+        samples.info_to_json(filename=self._info_file)
 
-        with open(self.make_samples_pickle_path(), "w+b") as f:
+        with open(path.join(
+                self.pickle_path,
+                "samples.pickle"
+        ), "w+b") as f:
             f.write(pickle.dumps(samples))
 
     def __getstate__(self):
@@ -332,56 +356,9 @@ non_linear_search={search_name}
         )
 
     @property
-    def file_param_names(self) -> str:
-        return path.join(self.samples_path, "model.paramnames")
-
-    @property
-    def file_model_info(self) -> str:
-        return path.join(self.output_path, "model.info")
-
-    @property
-    def file_search_summary(self) -> str:
-        return path.join(self.output_path, "search.summary")
-
-    @property
-    def file_results(self):
-        return path.join(self.output_path, "model.results")
-
-    @property
     @make_path
     def pickle_path(self) -> str:
-        return path.join(self.make_path(), "pickles")
-
-    def make_search_pickle_path(self) -> str:
-        """
-        Returns the path at which the search pickle should be saved
-        """
-        return path.join(self.pickle_path, "search.pickle")
-
-    def make_model_pickle_path(self):
-        """
-        Returns the path at which the model pickle should be saved
-        """
-        return path.join(self.pickle_path, "model.pickle")
-
-    def make_samples_pickle_path(self) -> str:
-        """
-        Returns the path at which the search pickle should be saved
-        """
-        return path.join(self.pickle_path, "samples.pickle")
-
-    @make_path
-    def make_path(self) -> str:
-        """
-        Returns the path to the folder at which the metadata should be saved
-        """
-        return path.join(
-            conf.instance.output_path,
-            self.path_prefix,
-            self.name,
-            self.tag,
-            self.non_linear_tag,
-        )
+        return path.join(self._make_path(), "pickles")
 
     def zip_remove(self):
         """
@@ -431,10 +408,25 @@ non_linear_search={search_name}
             pass
 
     def load_samples(self):
-        return samples.load_from_table(
+        return s.load_from_table(
             filename=self._samples_file
         )
 
     def load_samples_info(self):
         with open(self._info_file) as infile:
             return json.load(infile)
+
+    @make_path
+    def _make_path(self) -> str:
+        """
+        Returns the path to the folder at which the metadata should be saved
+        """
+        return path.join(
+            conf.instance.output_path,
+            self.path_prefix,
+            self.name,
+            self.tag,
+            self.non_linear_tag,
+        )
+
+

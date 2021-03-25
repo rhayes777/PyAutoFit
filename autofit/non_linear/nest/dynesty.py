@@ -982,18 +982,19 @@ class DynestyDynamic(AbstractDynesty):
         self.paths.restore()
         self.setup_log_file()
 
-        self.save_model_info(model=model)
-        self.save_parameter_names_file(model=model)
-        self.save_metadata()
-        self.save_info(info=info)
-        self.save_search()
-        self.save_model(model=model)
+        self.paths.save_all(
+            model=model,
+            info=info,
+            search=self,
+            pickle_files=[]
+        )
+
         # TODO : Better way to handle?
-        self.timer.paths = self.paths
+        self.timer.samples_path = self.paths.samples_path
         self.timer.start()
 
         samples = self._fit(model=model, analysis=analysis)
-        open(self.paths.has_completed_path, "w+").close()
+        self.paths.completed()
 
         return Result(samples=samples, previous_model=model, search=self)
 
@@ -1078,8 +1079,8 @@ class DynestyDynamic(AbstractDynesty):
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model, sampler=sampler)
-        samples.write_table(filename=self.paths.samples_file)
-        self.save_samples(samples=samples)
+
+        self.paths.save_samples(samples)
 
         instance = samples.max_log_likelihood_instance
 
