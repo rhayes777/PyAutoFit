@@ -1,5 +1,14 @@
 import autofit as af
+from autofit import database as db
 from autofit.mock.mock import Gaussian
+
+
+def test_fit():
+    assert db.Fit(
+        info={"info": 1}
+    ).id != db.Fit(
+        info={"info": 2}
+    ).id
 
 
 def test_prior():

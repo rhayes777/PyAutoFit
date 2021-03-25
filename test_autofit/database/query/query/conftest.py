@@ -12,6 +12,7 @@ def make_gaussian_1():
         instance=m.Gaussian(
             centre=1
         ),
+        info={"info": 1},
         is_complete=True
     )
 
@@ -24,6 +25,7 @@ def make_gaussian_2():
         instance=m.Gaussian(
             centre=2
         ),
+        info={"info": 2},
         is_complete=False
     )
 
