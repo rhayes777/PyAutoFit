@@ -56,7 +56,7 @@ class NonLinearSearch(ABC):
         else:
             self.prior_passer = prior_passer
 
-        self.timer = Timer(paths=paths)
+        self.timer = Timer(paths.samples_path)
 
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
@@ -224,9 +224,7 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if (not path.exists(
-                self.paths.has_completed_path
-        )) or self.force_pickle_overwrite:
+        if not self.paths.is_complete or self.force_pickle_overwrite:
 
             self.paths.save_model_info(model=model)
             self.paths.save_parameter_names_file(model=model)
@@ -239,14 +237,15 @@ class NonLinearSearch(ABC):
             self.paths.move_pickle_files(pickle_files=pickle_files)
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
-        if not path.exists(self.paths.has_completed_path):
+        if not self.paths.is_complete:
 
             # TODO : Better way to handle?
-            self.timer.paths = self.paths
+            self.timer.samples_path = self.paths.samples_path
             self.timer.start()
 
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
-            open(self.paths.has_completed_path, "w+").close()
+
+            self.paths.completed()
 
             samples = self.perform_update(
                 model=model, analysis=analysis, during_analysis=False

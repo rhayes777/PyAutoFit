@@ -293,7 +293,16 @@ non_linear_search={search_name}
         return path.join("", *strings)
 
     @property
-    def has_completed_path(self) -> str:
+    def is_complete(self):
+        return path.exists(
+            self._has_completed_path
+        )
+
+    def completed(self):
+        open(self._has_completed_path, "w+").close()
+
+    @property
+    def _has_completed_path(self) -> str:
         """
         A file indicating that a `NonLinearSearch` has been completed previously
         """
