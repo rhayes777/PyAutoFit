@@ -14,6 +14,9 @@ from autofit.mapper.prior_model.abstract import check_assertions
 logger = logging.getLogger(__name__)
 
 
+class_args_dict = dict()
+
+
 class PriorModel(AbstractPriorModel):
     """Object comprising class and associated priors
         @DynamicAttrs
@@ -56,11 +59,6 @@ class PriorModel(AbstractPriorModel):
             return
 
         self.cls = cls
-
-        try:
-            self.constructor_argument_names = inspect.getfullargspec(self.cls).args[1:]
-        except TypeError:
-            self.constructor_argument_names = []
 
         try:
             annotations = inspect.getfullargspec(cls).annotations
@@ -126,6 +124,16 @@ class PriorModel(AbstractPriorModel):
                 setattr(
                     self, key, PriorModel(value) if inspect.isclass(value) else value
                 )
+
+    # noinspection PyAttributeOutsideInit
+    @property
+    def constructor_argument_names(self):
+        if self.cls not in class_args_dict:
+            try:
+                class_args_dict[self.cls] = inspect.getfullargspec(self.cls).args[1:]
+            except TypeError:
+                class_args_dict[self.cls] = []
+        return class_args_dict[self.cls]
 
     def __eq__(self, other):
         return (
@@ -197,7 +205,6 @@ class PriorModel(AbstractPriorModel):
             logger.exception(key)
 
     def __getattr__(self, item):
-        print(item)
         try:
             if "_" in item and item not in (
                     "_is_frozen",

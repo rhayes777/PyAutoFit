@@ -11,7 +11,7 @@ from autofit.tools.pipeline import ResultsCollection
 def frozen_cache(func):
     @wraps(func)
     def cache(self, *args, **kwargs):
-        if self._is_frozen:
+        if hasattr(self, "_is_frozen") and self._is_frozen:
             key = (func.__name__, self, *args,) + tuple(
                 kwargs.items()
             )
