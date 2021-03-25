@@ -382,31 +382,6 @@ non_linear_search={search_name}
             self.non_linear_tag,
         )
 
-    # TODO : These should all be moved to the mult_nest.py ,module in a MultiNestPaths class. I dont know how t do this.
-
-    @property
-    def file_summary(self) -> str:
-        return path.join(self.samples_path, "multinestsummary.txt")
-
-    @property
-    def file_weighted_samples(self):
-        return path.join(self.samples_path, "multinest.txt")
-
-    @property
-    def file_resume(self) -> str:
-        return path.join(self.samples_path, "multinestresume.dat")
-
-    def copy_from_sym(self):
-        """
-        Copy files from the sym-linked search folder to the samples folder.
-        """
-
-        src_files = os.listdir(self.path)
-        for file_name in src_files:
-            full_file_name = path.join(self.path, file_name)
-            if path.isfile(full_file_name):
-                shutil.copy(full_file_name, self.samples_path)
-
     def zip_remove(self):
         """
         Copy files from the sym linked search folder then remove the sym linked folder.

@@ -50,7 +50,7 @@ class NonLinearSearch(ABC):
         if paths.non_linear_tag == "":
             paths.non_linear_tag_function = lambda: self.tag
 
-        self.paths = paths
+        self.paths: Paths = paths
         if prior_passer is None:
             self.prior_passer = PriorPasser.from_config(config=self._config)
         else:
