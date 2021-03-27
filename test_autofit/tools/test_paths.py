@@ -25,7 +25,7 @@ class PatchPaths(af.Paths):
 
 @pytest.fixture(name="paths")
 def make_paths():
-    paths = PatchPaths(remove_files=True)
+    paths = PatchPaths()
     return paths
 
 

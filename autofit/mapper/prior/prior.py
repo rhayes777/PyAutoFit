@@ -294,13 +294,17 @@ class GaussianPrior(Prior):
         self.mean = float(mean)
         self.sigma = float(sigma)
 
-    @property
-    def norm(self):
-        return stats.norm(loc=self.mean, scale=self.sigma)
+        self._log_pdf = None
 
     @property
     def logpdf(self):
-        return self.norm.logpdf
+        if self._log_pdf is None:
+            norm = stats.norm(
+                loc=self.mean,
+                scale=self.sigma
+            )
+            self._log_pdf = norm.logpdf
+        return self._log_pdf
 
     def __call__(self, x):
         return self.logpdf(x)

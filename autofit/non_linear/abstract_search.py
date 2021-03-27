@@ -20,6 +20,7 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
 from autofit.non_linear import samples as samps
 from autofit.non_linear.timer import Timer
+from autofit.non_linear import result as res
 from autofit.text import formatter
 from autofit.text import text_util
 
@@ -233,8 +234,9 @@ class NonLinearSearch(ABC):
         self.paths.restore()
         self.setup_log_file()
 
-        if (not path.exists(self.paths.has_completed_path)) or \
-                self.force_pickle_overwrite:
+        if (not path.exists(
+                self.paths.has_completed_path
+        )) or self.force_pickle_overwrite:
 
             self.save_model_info(model=model)
             self.save_parameter_names_file(model=model)
@@ -541,7 +543,7 @@ class Analysis(ABC):
         pass
 
     def make_result(self, samples, model, search):
-        return Result(samples=samples, model=model, search=search)
+        return res.Result(samples=samples, model=model, search=search)
 
 
 class IntervalCounter:

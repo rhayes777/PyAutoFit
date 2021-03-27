@@ -1,10 +1,10 @@
 import inspect
+import math
+
 import autofit as af
 # noinspection PyAbstractClass
 from autofit.mapper.prior_model import attribute_pair
 
-
-import math
 
 class Circle:
     def __init__(self, radius):
@@ -265,10 +265,9 @@ class EllipticalExponential(EllipticalSersic):
         )
 
 
-
 class EllipticalGaussian(EllipticalProfile):
     def __init__(
-        self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
+            self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
     ):
         """ The elliptical Gaussian profile.
 
@@ -316,6 +315,7 @@ class Tracer:
         self.lens_galaxy = lens_galaxy
         self.source_galaxy = source_galaxy
         self.grid = grid
+
 
 # noinspection PyAbstractClass
 class GalaxyModel(af.AbstractPriorModel):

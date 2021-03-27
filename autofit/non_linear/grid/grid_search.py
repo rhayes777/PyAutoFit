@@ -469,7 +469,6 @@ class GridSearch:
                 name=name_path,
                 tag=self.paths.tag,
                 path_prefix=self.paths.path_prefix,
-                remove_files=self.paths.remove_files,
             )
         )
 

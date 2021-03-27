@@ -1,7 +1,6 @@
-import os
-from os import path
 import pickle
 import shutil
+from os import path
 
 import numpy as np
 import pytest
@@ -26,8 +25,7 @@ def make_mock_list():
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name ==  path.join("name", "one")
-
+        assert copy.paths.name == path.join("name", "one")
 
 class TestLabels:
     def test_param_names(self):

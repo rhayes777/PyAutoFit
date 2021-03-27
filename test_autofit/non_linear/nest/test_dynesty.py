@@ -1,16 +1,14 @@
-from os import path
 import pickle
 import sys
+from os import path
 
 import numpy as np
 import pytest
 
 import autofit as af
-from autoconf import conf
 from autofit.mock import mock
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
-
 
 
 class MockDynestyResults:
@@ -31,7 +29,6 @@ class MockDynestySampler:
 class TestDynestyConfig:
 
     def test__loads_from_config_file_if_not_input(self):
-
         dynesty = af.DynestyStatic(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_live_points=151,
@@ -197,8 +194,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_40__bound_none__enlarge_1.0__sample_auto]"
+                dynesty.tag
+                == "dynesty_static[nlive_40__bound_none__enlarge_1.0__sample_auto]"
         )
 
         dynesty = af.DynestyStatic(
@@ -211,8 +208,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
+                dynesty.tag
+                == "dynesty_static[nlive_41__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
         )
 
         dynesty = af.DynestyStatic(
@@ -225,8 +222,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5]"
+                dynesty.tag
+                == "dynesty_static[nlive_43__bound_single__enlarge_1.0__sample_rwalk_walks_1_facc_0.5]"
         )
 
         dynesty = af.DynestyStatic(
@@ -239,8 +236,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2]"
+                dynesty.tag
+                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_hslice_slices_1_max_move_2]"
         )
 
         dynesty = af.DynestyStatic(
@@ -248,8 +245,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1]"
+                dynesty.tag
+                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_slice_slices_1]"
         )
 
         dynesty = af.DynestyStatic(
@@ -257,8 +254,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
+                dynesty.tag
+                == "dynesty_static[nlive_44__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
         )
 
         dynesty = af.DynestyDynamic(
@@ -266,8 +263,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_dynamic[nlive_5__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
+                dynesty.tag
+                == "dynesty_dynamic[nlive_5__bound_multi_vol_dec_2.0_vol_check_3.0__enlarge_1.0__sample_unif]"
         )
 
         dynesty = af.DynestyDynamic(
@@ -275,8 +272,8 @@ class TestDynestyConfig:
         )
 
         assert (
-            dynesty.tag
-            == "dynesty_dynamic[nlive_5__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
+                dynesty.tag
+                == "dynesty_dynamic[nlive_5__bound_balls__enlarge_1.0__sample_rslice_slices_1]"
         )
 
     def test__samples_from_model(self):

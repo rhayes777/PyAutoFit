@@ -1,10 +1,8 @@
 from os import path
-import shutil
 
 import pytest
 
 import autofit as af
-from autoconf import conf
 from autofit.mock import mock
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -13,7 +11,6 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 class TestEmceeConfig:
 
     def test__loads_from_config_file_correct(self):
-
         emcee = af.Emcee(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nwalkers=51,
@@ -60,7 +57,6 @@ class TestEmceeConfig:
         assert emcee.tag == "emcee[nwalkers_11]"
 
     def test__samples_from_model(self):
-
         emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -88,7 +84,6 @@ class TestEmceeConfig:
 
 class TestEmceeOutput:
     def test__median_pdf_parameters(self):
-
         emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -101,7 +96,6 @@ class TestEmceeOutput:
         )
 
     def test__vector_at_sigma__uses_output_files(self):
-
         emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -118,7 +112,6 @@ class TestEmceeOutput:
         assert parameters[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 
     def test__autocorrelation_times(self):
-
         emcee = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
@@ -132,4 +125,5 @@ class TestEmceeOutput:
         assert samples.auto_correlation_times == pytest.approx(
             [31.98507, 36.51001, 73.47629, 67.67495], 1.0e-4
         )
+
 
