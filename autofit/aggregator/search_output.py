@@ -7,7 +7,7 @@ import dill
 from autofit.non_linear import abstract_search
 
 
-class PhaseOutput:
+class SearchOutput:
     """
     @DynamicAttrs
     """

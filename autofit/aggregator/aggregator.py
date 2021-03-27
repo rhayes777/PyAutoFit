@@ -19,7 +19,7 @@ from collections import defaultdict
 from shutil import rmtree
 from typing import List, Union, Iterator, Tuple
 
-from .phase_output import PhaseOutput
+from .search_output import SearchOutput
 from .predicate import AttributePredicate
 
 
@@ -82,7 +82,7 @@ class AggregatorGroup:
 
 
 class AbstractAggregator:
-    def __init__(self, phases: List[PhaseOutput]):
+    def __init__(self, phases: List[SearchOutput]):
         """
         An aggregator that comprises several phases which matching filters.
 
@@ -113,7 +113,7 @@ class AbstractAggregator:
             item: Union[slice, int]
     ) -> Union[
         "AbstractAggregator",
-        PhaseOutput
+        SearchOutput
     ]:
         """
         If an index is passed in then a specific phase output is returned.
@@ -316,7 +316,7 @@ class Aggregator(AbstractAggregator):
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:
                 if not completed_only or ".completed" in filenames:
-                    phases.append(PhaseOutput(root))
+                    phases.append(SearchOutput(root))
 
         if len(phases) == 0:
             print(f"\nNo phases found in {directory}\n")

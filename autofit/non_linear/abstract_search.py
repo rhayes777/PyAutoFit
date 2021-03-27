@@ -261,7 +261,7 @@ class NonLinearSearch(ABC):
                 model=model, analysis=analysis, during_analysis=False
             )
 
-            analysis.save_results_for_aggregator(paths=self.paths, samples=samples)
+            analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         else:
 
@@ -270,7 +270,7 @@ class NonLinearSearch(ABC):
 
             if self.force_pickle_overwrite:
                 self.save_samples(samples=samples)
-                analysis.save_results_for_aggregator(paths=self.paths, samples=samples)
+                analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         self.paths.zip_remove()
         return analysis.make_result(samples=samples, model=model, search=self)
@@ -539,7 +539,7 @@ class Analysis(ABC):
     def save_attributes_for_aggregator(self, paths: Paths):
         pass
 
-    def save_results_for_aggregator(self, paths: Paths, samples : samps.OptimizerSamples):
+    def save_results_for_aggregator(self, paths: Paths, model : mm.CollectionPriorModel, samples : samps.OptimizerSamples):
         pass
 
     def make_result(self, samples, model, search):

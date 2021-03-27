@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Iterator
 
-from .phase_output import PhaseOutput
+from .search_output import SearchOutput
 
 
 class AttributePredicate:
@@ -24,7 +24,7 @@ class AttributePredicate:
 
     def value_for_phase(
             self,
-            phase: PhaseOutput
+            phase: SearchOutput
     ):
         """
         Recurse the phase output by iterating the attributes in the path
@@ -111,8 +111,8 @@ class AbstractPredicate(ABC):
 
     def filter(
             self,
-            phases: List[PhaseOutput]
-    ) -> Iterator[PhaseOutput]:
+            phases: List[SearchOutput]
+    ) -> Iterator[SearchOutput]:
         """
         Only return phases for which this predicate evaluates to True
 
@@ -153,7 +153,7 @@ class AbstractPredicate(ABC):
         return AndPredicate(self, other)
 
     @abstractmethod
-    def __call__(self, phase: PhaseOutput) -> bool:
+    def __call__(self, phase: SearchOutput) -> bool:
         """
         Does the attribute of the phase match the requirement of this predicate?
         """
@@ -179,7 +179,7 @@ class CombinationPredicate(AbstractPredicate, ABC):
 
 
 class OrPredicate(CombinationPredicate):
-    def __call__(self, phase: PhaseOutput):
+    def __call__(self, phase: SearchOutput):
         """
         The disjunction of two predicates.
 
@@ -196,7 +196,7 @@ class OrPredicate(CombinationPredicate):
 
 
 class AndPredicate(CombinationPredicate):
-    def __call__(self, phase: PhaseOutput):
+    def __call__(self, phase: SearchOutput):
         """
         The conjunction of two predicates.
 
@@ -245,7 +245,7 @@ class ComparisonPredicate(AbstractPredicate, ABC):
 class GreaterThanPredicate(ComparisonPredicate):
     def __call__(
             self,
-            phase: PhaseOutput
+            phase: SearchOutput
     ) -> bool:
         """
         Parameters
@@ -269,7 +269,7 @@ class GreaterThanPredicate(ComparisonPredicate):
 class LessThanPredicate(ComparisonPredicate):
     def __call__(
             self,
-            phase: PhaseOutput
+            phase: SearchOutput
     ) -> bool:
         """
         Parameters
@@ -292,7 +292,7 @@ class LessThanPredicate(ComparisonPredicate):
 class ContainsPredicate(ComparisonPredicate):
     def __call__(
             self,
-            phase: PhaseOutput
+            phase: SearchOutput
     ) -> bool:
         """
         Parameters
@@ -354,7 +354,7 @@ class NotPredicate(AbstractPredicate):
         """
         self.predicate = predicate
 
-    def __call__(self, phase: PhaseOutput) -> bool:
+    def __call__(self, phase: SearchOutput) -> bool:
         """
         Evaluate the predicate for the phase and return the negation
         of the result.
