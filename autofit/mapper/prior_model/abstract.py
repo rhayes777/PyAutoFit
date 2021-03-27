@@ -12,7 +12,7 @@ from autoconf import conf
 from autoconf.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
-from autofit.mapper.model import AbstractModel
+from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
@@ -215,6 +215,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     @cast_collection(PriorNameValue)
+    @frozen_cache
     def unique_prior_tuples(self):
         """
         Returns

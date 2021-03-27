@@ -23,6 +23,10 @@ class AbstractModelFactor(Analysis, ABC):
         A list of factors that comprise a PriorModel and corresponding fitness function
         """
 
+    def freeze(self):
+        for model_factor in self.model_factors:
+            model_factor.freeze()
+
     @property
     def priors(self) -> Set[Prior]:
         """
@@ -126,6 +130,8 @@ class AbstractModelFactor(Analysis, ABC):
         -------
         A collection of prior models
         """
+        self.freeze()
+
         opt = self._make_ep_optimiser(
             optimiser
         )
@@ -291,6 +297,9 @@ class ModelFactor(Factor, AbstractModelFactor):
             _factor,
             **prior_variable_dict
         )
+
+    def freeze(self):
+        self.prior_model.freeze()
 
     @property
     def model_factors(self) -> List["ModelFactor"]:

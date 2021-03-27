@@ -1,7 +1,6 @@
-import os
-from os import path
 import pickle
 import shutil
+from os import path
 
 import numpy as np
 import pytest
@@ -68,7 +67,7 @@ class TestResult:
 class TestCopyWithNameExtension:
     @staticmethod
     def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name ==  path.join("name", "one")
+        assert copy.paths.name == path.join("name", "one")
 
     def test_copy_with_name_extension(self):
         search = af.MockSearch(af.Paths("name", tag="tag"))
@@ -76,7 +75,6 @@ class TestCopyWithNameExtension:
 
         self.assert_non_linear_attributes_equal(copy)
         assert search.paths.tag == copy.paths.tag
-
 
 
 class TestLabels:

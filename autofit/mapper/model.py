@@ -1,5 +1,6 @@
 import copy
 import inspect
+from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
@@ -7,7 +8,109 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.tools.pipeline import ResultsCollection
 
 
+def frozen_cache(func):
+    """
+    Decorator that caches results from function calls when
+    a model is frozen.
+
+    Value is cached by function name, instance and arguments.
+
+    Parameters
+    ----------
+    func
+        Some function attached to a freezable, hashable object
+        that takes hashable arguments
+
+    Returns
+    -------
+    Function with cache
+    """
+
+    @wraps(func)
+    def cache(self, *args, **kwargs):
+        if hasattr(self, "_is_frozen") and self._is_frozen:
+            key = (func.__name__, self, *args,) + tuple(
+                kwargs.items()
+            )
+            if key not in self._frozen_cache:
+                self._frozen_cache[
+                    key
+                ] = func(self, *args, **kwargs)
+            return self._frozen_cache[
+                key
+            ]
+        return func(self, *args, **kwargs)
+
+    return cache
+
+
+def assert_not_frozen(func):
+    """
+    Decorator that asserts a function is not called when an object
+    is frozen. For example, it should not be possible to set an
+    attribute on a frozen model as that might invalidate the results
+    in the cache.
+
+    Parameters
+    ----------
+    func
+        Some function
+
+    Raises
+    ------
+    AssertionError
+        If the function is called when the object is frozen
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if "_is_frozen" not in filter(
+                lambda arg: isinstance(arg, str),
+                args
+        ) and hasattr(self, "_is_frozen") and self._is_frozen:
+            raise AssertionError(
+                "Frozen models cannot be modified"
+            )
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class AbstractModel(ModelObject):
+    def __init__(self):
+        super().__init__()
+        self._is_frozen = False
+        self._frozen_cache = dict()
+
+    def freeze(self):
+        """
+        Freeze this object.
+
+        A frozen object caches results for some function calls
+        and does not allow its state to be modified.
+        """
+        tuples = self.direct_tuples_with_type(
+            AbstractModel
+        )
+        for _, model in tuples:
+            if model is not self:
+                model.freeze()
+        self._is_frozen = True
+
+    def unfreeze(self):
+        """
+        Unfreeze this object. Allows modification and removes
+        caches associated with some functions.
+        """
+        self._is_frozen = False
+        tuples = self.direct_tuples_with_type(
+            AbstractModel
+        )
+        for _, model in tuples:
+            if model is not self:
+                model.unfreeze()
+        self._frozen_cache = dict()
+
     def __add__(self, other):
         instance = self.__class__()
 
@@ -71,6 +174,7 @@ class AbstractModel(ModelObject):
                 instance = getattr(instance, name)
         return instance
 
+    @frozen_cache
     def path_instance_tuples_for_class(
             self,
             cls: Union[Tuple, Type],
@@ -98,6 +202,7 @@ class AbstractModel(ModelObject):
             ignore_class=ignore_class
         )
 
+    @frozen_cache
     def direct_tuples_with_type(self, class_type):
         return list(
             filter(
@@ -106,6 +211,7 @@ class AbstractModel(ModelObject):
             )
         )
 
+    @frozen_cache
     def model_tuples_with_type(self, cls):
         from .prior_model.prior_model import PriorModel
         return [
@@ -117,6 +223,7 @@ class AbstractModel(ModelObject):
             if model.cls == cls
         ]
 
+    @frozen_cache
     def attribute_tuples_with_type(
             self,
             class_type,
