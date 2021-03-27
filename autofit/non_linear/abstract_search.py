@@ -1,26 +1,23 @@
 import copy
 import logging
 import multiprocessing as mp
-from os import path
-import os
-import pickle
-import shutil
-from abc import ABC, abstractmethod
-from time import sleep
 import time
-from typing import Dict
+from abc import ABC, abstractmethod
+from os import path
+from time import sleep
 
 import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.mapper import model_mapper as mm
 from autofit.non_linear.initializer import Initializer
+from autofit.mapper import model_mapper as mm
+from autofit.non_linear import samples as samps
 from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths, convert_paths
-from autofit.non_linear import samples as samps
 from autofit.non_linear.timer import Timer
 from autofit.non_linear import result as res
+
 from autofit.text import formatter
 from autofit.text import text_util
 
@@ -56,13 +53,13 @@ class NonLinearSearch(ABC):
         if paths.non_linear_tag == "":
             paths.non_linear_tag_function = lambda: self.tag
 
-        self.paths = paths
+        self.paths: Paths = paths
         if prior_passer is None:
             self.prior_passer = PriorPasser.from_config(config=self._config)
         else:
             self.prior_passer = prior_passer
 
-        self.timer = Timer(paths=paths)
+        self.timer = Timer(paths.samples_path)
 
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
@@ -225,37 +222,28 @@ class NonLinearSearch(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
-
-        try:
-            os.makedirs(self.paths.samples_path)
-        except FileExistsError:
-            pass
-
         self.paths.restore()
         self.setup_log_file()
 
-        if (not path.exists(
-                self.paths.has_completed_path
-        )) or self.force_pickle_overwrite:
+        if not self.paths.is_complete or self.force_pickle_overwrite:
 
-            self.save_model_info(model=model)
-            self.save_parameter_names_file(model=model)
-            self.save_metadata()
-            self.save_info(info=info)
-            self.save_search()
-            self.save_model(model=model)
-            self.move_pickle_files(pickle_files=pickle_files)
+            self.paths.save_all(
+                model=model,
+                info=info,
+                search=self,
+                pickle_files=pickle_files
+            )
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
-        if not path.exists(self.paths.has_completed_path):
+        if not self.paths.is_complete:
 
-            # TODO : Better way to handle?
-            self.timer.paths = self.paths
+            self.timer.samples_path = self.paths.samples_path
             self.timer.start()
 
             analysis = analysis.modify_before_fit(model=model, paths=path)
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
-            open(self.paths.has_completed_path, "w+").close()
+
+            self.paths.completed()
 
             samples = self.perform_update(
                 model=model, analysis=analysis, during_analysis=False
@@ -269,6 +257,7 @@ class NonLinearSearch(ABC):
             samples = self.samples_via_csv_json_from_model(model=model)
 
             if self.force_pickle_overwrite:
+
                 self.save_samples(samples=samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
@@ -332,10 +321,8 @@ class NonLinearSearch(ABC):
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model)
-        samples.write_table(filename=self.paths.samples_file)
-        samples.info_to_json(filename=self.paths.info_file)
 
-        self.save_samples(samples=samples)
+        self.paths.save_samples(samples=samples)
 
         try:
             instance = samples.max_log_likelihood_instance
@@ -343,24 +330,20 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-            analysis.visualize(paths=self.paths, instance=instance, during_analysis=during_analysis)
-
-        if self.should_output_model_results() or not during_analysis:
-
-            text_util.results_to_file(
-                samples=samples,
-                filename=self.paths.file_results,
-                during_analysis=during_analysis,
+            analysis.visualize(
+                paths=self.paths,
+                instance=instance,
+                during_analysis=during_analysis
             )
 
+        if self.should_output_model_results() or not during_analysis:
             start = time.time()
             analysis.log_likelihood_function(instance=instance)
             log_likelihood_function_time = (time.time() - start)
 
-            text_util.search_summary_to_file(
+            self.paths.save_summary(
                 samples=samples,
-                log_likelihood_function_time=log_likelihood_function_time,
-                filename=self.paths.file_search_summary
+                log_likelihood_function_time=log_likelihood_function_time
             )
 
         if not during_analysis and self.remove_state_files_at_end:
@@ -386,98 +369,6 @@ class NonLinearSearch(ABC):
     @property
     def samples_cls(self):
         raise NotImplementedError()
-
-    def save_model_info(self, model):
-        """Save the model.info file, which summarizes every parameter and prior."""
-        with open(self.paths.file_model_info, "w+") as f:
-            f.write(f"Total Free Parameters = {model.prior_count} \n\n")
-            f.write(model.info)
-
-    def save_parameter_names_file(self, model):
-        """Create the param_names file listing every parameter's label and Latex tag, which is used for *corner.py*
-        visualization.
-
-        The parameter labels are determined using the label.ini and label_format.ini config files."""
-
-        parameter_names = model.model_component_and_parameter_names
-        parameter_labels = model.parameter_labels
-        subscripts = model.subscripts
-        parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in
-                                           zip(parameter_labels, subscripts)]
-
-        parameter_name_and_label = []
-
-        for i in range(model.prior_count):
-            line = formatter.add_whitespace(
-                str0=parameter_names[i], str1=parameter_labels_with_subscript[i], whitespace=70
-            )
-            parameter_name_and_label += [f"{line}\n"]
-
-        formatter.output_list_of_strings_to_file(
-            file=self.paths.file_param_names, list_of_strings=parameter_name_and_label
-        )
-
-    def save_info(self, info):
-        """
-        Save the dataset associated with the search
-        """
-        with open(path.join(self.paths.pickle_path, "info.pickle"), "wb") as f:
-            pickle.dump(info, f)
-
-    def save_search(self):
-        """
-        Save the seawrch associated with the search as a pickle
-        """
-        with open(self.paths.make_search_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(self))
-
-    def save_model(self, model):
-        """
-        Save the model associated with the search as a pickle
-        """
-        with open(self.paths.make_model_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(model))
-
-    def save_samples(self, samples):
-        """
-        Save the final-result samples associated with the search as a pickle
-        """
-
-        with open(self.paths.make_samples_pickle_path(), "w+b") as f:
-            f.write(pickle.dumps(samples))
-
-    def save_metadata(self):
-        """
-        Save metadata associated with the search, such as the name of the pipeline, the
-        name of the search and the name of the dataset being fit
-        """
-        with open(path.join(self.paths.make_path(), "metadata"), "a") as f:
-            f.write(self.make_metadata_text())
-
-    def move_pickle_files(self, pickle_files):
-        """
-        Move extra files a user has input the full path + filename of from the location specified to the
-        pickles folder of the Aggregator, so that they can be accessed via the aggregator.
-        """
-        if pickle_files is not None:
-            [shutil.copy(file, self.paths.pickle_path) for file in pickle_files]
-
-    @property
-    def _default_metadata(self) -> Dict[str, str]:
-        """
-        A dictionary of metadata describing this search, including the pipeline
-        that it's embedded in.
-        """
-        return {
-            "name": self.paths.name,
-            "tag": self.paths.tag,
-            "non_linear_search": type(self).__name__.lower(),
-        }
-
-    def make_metadata_text(self):
-        return "\n".join(
-            f"{key}={value or ''}" for key, value in {**self._default_metadata}.items()
-        )
 
     def remove_state_files(self):
         pass
@@ -530,7 +421,7 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, paths : Paths, instance, during_analysis):
+    def visualize(self, paths: Paths, instance, during_analysis):
         pass
 
     def modify_before_fit(self, model, paths : Paths):

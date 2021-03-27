@@ -22,11 +22,6 @@ def make_mock_list():
     return [af.PriorModel(mock.MockClassx4), af.PriorModel(mock.MockClassx4)]
 
 
-class TestCopyWithNameExtension:
-    @staticmethod
-    def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name == path.join("name", "one")
-
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)
@@ -75,7 +70,7 @@ class TestMovePickleFiles:
             )
         ]
 
-        search.move_pickle_files(pickle_files=pickle_paths)
+        search.paths._move_pickle_files(pickle_files=pickle_paths)
 
         with open(path.join(pickle_paths[0]), "rb") as f:
             arr_load = pickle.load(f)

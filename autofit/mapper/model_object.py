@@ -12,7 +12,13 @@ class Identifier:
 
     def _add_value_to_hash_list(self, value):
         if hasattr(value, "__dict__"):
-            for key, value in value.__dict__.items():
+            self.add_value_to_hash_list(
+                value.__dict__
+            )
+        elif isinstance(
+            value, dict
+        ):
+            for key, value in value.items():
                 if not (key.startswith("_") or key == "id"):
                     self.hash_list.append(key)
                     self.add_value_to_hash_list(

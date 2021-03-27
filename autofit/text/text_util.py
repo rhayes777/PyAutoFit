@@ -1,16 +1,10 @@
-import logging
-
 from autoconf import conf
 from autofit.text import formatter as frm, samples_text
 
 
-def results_to_file(samples, filename, during_analysis):
+def results_to_file(samples, filename):
     """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
-    Parameters
-    ----------
-    during_analysis : bool
-        Whether the model.results are being written during the analysis or after the `NonLinearSearch` has finished.
     """
 
     results = []
@@ -69,7 +63,6 @@ def results_to_file(samples, filename, during_analysis):
 
 
 def search_summary_from_samples(samples) -> [str]:
-
     line = [f"Total Samples = {samples.total_samples}\n"]
     if hasattr(samples, "total_accepted_samples"):
         line.append(f"Total Accepted Samples = {samples.total_accepted_samples}\n")
@@ -80,7 +73,6 @@ def search_summary_from_samples(samples) -> [str]:
 
 
 def search_summary_to_file(samples, log_likelihood_function_time, filename):
-
     summary = search_summary_from_samples(samples=samples)
     summary.append(f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}")
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)

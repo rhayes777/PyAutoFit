@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 
 from autofit import AbstractPriorModel
 from .model import Base, Object
+from ...mapper.model_object import Identifier
 
 
 class Pickle(Base):
@@ -30,7 +31,7 @@ class Pickle(Base):
         String
     )
     fit_id = Column(
-        Integer,
+        String,
         ForeignKey(
             "fit.id"
         )
@@ -68,7 +69,7 @@ class Info(Base):
     value = Column(String)
 
     fit_id = Column(
-        Integer,
+        String,
         ForeignKey(
             "fit.id"
         )
@@ -83,7 +84,7 @@ class Fit(Base):
     __tablename__ = "fit"
 
     id = Column(
-        Integer,
+        String,
         primary_key=True,
     )
     is_complete = Column(
@@ -94,9 +95,20 @@ class Fit(Base):
         "Info"
     )
 
-    def __init__(self, **kwargs):
-        super().__init__(
+    def __init__(
+            self,
+            model=None,
+            info=None,
             **kwargs
+    ):
+        self.id = str(Identifier((
+            model,
+            info
+        )))
+        super().__init__(
+            **kwargs,
+            model=model,
+            info=info
         )
 
     @property
