@@ -82,8 +82,7 @@ class Paths:
             tag=None,
             path_prefix=None,
             non_linear_name=None,
-            non_linear_tag_function=lambda: "",
-            remove_files=False,
+            non_linear_tag_function=lambda: ""
     ):
         """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the phase
         API. Use via non-linear searches requires manual input of paths, whereas the phase API manages this using the

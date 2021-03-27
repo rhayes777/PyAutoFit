@@ -3,6 +3,7 @@ import inspect
 import logging
 
 from autoconf.exc import ConfigException
+from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.prior import TuplePrior, Prior
@@ -11,6 +12,9 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
 
 logger = logging.getLogger(__name__)
+
+
+class_args_dict = dict()
 
 
 class PriorModel(AbstractPriorModel):
@@ -42,13 +46,6 @@ class PriorModel(AbstractPriorModel):
                 f"({self.cls.__name__} and {other.cls.__name__})"
             )
         return super().__add__(other)
-
-    @property
-    def constructor_argument_names(self):
-        try:
-            return inspect.getfullargspec(self.cls).args[1:]
-        except TypeError:
-            return []
 
     def __init__(self, cls, **kwargs):
         """
@@ -130,6 +127,16 @@ class PriorModel(AbstractPriorModel):
                     self, key, PriorModel(value) if inspect.isclass(value) else value
                 )
 
+    # noinspection PyAttributeOutsideInit
+    @property
+    def constructor_argument_names(self):
+        if self.cls not in class_args_dict:
+            try:
+                class_args_dict[self.cls] = inspect.getfullargspec(self.cls).args[1:]
+            except TypeError:
+                class_args_dict[self.cls] = []
+        return class_args_dict[self.cls]
+
     def __eq__(self, other):
         return (
                 isinstance(other, PriorModel)
@@ -174,12 +181,14 @@ class PriorModel(AbstractPriorModel):
         except ConfigException as e:
             return e
 
+    @assert_not_frozen
     def __setattr__(self, key, value):
         if key not in (
                 "component_number",
                 "phase_property_position",
                 "mapping_name",
                 "id",
+                "_is_frozen"
         ):
             try:
                 if "_" in key:
@@ -199,7 +208,10 @@ class PriorModel(AbstractPriorModel):
 
     def __getattr__(self, item):
         try:
-            if "_" in item:
+            if "_" in item and item not in (
+                    "_is_frozen",
+                    "tuple_prior_tuples"
+            ):
                 return getattr(
                     [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
                         0
@@ -305,7 +317,9 @@ class PriorModel(AbstractPriorModel):
         new_model: ModelMapper
             A new model mapper populated with Gaussian priors
         """
+        self.unfreeze()
         new_model = copy.deepcopy(self)
+
         new_model._assertions = list()
 
         model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}
