@@ -90,7 +90,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
                     np.exp(-0.5 * (transformed_xvalues / self.sigma) ** 2.0)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
-a ``NonLinearSearch`` like `emcee <https://github.com/dfm/emcee>`_.
+a non-linear search like `emcee <https://github.com/dfm/emcee>`_.
 
 To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a
 ``log_likelihood_function`` describing how to fit the ``data`` with the model:
@@ -130,7 +130,7 @@ To fit this Gaussian to the ``data`` we create an Analysis object, which gives *
 
             return log_likelihood
 
-We can now fit our model to the ``data`` using a ``NonLinearSearch``:
+We can now fit our model to the ``data`` using a non-linear search:
 
 .. code-block:: python
 

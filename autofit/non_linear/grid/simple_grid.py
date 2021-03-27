@@ -44,7 +44,7 @@ class GridSearch:
                 best_likelihood = likelihood
                 best_instance = instance
 
-        return abstract_search.Result(
+        return res.Result(
             samples=MockSamples(
                 max_log_likelihood_instance=best_instance,
                 log_likelihoods=likelihoods,

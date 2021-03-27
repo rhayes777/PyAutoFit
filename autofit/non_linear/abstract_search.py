@@ -108,8 +108,6 @@ class NonLinearSearch(ABC):
 
         self.number_of_cores = number_of_cores
 
-        self._in_phase = False
-
     def copy_with_paths(
             self,
             paths
@@ -419,28 +417,28 @@ class NonLinearSearch(ABC):
 
     def save_info(self, info):
         """
-        Save the dataset associated with the phase
+        Save the dataset associated with the search
         """
         with open(path.join(self.paths.pickle_path, "info.pickle"), "wb") as f:
             pickle.dump(info, f)
 
     def save_search(self):
         """
-        Save the seawrch associated with the phase as a pickle
+        Save the seawrch associated with the search as a pickle
         """
         with open(self.paths.make_search_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(self))
 
     def save_model(self, model):
         """
-        Save the model associated with the phase as a pickle
+        Save the model associated with the search as a pickle
         """
         with open(self.paths.make_model_pickle_path(), "w+b") as f:
             f.write(pickle.dumps(model))
 
     def save_samples(self, samples):
         """
-        Save the final-result samples associated with the phase as a pickle
+        Save the final-result samples associated with the search as a pickle
         """
 
         with open(self.paths.make_samples_pickle_path(), "w+b") as f:
@@ -448,8 +446,8 @@ class NonLinearSearch(ABC):
 
     def save_metadata(self):
         """
-        Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the dataset being fit
+        Save metadata associated with the search, such as the name of the pipeline, the
+        name of the search and the name of the dataset being fit
         """
         with open(path.join(self.paths.make_path(), "metadata"), "a") as f:
             f.write(self.make_metadata_text())
@@ -465,7 +463,7 @@ class NonLinearSearch(ABC):
     @property
     def _default_metadata(self) -> Dict[str, str]:
         """
-        A dictionary of metadata describing this phase, including the pipeline
+        A dictionary of metadata describing this search, including the pipeline
         that it's embedded in.
         """
         return {
@@ -545,99 +543,6 @@ class Analysis(ABC):
     def make_result(self, samples, model, search):
         return Result(samples=samples, model=model, search=search)
 
-class Result:
-    """
-    @DynamicAttrs
-    """
-
-    def __init__(self, samples, model, search=None):
-        """
-        The result of an optimization.
-
-        Parameters
-        ----------
-        model
-            The model mapper from the stage that produced this result
-        """
-
-        self.samples = samples
-        self.search = search
-
-        self._model = model
-        self.__model = None
-
-        self._instance = (
-            samples.max_log_likelihood_instance if samples is not None else None
-        )
-
-    @property
-    def log_likelihood(self):
-        return max(self.samples.log_likelihoods)
-
-    @property
-    def instance(self):
-        return self._instance
-
-    @property
-    def max_log_likelihood_instance(self):
-        return self._instance
-
-    @property
-    def model(self):
-        if self.__model is None:
-            tuples = self.samples.gaussian_priors_at_sigma(
-                sigma=self.search.prior_passer.sigma
-            )
-            self.__model = self._model.mapper_from_gaussian_tuples(
-                tuples,
-                use_errors=self.search.prior_passer.use_errors,
-                use_widths=self.search.prior_passer.use_widths
-            )
-        return self.__model
-
-    @model.setter
-    def model(self, model):
-        self.__model = model
-
-    def __str__(self):
-        return "Analysis Result:\n{}".format(
-            "\n".join(
-                ["{}: {}".format(key, value) for key, value in self.__dict__.items()]
-            )
-        )
-
-    def model_absolute(self, a: float) -> mm.ModelMapper:
-        """
-        Parameters
-        ----------
-        a
-            The absolute width of gaussian priors
-
-        Returns
-        -------
-        A model mapper created by taking results from this phase and creating priors with the defined absolute
-        width.
-        """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), a=a
-        )
-
-    def model_relative(self, r: float) -> mm.ModelMapper:
-        """
-        Parameters
-        ----------
-        r
-            The relative width of gaussian priors
-
-        Returns
-        -------
-        A model mapper created by taking results from this phase and creating priors with the defined relative
-        width.
-        """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
-        )
-
 
 class IntervalCounter:
     def __init__(self, interval):
@@ -659,19 +564,19 @@ class PriorPasser:
         This class contains the parameters that controls how priors are passed from the results of one non-linear
         search to the next.
 
-        Using the Phase API, we can pass priors from the result of one phase to another follows:
+        Using the Phase API, we can pass priors from the result of one search to another follows:
 
-            model_component.parameter = phase1_result.model.model_component.parameter
+            model_component.parameter = search1_result.model.model_component.parameter
 
         By invoking the 'model' attribute, the prior is passed following 3 rules:
 
             1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
-               the end of a phase are easily summarized as a Gaussian.
+               the end of a search are easily summarized as a Gaussian.
 
-            2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in phase 1.
+            2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
 
-              This ensures that the initial sampling of the new phase's non-linear starts by searching the region of
-              non-linear parameter space that correspond to highest log likelihood solutions in the previous phase.
+              This ensures that the initial sampling of the new search's non-linear starts by searching the region of
+              non-linear parameter space that correspond to highest log likelihood solutions in the previous search.
               Thus, we're setting our priors to look in the 'correct' regions of parameter space.
 
             3) The sigma of the Gaussian will use the maximum of two values:
@@ -684,11 +589,11 @@ class PriorPasser:
                broad region of parameter space, so that the model can change if a better solution is nearby. However,
                we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
                risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
-               previous phase.
+               previous search.
 
                Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
                we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-               phases - fast `NonLinearSearch` settings, simplified models, etc.
+               searchs - fast `NonLinearSearch` settings, simplified models, etc.
 
                Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
                is suspiciously small, we instead use the value specified in the widths file. These values are chosen
@@ -699,11 +604,11 @@ class PriorPasser:
 
             1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
                example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
-               a value 0.05. This means if the error on the parameter was less than 0.05 in the previous phase, the
-               sigma of its GaussianPrior in this phase will be 0.05.
+               a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
+               sigma of its GaussianPrior in this search will be 0.05.
 
             2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
-               given in the config file. For example, if the parameter estimated in the previous phase was 2.0, and the
+               given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
                relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
                will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
 
@@ -718,21 +623,21 @@ class PriorPasser:
 
         Example:
 
-        Lets say in phase 1 we fit a model, and we estimate that a parameter is equal to 4.0 +- 2.0, where the error
-        value of 2.0 was computed at 3.0 sigma confidence. To pass this as a prior to phase 2, we would write:
+        Lets say in search 1 we fit a model, and we estimate that a parameter is equal to 4.0 +- 2.0, where the error
+        value of 2.0 was computed at 3.0 sigma confidence. To pass this as a prior to search 2, we would write:
 
-            model_component.parameter = phase1.result.model.model_component.parameter
+            model_component.parameter = result_1.model.model_component.parameter
 
-        The prior on the parameter in phase 2 would thus be a GaussianPrior, with mean=4.0 and
+        The prior on the parameter in search 2 would thus be a GaussianPrior, with mean=4.0 and
         sigma=2.0. If we had used a sigma value of 1.0 to compute the error, which reduced the estimate from 4.0 +- 2.0
         to 4.0 +- 0.5, the sigma of the Gaussian prior would instead be 0.5.
 
-        If the error on the parameter in phase 1 had been really small, lets say, 0.01, we would instead use the value
+        If the error on the parameter in search 1 had been really small, lets say, 0.01, we would instead use the value
         of the parameter width in the priors config file to set sigma instead. Lets imagine the prior config file
-        specifies that we use an "Absolute" value of 0.8 to link this prior. Then, the GaussianPrior in phase 2 would
+        specifies that we use an "Absolute" value of 0.8 to link this prior. Then, the GaussianPrior in search 2 would
         have a mean=4.0 and sigma=0.8.
 
-        If the prior config file had specified that we use an relative value of 0.8, the GaussianPrior in phase 2 would
+        If the prior config file had specified that we use an relative value of 0.8, the GaussianPrior in search 2 would
         have a mean=4.0 and sigma=3.2.
         """
 

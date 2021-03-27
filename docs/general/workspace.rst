@@ -44,7 +44,7 @@ Config
 
 Here, you'll find the configuration files used by **PyAutoFit** which customize:
 
-    - The default settings used by every ``NonLinearSearch``.
+    - The default settings used by every non-linear search.
     - Example priors and notation configs which associate model-component with model-fitting.
     - The ``general.ini`` config which customizes other aspects of **PyAutoFit**.
 
@@ -60,4 +60,4 @@ model-fitting problem.
 Output
 ------
 
-The folder where the model-fitting results of a ``NonLinearSearch`` are stored.
+The folder where the model-fitting results of a non-linear search are stored.

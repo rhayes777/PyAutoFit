@@ -26,7 +26,7 @@ def convert_paths(func):
     def wrapper(self, *args, **kwargs):
         if len(args) > 1:
             raise AssertionError(
-                "Only phase name is allowed to be a positional argument in a phase constructor"
+                "Only search name is allowed to be a positional argument in a search constructor"
             )
 
         first_arg = kwargs.pop("paths", None)
@@ -61,7 +61,6 @@ def convert_paths(func):
 
         paths = Paths(
             name=first_arg,
-            tag=kwargs.pop("phase_tag", None),
             path_prefix=kwargs.pop("path_prefix", None),
             non_linear_name=search_name,
             non_linear_tag_function=non_linear_tag_function,
@@ -85,9 +84,9 @@ class Paths:
             non_linear_tag_function=lambda: "",
             remove_files=False,
     ):
-        """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the phase
-        API. Use via non-linear searches requires manual input of paths, whereas the phase API manages this using the
-        phase attributes.
+        """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
+        API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
+        search attributes.
 
         The output path within which the *Paths* objects path structure is contained is set via PyAutoConf, using the
         command:
@@ -109,15 +108,15 @@ class Paths:
         Parameters
         ----------
         name : str
-            The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For phases
+            The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For searchs
             this name is the ``name``.
         tag : str
             A tag for the non-linear search, typically used for instances where the same data is fitted with the same
-            model but with slight variants. For phases this is the phase_tag.
+            model but with slight variants. For searchs this is the search_tag.
         path_prefix : str
             A prefixed path that appears after the output_path but beflore the name variable.
         non_linear_name : str
-            The name of the non-linear search, e.g. Emcee -> emcee. Phases automatically set up and use this variable.
+            The name of the non-linear search, e.g. Emcee -> emcee. searchs automatically set up and use this variable.
         remove_files : bool
             If `True`, all output results except their ``.zip`` files are removed. If `False` they are not removed.
         """
@@ -194,7 +193,7 @@ class Paths:
     @make_path
     def output_path(self) -> str:
         """
-        The path to the output information for a phase.
+        The path to the output information for a search.
         """
         strings = (
             list(filter(
@@ -222,7 +221,7 @@ class Paths:
     @property
     def execution_time_path(self) -> str:
         """
-        The path to the output information for a phase.
+        The path to the output information for a search.
         """
         return path.join(self.name_folder, "execution_time")
 

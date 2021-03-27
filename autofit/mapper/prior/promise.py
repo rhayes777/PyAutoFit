@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
-from autofit.tools.pipeline import ResultsCollection
+from autofit.non_linear.result import ResultsCollection
 
 
 class AbstractPromiseResult(ABC):
@@ -64,7 +64,7 @@ class AbstractPromiseResult(ABC):
 
 class LastPromiseResult(AbstractPromiseResult):
     """
-    A PromiseResult that does not require a phase. Refers to the latest Result in the collection with an object for
+    A PromiseResult that does not require a search. Refers to the latest Result in the collection with an object for
     the path specified in a promise.
     """
 

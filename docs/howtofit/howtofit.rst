@@ -13,9 +13,6 @@ The lectures are provided as *Jupyter notebooks* and currently consist of 3 chap
 
 **Graphical Models**: How to compose and fit graphical models to large datasets (notebooks + feature are in development).
 
-**Phase API**: How to write a software project using the **PyAutoFit** phase API which fully exploits **PyAutoFit**'s
-features for managing model-fitting.
-
 Config File Path
 ----------------
 

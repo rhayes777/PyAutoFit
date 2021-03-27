@@ -391,11 +391,11 @@ class OptimizerSamples:
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
         """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent phase, where:
+        same (or similar) parameters in a subsequent search, where:
 
          - The mean is given by maximum log likelihood model values.
          - Their errors are omitted, as this information is not available from an search. When these priors are
-           used to link to another phase, it will thus automatically use the prior config values.
+           used to link to another search, it will thus automatically use the prior config values.
 
         Parameters
         -----------
@@ -752,7 +752,7 @@ class PDFSamples(OptimizerSamples):
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
         """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent phase, where:
+        same (or similar) parameters in a subsequent search, where:
 
          - The mean is given by their most-probable values (using *median_pdf_vector*).
          - Their errors are computed at an input sigma value (using *errors_at_sigma*).

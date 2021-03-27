@@ -43,7 +43,8 @@ from .mapper.prior_model.util import PriorModelNameValue
 from .non_linear.abstract_search import Analysis
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import PriorPasser
-from .non_linear.abstract_search import Result
+from .non_linear.result import Result
+from .non_linear.result import ResultsCollection
 from autofit.non_linear.grid.grid_search import GridSearch as SearchGridSearch
 # from autofit.non_linear.grid.sensitivity import Sensitivity
 from .non_linear.grid.grid_search import GridSearchResult
@@ -67,13 +68,6 @@ from .non_linear.samples import PDFSamples
 from .text import formatter
 from .text import samples_text
 from .tools import util
-from .tools.phase import AbstractPhase
-from .tools.phase import Dataset
-from .tools.phase import Phase
-from .tools.phase import as_grid_search
-from .tools.phase_property import PhaseProperty
-from .tools.pipeline import Pipeline
-from .tools.pipeline import ResultsCollection
 
 conf.instance.register(__file__)
 

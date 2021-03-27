@@ -127,7 +127,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         source
-            An instance or prior model from a previous phase from which attributes
+            An instance or prior model from a previous search from which attributes
             are passed to this model.
         """
 
@@ -846,7 +846,7 @@ class AbstractPriorModel(AbstractModel):
         excluded_classes
             Classes that should be left model
         instance
-            The best fit from the previous phase
+            The best fit from the previous search
         """
         mapper = copy.deepcopy(self)
         transfer_classes(instance, mapper, excluded_classes)
@@ -995,9 +995,9 @@ def transfer_classes(instance, mapper, model_classes=None):
     model_classes
         Classes whose descendants should not be overwritten
     instance
-        The best fit from the previous phase
+        The best fit from the previous search
     mapper
-        The prior model from the previous phase
+        The prior model from the previous search
     """
     from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 

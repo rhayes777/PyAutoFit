@@ -10,7 +10,7 @@ class TestFiltering:
 
     def test_and(self, aggregator):
         predicate_one = aggregator.pipeline == "pipeline1"
-        predicate_two = aggregator.phase == "phase2"
+        predicate_two = aggregator.search == "search2"
         result = aggregator.filter(predicate_one & predicate_two)
         assert len(result) == 1
         assert result.directories == [path.join("directory", "number", "two")]
@@ -50,14 +50,14 @@ class TestFiltering:
         assert result[0].pipeline == "pipeline1"
 
         result = aggregator.filter(
-            aggregator.pipeline == "pipeline1", aggregator.phase == "phase1"
+            aggregator.pipeline == "pipeline1", aggregator.search == "search1"
         )
 
         assert len(result) == 1
         assert result[0].pipeline == "pipeline1"
 
         result = aggregator.filter(aggregator.pipeline == "pipeline1").filter(
-            aggregator.phase == "phase1"
+            aggregator.search == "search1"
         )
 
         assert len(result) == 1
@@ -69,14 +69,14 @@ class TestFiltering:
         assert result[0].pipeline == "pipeline1"
 
         result = aggregator.filter(
-            aggregator.pipeline.contains("1"), aggregator.phase.contains("1")
+            aggregator.pipeline.contains("1"), aggregator.search.contains("1")
         )
 
         assert len(result) == 1
         assert result[0].pipeline == "pipeline1"
 
         result = aggregator.filter(aggregator.pipeline.contains("1")).filter(
-            aggregator.phase == "phase1"
+            aggregator.search == "search1"
         )
 
         assert len(result) == 1

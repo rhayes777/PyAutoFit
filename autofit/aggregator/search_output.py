@@ -14,12 +14,12 @@ class SearchOutput:
 
     def __init__(self, directory: str):
         """
-        Represents the output of a single phase. Comprises a metadata file and other dataset files.
+        Represents the output of a single search. Comprises a metadata file and other dataset files.
 
         Parameters
         ----------
         directory
-            The directory of the phase
+            The directory of the search
         """
         self.directory = directory
         self.__search = None
@@ -59,7 +59,7 @@ class SearchOutput:
 
     def __getattr__(self, item):
         """
-        Attempt to load a pickle by the same name from the phase output directory.
+        Attempt to load a pickle by the same name from the search output directory.
 
         dataset.pickle, meta_dataset.pickle etc.
         """
@@ -74,12 +74,11 @@ class SearchOutput:
     @property
     def header(self) -> str:
         """
-        A header created by joining the pipeline, phase and dataset names
+        A header created by joining the search name
         """
-        pipeline = self.pipeline or ""
         phase = self.phase or ""
         dataset_name = self.dataset_name or ""
-        return path.join(pipeline, phase, dataset_name)
+        return path.join(phase, dataset_name)
 
     @property
     def search(self) -> abstract_search.NonLinearSearch:

@@ -5,8 +5,9 @@ from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.abstract_search import Analysis, Result
+from autofit.non_linear.abstract_search import Analysis
 from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.result import Result
 from autofit.non_linear.paths import convert_paths
 from autofit.non_linear.samples import PDFSamples, Sample
 

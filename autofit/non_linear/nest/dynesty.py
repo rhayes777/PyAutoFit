@@ -7,7 +7,7 @@ from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.abstract_search import Result
+from autofit.non_linear.result import Result
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.paths import convert_paths

@@ -33,11 +33,11 @@ def model():
     return af.ModelMapper()
 
 
-@pytest.fixture(name="phase")
-def make_phase():
-    phase = af.AbstractPhase(search=af.MockSearch("phase name"))
-    phase.model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
-    return phase
+@pytest.fixture(name="result")
+def make_result():
+    model = af.Mapper()
+    model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
+    return af.Result(model=model, samples=mock.MockSamples(), search=mock.MockSearch())
 
 
 @pytest.fixture(name="collection")
@@ -60,6 +60,6 @@ def make_collection():
 
     result.hyper_result = hyper_result
 
-    collection.add("phase name", result)
+    collection.add("search name", result)
 
     return collection

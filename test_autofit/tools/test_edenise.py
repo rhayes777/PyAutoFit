@@ -32,11 +32,6 @@ class Test:
     def test_hash(self, as_line, line):
         assert hash(as_line) == hash(line)
 
-    def test_phase_property_line(self):
-        line = Line("from .tools.phase_property import PhaseProperty")
-        assert line.source == "PhaseProperty"
-        assert line._target == "tools.phase_property.PhaseProperty"
-
     def test_replace(self, as_line, line):
         converter = Converter("testfit", "tf", [as_line, line])
         assert (

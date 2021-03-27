@@ -31,7 +31,7 @@ class AbstractNest(NonLinearSearch):
         This feature should be used for non-linear searches where the nested sampler gets 'stuck', for example because
         the log likelihood function is stochastic or varies rapidly over small scales in parameter space. The results of
         samples using this feature are not realiable (given the log likelihood is being manipulated to end the run), but
-        they are still valid results for linking priors to a new phase and non-linear search.
+        they are still valid results for linking priors to a new search and non-linear search.
 
         Parameters
         ----------

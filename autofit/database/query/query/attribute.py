@@ -52,7 +52,7 @@ class Attribute:
 
     def __eq__(self, other) -> AttributeQuery:
         """
-        Check whether an attribute, such as a phase name, is equal
+        Check whether an attribute, such as a search name, is equal
         to some value
         """
         return self._make_query(
@@ -62,7 +62,7 @@ class Attribute:
 
     def contains(self, item: str) -> AttributeQuery:
         """
-        Check whether an attribute, such as a phase name, contains
+        Check whether an attribute, such as a search name, contains
         some string
         """
         return self._make_query(

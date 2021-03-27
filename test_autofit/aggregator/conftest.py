@@ -4,7 +4,7 @@ from os import path
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockPhaseOutput
+from autofit.mock.mock import MockSearchOutput
 
 
 @pytest.fixture(name="path_aggregator")
@@ -24,9 +24,9 @@ def make_aggregator_directory():
 @pytest.fixture(name="aggregator")
 def make_aggregator():
     aggregator = af.Aggregator("")
-    aggregator.phases = [
-        MockPhaseOutput(path.join("directory", "number", "one"), "pipeline1", "phase1", "dataset1"),
-        MockPhaseOutput(path.join("directory", "number", "two"), "pipeline1", "phase2", "dataset1"),
-        MockPhaseOutput(path.join("directory", "letter", "a"), "pipeline2", "phase2", "dataset2"),
+    aggregator.search_outputs = [
+        MockSearchOutput(path.join("directory", "number", "one"), "pipeline1", "search1", "dataset1"),
+        MockSearchOutput(path.join("directory", "number", "two"), "pipeline1", "search2", "dataset1"),
+        MockSearchOutput(path.join("directory", "letter", "a"), "pipeline2", "search2", "dataset2"),
     ]
     return aggregator

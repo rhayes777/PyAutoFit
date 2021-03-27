@@ -2,7 +2,7 @@ from os import path
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockPhaseOutput
+from autofit.mock.mock import MockSearchOutput
 
 
 def test_completed_aggregator(aggregator_directory):
@@ -28,22 +28,23 @@ class TestLoading:
 @pytest.fixture(name="aggregator_2")
 def make_aggregator_2():
     aggregator = af.Aggregator("")
-    aggregator.phases = [
-        MockPhaseOutput(path.join("directory", "number", "one"), "apipeline1", "phase1", "dataset1"),
-        MockPhaseOutput(path.join("directory", "number", "two"), "pipeline1", "bphase2", "dataset1"),
-        MockPhaseOutput(path.join("directory", "letter", "a"), "pipeline2", "phase2", "dataset2"),
+    aggregator.search_outputs = [
+        MockSearchOutput(path.join("directory", "number", "one"), "apipeline1", "search1", "dataset1"),
+        MockSearchOutput(path.join("directory", "number", "two"), "pipeline1", "bsearch2", "dataset1"),
+        MockSearchOutput(path.join("directory", "letter", "a"), "pipeline2", "search2", "dataset2"),
     ]
     return aggregator
 
 
 class TestIntersection:
+
     def test_on_pipeline(self, aggregator, aggregator_2):
         aggregator, aggregator_2 = aggregator.homogenize(aggregator_2, on="pipeline")
-        assert list(aggregator.values("phase")) == ["phase1", "phase2", "phase2"]
-        assert list(aggregator_2.values("phase")) == ["bphase2", "phase2"]
+        assert list(aggregator.values("search")) == ["search1", "search2", "search2"]
+        assert list(aggregator_2.values("search")) == ["bsearch2", "search2"]
 
-    def test_on_phase(self, aggregator, aggregator_2):
-        aggregator, aggregator_2 = aggregator.homogenize(aggregator_2, on="phase")
+    def test_on_search(self, aggregator, aggregator_2):
+        aggregator, aggregator_2 = aggregator.homogenize(aggregator_2, on="search")
         assert list(aggregator.values("pipeline")) == [
             "pipeline1",
             "pipeline1",
@@ -59,7 +60,7 @@ class TestOperations:
             "pipeline1",
             "pipeline2",
         ]
-        assert list(aggregator.values("phase")) == ["phase1", "phase2", "phase2"]
+        assert list(aggregator.values("search")) == ["search1", "search2", "search2"]
         assert list(aggregator.values("dataset")) == [
             "dataset1",
             "dataset1",
@@ -78,21 +79,21 @@ class TestOperations:
         assert len(result[0]) == 2
         assert len(result[1]) == 1
 
-        result = result.filter(aggregator.phase == "phase2")
+        result = result.filter(aggregator.search == "search2")
 
         assert len(result) == 2
         assert len(result[0]) == 1
         assert len(result[1]) == 1
 
-        assert list(map(list, result.values("phase"))) == [["phase2"], ["phase2"]]
+        assert list(map(list, result.values("search"))) == [["search2"], ["search2"]]
 
     def test_map(self, aggregator):
         def some_function(output):
-            return f"{output.phase} {output.dataset}"
+            return f"{output.search} {output.dataset}"
 
         results = aggregator.map(some_function)
         assert list(results) == [
-            "phase1 dataset1",
-            "phase2 dataset1",
-            "phase2 dataset2",
+            "search1 dataset1",
+            "search2 dataset1",
+            "search2 dataset2",
         ]

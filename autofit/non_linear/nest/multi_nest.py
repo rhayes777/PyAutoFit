@@ -1,6 +1,7 @@
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
+from autofit.non_linear import result as res
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.paths import convert_paths
@@ -237,7 +238,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
             return log_likelihood
 
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> abstract_search.Result:
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> res.Result:
         """
         Fit a model using MultiNest and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.

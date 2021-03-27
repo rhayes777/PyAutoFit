@@ -8,7 +8,7 @@ from autoconf import conf
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
-from autofit.non_linear.abstract_search import Result
+from autofit.non_linear.result import Result
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.paths import Paths
 

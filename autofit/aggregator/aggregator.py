@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Filter and collate phase dataset in all subdirectories.
+Filter and collate search outputs in all subdirectories.
 
 Usage:
 

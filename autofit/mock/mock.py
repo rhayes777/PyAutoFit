@@ -3,8 +3,6 @@ import numpy as np
 import autofit as af
 from autoconf import conf
 from autofit.non_linear.samples import Sample
-from autofit.tools.phase import Dataset
-
 
 class MockAnalysis(af.Analysis):
     prior_count = 2
@@ -142,16 +140,6 @@ class MockSearch(af.NonLinearSearch):
         return self.samples
 
 
-class MockDataset(Dataset):
-    @property
-    def metadata(self) -> dict:
-        return dict()
-
-    @property
-    def name(self) -> str:
-        return "name"
-
-
 ### Mock Classes ###
 
 class ListClass:
@@ -253,17 +241,17 @@ class MedianPDFInstance:
         self.name = name
 
 
-class MockPhaseOutput:
-    def __init__(self, directory, pipeline, phase, dataset):
+class MockSearchOutput:
+    def __init__(self, directory, pipeline, search, dataset):
         self.directory = directory
         self.pipeline = pipeline
-        self.phase = phase
+        self.search = search
         self.dataset = dataset
 
     @property
     def median_pdf_instance(self):
         return MedianPDFInstance(
-            self.phase
+            self.search
         )
 
     @property

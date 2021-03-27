@@ -24,7 +24,7 @@ Feature grouping:
 - ABC
 - Graphical models.
 - Model Comparison (Model comp, sensitivty maps).
-- Transdimensional (phase linking, pipeline, coordinate ascent).
+- Transdimensional (search linking, pipeline, coordinate ascent).
 - Misc (Non linear search grid search).
 
 Future:

@@ -129,7 +129,7 @@ class:
             return log_likelihood
 
 Performing the *model-fit* uses the same steps as the previous example, whereby we  *compose* our *model* (now using a
-``CollectionPriorModel``), instantiate the ``Analysis`` and pass them a ``NonLinearSearch``. In this example, we'll use
+``CollectionPriorModel``), instantiate the ``Analysis`` and pass them a non-linear search. In this example, we'll use
 the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
 .. code-block:: bash
@@ -161,11 +161,11 @@ Priors can be manually specified as follows:
     model.intensity = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
     model.sigma = af.GaussianPrior(mean=10.0, sigma=5.0, lower_limit=0.0, upper_limit=np.inf)
 
-These priors will be used by the ``NonLinearSearch`` to determine how it samples parameter space. The ``lower_limit``
+These priors will be used by the non-linear search to determine how it samples parameter space. The ``lower_limit``
 and ``upper_limit`` on the ``GaussianPrior`` set the physical limits of values of the parameter, specifying that the
 ``sigma`` value of the ``Gaussian`` cannot be negative.
 
-We can fit this model, with all new priors, using a ``NonLinearSearch`` as we did before:
+We can fit this model, with all new priors, using a non-linear search as we did before:
 
 .. code-block:: bash
 

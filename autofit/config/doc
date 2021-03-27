@@ -15,7 +15,7 @@ priors:
         limits 0.0 -> 1.0 to prevent unphysical models.
     width:
         The width of the GaussianPrior used for each parameter if its priors are initialized via linking from a previous
-        phase.
+        search.
 
 
 visualize:

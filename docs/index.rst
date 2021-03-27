@@ -193,7 +193,6 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    howtofit/chapter_1_introduction
    howtofit/chapter_database
    howtofit/chapter_graphical_models
-   howtofit/chapter_phase_api
 
 .. toctree::
    :caption: API Reference:
@@ -212,4 +211,3 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    features/search_chaining
    features/sensitivity_mapping
    features/graphical_models
-   features/phase

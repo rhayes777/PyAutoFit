@@ -3,7 +3,7 @@
 Results & Samples
 -----------------
 
-A ``NonLinearSearch``'s fit function returns a ``Result`` object:
+A non-linear search's fit function returns a ``Result`` object:
 
 .. code-block:: bash
 
@@ -28,7 +28,7 @@ the ``parameters``:
     samples = result.samples
     print(samples.parameters)
 
-The ``parameters`` are a list of lists of all accepted parameter values sampled by the ``NonLinearSearch``. Also
+The ``parameters`` are a list of lists of all accepted parameter values sampled by the non-linear search. Also
 available are lists of the ``log_likelihoods``, ``log_priors``, ``log_posteriors`` and ``weights`` associated
 with every sample:
 
@@ -40,7 +40,7 @@ with every sample:
     print(samples.weights)
 
 For MCMC analysis, these are used to perform parameter estimation by binning the samples in a histogram
-(assuming we have removed the burn-in phase):
+(assuming we have removed the burn-in search):
 
 .. code-block:: bash
 
@@ -49,7 +49,7 @@ For MCMC analysis, these are used to perform parameter estimation by binning the
     median_pdf_vector = [float(np.percentile(samples[:, i], [50])) for i in range(model.prior_count)]
 
 The ``median_pdf_vector`` is readily available from the ``Samples`` object for you convenience (and
-if a nested sampling ``NonLinearSearch`` is used, it will use an appropriate method to estimate the
+if a nested sampling non-linear search is used, it will use an appropriate method to estimate the
 parameters):
 
 .. code-block:: bash
@@ -130,7 +130,7 @@ An ``instance`` of any accepted sample can be created:
 
     instance = samples.instance_from_sample_index(sample_index=500)
 
-If a nested sampling ``NonLinearSearch`` is used, the Bayesian evidence of the model is also
+If a nested sampling non-linear search is used, the Bayesian evidence of the model is also
 available which enables model comparison to be performed:
 
 .. code-block:: bash
@@ -138,9 +138,8 @@ available which enables model comparison to be performed:
     log_evidence = samples.log_evidence
 
 At this point, you might be wondering what else the ``Result``'s contains, pretty much everything we
-discussed above was a part of its ``Samples`` property! For projects which use **PyAutoFit**'s phase
-API (see `here <https://pyautofit.readthedocs.io/en/latest/overview/phase.html>`_), the ``Result``'s object
-can be extended to include model-specific results.
+discussed above was a part of its ``Samples`` property! The ``Result``'s object can also be extended to include
+model-specific results.
 
 For example, we may extend the results of our 1D ``Gaussian`` example to include properties like the
 ``max_log_likelihood_profile`` (e.g. the 1D model data of the best-fit profile) or a list of these

@@ -4,7 +4,7 @@ from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
-from autofit.tools.pipeline import ResultsCollection
+from autofit.non_linear.result import ResultsCollection
 
 
 class AbstractModel(ModelObject):
@@ -149,14 +149,14 @@ class AbstractModel(ModelObject):
 def populate(obj, collection: ResultsCollection):
     """
     Replace promises with instances and instances. Promises are placeholders expressing that a given attribute should
-    be replaced with an actual value once the phase that generates that value is complete.
+    be replaced with an actual value once the search that generates that value is complete.
 
     Parameters
     ----------
     obj
         The object to be populated
     collection
-        A collection of Results from previous phases
+        A collection of Results from previous searchs
 
     Returns
     -------

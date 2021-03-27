@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-
+from autofit.mock import mock
 
 @pytest.fixture(name="prior_0")
 def make_prior_0():
@@ -21,10 +21,9 @@ def make_model(prior_0, prior_1):
 
     return model
 
-
-@pytest.fixture(name="phase")
-def make_phase(model):
-    return af.AbstractPhase(model=model, search=af.MockSearch("phase name"))
+@pytest.fixture(name="result")
+def make_result(model):
+    return af.Result(model=model, samples=mock.MockSamples(), search=mock.MockSearch())
 
 
 @pytest.fixture(name="results_collection")
@@ -41,9 +40,9 @@ def make_results_collection(model):
 
 
 class TestIteration:
-    def test_index_type(self, phase):
-        promise_0 = phase.result.model.collection[0]
-        promise_1 = phase.result.model.collection[1]
+    def test_index_type(self, result):
+        promise_0 = result.model.collection[0]
+        promise_1 = result.model.collection[1]
 
         assert isinstance(promise_0, af.Promise)
         assert isinstance(promise_1, af.Promise)

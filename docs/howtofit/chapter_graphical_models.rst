@@ -10,7 +10,7 @@ can fit large datasets with a model that has 'local' parameters specific to each
 parameters that fit for higher level parameters.
 
 You can start the tutorials right now by going to `our binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD>`_
-and navigating to the folder `notebooks/howtofit/chapter_phase_api`. They are also on the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_.
+and navigating to the folder `notebooks/howtofit/chapter_graphical_models`. They are also on the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_.
 
 The chapter contains the following tutorials:
 

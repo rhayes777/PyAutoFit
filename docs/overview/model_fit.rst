@@ -45,7 +45,7 @@ The code above defines a **PyAutoFit** *model component* called a ``Gaussian``. 
 three parameters: ``centre``, ``intensity`` and ``sigma``.
 
 When we fit the model to ``data`` and compute a likelihood an instance of the class above is accessible, with specific
-values of ``centre``, ``intensity`` and ``sigma`` chosen by the ``NonLinearSearch`` algorithm that fits the model to
+values of ``centre``, ``intensity`` and ``sigma`` chosen by the non-linear search algorithm that fits the model to
 the data.
 
 This means that the class's functions are available to compute the likelihood, so lets add a ``profile_from_xvalues``
@@ -123,12 +123,12 @@ Lets consider exactly what is happening in the ``Analysis`` class above.
 
 - The ``log_likelihood_function`` receives an ``instance`` of the model, which in this example is an ``instance`` of the
   ``Gaussian`` class. This ``instance`` has values for its *parameters* (``centre``, ``intensity`` and ``sigma``) which are
-  chosen by the ``NonLinearSearch`` used to fit the model, as discussed next.
+  chosen by the non-linear search used to fit the model, as discussed next.
 
-- The ``log_likelihood_function`` returns a log likelihood value, which the ``NonLinearSearch`` uses evaluate the
+- The ``log_likelihood_function`` returns a log likelihood value, which the non-linear search uses evaluate the
   goodness-of-fit of a model to the data when sampling parameter space.
 
-Next, we *compose* our model, set up our ``Analysis`` and fit the model to the ``data`` using a ``NonLinearSearch``:
+Next, we *compose* our model, set up our ``Analysis`` and fit the model to the ``data`` using a non-linear search:
 
 .. code-block:: bash
 
@@ -141,14 +141,14 @@ Next, we *compose* our model, set up our ``Analysis`` and fit the model to the `
     result = emcee.fit(model=model, analysis=analysis)
 
 Above, we use a ``PriorModel`` object to compose the model. This tells **PyAutoFit** that the ``Gaussian`` class is to
-be used as a *model component* where its *parameters* are to be fitted for by the ``NonLinearSearch``. The model is
+be used as a *model component* where its *parameters* are to be fitted for by the non-linear search. The model is
 defined with 3 free parameters, thus the dimensionality of non-linear parameter space is 3.
 
-We perform the fit using the ``NonLinearSearch`` algorithm `emcee <https://github.com/dfm/emcee>`_ (we cover
-``NonLinearSearch``'s in more detail later).
+We perform the fit using the non-linear search algorithm `emcee <https://github.com/dfm/emcee>`_ (we cover
+non-linear search's in more detail later).
 
 By running the code above **PyAutoFit** performs the model-fit, outputting all results into structured paths on you
-hard-disk. It also returns a ``Result`` object in Python, which includes lists containing the ``NonLinearSearch``'s
+hard-disk. It also returns a ``Result`` object in Python, which includes lists containing the non-linear search's
 parameter samples, the maximum likelihood model, marginalized parameters estimates, errors are so on:
 
 .. code-block:: bash
