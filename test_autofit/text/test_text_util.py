@@ -37,7 +37,7 @@ def test__results_to_file(samples):
     file_results = path.join(text_path, "model.results")
 
     text_util.results_to_file(
-        samples=samples, filename=file_results, during_analysis=True
+        samples=samples, filename=file_results
     )
 
     results = open(file_results)

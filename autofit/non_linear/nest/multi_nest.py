@@ -1,3 +1,7 @@
+import os
+import shutil
+from os import path
+
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
@@ -256,6 +260,7 @@ class MultiNest(abstract_nest.AbstractNest):
         set of accepted ssamples of the fit.
         """
 
+        # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
             # NEVER EVER REFACTOR THIS LINE! Haha.
 
@@ -298,7 +303,7 @@ class MultiNest(abstract_nest.AbstractNest):
             max_iter=self.max_iter,
             init_MPI=self.init_MPI,
         )
-        self.paths.copy_from_sym()
+        self.copy_from_sym()
 
     @property
     def tag(self):
@@ -380,7 +385,7 @@ class MultiNest(abstract_nest.AbstractNest):
         """
 
         parameters = parameters_from_file_weighted_samples(
-            file_weighted_samples=self.paths.file_weighted_samples,
+            file_weighted_samples=self.file_weighted_samples,
             prior_count=model.prior_count,
         )
 
@@ -389,19 +394,19 @@ class MultiNest(abstract_nest.AbstractNest):
         ]
 
         log_likelihoods = log_likelihoods_from_file_weighted_samples(
-            file_weighted_samples=self.paths.file_weighted_samples
+            file_weighted_samples=self.file_weighted_samples
         )
 
         weights = weights_from_file_weighted_samples(
-            file_weighted_samples=self.paths.file_weighted_samples
+            file_weighted_samples=self.file_weighted_samples
         )
 
         total_samples = total_samples_from_file_resume(
-            file_resume=self.paths.file_resume
+            file_resume=self.file_resume
         )
 
         log_evidence = log_evidence_from_file_summary(
-            file_summary=self.paths.file_summary, prior_count=model.prior_count
+            file_summary=self.file_summary, prior_count=model.prior_count
         )
 
         return NestSamples(
@@ -418,6 +423,29 @@ class MultiNest(abstract_nest.AbstractNest):
             number_live_points=self.n_live_points,
             time=self.timer.time,
         )
+
+    @property
+    def file_summary(self) -> str:
+        return path.join(self.paths.samples_path, "multinestsummary.txt")
+
+    @property
+    def file_weighted_samples(self):
+        return path.join(self.paths.samples_path, "multinest.txt")
+
+    @property
+    def file_resume(self) -> str:
+        return path.join(self.paths.samples_path, "multinestresume.dat")
+
+    def copy_from_sym(self):
+        """
+        Copy files from the sym-linked search folder to the samples folder.
+        """
+
+        src_files = os.listdir(self.paths.path)
+        for file_name in src_files:
+            full_file_name = path.join(self.paths.path, file_name)
+            if path.isfile(full_file_name):
+                shutil.copy(full_file_name, self.paths.samples_path)
 
 
 def parameters_from_file_weighted_samples(

@@ -12,14 +12,16 @@ def test_embedded_query(
             gaussian=m.Gaussian(
                 centre=1
             )
-        )
+        ),
+        info={"info": 3}
     )
     model_2 = db.Fit(
         instance=af.Collection(
             gaussian=m.Gaussian(
                 centre=2
             )
-        )
+        ),
+        info={"info": 4}
     )
 
     session.add_all([

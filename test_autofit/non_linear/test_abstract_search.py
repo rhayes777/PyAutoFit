@@ -125,7 +125,7 @@ class TestMovePickleFiles:
             )
         ]
 
-        search.move_pickle_files(pickle_files=pickle_paths)
+        search.paths._move_pickle_files(pickle_files=pickle_paths)
 
         with open(path.join(pickle_paths[0]), "rb") as f:
             arr_load = pickle.load(f)
