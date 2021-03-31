@@ -133,11 +133,7 @@ class PriorModel(AbstractPriorModel):
             "class_path": get_class_path(
                 self.cls
             ),
-            **{
-                name: prior.dict
-                for name, prior
-                in self.direct_prior_tuples
-            }
+            **super().dict
         }
 
     # noinspection PyAttributeOutsideInit

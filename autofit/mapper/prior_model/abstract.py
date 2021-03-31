@@ -69,6 +69,24 @@ class AbstractPriorModel(AbstractModel):
         super().__init__()
         self._assertions = list()
 
+    @property
+    def dict(self):
+        return {
+            **{
+                name: prior.dict
+                for name, prior
+                in self.direct_prior_tuples + self.direct_prior_model_tuples
+            },
+            **{
+                name: value
+                for name, value
+                in self.direct_tuples_with_type(
+                    (float, int)
+                )
+                if name != "item_number"
+            }
+        }
+
     def add_assertion(self, assertion, name=None):
         """
         Assert that some relationship holds between physical values associated with
