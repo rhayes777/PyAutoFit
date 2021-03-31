@@ -108,13 +108,15 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, tuple_prior)
             elif arg in annotations and annotations[arg] != float:
                 spec = annotations[arg]
+
                 # noinspection PyUnresolvedReferences
                 if inspect.isclass(spec) and issubclass(spec, float):
                     from autofit.mapper.prior_model.annotation import (
                         AnnotationPriorModel,
                     )
-
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
+                elif hasattr(spec, "__args__") and type(None) in spec.__args__:
+                    setattr(self, arg, None)
                 else:
                     setattr(self, arg, PriorModel(annotations[arg]))
             else:
