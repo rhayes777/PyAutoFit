@@ -1,14 +1,12 @@
-import builtins
-import importlib
 import inspect
-from typing import List, Tuple, Any, Iterable, Union, ItemsView
+from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 import autofit as af
-from autofit.util import get_class_path
+from autofit.util import get_class_path, get_class
 
 Base = declarative_base()
 
@@ -181,47 +179,12 @@ class Object(Base):
     )
 
     @property
-    def _class_path_array(self) -> List[str]:
-        """
-        A list of strings describing the module and class of the
-        real object represented here
-        """
-        return self.class_path.split(".")
-
-    @property
-    def _class_name(self) -> str:
-        """
-        The name of the real class
-        """
-        return self._class_path_array[-1]
-
-    @property
-    def _module_path(self) -> str:
-        """
-        The path of the module containing the real class
-        """
-        return ".".join(self._class_path_array[:-1])
-
-    @property
-    def _module(self):
-        """
-        The module containing the real class
-        """
-        try:
-            return importlib.import_module(
-                self._module_path
-            )
-        except ValueError:
-            return builtins
-
-    @property
-    def cls(self) -> type:
+    def cls(self) -> Type[object]:
         """
         The class of the real object
         """
-        return getattr(
-            self._module,
-            self._class_name
+        return get_class(
+            self.class_path
         )
 
     @cls.setter

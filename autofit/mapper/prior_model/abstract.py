@@ -22,6 +22,7 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
+from autofit.util import get_class
 
 logger = logging.getLogger(
     __name__
@@ -69,9 +70,69 @@ class AbstractPriorModel(AbstractModel):
         super().__init__()
         self._assertions = list()
 
+    @staticmethod
+    def from_dict(d):
+        from .prior_model import PriorModel
+        from .collection import CollectionPriorModel
+
+        if not isinstance(
+                d, dict
+        ):
+            return d
+
+        type_ = d["type"]
+
+        if type_ == "model":
+            instance = PriorModel(
+                get_class(
+                    d.pop("class_path")
+                )
+            )
+        elif type_ == "collection":
+            instance = CollectionPriorModel()
+        elif type_ == "instance":
+            cls = get_class(
+                d.pop("class_path")
+            )
+            instance = object.__new__(cls)
+
+        else:
+            return Prior.from_dict(d)
+
+        for key, value in d.items():
+            setattr(
+                instance,
+                key,
+                AbstractPriorModel.from_dict(value)
+            )
+        return instance
+
     @property
     def dict(self):
-        d = dict()
+        from .prior_model import PriorModel
+        from .collection import CollectionPriorModel
+
+        if isinstance(
+                self,
+                CollectionPriorModel
+        ):
+            type_ = "collection"
+        elif self.prior_count == 0:
+            type_ = "instance"
+        elif isinstance(
+                self,
+                PriorModel
+        ):
+            type_ = "model"
+        else:
+            raise AssertionError(
+                f"{self.__class__.__name__} cannot be serialised to dict"
+            )
+
+        dict_ = {
+            "type": type_
+        }
+
         for key, value in self._dict.items():
             try:
                 value = AbstractPriorModel.from_instance(
@@ -79,8 +140,8 @@ class AbstractPriorModel(AbstractModel):
                 ).dict
             except AttributeError:
                 pass
-            d[key] = value
-        return d
+            dict_[key] = value
+        return dict_
 
     @property
     def _dict(self):
