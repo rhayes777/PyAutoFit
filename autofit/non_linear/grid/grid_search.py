@@ -189,7 +189,7 @@ class GridSearchResult:
 
 class GridSearch:
 
-    def __init__(self, search, paths=None, number_of_steps=4, number_of_cores=1):
+    def __init__(self, search,  number_of_steps=4, number_of_cores=1):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed

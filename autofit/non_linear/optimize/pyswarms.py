@@ -14,7 +14,6 @@ class AbstractPySwarms(AbstractOptimizer):
     def __init__(
             self,
             name=None,
-            paths=None,
             prior_passer=None,
             n_particles=None,
             iters=None,
@@ -116,7 +115,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         super().__init__(
             name=name,
-            paths=paths,
+
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
@@ -346,7 +345,6 @@ class PySwarmsGlobal(AbstractPySwarms):
     def __init__(
             self,
             name=None,
-            paths=None,
             prior_passer=None,
             n_particles=None,
             iters=None,
@@ -428,7 +426,7 @@ class PySwarmsGlobal(AbstractPySwarms):
 
         super().__init__(
             name=name,
-            paths=paths,
+
             prior_passer=prior_passer,
             n_particles=n_particles,
             iters=iters,
@@ -464,7 +462,6 @@ class PySwarmsLocal(AbstractPySwarms):
     def __init__(
             self,
             name=None,
-            paths=None,
             prior_passer=None,
             n_particles=None,
             iters=None,
@@ -568,7 +565,7 @@ class PySwarmsLocal(AbstractPySwarms):
         )
 
         super().__init__(
-            paths=paths,
+
             prior_passer=prior_passer,
             n_particles=n_particles,
             iters=iters,

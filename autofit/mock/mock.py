@@ -93,9 +93,9 @@ class MockSamples(af.PDFSamples):
 
 
 class MockSearch(af.NonLinearSearch):
-    def __init__(self, paths=None, samples=None, name=None):
+    def __init__(self, samples=None, name=None):
         self.name = name
-        super().__init__(paths=paths)
+        super().__init__(name=name)
 
         self.samples = samples or MockSamples()
 

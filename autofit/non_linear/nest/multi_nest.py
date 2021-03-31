@@ -17,7 +17,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
     def __init__(
             self,
-            paths=None,
+
             prior_passer=None,
             n_live_points=None,
             sampling_efficiency=None,
@@ -199,7 +199,7 @@ class MultiNest(abstract_nest.AbstractNest):
         )
 
         super().__init__(
-            paths=paths,
+
             prior_passer=prior_passer,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
@@ -214,7 +214,7 @@ class MultiNest(abstract_nest.AbstractNest):
                      terminate_at_acceptance_ratio,
                      acceptance_ratio_threshold, log_likelihood_cap=None, pool_ids=None):
 
-            super().__init__(paths=paths, model=model, analysis=analysis,
+            super().__init__( model=model, analysis=analysis,
                              samples_from_model=samples_from_model,
                              stagger_resampling_likelihood=stagger_resampling_likelihood,
                              terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,

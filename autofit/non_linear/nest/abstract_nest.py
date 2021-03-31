@@ -12,7 +12,7 @@ from autofit.non_linear.paths import Paths
 class AbstractNest(NonLinearSearch):
     def __init__(
             self,
-            paths=None,
+
             prior_passer=None,
             iterations_per_update=None,
             terminate_at_acceptance_ratio=None,
@@ -48,7 +48,7 @@ class AbstractNest(NonLinearSearch):
             paths = Paths()
 
         super().__init__(
-            paths=paths,
+
             prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,
@@ -87,7 +87,7 @@ class AbstractNest(NonLinearSearch):
         ):
 
             super().__init__(
-                paths=paths,
+
                 analysis=analysis,
                 model=model,
                 samples_from_model=samples_from_model,

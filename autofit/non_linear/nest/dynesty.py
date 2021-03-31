@@ -16,7 +16,7 @@ from autofit.non_linear.samples import NestSamples, Sample
 class AbstractDynesty(AbstractNest):
     def __init__(
             self,
-            paths=None,
+
             prior_passer=None,
             n_live_points=None,
             facc=None,
@@ -232,7 +232,7 @@ class AbstractDynesty(AbstractNest):
             self.n_effective = np.inf
 
         super().__init__(
-            paths=paths,
+
             prior_passer=prior_passer,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
@@ -483,7 +483,7 @@ class DynestyStatic(AbstractDynesty):
 
     def __init__(
             self,
-            paths=None,
+
             prior_passer=None,
             n_live_points=None,
             facc=None,
@@ -632,7 +632,7 @@ class DynestyStatic(AbstractDynesty):
             evidence_tolerance = 1e-3 * (self.n_live_points - 1) + 0.01
 
         super().__init__(
-            paths=paths,
+
             prior_passer=prior_passer,
             n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,
@@ -694,7 +694,7 @@ class DynestyStatic(AbstractDynesty):
 class DynestyDynamic(AbstractDynesty):
     def __init__(
             self,
-            paths=None,
+
             prior_passer=None,
             n_live_points=None,
             evidence_tolerance=None,
@@ -843,7 +843,7 @@ class DynestyDynamic(AbstractDynesty):
         )
 
         super().__init__(
-            paths=paths,
+
             prior_passer=prior_passer,
             n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,
