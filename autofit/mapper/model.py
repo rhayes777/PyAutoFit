@@ -1,11 +1,9 @@
 import copy
-import inspect
 from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
-from autofit.non_linear.result import ResultsCollection
 
 
 def frozen_cache(func):
@@ -128,9 +126,6 @@ class AbstractModel(ModelObject):
     def copy(self):
         return copy.deepcopy(self)
 
-    def populate(self, collection):
-        return populate(self, collection)
-
     def object_for_path(
             self, path: Iterable[Union[str, int, type]]
     ) -> Union[object, List]:
@@ -250,39 +245,6 @@ class AbstractModel(ModelObject):
                 class_type, ignore_class=ignore_class
             )
         ]
-
-
-@DynamicRecursionCache()
-def populate(obj, collection: ResultsCollection):
-    """
-    Replace promises with instances and instances. Promises are placeholders expressing that a given attribute should
-    be replaced with an actual value once the search that generates that value is complete.
-
-    Parameters
-    ----------
-    obj
-        The object to be populated
-    collection
-        A collection of Results from previous searchs
-
-    Returns
-    -------
-    obj
-        The same object with all promises populated, or if the object was a promise the replacement for that promise
-    """
-    if isinstance(obj, list):
-        return [populate(item, collection) for item in obj]
-    if isinstance(obj, dict):
-        return {key: populate(value, collection) for key, value in obj.items()}
-    from autofit.mapper.prior.promise import AbstractPromise
-    if isinstance(obj, AbstractPromise):
-        return obj.populate(collection)
-    if not hasattr(obj, "__dict__") or inspect.isclass(obj):
-        return obj
-    new = copy.copy(obj)
-    for key, value in obj.__dict__.items():
-        setattr(new, key, populate(value, collection))
-    return new
 
 
 @DynamicRecursionCache()

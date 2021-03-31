@@ -1,4 +1,3 @@
-from autofit import exc
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -133,10 +132,6 @@ class CollectionPriorModel(AbstractPriorModel):
         model_instances: [object]
             A list of instances constructed from the list of prior models.
         """
-        if self.promise_count > 0:
-            raise exc.PriorException(
-                "All promises must be populated prior to instantiation"
-            )
         result = ModelInstance()
         for key, value in self.__dict__.items():
             if isinstance(value, AbstractPriorModel):

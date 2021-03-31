@@ -7,7 +7,6 @@ from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.prior import TuplePrior, Prior
-from autofit.mapper.prior.promise import Promise
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
 from autofit.util import get_class_path
@@ -298,7 +297,6 @@ class PriorModel(AbstractPriorModel):
             if (
                     not hasattr(result, key)
                     and not isinstance(value, Prior)
-                    and not isinstance(value, Promise)
             ):
                 if isinstance(value, PriorModel):
                     value = value.instance_for_arguments(arguments)
