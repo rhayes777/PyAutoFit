@@ -13,8 +13,10 @@ def make_model_promise(phase):
 
 @pytest.fixture(name="grid_search_promise")
 def make_grid_search_promise(phase):
+    search = af.MockSearch("name")
+    search.paths.phase_tag = "phase_tag"
     grid_search_phase = af.as_grid_search(af.AbstractPhase)(
-        search=af.MockSearch("name", phase_tag="phase_tag")
+        search=search
     )
     grid_search_phase.model.one = af.PriorModel(
         mock.MockComponents, component=mock.MockClassx2

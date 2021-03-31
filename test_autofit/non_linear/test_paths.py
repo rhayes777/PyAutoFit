@@ -9,7 +9,9 @@ class TestPathDecorator:
         assert paths.path_prefix == ""
 
     def test_with_arguments(self):
-        search = af.MockSearch(af.Paths(name="name", tag="tag"))
+
+        search = af.MockSearch(paths=af.Paths(name="name", tag="phase_tag"))
+
         self.assert_paths_as_expected(search.paths)
 
     def test_positional(self):

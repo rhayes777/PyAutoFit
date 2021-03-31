@@ -10,7 +10,6 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.result import Result
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
-from autofit.non_linear.paths import convert_paths
 from autofit.non_linear.samples import NestSamples, Sample
 
 
@@ -482,7 +481,6 @@ class AbstractDynesty(AbstractNest):
 
 class DynestyStatic(AbstractDynesty):
 
-    @convert_paths
     def __init__(
             self,
             paths=None,

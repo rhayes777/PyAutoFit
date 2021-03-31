@@ -22,6 +22,47 @@ def make_mock_list():
     return [af.PriorModel(mock.MockClassx4), af.PriorModel(mock.MockClassx4)]
 
 
+@pytest.fixture(name="result")
+def make_result():
+    mapper = af.ModelMapper()
+    mapper.component = mock.MockClassx2Tuple
+    # noinspection PyTypeChecker
+    return af.Result(
+        samples=mock.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
+        model=mapper,
+        search=mock.MockSearch(),
+    )
+
+
+class TestResult:
+    def test_model(self, result):
+        component = result.model.component
+        assert component.one_tuple.one_tuple_0.mean == 0
+        assert component.one_tuple.one_tuple_1.mean == 1
+        assert component.one_tuple.one_tuple_0.sigma == 0.2
+        assert component.one_tuple.one_tuple_1.sigma == 0.2
+
+    def test_model_absolute(self, result):
+        component = result.model_absolute(a=2.0).component
+        assert component.one_tuple.one_tuple_0.mean == 0
+        assert component.one_tuple.one_tuple_1.mean == 1
+        assert component.one_tuple.one_tuple_0.sigma == 2.0
+        assert component.one_tuple.one_tuple_1.sigma == 2.0
+
+    def test_model_relative(self, result):
+        component = result.model_relative(r=1.0).component
+        assert component.one_tuple.one_tuple_0.mean == 0
+        assert component.one_tuple.one_tuple_1.mean == 1
+        assert component.one_tuple.one_tuple_0.sigma == 0.0
+        assert component.one_tuple.one_tuple_1.sigma == 1.0
+
+    def test_raises(self, result):
+        with pytest.raises(af.exc.PriorException):
+            result.model.mapper_from_gaussian_tuples(
+                result.samples.gaussian_tuples, a=2.0, r=1.0
+            )
+
+
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)

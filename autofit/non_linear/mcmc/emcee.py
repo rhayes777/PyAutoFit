@@ -9,13 +9,13 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
-from autofit.non_linear.paths import convert_paths
+
 from autofit.non_linear.samples import MCMCSamples, Sample
 
 
 class Emcee(AbstractMCMC):
 
-    @convert_paths
+
     def __init__(
             self,
             paths=None,

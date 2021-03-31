@@ -8,13 +8,13 @@ from autofit.non_linear import abstract_search
 from autofit.non_linear import result as res
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
-from autofit.non_linear.paths import convert_paths
+
 from autofit.non_linear.samples import NestSamples, Sample
 
 
 class MultiNest(abstract_nest.AbstractNest):
 
-    @convert_paths
+
     def __init__(
             self,
             paths=None,

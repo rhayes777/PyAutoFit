@@ -139,4 +139,3 @@ class TestPySwarmsGlobalConfig:
 
         assert len(samples.parameters) == 500
         assert len(samples.log_likelihoods) == 500
-

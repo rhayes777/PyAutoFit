@@ -8,15 +8,12 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import Analysis
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.result import Result
-from autofit.non_linear.paths import convert_paths
 from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
-
-    @convert_paths
-    def __init__(self, paths=None, samples=None, fit_fast=True):
-        super().__init__(paths=paths)
+    def __init__(self, name=None, paths=None, samples=None, fit_fast=True):
+        super().__init__(name=name, paths=paths)
 
         self.fit_fast = fit_fast
         self.samples = samples or MockSamples()
