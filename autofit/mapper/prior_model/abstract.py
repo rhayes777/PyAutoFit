@@ -71,7 +71,20 @@ class AbstractPriorModel(AbstractModel):
         self._assertions = list()
 
     @staticmethod
-    def from_dict(d):
+    def from_dict(d) -> object:
+        """
+        Recursively parse a dictionary returning the model, collection or
+        instance that is represents.
+
+        Parameters
+        ----------
+        d
+            A dictionary representation of some object
+
+        Returns
+        -------
+        An instance
+        """
         from .prior_model import PriorModel
         from .collection import CollectionPriorModel
 
@@ -110,7 +123,10 @@ class AbstractPriorModel(AbstractModel):
         return instance
 
     @property
-    def dict(self):
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this object
+        """
         from .prior_model import PriorModel
         from .collection import CollectionPriorModel
 
