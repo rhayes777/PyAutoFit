@@ -99,6 +99,8 @@ class AbstractPriorModel(AbstractModel):
         else:
             return Prior.from_dict(d)
 
+        d.pop("type")
+
         for key, value in d.items():
             setattr(
                 instance,

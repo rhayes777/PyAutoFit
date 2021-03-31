@@ -31,6 +31,18 @@ def make_instance_dict():
 
 
 @pytest.fixture(
+    name="collection_dict"
+)
+def make_collection_dict(
+        model_dict
+):
+    return {
+        "gaussian": model_dict,
+        "type": "collection"
+    }
+
+
+@pytest.fixture(
     name="model"
 )
 def make_model():
@@ -48,6 +60,34 @@ class TestFromDict:
             model_dict
         )
         assert model.cls == Gaussian
+
+    def test_instance_from_dict(
+            self,
+            instance_dict
+    ):
+        instance = af.Model.from_dict(
+            instance_dict
+        )
+        assert isinstance(
+            instance,
+            Gaussian
+        )
+        assert instance.centre == 0.0
+        assert instance.intensity == 0.1
+        assert instance.sigma == 0.01
+
+    def test_collection_from_dict(
+            self,
+            collection_dict
+    ):
+        collection = af.Model.from_dict(
+            collection_dict
+        )
+        assert isinstance(
+            collection,
+            af.Collection
+        )
+        assert len(collection) == 1
 
 
 class TestToDict:
@@ -74,15 +114,12 @@ class TestToDict:
     def test_collection(
             self,
             model,
-            model_dict
+            collection_dict
     ):
         collection = af.Collection(
             gaussian=model
         )
-        assert collection.dict == {
-            "gaussian": model_dict,
-            "type": "collection"
-        }
+        assert collection.dict == collection_dict
 
     def test_collection_instance(
             self,
