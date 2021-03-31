@@ -189,9 +189,6 @@ class Paths:
                 for root, dirs, files in os.walk(self.output_path):
 
                     for file in files:
-
-                        # TODO : I removed lstrip("/") here, I think it is ok...
-
                         f.write(
                             path.join(root, file),
                             path.join(
