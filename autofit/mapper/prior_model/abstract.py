@@ -71,20 +71,24 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def dict(self):
+        d = dict()
+        for key, value in self._dict.items():
+            try:
+                value = AbstractPriorModel.from_instance(
+                    value
+                ).dict
+            except AttributeError:
+                pass
+            d[key] = value
+        return d
+
+    @property
+    def _dict(self):
         return {
-            **{
-                name: prior.dict
-                for name, prior
-                in self.direct_prior_tuples + self.direct_prior_model_tuples
-            },
-            **{
-                name: value
-                for name, value
-                in self.direct_tuples_with_type(
-                    (float, int)
-                )
-                if name != "item_number"
-            }
+            key: value
+            for key, value in self.__dict__.items()
+            if key not in ("component_number", "item_number", "id", "cls")
+               and not key.startswith("_")
         }
 
     def add_assertion(self, assertion, name=None):
@@ -610,7 +614,9 @@ class AbstractPriorModel(AbstractModel):
             A concrete child of an abstract prior model
         """
         from autofit.mapper.prior_model import collection
-        if isinstance(instance, list):
+        if isinstance(instance, (Prior, AbstractPriorModel)):
+            return instance
+        elif isinstance(instance, list):
             result = collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(item, model_classes=model_classes)

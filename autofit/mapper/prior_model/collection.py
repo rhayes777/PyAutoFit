@@ -40,15 +40,6 @@ class CollectionPriorModel(AbstractPriorModel):
         return f"<{self.__class__.__name__} {self}>"
 
     @property
-    def _dict(self):
-        return {
-            key: value
-            for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id")
-               and not key.startswith("_")
-        }
-
-    @property
     def values(self):
         return list(self._dict.values())
 

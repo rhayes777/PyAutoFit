@@ -17,6 +17,18 @@ def make_model_dict():
 
 
 @pytest.fixture(
+    name="instance_dict"
+)
+def make_instance_dict():
+    return {
+        "class_path": "autofit.mock.mock.Gaussian",
+        "centre": 0.0,
+        "intensity": 0.1,
+        "sigma": 0.01
+    }
+
+
+@pytest.fixture(
     name="model"
 )
 def make_model():
@@ -32,20 +44,17 @@ def test_model_priors_to_dict(
     assert model.dict == model_dict
 
 
-def test_model_floats_to_dict():
+def test_model_floats_to_dict(
+        instance_dict
+):
     model = af.Model(
         Gaussian,
-        centre=1.0,
-        intensity=2.0,
-        sigma=3.0
+        centre=0.0,
+        intensity=0.1,
+        sigma=0.01
     )
 
-    assert model.dict == {
-        "class_path": "autofit.mock.mock.Gaussian",
-        "centre": 1.0,
-        "intensity": 2.0,
-        "sigma": 3.0
-    }
+    assert model.dict == instance_dict
 
 
 def test_collection(
@@ -57,4 +66,15 @@ def test_collection(
     )
     assert collection.dict == {
         "gaussian": model_dict
+    }
+
+
+def test_collection_instance(
+        instance_dict
+):
+    collection = af.Collection(
+        gaussian=Gaussian()
+    )
+    assert collection.dict == {
+        "gaussian": instance_dict
     }
