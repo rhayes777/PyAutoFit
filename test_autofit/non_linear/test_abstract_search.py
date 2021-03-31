@@ -70,7 +70,7 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == path.join("name", "one")
 
     def test_copy_with_name_extension(self):
-        search = af.MockSearch(af.Paths("name", tag="tag"))
+        search = af.MockSearch(paths=af.Paths("name", tag="tag"))
         copy = search.copy_with_name_extension("one")
 
         self.assert_non_linear_attributes_equal(copy)

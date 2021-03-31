@@ -24,39 +24,6 @@ def make_path(func):
     return wrapper
 
 
-def convert_paths(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if len(args) > 1:
-            raise AssertionError(
-                "Only phase name is allowed to be a positional argument in a phase constructor"
-            )
-
-        first_arg = kwargs.pop("paths", None)
-        if first_arg is None and len(args) == 1:
-            first_arg = args[0]
-
-        if isinstance(first_arg, Paths):
-            return func(self, paths=first_arg, **kwargs)
-
-        if first_arg is None:
-            first_arg = kwargs.pop("name", None)
-
-        def non_linear_tag_function():
-            return ""
-
-        paths = Paths(
-            name=first_arg,
-            tag=kwargs.pop("phase_tag", None),
-            path_prefix=kwargs.pop("path_prefix", None),
-            non_linear_tag_function=non_linear_tag_function,
-        )
-
-        func(self, paths=paths, **kwargs)
-
-    return wrapper
-
-
 class Paths:
     def __init__(
             self,
@@ -196,7 +163,7 @@ class Paths:
         Copy files from the sym linked search folder then remove the sym linked folder.
         """
 
-        self.zip()
+        self._zip()
 
         if self.remove_files:
             try:
@@ -214,29 +181,6 @@ class Paths:
                 f.extractall(self.output_path)
 
             os.remove(self.zip_path)
-
-    def zip(self):
-
-        try:
-            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
-                for root, dirs, files in os.walk(self.output_path):
-
-                    for file in files:
-
-                        # TODO : I removed lstrip("/") here, I think it is ok...
-
-                        f.write(
-                            path.join(root, file),
-                            path.join(
-                                root[len(self.output_path):], file
-                            ),
-                        )
-
-            if self.remove_files:
-                shutil.rmtree(self.output_path)
-
-        except FileNotFoundError:
-            pass
 
     def load_samples(self):
         return s.load_from_table(
@@ -348,6 +292,26 @@ non_linear_search={search_name}
                 "search.pickle"
         ), "w+b") as f:
             f.write(pickle.dumps(search))
+
+    def _zip(self):
+
+        try:
+            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
+                for root, dirs, files in os.walk(self.output_path):
+
+                    for file in files:
+                        f.write(
+                            path.join(root, file),
+                            path.join(
+                                root[len(self.output_path):], file
+                            ),
+                        )
+
+            if self.remove_files:
+                shutil.rmtree(self.output_path)
+
+        except FileNotFoundError:
+            pass
 
     def _save_model(self, model):
         """

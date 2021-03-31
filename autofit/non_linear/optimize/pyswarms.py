@@ -7,13 +7,13 @@ from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.paths import convert_paths
 from autofit.non_linear.samples import OptimizerSamples, Sample
 
 
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
             self,
+            name=None,
             paths=None,
             prior_passer=None,
             n_particles=None,
@@ -115,6 +115,7 @@ class AbstractPySwarms(AbstractOptimizer):
         self.ftol = self._config("search", "ftol") if ftol is None else ftol
 
         super().__init__(
+            name=name,
             paths=paths,
             prior_passer=prior_passer,
             initializer=initializer,
@@ -362,9 +363,9 @@ class AbstractPySwarms(AbstractOptimizer):
 
 class PySwarmsGlobal(AbstractPySwarms):
 
-    @convert_paths
     def __init__(
             self,
+            name=None,
             paths=None,
             prior_passer=None,
             n_particles=None,
@@ -446,6 +447,7 @@ class PySwarmsGlobal(AbstractPySwarms):
         """
 
         super().__init__(
+            name=name,
             paths=paths,
             prior_passer=prior_passer,
             n_particles=n_particles,
@@ -479,9 +481,9 @@ class PySwarmsGlobal(AbstractPySwarms):
 
 class PySwarmsLocal(AbstractPySwarms):
 
-    @convert_paths
     def __init__(
             self,
+            name=None,
             paths=None,
             prior_passer=None,
             n_particles=None,

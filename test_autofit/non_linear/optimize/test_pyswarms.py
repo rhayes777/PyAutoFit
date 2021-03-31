@@ -147,7 +147,7 @@ class TestCopyWithNameExtension:
         assert copy.paths.name == path.join("name", "one")
 
     def test__pyswarms(self):
-        search = af.PySwarmsGlobal(af.Paths("name"))
+        search = af.PySwarmsGlobal(paths=af.Paths("name"))
 
         copy = search.copy_with_name_extension("one")
         self.assert_non_linear_attributes_equal(copy)

@@ -40,20 +40,11 @@ class CollectionPriorModel(AbstractPriorModel):
         return f"<{self.__class__.__name__} {self}>"
 
     @property
-    def dict(self):
-        return {
-            key: value
-            for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id")
-               and not key.startswith("_")
-        }
-
-    @property
     def values(self):
-        return list(self.dict.values())
+        return list(self._dict.values())
 
     def items(self):
-        return self.dict.items()
+        return self._dict.items()
 
     def as_model(self):
         return CollectionPriorModel(
@@ -61,7 +52,7 @@ class CollectionPriorModel(AbstractPriorModel):
                 key: value.as_model()
                 if isinstance(value, AbstractPriorModel)
                 else value
-                for key, value in self.dict.items()
+                for key, value in self._dict.items()
             }
         )
 

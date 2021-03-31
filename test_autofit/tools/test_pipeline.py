@@ -62,7 +62,7 @@ class TestPipeline:
 
     def test_search_assertion(self, model):
         paths = af.Paths("Phase Name")
-        search = af.MockSearch(paths)
+        search = af.MockSearch(paths=paths)
         phase = MockPhase(search=search)
         phase.model.profile = mock.MockClassx2Tuple
 

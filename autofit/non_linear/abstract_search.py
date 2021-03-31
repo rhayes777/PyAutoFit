@@ -14,14 +14,14 @@ from autofit.mapper import model_mapper as mm
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
-from autofit.non_linear.paths import Paths, convert_paths
+from autofit.non_linear.paths import Paths
 from autofit.non_linear.timer import Timer
 
 
 class NonLinearSearch(ABC):
-    @convert_paths
     def __init__(
             self,
+            name=None,
             paths=None,
             prior_passer=None,
             initializer=None,
@@ -42,6 +42,8 @@ class NonLinearSearch(ABC):
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
+
+        paths = paths or Paths(name)
 
         if paths.non_linear_name == "":
             paths.non_linear_name = self._config("tag", "name")
