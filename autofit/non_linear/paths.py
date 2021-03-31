@@ -163,7 +163,7 @@ class Paths:
         Copy files from the sym linked search folder then remove the sym linked folder.
         """
 
-        self.zip()
+        self._zip()
 
         if self.remove_files:
             try:
@@ -181,26 +181,6 @@ class Paths:
                 f.extractall(self.output_path)
 
             os.remove(self.zip_path)
-
-    def zip(self):
-
-        try:
-            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
-                for root, dirs, files in os.walk(self.output_path):
-
-                    for file in files:
-                        f.write(
-                            path.join(root, file),
-                            path.join(
-                                root[len(self.output_path):], file
-                            ),
-                        )
-
-            if self.remove_files:
-                shutil.rmtree(self.output_path)
-
-        except FileNotFoundError:
-            pass
 
     def load_samples(self):
         return s.load_from_table(
@@ -312,6 +292,26 @@ non_linear_search={search_name}
                 "search.pickle"
         ), "w+b") as f:
             f.write(pickle.dumps(search))
+
+    def _zip(self):
+
+        try:
+            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
+                for root, dirs, files in os.walk(self.output_path):
+
+                    for file in files:
+                        f.write(
+                            path.join(root, file),
+                            path.join(
+                                root[len(self.output_path):], file
+                            ),
+                        )
+
+            if self.remove_files:
+                shutil.rmtree(self.output_path)
+
+        except FileNotFoundError:
+            pass
 
     def _save_model(self, model):
         """
