@@ -11,7 +11,7 @@ def make_model_dict():
     return {
         "type": "model",
         "class_path": "autofit.mock.mock.Gaussian",
-        "centre": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 1.0},
+        "centre": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 2.0},
         "intensity": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 1.0},
         "sigma": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 1.0},
     }
@@ -47,7 +47,10 @@ def make_collection_dict(
 )
 def make_model():
     return af.Model(
-        Gaussian
+        Gaussian,
+        centre=af.UniformPrior(
+            upper_limit=2.0
+        )
     )
 
 
@@ -60,6 +63,8 @@ class TestFromDict:
             model_dict
         )
         assert model.cls == Gaussian
+        assert model.prior_count == 3
+        assert model.centre.upper_limit == 2.0
 
     def test_instance_from_dict(
             self,
