@@ -240,7 +240,7 @@ class NonLinearSearch(ABC):
             self.timer.samples_path = self.paths.samples_path
             self.timer.start()
 
-            analysis = analysis.modify_before_fit(model=model, paths=path)
+            analysis = analysis.modify_before_fit(model=model, paths=self.paths)
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
 
             self.paths.completed()
@@ -258,7 +258,7 @@ class NonLinearSearch(ABC):
 
             if self.force_pickle_overwrite:
 
-                self.save_samples(samples=samples)
+                self.paths.save_samples(samples=samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         self.paths.zip_remove()
