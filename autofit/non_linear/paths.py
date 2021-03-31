@@ -24,39 +24,6 @@ def make_path(func):
     return wrapper
 
 
-def convert_paths(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if len(args) > 1:
-            raise AssertionError(
-                "Only phase name is allowed to be a positional argument in a phase constructor"
-            )
-
-        first_arg = kwargs.pop("paths", None)
-        if first_arg is None and len(args) == 1:
-            first_arg = args[0]
-
-        if isinstance(first_arg, Paths):
-            return func(self, paths=first_arg, **kwargs)
-
-        if first_arg is None:
-            first_arg = kwargs.pop("name", None)
-
-        def non_linear_tag_function():
-            return ""
-
-        paths = Paths(
-            name=first_arg,
-            tag=kwargs.pop("phase_tag", None),
-            path_prefix=kwargs.pop("path_prefix", None),
-            non_linear_tag_function=non_linear_tag_function,
-        )
-
-        func(self, paths=paths, **kwargs)
-
-    return wrapper
-
-
 class Paths:
     def __init__(
             self,
