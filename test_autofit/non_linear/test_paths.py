@@ -10,7 +10,7 @@ class TestPathDecorator:
 
     def test_with_arguments(self):
 
-        search = af.MockSearch(paths=af.Paths(name="name", tag="phase_tag"))
+        search = af.MockSearch(paths=af.Paths(name="name", tag="tag"))
 
         self.assert_paths_as_expected(search.paths)
 

@@ -89,20 +89,6 @@ class TestGenerateModelInfo:
     two                                                                                   1.0"""
         )
 
-    def test_with_promise(self):
-        mm = af.ModelMapper()
-        mm.promise = af.Promise(
-            af.Phase(analysis_class=None, search=af.MockSearch("phase")),
-            "path",
-            result_path=[],
-            assert_exists=False,
-        )
-
-        assert (
-            mm.info
-            == "promise                                                                                   phase.result.model.path"
-        )
-
     def test_with_tuple(self):
         mm = af.ModelMapper()
         mm.tuple = (0, 1)
