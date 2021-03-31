@@ -10,9 +10,9 @@ from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.promise import Promise
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
+from autofit.util import get_class_path
 
 logger = logging.getLogger(__name__)
-
 
 class_args_dict = dict()
 
@@ -126,6 +126,19 @@ class PriorModel(AbstractPriorModel):
                 setattr(
                     self, key, PriorModel(value) if inspect.isclass(value) else value
                 )
+
+    @property
+    def dict(self):
+        return {
+            "class_path": get_class_path(
+                self.cls
+            ),
+            **{
+                name: prior.dict
+                for name, prior
+                in self.direct_prior_tuples
+            }
+        }
 
     # noinspection PyAttributeOutsideInit
     @property

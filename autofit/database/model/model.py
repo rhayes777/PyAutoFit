@@ -1,7 +1,6 @@
 import builtins
 import importlib
 import inspect
-import re
 from typing import List, Tuple, Any, Iterable, Union, ItemsView
 
 from sqlalchemy import Column, Integer, String, ForeignKey
@@ -9,6 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 import autofit as af
+from autofit.util import get_class_path
 
 Base = declarative_base()
 
@@ -227,10 +227,3 @@ class Object(Base):
     @cls.setter
     def cls(self, cls: type):
         self.class_path = get_class_path(cls)
-
-
-def get_class_path(cls: type) -> str:
-    """
-    The full import path of the type
-    """
-    return re.search("'(.*)'", str(cls))[1]
