@@ -364,7 +364,8 @@ class AbstractPySwarms(AbstractOptimizer):
 class PySwarmsGlobal(AbstractPySwarms):
 
     def __init__(
-            self, name=None,
+            self,
+            name=None,
             paths=None,
             prior_passer=None,
             n_particles=None,
@@ -481,7 +482,8 @@ class PySwarmsGlobal(AbstractPySwarms):
 class PySwarmsLocal(AbstractPySwarms):
 
     def __init__(
-            self, name=None,
+            self,
+            name=None,
             paths=None,
             prior_passer=None,
             n_particles=None,
