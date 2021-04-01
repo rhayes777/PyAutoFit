@@ -15,7 +15,6 @@ from autofit.non_linear.samples import MCMCSamples, Sample
 
 class Emcee(AbstractMCMC):
 
-
     def __init__(
             self,
             paths=None,
