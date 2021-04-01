@@ -1,5 +1,6 @@
 from os import path
 
+
 class TestFiltering:
     def test_or(self, aggregator):
         predicate_one = aggregator.directory.contains("one")

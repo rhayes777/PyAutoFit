@@ -2,8 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import exc
-from autofit.mock import mock
-from autofit.mapper.prior.assertion import CompoundAssertion
 
 
 @pytest.fixture(name="prior_1")
@@ -52,21 +50,21 @@ class TestAssertion:
 
     def test_assert_on_arguments_lower(self, lower_assertion, prior_1, prior_2):
         assert (
-            lower_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5}) is True
+                lower_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5}) is True
         )
         assert (
-            lower_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5})
-            is False
+                lower_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5})
+                is False
         )
 
     def test_assert_on_arguments_greater(self, greater_assertion, prior_1, prior_2):
         assert (
-            greater_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5})
-            is True
+                greater_assertion.instance_for_arguments({prior_1: 0.6, prior_2: 0.5})
+                is True
         )
         assert (
-            greater_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5})
-            is False
+                greater_assertion.instance_for_arguments({prior_1: 0.3, prior_2: 0.5})
+                is False
         )
 
     def test_numerical_assertion(self, prior_1):
@@ -99,34 +97,6 @@ def make_model(collection):
     return collection.last.model.one.component
 
 
-class TestPromiseAssertion:
-    def test_less_than(self, promise_model, collection, model):
-        promise = promise_model.one < promise_model.two
-        assert isinstance(promise, af.GreaterThanLessThanAssertion)
-
-        assertion = promise.populate(collection)
-        assert isinstance(assertion, af.GreaterThanLessThanAssertion)
-
-    def test_greater_than(self, promise_model, collection, model):
-        promise = promise_model.one > promise_model.two
-        assert isinstance(promise, af.GreaterThanLessThanAssertion)
-
-    def test_greater_than_equal(self, promise_model, collection, model):
-        promise = promise_model.one >= promise_model.two
-        assert isinstance(promise, af.GreaterThanLessThanEqualAssertion)
-
-    def test_integer_promise_assertion(self, promise_model, collection, model):
-        promise = promise_model.one > 1.0
-        assert isinstance(promise, af.GreaterThanLessThanAssertion)
-
-    def test_compound_assertion(self, promise_model, collection, model):
-        promise = (1.0 < promise_model.one) < 1.0
-        assert isinstance(promise, CompoundAssertion)
-
-        assertion = promise.populate(collection)
-        assert isinstance(assertion, CompoundAssertion)
-
-
 class TestModel:
     def test_assertion_in_model(self, prior_1, prior_2):
         model = af.ModelMapper()
@@ -138,27 +108,6 @@ class TestModel:
         model.instance_from_unit_vector([0.1, 0.2])
         with pytest.raises(af.exc.FitException):
             model.instance_from_unit_vector([0.2, 0.1])
-
-    def test_populate_assertion_promises(self, promise_model, collection):
-        model = af.ModelMapper()
-        model.component = promise_model
-        # noinspection PyTypeChecker
-        model.add_assertion(promise_model.one < promise_model.two)
-
-        model = model.populate(collection)
-
-        assert (
-            model._assertions[0].instance_for_arguments(
-                {model.component.one: 0.0, model.component.two: 1.0}
-            )
-            is True
-        )
-        assert (
-            model._assertions[0].instance_for_arguments(
-                {model.component.one: 1.0, model.component.two: 0.0}
-            )
-            is False
-        )
 
     def test_numerical(self):
         model = af.ModelMapper()

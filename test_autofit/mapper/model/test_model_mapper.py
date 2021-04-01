@@ -1,13 +1,10 @@
-import os
-
 import numpy as np
 import pytest
 
 import autofit as af
-from autofit import exc
-from autofit.text import formatter as frm
 from autofit.mock import mock
 from autofit.mock import mock_real
+from autofit.text import formatter as frm
 
 
 @pytest.fixture(name="initial_model")
@@ -68,8 +65,8 @@ class TestGenerateModelInfo:
         model_info = mm.info
 
         assert (
-            model_info
-            == """mock_class
+                model_info
+                == """mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 2.0"""
         )
@@ -83,24 +80,10 @@ class TestGenerateModelInfo:
         model_info = mm.info
 
         assert (
-            model_info
-            == """mock_class
+                model_info
+                == """mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   1.0"""
-        )
-
-    def test_with_promise(self):
-        mm = af.ModelMapper()
-        mm.promise = af.Promise(
-            af.Phase(analysis_class=None, search=af.MockSearch("phase")),
-            "path",
-            result_path=[],
-            assert_exists=False,
-        )
-
-        assert (
-            mm.info
-            == "promise                                                                                   phase.result.model.path"
         )
 
     def test_with_tuple(self):
@@ -108,8 +91,8 @@ class TestGenerateModelInfo:
         mm.tuple = (0, 1)
 
         assert (
-            mm.info
-            == "tuple                                                                                     (0, 1)"
+                mm.info
+                == "tuple                                                                                     (0, 1)"
         )
 
 
@@ -403,7 +386,7 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_3.phi == 1.0
 
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(
-        self
+            self
     ):
         mapper = af.ModelMapper(
             profile_1=mock_real.EllipticalProfile,
@@ -520,7 +503,6 @@ class TestModelInstancesRealClasses:
         assert log_priors == [0.125, 0.2]
 
     def test_random_unit_vector_within_limits(self):
-
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(mock.MockClassx2)
 
@@ -593,12 +575,12 @@ class TestUtility:
 
         assert len(mapper.prior_prior_model_dict) == 2
         assert (
-            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
-            == mock.MockClassx2
+                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
+                == mock.MockClassx2
         )
         assert (
-            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
-            == mock.MockClassx2
+                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
+                == mock.MockClassx2
         )
 
     def test_name_for_prior(self):
@@ -716,7 +698,7 @@ class TestListPriorModel:
         assert gaussian_mapper.list[1].two.sigma == 5
 
     def test_prior_results_for_gaussian_tuples__include_override_from_width_file(
-        self, list_prior_model
+            self, list_prior_model
     ):
         mapper = af.ModelMapper()
         mapper.list = list_prior_model
@@ -869,28 +851,3 @@ class TestGaussianWidthConfig:
         af.ModelMapper()
 
         assert mapper.one is not None
-
-
-@pytest.fixture(name="promise_mapper")
-def make_promise_mapper():
-    mapper = af.ModelMapper()
-    mapper.component = af.PriorModel(
-        mock.MockComponents,
-        parameter=af.Promise(
-            None, None, is_instance=False, result_path=None, assert_exists=False
-        ),
-    )
-    return mapper
-
-
-class TestPromises:
-    def test_promise_count(self, promise_mapper):
-        assert promise_mapper.promise_count == 1
-        assert promise_mapper.variable_promise_count == 1
-
-        promise_mapper.component.parameter.is_instance = True
-        assert promise_mapper.variable_promise_count == 0
-
-    def test_raises(self, promise_mapper):
-        with pytest.raises(exc.PriorException):
-            promise_mapper.instance_from_prior_medians()

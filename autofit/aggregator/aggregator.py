@@ -26,7 +26,7 @@ from .predicate import AttributePredicate
 class AggregatorGroup:
     def __init__(self, groups: ["AbstractAggregator"]):
         """
-        A group of aggregators produced by grouping phases on a field.
+        A group of aggregators produced by grouping search_outputs on a field.
 
         Parameters
         ----------
@@ -82,22 +82,22 @@ class AggregatorGroup:
 
 
 class AbstractAggregator:
-    def __init__(self, phases: List[SearchOutput]):
+    def __init__(self, search_outputs: List[SearchOutput]):
         """
-        An aggregator that comprises several phases which matching filters.
+        An aggregator that comprises several search_outputs which matching filters.
 
         Parameters
         ----------
-        phases
-            Phases that were found to have matching filters
+        search_outputs
+            search_outputs that were found to have matching filters
         """
-        self.phases = phases
+        self.search_outputs = search_outputs
 
     def remove_unzipped(self):
         """
         Removes the unzipped output directory for each phase.
         """
-        for phase in self.phases:
+        for phase in self.search_outputs:
 
             split_path = path.split(phase.directory)[0]
 
@@ -118,7 +118,7 @@ class AbstractAggregator:
         """
         If an index is passed in then a specific phase output is returned.
 
-        If a slice is passed in then an aggregator comprising several phases is returned.
+        If a slice is passed in then an aggregator comprising several search_outputs is returned.
 
         Parameters
         ----------
@@ -131,12 +131,12 @@ class AbstractAggregator:
         """
         if isinstance(item, slice):
             return AbstractAggregator(
-                self.phases[item]
+                self.search_outputs[item]
             )
-        return self.phases[item]
+        return self.search_outputs[item]
 
     def __len__(self):
-        return len(self.phases)
+        return len(self.search_outputs)
 
     def __getattr__(self, item):
         return AttributePredicate(item)
@@ -156,20 +156,20 @@ class AbstractAggregator:
 
         Returns
         -------
-        An aggregator comprising all phases that evaluate to `True` for all predicates.
+        An aggregator comprising all search_outputs that evaluate to `True` for all predicates.
         """
-        phases = self.phases
+        search_outputs = self.search_outputs
         for predicate in predicates:
-            phases = predicate.filter(phases)
-        phases = list(phases)
-        print(f"Filter found a total of {str(len(phases))} results")
-        return AbstractAggregator(phases=list(phases))
+            search_outputs = predicate.filter(search_outputs)
+        search_outputs = list(search_outputs)
+        print(f"Filter found a total of {str(len(search_outputs))} results")
+        return AbstractAggregator(search_outputs=list(search_outputs))
 
     def values(self, name: str) -> Iterator:
         """
         Get values from outputs with a given name.
 
-        A list the same length as the number of phases is returned
+        A list the same length as the number of search_outputs is returned
         where each item is the value of the attribute for a given
         phase.
 
@@ -188,7 +188,7 @@ class AbstractAggregator:
             lambda phase: getattr(
                 phase, name
             ),
-            self.phases
+            self.search_outputs
         )
 
     def homogenize(
@@ -218,7 +218,7 @@ class AbstractAggregator:
         def _homogenize(a, b):
             values = set(b.values(on))
             return AbstractAggregator([
-                phase for phase in a.phases
+                phase for phase in a.search_outputs
                 if getattr(phase, on) in values
             ])
 
@@ -245,12 +245,12 @@ class AbstractAggregator:
         """
         return map(
             func,
-            self.phases
+            self.search_outputs
         )
 
     def group_by(self, field: str) -> AggregatorGroup:
         """
-        Group the phases by a field, e.g. pipeline.
+        Group the search_outputs by a field, e.g. pipeline.
 
         The object returned still permits filtering and attribute querying.
 
@@ -264,18 +264,18 @@ class AbstractAggregator:
         An object comprising lists of grouped fields
         """
         group_dict = defaultdict(list)
-        for phase in self.phases:
+        for phase in self.search_outputs:
             group_dict[getattr(phase, field)].append(phase)
         return AggregatorGroup(list(map(AbstractAggregator, group_dict.values())))
 
     @property
     def model_results(self) -> str:
         """
-        A string joining headers and results for all included phases.
+        A string joining headers and results for all included search_outputs.
         """
         return "\n\n".join(
             "{}\n\n{}".format(phase.header, phase.model_results)
-            for phase in self.phases
+            for phase in self.search_outputs
         )
 
 
@@ -294,18 +294,18 @@ class Aggregator(AbstractAggregator):
         Parameters
         ----------
         directory
-            A directory in which the outputs of phases are kept. This is searched recursively.
+            A directory in which the outputs of search_outputs are kept. This is searched recursively.
         completed_only
-            If `True` only phases with a .completed file (indicating the phase was completed)
+            If `True` only search_outputs with a .completed file (indicating the phase was completed)
             are included in the aggregator.
         """
 
         # TODO : Progress bar here
 
-        print("Aggregator loading phases... could take some time.")
+        print("Aggregator loading search_outputs... could take some time.")
 
         self._directory = directory
-        phases = []
+        search_outputs = []
 
         for root, _, filenames in os.walk(directory):
             for filename in filenames:
@@ -316,10 +316,10 @@ class Aggregator(AbstractAggregator):
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:
                 if not completed_only or ".completed" in filenames:
-                    phases.append(SearchOutput(root))
+                    search_outputs.append(SearchOutput(root))
 
-        if len(phases) == 0:
-            print(f"\nNo phases found in {directory}\n")
+        if len(search_outputs) == 0:
+            print(f"\nNo search_outputs found in {directory}\n")
         else:
-            print(f"\n A total of {str(len(phases))} phases and results were found.")
-        super().__init__(phases)
+            print(f"\n A total of {str(len(search_outputs))} search_outputs and results were found.")
+        super().__init__(search_outputs)
