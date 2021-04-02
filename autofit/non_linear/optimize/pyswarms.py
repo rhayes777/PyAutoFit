@@ -13,8 +13,9 @@ from autofit.non_linear.samples import OptimizerSamples, Sample
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
             self,
-            name=None,
             paths=None,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             n_particles=None,
             iters=None,
@@ -345,8 +346,9 @@ class PySwarmsGlobal(AbstractPySwarms):
 
     def __init__(
             self,
-            name=None,
             paths=None,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             n_particles=None,
             iters=None,
@@ -463,8 +465,9 @@ class PySwarmsLocal(AbstractPySwarms):
 
     def __init__(
             self,
-            name=None,
             paths=None,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             n_particles=None,
             iters=None,
@@ -569,6 +572,8 @@ class PySwarmsLocal(AbstractPySwarms):
 
         super().__init__(
             paths=paths,
+            name=name,
+            path_prefix=path_prefix,
             prior_passer=prior_passer,
             n_particles=n_particles,
             iters=iters,

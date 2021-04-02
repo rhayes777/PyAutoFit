@@ -26,6 +26,7 @@ class NonLinearSearch(ABC):
     def __init__(
             self,
             name=None,
+            path_prefix=None,
             paths=None,
             prior_passer=None,
             initializer=None,
@@ -47,7 +48,7 @@ class NonLinearSearch(ABC):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
 
-        paths = paths or Paths(name)
+        paths = paths or Paths(name=name, path_prefix=path_prefix)
 
         if paths.non_linear_name == "":
             paths.non_linear_name = self._config("tag", "name")

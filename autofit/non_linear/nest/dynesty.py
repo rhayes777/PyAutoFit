@@ -17,6 +17,8 @@ class AbstractDynesty(AbstractNest):
     def __init__(
             self,
             paths=None,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             n_live_points=None,
             facc=None,
@@ -233,6 +235,8 @@ class AbstractDynesty(AbstractNest):
 
         super().__init__(
             paths=paths,
+            name=name,
+            path_prefix=path_prefix,
             prior_passer=prior_passer,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
@@ -484,6 +488,8 @@ class DynestyStatic(AbstractDynesty):
     def __init__(
             self,
             paths=None,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             n_live_points=None,
             facc=None,
@@ -633,6 +639,8 @@ class DynestyStatic(AbstractDynesty):
 
         super().__init__(
             paths=paths,
+            name=name,
+            path_prefix=path_prefix,
             prior_passer=prior_passer,
             n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,
@@ -695,6 +703,8 @@ class DynestyDynamic(AbstractDynesty):
     def __init__(
             self,
             paths=None,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             n_live_points=None,
             evidence_tolerance=None,
@@ -844,6 +854,8 @@ class DynestyDynamic(AbstractDynesty):
 
         super().__init__(
             paths=paths,
+            name=name,
+            path_prefix=path_prefix,
             prior_passer=prior_passer,
             n_live_points=n_live_points,
             evidence_tolerance=evidence_tolerance,

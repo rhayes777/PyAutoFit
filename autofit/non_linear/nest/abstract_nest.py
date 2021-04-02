@@ -13,6 +13,8 @@ class AbstractNest(NonLinearSearch):
     def __init__(
             self,
             paths=None,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             iterations_per_update=None,
             terminate_at_acceptance_ratio=None,
@@ -44,11 +46,10 @@ class AbstractNest(NonLinearSearch):
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is `True`.
         """
 
-        if paths is None:
-            paths = Paths()
-
         super().__init__(
             paths=paths,
+            name=name,
+            path_prefix=path_prefix,
             prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,
