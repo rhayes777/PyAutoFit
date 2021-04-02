@@ -243,7 +243,6 @@ class NonLinearSearch(ABC):
             self.timer.samples_path = self.paths.samples_path
             self.timer.start()
 
-            analysis = analysis.modify_before_fit(model=model, paths=self.paths)
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
 
             self.paths.completed()
@@ -426,9 +425,6 @@ class Analysis(ABC):
 
     def visualize(self, paths: Paths, instance, during_analysis):
         pass
-
-    def modify_before_fit(self, model, paths : Paths):
-        return self
 
     def save_attributes_for_aggregator(self, paths: Paths):
         pass
