@@ -130,8 +130,8 @@ class Aggregator:
         >>>
         >>> lens = aggregator.galaxies.lens
         >>>
-        >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) & (lens.disk == EllipticalSersic))
-        >>> aggregator.filter((lens.bulge == EllipticalCoreSersic) | (lens.disk == EllipticalSersic))
+        >>> aggregator.filter((lens.bulge == EllSersicCore) & (lens.disk == EllSersic))
+        >>> aggregator.filter((lens.bulge == EllSersicCore) | (lens.disk == EllSersic))
         """
         return Aggregator(
             session=self.session,

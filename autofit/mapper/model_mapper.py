@@ -22,8 +22,8 @@ class ModelMapper(CollectionPriorModel):
 
         mapper = ModelMapper()
 
-        mapper.sersic = al.lp.AbstractEllipticalSersic
-        mapper.gaussian = al.lp.EllipticalGaussian
+        mapper.sersic = al.lp.AbstractEllSersic
+        mapper.gaussian = al.lp.EllGaussian
         mapper.any_class = SomeClass
 
         # A `PriorModel` instance is created each time we add a class to the mapper. We
@@ -52,15 +52,15 @@ class ModelMapper(CollectionPriorModel):
 
         sersic_1 = mapper.sersic_1
 
-        # But this attribute is an instance of the actual AbstractEllipticalSersic:P
+        # But this attribute is an instance of the actual AbstractEllSersic:P
         class
 
         # A ModelMapper can be concisely constructed using keyword arguments:
 
         mapper = prior.ModelMapper(
-            source_light_profile=light_profile.AbstractEllipticalSersic,
-            lens_mass_profile=mass_profile.EllipticalCoredIsothermal,
-            lens_light_profile=light_profile.EllipticalCoreSersic
+            source_light_profile=light_profile.AbstractEllSersic,
+            lens_mass_profile=mass_profile.EllIsothermalCored,
+            lens_light_profile=light_profile.EllSersicCore
         )
     """
 
