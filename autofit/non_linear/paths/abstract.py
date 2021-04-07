@@ -1,10 +1,15 @@
 import os
 import re
+import shutil
+import zipfile
 from abc import ABC
 from configparser import NoSectionError
 from functools import wraps
+from os import path
 
 from autoconf import conf
+from autofit.mapper import link
+from autofit.mapper.model_object import Identifier
 from autofit.non_linear.log import logger
 
 
@@ -73,3 +78,142 @@ class AbstractPaths(ABC):
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+    @property
+    def search(self):
+        return self._search
+
+    @search.setter
+    def search(self, search):
+        self._search = search
+        self._non_linear_name = pattern.sub(
+            '_', type(
+                self.search
+            ).__name__
+        ).lower()
+
+    @property
+    def non_linear_name(self):
+        return self._non_linear_name
+
+    @property
+    def identifier(self):
+        if None in (self.model, self.search):
+            logger.warn(
+                "Both model and search should be set before the tag is determined"
+            )
+        if self._identifier is None:
+            self._identifier = str(
+                Identifier([
+                    self.search,
+                    self.model
+                ])
+            )
+        return self._identifier
+
+    @property
+    def path(self):
+        return link.make_linked_folder(self._sym_path)
+
+    @property
+    @make_path
+    def samples_path(self) -> str:
+        """
+        The path to the samples folder.
+        """
+        return path.join(self.output_path, "samples")
+
+    @property
+    def image_path(self) -> str:
+        """
+        The path to the image folder.
+        """
+        return path.join(self.output_path, "image")
+
+    @property
+    @make_path
+    def output_path(self) -> str:
+        """
+        The path to the output information for a search.
+        """
+        strings = (
+            list(filter(
+                len,
+                [
+                    str(conf.instance.output_path),
+                    self.path_prefix,
+                    self.name,
+                    self.identifier,
+                ],
+            )
+            )
+        )
+
+        return path.join("", *strings)
+
+    def zip_remove(self):
+        """
+        Copy files from the sym linked search folder then remove the sym linked folder.
+        """
+
+        self._zip()
+
+        if self.remove_files:
+            try:
+                shutil.rmtree(self.path)
+            except (FileNotFoundError, PermissionError):
+                pass
+
+    def _zip(self):
+
+        try:
+            with zipfile.ZipFile(self._zip_path, "w", zipfile.ZIP_DEFLATED) as f:
+                for root, dirs, files in os.walk(self.output_path):
+
+                    for file in files:
+                        f.write(
+                            path.join(root, file),
+                            path.join(
+                                root[len(self.output_path):], file
+                            ),
+                        )
+
+            if self.remove_files:
+                shutil.rmtree(self.output_path)
+
+        except FileNotFoundError:
+            pass
+
+    def restore(self):
+        """
+        Copy files from the ``.zip`` file to the samples folder.
+        """
+
+        if path.exists(self._zip_path):
+            with zipfile.ZipFile(self._zip_path, "r") as f:
+                f.extractall(self.output_path)
+
+            os.remove(self._zip_path)
+
+    @property
+    @make_path
+    def _sym_path(self) -> str:
+        return path.join(
+            conf.instance.output_path,
+            self.path_prefix,
+            self.name,
+            self.identifier,
+        )
+
+    def __eq__(self, other):
+        return isinstance(other, AbstractPaths) and all(
+            [
+                self.path_prefix == other.path_prefix,
+                self.name == other.name,
+                self.non_linear_name == other.non_linear_name,
+            ]
+        )
+
+    @property
+    def _zip_path(self) -> str:
+        return f"{self.output_path}.zip"

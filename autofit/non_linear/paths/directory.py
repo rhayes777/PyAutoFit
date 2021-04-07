@@ -1,77 +1,17 @@
 import json
 import os
 import shutil
-import zipfile
 from os import path
 
 import dill
 
 from autoconf import conf
-from autofit.mapper import link
-from autofit.mapper.model_object import Identifier
 from autofit.non_linear import samples as s
-from autofit.non_linear.log import logger
 from autofit.text import formatter, text_util
-from .abstract import AbstractPaths, make_path, pattern
+from .abstract import AbstractPaths, make_path
 
 
 class DirectoryPaths(AbstractPaths):
-    @property
-    def search(self):
-        return self._search
-
-    @search.setter
-    def search(self, search):
-        self._search = search
-        self._non_linear_name = pattern.sub(
-            '_', type(
-                self.search
-            ).__name__
-        ).lower()
-
-    @property
-    def non_linear_name(self):
-        return self._non_linear_name
-
-    def save_samples(self, samples):
-        """
-        Save the final-result samples associated with the phase as a pickle
-        """
-        samples.write_table(filename=self._samples_file)
-        samples.info_to_json(filename=self._info_file)
-
-        self.save_object(
-            "samples",
-            samples
-        )
-
-    @property
-    def identifier(self):
-        if None in (self.model, self.search):
-            logger.warn(
-                "Both model and search should be set before the tag is determined"
-            )
-        if self._identifier is None:
-            self._identifier = str(
-                Identifier([
-                    self.search,
-                    self.model
-                ])
-            )
-        return self._identifier
-
-    @property
-    def path(self):
-        return link.make_linked_folder(self._sym_path)
-
-    @property
-    @make_path
-    def samples_path(self) -> str:
-        """
-        The path to the samples folder.
-        """
-        return path.join(self.output_path, "samples")
-
     def _path_for_pickle(
             self,
             name: str
@@ -170,34 +110,6 @@ class DirectoryPaths(AbstractPaths):
         )
 
     @property
-    def image_path(self) -> str:
-        """
-        The path to the image folder.
-        """
-        return path.join(self.output_path, "image")
-
-    @property
-    @make_path
-    def output_path(self) -> str:
-        """
-        The path to the output information for a search.
-        """
-        strings = (
-            list(filter(
-                len,
-                [
-                    str(conf.instance.output_path),
-                    self.path_prefix,
-                    self.name,
-                    self.identifier,
-                ],
-            )
-            )
-        )
-
-        return path.join("", *strings)
-
-    @property
     def is_complete(self) -> bool:
         """
         Has the search been completed?
@@ -211,30 +123,6 @@ class DirectoryPaths(AbstractPaths):
         Mark the search as complete by saving a file
         """
         open(self._has_completed_path, "w+").close()
-
-    def zip_remove(self):
-        """
-        Copy files from the sym linked search folder then remove the sym linked folder.
-        """
-
-        self._zip()
-
-        if self.remove_files:
-            try:
-                shutil.rmtree(self.path)
-            except (FileNotFoundError, PermissionError):
-                pass
-
-    def restore(self):
-        """
-        Copy files from the ``.zip`` file to the samples folder.
-        """
-
-        if path.exists(self._zip_path):
-            with zipfile.ZipFile(self._zip_path, "r") as f:
-                f.extractall(self.output_path)
-
-            os.remove(self._zip_path)
 
     def load_samples(self):
         return s.load_from_table(
@@ -281,10 +169,6 @@ class DirectoryPaths(AbstractPaths):
         This is private for a reason - use the save_object etc. methods to save and load pickles
         """
         return path.join(self._make_path(), "pickles")
-
-    @property
-    def _zip_path(self) -> str:
-        return f"{self.output_path}.zip"
 
     def _save_metadata(self, search_name):
         """
@@ -339,45 +223,6 @@ non_linear_search={search_name}
                 "model.paramnames"
             ),
             list_of_strings=parameter_name_and_label
-        )
-
-    def _zip(self):
-
-        try:
-            with zipfile.ZipFile(self._zip_path, "w", zipfile.ZIP_DEFLATED) as f:
-                for root, dirs, files in os.walk(self.output_path):
-
-                    for file in files:
-                        f.write(
-                            path.join(root, file),
-                            path.join(
-                                root[len(self.output_path):], file
-                            ),
-                        )
-
-            if self.remove_files:
-                shutil.rmtree(self.output_path)
-
-        except FileNotFoundError:
-            pass
-
-    @property
-    @make_path
-    def _sym_path(self) -> str:
-        return path.join(
-            conf.instance.output_path,
-            self.path_prefix,
-            self.name,
-            self.identifier,
-        )
-
-    def __eq__(self, other):
-        return isinstance(other, DirectoryPaths) and all(
-            [
-                self.path_prefix == other.path_prefix,
-                self.name == other.name,
-                self.non_linear_name == other.non_linear_name,
-            ]
         )
 
     @property
