@@ -86,6 +86,8 @@ class CollectionPriorModel(AbstractPriorModel):
             setattr(self, key, AbstractPriorModel.from_object(value))
 
     def __eq__(self, other):
+        if other is None:
+            return False
         if len(self) != len(other):
             return False
         for i, item in enumerate(self):

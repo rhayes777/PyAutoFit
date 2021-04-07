@@ -441,6 +441,8 @@ class GridSearch:
                 )
             )
 
+        self.paths.model = model
+
         name_path = path.join(
             self.paths.name,
             self.paths.non_linear_tag,

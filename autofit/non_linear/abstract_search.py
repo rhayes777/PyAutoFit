@@ -44,14 +44,13 @@ class NonLinearSearch(ABC):
         paths = Paths(name=name, path_prefix=path_prefix)
 
         self._paths = None
+        self.timer = None
 
         self.paths: Paths = paths
 
         self.prior_passer = prior_passer or PriorPasser.from_config(
             config=self._config
         )
-
-        self.timer = Timer(paths.samples_path)
 
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
@@ -223,6 +222,7 @@ class NonLinearSearch(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
+        self.paths.model = model
         self.paths.restore()
         self.setup_log_file()
 
@@ -238,8 +238,10 @@ class NonLinearSearch(ABC):
 
         if not self.paths.is_complete:
 
-            self.timer.samples_path = self.paths.samples_path
-            self.timer.start()
+            timer = Timer(
+                self.paths.samples_path
+            )
+            timer.start()
 
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
 

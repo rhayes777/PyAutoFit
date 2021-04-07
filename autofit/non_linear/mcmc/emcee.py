@@ -310,7 +310,7 @@ class Emcee(AbstractMCMC):
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
-            time=self.timer.time,
+            time=self.timer.time if self.timer is not None else None,
         )
 
     def samples_via_csv_json_from_model(self, model):

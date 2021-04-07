@@ -73,6 +73,7 @@ class Paths:
         self.model = None
 
         self._non_linear_name = None
+        self._non_linear_tag = None
 
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
@@ -113,12 +114,18 @@ class Paths:
 
     @property
     def non_linear_tag(self):
-        return str(
-            Identifier([
-                self.search,
-                self.model
-            ])
-        )
+        if None in (self.model, self.search):
+            logger.warn(
+                "Both model and search should be set before the tag is determined"
+            )
+        if self._non_linear_tag is None:
+            self._non_linear_tag = str(
+                Identifier([
+                    self.search,
+                    self.model
+                ])
+            )
+        return self._non_linear_tag
 
     @property
     def path(self):
