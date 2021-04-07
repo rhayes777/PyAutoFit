@@ -29,7 +29,6 @@ class Paths:
     def __init__(
             self,
             name="",
-            tag=None,
             path_prefix=None,
             non_linear_name=None,
             non_linear_tag_function=lambda: ""
@@ -60,9 +59,6 @@ class Paths:
         name : str
             The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For searchs
             this name is the ``name``.
-        tag : str
-            A tag for the non-linear search, typically used for instances where the same data is fitted with the same
-            model but with slight variants. For searchs this is the search_tag.
         path_prefix : str
             A prefixed path that appears after the output_path but beflore the name variable.
         non_linear_name : str
@@ -71,7 +67,6 @@ class Paths:
 
         self.path_prefix = path_prefix or ""
         self.name = name or ""
-        self.tag = tag or ""
         self.non_linear_name = non_linear_name or ""
         self.non_linear_tag_function = non_linear_tag_function
 
@@ -192,7 +187,6 @@ class Paths:
                     str(conf.instance.output_path),
                     self.path_prefix,
                     self.name,
-                    self.tag,
                     self.non_linear_tag,
                 ],
             )
@@ -291,7 +285,6 @@ class Paths:
         """
         with open(path.join(self._make_path(), "metadata"), "a") as f:
             f.write(f"""name={self.name}
-tag={self.tag}
 non_linear_search={search_name}
 """)
 
@@ -377,7 +370,6 @@ non_linear_search={search_name}
             conf.instance.output_path,
             self.path_prefix,
             self.name,
-            self.tag,
             self.non_linear_tag,
         )
 
@@ -386,7 +378,6 @@ non_linear_search={search_name}
             [
                 self.path_prefix == other.path_prefix,
                 self.name == other.name,
-                self.tag == other.tag,
                 self.non_linear_name == other.non_linear_name,
             ]
         )
@@ -415,6 +406,5 @@ non_linear_search={search_name}
             conf.instance.output_path,
             self.path_prefix,
             self.name,
-            self.tag,
             self.non_linear_tag,
         )

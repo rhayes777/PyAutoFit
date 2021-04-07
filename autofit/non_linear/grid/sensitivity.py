@@ -1,5 +1,4 @@
 from copy import copy
-from copy import copy
 from itertools import count
 from os import path
 from typing import List, Generator, Callable, Type, Union, Tuple
@@ -34,7 +33,6 @@ class JobResult(AbstractJobResult):
 
 
 class Job(AbstractJob):
-
     _number = count()
 
     def __init__(
@@ -70,15 +68,13 @@ class Job(AbstractJob):
 
         self.search = search.copy_with_paths(
             Paths(
-                name=paths.name,
-                tag=paths.tag + "[base]",
+                name=paths.name + "[base]",
                 path_prefix=paths.path_prefix,
             )
         )
         self.perturbed_search = search.copy_with_paths(
             Paths(
-                name=paths.name,
-                tag=paths.tag + "[perturbed]",
+                name=paths.name + "[perturbed]",
                 path_prefix=paths.path_prefix,
             )
         )
@@ -114,7 +110,6 @@ class Job(AbstractJob):
 class SensitivityResult:
 
     def __init__(self, results: List[JobResult]):
-
         self.results = sorted(results)
 
     def __getitem__(self, item):
@@ -168,10 +163,6 @@ class Sensitivity:
             before creating images
         simulate_function
             A function that can convert an instance into an image
-        step_size
-            The size of the step between perturbations. For example, a set size of 0.5
-            with a perturbation_model of dimension 3 would give (1 / 0.5) ^ 3 = 8
-            distinct perturbations.
         number_of_cores
             How many cores does this computer have? Minimum 2.
         """
@@ -270,7 +261,6 @@ class Sensitivity:
             paths = self.search.paths
             name_path = path.join(
                 paths.name,
-                paths.tag,
                 paths.non_linear_tag,
                 label,
             )
@@ -298,7 +288,6 @@ class Sensitivity:
         search_instance = self.search.copy_with_paths(
             Paths(
                 name=name_path,
-                tag=paths.tag,
                 path_prefix=paths.path_prefix,
             )
         )

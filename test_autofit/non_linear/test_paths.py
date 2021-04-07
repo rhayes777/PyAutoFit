@@ -5,12 +5,11 @@ class TestPathDecorator:
     @staticmethod
     def assert_paths_as_expected(paths):
         assert paths.name == "name"
-        assert paths.tag == "tag"
         assert paths.path_prefix == ""
 
     def test_with_arguments(self):
         search = af.MockSearch()
-        search.paths = af.Paths(name="name", tag="tag")
+        search.paths = af.Paths(name="name")
 
         self.assert_paths_as_expected(search.paths)
 
@@ -22,10 +21,10 @@ class TestPathDecorator:
 
     def test_paths_argument(self):
         search = af.MockSearch()
-        search.paths = af.Paths(name="name", tag="tag")
+        search.paths = af.Paths(name="name")
         self.assert_paths_as_expected(search.paths)
 
     def test_combination_argument(self):
         search = af.MockSearch("other", )
-        search.paths = af.Paths(name="name", tag="tag")
+        search.paths = af.Paths(name="name")
         self.assert_paths_as_expected(search.paths)

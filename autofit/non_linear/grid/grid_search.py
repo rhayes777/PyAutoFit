@@ -443,7 +443,6 @@ class GridSearch:
 
         name_path = path.join(
             self.paths.name,
-            self.paths.tag,
             self.paths.non_linear_tag,
             "_".join(labels),
         )
@@ -462,7 +461,6 @@ class GridSearch:
         search_instance = self.search.copy_with_paths(
             Paths(
                 name=name_path,
-                tag=self.paths.tag,
                 path_prefix=self.paths.path_prefix,
             )
         )
