@@ -56,7 +56,7 @@ class Object(Base):
     def from_object(
             cls,
             source,
-            name=None
+            name=""
     ):
         """
         Create a database object for an object in a model.

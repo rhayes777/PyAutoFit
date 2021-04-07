@@ -22,8 +22,8 @@ from autofit.non_linear.timer import Timer
 class NonLinearSearch(ABC):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             initializer=None,
             iterations_per_update=None,

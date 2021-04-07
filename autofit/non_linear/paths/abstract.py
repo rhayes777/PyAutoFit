@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 import zipfile
-from abc import ABC
+from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from functools import wraps
 from os import path
@@ -30,7 +30,7 @@ class AbstractPaths(ABC):
     def __init__(
             self,
             name="",
-            path_prefix=None
+            path_prefix=""
     ):
         """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
         API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
@@ -62,8 +62,8 @@ class AbstractPaths(ABC):
             A prefixed path that appears after the output_path but beflore the name variable.
         """
 
-        self.path_prefix = path_prefix or ""
-        self.name = name or ""
+        self.name = name
+        self.path_prefix = path_prefix
 
         self._search = None
         self.model = None
@@ -217,3 +217,57 @@ class AbstractPaths(ABC):
     @property
     def _zip_path(self) -> str:
         return f"{self.output_path}.zip"
+
+    @abstractmethod
+    def save_object(
+            self,
+            name: str,
+            obj: object
+    ):
+        pass
+
+    @abstractmethod
+    def load_object(
+            self,
+            name: str
+    ):
+        pass
+
+    @abstractmethod
+    def remove_object(
+            self,
+            name: str
+    ):
+        pass
+
+    @abstractmethod
+    def is_object(
+            self,
+            name: str
+    ) -> bool:
+        pass
+
+    @property
+    @abstractmethod
+    def is_complete(self) -> bool:
+        pass
+
+    @abstractmethod
+    def completed(self):
+        pass
+
+    @abstractmethod
+    def load_samples(self):
+        pass
+
+    @abstractmethod
+    def load_samples_info(self):
+        pass
+
+    @abstractmethod
+    def save_summary(self, samples, log_likelihood_function_time):
+        pass
+
+    @abstractmethod
+    def save_all(self, info, pickle_files):
+        pass

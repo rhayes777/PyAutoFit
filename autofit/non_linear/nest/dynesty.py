@@ -15,8 +15,8 @@ from autofit.non_linear.samples import NestSamples, Sample
 class AbstractDynesty(AbstractNest, ABC):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             n_live_points=None,
             facc=None,
@@ -484,8 +484,8 @@ class DynestyStatic(AbstractDynesty):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             n_live_points=None,
             facc=None,
@@ -697,8 +697,8 @@ class DynestyStatic(AbstractDynesty):
 class DynestyDynamic(AbstractDynesty):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             n_live_points=None,
             evidence_tolerance=None,

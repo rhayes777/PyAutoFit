@@ -11,8 +11,8 @@ from autofit.non_linear.initializer import InitializerPrior
 class AbstractNest(NonLinearSearch):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             iterations_per_update=None,
             terminate_at_acceptance_ratio=None,

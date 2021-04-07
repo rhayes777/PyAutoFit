@@ -16,8 +16,8 @@ class Emcee(AbstractMCMC):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             nwalkers=None,
             nsteps=None,

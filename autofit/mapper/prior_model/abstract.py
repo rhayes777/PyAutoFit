@@ -170,7 +170,7 @@ class AbstractPriorModel(AbstractModel):
                and not key.startswith("_")
         }
 
-    def add_assertion(self, assertion, name=None):
+    def add_assertion(self, assertion, name=""):
         """
         Assert that some relationship holds between physical values associated with
         priors at the point an instance is created. If this fails a FitException is

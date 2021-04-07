@@ -15,8 +15,8 @@ class MultiNest(abstract_nest.AbstractNest):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             n_live_points=None,
             sampling_efficiency=None,

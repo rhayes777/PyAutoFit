@@ -55,7 +55,7 @@ class FactorJacobian(Factor):
             self,
             factor_jacobian: Callable,
             *, 
-            name=None,
+            name="",
             vectorised=False,
             is_scalar=False, 
             **kwargs: Variable
