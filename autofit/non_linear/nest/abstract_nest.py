@@ -18,6 +18,7 @@ class AbstractNest(NonLinearSearch):
             terminate_at_acceptance_ratio=None,
             acceptance_ratio_threshold=None,
             stagger_resampling_likelihood=None,
+            session=None
     ):
         """
         Abstract class of a nested sampling `NonLinearSearch` (e.g. MultiNest, Dynesty).
@@ -47,6 +48,7 @@ class AbstractNest(NonLinearSearch):
             prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,
+            session=session
         )
 
         self.terminate_at_acceptance_ratio = (
