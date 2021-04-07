@@ -1,13 +1,10 @@
-import os
-
 import numpy as np
 import pytest
 
 import autofit as af
-from autofit import exc
-from autofit.text import formatter as frm
 from autofit.mock import mock
 from autofit.mock import mock_real
+from autofit.text import formatter as frm
 
 
 @pytest.fixture(name="initial_model")
@@ -68,8 +65,8 @@ class TestGenerateModelInfo:
         model_info = mm.info
 
         assert (
-            model_info
-            == """mock_class
+                model_info
+                == """mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 2.0"""
         )
@@ -83,8 +80,8 @@ class TestGenerateModelInfo:
         model_info = mm.info
 
         assert (
-            model_info
-            == """mock_class
+                model_info
+                == """mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   1.0"""
         )
@@ -94,15 +91,15 @@ class TestGenerateModelInfo:
         mm.tuple = (0, 1)
 
         assert (
-            mm.info
-            == "tuple                                                                                     (0, 1)"
+                mm.info
+                == "tuple                                                                                     (0, 1)"
         )
 
 
 # noinspection PyUnresolvedReferences
 class TestRegression:
     def test_tuple_instance_model_info(self, mapper):
-        mapper.profile = mock_real.EllipticalCoreSersic
+        mapper.profile = mock_real.EllSersicCore
         info = mapper.info
 
         mapper.profile.centre_0 = 1.0
@@ -114,7 +111,7 @@ class TestRegression:
 
     def test_set_tuple_instance(self):
         mm = af.ModelMapper()
-        mm.sersic = mock_real.EllipticalSersic
+        mm.sersic = mock_real.EllSersic
 
         assert mm.prior_count == 7
 
@@ -125,7 +122,7 @@ class TestRegression:
 
     def test_get_tuple_instances(self):
         mm = af.ModelMapper()
-        mm.sersic = mock_real.EllipticalSersic
+        mm.sersic = mock_real.EllSersic
 
         assert isinstance(mm.sersic.centre_0, af.Prior)
         assert isinstance(mm.sersic.centre_1, af.Prior)
@@ -255,20 +252,20 @@ class TestModelingMapper:
 class TestRealClasses:
     def test_combination(self):
         mapper = af.ModelMapper(
-            source_light_profile=mock_real.EllipticalSersic,
-            lens_mass_profile=mock_real.EllipticalCoredIsothermal,
-            lens_light_profile=mock_real.EllipticalCoreSersic,
+            source_light_profile=mock_real.EllSersic,
+            lens_mass_profile=mock_real.EllIsothermalCored,
+            lens_light_profile=mock_real.EllSersicCore,
         )
 
         model_map = mapper.instance_from_unit_vector(
             [1 for _ in range(len(mapper.prior_tuples_ordered_by_id))]
         )
 
-        assert isinstance(model_map.source_light_profile, mock_real.EllipticalSersic)
+        assert isinstance(model_map.source_light_profile, mock_real.EllSersic)
         assert isinstance(
-            model_map.lens_mass_profile, mock_real.EllipticalCoredIsothermal
+            model_map.lens_mass_profile, mock_real.EllIsothermalCored
         )
-        assert isinstance(model_map.lens_light_profile, mock_real.EllipticalCoreSersic)
+        assert isinstance(model_map.lens_light_profile, mock_real.EllSersicCore)
 
     def test_attribute(self):
         mm = af.ModelMapper()
@@ -294,7 +291,7 @@ class TestConfigFunctions:
         assert model_map.geometry_profile.one_tuple == (1.0, 0.5)
 
     def test_inheritance(self):
-        mapper = af.ModelMapper(geometry_profile=mock_real.EllipticalProfile)
+        mapper = af.ModelMapper(geometry_profile=mock_real.EllProfile)
 
         model_map = mapper.instance_from_unit_vector([1.0, 1.0, 1.0, 1.0])
 
@@ -302,30 +299,30 @@ class TestConfigFunctions:
 
     def test_true_config(self):
         mapper = af.ModelMapper(
-            sersic_light_profile=mock_real.EllipticalSersic,
-            elliptical_profile_1=mock_real.EllipticalProfile,
-            elliptical_profile_2=mock_real.EllipticalProfile,
-            spherical_profile=mock_real.SphericalProfile,
-            exponential_light_profile=mock_real.EllipticalExponential,
+            sersic_light_profile=mock_real.EllSersic,
+            elliptical_profile_1=mock_real.EllProfile,
+            elliptical_profile_2=mock_real.EllProfile,
+            spherical_profile=mock_real.SphProfile,
+            exponential_light_profile=mock_real.EllExponential,
         )
 
         model_map = mapper.instance_from_unit_vector(
             [0.5 for _ in range(len(mapper.prior_tuples_ordered_by_id))]
         )
 
-        assert isinstance(model_map.elliptical_profile_1, mock_real.EllipticalProfile)
-        assert isinstance(model_map.elliptical_profile_2, mock_real.EllipticalProfile)
-        assert isinstance(model_map.spherical_profile, mock_real.SphericalProfile)
+        assert isinstance(model_map.elliptical_profile_1, mock_real.EllProfile)
+        assert isinstance(model_map.elliptical_profile_2, mock_real.EllProfile)
+        assert isinstance(model_map.spherical_profile, mock_real.SphProfile)
 
-        assert isinstance(model_map.sersic_light_profile, mock_real.EllipticalSersic)
+        assert isinstance(model_map.sersic_light_profile, mock_real.EllSersic)
         assert isinstance(
-            model_map.exponential_light_profile, mock_real.EllipticalExponential
+            model_map.exponential_light_profile, mock_real.EllExponential
         )
 
 
 class TestModelInstancesRealClasses:
     def test__in_order_of_class_constructor__one_profile(self):
-        mapper = af.ModelMapper(profile_1=mock_real.EllipticalProfile)
+        mapper = af.ModelMapper(profile_1=mock_real.EllProfile)
 
         model_map = mapper.instance_from_unit_vector([0.25, 0.5, 0.75, 1.0])
 
@@ -335,9 +332,9 @@ class TestModelInstancesRealClasses:
 
     def test__in_order_of_class_constructor___multiple_profiles(self):
         mapper = af.ModelMapper(
-            profile_1=mock_real.EllipticalProfile,
-            profile_2=mock_real.SphericalProfile,
-            profile_3=mock_real.EllipticalProfile,
+            profile_1=mock_real.EllProfile,
+            profile_2=mock_real.SphProfile,
+            profile_3=mock_real.EllProfile,
         )
 
         model_map = mapper.instance_from_unit_vector(
@@ -356,9 +353,9 @@ class TestModelInstancesRealClasses:
 
     def test__check_order_for_different_unit_values(self):
         mapper = af.ModelMapper(
-            profile_1=mock_real.EllipticalProfile,
-            profile_2=mock_real.SphericalProfile,
-            profile_3=mock_real.EllipticalProfile,
+            profile_1=mock_real.EllProfile,
+            profile_2=mock_real.SphProfile,
+            profile_3=mock_real.EllProfile,
         )
 
         mapper.profile_1.centre.centre_0 = af.UniformPrior(0.0, 1.0)
@@ -389,12 +386,12 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_3.phi == 1.0
 
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(
-        self
+            self
     ):
         mapper = af.ModelMapper(
-            profile_1=mock_real.EllipticalProfile,
-            profile_2=mock_real.SphericalProfile,
-            profile_3=mock_real.EllipticalProfile,
+            profile_1=mock_real.EllProfile,
+            profile_2=mock_real.SphProfile,
+            profile_3=mock_real.EllProfile,
         )
 
         mapper.profile_1.centre.centre_0 = af.UniformPrior(0.0, 1.0)
@@ -429,9 +426,9 @@ class TestModelInstancesRealClasses:
 
     def test__check_order_for_physical_values(self):
         mapper = af.ModelMapper(
-            profile_1=mock_real.EllipticalProfile,
-            profile_2=mock_real.SphericalProfile,
-            profile_3=mock_real.EllipticalProfile,
+            profile_1=mock_real.EllProfile,
+            profile_2=mock_real.SphProfile,
+            profile_3=mock_real.EllProfile,
         )
 
         model_map = mapper.instance_from_vector(
@@ -449,7 +446,7 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_3.phi == 1.0
 
     def test__from_prior_medians__one_model(self):
-        mapper = af.ModelMapper(profile_1=mock_real.EllipticalProfile)
+        mapper = af.ModelMapper(profile_1=mock_real.EllProfile)
 
         model_map = mapper.instance_from_prior_medians()
 
@@ -461,9 +458,9 @@ class TestModelInstancesRealClasses:
 
     def test__from_prior_medians__multiple_models(self):
         mapper = af.ModelMapper(
-            profile_1=mock_real.EllipticalProfile,
-            profile_2=mock_real.SphericalProfile,
-            profile_3=mock_real.EllipticalProfile,
+            profile_1=mock_real.EllProfile,
+            profile_2=mock_real.SphProfile,
+            profile_3=mock_real.EllProfile,
         )
 
         model_map = mapper.instance_from_prior_medians()
@@ -483,7 +480,7 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_3.phi == model_2.profile_3.phi == 1.0
 
     def test__from_prior_medians__one_model__set_one_parameter_to_another(self):
-        mapper = af.ModelMapper(profile_1=mock_real.EllipticalProfile)
+        mapper = af.ModelMapper(profile_1=mock_real.EllProfile)
 
         mapper.profile_1.axis_ratio = mapper.profile_1.phi
 
@@ -506,7 +503,6 @@ class TestModelInstancesRealClasses:
         assert log_priors == [0.125, 0.2]
 
     def test_random_unit_vector_within_limits(self):
-
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(mock.MockClassx2)
 
@@ -579,12 +575,12 @@ class TestUtility:
 
         assert len(mapper.prior_prior_model_dict) == 2
         assert (
-            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
-            == mock.MockClassx2
+                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
+                == mock.MockClassx2
         )
         assert (
-            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
-            == mock.MockClassx2
+                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
+                == mock.MockClassx2
         )
 
     def test_name_for_prior(self):
@@ -702,7 +698,7 @@ class TestListPriorModel:
         assert gaussian_mapper.list[1].two.sigma == 5
 
     def test_prior_results_for_gaussian_tuples__include_override_from_width_file(
-        self, list_prior_model
+            self, list_prior_model
     ):
         mapper = af.ModelMapper()
         mapper.list = list_prior_model
@@ -783,7 +779,7 @@ class Testinstance:
         assert len(mapper.instance_tuples) == 2
 
     def test_set_for_tuple_prior(self):
-        prior_model = af.PriorModel(mock_real.EllipticalSersic)
+        prior_model = af.PriorModel(mock_real.EllSersic)
         prior_model.centre_0 = 1.0
         prior_model.centre_1 = 2.0
         prior_model.axis_ratio = 1.0
@@ -855,28 +851,3 @@ class TestGaussianWidthConfig:
         af.ModelMapper()
 
         assert mapper.one is not None
-
-
-@pytest.fixture(name="promise_mapper")
-def make_promise_mapper():
-    mapper = af.ModelMapper()
-    mapper.component = af.PriorModel(
-        mock.MockComponents,
-        parameter=af.Promise(
-            None, None, is_instance=False, result_path=None, assert_exists=False
-        ),
-    )
-    return mapper
-
-
-class TestPromises:
-    def test_promise_count(self, promise_mapper):
-        assert promise_mapper.promise_count == 1
-        assert promise_mapper.variable_promise_count == 1
-
-        promise_mapper.component.parameter.is_instance = True
-        assert promise_mapper.variable_promise_count == 0
-
-    def test_raises(self, promise_mapper):
-        with pytest.raises(exc.PriorException):
-            promise_mapper.instance_from_prior_medians()

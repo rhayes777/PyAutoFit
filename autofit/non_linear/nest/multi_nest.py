@@ -15,7 +15,8 @@ class MultiNest(abstract_nest.AbstractNest):
 
     def __init__(
             self,
-
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             n_live_points=None,
             sampling_efficiency=None,
@@ -197,7 +198,8 @@ class MultiNest(abstract_nest.AbstractNest):
         )
 
         super().__init__(
-
+            name=name,
+            path_prefix=path_prefix,
             prior_passer=prior_passer,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,

@@ -23,6 +23,7 @@ class NonLinearSearch(ABC):
     def __init__(
             self,
             name=None,
+            path_prefix=None,
             prior_passer=None,
             initializer=None,
             iterations_per_update=None,
@@ -42,8 +43,7 @@ class NonLinearSearch(ABC):
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
-
-        paths = Paths(name)
+        paths = Paths(name=name, path_prefix=path_prefix)
 
         self._paths = None
 
@@ -247,7 +247,6 @@ class NonLinearSearch(ABC):
             self.timer.samples_path = self.paths.samples_path
             self.timer.start()
 
-            analysis = analysis.modify_before_fit(model=model, paths=self.paths)
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
 
             self.paths.completed()
@@ -430,9 +429,6 @@ class Analysis(ABC):
 
     def visualize(self, paths: Paths, instance, during_analysis):
         pass
-
-    def modify_before_fit(self, model, paths: Paths):
-        return self
 
     def save_attributes_for_aggregator(self, paths: Paths):
         pass

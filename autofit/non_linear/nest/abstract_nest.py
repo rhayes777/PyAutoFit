@@ -11,6 +11,8 @@ from autofit.non_linear.initializer import InitializerPrior
 class AbstractNest(NonLinearSearch):
     def __init__(
             self,
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             iterations_per_update=None,
             terminate_at_acceptance_ratio=None,
@@ -31,8 +33,6 @@ class AbstractNest(NonLinearSearch):
 
         Parameters
         ----------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         terminate_at_acceptance_ratio : bool
@@ -42,6 +42,8 @@ class AbstractNest(NonLinearSearch):
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is `True`.
         """
         super().__init__(
+            name=name,
+            path_prefix=path_prefix,
             prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,

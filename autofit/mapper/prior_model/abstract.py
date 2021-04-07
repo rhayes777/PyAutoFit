@@ -330,15 +330,6 @@ class AbstractPriorModel(AbstractModel):
         }.values()
 
     @property
-    def unique_promise_tuples(self):
-        from autofit.mapper.prior.promise import AbstractPromise
-
-        return {
-            prior_tuple[1]: prior_tuple
-            for prior_tuple in self.attribute_tuples_with_type(AbstractPromise)
-        }.values()
-
-    @property
     @cast_collection(PriorNameValue)
     def prior_tuples_ordered_by_id(self):
         """
@@ -862,15 +853,6 @@ class AbstractPriorModel(AbstractModel):
         -------
             An instance of the class
         """
-        if self.promise_count > 0:
-            unpopulated_string = "\n".join(
-                f"{promise} -> {path}"
-                for path, promise
-                in self.unique_promise_tuples
-            )
-            raise exc.PriorException(
-                f"All promises must be populated prior to instantiation.\n\nUnpopulated promises:\n{unpopulated_string}"
-            )
         if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
             for prior, value in arguments.items():
                 if isinstance(value, Number):
@@ -882,10 +864,6 @@ class AbstractPriorModel(AbstractModel):
     @property
     def prior_count(self):
         return len(self.unique_prior_tuples)
-
-    @property
-    def promise_count(self):
-        return len(self.unique_promise_tuples)
 
     @property
     def variable_promise_count(self):
@@ -1010,11 +988,10 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        from autofit.mapper.prior.promise import AbstractPromise
         formatter = TextFormatter()
 
         for t in self.path_instance_tuples_for_class((
-                Prior, float, AbstractPromise, tuple
+                Prior, float, tuple
         )):
             formatter.add(t)
 
