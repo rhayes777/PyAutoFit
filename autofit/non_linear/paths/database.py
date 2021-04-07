@@ -1,7 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 
 from .abstract import AbstractPaths
-from ...database import Fit
+from ...database.model import Fit
 
 
 class DatabasePaths(AbstractPaths):
@@ -54,18 +54,22 @@ class DatabasePaths(AbstractPaths):
     def completed(self):
         self._fit.is_complete = True
 
-    def load_samples(self):
-        pass
-
-    def load_samples_info(self):
-        pass
+    # def load_samples(self):
+    #     pass
+    #
+    # def load_samples_info(self):
+    #     pass
 
     def save_summary(
             self,
             samples,
             log_likelihood_function_time
     ):
-        pass
+        self._fit.instance = samples.max_log_likelihood_instance
+        super().save_summary(
+            samples,
+            log_likelihood_function_time
+        )
 
     def save_all(self, info, *_):
         self._fit.info = info

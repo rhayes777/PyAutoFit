@@ -40,6 +40,7 @@ class AbstractDynesty(AbstractNest, ABC):
             acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
+            session=None
     ):
         """
         A Dynesty non-linear search.
@@ -238,6 +239,7 @@ class AbstractDynesty(AbstractNest, ABC):
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             iterations_per_update=iterations_per_update,
+            session=session
         )
 
         self.number_of_cores = (
@@ -509,6 +511,7 @@ class DynestyStatic(AbstractDynesty):
             acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
+            session=None
     ):
         """
         A Dynesty `NonLinearSearch` using a static number of live points.
@@ -659,6 +662,7 @@ class DynestyStatic(AbstractDynesty):
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             number_of_cores=number_of_cores,
+            session=session
         )
 
         logger.debug("Creating DynestyStatic NLO")

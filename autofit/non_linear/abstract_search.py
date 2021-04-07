@@ -28,6 +28,7 @@ class NonLinearSearch(ABC):
             initializer=None,
             iterations_per_update=None,
             number_of_cores=1,
+            session=None
     ):
         """Abstract base class for non-linear searches.
 
@@ -41,7 +42,11 @@ class NonLinearSearch(ABC):
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
-        paths = DirectoryPaths(name=name, path_prefix=path_prefix)
+        from autofit.non_linear.paths.database import DatabasePaths
+        if session is not None:
+            paths = DatabasePaths(name=name, path_prefix=path_prefix, session=session)
+        else:
+            paths = DirectoryPaths(name=name, path_prefix=path_prefix)
 
         self._paths = None
         self._timer = None

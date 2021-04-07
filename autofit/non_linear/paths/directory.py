@@ -124,33 +124,6 @@ class DirectoryPaths(AbstractPaths):
         """
         open(self._has_completed_path, "w+").close()
 
-    def load_samples(self):
-        return s.load_from_table(
-            filename=self._samples_file
-        )
-
-    def load_samples_info(self):
-        with open(self._info_file) as infile:
-            return json.load(infile)
-
-    def save_summary(self, samples, log_likelihood_function_time):
-        text_util.results_to_file(
-            samples=samples,
-            filename=path.join(
-                self.output_path,
-                "model.results"
-            )
-        )
-
-        text_util.search_summary_to_file(
-            samples=samples,
-            log_likelihood_function_time=log_likelihood_function_time,
-            filename=path.join(
-                self.output_path,
-                "search.summary"
-            )
-        )
-
     def save_all(self, info, pickle_files):
         self._save_model_info(model=self.model)
         self._save_parameter_names_file(model=self.model)

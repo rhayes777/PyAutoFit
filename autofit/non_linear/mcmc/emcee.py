@@ -28,6 +28,7 @@ class Emcee(AbstractMCMC):
             auto_correlation_change_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
+            session=None
     ):
         """ An Emcee non-linear search.
 
@@ -120,6 +121,7 @@ class Emcee(AbstractMCMC):
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
+            session=session
         )
 
         self.number_of_cores = (

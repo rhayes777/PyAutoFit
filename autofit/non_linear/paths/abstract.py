@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -11,6 +12,8 @@ from autoconf import conf
 from autofit.mapper import link
 from autofit.mapper.model_object import Identifier
 from autofit.non_linear.log import logger
+from autofit.non_linear.samples import load_from_table
+from autofit.text import text_util
 
 
 def make_path(func):
@@ -257,17 +260,40 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def load_samples(self):
-        pass
-
-    @abstractmethod
-    def load_samples_info(self):
-        pass
-
-    @abstractmethod
-    def save_summary(self, samples, log_likelihood_function_time):
-        pass
-
-    @abstractmethod
     def save_all(self, info, pickle_files):
         pass
+
+    def load_samples(self):
+        return load_from_table(
+            filename=self._samples_file
+        )
+
+    def load_samples_info(self):
+        with open(self._info_file) as infile:
+            return json.load(infile)
+
+    def save_summary(self, samples, log_likelihood_function_time):
+        text_util.results_to_file(
+            samples=samples,
+            filename=path.join(
+                self.output_path,
+                "model.results"
+            )
+        )
+
+        text_util.search_summary_to_file(
+            samples=samples,
+            log_likelihood_function_time=log_likelihood_function_time,
+            filename=path.join(
+                self.output_path,
+                "search.summary"
+            )
+        )
+
+    @property
+    def _samples_file(self) -> str:
+        return path.join(self.samples_path, "samples.csv")
+
+    @property
+    def _info_file(self) -> str:
+        return path.join(self.samples_path, "info.json")
