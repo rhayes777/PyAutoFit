@@ -1,4 +1,7 @@
+from sqlalchemy.orm.exc import NoResultFound
+
 from .abstract import AbstractPaths
+from ...database import Fit
 
 
 class DatabasePaths(AbstractPaths):
@@ -26,9 +29,26 @@ class DatabasePaths(AbstractPaths):
     def is_object(self, name: str) -> bool:
         pass
 
+    def _fit(self) -> Fit:
+        try:
+            return self.session.query(
+                Fit
+            ).filter(
+                Fit.id == self.identifier
+            ).one()
+        except NoResultFound:
+            fit = Fit(
+                id=self.identifier,
+                is_complete=False
+            )
+            self.session.add(
+                fit
+            )
+            return fit
+
     @property
     def is_complete(self) -> bool:
-        pass
+        return self._fit().is_complete
 
     def completed(self):
         pass

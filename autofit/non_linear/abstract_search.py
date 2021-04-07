@@ -15,7 +15,7 @@ from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
-from autofit.non_linear.paths import DirectoryPaths
+from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.timer import Timer
 
 
