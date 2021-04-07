@@ -1,7 +1,7 @@
 import os
-from os import path
 import shutil
 from functools import wraps
+from os import path
 
 import pytest
 
@@ -16,7 +16,6 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.fixture(name="multi_nest_summary_path")
 def test_multi_nest_summary():
-
     multi_nest_summary_path = path.join(conf.instance.output_path, "non_linear", "multinest", "summary")
 
     if path.exists(multi_nest_summary_path):
@@ -29,7 +28,6 @@ def test_multi_nest_summary():
 
 @pytest.fixture(name="multi_nest_samples_path")
 def test_multi_nest_samples():
-
     multi_nest_samples_path = path.join(conf.instance.output_path, "non_linear", "multinest", "samples")
 
     if path.exists(multi_nest_samples_path):
@@ -42,7 +40,6 @@ def test_multi_nest_samples():
 
 @pytest.fixture(name="multi_nest_resume_path")
 def test_multi_nest_resume():
-
     multi_nest_resume_path = path.join(conf.instance.output_path, "non_linear", "multinest", "resume")
 
     if path.exists(multi_nest_resume_path):
@@ -65,7 +62,6 @@ def create_path(func):
 
 @create_path
 def create_summary_4_parameters(file_path):
-
     summary = open(path.join(file_path, "multinestsummary.txt"), "w")
     summary.write(
         "    0.100000000000000000E+01   -0.200000000000000000E+01    0.300000000000000000E+01"
@@ -209,13 +205,13 @@ class TestMulitNest:
         model = af.ModelMapper(mock_class_1=mock.MockClassx4)
 
         fitness = af.MultiNest.Fitness(
-            paths=multi_nest.paths,
             analysis=None,
             model=model,
             samples_from_model=multi_nest.samples_via_sampler_from_model,
             terminate_at_acceptance_ratio=False,
             acceptance_ratio_threshold=0.0,
             stagger_resampling_likelihood=False,
+            paths=None
         )
 
         assert fitness.model == model
@@ -244,8 +240,8 @@ class TestMulitNest:
         assert multi_nest.tag == "multinest[nlive_41_eff_0.6_const_mm_is]"
 
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):
-
-        multi_nest = af.MultiNest(paths=af.Paths(path_prefix=path.join("non_linear", "multinest")))
+        multi_nest = af.MultiNest()
+        multi_nest.paths = af.Paths(path_prefix=path.join("non_linear", "multinest"))
 
         create_weighted_samples_4_parameters(file_path=multi_nest.paths.path)
 
@@ -282,7 +278,6 @@ class TestMulitNest:
         assert weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
 
     def test__read_total_samples_from_file_resume(self, multi_nest_resume_path):
-
         multi_nest = af.MultiNest()
 
         create_resume(file_path=multi_nest.paths.path)
@@ -294,8 +289,8 @@ class TestMulitNest:
         assert total_samples == 12345
 
     def test__log_evidence_from_file_summary(self, multi_nest_summary_path):
-
-        multi_nest = af.MultiNest(paths=af.Paths(path_prefix=path.join("non_linear", "multinest")))
+        multi_nest = af.MultiNest()
+        multi_nest.paths = af.Paths(path_prefix=path.join("non_linear", "multinest"))
 
         create_summary_4_parameters(file_path=multi_nest.paths.samples_path)
 
@@ -307,10 +302,10 @@ class TestMulitNest:
         assert log_evidence == 0.02
 
     def test__samples_from_model(
-        self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
+            self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
     ):
-
-        multi_nest = af.MultiNest(paths=af.Paths(path_prefix=path.join("non_linear", "multinest")))
+        multi_nest = af.MultiNest()
+        multi_nest.paths = af.Paths(path_prefix=path.join("non_linear", "multinest"))
 
         create_weighted_samples_4_parameters(file_path=multi_nest.paths.samples_path)
         create_resume(file_path=multi_nest.paths.samples_path)

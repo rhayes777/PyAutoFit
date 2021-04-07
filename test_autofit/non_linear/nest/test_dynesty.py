@@ -294,7 +294,8 @@ class TestDynestyConfig:
 
         paths = af.Paths(path_prefix=path.join("non_linear", "dynesty"))
 
-        dynesty = af.DynestyStatic(paths=paths)
+        dynesty = af.DynestyStatic()
+        dynesty.paths = paths
 
         with open(path.join(dynesty.paths.samples_path, "dynesty.pickle"), "wb") as f:
             pickle.dump(sampler, f)
