@@ -4,6 +4,7 @@ import autofit as af
 from autoconf import conf
 from autofit.non_linear.samples import Sample
 
+
 class MockAnalysis(af.Analysis):
     prior_count = 2
 
@@ -295,6 +296,13 @@ class Gaussian(Profile):
         """
         super().__init__(centre=centre, intensity=intensity)
         self.sigma = sigma  # We still need to set sigma for the Gaussian, of course.
+
+    def __eq__(self, other):
+        return all([
+            self.centre == other.centre,
+            self.intensity == other.intensity,
+            self.sigma == other.sigma
+        ])
 
     def __call__(self, xvalues):
         """

@@ -185,6 +185,12 @@ class Fit(Base):
             item
         )
 
+    def __contains__(self, item):
+        for p in self.pickles:
+            if p.name == item:
+                return True
+        return False
+
     def __setitem__(
             self,
             key: str,
@@ -221,6 +227,14 @@ class Fit(Base):
                        ] + [
                            new
                        ]
+
+    def __delitem__(self, key):
+        self.pickles = [
+            p
+            for p
+            in self.pickles
+            if p.name != key
+        ]
 
     model_id = Column(
         Integer,

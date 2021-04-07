@@ -18,17 +18,18 @@ class DatabasePaths(AbstractPaths):
         self.session = session
 
     def save_object(self, name: str, obj: object):
-        pass
+        self._fit[name] = obj
 
     def load_object(self, name: str):
-        pass
+        return self._fit[name]
 
     def remove_object(self, name: str):
-        pass
+        del self._fit[name]
 
     def is_object(self, name: str) -> bool:
-        pass
+        return name in self._fit
 
+    @property
     def _fit(self) -> Fit:
         try:
             return self.session.query(
@@ -48,10 +49,10 @@ class DatabasePaths(AbstractPaths):
 
     @property
     def is_complete(self) -> bool:
-        return self._fit().is_complete
+        return self._fit.is_complete
 
     def completed(self):
-        self._fit().is_complete = True
+        self._fit.is_complete = True
 
     def load_samples(self):
         pass
