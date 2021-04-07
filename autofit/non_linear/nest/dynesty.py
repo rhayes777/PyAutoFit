@@ -1,4 +1,5 @@
 import sys
+from abc import ABC
 
 import numpy as np
 from dynesty import NestedSampler as StaticSampler
@@ -11,7 +12,7 @@ from autofit.non_linear.result import Result
 from autofit.non_linear.samples import NestSamples, Sample
 
 
-class AbstractDynesty(AbstractNest):
+class AbstractDynesty(AbstractNest, ABC):
     def __init__(
             self,
             name=None,
