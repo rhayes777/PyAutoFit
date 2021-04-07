@@ -1,11 +1,12 @@
 import json
 import os
-import pickle
 import shutil
 import zipfile
 from configparser import NoSectionError
 from functools import wraps
 from os import path
+
+import dill
 
 from autoconf import conf
 from autofit.mapper import link
@@ -130,7 +131,7 @@ class Paths:
                 ),
                 "w+b"
         ) as f:
-            pickle.dump(
+            dill.dump(
                 obj, f
             )
 
@@ -144,7 +145,7 @@ class Paths:
                 ),
                 "r+b"
         ) as f:
-            return pickle.load(
+            return dill.load(
                 f
             )
 
