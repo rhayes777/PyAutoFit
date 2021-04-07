@@ -237,9 +237,7 @@ class NonLinearSearch(ABC):
         if not self.paths.is_complete or self.force_pickle_overwrite:
 
             self.paths.save_all(
-                model=model,
                 info=info,
-                search=self,
                 pickle_files=pickle_files
             )
             analysis.save_attributes_for_aggregator(paths=self.paths)

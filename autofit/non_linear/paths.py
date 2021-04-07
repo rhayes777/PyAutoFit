@@ -324,12 +324,12 @@ class Paths:
             )
         )
 
-    def save_all(self, model, info, search, pickle_files):
-        self._save_model_info(model=model)
-        self._save_parameter_names_file(model=model)
+    def save_all(self, info, pickle_files):
+        self._save_model_info(model=self.model)
+        self._save_parameter_names_file(model=self.model)
         self.save_object("info", info)
-        self.save_object("search", search)
-        self.save_object("model", model)
+        self.save_object("search", self.search)
+        self.save_object("model", self.model)
         self._save_metadata(
             search_name=type(self.search).__name__.lower()
         )

@@ -953,9 +953,7 @@ class DynestyDynamic(AbstractDynesty):
         self.setup_log_file()
 
         self.paths.save_all(
-            model=model,
             info=info,
-            search=self,
             pickle_files=[]
         )
 
