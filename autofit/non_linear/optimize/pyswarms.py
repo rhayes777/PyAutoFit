@@ -179,7 +179,7 @@ class AbstractPySwarms(AbstractOptimizer):
             model=model, analysis=analysis, pool_ids=pool_ids
         )
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "points")):
+        if self.paths.is_object("points"):
 
             init_pos = self.load_points[-1]
             total_iterations = self.load_total_iterations

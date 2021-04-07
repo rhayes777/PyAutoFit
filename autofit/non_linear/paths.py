@@ -272,9 +272,9 @@ class Paths:
     def save_all(self, model, info, search, pickle_files):
         self._save_model_info(model=model)
         self._save_parameter_names_file(model=model)
-        self._save_info(info=info)
-        self._save_search(search=search)
-        self._save_model(model=model)
+        self.save_object("info", info)
+        self.save_object("search", search)
+        self.save_object("model", model)
         self._save_metadata(
             search_name=type(self).__name__.lower()
         )
@@ -336,23 +336,6 @@ non_linear_search={search_name}
             list_of_strings=parameter_name_and_label
         )
 
-    def _save_info(self, info):
-        """
-        Save the dataset associated with the phase
-        """
-        with open(path.join(self.pickle_path, "info.pickle"), "wb") as f:
-            pickle.dump(info, f)
-
-    def _save_search(self, search):
-        """
-        Save the search associated with the phase as a pickle
-        """
-        with open(path.join(
-                self.pickle_path,
-                "search.pickle"
-        ), "w+b") as f:
-            f.write(pickle.dumps(search))
-
     def _zip(self):
 
         try:
@@ -372,16 +355,6 @@ non_linear_search={search_name}
 
         except FileNotFoundError:
             pass
-
-    def _save_model(self, model):
-        """
-        Save the model associated with the phase as a pickle
-        """
-        with open(path.join(
-                self.pickle_path,
-                "model.pickle"
-        ), "w+b") as f:
-            f.write(pickle.dumps(model))
 
     def __getstate__(self):
         state = self.__dict__.copy()
