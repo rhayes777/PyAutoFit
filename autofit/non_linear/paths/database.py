@@ -60,8 +60,17 @@ class DatabasePaths(AbstractPaths):
     def load_samples_info(self):
         pass
 
-    def save_summary(self, samples, log_likelihood_function_time):
+    def save_summary(
+            self,
+            samples,
+            log_likelihood_function_time
+    ):
         pass
 
-    def save_all(self, info, pickle_files):
-        pass
+    def save_all(self, info, *_):
+        self._fit.info = info
+        self._fit.model = self.model
+
+        self.save_object("search", self.search)
+
+        self.session.commit()

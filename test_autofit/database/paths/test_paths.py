@@ -12,6 +12,9 @@ def make_paths(session):
     paths = af.DatabasePaths(
         session
     )
+    paths.model = af.Model(
+        Gaussian
+    )
     assert paths.is_complete is False
     return paths
 
@@ -68,3 +71,16 @@ def test_object(paths):
     assert paths.is_object(
         "gaussian"
     ) is False
+
+
+def test_save_all(
+        paths,
+        fit
+):
+    paths.save_all({
+        "key": "value"
+    })
+
+    assert fit.model is not None
+    assert "search" in fit
+    assert fit.info["key"] == "value"
