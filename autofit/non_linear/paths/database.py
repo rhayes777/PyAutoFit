@@ -51,7 +51,7 @@ class DatabasePaths(AbstractPaths):
         return self._fit().is_complete
 
     def completed(self):
-        pass
+        self._fit().is_complete = True
 
     def load_samples(self):
         pass
