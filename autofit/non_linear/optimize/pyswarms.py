@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 
 from autofit import exc
@@ -316,7 +314,7 @@ class AbstractPySwarms(AbstractOptimizer):
                 weights=weights,
                 model=model
             ),
-            time=self.timer.time
+            time=self.timer.time if self.timer is not None else None
         )
 
     @property
