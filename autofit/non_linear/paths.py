@@ -29,9 +29,7 @@ class Paths:
     def __init__(
             self,
             name="",
-            path_prefix=None,
-            non_linear_name=None,
-            non_linear_tag_function=lambda: ""
+            path_prefix=None
     ):
         """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
         API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
@@ -61,14 +59,12 @@ class Paths:
             this name is the ``name``.
         path_prefix : str
             A prefixed path that appears after the output_path but beflore the name variable.
-        non_linear_name : str
-            The name of the non-linear search, e.g. Emcee -> emcee. searchs automatically set up and use this variable.
         """
 
         self.path_prefix = path_prefix or ""
         self.name = name or ""
-        self.non_linear_name = non_linear_name or ""
-        self.non_linear_tag_function = non_linear_tag_function
+        self.non_linear_name = ""
+        self.non_linear_tag_function = lambda: ""
 
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
