@@ -89,11 +89,10 @@ class Paths:
         samples.write_table(filename=self._samples_file)
         samples.info_to_json(filename=self._info_file)
 
-        with open(path.join(
-                self.pickle_path,
-                "samples.pickle"
-        ), "w+b") as f:
-            f.write(pickle.dumps(samples))
+        self.save_object(
+            "samples",
+            samples
+        )
 
     @property
     def non_linear_tag(self):
@@ -111,15 +110,23 @@ class Paths:
         """
         return path.join(self.output_path, "samples")
 
+    def _path_for_pickle(
+            self,
+            name: str
+    ):
+        return path.join(
+            self.pickle_path,
+            f"{name}.pickle"
+        )
+
     def save_object(
             self,
             name: str,
             obj: object
     ):
         with open(
-                path.join(
-                    self.pickle_path,
-                    f"{name}.pickle"
+                self._path_for_pickle(
+                    name
                 ),
                 "w+b"
         ) as f:
@@ -132,15 +139,37 @@ class Paths:
             name: str
     ) -> object:
         with open(
-                path.join(
-                    self.pickle_path,
-                    f"{name}.pickle"
+                self._path_for_pickle(
+                    name
                 ),
                 "r+b"
         ) as f:
             return pickle.load(
                 f
             )
+
+    def remove_object(
+            self,
+            name: str
+    ):
+        try:
+            os.remove(
+                self._path_for_pickle(
+                    name
+                )
+            )
+        except FileNotFoundError:
+            pass
+
+    def is_object(
+            self,
+            name: str
+    ):
+        return os.path.exists(
+            self._path_for_pickle(
+                name
+            )
+        )
 
     @property
     def image_path(self) -> str:
