@@ -112,7 +112,7 @@ class TestPySwarmsGlobalConfig:
     def test__samples_from_model(self):
         pyswarms = af.PySwarmsGlobal()
         pyswarms.paths = af.Paths(path_prefix=path.join("non_linear", "pyswarms"))
-        pyswarms.paths._non_linear_tag = "tag"
+        pyswarms.paths._identifier = "tag"
 
         model = af.ModelMapper(mock_class=mock.MockClassx3)
         model.mock_class.one = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)

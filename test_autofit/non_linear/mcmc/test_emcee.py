@@ -59,7 +59,7 @@ class TestEmceeConfig:
     def test__samples_from_model(self):
         emcee = af.Emcee()
         emcee.paths = af.Paths(path_prefix=path.join("non_linear", "emcee"))
-        emcee.paths._non_linear_tag = "tag"
+        emcee.paths._identifier = "tag"
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
@@ -88,7 +88,7 @@ class TestEmceeOutput:
     def test__median_pdf_parameters(self):
         emcee = af.Emcee()
         emcee.paths = af.Paths(path_prefix=path.join("non_linear", "emcee"))
-        emcee.paths._non_linear_tag = "tag"
+        emcee.paths._identifier = "tag"
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
@@ -102,7 +102,7 @@ class TestEmceeOutput:
     def test__vector_at_sigma__uses_output_files(self):
         emcee = af.Emcee()
         emcee.paths = af.Paths(path_prefix=path.join("non_linear", "emcee"))
-        emcee.paths._non_linear_tag = "tag"
+        emcee.paths._identifier = "tag"
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
@@ -120,7 +120,7 @@ class TestEmceeOutput:
     def test__autocorrelation_times(self):
         emcee = af.Emcee()
         emcee.paths = af.Paths(path_prefix=path.join("non_linear", "emcee"))
-        emcee.paths._non_linear_tag = "tag"
+        emcee.paths._identifier = "tag"
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)

@@ -445,7 +445,7 @@ class GridSearch:
 
         name_path = path.join(
             self.paths.name,
-            self.paths.non_linear_tag,
+            self.paths.identifier,
             "_".join(labels),
         )
 

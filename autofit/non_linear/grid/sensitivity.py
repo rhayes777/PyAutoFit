@@ -261,7 +261,7 @@ class Sensitivity:
             paths = self.search.paths
             name_path = path.join(
                 paths.name,
-                paths.non_linear_tag,
+                paths.identifier,
                 label,
             )
             yield self._search_instance(

@@ -73,7 +73,7 @@ class Paths:
         self.model = None
 
         self._non_linear_name = None
-        self._non_linear_tag = None
+        self._identifier = None
 
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
@@ -113,19 +113,19 @@ class Paths:
         )
 
     @property
-    def non_linear_tag(self):
+    def identifier(self):
         if None in (self.model, self.search):
             logger.warn(
                 "Both model and search should be set before the tag is determined"
             )
-        if self._non_linear_tag is None:
-            self._non_linear_tag = str(
+        if self._identifier is None:
+            self._identifier = str(
                 Identifier([
                     self.search,
                     self.model
                 ])
             )
-        return self._non_linear_tag
+        return self._identifier
 
     @property
     def path(self):
@@ -256,7 +256,7 @@ class Paths:
                     str(conf.instance.output_path),
                     self.path_prefix,
                     self.name,
-                    self.non_linear_tag,
+                    self.identifier,
                 ],
             )
             )
@@ -265,12 +265,18 @@ class Paths:
         return path.join("", *strings)
 
     @property
-    def is_complete(self):
+    def is_complete(self) -> bool:
+        """
+        Has the search been completed?
+        """
         return path.exists(
             self._has_completed_path
         )
 
     def completed(self):
+        """
+        Mark the search as complete by saving a file
+        """
         open(self._has_completed_path, "w+").close()
 
     def zip_remove(self):
@@ -429,7 +435,7 @@ non_linear_search={search_name}
             conf.instance.output_path,
             self.path_prefix,
             self.name,
-            self.non_linear_tag,
+            self.identifier,
         )
 
     def __eq__(self, other):
@@ -465,5 +471,5 @@ non_linear_search={search_name}
             conf.instance.output_path,
             self.path_prefix,
             self.name,
-            self.non_linear_tag,
+            self.identifier,
         )
