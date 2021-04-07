@@ -6,13 +6,11 @@ from autofit.non_linear import samples as samp
 from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.initializer import InitializerPrior
-from autofit.non_linear.paths import Paths
 
 
 class AbstractNest(NonLinearSearch):
     def __init__(
             self,
-
             prior_passer=None,
             iterations_per_update=None,
             terminate_at_acceptance_ratio=None,
@@ -43,12 +41,7 @@ class AbstractNest(NonLinearSearch):
         acceptance_ratio_threshold : float
             The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is `True`.
         """
-
-        if paths is None:
-            paths = Paths()
-
         super().__init__(
-
             prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,
@@ -87,7 +80,7 @@ class AbstractNest(NonLinearSearch):
         ):
 
             super().__init__(
-
+                paths=paths,
                 analysis=analysis,
                 model=model,
                 samples_from_model=samples_from_model,

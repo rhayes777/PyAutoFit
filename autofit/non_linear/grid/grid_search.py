@@ -4,13 +4,12 @@ from typing import List, Tuple, Union
 
 import numpy as np
 
-from autoconf import conf
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
-from autofit.non_linear.result import Result
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.paths import Paths
+from autofit.non_linear.result import Result
 
 
 class GridSearchResult:
@@ -189,7 +188,7 @@ class GridSearchResult:
 
 class GridSearch:
 
-    def __init__(self, search,  number_of_steps=4, number_of_cores=1):
+    def __init__(self, search, number_of_steps=4, number_of_cores=1):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -202,11 +201,7 @@ class GridSearch:
         search: class
             The class of the search that is run at each step
         """
-
-        if paths is None:
-            self.paths = search.paths
-        else:
-            self.paths = paths
+        self.paths = search.paths
 
         self.number_of_cores = number_of_cores
 
