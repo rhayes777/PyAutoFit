@@ -88,6 +88,8 @@ class TestJsonCSV:
         mcmc = af.Emcee()
         mcmc.paths = af.Paths(path_prefix=path.join("non_linear", "emcee"))
 
+        mcmc.paths._non_linear_tag = "tag"
+
         samples.write_table(filename=path.join(mcmc.paths.samples_path, "samples.csv"))
         samples.info_to_json(filename=path.join(mcmc.paths.samples_path, "info.json"))
 
