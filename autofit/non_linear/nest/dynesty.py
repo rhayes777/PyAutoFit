@@ -409,7 +409,7 @@ class AbstractDynesty(AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=sampler.results.nlive,
-            time=self.timer.time if self.timer is not None else None,
+            time=self.timer.time
         )
 
     @property

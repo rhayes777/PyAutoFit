@@ -44,7 +44,7 @@ class NonLinearSearch(ABC):
         paths = Paths(name=name, path_prefix=path_prefix)
 
         self._paths = None
-        self.timer = None
+        self._timer = None
 
         self.paths: Paths = paths
 
@@ -96,6 +96,14 @@ class NonLinearSearch(ABC):
             self.silence = True
 
         self.number_of_cores = number_of_cores
+
+    @property
+    def timer(self):
+        if self._timer is None:
+            self._timer = Timer(
+                self.paths.samples_path
+            )
+        return self._timer
 
     @property
     def paths(self):
@@ -238,10 +246,7 @@ class NonLinearSearch(ABC):
 
         if not self.paths.is_complete:
 
-            timer = Timer(
-                self.paths.samples_path
-            )
-            timer.start()
+            self.timer.start()
 
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
 

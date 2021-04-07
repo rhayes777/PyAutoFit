@@ -314,7 +314,7 @@ class AbstractPySwarms(AbstractOptimizer):
                 weights=weights,
                 model=model
             ),
-            time=self.timer.time if self.timer is not None else None
+            time=self.timer.time
         )
 
     @property

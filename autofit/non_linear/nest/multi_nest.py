@@ -393,7 +393,7 @@ class MultiNest(abstract_nest.AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.n_live_points,
-            time=self.timer.time if self.timer is not None else None,
+            time=self.timer.time
         )
 
     @property

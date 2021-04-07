@@ -282,8 +282,6 @@ class Emcee(AbstractMCMC):
             etc.
         """
 
-        print(self.backend.filename)
-
         parameters = self.backend.get_chain(flat=True).tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
@@ -310,7 +308,7 @@ class Emcee(AbstractMCMC):
             auto_correlation_required_length=self.auto_correlation_required_length,
             auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
-            time=self.timer.time if self.timer is not None else None,
+            time=self.timer.time
         )
 
     def samples_via_csv_json_from_model(self, model):
