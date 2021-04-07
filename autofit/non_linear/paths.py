@@ -116,6 +116,17 @@ class Paths:
             name: str,
             obj: object
     ):
+        """
+        Serialise an object using dill and save it to the pickles
+        directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the object
+        obj
+            A serialisable object
+        """
         with open(
                 self._path_for_pickle(
                     name
@@ -129,7 +140,21 @@ class Paths:
     def load_object(
             self,
             name: str
-    ) -> object:
+    ):
+        """
+        Load a serialised object with the given name.
+
+        e.g. if the name is 'model' then pickles/model.pickle is loaded.
+
+        Parameters
+        ----------
+        name
+            The name of a serialised object
+
+        Returns
+        -------
+        The deserialised object
+        """
         with open(
                 self._path_for_pickle(
                     name
@@ -144,6 +169,14 @@ class Paths:
             self,
             name: str
     ):
+        """
+        Remove the object with the given name from the pickles folder.
+
+        Parameters
+        ----------
+        name
+            The name of a pickle file excluding .pickle
+        """
         try:
             os.remove(
                 self._path_for_pickle(
@@ -156,7 +189,10 @@ class Paths:
     def is_object(
             self,
             name: str
-    ):
+    ) -> bool:
+        """
+        Is there a file pickles/{name}.pickle?
+        """
         return os.path.exists(
             self._path_for_pickle(
                 name
