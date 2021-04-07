@@ -180,7 +180,7 @@ def empty_args():
 
 
 class TestGridNLOBehaviour:
-    def test_results(self, grid_search_05, mapper):
+    def _test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
             model=mapper,
             analysis=MockAnalysis(),

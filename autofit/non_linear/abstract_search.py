@@ -46,10 +46,10 @@ class NonLinearSearch(ABC):
         self._paths = None
 
         self.paths: Paths = paths
-        if prior_passer is None:
-            self.prior_passer = PriorPasser.from_config(config=self._config)
-        else:
-            self.prior_passer = prior_passer
+
+        self.prior_passer = prior_passer or PriorPasser.from_config(
+            config=self._config
+        )
 
         self.timer = Timer(paths.samples_path)
 
@@ -104,11 +104,7 @@ class NonLinearSearch(ABC):
 
     @paths.setter
     def paths(self, paths):
-        if paths.non_linear_name == "":
-            paths.non_linear_name = self._config("tag", "name")
-
-        if paths.non_linear_tag == "":
-            paths.non_linear_tag_function = lambda: self.tag
+        paths.search = self
         self._paths = paths
 
     def copy_with_paths(

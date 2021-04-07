@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import zipfile
 from configparser import NoSectionError
@@ -10,6 +11,7 @@ import dill
 
 from autoconf import conf
 from autofit.mapper import link
+from autofit.mapper.model_object import Identifier
 from autofit.non_linear import samples as s
 from autofit.non_linear.log import logger
 from autofit.text import formatter, text_util
@@ -23,6 +25,9 @@ def make_path(func):
         return full_path
 
     return wrapper
+
+
+pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
 
 class Paths:
@@ -63,8 +68,11 @@ class Paths:
 
         self.path_prefix = path_prefix or ""
         self.name = name or ""
-        self.non_linear_name = ""
-        self.non_linear_tag_function = lambda: ""
+
+        self._search = None
+        self.model = None
+
+        self._non_linear_name = None
 
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
@@ -73,6 +81,23 @@ class Paths:
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+    @property
+    def search(self):
+        return self._search
+
+    @search.setter
+    def search(self, search):
+        self._search = search
+        self._non_linear_name = pattern.sub(
+            '_', type(
+                self.search
+            ).__name__
+        ).lower()
+
+    @property
+    def non_linear_name(self):
+        return self._non_linear_name
 
     def save_samples(self, samples):
         """
@@ -88,7 +113,12 @@ class Paths:
 
     @property
     def non_linear_tag(self):
-        return self.non_linear_tag_function()
+        return str(
+            Identifier([
+                self.search,
+                self.model
+            ])
+        )
 
     @property
     def path(self):
@@ -294,7 +324,7 @@ class Paths:
         self.save_object("search", search)
         self.save_object("model", model)
         self._save_metadata(
-            search_name=type(self).__name__.lower()
+            search_name=type(self.search).__name__.lower()
         )
         self._move_pickle_files(pickle_files=pickle_files)
 
@@ -384,16 +414,6 @@ non_linear_search={search_name}
 
         except FileNotFoundError:
             pass
-
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        state["non_linear_tag"] = state.pop("non_linear_tag_function")()
-        return state
-
-    def __setstate__(self, state):
-        non_linear_tag = state.pop("non_linear_tag")
-        self.non_linear_tag_function = lambda: non_linear_tag
-        self.__dict__.update(state)
 
     @property
     @make_path
