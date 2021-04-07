@@ -1,3 +1,4 @@
+import inspect
 import itertools
 from collections import Iterable
 from hashlib import md5
@@ -38,14 +39,21 @@ class Identifier:
                 )
 
     def add_value_to_hash_list(self, value):
-        if hasattr(value, "identifier"):
-            self.hash_list.append(
-                value.identifier
-            )
-        elif not isinstance(
+        if isinstance(
                 value,
                 property
         ):
+            return
+        if hasattr(
+                value,
+                "identifier"
+        ) and not inspect.isclass(
+            value
+        ):
+            self.hash_list.append(
+                value.identifier
+            )
+        else:
             self._add_value_to_hash_list(
                 value
             )
