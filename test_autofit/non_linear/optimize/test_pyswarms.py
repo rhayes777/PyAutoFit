@@ -111,7 +111,7 @@ class TestPySwarmsGlobalConfig:
 
     def test__samples_from_model(self):
         pyswarms = af.PySwarmsGlobal()
-        pyswarms.paths = af.Paths(path_prefix=path.join("non_linear", "pyswarms"))
+        pyswarms.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "pyswarms"))
         pyswarms.paths._identifier = "tag"
 
         model = af.ModelMapper(mock_class=mock.MockClassx3)

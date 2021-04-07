@@ -52,7 +52,7 @@ from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multi_nest import MultiNest
 from .non_linear.optimize.pyswarms import PySwarmsGlobal
 from .non_linear.optimize.pyswarms import PySwarmsLocal
-from .non_linear.paths import Paths
+from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import make_path
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection

@@ -3,7 +3,7 @@ from itertools import count
 from os import path
 from typing import List, Generator, Callable, Type, Union, Tuple
 
-from autofit import AbstractPriorModel, ModelInstance, Paths, Result, Analysis, NonLinearSearch
+from autofit import AbstractPriorModel, ModelInstance, DirectoryPaths, Result, Analysis, NonLinearSearch
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 
@@ -67,13 +67,13 @@ class Job(AbstractJob):
         paths = search.paths
 
         self.search = search.copy_with_paths(
-            Paths(
+            DirectoryPaths(
                 name=paths.name + "[base]",
                 path_prefix=paths.path_prefix,
             )
         )
         self.perturbed_search = search.copy_with_paths(
-            Paths(
+            DirectoryPaths(
                 name=paths.name + "[perturbed]",
                 path_prefix=paths.path_prefix,
             )
@@ -286,7 +286,7 @@ class Sensitivity:
         """
         paths = self.search.paths
         search_instance = self.search.copy_with_paths(
-            Paths(
+            DirectoryPaths(
                 name=name_path,
                 path_prefix=paths.path_prefix,
             )

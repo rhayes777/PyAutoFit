@@ -13,7 +13,7 @@ class GridSearch:
     def __init__(self, step_size=0.5):
 
         self.step_size = step_size
-        self.paths = paths.Paths()
+        self.paths = paths.DirectoryPaths()
 
     def copy_with_paths(self, paths):
         search = copy(self)

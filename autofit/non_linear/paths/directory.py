@@ -15,7 +15,7 @@ from autofit.text import formatter, text_util
 from .abstract import AbstractPaths, make_path, pattern
 
 
-class Paths(AbstractPaths):
+class DirectoryPaths(AbstractPaths):
     @property
     def search(self):
         return self._search
@@ -372,7 +372,7 @@ non_linear_search={search_name}
         )
 
     def __eq__(self, other):
-        return isinstance(other, Paths) and all(
+        return isinstance(other, DirectoryPaths) and all(
             [
                 self.path_prefix == other.path_prefix,
                 self.name == other.name,

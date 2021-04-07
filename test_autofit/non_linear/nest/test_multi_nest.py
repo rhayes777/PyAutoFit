@@ -241,7 +241,7 @@ class TestMulitNest:
 
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):
         multi_nest = af.MultiNest()
-        multi_nest.paths = af.Paths(path_prefix=path.join("non_linear", "multinest"))
+        multi_nest.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "multinest"))
 
         create_weighted_samples_4_parameters(file_path=multi_nest.paths.path)
 
@@ -290,7 +290,7 @@ class TestMulitNest:
 
     def test__log_evidence_from_file_summary(self, multi_nest_summary_path):
         multi_nest = af.MultiNest()
-        multi_nest.paths = af.Paths(path_prefix=path.join("non_linear", "multinest"))
+        multi_nest.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "multinest"))
 
         create_summary_4_parameters(file_path=multi_nest.paths.samples_path)
 
@@ -305,7 +305,7 @@ class TestMulitNest:
             self, multi_nest_samples_path, multi_nest_resume_path, multi_nest_summary_path
     ):
         multi_nest = af.MultiNest()
-        multi_nest.paths = af.Paths(path_prefix=path.join("non_linear", "multinest"))
+        multi_nest.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "multinest"))
 
         create_weighted_samples_4_parameters(file_path=multi_nest.paths.samples_path)
         create_resume(file_path=multi_nest.paths.samples_path)

@@ -292,7 +292,7 @@ class TestDynestyConfig:
 
         sampler = MockDynestySampler(results=results)
 
-        paths = af.Paths(path_prefix=path.join("non_linear", "dynesty"))
+        paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "dynesty"))
         paths._identifier = "tag"
 
         dynesty = af.DynestyStatic()

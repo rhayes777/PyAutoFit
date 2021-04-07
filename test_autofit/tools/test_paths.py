@@ -8,7 +8,7 @@ import autofit as af
 directory = path.dirname(path.realpath(__file__))
 
 
-class PatchPaths(af.Paths):
+class PatchPaths(af.DirectoryPaths):
     @property
     def path(self):
         return path.join(directory, "path")

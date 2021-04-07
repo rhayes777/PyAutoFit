@@ -20,7 +20,7 @@ def make_grid_search(mapper):
     search = af.SearchGridSearch(
         number_of_steps=10, search=af.MockSearch()
     )
-    search.paths = af.Paths(name="")
+    search.paths = af.DirectoryPaths(name="")
     return search
 
 
@@ -63,7 +63,7 @@ class TestGridSearchablePriors:
         grid_search = af.SearchGridSearch(
             number_of_steps=10, search=af.MockSearch()
         )
-        grid_search.paths = af.Paths(name="")
+        grid_search.paths = af.DirectoryPaths(name="")
 
         mappers = list(
             grid_search.model_mappers(
@@ -162,7 +162,7 @@ def make_grid_search_05():
     search = af.SearchGridSearch(
         search=MockOptimizer(), number_of_steps=2
     )
-    search.paths = af.Paths(name="sample_name")
+    search.paths = af.DirectoryPaths(name="sample_name")
     return search
 
 
@@ -197,7 +197,7 @@ class TestGridNLOBehaviour:
             search=MockOptimizer(),
             number_of_steps=10,
         )
-        grid_search.paths = af.Paths(name="sample_name")
+        grid_search.paths = af.DirectoryPaths(name="sample_name")
         result = grid_search.fit(
             model=mapper,
             analysis=MockAnalysis(),
@@ -261,7 +261,7 @@ class TestGridNLOBehaviour:
         grid_search = af.SearchGridSearch(
             number_of_steps=10, search=af.DynestyStatic()
         )
-        grid_search.paths = af.Paths(name="")
+        grid_search.paths = af.DirectoryPaths(name="")
 
         grid_search.n_live_points = 20
         grid_search.sampling_efficiency = 0.3

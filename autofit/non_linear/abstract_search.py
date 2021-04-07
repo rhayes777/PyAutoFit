@@ -15,7 +15,7 @@ from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
-from autofit.non_linear.paths import Paths
+from autofit.non_linear.paths import DirectoryPaths
 from autofit.non_linear.timer import Timer
 
 
@@ -41,12 +41,12 @@ class NonLinearSearch(ABC):
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
-        paths = Paths(name=name, path_prefix=path_prefix)
+        paths = DirectoryPaths(name=name, path_prefix=path_prefix)
 
         self._paths = None
         self._timer = None
 
-        self.paths: Paths = paths
+        self.paths: DirectoryPaths = paths
 
         self.prior_passer = prior_passer or PriorPasser.from_config(
             config=self._config
@@ -426,13 +426,13 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, paths: Paths, instance, during_analysis):
+    def visualize(self, paths: DirectoryPaths, instance, during_analysis):
         pass
 
-    def save_attributes_for_aggregator(self, paths: Paths):
+    def save_attributes_for_aggregator(self, paths: DirectoryPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: Paths, model: mm.CollectionPriorModel,
+    def save_results_for_aggregator(self, paths: DirectoryPaths, model: mm.CollectionPriorModel,
                                     samples: samps.OptimizerSamples):
         pass
 

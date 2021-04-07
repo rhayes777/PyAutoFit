@@ -86,7 +86,7 @@ def make_samples():
 class TestJsonCSV:
     def test__from_csv_table_and_json_info(self, samples):
         mcmc = af.Emcee()
-        mcmc.paths = af.Paths(path_prefix=path.join("non_linear", "emcee"))
+        mcmc.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "emcee"))
 
         mcmc.paths._identifier = "tag"
 

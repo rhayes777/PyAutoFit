@@ -9,7 +9,7 @@ class TestPathDecorator:
 
     def test_with_arguments(self):
         search = af.MockSearch()
-        search.paths = af.Paths(name="name")
+        search.paths = af.DirectoryPaths(name="name")
 
         self.assert_paths_as_expected(search.paths)
 
@@ -21,10 +21,10 @@ class TestPathDecorator:
 
     def test_paths_argument(self):
         search = af.MockSearch()
-        search.paths = af.Paths(name="name")
+        search.paths = af.DirectoryPaths(name="name")
         self.assert_paths_as_expected(search.paths)
 
     def test_combination_argument(self):
         search = af.MockSearch("other", )
-        search.paths = af.Paths(name="name")
+        search.paths = af.DirectoryPaths(name="name")
         self.assert_paths_as_expected(search.paths)
