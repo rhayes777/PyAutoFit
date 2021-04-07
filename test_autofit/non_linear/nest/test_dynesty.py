@@ -1,7 +1,7 @@
-import pickle
 import sys
 from os import path
 
+import dill
 import numpy as np
 import pytest
 
@@ -298,7 +298,7 @@ class TestDynestyConfig:
         dynesty.paths = paths
 
         with open(path.join(dynesty.paths.samples_path, "dynesty.pickle"), "wb") as f:
-            pickle.dump(sampler, f)
+            dill.dump(sampler, f)
 
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)

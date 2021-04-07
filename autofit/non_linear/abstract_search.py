@@ -36,8 +36,6 @@ class NonLinearSearch(ABC):
 
         Parameters
         ------------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
