@@ -180,10 +180,6 @@ class Paths:
         return path.join(self.output_path, "image")
 
     @property
-    def zip_path(self) -> str:
-        return f"{self.output_path}.zip"
-
-    @property
     @make_path
     def output_path(self) -> str:
         """
@@ -214,14 +210,6 @@ class Paths:
     def completed(self):
         open(self._has_completed_path, "w+").close()
 
-    @property
-    @make_path
-    def _pickle_path(self) -> str:
-        """
-        This is private for a reason - use the save_object etc. methods to save and load pickles
-        """
-        return path.join(self._make_path(), "pickles")
-
     def zip_remove(self):
         """
         Copy files from the sym linked search folder then remove the sym linked folder.
@@ -240,11 +228,11 @@ class Paths:
         Copy files from the ``.zip`` file to the samples folder.
         """
 
-        if path.exists(self.zip_path):
-            with zipfile.ZipFile(self.zip_path, "r") as f:
+        if path.exists(self._zip_path):
+            with zipfile.ZipFile(self._zip_path, "r") as f:
                 f.extractall(self.output_path)
 
-            os.remove(self.zip_path)
+            os.remove(self._zip_path)
 
     def load_samples(self):
         return s.load_from_table(
@@ -283,6 +271,18 @@ class Paths:
             search_name=type(self).__name__.lower()
         )
         self._move_pickle_files(pickle_files=pickle_files)
+
+    @property
+    @make_path
+    def _pickle_path(self) -> str:
+        """
+        This is private for a reason - use the save_object etc. methods to save and load pickles
+        """
+        return path.join(self._make_path(), "pickles")
+
+    @property
+    def _zip_path(self) -> str:
+        return f"{self.output_path}.zip"
 
     def _save_metadata(self, search_name):
         """
@@ -343,7 +343,7 @@ non_linear_search={search_name}
     def _zip(self):
 
         try:
-            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
+            with zipfile.ZipFile(self._zip_path, "w", zipfile.ZIP_DEFLATED) as f:
                 for root, dirs, files in os.walk(self.output_path):
 
                     for file in files:
