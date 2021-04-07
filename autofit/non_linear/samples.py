@@ -8,7 +8,6 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.tools import util
 
 
 class Sample:
@@ -47,7 +46,7 @@ class Sample:
     def parameters_for_model(
             self,
             model: AbstractPriorModel,
-            paths=None,
+            paths=None
     ) -> List[float]:
         """
         Values for instantiating a model, in the same order as priors

@@ -1,11 +1,10 @@
 from os import path
+
 import pytest
 
-from autoconf import conf
 import autofit as af
-
-from autofit.non_linear.samples import MCMCSamples, Sample
 from autofit.mock.mock import MockClassx4
+from autofit.non_linear.samples import MCMCSamples, Sample
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -86,8 +85,8 @@ def make_samples():
 
 class TestJsonCSV:
     def test__from_csv_table_and_json_info(self, samples):
-
-        mcmc = af.Emcee(paths=af.Paths(path_prefix=path.join("non_linear", "emcee")))
+        mcmc = af.Emcee()
+        mcmc.paths = af.Paths(path_prefix=path.join("non_linear", "emcee"))
 
         samples.write_table(filename=path.join(mcmc.paths.samples_path, "samples.csv"))
         samples.info_to_json(filename=path.join(mcmc.paths.samples_path, "info.json"))

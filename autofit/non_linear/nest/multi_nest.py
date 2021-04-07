@@ -8,16 +8,13 @@ from autofit.non_linear import abstract_search
 from autofit.non_linear import result as res
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
-
 from autofit.non_linear.samples import NestSamples, Sample
 
 
 class MultiNest(abstract_nest.AbstractNest):
 
-
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -201,7 +198,6 @@ class MultiNest(abstract_nest.AbstractNest):
         )
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
@@ -218,13 +214,15 @@ class MultiNest(abstract_nest.AbstractNest):
                      terminate_at_acceptance_ratio,
                      acceptance_ratio_threshold, log_likelihood_cap=None, pool_ids=None):
 
-            super().__init__(paths=paths, model=model, analysis=analysis,
+            super().__init__(model=model, analysis=analysis,
                              samples_from_model=samples_from_model,
                              stagger_resampling_likelihood=stagger_resampling_likelihood,
                              terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
                              acceptance_ratio_threshold=acceptance_ratio_threshold,
                              log_likelihood_cap=log_likelihood_cap,
-                             pool_ids=pool_ids)
+                             pool_ids=pool_ids,
+                             paths=paths
+                             )
 
             should_update_sym = conf.instance["non_linear"]["nest"]["MultiNest"]["updates"]["should_update_sym"]
 

@@ -7,16 +7,15 @@ from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.result import Result
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
+from autofit.non_linear.result import Result
 from autofit.non_linear.samples import NestSamples, Sample
 
 
 class AbstractDynesty(AbstractNest):
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -234,7 +233,6 @@ class AbstractDynesty(AbstractNest):
             self.n_effective = np.inf
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
@@ -487,7 +485,6 @@ class DynestyStatic(AbstractDynesty):
 
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -638,7 +635,6 @@ class DynestyStatic(AbstractDynesty):
             evidence_tolerance = 1e-3 * (self.n_live_points - 1) + 0.01
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
@@ -702,7 +698,6 @@ class DynestyStatic(AbstractDynesty):
 class DynestyDynamic(AbstractDynesty):
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -853,7 +848,6 @@ class DynestyDynamic(AbstractDynesty):
         )
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,

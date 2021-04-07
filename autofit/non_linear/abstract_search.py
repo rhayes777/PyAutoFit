@@ -10,16 +10,13 @@ import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.non_linear.initializer import Initializer
 from autofit.mapper import model_mapper as mm
+from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
+from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
 from autofit.non_linear.paths import Paths
 from autofit.non_linear.timer import Timer
-from autofit.non_linear import result as res
-
-from autofit.text import formatter
-from autofit.text import text_util
 
 
 class NonLinearSearch(ABC):
@@ -27,7 +24,6 @@ class NonLinearSearch(ABC):
             self,
             name=None,
             path_prefix=None,
-            paths=None,
             prior_passer=None,
             initializer=None,
             iterations_per_update=None,
@@ -47,14 +43,9 @@ class NonLinearSearch(ABC):
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
+        paths = Paths(name=name, path_prefix=path_prefix)
 
-        paths = paths or Paths(name=name, path_prefix=path_prefix)
-
-        if paths.non_linear_name == "":
-            paths.non_linear_name = self._config("tag", "name")
-
-        if paths.non_linear_tag == "":
-            paths.non_linear_tag_function = lambda: self.tag
+        self._paths = None
 
         self.paths: Paths = paths
         if prior_passer is None:
@@ -108,6 +99,19 @@ class NonLinearSearch(ABC):
             self.silence = True
 
         self.number_of_cores = number_of_cores
+
+    @property
+    def paths(self):
+        return self._paths
+
+    @paths.setter
+    def paths(self, paths):
+        if paths.non_linear_name == "":
+            paths.non_linear_name = self._config("tag", "name")
+
+        if paths.non_linear_tag == "":
+            paths.non_linear_tag_function = lambda: self.tag
+        self._paths = paths
 
     def copy_with_paths(
             self,
@@ -429,7 +433,8 @@ class Analysis(ABC):
     def save_attributes_for_aggregator(self, paths: Paths):
         pass
 
-    def save_results_for_aggregator(self, paths: Paths, model : mm.CollectionPriorModel, samples : samps.OptimizerSamples):
+    def save_results_for_aggregator(self, paths: Paths, model: mm.CollectionPriorModel,
+                                    samples: samps.OptimizerSamples):
         pass
 
     def make_result(self, samples, model, search):
