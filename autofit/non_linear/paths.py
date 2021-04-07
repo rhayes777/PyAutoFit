@@ -111,6 +111,37 @@ class Paths:
         """
         return path.join(self.output_path, "samples")
 
+    def save_object(
+            self,
+            name: str,
+            obj: object
+    ):
+        with open(
+                path.join(
+                    self.pickle_path,
+                    f"{name}.pickle"
+                ),
+                "w+b"
+        ) as f:
+            pickle.dump(
+                obj, f
+            )
+
+    def load_object(
+            self,
+            name: str
+    ) -> object:
+        with open(
+                path.join(
+                    self.pickle_path,
+                    f"{name}.pickle"
+                ),
+                "r+b"
+        ) as f:
+            return pickle.load(
+                f
+            )
+
     @property
     def image_path(self) -> str:
         """
