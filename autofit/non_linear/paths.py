@@ -116,7 +116,7 @@ class Paths:
             name: str
     ):
         return path.join(
-            self.pickle_path,
+            self._pickle_path,
             f"{name}.pickle"
         )
 
@@ -216,7 +216,10 @@ class Paths:
 
     @property
     @make_path
-    def pickle_path(self) -> str:
+    def _pickle_path(self) -> str:
+        """
+        This is private for a reason - use the save_object etc. methods to save and load pickles
+        """
         return path.join(self._make_path(), "pickles")
 
     def zip_remove(self):
@@ -298,7 +301,7 @@ non_linear_search={search_name}
         pickles folder of the Aggregator, so that they can be accessed via the aggregator.
         """
         if pickle_files is not None:
-            [shutil.copy(file, self.pickle_path) for file in pickle_files]
+            [shutil.copy(file, self._pickle_path) for file in pickle_files]
 
     def _save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
