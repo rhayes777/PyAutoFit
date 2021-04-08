@@ -1,11 +1,12 @@
 import json
 import os
-import pickle
 import shutil
 import zipfile
 from configparser import NoSectionError
 from functools import wraps
 from os import path
+
+import dill
 
 from autoconf import conf
 from autofit.mapper import link
@@ -89,11 +90,10 @@ class Paths:
         samples.write_table(filename=self._samples_file)
         samples.info_to_json(filename=self._info_file)
 
-        with open(path.join(
-                self.pickle_path,
-                "samples.pickle"
-        ), "w+b") as f:
-            f.write(pickle.dumps(samples))
+        self.save_object(
+            "samples",
+            samples
+        )
 
     @property
     def non_linear_tag(self):
@@ -111,16 +111,73 @@ class Paths:
         """
         return path.join(self.output_path, "samples")
 
+    def _path_for_pickle(
+            self,
+            name: str
+    ):
+        return path.join(
+            self._pickle_path,
+            f"{name}.pickle"
+        )
+
+    def save_object(
+            self,
+            name: str,
+            obj: object
+    ):
+        with open(
+                self._path_for_pickle(
+                    name
+                ),
+                "w+b"
+        ) as f:
+            dill.dump(
+                obj, f
+            )
+
+    def load_object(
+            self,
+            name: str
+    ) -> object:
+        with open(
+                self._path_for_pickle(
+                    name
+                ),
+                "r+b"
+        ) as f:
+            return dill.load(
+                f
+            )
+
+    def remove_object(
+            self,
+            name: str
+    ):
+        try:
+            os.remove(
+                self._path_for_pickle(
+                    name
+                )
+            )
+        except FileNotFoundError:
+            pass
+
+    def is_object(
+            self,
+            name: str
+    ):
+        return os.path.exists(
+            self._path_for_pickle(
+                name
+            )
+        )
+
     @property
     def image_path(self) -> str:
         """
         The path to the image folder.
         """
         return path.join(self.output_path, "image")
-
-    @property
-    def zip_path(self) -> str:
-        return f"{self.output_path}.zip"
 
     @property
     @make_path
@@ -153,11 +210,6 @@ class Paths:
     def completed(self):
         open(self._has_completed_path, "w+").close()
 
-    @property
-    @make_path
-    def pickle_path(self) -> str:
-        return path.join(self._make_path(), "pickles")
-
     def zip_remove(self):
         """
         Copy files from the sym linked search folder then remove the sym linked folder.
@@ -176,11 +228,11 @@ class Paths:
         Copy files from the ``.zip`` file to the samples folder.
         """
 
-        if path.exists(self.zip_path):
-            with zipfile.ZipFile(self.zip_path, "r") as f:
+        if path.exists(self._zip_path):
+            with zipfile.ZipFile(self._zip_path, "r") as f:
                 f.extractall(self.output_path)
 
-            os.remove(self.zip_path)
+            os.remove(self._zip_path)
 
     def load_samples(self):
         return s.load_from_table(
@@ -212,13 +264,25 @@ class Paths:
     def save_all(self, model, info, search, pickle_files):
         self._save_model_info(model=model)
         self._save_parameter_names_file(model=model)
-        self._save_info(info=info)
-        self._save_search(search=search)
-        self._save_model(model=model)
+        self.save_object("info", info)
+        self.save_object("search", search)
+        self.save_object("model", model)
         self._save_metadata(
             search_name=type(self).__name__.lower()
         )
         self._move_pickle_files(pickle_files=pickle_files)
+
+    @property
+    @make_path
+    def _pickle_path(self) -> str:
+        """
+        This is private for a reason - use the save_object etc. methods to save and load pickles
+        """
+        return path.join(self._make_path(), "pickles")
+
+    @property
+    def _zip_path(self) -> str:
+        return f"{self.output_path}.zip"
 
     def _save_metadata(self, search_name):
         """
@@ -237,7 +301,7 @@ non_linear_search={search_name}
         pickles folder of the Aggregator, so that they can be accessed via the aggregator.
         """
         if pickle_files is not None:
-            [shutil.copy(file, self.pickle_path) for file in pickle_files]
+            [shutil.copy(file, self._pickle_path) for file in pickle_files]
 
     def _save_model_info(self, model):
         """Save the model.info file, which summarizes every parameter and prior."""
@@ -276,27 +340,10 @@ non_linear_search={search_name}
             list_of_strings=parameter_name_and_label
         )
 
-    def _save_info(self, info):
-        """
-        Save the dataset associated with the phase
-        """
-        with open(path.join(self.pickle_path, "info.pickle"), "wb") as f:
-            pickle.dump(info, f)
-
-    def _save_search(self, search):
-        """
-        Save the search associated with the phase as a pickle
-        """
-        with open(path.join(
-                self.pickle_path,
-                "search.pickle"
-        ), "w+b") as f:
-            f.write(pickle.dumps(search))
-
     def _zip(self):
 
         try:
-            with zipfile.ZipFile(self.zip_path, "w", zipfile.ZIP_DEFLATED) as f:
+            with zipfile.ZipFile(self._zip_path, "w", zipfile.ZIP_DEFLATED) as f:
                 for root, dirs, files in os.walk(self.output_path):
 
                     for file in files:
@@ -312,16 +359,6 @@ non_linear_search={search_name}
 
         except FileNotFoundError:
             pass
-
-    def _save_model(self, model):
-        """
-        Save the model associated with the phase as a pickle
-        """
-        with open(path.join(
-                self.pickle_path,
-                "model.pickle"
-        ), "w+b") as f:
-            f.write(pickle.dumps(model))
 
     def __getstate__(self):
         state = self.__dict__.copy()

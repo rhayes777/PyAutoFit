@@ -1,5 +1,3 @@
-import os
-import pickle
 import sys
 
 import numpy as np
@@ -283,9 +281,10 @@ class AbstractDynesty(AbstractNest):
             model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
         )
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
-
-            sampler = self.load_sampler
+        if self.paths.is_object("dynesty"):
+            sampler = self.paths.load_object(
+                "dynesty"
+            )
             sampler.loglikelihood = fitness_function
             logger.info("Existing Dynesty samples found, resuming non-linear search.")
 
@@ -346,8 +345,10 @@ class AbstractDynesty(AbstractNest):
             sampler_pickle = sampler
             sampler_pickle.loglikelihood = None
 
-            with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
-                pickle.dump(sampler_pickle, f)
+            self.paths.save_object(
+                "dynesty",
+                sampler_pickle
+            )
 
             sampler_pickle.loglikelihood = fitness_function
 
@@ -360,11 +361,6 @@ class AbstractDynesty(AbstractNest):
                     or total_iterations == self.maxcall
             ):
                 finished = True
-
-    @property
-    def load_sampler(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb") as f:
-            return pickle.load(f)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
@@ -382,7 +378,9 @@ class AbstractDynesty(AbstractNest):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         """
-        sampler = self.load_sampler
+        sampler = self.paths.load_object(
+            "dynesty"
+        )
         parameters = sampler.results.samples.tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
@@ -478,7 +476,7 @@ class AbstractDynesty(AbstractNest):
         return [init_unit_parameters, init_parameters, init_log_likelihoods]
 
     def remove_state_files(self):
-        os.remove(f"{self.paths.samples_path}/dynesty.pickle")
+        self.paths.remove_object("dynesty")
 
 
 class DynestyStatic(AbstractDynesty):
