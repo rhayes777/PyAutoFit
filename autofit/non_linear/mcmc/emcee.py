@@ -9,7 +9,6 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
-
 from autofit.non_linear.samples import MCMCSamples, Sample
 
 
@@ -17,7 +16,6 @@ class Emcee(AbstractMCMC):
 
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -117,7 +115,6 @@ class Emcee(AbstractMCMC):
         )
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,

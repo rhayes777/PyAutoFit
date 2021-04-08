@@ -35,8 +35,8 @@ def make_samples():
 
 class TestJsonCSV:
     def test__from_csv_table_and_json_info(self, samples):
-
-        optimize = af.PySwarmsGlobal(paths=af.Paths(path_prefix=path.join("non_linear", "pyswarms")))
+        optimize = af.PySwarmsGlobal()
+        optimize.paths = af.Paths(path_prefix=path.join("non_linear", "pyswarms"))
 
         samples.write_table(filename=path.join(optimize.paths.samples_path, "samples.csv"))
         samples.info_to_json(filename=path.join(optimize.paths.samples_path, "info.json"))

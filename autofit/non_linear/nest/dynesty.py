@@ -1,5 +1,3 @@
-import os
-import pickle
 import sys
 
 import numpy as np
@@ -7,16 +5,15 @@ from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.result import Result
 from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
+from autofit.non_linear.result import Result
 from autofit.non_linear.samples import NestSamples, Sample
 
 
 class AbstractDynesty(AbstractNest):
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -234,7 +231,6 @@ class AbstractDynesty(AbstractNest):
             self.n_effective = np.inf
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
@@ -285,9 +281,10 @@ class AbstractDynesty(AbstractNest):
             model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
         )
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "dynesty")):
-
-            sampler = self.load_sampler
+        if self.paths.is_object("dynesty"):
+            sampler = self.paths.load_object(
+                "dynesty"
+            )
             sampler.loglikelihood = fitness_function
             logger.info("Existing Dynesty samples found, resuming non-linear search.")
 
@@ -348,8 +345,10 @@ class AbstractDynesty(AbstractNest):
             sampler_pickle = sampler
             sampler_pickle.loglikelihood = None
 
-            with open(f"{self.paths.samples_path}/dynesty.pickle", "wb") as f:
-                pickle.dump(sampler_pickle, f)
+            self.paths.save_object(
+                "dynesty",
+                sampler_pickle
+            )
 
             sampler_pickle.loglikelihood = fitness_function
 
@@ -362,11 +361,6 @@ class AbstractDynesty(AbstractNest):
                     or total_iterations == self.maxcall
             ):
                 finished = True
-
-    @property
-    def load_sampler(self):
-        with open("{}/{}.pickle".format(self.paths.samples_path, "dynesty"), "rb") as f:
-            return pickle.load(f)
 
     def sampler_fom_model_and_fitness(self, model, fitness_function):
         return NotImplementedError()
@@ -384,7 +378,9 @@ class AbstractDynesty(AbstractNest):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         """
-        sampler = self.load_sampler
+        sampler = self.paths.load_object(
+            "dynesty"
+        )
         parameters = sampler.results.samples.tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
@@ -480,14 +476,13 @@ class AbstractDynesty(AbstractNest):
         return [init_unit_parameters, init_parameters, init_log_likelihoods]
 
     def remove_state_files(self):
-        os.remove(f"{self.paths.samples_path}/dynesty.pickle")
+        self.paths.remove_object("dynesty")
 
 
 class DynestyStatic(AbstractDynesty):
 
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -638,7 +633,6 @@ class DynestyStatic(AbstractDynesty):
             evidence_tolerance = 1e-3 * (self.n_live_points - 1) + 0.01
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
@@ -702,7 +696,6 @@ class DynestyStatic(AbstractDynesty):
 class DynestyDynamic(AbstractDynesty):
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -853,7 +846,6 @@ class DynestyDynamic(AbstractDynesty):
         )
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,

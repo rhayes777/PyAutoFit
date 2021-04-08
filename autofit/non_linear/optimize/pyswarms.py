@@ -1,5 +1,4 @@
 import os
-import pickle
 
 import numpy as np
 
@@ -13,7 +12,6 @@ from autofit.non_linear.samples import OptimizerSamples, Sample
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -117,7 +115,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         super().__init__(
             name=name,
-            paths=paths,
+
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
@@ -181,7 +179,7 @@ class AbstractPySwarms(AbstractOptimizer):
             model=model, analysis=analysis, pool_ids=pool_ids
         )
 
-        if os.path.exists("{}/{}.pickle".format(self.paths.samples_path, "points")):
+        if self.paths.is_object("points"):
 
             init_pos = self.load_points[-1]
             total_iterations = self.load_total_iterations
@@ -239,18 +237,18 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 total_iterations += iterations
 
-                with open(
-                        f"{self.paths.samples_path}/total_iterations.pickle", "wb"
-                ) as f:
-                    pickle.dump(total_iterations, f)
-
-                with open(f"{self.paths.samples_path}/points.pickle", "wb") as f:
-                    pickle.dump(pso.pos_history, f)
-
-                with open(
-                        f"{self.paths.samples_path}/log_posteriors.pickle", "wb"
-                ) as f:
-                    pickle.dump([-0.5 * cost for cost in pso.cost_history], f)
+                self.paths.save_object(
+                    "total_iterations",
+                    total_iterations
+                )
+                self.paths.save_object(
+                    "points",
+                    pso.pos_history
+                )
+                self.paths.save_object(
+                    "log_posteriors",
+                    [-0.5 * cost for cost in pso.cost_history]
+                )
 
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
@@ -323,30 +321,27 @@ class AbstractPySwarms(AbstractOptimizer):
 
     @property
     def load_total_iterations(self):
-        with open(
-                "{}/{}.pickle".format(self.paths.samples_path, "total_iterations"), "rb"
-        ) as f:
-            return pickle.load(f)
+        return self.paths.load_object(
+            "total_iterations"
+        )
 
     @property
     def load_points(self):
-        print("{}/{}.pickle".format(self.paths.samples_path, "points"))
-        with open("{}/{}.pickle".format(self.paths.samples_path, "points"), "rb") as f:
-            return pickle.load(f)
+        return self.paths.load_object(
+            "points"
+        )
 
     @property
     def load_log_posteriors(self):
-        with open(
-                "{}/{}.pickle".format(self.paths.samples_path, "log_posteriors"), "rb"
-        ) as f:
-            return pickle.load(f)
+        return self.paths.load_object(
+            "log_posteriors"
+        )
 
 
 class PySwarmsGlobal(AbstractPySwarms):
 
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -430,7 +425,7 @@ class PySwarmsGlobal(AbstractPySwarms):
 
         super().__init__(
             name=name,
-            paths=paths,
+
             prior_passer=prior_passer,
             n_particles=n_particles,
             iters=iters,
@@ -465,7 +460,6 @@ class PySwarmsLocal(AbstractPySwarms):
 
     def __init__(
             self,
-            paths=None,
             name=None,
             path_prefix=None,
             prior_passer=None,
@@ -571,7 +565,6 @@ class PySwarmsLocal(AbstractPySwarms):
         )
 
         super().__init__(
-            paths=paths,
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,

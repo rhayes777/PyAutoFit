@@ -17,9 +17,11 @@ def make_mapper():
 
 @pytest.fixture(name="grid_search")
 def make_grid_search(mapper):
-    return af.SearchGridSearch(
-        paths=af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
+    search = af.SearchGridSearch(
+        number_of_steps=10, search=af.MockSearch()
     )
+    search.paths = af.Paths(name="")
+    return search
 
 
 def test_unpickle_result():
@@ -59,8 +61,9 @@ class TestGridSearchablePriors:
 
     def test_non_grid_searched_dimensions(self, mapper):
         grid_search = af.SearchGridSearch(
-            paths=af.Paths(name=""), number_of_steps=10, search=af.MockSearch()
+            number_of_steps=10, search=af.MockSearch()
         )
+        grid_search.paths = af.Paths(name="")
 
         mappers = list(
             grid_search.model_mappers(
@@ -107,8 +110,8 @@ class TestGridSearchablePriors:
 
         for mapper in mappers:
             assert (
-                mapper.component.one_tuple.one_tuple_0
-                == mapper.component.one_tuple.one_tuple_1
+                    mapper.component.one_tuple.one_tuple_0
+                    == mapper.component.one_tuple.one_tuple_1
             )
 
     def test_different_prior_width(self, grid_search, mapper):
@@ -156,17 +159,19 @@ class TestGridSearchablePriors:
 
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05():
-    return af.SearchGridSearch(
-        search=MockOptimizer(), number_of_steps=2, paths=af.Paths(name="sample_name")
+    search = af.SearchGridSearch(
+        search=MockOptimizer(), number_of_steps=2
     )
+    search.paths = af.Paths(name="sample_name")
+    return search
 
 
 class MockOptimizer(af.MockSearch):
     init_args = list()
 
-    def __init__(self, paths=None):
-        super().__init__(paths=paths or af.Paths(), fit_fast=False)
-        self.init_args.append(paths)
+    def __init__(self):
+        super().__init__(fit_fast=False)
+        # self.init_args.append(paths)
 
 
 @pytest.fixture(autouse=True)
@@ -191,8 +196,8 @@ class TestGridNLOBehaviour:
         grid_search = af.SearchGridSearch(
             search=MockOptimizer(),
             number_of_steps=10,
-            paths=af.Paths(name="sample_name"),
         )
+        grid_search.paths = af.Paths(name="sample_name")
         result = grid_search.fit(
             model=mapper,
             analysis=MockAnalysis(),
@@ -253,10 +258,10 @@ class TestGridNLOBehaviour:
     #         assert instance.component.centre[1] == 2
 
     def test_passes_attributes(self):
-
         grid_search = af.SearchGridSearch(
-            paths=af.Paths(name=""), number_of_steps=10, search=af.DynestyStatic()
+            number_of_steps=10, search=af.DynestyStatic()
         )
+        grid_search.paths = af.Paths(name="")
 
         grid_search.n_live_points = 20
         grid_search.sampling_efficiency = 0.3

@@ -1,11 +1,10 @@
 from os import path
+
 import pytest
 
-from autoconf import conf
 import autofit as af
-
-from autofit.non_linear.samples import NestSamples, Sample
 from autofit.mock.mock import MockClassx4
+from autofit.non_linear.samples import NestSamples, Sample
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -39,11 +38,10 @@ def make_samples():
     )
 
 
-
 class TestJsonCSV:
     def test__from_csv_table_and_json_info(self, samples):
-
-        nest = af.DynestyStatic(paths=af.Paths(path_prefix=path.join("non_linear", "dynesty")))
+        nest = af.DynestyStatic()
+        nest.paths = af.Paths(path_prefix=path.join("non_linear", "dynesty"))
 
         samples.write_table(filename=path.join(nest.paths.samples_path, "samples.csv"))
         samples.info_to_json(filename=path.join(nest.paths.samples_path, "info.json"))

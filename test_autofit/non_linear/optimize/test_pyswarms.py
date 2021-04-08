@@ -1,7 +1,7 @@
 from os import path
+
 import pytest
 
-from autoconf import conf
 import autofit as af
 from autofit.mock import mock
 
@@ -10,7 +10,6 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 class TestPySwarmsGlobalConfig:
     def test__loads_from_config_file_correct(self):
-
         pso = af.PySwarmsGlobal(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             n_particles=51,
@@ -98,7 +97,6 @@ class TestPySwarmsGlobalConfig:
         assert pso.number_of_cores == 1
 
     def test__tag(self):
-
         pso = af.PySwarmsGlobal(
             n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
         )
@@ -112,8 +110,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.tag == "pyswarms_local[particles_51_c_0.4_s_0.5_i_0.6]"
 
     def test__samples_from_model(self):
-
-        pyswarms = af.PySwarmsGlobal(paths=af.Paths(path_prefix=path.join("non_linear", "pyswarms")))
+        pyswarms = af.PySwarmsGlobal()
+        pyswarms.paths = af.Paths(path_prefix=path.join("non_linear", "pyswarms"))
 
         model = af.ModelMapper(mock_class=mock.MockClassx3)
         model.mock_class.one = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)

@@ -44,9 +44,9 @@ def test_zip_remove(paths):
 
     assert not path.exists(paths.path)
     assert not path.exists(path.join(directory, "phase_output_path"))
-    assert path.exists(paths.zip_path)
+    assert path.exists(paths._zip_path)
 
-    os.remove(paths.zip_path)
+    os.remove(paths._zip_path)
     os.rmdir(paths.sym_path)
 
 
@@ -61,6 +61,6 @@ def test_restore(paths):
     paths.restore()
 
     assert path.exists(paths.output_path)
-    assert not path.exists(paths.zip_path)
+    assert not path.exists(paths._zip_path)
 
     os.rmdir(paths.output_path)
