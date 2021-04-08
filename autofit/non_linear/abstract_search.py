@@ -339,14 +339,17 @@ class NonLinearSearch(ABC):
             )
 
         if self.should_output_model_results() or not during_analysis:
-            start = time.time()
-            analysis.log_likelihood_function(instance=instance)
-            log_likelihood_function_time = (time.time() - start)
+            try:
+                start = time.time()
+                analysis.log_likelihood_function(instance=instance)
+                log_likelihood_function_time = (time.time() - start)
 
-            self.paths.save_summary(
-                samples=samples,
-                log_likelihood_function_time=log_likelihood_function_time
-            )
+                self.paths.save_summary(
+                    samples=samples,
+                    log_likelihood_function_time=log_likelihood_function_time
+                )
+            except exc.FitException:
+                pass
 
         if not during_analysis and self.remove_state_files_at_end:
             try:
