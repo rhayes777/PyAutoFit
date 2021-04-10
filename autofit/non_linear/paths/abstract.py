@@ -48,13 +48,11 @@ class AbstractPaths(ABC):
         If we assume all the input strings above are used with the following example names:
 
         name = "name"
-        tag = "tag"
         path_prefix = "folder_0/folder_1"
-        non_linear_name = "emcee"
 
         The output path of the `NonLinearSearch` results will be:
 
-        /path/to/output/folder_0/folder_1/name/tag/emcee
+        /path/to/output/folder_0/folder_1/name
 
         Parameters
         ----------
@@ -103,7 +101,7 @@ class AbstractPaths(ABC):
     def identifier(self):
         if None in (self.model, self.search):
             logger.warn(
-                "Both model and search should be set before the tag is determined"
+                "Both model and search should be set"
             )
         if self._identifier is None:
             self._identifier = str(

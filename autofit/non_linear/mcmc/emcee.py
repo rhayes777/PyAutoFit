@@ -248,16 +248,6 @@ class Emcee(AbstractMCMC):
 
         logger.info("Emcee sampling complete.")
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self._config("tag", "name")
-        nwalkers_tag = f"{self._config('tag', 'nwalkers')}_{self.nwalkers}"
-
-        return f"{name_tag}[{nwalkers_tag}]"
-
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
         return Emcee.Fitness(

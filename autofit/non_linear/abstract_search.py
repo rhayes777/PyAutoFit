@@ -268,7 +268,7 @@ class NonLinearSearch(ABC):
 
             if self.force_pickle_overwrite:
 
-                self.paths.save_samples(samples=samples)
+                self.paths.save_object("samples", samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         self.paths.zip_remove()
@@ -277,11 +277,6 @@ class NonLinearSearch(ABC):
     @abstractmethod
     def _fit(self, model, analysis, log_likelihood_cap=None):
         pass
-
-    @property
-    def tag(self):
-        """Tag the output folder of the non-linear search, based on the non linear search settings"""
-        raise NotImplementedError
 
     @property
     def config_type(self):
@@ -332,7 +327,7 @@ class NonLinearSearch(ABC):
 
         samples = self.samples_via_sampler_from_model(model=model)
 
-        self.paths.save_samples(samples=samples)
+        self.paths.save_object("samples", samples)
 
         try:
             instance = samples.max_log_likelihood_instance

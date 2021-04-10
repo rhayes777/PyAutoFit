@@ -218,27 +218,6 @@ class TestMulitNest:
         assert fitness.terminate_at_acceptance_ratio == False
         assert fitness.acceptance_ratio_threshold == 0.0
 
-    def test__tag(self):
-        multi_nest = af.MultiNest(
-            n_live_points=40,
-            sampling_efficiency=0.5,
-            const_efficiency_mode=False,
-            multimodal=False,
-            importance_nested_sampling=False,
-        )
-
-        assert multi_nest.tag == "multinest[nlive_40_eff_0.5]"
-
-        multi_nest = af.MultiNest(
-            n_live_points=41,
-            sampling_efficiency=0.6,
-            const_efficiency_mode=True,
-            multimodal=True,
-            importance_nested_sampling=True,
-        )
-
-        assert multi_nest.tag == "multinest[nlive_41_eff_0.6_const_mm_is]"
-
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):
         multi_nest = af.MultiNest()
         multi_nest.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "multinest"))

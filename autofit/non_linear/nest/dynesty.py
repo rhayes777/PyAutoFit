@@ -415,47 +415,6 @@ class AbstractDynesty(AbstractNest, ABC):
             time=self.timer.time
         )
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self._config("tag", "name")
-        n_live_points_tag = (
-            f"{self._config('tag', 'n_live_points')}_{self.n_live_points}"
-        )
-
-        sample_tag = f"{self._config('tag', 'sample')}_{self.sample}"
-        bound_tag = f"{self._config('tag', 'bound')}_{self.bound}"
-        vol_dec_tag = f"{self._config('tag', 'vol_dec')}_{self.vol_dec}"
-        vol_check_tag = f"{self._config('tag', 'vol_check')}_{self.vol_check}"
-        enlarge_tag = f"{self._config('tag', 'enlarge')}_{self.enlarge}"
-
-        if self.bound in "multi":
-            bound_multi_tag = f"{vol_dec_tag}_{vol_check_tag}"
-            bound_tag = f"{bound_tag}_{bound_multi_tag}"
-
-        if self.sample in "auto":
-            return f"{name_tag}[{n_live_points_tag}__{bound_tag}__{enlarge_tag}__{sample_tag}]"
-
-        walks_tag = f"{self._config('tag', 'walks')}_{self.walks}"
-        facc_tag = f"{self._config('tag', 'facc')}_{self.facc}"
-        slices_tag = f"{self._config('tag', 'slices')}_{self.slices}"
-        max_move_tag = f"{self._config('tag', 'max_move')}_{self.max_move}"
-
-        if self.sample in "rwalk":
-            method_tag = f"_{walks_tag}_{facc_tag}"
-        elif self.sample == "hslice":
-            method_tag = f"_{slices_tag}_{max_move_tag}"
-        elif self.sample in ["slice", "rslice"]:
-            method_tag = f"_{slices_tag}"
-        else:
-            method_tag = ""
-
-        dynesty_tag = f"{bound_tag}__{enlarge_tag}__{sample_tag}{method_tag}"
-
-        return f"{name_tag}[{n_live_points_tag}__{dynesty_tag}]"
-
     def initial_live_points_from_model_and_fitness_function(
             self, model, fitness_function
     ):

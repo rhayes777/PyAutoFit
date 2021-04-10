@@ -308,37 +308,6 @@ class MultiNest(abstract_nest.AbstractNest):
         )
         self.copy_from_sym()
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self._config("tag", "name")
-        n_live_points_tag = (
-            f"{self._config('tag', 'n_live_points')}_{self.n_live_points}"
-        )
-        sampling_efficiency_tag = (
-            f"{self._config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
-        )
-        if self.const_efficiency_mode:
-            const_efficiency_mode_tag = (
-                f"_{self._config('tag', 'const_efficiency_mode')}"
-            )
-        else:
-            const_efficiency_mode_tag = ""
-        if self.multimodal:
-            multimodal_tag = f"_{self._config('tag', 'multimodal')}"
-        else:
-            multimodal_tag = ""
-        if self.importance_nested_sampling:
-            importance_nested_sampling_tag = (
-                f"_{self._config('tag', 'importance_nested_sampling')}"
-            )
-        else:
-            importance_nested_sampling_tag = ""
-
-        return f"{name_tag}[{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}]"
-
     def samples_via_sampler_from_model(self, model: AbstractPriorModel):
         """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 

@@ -126,10 +126,6 @@ class MockSearch(af.NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["mock"]
 
-    @property
-    def tag(self):
-        return "mock"
-
     def perform_update(self, model, analysis, during_analysis):
         self.paths.save_samples(samples=self.samples)
         return self.samples

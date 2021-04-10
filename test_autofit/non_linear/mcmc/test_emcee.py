@@ -51,11 +51,6 @@ class TestEmceeConfig:
         assert emcee.auto_correlation_change_threshold == 0.01
         assert emcee.number_of_cores == 1
 
-    def test__tag(self):
-        emcee = af.Emcee(nwalkers=11)
-
-        assert emcee.tag == "emcee[nwalkers_11]"
-
     def test__samples_from_model(self):
         emcee = af.Emcee()
         emcee.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "emcee"))

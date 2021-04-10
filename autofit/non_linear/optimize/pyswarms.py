@@ -256,19 +256,6 @@ class AbstractPySwarms(AbstractOptimizer):
 
         logger.info("PySwarmsGlobal complete")
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self._config("tag", "name")
-        n_particles_tag = f"{self._config('tag', 'n_particles')}_{self.n_particles}"
-        cognitive_tag = f"{self._config('tag', 'cognitive')}_{self.cognitive}"
-        social_tag = f"{self._config('tag', 'social')}_{self.social}"
-        inertia_tag = f"{self._config('tag', 'inertia')}_{self.inertia}"
-
-        return f"{name_tag}[{n_particles_tag}_{cognitive_tag}_{social_tag}_{inertia_tag}]"
-
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
         return PySwarmsGlobal.Fitness(
