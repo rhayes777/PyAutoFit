@@ -11,6 +11,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 class TestEmceeConfig:
 
     def test__loads_from_config_file_correct(self):
+
         emcee = af.Emcee(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nwalkers=51,
@@ -26,8 +27,8 @@ class TestEmceeConfig:
         assert emcee.prior_passer.sigma == 2.0
         assert emcee.prior_passer.use_errors == False
         assert emcee.prior_passer.use_widths == False
-        assert emcee.nwalkers == 51
-        assert emcee.nsteps == 2001
+        assert emcee.config_dict["nwalkers"] == 51
+        assert emcee.config_dict["nsteps"] == 2001
         assert isinstance(emcee.initializer, af.InitializerBall)
         assert emcee.initializer.lower_limit == 0.2
         assert emcee.initializer.upper_limit == 0.8
@@ -42,8 +43,8 @@ class TestEmceeConfig:
         assert emcee.prior_passer.sigma == 3.0
         assert emcee.prior_passer.use_errors == True
         assert emcee.prior_passer.use_widths == True
-        assert emcee.nwalkers == 50
-        assert emcee.nsteps == 2000
+        assert emcee.config_dict["nwalkers"] == 50
+        assert emcee.config_dict["nsteps"] == 2000
         assert isinstance(emcee.initializer, af.InitializerPrior)
         assert emcee.auto_correlation_check_for_convergence == True
         assert emcee.auto_correlation_check_size == 100

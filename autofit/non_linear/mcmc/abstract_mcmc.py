@@ -11,19 +11,13 @@ class AbstractMCMC(NonLinearSearch):
         return conf.instance["non_linear"]["mcmc"]
 
     def samples_via_csv_json_from_model(self, model):
-        parameters, log_likelihoods, log_priors, log_posteriors, weights = samp.load_from_table(
-            filename=self.paths.samples_file
-        )
 
-        with open(self.paths.info_file) as infile:
-            samples_info = json.load(infile)
+        samples = self.paths.load_samples()
+        samples_info = self.paths.load_samples_info()
 
         return samp.MCMCSamples(
             model=model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights,
+            samples=samples,
             auto_correlation_times=samples_info["auto_correlation_times"],
             auto_correlation_check_size=samples_info["auto_correlation_check_size"],
             auto_correlation_required_length=samples_info[

@@ -19,8 +19,6 @@ class Emcee(AbstractMCMC):
             name="",
             path_prefix="",
             prior_passer=None,
-            nwalkers=None,
-            nsteps=None,
             initializer=None,
             auto_correlation_check_for_convergence=None,
             auto_correlation_check_size=None,
@@ -28,7 +26,8 @@ class Emcee(AbstractMCMC):
             auto_correlation_change_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
-            session=None
+            session=None,
+            **kwargs
     ):
         """ An Emcee non-linear search.
 
@@ -38,23 +37,15 @@ class Emcee(AbstractMCMC):
 
         https://emcee.readthedocs.io/en/stable/
 
-        Extensions:
-
-        - Provides the option to check the auto-correlation length of the samples during the run and terminating
-          sampling early if these meet a specified threshold. See this page
-          (https://emcee.readthedocs.io/en/stable/tutorials/autocorr/#autocorr) for a description.
-
-        - Provides different options for walker initialization, with the default 'ball' method starting all walkers
-          close to one another in parameter space, as recommended in the Emcee documentation
-          (https://emcee.readthedocs.io/en/stable/user/faq/).
-
         If you use *Emcee* as part of a published work, please cite the package following the instructions under the
         *Attribution* section of the GitHub page.
 
         Parameters
         ----------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
+        name : str
+            The name of the search, controlling the last folder results are output.
+        path_prefix : str
+            The path of folders prefixing the name folder where results are output.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         nwalkers : int
@@ -87,13 +78,6 @@ class Emcee(AbstractMCMC):
         https://emcee.readthedocs.io/en/stable/
         """
 
-        self.nwalkers = (
-            self._config("search", "nwalkers") if nwalkers is None else nwalkers
-        )
-        self.nsteps = (
-            self._config("search", "nsteps") if nsteps is None else nsteps
-        )
-
         self.auto_correlation_check_for_convergence = (
             self._config("auto_correlation", "check_for_convergence")
             if auto_correlation_check_for_convergence is None
@@ -121,7 +105,8 @@ class Emcee(AbstractMCMC):
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
-            session=session
+            session=session,
+            **kwargs
         )
 
         self.number_of_cores = (
@@ -174,7 +159,7 @@ class Emcee(AbstractMCMC):
         )
 
         emcee_sampler = emcee.EnsembleSampler(
-            nwalkers=self.nwalkers,
+            nwalkers=self.config_dict["nwalkers"],
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(
@@ -214,7 +199,7 @@ class Emcee(AbstractMCMC):
                 emcee_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
-            iterations_remaining = self.nsteps
+            iterations_remaining = self.config_dict["nsteps"]
 
         while iterations_remaining > 0:
 
@@ -236,7 +221,7 @@ class Emcee(AbstractMCMC):
             emcee_state = emcee_sampler.get_last_sample()
 
             total_iterations += iterations
-            iterations_remaining = self.nsteps - total_iterations
+            iterations_remaining = self.config_dict["nsteps"] - total_iterations
 
             samples = self.perform_update(
                 model=model, analysis=analysis, during_analysis=True
