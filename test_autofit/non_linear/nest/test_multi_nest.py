@@ -155,52 +155,20 @@ class TestMulitNest:
         assert multi_nest.prior_passer.sigma == 2.0
         assert multi_nest.prior_passer.use_errors == False
         assert multi_nest.prior_passer.use_widths == False
-        assert multi_nest.n_live_points == 40
-        assert multi_nest.sampling_efficiency == 0.5
-        assert multi_nest.const_efficiency_mode == True
-        assert multi_nest.evidence_tolerance == 0.4
-        assert multi_nest.importance_nested_sampling == False
-        assert multi_nest.multimodal == False
-        assert multi_nest.n_iter_before_update == 90
-        assert multi_nest.null_log_evidence == -1e80
-        assert multi_nest.max_modes == 50
-        assert multi_nest.mode_tolerance == -1e88
-        assert multi_nest.seed == 0
-        assert multi_nest.verbose == True
-        assert multi_nest.resume == False
-        assert multi_nest.context == 1
-        assert multi_nest.write_output == False
-        assert multi_nest.log_zero == -1e90
-        assert multi_nest.max_iter == 1
-        assert multi_nest.init_MPI == True
-        assert multi_nest.terminate_at_acceptance_ratio == True
-        assert multi_nest.acceptance_ratio_threshold == 0.9
+        assert multi_nest.config_dict["n_live_points"] == 40
+        assert multi_nest.config_dict["sampling_efficiency"] == 0.5
+        assert multi_nest.config_dict_settings["terminate_at_acceptance_ratio"] == True
+        assert multi_nest.config_dict_settings["acceptance_ratio_threshold"] == 0.9
 
         multi_nest = af.MultiNest()
 
         assert multi_nest.prior_passer.sigma == 3.0
         assert multi_nest.prior_passer.use_errors == True
         assert multi_nest.prior_passer.use_widths == True
-        assert multi_nest.importance_nested_sampling == True
-        assert multi_nest.multimodal == True
-        assert multi_nest.const_efficiency_mode == False
-        assert multi_nest.n_live_points == 50
-        assert multi_nest.evidence_tolerance == 0.5
-        assert multi_nest.sampling_efficiency == 0.6
-        assert multi_nest.n_iter_before_update == 100
-        assert multi_nest.null_log_evidence == -1e90
-        assert multi_nest.max_modes == 100
-        assert multi_nest.mode_tolerance == -1e89
-        assert multi_nest.seed == -1
-        assert multi_nest.verbose == False
-        assert multi_nest.resume == True
-        assert multi_nest.context == 0
-        assert multi_nest.write_output == True
-        assert multi_nest.log_zero == -1e100
-        assert multi_nest.max_iter == 0
-        assert multi_nest.init_MPI == False
-        assert multi_nest.terminate_at_acceptance_ratio == False
-        assert multi_nest.acceptance_ratio_threshold == 1.0
+        assert multi_nest.config_dict["n_live_points"] == 50
+        assert multi_nest.config_dict["sampling_efficiency"] == 0.6
+        assert multi_nest.config_dict_settings["terminate_at_acceptance_ratio"] == False
+        assert multi_nest.config_dict_settings["acceptance_ratio_threshold"] == 1.0
 
         model = af.ModelMapper(mock_class_1=mock.MockClassx4)
 
