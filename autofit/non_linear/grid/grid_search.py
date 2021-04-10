@@ -8,7 +8,7 @@ from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
-from autofit.non_linear.paths import Paths
+from autofit.non_linear.paths import DirectoryPaths
 from autofit.non_linear.result import Result
 
 
@@ -441,10 +441,11 @@ class GridSearch:
                 )
             )
 
+        self.paths.model = model
+
         name_path = path.join(
             self.paths.name,
-            self.paths.tag,
-            self.paths.non_linear_tag,
+            self.paths.identifier,
             "_".join(labels),
         )
 
@@ -460,9 +461,8 @@ class GridSearch:
 
     def search_instance(self, name_path):
         search_instance = self.search.copy_with_paths(
-            Paths(
+            DirectoryPaths(
                 name=name_path,
-                tag=self.paths.tag,
                 path_prefix=self.paths.path_prefix,
             )
         )

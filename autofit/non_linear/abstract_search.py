@@ -15,19 +15,21 @@ from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
-from autofit.non_linear.paths import Paths
+from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.timer import Timer
 
 
 class NonLinearSearch(ABC):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             initializer=None,
             iterations_per_update=None,
             number_of_cores=1,
+            session=None,
+            **kwargs
     ):
         """Abstract base class for non-linear searches.
 
@@ -36,24 +38,25 @@ class NonLinearSearch(ABC):
 
         Parameters
         ------------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
-        paths = Paths(name=name, path_prefix=path_prefix)
+        from autofit.non_linear.paths.database import DatabasePaths
+        if session is not None:
+            paths = DatabasePaths(name=name, path_prefix=path_prefix, session=session)
+        else:
+            paths = DirectoryPaths(name=name, path_prefix=path_prefix)
 
         self._paths = None
+        self._timer = None
 
-        self.paths: Paths = paths
-        if prior_passer is None:
-            self.prior_passer = PriorPasser.from_config(config=self._config)
-        else:
-            self.prior_passer = prior_passer
+        self.paths: DirectoryPaths = paths
 
-        self.timer = Timer(paths.samples_path)
+        self.prior_passer = prior_passer or PriorPasser.from_config(
+            config=self._config
+        )
 
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
@@ -98,7 +101,20 @@ class NonLinearSearch(ABC):
         if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.silence = True
 
+        self.kwargs = kwargs
+
+        for key, value in self.config_dict.items():
+            setattr(self, key, value)
+
         self.number_of_cores = number_of_cores
+
+    @property
+    def timer(self):
+        if self._timer is None:
+            self._timer = Timer(
+                self.paths.samples_path
+            )
+        return self._timer
 
     @property
     def paths(self):
@@ -106,11 +122,7 @@ class NonLinearSearch(ABC):
 
     @paths.setter
     def paths(self, paths):
-        if paths.non_linear_name == "":
-            paths.non_linear_name = self._config("tag", "name")
-
-        if paths.non_linear_tag == "":
-            paths.non_linear_tag_function = lambda: self.tag
+        paths.search = self
         self._paths = paths
 
     def copy_with_paths(
@@ -229,22 +241,20 @@ class NonLinearSearch(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
+        self.paths.model = model
         self.paths.restore()
         self.setup_log_file()
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
 
             self.paths.save_all(
-                model=model,
                 info=info,
-                search=self,
                 pickle_files=pickle_files
             )
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
         if not self.paths.is_complete:
 
-            self.timer.samples_path = self.paths.samples_path
             self.timer.start()
 
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
@@ -264,7 +274,7 @@ class NonLinearSearch(ABC):
 
             if self.force_pickle_overwrite:
 
-                self.paths.save_samples(samples=samples)
+                self.paths.save_object("samples", samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         self.paths.zip_remove()
@@ -275,9 +285,18 @@ class NonLinearSearch(ABC):
         pass
 
     @property
-    def tag(self):
-        """Tag the output folder of the non-linear search, based on the non linear search settings"""
-        raise NotImplementedError
+    def config_dict(self):
+
+        config_dict = self.config_type[self.__class__.__name__]["search"]._dict
+
+        return {**config_dict, **self.kwargs}
+
+    @property
+    def config_dict_settings(self):
+
+        config_dict_settings = self.config_type[self.__class__.__name__]["settings"]._dict
+
+        return {**config_dict_settings, **self.kwargs}
 
     @property
     def config_type(self):
@@ -300,7 +319,8 @@ class NonLinearSearch(ABC):
         return self.config_type[self.__class__.__name__][section][attribute_name]
 
     def perform_update(self, model, analysis, during_analysis):
-        """Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
+        """
+        Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
@@ -328,7 +348,9 @@ class NonLinearSearch(ABC):
 
         samples = self.samples_via_sampler_from_model(model=model)
 
-        self.paths.save_samples(samples=samples)
+        self.paths.save_object("samples", samples)
+        samples.write_table(filename=self.paths._samples_file)
+        samples.info_to_json(filename=self.paths._info_file)
 
         try:
             instance = samples.max_log_likelihood_instance
@@ -422,7 +444,7 @@ class NonLinearSearch(ABC):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self.paths.restore()
+      #  self.paths.restore()
 
 
 class Analysis(ABC):
@@ -430,13 +452,13 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, paths: Paths, instance, during_analysis):
+    def visualize(self, paths: DirectoryPaths, instance, during_analysis):
         pass
 
-    def save_attributes_for_aggregator(self, paths: Paths):
+    def save_attributes_for_aggregator(self, paths: DirectoryPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: Paths, model: mm.CollectionPriorModel,
+    def save_results_for_aggregator(self, paths: DirectoryPaths, model: mm.CollectionPriorModel,
                                     samples: samps.OptimizerSamples):
         pass
 

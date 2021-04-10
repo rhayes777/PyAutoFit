@@ -4,6 +4,7 @@ import autofit as af
 from autoconf import conf
 from autofit.non_linear.samples import Sample
 
+
 class MockAnalysis(af.Analysis):
     prior_count = 2
 
@@ -93,7 +94,7 @@ class MockSamples(af.PDFSamples):
 
 
 class MockSearch(af.NonLinearSearch):
-    def __init__(self, samples=None, name=None):
+    def __init__(self, samples=None, name=""):
         self.name = name
         super().__init__(name=name)
 
@@ -125,12 +126,8 @@ class MockSearch(af.NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["mock"]
 
-    @property
-    def tag(self):
-        return "mock"
-
     def perform_update(self, model, analysis, during_analysis):
-        self.paths.save_samples(samples=self.samples)
+        self.paths.save_object("samples", self.samples)
         return self.samples
 
     def samples_via_csv_json_from_model(self, model):
@@ -295,6 +292,13 @@ class Gaussian(Profile):
         """
         super().__init__(centre=centre, intensity=intensity)
         self.sigma = sigma  # We still need to set sigma for the Gaussian, of course.
+
+    def __eq__(self, other):
+        return all([
+            self.centre == other.centre,
+            self.intensity == other.intensity,
+            self.sigma == other.sigma
+        ])
 
     def __call__(self, xvalues):
         """

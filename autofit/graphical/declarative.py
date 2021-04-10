@@ -3,7 +3,7 @@ from typing import Callable, cast, Set, List, Dict, Optional
 
 import numpy as np
 
-from autofit import ModelInstance, Analysis, Paths
+from autofit import ModelInstance, Analysis, DirectoryPaths
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
@@ -158,7 +158,7 @@ class AbstractModelFactor(Analysis, ABC):
 
     def visualize(
             self,
-            paths: Paths,
+            paths: DirectoryPaths,
             instance: ModelInstance,
             during_analysis: bool
     ):

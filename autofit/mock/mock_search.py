@@ -12,7 +12,7 @@ from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
-    def __init__(self, name=None,  samples=None, fit_fast=True):
+    def __init__(self, name="",  samples=None, fit_fast=True):
         super().__init__(name=name)
 
         self.fit_fast = fit_fast
@@ -76,10 +76,6 @@ class MockSearch(NonLinearSearch):
     @property
     def config_type(self):
         return conf.instance["non_linear"]["mock"]
-
-    @property
-    def tag(self):
-        return "mock"
 
     def perform_update(self, model, analysis, during_analysis):
         return MockSamples(

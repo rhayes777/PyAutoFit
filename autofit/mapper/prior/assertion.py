@@ -9,7 +9,7 @@ class ComparisonAssertion(CompoundPrior, ABC):
             self,
             lower,
             greater,
-            name=None
+            name=""
     ):
         super().__init__(lower, greater)
         self._name = name
@@ -76,7 +76,7 @@ class CompoundAssertion(AbstractPriorModel):
             self,
             assertion_1,
             assertion_2,
-            name=None
+            name=""
     ):
         super().__init__()
         self.assertion_1 = assertion_1

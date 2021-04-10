@@ -17,7 +17,7 @@ from autofit.mapper.variable import Variable
 class AbstractFactor(AbstractNode, ABC):
     def __init__(
             self,
-            name=None,
+            name="",
             **kwargs: Variable,
     ):
         super().__init__(**kwargs)
@@ -154,7 +154,7 @@ class Factor(AbstractFactor):
     def __init__(
             self,
             factor: Callable,
-            name=None,
+            name="",
             vectorised=False,
             is_scalar=False,
             **kwargs: Variable

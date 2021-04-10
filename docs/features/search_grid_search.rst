@@ -40,7 +40,7 @@ containing two ``Gaussians``'s.
 
     dynesty = af.DynestyStatic(
         name="single_fit",
-        n_live_points=100,
+        nlive=100,
     )
 
     result = dynesty.fit(model=model, analysis=analysis)
@@ -61,7 +61,7 @@ Lets now perform the search grid search using the ``SearchGridSearch`` object:
 
     dynesty = af.DynestyStatic(
         name="grid_fit",
-        n_live_points=100,
+        nlive=100,
     )
 
     grid_search = af.SearchGridSearch(

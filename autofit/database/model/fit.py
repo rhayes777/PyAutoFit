@@ -4,7 +4,7 @@ from typing import List
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
 from sqlalchemy.orm import relationship
 
-from autofit import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from .model import Base, Object
 from ...mapper.model_object import Identifier
 
@@ -185,6 +185,12 @@ class Fit(Base):
             item
         )
 
+    def __contains__(self, item):
+        for p in self.pickles:
+            if p.name == item:
+                return True
+        return False
+
     def __setitem__(
             self,
             key: str,
@@ -222,6 +228,14 @@ class Fit(Base):
                            new
                        ]
 
+    def __delitem__(self, key):
+        self.pickles = [
+            p
+            for p
+            in self.pickles
+            if p.name != key
+        ]
+
     model_id = Column(
         Integer,
         ForeignKey(
@@ -247,6 +261,12 @@ class Fit(Base):
         backref="fit_instance",
         foreign_keys=[instance_id]
     )
+
+    @classmethod
+    def all(cls, session):
+        return session.query(
+            cls
+        ).all()
 
 
 fit_attributes = inspect(Fit).columns

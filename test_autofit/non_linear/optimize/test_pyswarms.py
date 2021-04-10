@@ -25,11 +25,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 2.0
         assert pso.prior_passer.use_errors == False
         assert pso.prior_passer.use_widths == False
-        assert pso.n_particles == 51
-        assert pso.iters == 2001
-        assert pso.cognitive == 0.4
-        assert pso.social == 0.5
-        assert pso.inertia == 0.6
+        assert pso.config_dict["n_particles"] == 51
+        assert pso.config_dict["cognitive"] == 0.4
         assert isinstance(pso.initializer, af.InitializerBall)
         assert pso.initializer.lower_limit == 0.2
         assert pso.initializer.upper_limit == 0.8
@@ -41,11 +38,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 3.0
         assert pso.prior_passer.use_errors == True
         assert pso.prior_passer.use_widths == True
-        assert pso.n_particles == 50
-        assert pso.iters == 2000
-        assert pso.cognitive == 0.1
-        assert pso.social == 0.2
-        assert pso.inertia == 0.3
+        assert pso.config_dict["n_particles"] == 50
+        assert pso.config_dict["cognitive"] == 0.1
         assert isinstance(pso.initializer, af.InitializerPrior)
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
@@ -67,13 +61,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 2.0
         assert pso.prior_passer.use_errors == False
         assert pso.prior_passer.use_widths == False
-        assert pso.n_particles == 51
-        assert pso.iters == 2001
-        assert pso.cognitive == 0.4
-        assert pso.social == 0.5
-        assert pso.inertia == 0.6
-        assert pso.number_of_k_neighbors == 4
-        assert pso.minkowski_p_norm == 1
+        assert pso.config_dict["n_particles"] == 51
+        assert pso.config_dict["cognitive"] == 0.4
         assert isinstance(pso.initializer, af.InitializerBall)
         assert pso.initializer.lower_limit == 0.2
         assert pso.initializer.upper_limit == 0.8
@@ -85,33 +74,16 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 3.0
         assert pso.prior_passer.use_errors == True
         assert pso.prior_passer.use_widths == True
-        assert pso.n_particles == 50
-        assert pso.iters == 2000
-        assert pso.cognitive == 0.1
-        assert pso.social == 0.2
-        assert pso.inertia == 0.3
-        assert pso.number_of_k_neighbors == 3
-        assert pso.minkowski_p_norm == 2
+        assert pso.config_dict["n_particles"] == 50
+        assert pso.config_dict["cognitive"] == 0.1
         assert isinstance(pso.initializer, af.InitializerPrior)
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
 
-    def test__tag(self):
-        pso = af.PySwarmsGlobal(
-            n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
-        )
-
-        assert pso.tag == "pyswarms_global[particles_51_c_0.4_s_0.5_i_0.6]"
-
-        pso = af.PySwarmsLocal(
-            n_particles=51, iters=2001, cognitive=0.4, social=0.5, inertia=0.6
-        )
-
-        assert pso.tag == "pyswarms_local[particles_51_c_0.4_s_0.5_i_0.6]"
-
     def test__samples_from_model(self):
         pyswarms = af.PySwarmsGlobal()
-        pyswarms.paths = af.Paths(path_prefix=path.join("non_linear", "pyswarms"))
+        pyswarms.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "pyswarms"))
+        pyswarms.paths._identifier = "tag"
 
         model = af.ModelMapper(mock_class=mock.MockClassx3)
         model.mock_class.one = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)

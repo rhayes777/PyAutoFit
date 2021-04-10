@@ -11,13 +11,12 @@ from autofit.non_linear.initializer import InitializerPrior
 class AbstractNest(NonLinearSearch):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name="",
+            path_prefix="",
             prior_passer=None,
             iterations_per_update=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
-            stagger_resampling_likelihood=None,
+            session=None,
+            **kwargs
     ):
         """
         Abstract class of a nested sampling `NonLinearSearch` (e.g. MultiNest, Dynesty).
@@ -47,24 +46,8 @@ class AbstractNest(NonLinearSearch):
             prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,
-        )
-
-        self.terminate_at_acceptance_ratio = (
-            self._config("settings", "terminate_at_acceptance_ratio")
-            if terminate_at_acceptance_ratio is None
-            else terminate_at_acceptance_ratio
-        )
-
-        self.acceptance_ratio_threshold = (
-            self._config("settings", "acceptance_ratio_threshold")
-            if acceptance_ratio_threshold is None
-            else acceptance_ratio_threshold
-        )
-
-        self.stagger_resampling_likelihood = (
-            self._config("settings", "stagger_resampling_likelihood")
-            if stagger_resampling_likelihood is None
-            else stagger_resampling_likelihood
+            session=session,
+            **kwargs
         )
 
     class Fitness(NonLinearSearch.Fitness):
@@ -187,9 +170,9 @@ class AbstractNest(NonLinearSearch):
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_via_sampler_from_model,
-            stagger_resampling_likelihood=self.stagger_resampling_likelihood,
-            terminate_at_acceptance_ratio=self.terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=self.acceptance_ratio_threshold,
+            stagger_resampling_likelihood=self.config_dict_settings["stagger_resampling_likelihood"],
+            terminate_at_acceptance_ratio=self.config_dict_settings["terminate_at_acceptance_ratio"],
+            acceptance_ratio_threshold=self.config_dict_settings["acceptance_ratio_threshold"],
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids
         )
