@@ -111,7 +111,7 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyDynamic(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
-            nlive=0,
+            nlive=None,
             iterations_per_update=501,
             facc=0.6,
             dlogz=0.2,
