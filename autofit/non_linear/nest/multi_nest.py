@@ -36,9 +36,6 @@ class MultiNest(abstract_nest.AbstractNest):
             write_output=None,
             log_zero=None,
             init_MPI=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
-            stagger_resampling_likelihood=None,
     ):
         """
         A MultiNest non-linear search.
@@ -201,9 +198,6 @@ class MultiNest(abstract_nest.AbstractNest):
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
-            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=acceptance_ratio_threshold,
-            stagger_resampling_likelihood=stagger_resampling_likelihood,
         )
 
         logger.debug("Creating MultiNest NLO")

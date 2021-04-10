@@ -28,7 +28,8 @@ class NonLinearSearch(ABC):
             initializer=None,
             iterations_per_update=None,
             number_of_cores=1,
-            session=None
+            session=None,
+            **kwargs
     ):
         """Abstract base class for non-linear searches.
 
@@ -99,6 +100,11 @@ class NonLinearSearch(ABC):
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.silence = True
+
+        self.kwargs = kwargs
+
+        for key, value in self.config_dict.items():
+            setattr(self, key, value)
 
         self.number_of_cores = number_of_cores
 
@@ -284,6 +290,13 @@ class NonLinearSearch(ABC):
         config_dict = self.config_type[self.__class__.__name__]["search"]._dict
 
         return {**config_dict, **self.kwargs}
+
+    @property
+    def config_dict_settings(self):
+
+        config_dict_settings = self.config_type[self.__class__.__name__]["settings"]._dict
+
+        return {**config_dict_settings, **self.kwargs}
 
     @property
     def config_type(self):

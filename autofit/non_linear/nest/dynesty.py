@@ -29,8 +29,6 @@ class AbstractDynesty(AbstractNest, ABC):
             name : str ="",
             path_prefix : str= "",
             prior_passer : PriorPasser = None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
             session=None,
@@ -66,19 +64,13 @@ class AbstractDynesty(AbstractNest, ABC):
             pool instance is not created and the job runs in serial.
         """
 
-        self.kwargs = kwargs
-
-        for key, value in self.config_dict.items():
-            setattr(self, key, value)
-
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
-            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=acceptance_ratio_threshold,
             iterations_per_update=iterations_per_update,
-            session=session
+            session=session,
+            **kwargs
         )
 
         self.number_of_cores = (
@@ -308,8 +300,6 @@ class DynestyStatic(AbstractDynesty):
             name="",
             path_prefix="",
             prior_passer=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
             session=None,
@@ -350,8 +340,6 @@ class DynestyStatic(AbstractDynesty):
             path_prefix=path_prefix,
             prior_passer=prior_passer,
             iterations_per_update=iterations_per_update,
-            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=acceptance_ratio_threshold,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs
@@ -400,8 +388,6 @@ class DynestyDynamic(AbstractDynesty):
             name="",
             path_prefix="",
             prior_passer=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
             **kwargs
@@ -440,8 +426,6 @@ class DynestyDynamic(AbstractDynesty):
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
-            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=acceptance_ratio_threshold,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             **kwargs
