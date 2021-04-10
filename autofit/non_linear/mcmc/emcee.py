@@ -194,9 +194,10 @@ class Emcee(AbstractMCMC):
                 model=model, analysis=analysis, during_analysis=True
             )
 
-            if emcee_sampler.iteration % self.auto_correlations_settings.check_size:
-                if samples.converged and self.auto_correlations_settings.check_for_convergence:
-                    iterations_remaining = 0
+            if self.auto_correlations_settings.check_for_convergence:
+                if emcee_sampler.iteration > self.auto_correlations_settings.check_size:
+                    if samples.converged:
+                        iterations_remaining = 0
 
         logger.info("Emcee sampling complete.")
 

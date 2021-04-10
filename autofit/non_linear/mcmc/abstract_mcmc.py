@@ -53,7 +53,8 @@ class AbstractMCMC(NonLinearSearch):
                 check_size=samples_info["check_size"],
                 required_length=samples_info["required_length"],
                 change_threshold=samples_info["change_threshold"],
-                times=samples_info["times"],
+                times=None,
+                previous_times=None
             ),
             total_walkers=samples_info["total_walkers"],
             total_steps=samples_info["total_steps"],

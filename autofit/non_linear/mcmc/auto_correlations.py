@@ -39,6 +39,7 @@ class AutoCorrelationsSettings:
         self.change_threshold = change_threshold
 
     def update_via_config(self, config):
+
         config_dict = config._dict
 
         self.check_for_convergence = (
@@ -112,11 +113,11 @@ class AutoCorrelations(AutoCorrelationsSettings):
         return np.abs(self.previous_times - self.times) / self.times
 
     def check_if_converged(self, total_samples):
-
         """
         Whether the emcee samples have converged on a solution or if they are still in a burn-in period, based on the
         auto correlation times of parameters.
         """
+
         converged = np.all(
             self.times * self.required_length
             < total_samples
