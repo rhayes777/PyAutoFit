@@ -25,11 +25,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 2.0
         assert pso.prior_passer.use_errors == False
         assert pso.prior_passer.use_widths == False
-        assert pso.n_particles == 51
-        assert pso.iters == 2001
-        assert pso.cognitive == 0.4
-        assert pso.social == 0.5
-        assert pso.inertia == 0.6
+        assert pso.config_dict["n_particles"] == 51
+        assert pso.config_dict["cognitive"] == 0.4
         assert isinstance(pso.initializer, af.InitializerBall)
         assert pso.initializer.lower_limit == 0.2
         assert pso.initializer.upper_limit == 0.8
@@ -41,11 +38,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 3.0
         assert pso.prior_passer.use_errors == True
         assert pso.prior_passer.use_widths == True
-        assert pso.n_particles == 50
-        assert pso.iters == 2000
-        assert pso.cognitive == 0.1
-        assert pso.social == 0.2
-        assert pso.inertia == 0.3
+        assert pso.config_dict["n_particles"] == 50
+        assert pso.config_dict["cognitive"] == 0.1
         assert isinstance(pso.initializer, af.InitializerPrior)
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
@@ -67,13 +61,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 2.0
         assert pso.prior_passer.use_errors == False
         assert pso.prior_passer.use_widths == False
-        assert pso.n_particles == 51
-        assert pso.iters == 2001
-        assert pso.cognitive == 0.4
-        assert pso.social == 0.5
-        assert pso.inertia == 0.6
-        assert pso.number_of_k_neighbors == 4
-        assert pso.minkowski_p_norm == 1
+        assert pso.config_dict["n_particles"] == 51
+        assert pso.config_dict["cognitive"] == 0.4
         assert isinstance(pso.initializer, af.InitializerBall)
         assert pso.initializer.lower_limit == 0.2
         assert pso.initializer.upper_limit == 0.8
@@ -85,13 +74,8 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 3.0
         assert pso.prior_passer.use_errors == True
         assert pso.prior_passer.use_widths == True
-        assert pso.n_particles == 50
-        assert pso.iters == 2000
-        assert pso.cognitive == 0.1
-        assert pso.social == 0.2
-        assert pso.inertia == 0.3
-        assert pso.number_of_k_neighbors == 3
-        assert pso.minkowski_p_norm == 2
+        assert pso.config_dict["n_particles"] == 50
+        assert pso.config_dict["cognitive"] == 0.1
         assert isinstance(pso.initializer, af.InitializerPrior)
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
