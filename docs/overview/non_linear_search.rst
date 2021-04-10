@@ -48,10 +48,10 @@ Of course, we can instead manually specify all of the parameters:
        initialize_method="ball",
        initialize_ball_lower_limit=0.49,
        initialize_ball_upper_limit=0.51,
-       auto_correlation_check_for_convergence=True,
-       auto_correlation_check_size=100,
-       auto_correlation_required_length=50,
-       auto_correlation_change_threshold=0.01,
+       check_for_convergence=True,
+       check_size=100,
+       required_length=50,
+       change_threshold=0.01,
    )
 
    result = emcee.fit(model=model, analysis=analysis)

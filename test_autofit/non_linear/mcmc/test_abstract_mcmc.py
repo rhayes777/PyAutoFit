@@ -5,6 +5,7 @@ import pytest
 import autofit as af
 from autofit.mock.mock import MockClassx4
 from autofit.non_linear.samples import MCMCSamples, Sample
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -73,10 +74,13 @@ def make_samples():
     return MCMCSamples(
         model=model,
         samples=samples,
-        auto_correlation_times=1,
-        auto_correlation_check_size=2,
-        auto_correlation_required_length=3,
-        auto_correlation_change_threshold=4,
+        auto_correlations=AutoCorrelations(
+            times=1,
+            check_size=2,
+            required_length=3,
+            change_threshold=4,
+            previous_times=5
+        ),
         total_walkers=5,
         total_steps=6,
         time=7,
@@ -108,10 +112,10 @@ class TestJsonCSV:
         assert samples.log_priors == [0.0, 0.0, 0.0, 0.0, 0.0]
         assert samples.log_posteriors == [1.0, 2.0, 3.0, 10.0, 5.0]
         assert samples.weights == [1.0, 1.0, 1.0, 1.0, 1.0]
-        #  assert samples.auto_correlation_times == None
-        assert samples.auto_correlation_check_size == 2
-        assert samples.auto_correlation_required_length == 3
-        assert samples.auto_correlation_change_threshold == 4
+        #  assert samples.times == None
+        assert samples.auto_correlations.check_size == 2
+        assert samples.auto_correlations.required_length == 3
+        assert samples.auto_correlations.change_threshold == 4
         assert samples.total_walkers == 5
         assert samples.total_steps == 6
-        assert samples.time == 7
+        assert samples.auto_correlations.times[-1] == pytest.approx(67.67, 1.0e-4)

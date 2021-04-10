@@ -9,6 +9,7 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
 
 
@@ -20,16 +21,14 @@ class Emcee(AbstractMCMC):
             path_prefix="",
             prior_passer=None,
             initializer=None,
-            auto_correlation_check_for_convergence=None,
-            auto_correlation_check_size=None,
-            auto_correlation_required_length=None,
-            auto_correlation_change_threshold=None,
+            auto_correlations_settings = AutoCorrelationsSettings(),
             iterations_per_update=None,
             number_of_cores=None,
             session=None,
             **kwargs
     ):
-        """ An Emcee non-linear search.
+        """
+        An Emcee non-linear search.
 
         For a full description of Emcee, checkout its Github and readthedocs webpages:
 
@@ -55,20 +54,8 @@ class Emcee(AbstractMCMC):
             nsteps iterations.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
-        auto_correlation_check_for_convergence : bool
-            Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
-            If `True`, this option may terminate the Emcee run before the input number of steps, nsteps, has
-            been performed. If `False` nstep samples will be taken.
-        auto_correlation_check_size : int
-            The length of the samples used to check the auto-correlation lengths (from the latest sample backwards).
-            For convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
-            thus requires more samples meet the auto-correlation threshold, taking longer to terminate sampling.
-            However, shorter chains risk stopping sampling early due to noise.
-        auto_correlation_required_length : int
-            The length an auto_correlation chain must be for it to be used to evaluate whether its change threshold is
-            sufficiently small to terminate sampling early.
-        auto_correlation_change_threshold : float
-            The threshold value by which if the change in auto_correlations is below sampling will be terminated early.
+        auto_correlations_settings : AutoCorrelationsSettings
+            Customizes and performs auto correlation calculations performed during and after the search.
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
@@ -78,32 +65,12 @@ class Emcee(AbstractMCMC):
         https://emcee.readthedocs.io/en/stable/
         """
 
-        self.auto_correlation_check_for_convergence = (
-            self._config("auto_correlation", "check_for_convergence")
-            if auto_correlation_check_for_convergence is None
-            else auto_correlation_check_for_convergence
-        )
-        self.auto_correlation_check_size = (
-            self._config("auto_correlation", "check_size")
-            if auto_correlation_check_size is None
-            else auto_correlation_check_size
-        )
-        self.auto_correlation_required_length = (
-            self._config("auto_correlation", "required_length")
-            if auto_correlation_required_length is None
-            else auto_correlation_required_length
-        )
-        self.auto_correlation_change_threshold = (
-            self._config("auto_correlation", "change_threshold")
-            if auto_correlation_change_threshold is None
-            else auto_correlation_change_threshold
-        )
-
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
             initializer=initializer,
+            auto_correlations_settings=auto_correlations_settings,
             iterations_per_update=iterations_per_update,
             session=session,
             **kwargs
@@ -178,7 +145,7 @@ class Emcee(AbstractMCMC):
             if samples.converged:
                 iterations_remaining = 0
             else:
-                iterations_remaining = self.nsteps - total_iterations
+                iterations_remaining = self.config_dict["nsteps"] - total_iterations
 
                 logger.info("Existing Emcee samples found, resuming non-linear search.")
 
@@ -227,8 +194,8 @@ class Emcee(AbstractMCMC):
                 model=model, analysis=analysis, during_analysis=True
             )
 
-            if emcee_sampler.iteration % self.auto_correlation_check_size:
-                if samples.converged and self.auto_correlation_check_for_convergence:
+            if emcee_sampler.iteration % self.auto_correlations_settings.check_size:
+                if samples.converged and self.auto_correlations_settings.check_for_convergence:
                     iterations_remaining = 0
 
         logger.info("Emcee sampling complete.")
@@ -265,9 +232,13 @@ class Emcee(AbstractMCMC):
         ]
         log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
         weights = len(log_likelihoods) * [1.0]
-        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
         total_walkers = len(self.backend.get_chain()[0, :, 0])
         total_steps = len(self.backend.get_log_prob())
+
+        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
+        previous_auto_correlation_times = emcee.autocorr.integrated_time(
+                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
+            )
 
         return EmceeSamples(
             model=model,
@@ -278,12 +249,15 @@ class Emcee(AbstractMCMC):
                 log_priors=log_priors,
                 weights=weights
             ),
+            auto_correlations=AutoCorrelations(
+                check_size=self.auto_correlations_settings.check_size,
+                required_length=self.auto_correlations_settings.required_length,
+                change_threshold=self.auto_correlations_settings.change_threshold,
+                times=auto_correlation_time,
+                previous_times=previous_auto_correlation_times
+            ),
             total_walkers=total_walkers,
             total_steps=total_steps,
-            auto_correlation_times=auto_correlation_time,
-            auto_correlation_check_size=self.auto_correlation_check_size,
-            auto_correlation_required_length=self.auto_correlation_required_length,
-            auto_correlation_change_threshold=self.auto_correlation_change_threshold,
             backend=self.backend,
             time=self.timer.time
         )
@@ -295,17 +269,21 @@ class Emcee(AbstractMCMC):
         samples = self.paths.load_samples()
         samples_info = self.paths.load_samples_info()
 
+        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
+        previous_auto_correlation_times = emcee.autocorr.integrated_time(
+                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
+            )
+
         return EmceeSamples(
             model=model,
             samples=samples,
-            auto_correlation_times=self.backend.get_autocorr_time(tol=0),
-            auto_correlation_check_size=samples_info["auto_correlation_check_size"],
-            auto_correlation_required_length=samples_info[
-                "auto_correlation_required_length"
-            ],
-            auto_correlation_change_threshold=samples_info[
-                "auto_correlation_change_threshold"
-            ],
+            auto_correlations=AutoCorrelations(
+                check_size=samples_info["check_size"],
+                required_length=samples_info["required_length"],
+                change_threshold=samples_info["change_threshold"],
+                times=auto_correlation_time,
+                previous_times=previous_auto_correlation_times,
+            ),
             total_walkers=samples_info["total_walkers"],
             total_steps=samples_info["total_steps"],
             time=samples_info["time"],
@@ -334,10 +312,7 @@ class EmceeSamples(MCMCSamples):
             self,
             model: ModelMapper,
             samples: List[Sample],
-            auto_correlation_times: np.ndarray,
-            auto_correlation_check_size: int,
-            auto_correlation_required_length: int,
-            auto_correlation_change_threshold: float,
+            auto_correlations : AutoCorrelations,
             total_walkers: int,
             total_steps: int,
             backend: emcee.backends.HDFBackend,
@@ -357,10 +332,7 @@ class EmceeSamples(MCMCSamples):
         super().__init__(
             model=model,
             samples=samples,
-            auto_correlation_times=auto_correlation_times,
-            auto_correlation_check_size=auto_correlation_check_size,
-            auto_correlation_required_length=auto_correlation_required_length,
-            auto_correlation_change_threshold=auto_correlation_change_threshold,
+            auto_correlations=auto_correlations,
             total_walkers=total_walkers,
             total_steps=total_steps,
             unconverged_sample_size=unconverged_sample_size,
@@ -374,12 +346,6 @@ class EmceeSamples(MCMCSamples):
         """The emcee samples with the initial burn-in samples removed.
 
         The burn-in period is estimated using the auto-correlation times of the parameters."""
-        discard = int(3.0 * np.max(self.auto_correlation_times))
-        thin = int(np.max(self.auto_correlation_times) / 2.0)
+        discard = int(3.0 * np.max(self.auto_correlations.times))
+        thin = int(np.max(self.auto_correlations.times) / 2.0)
         return self.backend.get_chain(discard=discard, thin=thin, flat=True)
-
-    @property
-    def previous_auto_correlation_times(self) -> [float]:
-        return emcee.autocorr.integrated_time(
-            x=self.backend.get_chain()[: -self.auto_correlation_check_size, :, :], tol=0
-        )
