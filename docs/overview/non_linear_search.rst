@@ -77,12 +77,12 @@ this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/no
 
    dynesty = af.DynestyStatic(
        name="example_nest",
-       n_live_points=150,
+       nlive=150,
        bound="multi",
        sample="auto",
-       bootstrap=0,
-       enlarge=-1,
-       update_interval=-1.0,
+       bootstrap=None,
+       enlarge=None,
+       update_interval=None,
        vol_dec=0.5,
        vol_check=2.0,
        walks=25,

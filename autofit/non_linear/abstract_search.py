@@ -279,6 +279,13 @@ class NonLinearSearch(ABC):
         pass
 
     @property
+    def config_dict(self):
+
+        config_dict = self.config_type[self.__class__.__name__]["search"]._dict
+
+        return {**config_dict, **self.kwargs}
+
+    @property
     def config_type(self):
         raise NotImplementedError()
 
@@ -299,7 +306,8 @@ class NonLinearSearch(ABC):
         return self.config_type[self.__class__.__name__][section][attribute_name]
 
     def perform_update(self, model, analysis, during_analysis):
-        """Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
+        """
+        Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
@@ -418,7 +426,7 @@ class NonLinearSearch(ABC):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self.paths.restore()
+   #     self.paths.restore()
 
 
 class Analysis(ABC):

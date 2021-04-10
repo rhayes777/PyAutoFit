@@ -7,40 +7,23 @@ from dynesty.dynesty import DynamicNestedSampler
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
+from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples import NestSamples, Sample
 
-
 class AbstractDynesty(AbstractNest, ABC):
     def __init__(
             self,
-            name="",
-            path_prefix="",
-            prior_passer=None,
-            n_live_points=None,
-            facc=None,
-            evidence_tolerance=None,
-            bound=None,
-            sample=None,
-            bootstrap=None,
-            enlarge=None,
-            update_interval=None,
-            vol_dec=None,
-            vol_check=None,
-            walks=None,
-            slices=None,
-            fmove=None,
-            max_move=None,
-            maxiter=None,
-            maxcall=None,
-            logl_max=None,
-            n_effective=None,
+            name : str ="",
+            path_prefix : str= "",
+            prior_passer : PriorPasser = None,
             terminate_at_acceptance_ratio=None,
             acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
-            session=None
+            session=None,
+            **kwargs
     ):
         """
         A Dynesty non-linear search.
@@ -48,96 +31,16 @@ class AbstractDynesty(AbstractNest, ABC):
         For a full description of Dynesty, checkout its GitHub and readthedocs webpages:
 
         https://github.com/joshspeagle/dynesty
-
         https://dynesty.readthedocs.io/en/latest/index.html
-
-        Extensions:
-
-        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by pickling the
-          sampler instance during the model-fit after an input number of iterations.
-
-        Attributes unique to **PyAutoFit** are described below, all remaining attributes are DyNesty parameters are
-        described at the Dynesty API webpage:
-
-        https://dynesty.readthedocs.io/en/latest/api.html#dynesty.dynamicsampler.stopping_function
 
         Parameters
         ----------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
+        name : str
+            The name of the search, controlling the last folder results are output.
+        path_prefix : str
+            The path of folders prefixing the name folder where results are output.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        facc : float
-            The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
-            [1. / walks, 1.].
-        evidence_threshold : float
-            This is called dlogz in the Dynesty API. Iteration will stop when the estimated contribution of the 
-            remaining prior volume to the total evidence falls below this threshold. Explicitly, the stopping 
-            criterion is ln(z + z_est) - ln(z) < dlogz, where z is the current evidence from all saved samples and 
-            z_est is the estimated contribution from the remaining volume. If add_live is True, the default is 
-            1e-3 * (nlive - 1) + 0.01. Otherwise, the default is 0.01.
-        bound : str
-            Method used to approximately bound the prior using the current set of live points. Conditions the sampling
-            methods used to propose new live points. Choices are no bound ('none'), a single bounding ellipsoid
-            ('single'), multiple bounding ellipsoids ('multi'), balls centered on each live point ('balls'), and cubes
-            centered on each live point ('cubes'). Default is 'multi'.
-        samples : str
-            Method used to sample uniformly within the likelihood constraint, conditioned on the provided bounds.
-            Unique methods available are: uniform sampling within the bounds('unif'), random walks with fixed
-            proposals ('rwalk'), random walks with variable (“staggering”) proposals ('rstagger'), multivariate slice
-            sampling along preferred orientations ('slice'), “random” slice sampling along all orientations ('rslice'),
-            “Hamiltonian” slices along random trajectories ('hslice'), and any callable function which follows the
-            pattern of the sample methods defined in dynesty.sampling. 'auto' selects the sampling method based on the
-            dimensionality of the problem (from ndim). When ndim < 10, this defaults to 'unif'. When 10 <= ndim <= 20,
-            this defaults to 'rwalk'. When ndim > 20, this defaults to 'hslice' if a gradient is provided and 'slice'
-            otherwise. 'rstagger' and 'rslice' are provided as alternatives for 'rwalk' and 'slice', respectively.
-            Default is 'auto'.
-        bootstrap : int
-            Compute this many bootstrapped realizations of the bounding objects. Use the maximum distance found to the
-            set of points left out during each iteration to enlarge the resulting volumes. Can lead to unstable
-            bounding ellipsoids. Default is 0 (no bootstrap).
-        enlarge : float
-            Enlarge the volumes of the specified bounding object(s) by this fraction. The preferred method is to
-            determine this organically using bootstrapping. If bootstrap > 0, this defaults to 1.0. If bootstrap = 0,
-            this instead defaults to 1.25.
-        vol_dec : float
-            For the 'multi' bounding option, the required fractional reduction in volume after splitting an ellipsoid
-            in order to to accept the split. Default is 0.5.
-        vol_check : float
-            For the 'multi' bounding option, the factor used when checking if the volume of the original bounding
-            ellipsoid is large enough to warrant > 2 splits via ell.vol > vol_check * nlive * pointvol. Default is 2.0.
-        walks : int
-            For the 'rwalk' sampling option, the minimum number of steps (minimum 2) before proposing a new live point.
-            Default is 25.
-        update_interval : int or float
-            If an integer is passed, only update the proposal distribution every update_interval-th likelihood call.
-            If a float is passed, update the proposal after every round(update_interval * nlive)-th likelihood call.
-            Larger update intervals larger can be more efficient when the likelihood function is quick to evaluate.
-            Default behavior is to target a roughly constant change in prior volume, with 1.5 for 'unif', 0.15 * walks
-            for 'rwalk' and 'rstagger', 0.9 * ndim * slices for 'slice', 2.0 * slices for 'rslice', and 25.0 * slices
-            for 'hslice'.
-        slices : int
-            For the 'slice', 'rslice', and 'hslice' sampling options, the number of times to execute a “slice update”
-            before proposing a new live point. Default is 5. Note that 'slice' cycles through all dimensions when
-            executing a “slice update”.
-        fmove : float
-            The target fraction of samples that are proposed along a trajectory (i.e. not reflecting) for the 'hslice'
-            sampling option. Default is 0.9.
-        max_move : int
-            The maximum number of timesteps allowed for 'hslice' per proposal forwards and backwards in time.
-            Default is 100.
-        maxiter : int
-            Maximum number of iterations. Iteration may stop earlier if the termination condition is reached. Default
-            is sys.maxsize (no limit).
-        maxcall : int
-            Maximum number of likelihood evaluations. Iteration may stop earlier if termination condition is reached.
-            Default is sys.maxsize (no limit).
-        logl_max : float
-            Iteration will stop when the sampled ln(likelihood) exceeds the threshold set by logl_max. Default is no
-            bound (np.inf).
-        n_effective : int
-            Minimum number of effective posterior samples. If the estimated “effective sample size” (ESS) exceeds 
-            this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
             If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *Nest* for a full description of this feature).
@@ -152,85 +55,26 @@ class AbstractDynesty(AbstractNest, ABC):
             pool instance is not created and the job runs in serial.
         """
 
-        self.n_live_points = (
-            self._config("search", "n_live_points")
-            if n_live_points is None
-            else n_live_points
-        )
+        self.kwargs = kwargs
 
-        self.evidence_tolerance = evidence_tolerance
-
-        self.facc = (
-            self._config("search", "sampling_efficiency")
-            if facc is None
-            else facc
-        )
-
-        self.bound = self._config("search", "bound") if bound is None else bound
-        self.sample = (
-            self._config("search", "sample") if sample is None else sample
-        )
-        self.bootstrap = (
-            self._config("search", "bootstrap") if bootstrap is None else bootstrap
-        )
-        self.enlarge = (
-            self._config("search", "enlarge") if enlarge is None else enlarge
-        )
-
-        self.update_interval = (
-            self._config("search", "update_interval")
-            if update_interval is None
-            else update_interval
-        )
-
-        if self.update_interval < 0.0:
-            self.update_interval = None
-
-        if self.enlarge < 0.0:
-            if self.bootstrap == 0.0:
-                self.enlarge = 1.0
-            else:
-                self.enlarge = 1.25
-
-        self.vol_dec = (
-            self._config("search", "vol_dec") if vol_dec is None else vol_dec
-        )
-        self.vol_check = (
-            self._config("search", "vol_check")
-            if vol_check is None
-            else vol_check
-        )
-        self.walks = self._config("search", "walks") if walks is None else walks
-        self.slices = (
-            self._config("search", "slices") if slices is None else slices
-        )
-        self.fmove = self._config("search", "fmove") if fmove is None else fmove
-        self.max_move = (
-            self._config("search", "max_move") if max_move is None else max_move
-        )
-
-        self.maxiter = (
-            self._config("search", "maxiter") if maxiter is None else maxiter
-        )
-        if self.maxiter <= 0:
-            self.maxiter = sys.maxsize
-        self.maxcall = (
-            self._config("search", "maxcall") if maxcall is None else maxcall
-        )
-        self.no_limit = False
-        if self.maxcall <= 0:
-            self.maxcall = sys.maxsize
-            self.no_limit = True
-        self.logl_max = (
-            self._config("search", "logl_max") if logl_max is None else logl_max
-        )
-        self.n_effective = (
-            self._config("search", "n_effective")
-            if n_effective is None
-            else n_effective
-        )
-        if self.n_effective <= 0:
-            self.n_effective = np.inf
+        self.nlive = self.config_dict["nlive"]
+        self.facc = self.config_dict["facc"]
+        self.bound = self.config_dict["bound"]
+        self.sample = self.config_dict["sample"]
+        self.bootstrap = self.config_dict["bootstrap"]
+        self.enlarge = self.config_dict["enlarge"]
+        self.update_interval = self.config_dict["update_interval"]
+        self.vol_dec = self.config_dict["vol_dec"]
+        self.vol_check = self.config_dict["vol_check"]
+        self.walks = self.config_dict["walks"]
+        self.slices = self.config_dict["slices"]
+        self.fmove = self.config_dict["fmove"]
+        self.max_move = self.config_dict["max_move"]
+        self.maxiter = self.config_dict["maxiter"]
+        self.maxcall = self.config_dict["maxcall"]
+        self.logl_max = self.config_dict["logl_max"]
+        self.n_effective = self.config_dict["n_effective"]
+        self.dlogz = self.config_dict["dlogz"]
 
         super().__init__(
             name=name,
@@ -249,6 +93,12 @@ class AbstractDynesty(AbstractNest, ABC):
         )
 
         logger.debug("Creating DynestyStatic NLO")
+
+    @property
+    def no_limit(self):
+        if self.maxcall is None:
+            return True
+        return False
 
     class Fitness(AbstractNest.Fitness):
         @property
@@ -294,20 +144,10 @@ class AbstractDynesty(AbstractNest, ABC):
         else:
 
             sampler = self.sampler_fom_model_and_fitness(
-                model=model, fitness_function=fitness_function
+                model=model, fitness_function=fitness_function, pool=pool
             )
 
             logger.info("No Dynesty samples found, beginning new non-linear search. ")
-
-        # These hacks are necessary to be able to pickle the sampler.
-
-        sampler.rstate = np.random
-        sampler.pool = pool
-
-        if self.number_of_cores == 1:
-            sampler.M = map
-        else:
-            sampler.M = pool.map
 
         finished = False
 
@@ -328,9 +168,10 @@ class AbstractDynesty(AbstractNest, ABC):
                 for i in range(10):
 
                     try:
+
                         sampler.run_nested(
                             maxcall=iterations,
-                            dlogz=self.evidence_tolerance,
+                            dlogz=self.dlogz,
                             logl_max=self.logl_max,
                             n_effective=self.n_effective,
                             print_progress=not self.silence,
@@ -420,14 +261,14 @@ class AbstractDynesty(AbstractNest, ABC):
     ):
 
         unit_parameters, parameters, log_likelihoods = self.initializer.initial_samples_from_model(
-            total_points=self.n_live_points,
+            total_points=self.nlive,
             model=model,
             fitness_function=fitness_function,
         )
 
-        init_unit_parameters = np.zeros(shape=(self.n_live_points, model.prior_count))
-        init_parameters = np.zeros(shape=(self.n_live_points, model.prior_count))
-        init_log_likelihoods = np.zeros(shape=(self.n_live_points))
+        init_unit_parameters = np.zeros(shape=(self.nlive, model.prior_count))
+        init_parameters = np.zeros(shape=(self.nlive, model.prior_count))
+        init_log_likelihoods = np.zeros(shape=(self.nlive))
 
         for index in range(len(parameters)):
 
@@ -448,29 +289,12 @@ class DynestyStatic(AbstractDynesty):
             name="",
             path_prefix="",
             prior_passer=None,
-            n_live_points=None,
-            facc=None,
-            evidence_tolerance=None,
-            bound=None,
-            sample=None,
-            bootstrap=None,
-            enlarge=None,
-            update_interval=None,
-            vol_dec=None,
-            vol_check=None,
-            walks=None,
-            slices=None,
-            fmove=None,
-            max_move=None,
-            maxiter=None,
-            maxcall=None,
-            logl_max=None,
-            n_effective=None,
             terminate_at_acceptance_ratio=None,
             acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
-            session=None
+            session=None,
+            **kwargs
     ):
         """
         A Dynesty `NonLinearSearch` using a static number of live points.
@@ -480,92 +304,14 @@ class DynestyStatic(AbstractDynesty):
         https://github.com/joshspeagle/dynesty
         https://dynesty.readthedocs.io/en/latest/index.html
 
-        Extensions:
-
-        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by pickling the
-          sampler instance during the model-fit after an input number of iterations.
-
-        Dynesty parameters are also described at the Dynesty API webpage:
-
-        https://dynesty.readthedocs.io/en/latest/api.html
-
         Parameters
         ----------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
+        name : str
+            The name of the search, controlling the last folder results are output.
+        path_prefix : str
+            The path of folders prefixing the name folder where results are output.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        facc : float
-            The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
-            [1. / walks, 1.].
-        evidence_threshold : float
-            This is called dlogz in the Dynesty API. Iteration will stop when the estimated contribution of the
-            remaining prior volume to the total evidence falls below this threshold. Explicitly, the stopping
-            criterion is ln(z + z_est) - ln(z) < dlogz, where z is the current evidence from all saved samples and
-            z_est is the estimated contribution from the remaining volume. If add_live is True, the default is
-            1e-3 * (nlive - 1) + 0.01. Otherwise, the default is 0.01.
-        bound : str
-            Method used to approximately bound the prior using the current set of live points. Conditions the sampling
-            methods used to propose new live points. Choices are no bound ('none'), a single bounding ellipsoid
-            ('single'), multiple bounding ellipsoids ('multi'), balls centered on each live point ('balls'), and cubes
-            centered on each live point ('cubes'). Default is 'multi'.
-        samples : str
-            Method used to sample uniformly within the likelihood constraint, conditioned on the provided bounds.
-            Unique methods available are: uniform sampling within the bounds('unif'), random walks with fixed
-            proposals ('rwalk'), random walks with variable (“staggering”) proposals ('rstagger'), multivariate slice
-            sampling along preferred orientations ('slice'), “random” slice sampling along all orientations ('rslice'),
-            “Hamiltonian” slices along random trajectories ('hslice'), and any callable function which follows the
-            pattern of the sample methods defined in dynesty.sampling. 'auto' selects the sampling method based on the
-            dimensionality of the problem (from ndim). When ndim < 10, this defaults to 'unif'. When 10 <= ndim <= 20,
-            this defaults to 'rwalk'. When ndim > 20, this defaults to 'hslice' if a gradient is provided and 'slice'
-            otherwise. 'rstagger' and 'rslice' are provided as alternatives for 'rwalk' and 'slice', respectively.
-            Default is 'auto'.
-        bootstrap : int
-            Compute this many bootstrapped realizations of the bounding objects. Use the maximum distance found to the
-            set of points left out during each iteration to enlarge the resulting volumes. Can lead to unstable
-            bounding ellipsoids. Default is 0 (no bootstrap).
-        enlarge : float
-            Enlarge the volumes of the specified bounding object(s) by this fraction. The preferred method is to
-            determine this organically using bootstrapping. If bootstrap > 0, this defaults to 1.0. If bootstrap = 0,
-            this instead defaults to 1.25.
-        vol_dec : float
-            For the 'multi' bounding option, the required fractional reduction in volume after splitting an ellipsoid
-            in order to to accept the split. Default is 0.5.
-        vol_check : float
-            For the 'multi' bounding option, the factor used when checking if the volume of the original bounding
-            ellipsoid is large enough to warrant > 2 splits via ell.vol > vol_check * nlive * pointvol. Default is 2.0.
-        walks : int
-            For the 'rwalk' sampling option, the minimum number of steps (minimum 2) before proposing a new live point.
-            Default is 25.
-        update_interval : int or float
-            If an integer is passed, only update the proposal distribution every update_interval-th likelihood call.
-            If a float is passed, update the proposal after every round(update_interval * nlive)-th likelihood call.
-            Larger update intervals larger can be more efficient when the likelihood function is quick to evaluate.
-            Default behavior is to target a roughly constant change in prior volume, with 1.5 for 'unif', 0.15 * walks
-            for 'rwalk' and 'rstagger', 0.9 * ndim * slices for 'slice', 2.0 * slices for 'rslice', and 25.0 * slices
-            for 'hslice'.
-        slices : int
-            For the 'slice', 'rslice', and 'hslice' sampling options, the number of times to execute a “slice update”
-            before proposing a new live point. Default is 5. Note that 'slice' cycles through all dimensions when
-            executing a “slice update”.
-        fmove : float
-            The target fraction of samples that are proposed along a trajectory (i.e. not reflecting) for the 'hslice'
-            sampling option. Default is 0.9.
-        max_move : int
-            The maximum number of timesteps allowed for 'hslice' per proposal forwards and backwards in time.
-            Default is 100.
-        maxiter : int
-            Maximum number of iterations. Iteration may stop earlier if the termination condition is reached. Default
-            is sys.maxsize (no limit).
-        maxcall : int
-            Maximum number of likelihood evaluations. Iteration may stop earlier if termination condition is reached.
-            Default is sys.maxsize (no limit).
-        logl_max : float
-            Iteration will stop when the sampled ln(likelihood) exceeds the threshold set by logl_max. Default is no
-            bound (np.inf).
-        n_effective : int
-            Minimum number of effective posterior samples. If the estimated “effective sample size” (ESS) exceeds
-            this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
             If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *Nest* for a full description of this feature).
@@ -580,53 +326,21 @@ class DynestyStatic(AbstractDynesty):
             pool instance is not created and the job runs in serial.
         """
 
-        self.n_live_points = (
-            self._config("search", "n_live_points")
-            if n_live_points is None
-            else n_live_points
-        )
-
-        evidence_tolerance = (
-            self._config("search", "evidence_tolerance")
-            if evidence_tolerance is None
-            else evidence_tolerance
-        )
-
-        if evidence_tolerance <= 0.0:
-            evidence_tolerance = 1e-3 * (self.n_live_points - 1) + 0.01
-
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
-            n_live_points=n_live_points,
-            evidence_tolerance=evidence_tolerance,
-            bound=bound,
-            sample=sample,
-            bootstrap=bootstrap,
-            enlarge=enlarge,
-            update_interval=update_interval,
-            vol_dec=vol_dec,
-            vol_check=vol_check,
-            walks=walks,
-            facc=facc,
-            slices=slices,
-            fmove=fmove,
-            max_move=max_move,
-            maxiter=maxiter,
-            maxcall=maxcall,
-            logl_max=logl_max,
-            n_effective=n_effective,
             iterations_per_update=iterations_per_update,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             number_of_cores=number_of_cores,
-            session=session
+            session=session,
+            **kwargs
         )
 
         logger.debug("Creating DynestyStatic NLO")
 
-    def sampler_fom_model_and_fitness(self, model, fitness_function):
+    def sampler_fom_model_and_fitness(self, model, fitness_function, pool):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
 
@@ -640,20 +354,10 @@ class DynestyStatic(AbstractDynesty):
             ndim=model.prior_count,
             logl_args=[model, fitness_function],
             ptform_args=[model],
-            nlive=self.n_live_points,
-            bound=self.bound,
-            sample=self.sample,
-            update_interval=self.update_interval,
-            bootstrap=self.bootstrap,
-            enlarge=self.enlarge,
-            vol_dec=self.vol_dec,
-            vol_check=self.vol_check,
-            walks=self.walks,
-            facc=self.facc,
-            slices=self.slices,
-            fmove=self.fmove,
-            max_move=self.max_move,
             live_points=live_points,
+            queue_size=self.number_of_cores,
+            pool=pool,
+            **self.config_dict
         )
 
 
@@ -663,28 +367,11 @@ class DynestyDynamic(AbstractDynesty):
             name="",
             path_prefix="",
             prior_passer=None,
-            n_live_points=None,
-            evidence_tolerance=None,
-            facc=None,
-            bound=None,
-            sample=None,
-            bootstrap=None,
-            enlarge=None,
-            update_interval=None,
-            vol_dec=None,
-            vol_check=None,
-            walks=None,
-            slices=None,
-            fmove=None,
-            max_move=None,
-            maxiter=None,
-            maxcall=None,
-            logl_max=None,
-            n_effective=None,
             terminate_at_acceptance_ratio=None,
             acceptance_ratio_threshold=None,
             iterations_per_update=None,
             number_of_cores=None,
+            **kwargs
     ):
         """
         A Dynesty non-linear search, using a dynamically changing number of live points.
@@ -694,92 +381,14 @@ class DynestyDynamic(AbstractDynesty):
         https://github.com/joshspeagle/dynesty
         https://dynesty.readthedocs.io/en/latest/index.html
 
-        Extensions:
-
-        - Allows runs to be terminated and resumed from the point it was terminated. This is achieved by pickling the
-          sampler instance during the model-fit after an input number of iterations.
-
-        Dynesty parameters are also described at the Dynesty API webpage:
-
-        https://dynesty.readthedocs.io/en/latest/api.html
-
         Parameters
         ----------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
+        name : str
+            The name of the search, controlling the last folder results are output.
+        path_prefix : str
+            The path of folders prefixing the name folder where results are output.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        facc : float
-            The target acceptance fraction for the 'rwalk' sampling option. Default is 0.5. Bounded to be between
-            [1. / walks, 1.].
-        evidence_threshold : float
-            This is called dlogz in the Dynesty API. Iteration will stop when the estimated contribution of the
-            remaining prior volume to the total evidence falls below this threshold. Explicitly, the stopping
-            criterion is ln(z + z_est) - ln(z) < dlogz, where z is the current evidence from all saved samples and
-            z_est is the estimated contribution from the remaining volume. If add_live is True, the default is
-            1e-3 * (nlive - 1) + 0.01. Otherwise, the default is 0.01.
-        bound : str
-            Method used to approximately bound the prior using the current set of live points. Conditions the sampling
-            methods used to propose new live points. Choices are no bound ('none'), a single bounding ellipsoid
-            ('single'), multiple bounding ellipsoids ('multi'), balls centered on each live point ('balls'), and cubes
-            centered on each live point ('cubes'). Default is 'multi'.
-        samples : str
-            Method used to sample uniformly within the likelihood constraint, conditioned on the provided bounds.
-            Unique methods available are: uniform sampling within the bounds('unif'), random walks with fixed
-            proposals ('rwalk'), random walks with variable (“staggering”) proposals ('rstagger'), multivariate slice
-            sampling along preferred orientations ('slice'), “random” slice sampling along all orientations ('rslice'),
-            “Hamiltonian” slices along random trajectories ('hslice'), and any callable function which follows the
-            pattern of the sample methods defined in dynesty.sampling. 'auto' selects the sampling method based on the
-            dimensionality of the problem (from ndim). When ndim < 10, this defaults to 'unif'. When 10 <= ndim <= 20,
-            this defaults to 'rwalk'. When ndim > 20, this defaults to 'hslice' if a gradient is provided and 'slice'
-            otherwise. 'rstagger' and 'rslice' are provided as alternatives for 'rwalk' and 'slice', respectively.
-            Default is 'auto'.
-        bootstrap : int
-            Compute this many bootstrapped realizations of the bounding objects. Use the maximum distance found to the
-            set of points left out during each iteration to enlarge the resulting volumes. Can lead to unstable
-            bounding ellipsoids. Default is 0 (no bootstrap).
-        enlarge : float
-            Enlarge the volumes of the specified bounding object(s) by this fraction. The preferred method is to
-            determine this organically using bootstrapping. If bootstrap > 0, this defaults to 1.0. If bootstrap = 0,
-            this instead defaults to 1.25.
-        vol_dec : float
-            For the 'multi' bounding option, the required fractional reduction in volume after splitting an ellipsoid
-            in order to to accept the split. Default is 0.5.
-        vol_check : float
-            For the 'multi' bounding option, the factor used when checking if the volume of the original bounding
-            ellipsoid is large enough to warrant > 2 splits via ell.vol > vol_check * nlive * pointvol. Default is 2.0.
-        walks : int
-            For the 'rwalk' sampling option, the minimum number of steps (minimum 2) before proposing a new live point.
-            Default is 25.
-        update_interval : int or float
-            If an integer is passed, only update the proposal distribution every update_interval-th likelihood call.
-            If a float is passed, update the proposal after every round(update_interval * nlive)-th likelihood call.
-            Larger update intervals larger can be more efficient when the likelihood function is quick to evaluate.
-            Default behavior is to target a roughly constant change in prior volume, with 1.5 for 'unif', 0.15 * walks
-            for 'rwalk' and 'rstagger', 0.9 * ndim * slices for 'slice', 2.0 * slices for 'rslice', and 25.0 * slices
-            for 'hslice'.
-        slices : int
-            For the 'slice', 'rslice', and 'hslice' sampling options, the number of times to execute a “slice update”
-            before proposing a new live point. Default is 5. Note that 'slice' cycles through all dimensions when
-            executing a “slice update”.
-        fmove : float
-            The target fraction of samples that are proposed along a trajectory (i.e. not reflecting) for the 'hslice'
-            sampling option. Default is 0.9.
-        max_move : int
-            The maximum number of timesteps allowed for 'hslice' per proposal forwards and backwards in time.
-            Default is 100.
-        maxiter : int
-            Maximum number of iterations. Iteration may stop earlier if the termination condition is reached. Default
-            is sys.maxsize (no limit).
-        maxcall : int
-            Maximum number of likelihood evaluations. Iteration may stop earlier if termination condition is reached.
-            Default is sys.maxsize (no limit).
-        logl_max : float
-            Iteration will stop when the sampled ln(likelihood) exceeds the threshold set by logl_max. Default is no
-            bound (np.inf).
-        n_effective : int
-            Minimum number of effective posterior samples. If the estimated “effective sample size” (ESS) exceeds
-            this number, sampling will terminate. Default is no ESS (np.inf).
         terminate_at_acceptance_ratio : bool
             If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
             threshold value (see *Nest* for a full description of this feature).
@@ -794,48 +403,19 @@ class DynestyDynamic(AbstractDynesty):
             pool instance is not created and the job runs in serial.
         """
 
-        n_live_points = (
-            self._config("search", "n_live_points")
-            if n_live_points is None
-            else n_live_points
-        )
-
-        if n_live_points <= 0:
-            n_live_points = 500
-
-        evidence_tolerance = (
-            self._config("search", "evidence_tolerance")
-            if evidence_tolerance is None
-            else evidence_tolerance
-        )
-
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             prior_passer=prior_passer,
-            n_live_points=n_live_points,
-            evidence_tolerance=evidence_tolerance,
-            bound=bound,
-            sample=sample,
-            bootstrap=bootstrap,
-            enlarge=enlarge,
-            update_interval=update_interval,
-            vol_dec=vol_dec,
-            vol_check=vol_check,
-            walks=walks,
-            facc=facc,
-            slices=slices,
-            fmove=fmove,
-            max_move=max_move,
-            maxiter=maxiter,
-            maxcall=maxcall,
-            logl_max=logl_max,
-            n_effective=n_effective,
             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
             acceptance_ratio_threshold=acceptance_ratio_threshold,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
+            **kwargs
         )
+
+        if self.nlive <= 0:
+            self.nlive = 500
 
         logger.debug("Creating DynestyDynamic NLO")
 
@@ -863,7 +443,8 @@ class DynestyDynamic(AbstractDynesty):
         )
 
     def perform_update(self, model, analysis, during_analysis):
-        """Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
+        """
+        Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
@@ -963,16 +544,6 @@ class DynestyDynamic(AbstractDynesty):
             "No DynestyDynamic samples found, beginning new non-linear search. "
         )
 
-        # These hacks are necessary to be able to pickle the sampler.
-
-        sampler.rstate = np.random
-        sampler.pool = pool
-
-        if self.number_of_cores == 1:
-            sampler.M = map
-        else:
-            sampler.M = pool.map
-
         finished = False
 
         while not finished:
@@ -990,9 +561,9 @@ class DynestyDynamic(AbstractDynesty):
             if iterations > 0:
 
                 sampler.run_nested(
-                    nlive_init=self.n_live_points,
+                    nlive_init=self.nlive,
                     maxcall=iterations,
-                    dlogz_init=self.evidence_tolerance,
+                    dlogz_init=self.dlogz,
                     logl_max_init=self.logl_max,
                     n_effective=self.n_effective,
                     print_progress=not self.silence,
@@ -1070,6 +641,6 @@ class DynestyDynamic(AbstractDynesty):
             ),
             total_samples=total_samples,
             log_evidence=log_evidence,
-            number_live_points=self.n_live_points,
+            number_live_points=self.nlive,
             time=self.timer.time,
         )

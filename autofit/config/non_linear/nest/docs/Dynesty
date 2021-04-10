@@ -1,5 +1,5 @@
 [search]
-    n_live_points -> int
+    nlive -> int
         The number of live points used to sample non-linear parameter space. More points provides a more thorough
         sampling of parameter space, at the expense of taking longer to run. The number of live points required for
         accurate sampling depends on the complexity of parameter space.
@@ -25,7 +25,7 @@
         bounding ellipsoids. Default is 0 (no bootstrap).
     enlarge -> float
         Enlarge the volumes of the specified bounding object(s) by this fraction. The preferred method is to
-        determine this organically using bootstrapping. If bootstrap > 0, this defaults to 1.0. If bootstrap=0,
+        determine this organically using bootstrapping. If bootstrap > 0, this defaults to 1.0. If bootstrap=None,
         this instead defaults to 1.25.
     vol_dec -> float
         For the 'multi' bounding option, the required fractional reduction in volume after splitting an ellipsoid
