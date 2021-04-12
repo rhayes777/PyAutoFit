@@ -71,11 +71,11 @@ class MassProfile:
     def surface_density_from_grid(self, grid):
         pass
 
-    def potential_from_grid(self, grid):
+    def potential_2d_from_grid(self, grid):
         pass
 
-    def deflections_from_grid(self, grid):
-        raise NotImplementedError("deflections_from_grid should be overridden")
+    def deflections_2d_from_grid(self, grid):
+        raise NotImplementedError("deflections_2d_from_grid should be overridden")
 
 
 # noinspection PyAbstractClass
