@@ -58,6 +58,11 @@ def test_is_complete(search, session, model):
     assert search.paths.identifier == fit.id
     assert search.paths.is_complete
 
+    search.fit(
+        model,
+        Analysis()
+    )
+
 
 def test_remove_after(search, model):
     search.paths.model = model
