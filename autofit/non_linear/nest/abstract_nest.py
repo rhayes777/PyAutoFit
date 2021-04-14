@@ -103,8 +103,6 @@ class AbstractNest(NonLinearSearch):
 
         def __call__(self, parameters, *kwargs):
 
-            self.check_terminate_sampling()
-
             try:
                 return self.figure_of_merit_from_parameters(parameters=parameters)
             except exc.FitException:
@@ -144,39 +142,6 @@ class AbstractNest(NonLinearSearch):
                 else:
 
                     return -1.0 * np.abs(self.resampling_figure_of_merit) * 10.0
-
-        def check_terminate_sampling(self):
-            """Automatically terminate nested sampling when the sampler's acceptance ratio falls below a specified
-            value. This termimation is performed by returning all log likelihoods as the currently value of the maximum
-            log likelihood sample. This will lead to unreliable probability density functions and error estimates.
-
-            The reason to use this function is for stochastic likelihood functions the sampler can determine the
-            highest log likelihood models in parameter space but get 'stuck', unable to terminate as it cannot get all
-            live points to within a small likelihood range of one another. Without this feature on the sampler will not
-            end and suffer an extremely low acceptance rate.
-
-            This check is performed every 1000 samples."""
-
-            if self.terminate_at_acceptance_ratio:
-
-                try:
-                    samples = self.samples_from_model(model=self.model)
-                except Exception:
-                    samples = None
-
-                try:
-
-                    if (
-                            samples.acceptance_ratio < self.acceptance_ratio_threshold
-                    ) or self.terminate_has_begun:
-
-                        self.terminate_has_begun = True
-
-                        return self.max_log_likelihood
-
-                except ValueError:
-
-                    pass
 
     @property
     def config_type(self):

@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 from os import path
@@ -6,8 +5,7 @@ from os import path
 import dill
 
 from autoconf import conf
-from autofit.non_linear import samples as s
-from autofit.text import formatter, text_util
+from autofit.text import formatter
 from .abstract import AbstractPaths, make_path
 
 
@@ -197,10 +195,6 @@ non_linear_search={search_name}
             ),
             list_of_strings=parameter_name_and_label
         )
-
-    @property
-    def _samples_file(self) -> str:
-        return path.join(self.samples_path, "samples.csv")
 
     @property
     def _info_file(self) -> str:

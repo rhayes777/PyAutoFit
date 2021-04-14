@@ -71,10 +71,14 @@ class DatabasePaths(AbstractPaths):
             log_likelihood_function_time
         )
 
-    def save_all(self, info, *_):
+    def save_all(self, info, *_, **kwargs):
         self._fit.info = info
         self._fit.model = self.model
 
+        if self.search is not None:
+            self.search.paths = None
         self.save_object("search", self.search)
+        if self.search is not None:
+            self.search.paths = self
 
         self.session.commit()

@@ -5,6 +5,7 @@ import time
 from abc import ABC, abstractmethod
 from os import path
 from time import sleep
+from typing import Optional
 
 import numpy as np
 
@@ -120,12 +121,13 @@ class NonLinearSearch(ABC):
         return self._timer
 
     @property
-    def paths(self):
+    def paths(self) -> Optional[AbstractPaths]:
         return self._paths
 
     @paths.setter
-    def paths(self, paths):
-        paths.search = self
+    def paths(self, paths: Optional[AbstractPaths]):
+        if paths is not None:
+            paths.search = self
         self._paths = paths
 
     def copy_with_paths(
@@ -448,13 +450,13 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, paths: DirectoryPaths, instance, during_analysis):
+    def visualize(self, paths: AbstractPaths, instance, during_analysis):
         pass
 
-    def save_attributes_for_aggregator(self, paths: DirectoryPaths):
+    def save_attributes_for_aggregator(self, paths: AbstractPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: DirectoryPaths, model: mm.CollectionPriorModel,
+    def save_results_for_aggregator(self, paths: AbstractPaths, model: mm.CollectionPriorModel,
                                     samples: samps.OptimizerSamples):
         pass
 
