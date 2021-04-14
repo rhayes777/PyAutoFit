@@ -145,7 +145,12 @@ class Object(Base):
         """
         Create the real instance for this object
         """
-        return object.__new__(self.cls)
+        try:
+            return object.__new__(self.cls)
+        except TypeError as e:
+            raise TypeError(
+                f"Could not instantiate {self.name} of type {self.cls}"
+            ) from e
 
     def __call__(self):
         """
