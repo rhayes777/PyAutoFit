@@ -45,6 +45,7 @@ from .non_linear.abstract_search import PriorPasser
 from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
+from .non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from .non_linear.mcmc.emcee import Emcee
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic

@@ -77,10 +77,6 @@ class MockSearch(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["mock"]
 
-    @property
-    def tag(self):
-        return "mock"
-
     def perform_update(self, model, analysis, during_analysis):
         return MockSamples(
             samples=samples_with_log_likelihoods([1.0, 2.0]),

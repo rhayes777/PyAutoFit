@@ -31,7 +31,8 @@ class NonLinearSearch(ABC):
             initializer=None,
             iterations_per_update=None,
             number_of_cores=1,
-            session=None
+            session=None,
+            **kwargs
     ):
         """Abstract base class for non-linear searches.
 
@@ -109,6 +110,11 @@ class NonLinearSearch(ABC):
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.silence = True
+
+        self.kwargs = kwargs
+
+        for key, value in self.config_dict.items():
+            setattr(self, key, value)
 
         self.number_of_cores = number_of_cores
 
@@ -287,7 +293,7 @@ class NonLinearSearch(ABC):
 
             if self.force_pickle_overwrite:
 
-                self.paths.save_samples(samples=samples)
+                self.paths.save_object("samples", samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         self.paths.zip_remove()
@@ -298,9 +304,18 @@ class NonLinearSearch(ABC):
         pass
 
     @property
-    def tag(self):
-        """Tag the output folder of the non-linear search, based on the non linear search settings"""
-        raise NotImplementedError
+    def config_dict(self):
+
+        config_dict = self.config_type[self.__class__.__name__]["search"]._dict
+
+        return {**config_dict, **self.kwargs}
+
+    @property
+    def config_dict_settings(self):
+
+        config_dict_settings = self.config_type[self.__class__.__name__]["settings"]._dict
+
+        return {**config_dict_settings, **self.kwargs}
 
     @property
     def config_type(self):
@@ -323,7 +338,8 @@ class NonLinearSearch(ABC):
         return self.config_type[self.__class__.__name__][section][attribute_name]
 
     def perform_update(self, model, analysis, during_analysis):
-        """Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
+        """
+        Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
         non-linear search. The update performs the following tasks:
 
         1) Visualize the maximum log likelihood model.
@@ -351,7 +367,9 @@ class NonLinearSearch(ABC):
 
         samples = self.samples_via_sampler_from_model(model=model)
 
-        self.paths.save_samples(samples=samples)
+        self.paths.save_object("samples", samples)
+        samples.write_table(filename=self.paths._samples_file)
+        samples.info_to_json(filename=self.paths._info_file)
 
         try:
             instance = samples.max_log_likelihood_instance
@@ -366,14 +384,17 @@ class NonLinearSearch(ABC):
             )
 
         if self.should_output_model_results() or not during_analysis:
-            start = time.time()
-            analysis.log_likelihood_function(instance=instance)
-            log_likelihood_function_time = (time.time() - start)
+            try:
+                start = time.time()
+                analysis.log_likelihood_function(instance=instance)
+                log_likelihood_function_time = (time.time() - start)
 
-            self.paths.save_summary(
-                samples=samples,
-                log_likelihood_function_time=log_likelihood_function_time
-            )
+                self.paths.save_summary(
+                    samples=samples,
+                    log_likelihood_function_time=log_likelihood_function_time
+                )
+            except exc.FitException:
+                pass
 
         if not during_analysis and self.remove_state_files_at_end:
             try:
@@ -442,7 +463,7 @@ class NonLinearSearch(ABC):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self.paths.restore()
+      #  self.paths.restore()
 
 
 class Analysis(ABC):

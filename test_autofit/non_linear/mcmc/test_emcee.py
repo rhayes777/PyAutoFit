@@ -11,30 +11,33 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 class TestEmceeConfig:
 
     def test__loads_from_config_file_correct(self):
+
         emcee = af.Emcee(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nwalkers=51,
             nsteps=2001,
             initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
-            auto_correlation_check_for_convergence=False,
-            auto_correlation_check_size=101,
-            auto_correlation_required_length=51,
-            auto_correlation_change_threshold=0.02,
+            auto_correlations_settings=af.AutoCorrelationsSettings(
+                check_for_convergence=False,
+                check_size=101,
+                required_length=51,
+                change_threshold=0.02
+            ),
             number_of_cores=2,
         )
 
         assert emcee.prior_passer.sigma == 2.0
         assert emcee.prior_passer.use_errors == False
         assert emcee.prior_passer.use_widths == False
-        assert emcee.nwalkers == 51
-        assert emcee.nsteps == 2001
+        assert emcee.config_dict["nwalkers"] == 51
+        assert emcee.config_dict["nsteps"] == 2001
         assert isinstance(emcee.initializer, af.InitializerBall)
         assert emcee.initializer.lower_limit == 0.2
         assert emcee.initializer.upper_limit == 0.8
-        assert emcee.auto_correlation_check_for_convergence == False
-        assert emcee.auto_correlation_check_size == 101
-        assert emcee.auto_correlation_required_length == 51
-        assert emcee.auto_correlation_change_threshold == 0.02
+        assert emcee.auto_correlations_settings.check_for_convergence == False
+        assert emcee.auto_correlations_settings.check_size == 101
+        assert emcee.auto_correlations_settings.required_length == 51
+        assert emcee.auto_correlations_settings.change_threshold == 0.02
         assert emcee.number_of_cores == 2
 
         emcee = af.Emcee()
@@ -42,19 +45,14 @@ class TestEmceeConfig:
         assert emcee.prior_passer.sigma == 3.0
         assert emcee.prior_passer.use_errors == True
         assert emcee.prior_passer.use_widths == True
-        assert emcee.nwalkers == 50
-        assert emcee.nsteps == 2000
+        assert emcee.config_dict["nwalkers"] == 50
+        assert emcee.config_dict["nsteps"] == 2000
         assert isinstance(emcee.initializer, af.InitializerPrior)
-        assert emcee.auto_correlation_check_for_convergence == True
-        assert emcee.auto_correlation_check_size == 100
-        assert emcee.auto_correlation_required_length == 50
-        assert emcee.auto_correlation_change_threshold == 0.01
+        assert emcee.auto_correlations_settings.check_for_convergence == True
+        assert emcee.auto_correlations_settings.check_size == 100
+        assert emcee.auto_correlations_settings.required_length == 50
+        assert emcee.auto_correlations_settings.change_threshold == 0.01
         assert emcee.number_of_cores == 1
-
-    def test__tag(self):
-        emcee = af.Emcee(nwalkers=11)
-
-        assert emcee.tag == "emcee[nwalkers_11]"
 
     def test__samples_from_model(self):
         emcee = af.Emcee()
@@ -81,7 +79,7 @@ class TestEmceeConfig:
         assert samples.weights[0] == pytest.approx(1.0, 1.0e-4)
         assert samples.total_steps == 1000
         assert samples.total_walkers == 10
-        assert samples.auto_correlation_times[0] == pytest.approx(31.98507, 1.0e-4)
+        assert samples.auto_correlations.times[0] == pytest.approx(31.98507, 1.0e-4)
 
 
 class TestEmceeOutput:
@@ -127,9 +125,9 @@ class TestEmceeOutput:
 
         samples = emcee.samples_via_sampler_from_model(model=model)
 
-        assert samples.previous_auto_correlation_times == pytest.approx(
+        assert samples.auto_correlations.previous_times == pytest.approx(
             [31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4
         )
-        assert samples.auto_correlation_times == pytest.approx(
+        assert samples.auto_correlations.times == pytest.approx(
             [31.98507, 36.51001, 73.47629, 67.67495], 1.0e-4
         )

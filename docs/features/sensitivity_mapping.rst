@@ -36,7 +36,7 @@ We therefore fit the data using two models, one where the model is a single ``Ga
 
     dynesty = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "single_gaussian"),
-        n_live_points=100,
+        nlive=100,
         iterations_per_update=500,
     )
 
@@ -53,7 +53,7 @@ model comparison, we restrict the centre of the ``gaussian_feature`` to its true
 
     dynesty = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "two_gaussians"),
-        n_live_points=100,
+        nlive=100,
         iterations_per_update=500,
     )
 

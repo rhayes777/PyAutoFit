@@ -177,6 +177,7 @@ class TestOptimizerSamples:
         assert instance.mock_class.three == 7.0
         assert instance.mock_class.four == 8.0
 
+
 class TestPDFSamples:
     def test__from_csv_table(self, samples):
         filename = "samples.csv"

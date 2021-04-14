@@ -9,6 +9,7 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations
 
 
 class Sample:
@@ -890,10 +891,7 @@ class MCMCSamples(PDFSamples):
             self,
             model: ModelMapper,
             samples: List[Sample],
-            auto_correlation_times: np.ndarray,
-            auto_correlation_check_size: int,
-            auto_correlation_required_length: int,
-            auto_correlation_change_threshold: float,
+            auto_correlations: AutoCorrelations,
             total_walkers: int,
             total_steps: int,
             unconverged_sample_size: int = 100,
@@ -918,10 +916,7 @@ class MCMCSamples(PDFSamples):
 
         self.total_walkers = total_walkers
         self.total_steps = total_steps
-        self.auto_correlation_times = auto_correlation_times
-        self.auto_correlation_check_size = auto_correlation_check_size
-        self.auto_correlation_required_length = auto_correlation_required_length
-        self.auto_correlation_change_threshold = auto_correlation_change_threshold
+        self.auto_correlations = auto_correlations
         self.log_evidence = None
 
     @classmethod
@@ -945,10 +940,10 @@ class MCMCSamples(PDFSamples):
     @property
     def info_json(self):
         return {
-            "auto_correlation_times": None,
-            "auto_correlation_check_size": self.auto_correlation_check_size,
-            "auto_correlation_required_length": self.auto_correlation_required_length,
-            "auto_correlation_change_threshold": self.auto_correlation_change_threshold,
+            "times": None,
+            "check_size": self.auto_correlations.check_size,
+            "required_length": self.auto_correlations.required_length,
+            "change_threshold": self.auto_correlations.change_threshold,
             "total_walkers": self.total_walkers,
             "total_steps": self.total_steps,
             "time": self.time,
@@ -976,33 +971,14 @@ class MCMCSamples(PDFSamples):
         raise NotImplementedError()
 
     @property
-    def previous_auto_correlation_times(self) -> [float]:
-        raise NotImplementedError()
-
-    @property
-    def relative_auto_correlation_times(self) -> [float]:
-        return (
-                np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
-                / self.auto_correlation_times
-        )
-
-    @property
     def converged(self) -> bool:
-        """Whether the emcee samples have converged on a solution or if they are still in a burn-in period, based on the
-        auto correlation times of parameters."""
-        converged = np.all(
-            self.auto_correlation_times * self.auto_correlation_required_length
-            < self.total_samples
+        """
+        Whether the emcee samples have converged on a solution or if they are still in a burn-in period, based on the
+        auto correlation times of parameters.
+        """
+        return self.auto_correlations.check_if_converged(
+            total_samples=self.total_samples
         )
-        if converged:
-            try:
-                converged &= np.all(
-                    self.relative_auto_correlation_times
-                    < self.auto_correlation_change_threshold
-                )
-            except IndexError:
-                return False
-        return converged
 
     @property
     def median_pdf_vector(self) -> [float]:

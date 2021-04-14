@@ -263,12 +263,12 @@ class TestGridNLOBehaviour:
         )
         grid_search.paths = af.DirectoryPaths(name="")
 
-        grid_search.n_live_points = 20
-        grid_search.sampling_efficiency = 0.3
+        grid_search.nlive = 20
+        grid_search.facc = 0.3
 
         search = grid_search.search_instance("name_path")
 
-        assert search.n_live_points is grid_search.n_live_points
+        assert search.nlive is grid_search.nlive
         assert grid_search.paths.path != search.paths.path
         assert grid_search.paths.output_path != search.paths.output_path
 

@@ -57,7 +57,7 @@ to achieve a fast model-fit (had we fitted the more complex model right away we 
 
     dynesty = af.DynestyStatic(
         name=("search[1]__left_gaussian"),
-        n_live_points=30,
+        nlive=30,
     )
 
     search_2_result = dynesty.fit(model=model, analysis=analysis)
@@ -91,7 +91,7 @@ and use a low number of live points to achieve a fast model-fit.
     dynesty = af.DynestyStatic(
         name=("search[2]__right_gaussian"),
         path_prefix=path.join("features", "search_chaining"),
-        n_live_points=30,
+        nlive=30,
         iterations_per_update=500,
     )
 
@@ -123,7 +123,7 @@ The ``mean`` and ``sigma`` value of each parmeter's ``GaussianPrior`` are set us
     dynesty = af.DynestyStatic(
         name=("search[3]__both_gaussians"),
         path_prefix=path.join("features", "search_chaining"),
-        n_live_points=100,
+        nlive=100,
         iterations_per_update=500,
     )
 
