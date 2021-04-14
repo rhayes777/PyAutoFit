@@ -412,7 +412,10 @@ class OptimizerSamples:
         """
         return self.model.instance_from_vector(vector=self.parameters[sample_index])
 
-    def minimise(self):
+    def minimise(self) -> "OptimizerSamples":
+        """
+        A copy of this object with only important samples retained
+        """
         samples = copy(self)
         samples.samples = list({
             self.max_log_likelihood_sample,
