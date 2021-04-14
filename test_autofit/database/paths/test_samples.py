@@ -51,16 +51,6 @@ def test_serialise_sample(sample):
     assert "centre" in sample.kwargs
 
 
-def test_save_samples(
-        session
-):
-    fit, = session.query(
-        m.Fit
-    ).all()
-
-    assert fit.samples is not None
-
-
 def test_load_samples(
         paths
 ):
