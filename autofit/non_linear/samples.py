@@ -1,6 +1,7 @@
 import csv
 import json
 import math
+from copy import copy
 from typing import List
 
 import numpy as np
@@ -351,6 +352,12 @@ class OptimizerSamples:
         return most_likely_sample
 
     @property
+    def max_log_posterior_sample(self) -> Sample:
+        return self.samples[
+            self.max_log_posterior_index
+        ]
+
+    @property
     def max_log_likelihood_vector(self) -> [float]:
         """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
         return self.max_log_likelihood_sample.parameters_for_model(
@@ -404,6 +411,14 @@ class OptimizerSamples:
             The sample index of the weighted sample to return.
         """
         return self.model.instance_from_vector(vector=self.parameters[sample_index])
+
+    def minimise(self):
+        samples = copy(self)
+        samples.samples = list({
+            self.max_log_likelihood_sample,
+            self.max_log_posterior_sample
+        })
+        return samples
 
 
 class PDFSamples(OptimizerSamples):

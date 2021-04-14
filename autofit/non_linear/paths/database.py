@@ -85,7 +85,7 @@ class DatabasePaths(AbstractPaths):
 
     def save_samples(self, samples):
         self._fit.samples = Object.from_object(
-            samples
+            samples.minimise()
         )
 
     def _load_samples(self):
