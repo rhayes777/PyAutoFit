@@ -15,7 +15,9 @@ from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
+from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 
 
@@ -44,14 +46,21 @@ class NonLinearSearch(ABC):
         """
         from autofit.non_linear.paths.database import DatabasePaths
         if session is not None:
-            paths = DatabasePaths(name=name, path_prefix=path_prefix, session=session)
+            paths = DatabasePaths(
+                name=name,
+                path_prefix=path_prefix,
+                session=session
+            )
         else:
-            paths = DirectoryPaths(name=name, path_prefix=path_prefix)
+            paths = DirectoryPaths(
+                name=name,
+                path_prefix=path_prefix
+            )
 
         self._paths = None
         self._timer = None
 
-        self.paths: DirectoryPaths = paths
+        self.paths: AbstractPaths = paths
 
         self.prior_passer = prior_passer or PriorPasser.from_config(
             config=self._config
@@ -205,7 +214,14 @@ class NonLinearSearch(ABC):
              should be given a likelihood so low that it is discard."""
             return -np.inf
 
-    def fit(self, model, analysis: "Analysis", info=None, pickle_files=None, log_likelihood_cap=None) -> "Result":
+    def fit(
+            self,
+            model,
+            analysis: "Analysis",
+            info=None,
+            pickle_files=None,
+            log_likelihood_cap=None
+    ) -> "Result":
         """ Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
 
@@ -217,6 +233,7 @@ class NonLinearSearch(ABC):
 
         Parameters
         ----------
+        log_likelihood_cap
         analysis : af.Analysis
             An object that encapsulates the data and a log likelihood function.
         model : ModelMapper
