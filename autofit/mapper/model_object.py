@@ -20,7 +20,7 @@ class Identifier:
                 value, dict
         ):
             for key, value in value.items():
-                if not (key.startswith("_") or key == "id"):
+                if not (key.startswith("_") or key in ("id", "paths")):
                     self.hash_list.append(key)
                     self.add_value_to_hash_list(
                         value
@@ -57,10 +57,6 @@ class Identifier:
             self._add_value_to_hash_list(
                 value
             )
-        # self._add_value_to_hash_list(value)
-        # return md5(".".join(
-        #     self.hash_list
-        # ).encode("utf-8")).hexdigest()
 
     def __str__(self):
         return md5(".".join(
