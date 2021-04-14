@@ -23,6 +23,8 @@ class DatabasePaths(AbstractPaths):
         """
         Remove files from both the symlinked folder and the output directory
         """
+        self.session.commit()
+
         if self.remove_files:
             shutil.rmtree(
                 self.path,

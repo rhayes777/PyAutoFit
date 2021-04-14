@@ -22,6 +22,7 @@ class AbstractPySwarms(AbstractOptimizer):
             initializer=None,
             iterations_per_update=None,
             number_of_cores=None,
+            session=None
     ):
         """
         A PySwarms Particle Swarm Optimizer global non-linear search.
@@ -113,10 +114,10 @@ class AbstractPySwarms(AbstractOptimizer):
 
         super().__init__(
             name=name,
-
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
+            session=session
         )
 
         self.number_of_cores = (
@@ -473,6 +474,7 @@ class PySwarmsLocal(AbstractPySwarms):
             iterations_per_update=None,
             remove_state_files_at_end=None,
             number_of_cores=None,
+            session=None
     ):
         """ A PySwarms Particle Swarm Optimizer global non-linear search.
 
@@ -575,6 +577,7 @@ class PySwarmsLocal(AbstractPySwarms):
             initializer=initializer,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
+            session=session
         )
 
         logger.debug("Creating PySwarms NLO")
