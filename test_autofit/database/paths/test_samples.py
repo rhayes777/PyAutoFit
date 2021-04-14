@@ -64,7 +64,7 @@ def test_save_samples(
 def test_load_samples(
         paths
 ):
-    samples = paths.load_samples()
+    samples = paths._load_samples()
 
     assert samples.model.cls is mock.Gaussian
 

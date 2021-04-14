@@ -86,11 +86,14 @@ class DatabasePaths(AbstractPaths):
             samples
         )
 
-    def load_samples(self):
+    def _load_samples(self):
         return self._fit.samples()
 
+    def load_samples(self):
+        return self._load_samples().samples
+
     def load_samples_info(self):
-        return self.load_samples().info_json
+        return self._load_samples().info_json
 
     def save_all(self, info, *_, **kwargs):
         self._fit.info = info

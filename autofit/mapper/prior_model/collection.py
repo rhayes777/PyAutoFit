@@ -30,6 +30,8 @@ class CollectionPriorModel(AbstractPriorModel):
         return item in self._dict or item in self._dict.values()
 
     def __getitem__(self, item):
+        if item in self._dict:
+            return self._dict[item]
         return self.values[item]
 
     def __len__(self):
