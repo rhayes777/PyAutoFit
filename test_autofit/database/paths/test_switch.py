@@ -1,6 +1,9 @@
+import os
+
+import pytest
+
 import autofit as af
 from autofit import database as m
-from autofit.mapper.model_object import Identifier
 from autofit.mock import mock
 
 
@@ -10,21 +13,32 @@ class Analysis(af.Analysis):
         return -1
 
 
-def test_dynesty(session):
-    search = af.DynestyStatic(
+@pytest.fixture(
+    name="search"
+)
+def make_search(session):
+    return af.DynestyStatic(
         session=session
     )
+
+
+@pytest.fixture(
+    name="model"
+)
+def make_model():
+    return af.Model(
+        mock.Gaussian
+    )
+
+
+def test_is_database_paths(search):
     assert isinstance(
         search.paths,
         af.DatabasePaths
     )
 
-    model = af.Model(
-        mock.Gaussian
-    )
 
-    print("fit")
-
+def test_is_complete(search, session, model):
     search.fit(
         model,
         Analysis()
@@ -32,7 +46,6 @@ def test_dynesty(session):
 
     fit, = m.Fit.all(session)
 
-    print("first identifier check")
     assert fit.id == search.paths.identifier
     assert fit.is_complete
 
@@ -42,11 +55,19 @@ def test_dynesty(session):
 
     search.paths.model = model
 
-    print("second identifier check")
     assert search.paths.identifier == fit.id
     assert search.paths.is_complete
+
+
+def test_remove_after(search, model):
+    search.paths.model = model
+    output_path = search.paths.output_path
 
     search.fit(
         model,
         Analysis()
+    )
+
+    assert not os.path.exists(
+        output_path
     )

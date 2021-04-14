@@ -1,3 +1,5 @@
+import shutil
+
 from sqlalchemy.orm.exc import NoResultFound
 
 from .abstract import AbstractPaths
@@ -16,6 +18,20 @@ class DatabasePaths(AbstractPaths):
             path_prefix=path_prefix,
         )
         self.session = session
+
+    def zip_remove(self):
+        """
+        Copy files from the sym linked search folder then remove the sym linked folder.
+        """
+        if self.remove_files:
+            shutil.rmtree(
+                self.path,
+                ignore_errors=True
+            )
+            shutil.rmtree(
+                self.output_path,
+                ignore_errors=True
+            )
 
     def save_object(self, name: str, obj: object):
         self._fit[name] = obj
