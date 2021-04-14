@@ -367,9 +367,11 @@ class NonLinearSearch(ABC):
 
         samples = self.samples_via_sampler_from_model(model=model)
 
-        self.paths.save_object("samples", samples)
-        samples.write_table(filename=self.paths._samples_file)
-        samples.info_to_json(filename=self.paths._info_file)
+        # self.paths.save_object("samples", samples)
+
+        self.paths.save_samples(
+            samples
+        )
 
         try:
             instance = samples.max_log_likelihood_instance
@@ -463,7 +465,7 @@ class NonLinearSearch(ABC):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-      #  self.paths.restore()
+    #  self.paths.restore()
 
 
 class Analysis(ABC):
