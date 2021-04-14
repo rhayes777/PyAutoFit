@@ -186,7 +186,7 @@ class Object(Base):
             if isinstance(
                     value,
                     property
-            ):
+            ) or key.startswith("__"):
                 continue
             child = Object.from_object(
                 value,
