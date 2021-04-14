@@ -320,10 +320,17 @@ class Emcee(AbstractMCMC):
         samples = self.paths.load_samples()
         samples_info = self.paths.load_samples_info()
 
+        try:
+            backend = self.backend
+            auto_correlation_times = self.backend.get_autocorr_time(tol=0)
+        except FileNotFoundError:
+            backend = None
+            auto_correlation_times = None
+
         return EmceeSamples(
             model=model,
             samples=samples,
-            auto_correlation_times=self.backend.get_autocorr_time(tol=0),
+            auto_correlation_times=auto_correlation_times,
             auto_correlation_check_size=samples_info["auto_correlation_check_size"],
             auto_correlation_required_length=samples_info[
                 "auto_correlation_required_length"
@@ -334,7 +341,7 @@ class Emcee(AbstractMCMC):
             total_walkers=samples_info["total_walkers"],
             total_steps=samples_info["total_steps"],
             time=samples_info["time"],
-            backend=self.backend
+            backend=backend
         )
 
     @property
