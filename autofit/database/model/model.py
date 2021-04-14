@@ -91,7 +91,7 @@ class Object(Base):
         """
         if source is None or isinstance(
                 source,
-                (np.ndarray, np.dtype)
+                np.ndarray
         ):
             from .instance import NoneInstance
             instance = NoneInstance()
@@ -186,7 +186,9 @@ class Object(Base):
             if isinstance(
                     value,
                     property
-            ) or key.startswith("__"):
+            ) or key.startswith(
+                "__"
+            ) or key == "dtype":
                 continue
             child = Object.from_object(
                 value,
