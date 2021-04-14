@@ -36,6 +36,19 @@ class Object(Base):
         uselist=False,
         remote_side=[id]
     )
+
+    samples_for_id = Column(
+        Integer,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    samples_for = relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[samples_for_id]
+    )
+
     children: List["Object"] = relationship(
         "Object",
         uselist=True,

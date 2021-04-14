@@ -3,7 +3,7 @@ import shutil
 from sqlalchemy.orm.exc import NoResultFound
 
 from .abstract import AbstractPaths
-from ...database.model import Fit
+from ...database.model import Fit, Object
 
 
 class DatabasePaths(AbstractPaths):
@@ -79,6 +79,11 @@ class DatabasePaths(AbstractPaths):
         super().save_summary(
             samples,
             log_likelihood_function_time
+        )
+
+    def save_samples(self, samples):
+        self._fit.samples = Object.from_object(
+            samples
         )
 
     def save_all(self, info, *_, **kwargs):

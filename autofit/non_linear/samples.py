@@ -213,7 +213,7 @@ def load_from_table(filename: str) -> List[Sample]:
 class OptimizerSamples:
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             samples: List[Sample],
             time: float = None,
     ):
@@ -235,20 +235,12 @@ class OptimizerSamples:
 
         paths = self.model.model_component_and_parameter_names
 
-        try:
-            return [
-                sample.parameters_for_model(
-                    self.model, paths
-                )
-                for sample in self.samples
-            ]
-        except KeyError:
-            return [
-                sample.parameters_for_model(
-                    self.model, paths
-                )
-                for sample in self.samples
-            ]
+        return [
+            sample.parameters_for_model(
+                self.model, paths
+            )
+            for sample in self.samples
+        ]
 
     @property
     def total_samples(self):
@@ -416,7 +408,7 @@ class OptimizerSamples:
 class PDFSamples(OptimizerSamples):
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             samples: List[Sample],
             unconverged_sample_size: int = 100,
             time: float = None,
@@ -1055,7 +1047,7 @@ class MCMCSamples(PDFSamples):
 class NestSamples(PDFSamples):
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             samples: List[Sample],
             number_live_points: int,
             log_evidence: float,
