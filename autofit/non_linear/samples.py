@@ -333,12 +333,13 @@ class OptimizerSamples:
             for row in self._rows:
                 writer.writerow(row)
 
+    @property
+    def info_json(self):
+        return {}
+
     def info_to_json(self, filename):
-
-        info = {}
-
         with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
+            json.dump(self.info_json, outfile)
 
     @property
     def max_log_likelihood_sample(self) -> Sample:
@@ -922,9 +923,9 @@ class MCMCSamples(PDFSamples):
             samples=samples
         )
 
-    def info_to_json(self, filename):
-
-        info = {
+    @property
+    def info_json(self):
+        return {
             "auto_correlation_times": None,
             "auto_correlation_check_size": self.auto_correlation_check_size,
             "auto_correlation_required_length": self.auto_correlation_required_length,
@@ -933,9 +934,6 @@ class MCMCSamples(PDFSamples):
             "total_steps": self.total_steps,
             "time": self.time,
         }
-
-        with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
 
     @property
     def pdf_converged(self):
@@ -1088,17 +1086,15 @@ class NestSamples(PDFSamples):
     def total_samples(self):
         return self._total_samples
 
-    def info_to_json(self, filename):
-        info = {
+    @property
+    def info_json(self):
+        return {
             "log_evidence": self.log_evidence,
             "total_samples": self.total_samples,
             "unconverged_sample_size": self.unconverged_sample_size,
             "time": self.time,
             "number_live_points": self.number_live_points
         }
-
-        with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
 
     @property
     def total_accepted_samples(self) -> int:

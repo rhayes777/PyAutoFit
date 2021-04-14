@@ -111,7 +111,7 @@ class Object(Base):
             instance = Collection._from_object(
                 source
             )
-        elif isinstance(source, (af.CollectionPriorModel, dict, list)):
+        elif isinstance(source, (af.CollectionPriorModel, dict)):
             from .prior import CollectionPriorModel
             instance = CollectionPriorModel._from_object(
                 source

@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 from os import path
@@ -7,6 +8,7 @@ import dill
 from autoconf import conf
 from autofit.text import formatter
 from .abstract import AbstractPaths, make_path
+from ..samples import load_from_table
 
 
 class DirectoryPaths(AbstractPaths):
@@ -121,6 +123,22 @@ class DirectoryPaths(AbstractPaths):
         Mark the search as complete by saving a file
         """
         open(self._has_completed_path, "w+").close()
+
+    def load_samples(self):
+        return load_from_table(
+            filename=self._samples_file
+        )
+
+    def save_samples(self, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+        samples.write_table(filename=self._samples_file)
+        samples.info_to_json(filename=self._info_file)
+
+    def load_samples_info(self):
+        with open(self._info_file) as infile:
+            return json.load(infile)
 
     def save_all(self, info, pickle_files):
         self._save_model_info(model=self.model)

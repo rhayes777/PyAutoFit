@@ -26,6 +26,9 @@ class CollectionPriorModel(AbstractPriorModel):
             if prior == direct_prior:
                 return name
 
+    def __contains__(self, item):
+        return item in self._dict or item in self._dict.values()
+
     def __getitem__(self, item):
         return self.values[item]
 
