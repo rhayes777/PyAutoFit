@@ -21,7 +21,7 @@ class DatabasePaths(AbstractPaths):
 
     def zip_remove(self):
         """
-        Copy files from the sym linked search folder then remove the sym linked folder.
+        Remove files from both the symlinked folder and the output directory
         """
         if self.remove_files:
             shutil.rmtree(
