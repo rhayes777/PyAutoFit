@@ -263,16 +263,20 @@ class AbstractPaths(ABC):
 
     @abstractmethod
     def load_samples(self):
-        pass
+        """
+        Load samples from the database
+        """
 
     @abstractmethod
     def save_samples(self, samples):
-        pass
+        """
+        Save samples to the database
+        """
 
     @abstractmethod
     def load_samples_info(self):
         pass
-    
+
     def save_summary(self, samples, log_likelihood_function_time):
         text_util.results_to_file(
             samples=samples,
