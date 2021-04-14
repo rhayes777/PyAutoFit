@@ -1,6 +1,7 @@
 import inspect
 from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
+import numpy as np
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -88,7 +89,7 @@ class Object(Base):
         -------
         An instance of a concrete child of this class
         """
-        if source is None:
+        if source is None or isinstance(source, np.ndarray):
             from .instance import NoneInstance
             instance = NoneInstance()
         elif isinstance(source, af.PriorModel):
