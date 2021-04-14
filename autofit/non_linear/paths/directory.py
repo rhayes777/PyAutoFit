@@ -41,7 +41,7 @@ class DirectoryPaths(AbstractPaths):
                 self._path_for_pickle(
                     name
                 ),
-                "w+b"
+                "wb"
         ) as f:
             dill.dump(
                 obj, f
@@ -69,7 +69,7 @@ class DirectoryPaths(AbstractPaths):
                 self._path_for_pickle(
                     name
                 ),
-                "r+b"
+                "rb"
         ) as f:
             return dill.load(
                 f
