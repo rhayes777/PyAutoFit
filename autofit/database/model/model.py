@@ -89,7 +89,10 @@ class Object(Base):
         -------
         An instance of a concrete child of this class
         """
-        if source is None or isinstance(source, np.ndarray):
+        if source is None or isinstance(
+                source,
+                (np.ndarray, np.dtype)
+        ):
             from .instance import NoneInstance
             instance = NoneInstance()
         elif isinstance(source, af.PriorModel):
