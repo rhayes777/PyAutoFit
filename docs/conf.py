@@ -43,8 +43,6 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.extlinks',
     'numpydoc',
-    'nbsphinx',
-    "nbsphinx_link",
 ]
 
 ## Generate autodoc stubs with summaries from code
