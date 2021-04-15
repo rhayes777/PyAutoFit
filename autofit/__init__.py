@@ -1,4 +1,4 @@
-from autofit.non_linear.grid.grid_search import GridSearch as SearchGridSearch
+from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
 from .aggregator import Aggregator
