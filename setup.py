@@ -12,12 +12,12 @@ with open(join(this_dir, "requirements.txt")) as f:
     requirements = f.read().split("\n")
 
 requirements.extend([
-    'autoconf==0.8.0'
+    'autoconf==0.9.0'
 ])
 
 setup(
     name="autofit",
-    version=environ.get("VERSION", "1.0.dev0"),
+    version=environ.get("VERSION", "0.75.0"),
     description="Classy Probabilistic Programming",
     long_description=long_description,
     long_description_content_type="text/markdown",

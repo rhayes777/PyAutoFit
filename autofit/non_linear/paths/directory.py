@@ -140,7 +140,8 @@ class DirectoryPaths(AbstractPaths):
         with open(self._info_file) as infile:
             return json.load(infile)
 
-    def save_all(self, info, pickle_files):
+    def save_all(self, search_config_dict, info, pickle_files):
+        self._save_search(config_dict=search_config_dict)
         self._save_model_info(model=self.model)
         self._save_parameter_names_file(model=self.model)
         self.save_object("info", info)

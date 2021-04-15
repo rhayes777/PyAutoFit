@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from functools import wraps
 from os import path
+import json
 
 from autoconf import conf
 from autofit.mapper import link
@@ -256,7 +257,7 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_all(self, info, pickle_files):
+    def save_all(self, search_config_dict, info, pickle_files):
         pass
 
     @abstractmethod
@@ -274,6 +275,11 @@ class AbstractPaths(ABC):
     @abstractmethod
     def load_samples_info(self):
         pass
+
+    def _save_search(self, config_dict):
+
+        with open(path.join(self.output_path, "search.json"), "w+") as f:
+            json.dump(config_dict, f, indent=4)
 
     def save_summary(self, samples, log_likelihood_function_time):
         text_util.results_to_file(

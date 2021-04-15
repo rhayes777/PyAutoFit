@@ -268,6 +268,7 @@ class NonLinearSearch(ABC):
         if not self.paths.is_complete or self.force_pickle_overwrite:
 
             self.paths.save_all(
+                search_config_dict=self.config_dict,
                 info=info,
                 pickle_files=pickle_files
             )
