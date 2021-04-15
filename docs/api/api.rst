@@ -60,8 +60,8 @@ Models
 .. autosummary::
    :toctree: generated/
 
-   Model
-   Collection
+   PriorModel
+   CollectionPriorModel
 
 
 ------
