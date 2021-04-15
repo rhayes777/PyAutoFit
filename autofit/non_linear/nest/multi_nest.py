@@ -58,8 +58,6 @@ class MultiNest(abstract_nest.AbstractNest):
                 analysis,
                 samples_from_model,
                 stagger_resampling_likelihood,
-                terminate_at_acceptance_ratio,
-                acceptance_ratio_threshold,
                 log_likelihood_cap=None,
                 pool_ids=None
         ):
@@ -69,8 +67,6 @@ class MultiNest(abstract_nest.AbstractNest):
                 analysis=analysis,
                 samples_from_model=samples_from_model,
                 stagger_resampling_likelihood=stagger_resampling_likelihood,
-                terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-                acceptance_ratio_threshold=acceptance_ratio_threshold,
                 log_likelihood_cap=log_likelihood_cap,
                 pool_ids=pool_ids,
                 paths=paths

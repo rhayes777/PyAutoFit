@@ -286,6 +286,7 @@ class NonLinearSearch(ABC):
             )
 
             analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
+            self.paths.save_object("samples", samples)
 
         else:
 

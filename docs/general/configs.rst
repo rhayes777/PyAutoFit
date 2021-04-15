@@ -98,14 +98,6 @@ The following config sections and variables are generic across all non-linear se
         cores the parallel run uses. If ``number_of_cores=1``, the model-fit is performed in serial omitting the use
         of the ``multiprocessing`` module.
 
-The output path of every non-linear search is also 'tagged' using strings based on the ``[search]`` setting of the
-non-linear search:
-
-[tag]
-    name -> str
-        The name of the non-linear search used to start the tag path of output results. For example for the
-        search ``DynestyStatic`` the default name tag is 'dynesty_static'.
-
 visualize
 ---------
 

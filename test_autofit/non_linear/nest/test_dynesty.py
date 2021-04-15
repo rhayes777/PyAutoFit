@@ -34,8 +34,6 @@ class TestDynestyConfig:
             nlive=151,
             dlogz=0.1,
             iterations_per_update=501,
-            terminate_at_acceptance_ratio=False,
-            acceptance_ratio_threshold=0.5,
             number_of_cores=2,
         )
 
@@ -46,8 +44,6 @@ class TestDynestyConfig:
 
         assert dynesty.config_dict["nlive"] == 151
         assert dynesty.config_dict["dlogz"] == 0.1
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is False
-        assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 0.5
         assert dynesty.number_of_cores == 2
 
         dynesty = af.DynestyStatic()
@@ -59,8 +55,6 @@ class TestDynestyConfig:
 
         assert dynesty.config_dict["nlive"] == 150
         assert dynesty.config_dict["dlogz"] == None
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is True
-        assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 2.0
         assert dynesty.number_of_cores == 1
 
         dynesty = af.DynestyDynamic(
@@ -68,8 +62,6 @@ class TestDynestyConfig:
             nlive=500,
             iterations_per_update=501,
             dlogz=0.2,
-            terminate_at_acceptance_ratio=False,
-            acceptance_ratio_threshold=0.5,
             number_of_cores=3,
         )
 
@@ -80,8 +72,6 @@ class TestDynestyConfig:
 
         assert dynesty.config_dict["nlive"] == 500
         assert dynesty.config_dict["dlogz"] == 0.2
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is False
-        assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 0.5
         assert dynesty.number_of_cores == 3
 
         dynesty = af.DynestyDynamic()
@@ -93,8 +83,6 @@ class TestDynestyConfig:
 
         assert dynesty.config_dict["nlive_init"] == 5
         assert dynesty.config_dict["facc"] == 0.6
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is True
-        assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 2.0
         assert dynesty.number_of_cores == 4
 
     def test__samples_from_model(self):

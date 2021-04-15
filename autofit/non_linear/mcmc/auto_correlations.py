@@ -103,6 +103,9 @@ class AutoCorrelations(AutoCorrelationsSettings):
         auto correlation times of parameters.
         """
 
+        if self.times is None or self.previous_times is None:
+            return False
+
         converged = np.all(
             self.times * self.required_length
             < total_samples

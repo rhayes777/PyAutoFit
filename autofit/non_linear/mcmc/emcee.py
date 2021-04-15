@@ -233,9 +233,12 @@ class Emcee(AbstractMCMC):
         total_steps = len(self.backend.get_log_prob())
 
         auto_correlation_time = self.backend.get_autocorr_time(tol=0)
-        previous_auto_correlation_times = emcee.autocorr.integrated_time(
-            x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
-        )
+        try:
+            previous_auto_correlation_times = emcee.autocorr.integrated_time(
+                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
+            )
+        except IndexError:
+            previous_auto_correlation_times = None
 
         return EmceeSamples(
             model=model,

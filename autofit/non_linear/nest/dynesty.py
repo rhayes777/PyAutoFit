@@ -50,12 +50,6 @@ class AbstractDynesty(AbstractNest, ABC):
             The path of folders prefixing the name folder where results are output.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        terminate_at_acceptance_ratio : bool
-            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *Nest* for a full description of this feature).
-        acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            `True` (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
@@ -321,12 +315,6 @@ class DynestyStatic(AbstractDynesty):
             The path of folders prefixing the name folder where results are output.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        terminate_at_acceptance_ratio : bool
-            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *Nest* for a full description of this feature).
-        acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            `True` (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
@@ -408,12 +396,6 @@ class DynestyDynamic(AbstractDynesty):
             The path of folders prefixing the name folder where results are output.
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        terminate_at_acceptance_ratio : bool
-            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *Nest* for a full description of this feature).
-        acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            `True` (see *Nest* for a full description of this feature).
         iterations_per_update : int
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).

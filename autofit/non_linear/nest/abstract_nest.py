@@ -34,11 +34,6 @@ class AbstractNest(NonLinearSearch):
         ----------
         prior_passer : af.PriorPasser
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        terminate_at_acceptance_ratio : bool
-            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value.
-        acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is `True`.
         """
         super().__init__(
             name=name,
@@ -58,8 +53,6 @@ class AbstractNest(NonLinearSearch):
                 model,
                 samples_from_model,
                 stagger_resampling_likelihood,
-                terminate_at_acceptance_ratio,
-                acceptance_ratio_threshold,
                 log_likelihood_cap=None,
                 pool_ids=None
         ):
@@ -76,9 +69,6 @@ class AbstractNest(NonLinearSearch):
             self.stagger_resampling_likelihood = stagger_resampling_likelihood
             self.stagger_accepted_samples = 0
             self.resampling_figure_of_merit = -1.0e99
-
-            self.terminate_at_acceptance_ratio = terminate_at_acceptance_ratio
-            self.acceptance_ratio_threshold = acceptance_ratio_threshold
 
             self.should_check_terminate = IntervalCounter(1000)
 
@@ -136,8 +126,6 @@ class AbstractNest(NonLinearSearch):
             analysis=analysis,
             samples_from_model=self.samples_via_sampler_from_model,
             stagger_resampling_likelihood=self.config_dict_settings["stagger_resampling_likelihood"],
-            terminate_at_acceptance_ratio=self.config_dict_settings["terminate_at_acceptance_ratio"],
-            acceptance_ratio_threshold=self.config_dict_settings["acceptance_ratio_threshold"],
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids
         )

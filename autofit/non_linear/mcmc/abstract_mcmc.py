@@ -32,8 +32,8 @@ class AbstractMCMC(NonLinearSearch):
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
-            session=session,
             number_of_cores=number_of_cores,
+            session=session,
             **kwargs
         )
 
