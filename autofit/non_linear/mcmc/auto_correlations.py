@@ -1,14 +1,15 @@
 import numpy as np
 
+from typing import Optional
 
 class AutoCorrelationsSettings:
 
     def __init__(
             self,
-            check_for_convergence=None,
-            check_size=None,
-            required_length=None,
-            change_threshold=None,
+            check_for_convergence : Optional[bool] = None,
+            check_size : Optional[int] = None,
+            required_length : Optional[int] = None,
+            change_threshold : Optional[float] = None,
     ):
         """
         Class for performing and customizing AutoCorrelation calculations, which are used:
@@ -18,19 +19,19 @@ class AutoCorrelationsSettings:
 
         Parameters
         ----------
-        check_for_convergence : bool
+        check_for_convergence
             Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
             If `True`, this option may terminate the Emcee run before the input number of steps, nsteps, has
             been performed. If `False` nstep samples will be taken.
-        check_size : int
+        check_size
             The length of the samples used to check the auto-correlation lengths (from the latest sample backwards).
             For convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
             thus requires more samples meet the auto-correlation threshold, taking longer to terminate sampling.
             However, shorter chains risk stopping sampling early due to noise.
-        required_length : int
+        required_length
             The length an auto_correlation chain must be for it to be used to evaluate whether its change threshold is
             sufficiently small to terminate sampling early.
-        change_threshold : float
+        change_threshold
             The threshold value by which if the change in auto_correlations is below sampling will be terminated early.
         """
         self.check_for_convergence = check_for_convergence
@@ -42,26 +43,10 @@ class AutoCorrelationsSettings:
 
         config_dict = config._dict
 
-        self.check_for_convergence = (
-            config_dict["check_for_convergence"]
-            if self.check_for_convergence is None
-            else self.check_for_convergence
-        )
-        self.check_size = (
-            config_dict["check_size"]
-            if self.check_size is None
-            else self.check_size
-        )
-        self.required_length = (
-            config_dict["required_length"]
-            if self.required_length is None
-            else self.required_length
-        )
-        self.change_threshold = (
-            config_dict["change_threshold"]
-            if self.change_threshold is None
-            else self.change_threshold
-        )
+        self.check_for_convergence = self.check_for_convergence if self.check_for_convergence is not None else config_dict["check_for_convergence"]
+        self.check_size = self.check_size or config_dict["check_size"]
+        self.required_length = self.required_length or config_dict["required_length"]
+        self.change_threshold = self.change_threshold or config_dict["change_threshold"]
 
 
 class AutoCorrelations(AutoCorrelationsSettings):

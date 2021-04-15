@@ -297,8 +297,8 @@ class DynestyStatic(AbstractDynesty):
 
     def __init__(
             self,
-            name="",
-            path_prefix="",
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             iterations_per_update=None,
             number_of_cores=None,
@@ -385,8 +385,8 @@ class DynestyStatic(AbstractDynesty):
 class DynestyDynamic(AbstractDynesty):
     def __init__(
             self,
-            name="",
-            path_prefix="",
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             iterations_per_update=None,
             number_of_cores=None,

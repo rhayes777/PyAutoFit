@@ -112,7 +112,7 @@ class TestJsonCSV:
         assert samples.log_priors == [0.0, 0.0, 0.0, 0.0, 0.0]
         assert samples.log_posteriors == [1.0, 2.0, 3.0, 10.0, 5.0]
         assert samples.weights == [1.0, 1.0, 1.0, 1.0, 1.0]
-        #  assert samples.times == None
+        assert samples.auto_correlations.times == pytest.approx([31.98507049, 36.51001152, 73.4762926, 67.67495736], 1.0e-4)
         assert samples.auto_correlations.check_size == 2
         assert samples.auto_correlations.required_length == 3
         assert samples.auto_correlations.change_threshold == 4

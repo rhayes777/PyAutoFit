@@ -8,8 +8,8 @@ class DatabasePaths(AbstractPaths):
     def __init__(
             self,
             session,
-            name="",
-            path_prefix=""
+            name=None,
+            path_prefix=None
     ):
         super().__init__(
             name=name,

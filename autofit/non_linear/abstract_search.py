@@ -22,8 +22,8 @@ from autofit.non_linear.timer import Timer
 class NonLinearSearch(ABC):
     def __init__(
             self,
-            name="",
-            path_prefix="",
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             initializer=None,
             iterations_per_update=None,
@@ -44,6 +44,10 @@ class NonLinearSearch(ABC):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
         from autofit.non_linear.paths.database import DatabasePaths
+
+        name = name or ""
+        path_prefix = path_prefix or ""
+
         if session is not None:
             paths = DatabasePaths(name=name, path_prefix=path_prefix, session=session)
         else:
@@ -69,11 +73,8 @@ class NonLinearSearch(ABC):
         else:
             self.initializer = initializer
 
-        self.iterations_per_update = (
-            self._config("updates", "iterations_per_update")
-            if iterations_per_update is None
-            else iterations_per_update
-        )
+        self.iterations_per_update = iterations_per_update or self._config("updates", "iterations_per_update")
+
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.iterations_per_update = conf.instance["general"]["hpc"]["iterations_per_update"]

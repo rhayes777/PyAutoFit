@@ -153,21 +153,21 @@ class TestMulitNest:
         )
 
         assert multi_nest.prior_passer.sigma == 2.0
-        assert multi_nest.prior_passer.use_errors == False
-        assert multi_nest.prior_passer.use_widths == False
+        assert multi_nest.prior_passer.use_errors is False
+        assert multi_nest.prior_passer.use_widths is False
         assert multi_nest.config_dict["n_live_points"] == 40
         assert multi_nest.config_dict["sampling_efficiency"] == 0.5
-        assert multi_nest.config_dict_settings["terminate_at_acceptance_ratio"] == True
+        assert multi_nest.config_dict_settings["terminate_at_acceptance_ratio"] is True
         assert multi_nest.config_dict_settings["acceptance_ratio_threshold"] == 0.9
 
         multi_nest = af.MultiNest()
 
         assert multi_nest.prior_passer.sigma == 3.0
-        assert multi_nest.prior_passer.use_errors == True
-        assert multi_nest.prior_passer.use_widths == True
+        assert multi_nest.prior_passer.use_errors is True
+        assert multi_nest.prior_passer.use_widths is True
         assert multi_nest.config_dict["n_live_points"] == 50
         assert multi_nest.config_dict["sampling_efficiency"] == 0.6
-        assert multi_nest.config_dict_settings["terminate_at_acceptance_ratio"] == False
+        assert multi_nest.config_dict_settings["terminate_at_acceptance_ratio"] is False
         assert multi_nest.config_dict_settings["acceptance_ratio_threshold"] == 1.0
 
         model = af.ModelMapper(mock_class_1=mock.MockClassx4)
@@ -183,7 +183,7 @@ class TestMulitNest:
         )
 
         assert fitness.model == model
-        assert fitness.terminate_at_acceptance_ratio == False
+        assert fitness.terminate_at_acceptance_ratio is False
         assert fitness.acceptance_ratio_threshold == 0.0
 
     def test__read_quantities_from_weighted_samples_file(self, multi_nest_samples_path):

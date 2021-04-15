@@ -23,8 +23,8 @@ class TestPySwarmsGlobalConfig:
         )
 
         assert pso.prior_passer.sigma == 2.0
-        assert pso.prior_passer.use_errors == False
-        assert pso.prior_passer.use_widths == False
+        assert pso.prior_passer.use_errors is False
+        assert pso.prior_passer.use_widths is False
         assert pso.config_dict["n_particles"] == 51
         assert pso.config_dict["cognitive"] == 0.4
         assert isinstance(pso.initializer, af.InitializerBall)
@@ -36,8 +36,8 @@ class TestPySwarmsGlobalConfig:
         pso = af.PySwarmsGlobal()
 
         assert pso.prior_passer.sigma == 3.0
-        assert pso.prior_passer.use_errors == True
-        assert pso.prior_passer.use_widths == True
+        assert pso.prior_passer.use_errors is True
+        assert pso.prior_passer.use_widths is True
         assert pso.config_dict["n_particles"] == 50
         assert pso.config_dict["cognitive"] == 0.1
         assert isinstance(pso.initializer, af.InitializerPrior)
@@ -59,8 +59,8 @@ class TestPySwarmsGlobalConfig:
         )
 
         assert pso.prior_passer.sigma == 2.0
-        assert pso.prior_passer.use_errors == False
-        assert pso.prior_passer.use_widths == False
+        assert pso.prior_passer.use_errors is False
+        assert pso.prior_passer.use_widths is False
         assert pso.config_dict["n_particles"] == 51
         assert pso.config_dict["cognitive"] == 0.4
         assert isinstance(pso.initializer, af.InitializerBall)
@@ -72,8 +72,8 @@ class TestPySwarmsGlobalConfig:
         pso = af.PySwarmsLocal()
 
         assert pso.prior_passer.sigma == 3.0
-        assert pso.prior_passer.use_errors == True
-        assert pso.prior_passer.use_widths == True
+        assert pso.prior_passer.use_errors is True
+        assert pso.prior_passer.use_widths is True
         assert pso.config_dict["n_particles"] == 50
         assert pso.config_dict["cognitive"] == 0.1
         assert isinstance(pso.initializer, af.InitializerPrior)

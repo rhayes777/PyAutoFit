@@ -17,8 +17,8 @@ class Emcee(AbstractMCMC):
 
     def __init__(
             self,
-            name="",
-            path_prefix="",
+            name=None,
+            path_prefix=None,
             prior_passer=None,
             initializer=None,
             auto_correlations_settings = AutoCorrelationsSettings(),
@@ -76,11 +76,7 @@ class Emcee(AbstractMCMC):
             **kwargs
         )
 
-        self.number_of_cores = (
-            self._config("parallel", "number_of_cores")
-            if number_of_cores is None
-            else number_of_cores
-        )
+        self.number_of_cores = number_of_cores or self._config("parallel", "number_of_cores")
 
         logger.debug("Creating Emcee NLO")
 

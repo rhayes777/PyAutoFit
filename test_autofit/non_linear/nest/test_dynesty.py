@@ -40,26 +40,26 @@ class TestDynestyConfig:
         )
 
         assert dynesty.prior_passer.sigma == 2.0
-        assert dynesty.prior_passer.use_errors == False
-        assert dynesty.prior_passer.use_widths == False
+        assert dynesty.prior_passer.use_errors is False
+        assert dynesty.prior_passer.use_widths is False
         assert dynesty.iterations_per_update == 501
 
         assert dynesty.config_dict["nlive"] == 151
         assert dynesty.config_dict["dlogz"] == 0.1
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] == False
+        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is False
         assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 0.5
         assert dynesty.number_of_cores == 2
 
         dynesty = af.DynestyStatic()
 
         assert dynesty.prior_passer.sigma == 3.0
-        assert dynesty.prior_passer.use_errors == True
-        assert dynesty.prior_passer.use_widths == True
+        assert dynesty.prior_passer.use_errors is True
+        assert dynesty.prior_passer.use_widths is True
         assert dynesty.iterations_per_update == 500
 
         assert dynesty.config_dict["nlive"] == 150
         assert dynesty.config_dict["dlogz"] == None
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] == True
+        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is True
         assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 2.0
         assert dynesty.number_of_cores == 1
 
@@ -74,26 +74,26 @@ class TestDynestyConfig:
         )
 
         assert dynesty.prior_passer.sigma == 2.0
-        assert dynesty.prior_passer.use_errors == False
-        assert dynesty.prior_passer.use_widths == False
+        assert dynesty.prior_passer.use_errors is False
+        assert dynesty.prior_passer.use_widths is False
         assert dynesty.iterations_per_update == 501
 
         assert dynesty.config_dict["nlive"] == 500
         assert dynesty.config_dict["dlogz"] == 0.2
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] == False
+        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is False
         assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 0.5
         assert dynesty.number_of_cores == 3
 
         dynesty = af.DynestyDynamic()
 
         assert dynesty.prior_passer.sigma == 3.0
-        assert dynesty.prior_passer.use_errors == True
-        assert dynesty.prior_passer.use_widths == True
+        assert dynesty.prior_passer.use_errors is True
+        assert dynesty.prior_passer.use_widths is True
         assert dynesty.iterations_per_update == 501
 
         assert dynesty.config_dict["nlive_init"] == 5
         assert dynesty.config_dict["facc"] == 0.6
-        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] == True
+        assert dynesty.config_dict_settings["terminate_at_acceptance_ratio"] is True
         assert dynesty.config_dict_settings["acceptance_ratio_threshold"] == 2.0
         assert dynesty.number_of_cores == 4
 

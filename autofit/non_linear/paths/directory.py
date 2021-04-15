@@ -150,8 +150,8 @@ class DirectoryPaths(AbstractPaths):
         """
         with open(path.join(self._make_path(), "metadata"), "a") as f:
             f.write(f"""name={self.name}
-non_linear_search={search_name}
-""")
+            non_linear_search={search_name}
+            """)
 
     def _move_pickle_files(self, pickle_files):
         """
@@ -218,6 +218,7 @@ non_linear_search={search_name}
         """
         Returns the path to the folder at which the metadata should be saved
         """
+
         return path.join(
             conf.instance.output_path,
             self.path_prefix,

@@ -225,7 +225,7 @@ class TestPDFSamples:
                 weights=weights,
             ))
 
-        assert samples.pdf_converged == True
+        assert samples.pdf_converged is True
 
         median_pdf_vector = samples.median_pdf_vector
 
@@ -302,7 +302,7 @@ class TestPDFSamples:
                 weights=weights,
             ))
 
-        assert samples.pdf_converged == True
+        assert samples.pdf_converged is True
 
         vector_at_sigma = samples.vector_at_sigma(sigma=3.0)
 
@@ -367,7 +367,7 @@ class TestPDFSamples:
                 weights=weights,
             ))
 
-        assert samples.pdf_converged == False
+        assert samples.pdf_converged is False
 
         vector_at_sigma = samples.vector_at_sigma(sigma=1.0)
 
@@ -408,7 +408,7 @@ class TestPDFSamples:
                 weights=weights,
             ))
 
-        assert samples.pdf_converged == True
+        assert samples.pdf_converged is True
 
         errors = samples.error_magnitude_vector_at_sigma(sigma=3.0)
 
@@ -464,7 +464,7 @@ class TestPDFSamples:
             unconverged_sample_size=2,
         )
 
-        assert samples.pdf_converged == False
+        assert samples.pdf_converged is False
         assert samples.unconverged_sample_size == 2
 
         samples = PDFSamples(
@@ -479,7 +479,7 @@ class TestPDFSamples:
             unconverged_sample_size=6,
         )
 
-        assert samples.pdf_converged == False
+        assert samples.pdf_converged is False
         assert samples.unconverged_sample_size == 5
 
     def test__offset_vector_from_input_vector(self):

@@ -32,8 +32,8 @@ pattern = re.compile(r'(?<!^)(?=[A-Z])')
 class AbstractPaths(ABC):
     def __init__(
             self,
-            name="",
-            path_prefix=""
+            name=None,
+            path_prefix=None
     ):
         """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
         API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
@@ -63,8 +63,8 @@ class AbstractPaths(ABC):
             A prefixed path that appears after the output_path but beflore the name variable.
         """
 
-        self.name = name
-        self.path_prefix = path_prefix
+        self.name = name or ""
+        self.path_prefix = path_prefix or ""
 
         self._search = None
         self.model = None
