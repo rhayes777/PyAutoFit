@@ -1,4 +1,4 @@
-import autofit.database.query.condition as c
+from autofit.database.query import condition as c
 
 from .abstract import AbstractQuery
 
