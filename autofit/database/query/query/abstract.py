@@ -2,7 +2,7 @@ import copy
 from abc import ABC, abstractmethod
 from typing import Optional, Set
 
-import autofit.database.query.condition as c
+from autofit.database.query import condition as c
 from autofit.database.query.condition import Table
 
 
