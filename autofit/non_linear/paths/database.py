@@ -1,7 +1,9 @@
+import shutil
+
 from sqlalchemy.orm.exc import NoResultFound
 
 from .abstract import AbstractPaths
-from ...database.model import Fit
+from ...database.model import Fit, Object
 
 
 class DatabasePaths(AbstractPaths):
@@ -16,6 +18,22 @@ class DatabasePaths(AbstractPaths):
             path_prefix=path_prefix,
         )
         self.session = session
+
+    def zip_remove(self):
+        """
+        Remove files from both the symlinked folder and the output directory
+        """
+        self.session.commit()
+
+        if self.remove_files:
+            shutil.rmtree(
+                self.path,
+                ignore_errors=True
+            )
+            shutil.rmtree(
+                self.output_path,
+                ignore_errors=True
+            )
 
     def save_object(self, name: str, obj: object):
         self._fit[name] = obj
@@ -54,12 +72,6 @@ class DatabasePaths(AbstractPaths):
     def completed(self):
         self._fit.is_complete = True
 
-    # def load_samples(self):
-    #     pass
-    #
-    # def load_samples_info(self):
-    #     pass
-
     def save_summary(
             self,
             samples,
@@ -71,10 +83,30 @@ class DatabasePaths(AbstractPaths):
             log_likelihood_function_time
         )
 
-    def save_all(self, info, *_):
+    def save_samples(self, samples):
+        self._fit.samples = Object.from_object(
+            samples.minimise()
+        )
+
+    def _load_samples(self):
+        samples = self._fit.samples()
+        samples.model = self.model
+        return samples
+
+    def load_samples(self):
+        return self._load_samples().samples
+
+    def load_samples_info(self):
+        return self._load_samples().info_json
+
+    def save_all(self, info, *_, **kwargs):
         self._fit.info = info
         self._fit.model = self.model
 
+        if self.search is not None:
+            self.search.paths = None
         self.save_object("search", self.search)
+        if self.search is not None:
+            self.search.paths = self
 
         self.session.commit()

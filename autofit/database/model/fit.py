@@ -111,6 +111,14 @@ class Fit(Base):
             info=info
         )
 
+    samples = relationship(
+        Object,
+        uselist=False,
+        foreign_keys=[
+            Object.samples_for_id
+        ]
+    )
+
     @property
     def info(self):
         return {

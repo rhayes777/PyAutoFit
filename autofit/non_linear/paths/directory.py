@@ -6,9 +6,9 @@ from os import path
 import dill
 
 from autoconf import conf
-from autofit.non_linear import samples as s
-from autofit.text import formatter, text_util
+from autofit.text import formatter
 from .abstract import AbstractPaths, make_path
+from ..samples import load_from_table
 
 
 class DirectoryPaths(AbstractPaths):
@@ -41,7 +41,7 @@ class DirectoryPaths(AbstractPaths):
                 self._path_for_pickle(
                     name
                 ),
-                "w+b"
+                "wb"
         ) as f:
             dill.dump(
                 obj, f
@@ -69,7 +69,7 @@ class DirectoryPaths(AbstractPaths):
                 self._path_for_pickle(
                     name
                 ),
-                "r+b"
+                "rb"
         ) as f:
             return dill.load(
                 f
@@ -123,6 +123,22 @@ class DirectoryPaths(AbstractPaths):
         Mark the search as complete by saving a file
         """
         open(self._has_completed_path, "w+").close()
+
+    def load_samples(self):
+        return load_from_table(
+            filename=self._samples_file
+        )
+
+    def save_samples(self, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+        samples.write_table(filename=self._samples_file)
+        samples.info_to_json(filename=self._info_file)
+
+    def load_samples_info(self):
+        with open(self._info_file) as infile:
+            return json.load(infile)
 
     def save_all(self, info, pickle_files):
         self._save_model_info(model=self.model)
@@ -197,10 +213,6 @@ class DirectoryPaths(AbstractPaths):
             ),
             list_of_strings=parameter_name_and_label
         )
-
-    @property
-    def _samples_file(self) -> str:
-        return path.join(self.samples_path, "samples.csv")
 
     @property
     def _info_file(self) -> str:

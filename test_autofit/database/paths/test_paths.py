@@ -1,22 +1,7 @@
 import pytest
 
-import autofit as af
 from autofit import database as m
 from autofit.mock.mock import Gaussian
-
-
-@pytest.fixture(
-    name="paths"
-)
-def make_paths(session):
-    paths = af.DatabasePaths(
-        session
-    )
-    paths.model = af.Model(
-        Gaussian
-    )
-    assert paths.is_complete is False
-    return paths
 
 
 @pytest.fixture(
@@ -25,6 +10,10 @@ def make_paths(session):
 def query_fit(session, paths):
     fit, = m.Fit.all(session)
     return fit
+
+
+def test_incomplete(paths):
+    assert paths.is_complete is False
 
 
 def test_identifier(
@@ -84,3 +73,4 @@ def test_save_all(
     assert fit.model is not None
     assert "search" in fit
     assert fit.info["key"] == "value"
+

@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import shutil
@@ -12,7 +11,6 @@ from autoconf import conf
 from autofit.mapper import link
 from autofit.mapper.model_object import Identifier
 from autofit.non_linear.log import logger
-from autofit.non_linear.samples import load_from_table
 from autofit.text import text_util
 
 
@@ -261,14 +259,21 @@ class AbstractPaths(ABC):
     def save_all(self, info, pickle_files):
         pass
 
+    @abstractmethod
     def load_samples(self):
-        return load_from_table(
-            filename=self._samples_file
-        )
+        """
+        Load samples from the database
+        """
 
+    @abstractmethod
+    def save_samples(self, samples):
+        """
+        Save samples to the database
+        """
+
+    @abstractmethod
     def load_samples_info(self):
-        with open(self._info_file) as infile:
-            return json.load(infile)
+        pass
 
     def save_summary(self, samples, log_likelihood_function_time):
         text_util.results_to_file(

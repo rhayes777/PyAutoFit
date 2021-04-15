@@ -5,6 +5,7 @@ import time
 from abc import ABC, abstractmethod
 from os import path
 from time import sleep
+from typing import Optional
 
 import numpy as np
 
@@ -15,7 +16,9 @@ from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
+from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 
 
@@ -49,14 +52,21 @@ class NonLinearSearch(ABC):
         path_prefix = path_prefix or ""
 
         if session is not None:
-            paths = DatabasePaths(name=name, path_prefix=path_prefix, session=session)
+            paths = DatabasePaths(
+                name=name,
+                path_prefix=path_prefix,
+                session=session
+            )
         else:
-            paths = DirectoryPaths(name=name, path_prefix=path_prefix)
+            paths = DirectoryPaths(
+                name=name,
+                path_prefix=path_prefix
+            )
 
         self._paths = None
         self._timer = None
 
-        self.paths: DirectoryPaths = paths
+        self.paths: AbstractPaths = paths
 
         self.prior_passer = prior_passer or PriorPasser.from_config(
             config=self._config
@@ -118,12 +128,13 @@ class NonLinearSearch(ABC):
         return self._timer
 
     @property
-    def paths(self):
+    def paths(self) -> Optional[AbstractPaths]:
         return self._paths
 
     @paths.setter
-    def paths(self, paths):
-        paths.search = self
+    def paths(self, paths: Optional[AbstractPaths]):
+        if paths is not None:
+            paths.search = self
         self._paths = paths
 
     def copy_with_paths(
@@ -212,7 +223,14 @@ class NonLinearSearch(ABC):
              should be given a likelihood so low that it is discard."""
             return -np.inf
 
-    def fit(self, model, analysis: "Analysis", info=None, pickle_files=None, log_likelihood_cap=None) -> "Result":
+    def fit(
+            self,
+            model,
+            analysis: "Analysis",
+            info=None,
+            pickle_files=None,
+            log_likelihood_cap=None
+    ) -> "Result":
         """ Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
 
@@ -224,6 +242,7 @@ class NonLinearSearch(ABC):
 
         Parameters
         ----------
+        log_likelihood_cap
         analysis : af.Analysis
             An object that encapsulates the data and a log likelihood function.
         model : ModelMapper
@@ -349,9 +368,11 @@ class NonLinearSearch(ABC):
 
         samples = self.samples_via_sampler_from_model(model=model)
 
-        self.paths.save_object("samples", samples)
-        samples.write_table(filename=self.paths._samples_file)
-        samples.info_to_json(filename=self.paths._info_file)
+        # self.paths.save_object("samples", samples)
+
+        self.paths.save_samples(
+            samples
+        )
 
         try:
             instance = samples.max_log_likelihood_instance
@@ -445,7 +466,7 @@ class NonLinearSearch(ABC):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-      #  self.paths.restore()
+    #  self.paths.restore()
 
 
 class Analysis(ABC):
@@ -453,13 +474,13 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize(self, paths: DirectoryPaths, instance, during_analysis):
+    def visualize(self, paths: AbstractPaths, instance, during_analysis):
         pass
 
-    def save_attributes_for_aggregator(self, paths: DirectoryPaths):
+    def save_attributes_for_aggregator(self, paths: AbstractPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: DirectoryPaths, model: mm.CollectionPriorModel,
+    def save_results_for_aggregator(self, paths: AbstractPaths, model: mm.CollectionPriorModel,
                                     samples: samps.OptimizerSamples):
         pass
 

@@ -1,6 +1,7 @@
 import inspect
 from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
+import numpy as np
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -36,6 +37,19 @@ class Object(Base):
         uselist=False,
         remote_side=[id]
     )
+
+    samples_for_id = Column(
+        Integer,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    samples_for = relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[samples_for_id]
+    )
+
     children: List["Object"] = relationship(
         "Object",
         uselist=True,
@@ -75,7 +89,10 @@ class Object(Base):
         -------
         An instance of a concrete child of this class
         """
-        if source is None:
+        if source is None or isinstance(
+                source,
+                np.ndarray
+        ):
             from .instance import NoneInstance
             instance = NoneInstance()
         elif isinstance(source, af.PriorModel):
@@ -98,7 +115,7 @@ class Object(Base):
             instance = Collection._from_object(
                 source
             )
-        elif isinstance(source, (af.CollectionPriorModel, dict, list)):
+        elif isinstance(source, (af.CollectionPriorModel, dict)):
             from .prior import CollectionPriorModel
             instance = CollectionPriorModel._from_object(
                 source
@@ -128,7 +145,12 @@ class Object(Base):
         """
         Create the real instance for this object
         """
-        return object.__new__(self.cls)
+        try:
+            return object.__new__(self.cls)
+        except TypeError as e:
+            raise TypeError(
+                f"Could not instantiate {self.name} of type {self.cls}"
+            ) from e
 
     def __call__(self):
         """
@@ -164,7 +186,9 @@ class Object(Base):
             if isinstance(
                     value,
                     property
-            ):
+            ) or key.startswith(
+                "__"
+            ) or key == "dtype":
                 continue
             child = Object.from_object(
                 value,

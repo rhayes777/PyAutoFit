@@ -21,7 +21,7 @@ class Emcee(AbstractMCMC):
             path_prefix=None,
             prior_passer=None,
             initializer=None,
-            auto_correlations_settings = AutoCorrelationsSettings(),
+            auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update=None,
             number_of_cores=None,
             session=None,
@@ -234,8 +234,8 @@ class Emcee(AbstractMCMC):
 
         auto_correlation_time = self.backend.get_autocorr_time(tol=0)
         previous_auto_correlation_times = emcee.autocorr.integrated_time(
-                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
-            )
+            x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
+        )
 
         return EmceeSamples(
             model=model,
@@ -266,10 +266,16 @@ class Emcee(AbstractMCMC):
         samples = self.paths.load_samples()
         samples_info = self.paths.load_samples_info()
 
-        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
-        previous_auto_correlation_times = emcee.autocorr.integrated_time(
+        try:
+            backend = self.backend
+            auto_correlation_times = self.backend.get_autocorr_time(tol=0)
+            previous_auto_correlation_times = emcee.autocorr.integrated_time(
                 x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
             )
+        except FileNotFoundError:
+            backend = None
+            auto_correlation_times = None
+            previous_auto_correlation_times = None
 
         return EmceeSamples(
             model=model,
@@ -278,13 +284,13 @@ class Emcee(AbstractMCMC):
                 check_size=samples_info["check_size"],
                 required_length=samples_info["required_length"],
                 change_threshold=samples_info["change_threshold"],
-                times=auto_correlation_time,
+                times=auto_correlation_times,
                 previous_times=previous_auto_correlation_times,
             ),
             total_walkers=samples_info["total_walkers"],
             total_steps=samples_info["total_steps"],
             time=samples_info["time"],
-            backend=self.backend
+            backend=backend
         )
 
     @property
@@ -309,7 +315,7 @@ class EmceeSamples(MCMCSamples):
             self,
             model: ModelMapper,
             samples: List[Sample],
-            auto_correlations : AutoCorrelations,
+            auto_correlations: AutoCorrelations,
             total_walkers: int,
             total_steps: int,
             backend: emcee.backends.HDFBackend,

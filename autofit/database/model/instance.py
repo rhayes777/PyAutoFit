@@ -56,7 +56,7 @@ class Collection(Object):
         ])
         return instance
 
-    def __call__(self) -> tuple:
+    def __call__(self):
         return self.cls([
             child()
             for child

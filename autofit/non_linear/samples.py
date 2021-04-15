@@ -1,6 +1,7 @@
 import csv
 import json
 import math
+from copy import copy
 from typing import List
 
 import numpy as np
@@ -214,7 +215,7 @@ def load_from_table(filename: str) -> List[Sample]:
 class OptimizerSamples:
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             samples: List[Sample],
             time: float = None,
     ):
@@ -236,20 +237,12 @@ class OptimizerSamples:
 
         paths = self.model.model_component_and_parameter_names
 
-        try:
-            return [
-                sample.parameters_for_model(
-                    self.model, paths
-                )
-                for sample in self.samples
-            ]
-        except KeyError:
-            return [
-                sample.parameters_for_model(
-                    self.model, paths
-                )
-                for sample in self.samples
-            ]
+        return [
+            sample.parameters_for_model(
+                self.model, paths
+            )
+            for sample in self.samples
+        ]
 
     @property
     def total_samples(self):
@@ -342,12 +335,13 @@ class OptimizerSamples:
             for row in self._rows:
                 writer.writerow(row)
 
+    @property
+    def info_json(self):
+        return {}
+
     def info_to_json(self, filename):
-
-        info = {}
-
         with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
+            json.dump(self.info_json, outfile)
 
     @property
     def max_log_likelihood_sample(self) -> Sample:
@@ -357,6 +351,12 @@ class OptimizerSamples:
             if most_likely_sample is None or sample.log_likelihood > most_likely_sample.log_likelihood:
                 most_likely_sample = sample
         return most_likely_sample
+
+    @property
+    def max_log_posterior_sample(self) -> Sample:
+        return self.samples[
+            self.max_log_posterior_index
+        ]
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
@@ -413,11 +413,23 @@ class OptimizerSamples:
         """
         return self.model.instance_from_vector(vector=self.parameters[sample_index])
 
+    def minimise(self) -> "OptimizerSamples":
+        """
+        A copy of this object with only important samples retained
+        """
+        samples = copy(self)
+        samples.model = None
+        samples.samples = list({
+            self.max_log_likelihood_sample,
+            self.max_log_posterior_sample
+        })
+        return samples
+
 
 class PDFSamples(OptimizerSamples):
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             samples: List[Sample],
             unconverged_sample_size: int = 100,
             time: float = None,
@@ -879,7 +891,7 @@ class MCMCSamples(PDFSamples):
             self,
             model: ModelMapper,
             samples: List[Sample],
-            auto_correlations : AutoCorrelations,
+            auto_correlations: AutoCorrelations,
             total_walkers: int,
             total_steps: int,
             unconverged_sample_size: int = 100,
@@ -925,9 +937,9 @@ class MCMCSamples(PDFSamples):
             samples=samples
         )
 
-    def info_to_json(self, filename):
-
-        info = {
+    @property
+    def info_json(self):
+        return {
             "times": None,
             "check_size": self.auto_correlations.check_size,
             "required_length": self.auto_correlations.required_length,
@@ -936,9 +948,6 @@ class MCMCSamples(PDFSamples):
             "total_steps": self.total_steps,
             "time": self.time,
         }
-
-        with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
 
     @property
     def pdf_converged(self):
@@ -1031,7 +1040,7 @@ class MCMCSamples(PDFSamples):
 class NestSamples(PDFSamples):
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             samples: List[Sample],
             number_live_points: int,
             log_evidence: float,
@@ -1072,17 +1081,15 @@ class NestSamples(PDFSamples):
     def total_samples(self):
         return self._total_samples
 
-    def info_to_json(self, filename):
-        info = {
+    @property
+    def info_json(self):
+        return {
             "log_evidence": self.log_evidence,
             "total_samples": self.total_samples,
             "unconverged_sample_size": self.unconverged_sample_size,
             "time": self.time,
             "number_live_points": self.number_live_points
         }
-
-        with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
 
     @property
     def total_accepted_samples(self) -> int:

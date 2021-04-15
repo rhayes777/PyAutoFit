@@ -65,6 +65,8 @@ from .text import formatter
 from .text import samples_text
 from .tools import util
 
+from . import database as db
+
 conf.instance.register(__file__)
 
 __version__ = '0.74.0'
