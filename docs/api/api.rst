@@ -29,15 +29,39 @@ Non-Linear Searches
 .. autosummary::
    :toctree: generated/
 
+   PySwarmsLocal
    PySwarmsGlobal
 
-*`GridSearch`*:
+**GridSearch**:
 
 .. autosummary::
    :toctree: generated/
 
-   NonLinearSearchGridSearch
+   SearchGridSearch
    GridSearchResult
+
+
+**Tools**:
+
+.. autosummary::
+   :toctree: generated/
+
+   Paths
+   Result
+   InitializerBall
+   InitializerPrior
+   PriorPasser
+   AutoCorrelationsSettings
+
+------
+Models
+------
+
+.. autosummary::
+   :toctree: generated/
+
+   Model
+   Collection
 
 
 ------
@@ -50,25 +74,6 @@ Priors
    UniformPrior
    GaussianPrior
    LogUniformPrior
-
-------
-Models
-------
-
-.. autosummary::
-   :toctree: generated/
-
-   PriorModel
-   CollectionPriorModel
-
------
-Paths
------
-
-.. autosummary::
-   :toctree: generated/
-
-   Paths
 
 -------
 Samples
