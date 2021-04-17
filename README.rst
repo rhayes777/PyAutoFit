@@ -74,7 +74,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
         ):
             self.centre = centre
             self.intensity = intensity
-/            self.sigma = sigma
+            self.sigma = sigma
 
         """
         An instance of the Gaussian class will be available during model fitting.
