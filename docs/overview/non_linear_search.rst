@@ -45,13 +45,13 @@ Of course, we can instead manually specify all of the parameters:
        name="example_mcmc",
        nwalkers=50,
        nsteps=2000,
-       initialize_method="ball",
-       initialize_ball_lower_limit=0.49,
-       initialize_ball_upper_limit=0.51,
-       check_for_convergence=True,
-       check_size=100,
-       required_length=50,
-       change_threshold=0.01,
+       initializer=af.InitializerBall(lower_limit=0.49, upper_limit=0.51),
+       auto_correlations_settings=af.AutoCorrelationsSettings(
+           check_for_convergence=True,
+           check_size=100,
+           required_length=50,
+           change_threshold=0.01,
+       ),
    )
 
    result = emcee.fit(model=model, analysis=analysis)
