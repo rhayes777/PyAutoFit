@@ -36,11 +36,11 @@ line ``y = mx + c`` or equivalently ``y = (gradient * x) + intercept``.
 As should be clear on by now, the class ``LinearFit`` defines our model-component which has free parameters  ``gradient``
 and ``intercept``.
 
-However, if we tried to make this a ``PriorModel`` PyAutoFit would raises an error, e.g.
+However, if we tried to make this a ``Model`` PyAutoFit would raises an error, e.g.
 
 .. code-block:: bash
 
-    model = af.PriorModel(LinearFit)
+    model = af.Model(LinearFit)
 
 The error will read something like ``'KeyError: No prior config found for class LinearFit and path gradient in directories C:\\Users\\Jammy\\Code\\PyAuto\\autofit_workspace\\config\\priors'``.
 
@@ -110,11 +110,11 @@ The ``.json`` file should read as follows:
         }
     }
 
-We should now be able to make a ``PriorModel`` of the ``LinearFit`` class.
+We should now be able to make a ``Model`` of the ``LinearFit`` class.
 
 .. code-block:: bash
 
-    model = af.PriorModel(LinearFit)
+    model = af.Model(LinearFit)
 
 Adding a Module
 ---------------
@@ -131,15 +131,15 @@ open the file:
 Here, you will see the ``LinearFit`` class above is contained in the module ``linear_fit.py``. There is also a ``PowerFit`` 
 class, fits the function ``y = m (x**p) + c``.
 
-If we import this module and try to make a  ``PriorModel`` of the ``linear_fit.LinearFit`` or ``linear_fit.PowerFit`` 
+If we import this module and try to make a  ``Model`` of the ``linear_fit.LinearFit`` or ``linear_fit.PowerFit``
 classes, we receive the same configuration error as before.
 
 .. code-block:: bash
 
     import linear_fit
     
-    model = af.PriorModel(linear_fit.LinearFit)
-    model = af.PriorModel(linear_fit.PowerFit)
+    model = af.Model(linear_fit.LinearFit)
+    model = af.Model(linear_fit.PowerFit)
 
 This is because if a model-component is contained in a Python module, the prior configuration file must be named after
 that ``module`` and structured to contain Python class itself.
@@ -229,12 +229,12 @@ parameters as follows:
         }
     }
 
-We are now able to create both the ``linear_fit.LinearFit`` and ``linear_fit.PowerFit`` objects as ``PriorModel``'s.
+We are now able to create both the ``linear_fit.LinearFit`` and ``linear_fit.PowerFit`` objects as ``Model``'s.
 
 .. code-block:: bash
 
-    model = af.PriorModel(linear_fit.LinearFit)
-    model = af.PriorModel(linear_fit.PowerFit)
+    model = af.Model(linear_fit.LinearFit)
+    model = af.Model(linear_fit.PowerFit)
 
 Optional Configs
 ----------------

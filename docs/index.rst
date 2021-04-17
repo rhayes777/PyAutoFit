@@ -113,7 +113,7 @@ Performing a fit with a non-linear search, for example ``emcee``, is performed a
 
 .. code-block:: python
 
-    model = af.PriorModel(Gaussian)
+    model = af.Model(Gaussian)
 
     analysis = Analysis(data=data, noise_map=noise_map)
 

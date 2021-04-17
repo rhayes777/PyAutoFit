@@ -132,7 +132,7 @@ Next, we *compose* our model, set up our ``Analysis`` and fit the model to the `
 
 .. code-block:: bash
 
-    model = af.PriorModel(Gaussian)
+    model = af.Model(Gaussian)
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -140,7 +140,7 @@ Next, we *compose* our model, set up our ``Analysis`` and fit the model to the `
 
     result = emcee.fit(model=model, analysis=analysis)
 
-Above, we use a ``PriorModel`` object to compose the model. This tells **PyAutoFit** that the ``Gaussian`` class is to
+Above, we use a ``Model`` object to compose the model. This tells **PyAutoFit** that the ``Gaussian`` class is to
 be used as a *model component* where its *parameters* are to be fitted for by the non-linear search. The model is
 defined with 3 free parameters, thus the dimensionality of non-linear parameter space is 3.
 

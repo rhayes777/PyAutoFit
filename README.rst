@@ -40,11 +40,11 @@ Why PyAutoFit?
 
 **PyAutoFit** began as an Astronomy project for fitting large imaging datasets of galaxies after the developers found that existing PPLs
 (e.g., `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_, `STAN <https://github.com/stan-dev/stan>`_)
-were not suited to the type of model fitting problems Astronomers faced. This includes:
+were not suited to the model fitting problems many Astronomers faced. This includes:
 
 - Efficiently analysing large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
 
-- Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
+- Problems where likelihood evaluations are expensive (e.g. run times of days per model-fit), necessitating highly customizable model-fitting pipelines with support for massively parallel computing.
 
 - Fitting many different models to the same dataset with tools that streamline model comparison.
 
@@ -74,7 +74,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
         ):
             self.centre = centre
             self.intensity = intensity
-            self.sigma = sigma
+/            self.sigma = sigma
 
         """
         An instance of the Gaussian class will be available during model fitting.
@@ -134,7 +134,7 @@ We can now fit our model to the ``data`` using a non-linear search:
 
 .. code-block:: python
 
-    model = af.PriorModel(Gaussian)
+    model = af.Model(Gaussian)
 
     analysis = Analysis(data=data, noise_map=noise_map)
 

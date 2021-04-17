@@ -65,18 +65,18 @@ Now lets define a new *model component*, a 1D ``Exponential``, using the same Py
 
 Before looking at the ``Analysis`` class, lets look at how we *compose* the *model* that we fit the ``data`` with.
 
-Because we now fit multiple *model compoentns*, we do not use the ``PriorModel`` object used in the previous example,
-but instead uses the ``CollectionPriorModel`` object:
+Because we now fit multiple *model compoentns*, we do not use the ``Model`` object used in the previous example,
+but instead uses the ``Collection`` object:
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian=Gaussian, exponential=Exponential)
+    model = af.Collection(gaussian=Gaussian, exponential=Exponential)
 
-The ``CollectionPriorModel`` allows us to *compose* models using multiple classes, in the example above using both the
+The ``Collection`` allows us to *compose* models using multiple classes, in the example above using both the
 ``Gaussian`` and ``Exponential`` classes. The model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
 ``Exponential``), thus the dimensionality of non-linear parameter space is 6.
 
-The *model components* given to the ``CollectionPriorModel`` are also given names, in this case, 'gaussian' and
+The *model components* given to the ``Collection`` are also given names, in this case, 'gaussian' and
 'exponential'. You can choose whatever name you want and the names are used by the ``instance`` passed to the ``Analysis``
 class:
 
@@ -93,9 +93,9 @@ class:
 
         def log_likelihood_function(self, instance):
 
-            # The 'instance' that comes into this method is a CollectionPriorModel. It contains
+            # The 'instance' that comes into this method is a Collection. It contains
             # instances of every class we instantiated it with, where each instance is named
-            # following the names given to the CollectionPriorModel, which in this example is a
+            # following the names given to the Collection, which in this example is a
             # Gaussian (with name 'gaussian) and Exponential (with name 'exponential'):
 
             print("Gaussian Instance:")
@@ -129,12 +129,12 @@ class:
             return log_likelihood
 
 Performing the *model-fit* uses the same steps as the previous example, whereby we  *compose* our *model* (now using a
-``CollectionPriorModel``), instantiate the ``Analysis`` and pass them a non-linear search. In this example, we'll use
+``Collection``), instantiate the ``Analysis`` and pass them a non-linear search. In this example, we'll use
 the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian=Gaussian, exponential=Exponential)
+    model = af.Collection(gaussian=Gaussian, exponential=Exponential)
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -143,11 +143,11 @@ the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
     result = dynesty.fit(model=model, analysis=analysis)
 
 Now, lets consider how we *customize* the models that we *compose*. To begin, lets *compose* a model using a single
-``Gaussian`` with the ``PriorModel`` object:
+``Gaussian`` with the ``Model`` object:
 
 .. code-block:: bash
 
-    model = af.PriorModel(Gaussian)
+    model = af.Model(Gaussian)
 
 By default, the priors on the ``Gaussian``'s parameters are loaded from configuration files. If you have downloaded the
 ``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/priors``. Alternatively,
@@ -177,11 +177,11 @@ We can fit this model, with all new priors, using a non-linear search as we did 
 
     result = emcee.fit(model=model, analysis=analysis)
 
-We can *compose* and *customize* a ``CollectionPriorModel`` as follows:
+We can *compose* and *customize* a ``Collection`` as follows:
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian=Gaussian, exponential=Exponential)
+    model = af.Collection(gaussian=Gaussian, exponential=Exponential)
 
     model.gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
     model.gaussian.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)

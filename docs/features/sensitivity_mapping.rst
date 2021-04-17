@@ -32,7 +32,7 @@ We therefore fit the data using two models, one where the model is a single ``Ga
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian_main=m.Gaussian)
+    model = af.Collection(gaussian_main=m.Gaussian)
 
     dynesty = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "single_gaussian"),
@@ -47,7 +47,7 @@ model comparison, we restrict the centre of the ``gaussian_feature`` to its true
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
+    model = af.Collection(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
     model.gaussian_feature.centre = 70.0
     model.gaussian_feature.sigma = 0.5
 
@@ -84,7 +84,7 @@ The ``base_model`` corresponds to the ``gaussian_main`` above.
 
 .. code-block:: bash
 
-    base_model = af.CollectionPriorModel(gaussian_main=m.Gaussian)
+    base_model = af.Collection(gaussian_main=m.Gaussian)
 
 We now define the ``perturbation_model``, which is the model component whose parameters we iterate over to perform
 sensitivity mapping. Many instances of the ``perturbation_model`` are created and used to simulate the many datasets
@@ -100,7 +100,7 @@ values ot the ``centre`` and ``sigma`` of the ``Gaussian`` so we only map over i
 
 .. code-block:: bash
 
-    perturbation_model = af.PriorModel(m.Gaussian)
+    perturbation_model = af.Model(m.Gaussian)
     perturbation_model.centre = 70.0
     perturbation_model.sigma = 0.5
     perturbation_model.intensity = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)

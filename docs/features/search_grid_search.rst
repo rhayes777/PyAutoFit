@@ -34,7 +34,7 @@ containing two ``Gaussians``'s.
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
+    model = af.Collection(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
 
     analysis = a.Analysis(data=data, noise_map=noise_map)
 

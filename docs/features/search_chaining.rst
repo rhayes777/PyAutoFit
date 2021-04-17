@@ -53,7 +53,7 @@ to achieve a fast model-fit (had we fitted the more complex model right away we 
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian_left=m.Gaussian)
+    model = af.Collection(gaussian_left=m.Gaussian)
 
     dynesty = af.DynestyStatic(
         name=("search[1]__left_gaussian"),
@@ -78,7 +78,7 @@ search. Below, we achieve this by passing the result of the search above as an `
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(
+    model = af.Collection(
         gaussian_left=search_1_result.instance.gaussian_left,
         gaussian_right=m.Gaussian
     )
@@ -115,7 +115,7 @@ The ``mean`` and ``sigma`` value of each parmeter's ``GaussianPrior`` are set us
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(
+    model = af.Collection(
         gaussian_left=search_1_result.model.gaussian_left,
         gaussian_right=search_2_result.model.gaussian_right
     )
