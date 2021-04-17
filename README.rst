@@ -79,7 +79,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
         """
         An instance of the Gaussian class will be available during model fitting.
 
-        This method will be used to fit the model to ``data`` and compute a likelihood.
+        This method will be used to fit the model to data and compute a likelihood.
         """
 
         def profile_from_xvalues(self, xvalues):
