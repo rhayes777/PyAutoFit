@@ -185,6 +185,7 @@ class NonLinearSearch(ABC):
         def log_posterior_from_parameters(self, parameters):
             log_likelihood = self.log_likelihood_from_parameters(parameters=parameters)
             log_priors = self.model.log_priors_from_vector(vector=parameters)
+
             return log_likelihood + sum(log_priors)
 
         def figure_of_merit_from_parameters(self, parameters):

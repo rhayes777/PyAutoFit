@@ -56,7 +56,7 @@ class AbstractPySwarms(AbstractOptimizer):
             else number_of_cores
         )
 
-        logger.debug("Creating PySwarms NLO")
+        logger.debug("Creating PySwarms Search")
 
     class Fitness(AbstractOptimizer.Fitness):
         def __call__(self, parameters):
@@ -301,7 +301,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             **kwargs
         )
 
-        logger.debug("Creating PySwarms NLO")
+        logger.debug("Creating PySwarms Search")
 
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
@@ -374,7 +374,7 @@ class PySwarmsLocal(AbstractPySwarms):
             **kwargs
         )
 
-        logger.debug("Creating PySwarms NLO")
+        logger.debug("Creating PySwarms Search")
 
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         """

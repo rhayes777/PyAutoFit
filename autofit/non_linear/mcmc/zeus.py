@@ -1,7 +1,8 @@
 import os
 from typing import List
 
-import emcee
+import pickle
+import zeus
 import numpy as np
 
 from autofit import exc
@@ -12,8 +13,9 @@ from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
 
+import copy
 
-class Emcee(AbstractMCMC):
+class Zeus(AbstractMCMC):
 
     def __init__(
             self,
@@ -28,15 +30,15 @@ class Emcee(AbstractMCMC):
             **kwargs
     ):
         """
-        An Emcee non-linear search.
+        An Zeus non-linear search.
 
-        For a full description of Emcee, checkout its Github and readthedocs webpages:
+        For a full description of Zeus, checkout its Github and readthedocs webpages:
 
-        https://github.com/dfm/emcee
+        https://github.com/minaskar/zeus
 
-        https://emcee.readthedocs.io/en/stable/
+        https://zeus-mcmc.readthedocs.io/en/latest/
 
-        If you use `Emcee` as part of a published work, please cite the package following the instructions under the
+        If you use `Zeus` as part of a published work, please cite the package following the instructions under the
         *Attribution* section of the GitHub page.
 
         Parameters
@@ -57,12 +59,12 @@ class Emcee(AbstractMCMC):
         auto_correlations_settings : AutoCorrelationsSettings
             Customizes and performs auto correlation calculations performed during and after the search.
         number_of_cores : int
-            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
+            The number of cores Zeus sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
 
-        All remaining attributes are emcee parameters and described at the emcee API webpage:
+        All remaining attributes are zeus parameters and described at the zeus API webpage:
 
-        https://emcee.readthedocs.io/en/stable/
+        https://zeus-mcmc.readthedocs.io/en/latest/
         """
 
         super().__init__(
@@ -78,7 +80,7 @@ class Emcee(AbstractMCMC):
 
         self.number_of_cores = number_of_cores or self._config("parallel", "number_of_cores")
 
-        logger.debug("Creating Emcee Search")
+        logger.debug("Creating Zeus Search")
 
     class Fitness(AbstractMCMC.Fitness):
         def __call__(self, parameters):
@@ -88,8 +90,10 @@ class Emcee(AbstractMCMC):
                 return self.resample_figure_of_merit
 
         def figure_of_merit_from_parameters(self, parameters):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. `Emcee`
-            uses the log posterior.
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. 
+            
+            `Zeus` uses the log posterior.
             """
             try:
                 return self.log_posterior_from_parameters(parameters=parameters)
@@ -98,7 +102,7 @@ class Emcee(AbstractMCMC):
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
-        Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
+        Fit a model using Zeus and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
@@ -121,45 +125,46 @@ class Emcee(AbstractMCMC):
             model=model, analysis=analysis, pool_ids=pool_ids
         )
 
-        emcee_sampler = emcee.EnsembleSampler(
-            nwalkers=self.config_dict["nwalkers"],
-            ndim=model.prior_count,
-            log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(
-                filename=self.paths.samples_path + "/emcee.hdf"
-            ),
-            pool=pool,
-        )
+        if self.paths.is_object("zeus"):
 
-        try:
+            zeus_sampler = self.zeus_pickled
 
-            emcee_state = emcee_sampler.get_last_sample()
+            zeus_state = zeus_sampler.get_last_sample()
+            initial_log_posteriors = zeus_sampler.get_last_log_prob()
+
             samples = self.samples_via_sampler_from_model(model=model)
 
-            total_iterations = emcee_sampler.iteration
+            total_iterations = zeus_sampler.iteration
 
             if samples.converged:
                 iterations_remaining = 0
             else:
                 iterations_remaining = self.config_dict["nsteps"] - total_iterations
 
-                logger.info("Existing Emcee samples found, resuming non-linear search.")
+                logger.info("Existing Zeus samples found, resuming non-linear search.")
 
-        except AttributeError:
+        else:
+
+            zeus_sampler = zeus.EnsembleSampler(
+                nwalkers=self.config_dict["nwalkers"],
+                ndim=model.prior_count,
+                logprob_fn=fitness_function.__call__,
+                pool=pool,
+            )
 
             initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
-                total_points=emcee_sampler.nwalkers,
+                total_points=zeus_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
             )
 
-            emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
+            zeus_state = np.zeros(shape=(zeus_sampler.nwalkers, model.prior_count))
 
-            logger.info("No Emcee samples found, beginning new non-linear search.")
+            logger.info("No Zeus samples found, beginning new non-linear search.")
 
             for index, parameters in enumerate(initial_parameters):
 
-                emcee_state[index, :] = np.asarray(parameters)
+                zeus_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.config_dict["nsteps"]
@@ -171,17 +176,21 @@ class Emcee(AbstractMCMC):
             else:
                 iterations = self.iterations_per_update
 
-            for sample in emcee_sampler.sample(
-                    initial_state=emcee_state,
+            for sample in zeus_sampler.sample(
+                    start=zeus_state,
+                    log_prob0=initial_log_posteriors,
                     iterations=iterations,
                     progress=True,
-                    skip_initial_state_check=True,
-                    store=True,
             ):
 
                 pass
 
-            emcee_state = emcee_sampler.get_last_sample()
+            self.paths.save_object(
+                "zeus",
+                zeus_sampler
+            )
+
+            zeus_state = zeus_sampler.get_last_sample()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict["nsteps"] - total_iterations
@@ -191,15 +200,15 @@ class Emcee(AbstractMCMC):
             )
 
             if self.auto_correlations_settings.check_for_convergence:
-                if emcee_sampler.iteration > self.auto_correlations_settings.check_size:
+                if zeus_sampler.iteration > self.auto_correlations_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
-        logger.info("Emcee sampling complete.")
+        logger.info("Zeus sampling complete.")
 
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
 
-        return Emcee.Fitness(
+        return Zeus.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
@@ -211,7 +220,7 @@ class Emcee(AbstractMCMC):
     def samples_via_sampler_from_model(self, model):
         """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
-        For Emcee, all quantities are extracted via the hdf5 backend of results.
+        For Zeus, all quantities are extracted via the hdf5 backend of results.
 
         Parameters
         ----------
@@ -223,24 +232,26 @@ class Emcee(AbstractMCMC):
             etc.
         """
 
-        parameters = self.backend.get_chain(flat=True).tolist()
+        zeus_sampler = self.zeus_pickled
+
+        parameters = zeus_sampler.get_chain(flat=True).tolist()
         log_priors = [
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
-        log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
+        log_likelihoods = zeus_sampler.get_log_prob(flat=True).tolist()
         weights = len(log_likelihoods) * [1.0]
-        total_walkers = len(self.backend.get_chain()[0, :, 0])
-        total_steps = len(self.backend.get_log_prob())
+        total_walkers = len(zeus_sampler.get_chain()[0, :, 0])
+        total_steps = len(zeus_sampler.get_log_prob())
 
-        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
+        auto_correlation_time = zeus.AutoCorrTime(samples=zeus_sampler.get_chain())
         try:
-            previous_auto_correlation_times = emcee.autocorr.integrated_time(
-                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
+            previous_auto_correlation_times = zeus.AutoCorrTime(
+                samples=zeus_sampler.get_chain()[: -self.auto_correlations_settings.check_size, :, :],
             )
         except IndexError:
             previous_auto_correlation_times = None
 
-        return EmceeSamples(
+        return ZeusSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -249,6 +260,7 @@ class Emcee(AbstractMCMC):
                 log_priors=log_priors,
                 weights=weights
             ),
+            paths=self.paths,
             auto_correlations=AutoCorrelations(
                 check_size=self.auto_correlations_settings.check_size,
                 required_length=self.auto_correlations_settings.required_length,
@@ -258,11 +270,12 @@ class Emcee(AbstractMCMC):
             ),
             total_walkers=total_walkers,
             total_steps=total_steps,
-            backend=self.backend,
             time=self.timer.time
         )
 
     def samples_via_csv_json_from_model(self, model):
+
+        zeus_sampler = self.zeus_pickled
 
         # TODO : Better design to remove repetition.
 
@@ -270,19 +283,18 @@ class Emcee(AbstractMCMC):
         samples_info = self.paths.load_samples_info()
 
         try:
-            backend = self.backend
-            auto_correlation_times = self.backend.get_autocorr_time(tol=0)
-            previous_auto_correlation_times = emcee.autocorr.integrated_time(
-                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
+            auto_correlation_times = zeus.AutoCorrTime(samples=zeus_sampler.get_chain())
+            previous_auto_correlation_times = zeus.AutoCorrTime(
+                samples=zeus_sampler.get_chain()[: -self.auto_correlations_settings.check_size, :, :],
             )
         except FileNotFoundError:
-            backend = None
             auto_correlation_times = None
             previous_auto_correlation_times = None
 
-        return EmceeSamples(
+        return ZeusSamples(
             model=model,
             samples=samples,
+            paths=self.paths,
             auto_correlations=AutoCorrelations(
                 check_size=samples_info["check_size"],
                 required_length=samples_info["required_length"],
@@ -293,26 +305,15 @@ class Emcee(AbstractMCMC):
             total_walkers=samples_info["total_walkers"],
             total_steps=samples_info["total_steps"],
             time=samples_info["time"],
-            backend=backend
         )
 
     @property
-    def backend(self) -> emcee.backends.HDFBackend:
-        """The `Emcee` hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+    def zeus_pickled(self):
+        return self.paths.load_object(
+            "zeus"
+        )
 
-        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        if os.path.isfile(self.paths.samples_path + "/emcee.hdf"):
-            return emcee.backends.HDFBackend(
-                filename=self.paths.samples_path + "/emcee.hdf"
-            )
-        else:
-            raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path "
-                + self.paths.samples_path
-            )
-
-
-class EmceeSamples(MCMCSamples):
+class ZeusSamples(MCMCSamples):
 
     def __init__(
             self,
@@ -321,7 +322,7 @@ class EmceeSamples(MCMCSamples):
             auto_correlations: AutoCorrelations,
             total_walkers: int,
             total_steps: int,
-            backend: emcee.backends.HDFBackend,
+            paths,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -345,13 +346,18 @@ class EmceeSamples(MCMCSamples):
             time=time,
         )
 
-        self.backend = backend
+        self.paths = paths
 
     @property
     def samples_after_burn_in(self) -> [list]:
-        """The emcee samples with the initial burn-in samples removed.
+        """The zeus samples with the initial burn-in samples removed.
 
         The burn-in period is estimated using the auto-correlation times of the parameters."""
+
+        zeus_sampler = self.paths.load_object(
+            "zeus"
+        )
+
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
-        return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+        return zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)

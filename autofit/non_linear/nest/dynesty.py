@@ -73,7 +73,7 @@ class AbstractDynesty(AbstractNest, ABC):
             else number_of_cores
         )
 
-        logger.debug("Creating DynestyStatic NLO")
+        logger.debug("Creating DynestyStatic Search")
 
     @property
     def no_limit(self):
@@ -333,7 +333,7 @@ class DynestyStatic(AbstractDynesty):
             **kwargs
         )
 
-        logger.debug("Creating DynestyStatic NLO")
+        logger.debug("Creating DynestyStatic Search")
 
     def sampler_from(self, model, fitness_function, pool):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
@@ -413,7 +413,7 @@ class DynestyDynamic(AbstractDynesty):
             **kwargs
         )
 
-        logger.debug("Creating DynestyDynamic NLO")
+        logger.debug("Creating DynestyDynamic Search")
 
     def sampler_from(self, model, fitness_function, pool):
         """

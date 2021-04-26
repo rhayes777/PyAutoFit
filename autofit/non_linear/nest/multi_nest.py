@@ -47,7 +47,7 @@ class MultiNest(abstract_nest.AbstractNest):
             **kwargs
         )
 
-        logger.debug("Creating MultiNest NLO")
+        logger.debug("Creating MultiNest Search")
 
     class Fitness(abstract_nest.AbstractNest.Fitness):
 
