@@ -51,6 +51,7 @@ from .non_linear.mcmc.zeus import Zeus
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multi_nest import MultiNest
+from .non_linear.nest.ultranest import UltraNest
 from .non_linear.optimize.pyswarms import PySwarmsGlobal
 from .non_linear.optimize.pyswarms import PySwarmsLocal
 from .non_linear.paths import DirectoryPaths

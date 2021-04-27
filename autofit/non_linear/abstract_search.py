@@ -114,7 +114,7 @@ class NonLinearSearch(ABC):
 
         self.kwargs = kwargs
 
-        for key, value in self.config_dict.items():
+        for key, value in self.config_dict_search.items():
             setattr(self, key, value)
 
         self.number_of_cores = number_of_cores
@@ -269,7 +269,7 @@ class NonLinearSearch(ABC):
         if not self.paths.is_complete or self.force_pickle_overwrite:
 
             self.paths.save_all(
-                search_config_dict=self.config_dict,
+                search_config_dict=self.config_dict_search,
                 info=info,
                 pickle_files=pickle_files
             )
@@ -308,18 +308,34 @@ class NonLinearSearch(ABC):
         pass
 
     @property
-    def config_dict(self):
+    def config_dict_search(self):
 
-        config_dict = self.config_type[self.__class__.__name__]["search"]._dict
+        config_dict = copy.copy(self.config_type[self.__class__.__name__]["search"]._dict)
 
-        return {**config_dict, **self.kwargs}
+        for key, value in config_dict.items():
+            try:
+                config_dict[key] = self.kwargs[key]
+            except KeyError:
+                pass
+
+        return config_dict
+
+    @property
+    def config_dict_run(self):
+
+        config_dict = copy.copy(self.config_type[self.__class__.__name__]["run"]._dict)
+
+        for key, value in config_dict.items():
+            try:
+                config_dict[key] = self.kwargs[key]
+            except KeyError:
+                pass
+
+        return config_dict
 
     @property
     def config_dict_settings(self):
-
-        config_dict_settings = self.config_type[self.__class__.__name__]["settings"]._dict
-
-        return {**config_dict_settings, **self.kwargs}
+        return self.config_type[self.__class__.__name__]["settings"]._dict
 
     @property
     def config_type(self):

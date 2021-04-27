@@ -118,12 +118,12 @@ class AbstractPySwarms(AbstractOptimizer):
         else:
 
             initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
-                total_points=self.config_dict["n_particles"],
+                total_points=self.config_dict_search["n_particles"],
                 model=model,
                 fitness_function=fitness_function,
             )
 
-            init_pos = np.zeros(shape=(self.config_dict["n_particles"], model.prior_count))
+            init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
 
             for index, parameters in enumerate(initial_parameters):
 
@@ -144,7 +144,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         logger.info("Running PySwarmsGlobal Optimizer...")
 
-        while total_iterations < self.config_dict["iters"]:
+        while total_iterations < self.config_dict_run["iters"]:
 
             pso = self.sampler_from(
                 model=model,
@@ -153,7 +153,7 @@ class AbstractPySwarms(AbstractOptimizer):
                 init_pos=init_pos
             )
 
-            iterations_remaining = self.config_dict["iters"] - total_iterations
+            iterations_remaining = self.config_dict_run["iters"] - total_iterations
 
             if self.iterations_per_update > iterations_remaining:
                 iterations = iterations_remaining
@@ -310,13 +310,12 @@ class PySwarmsGlobal(AbstractPySwarms):
         import pyswarms
 
         options = {
-            "c1": self.config_dict["cognitive"],
-            "c2": self.config_dict["social"],
-            "w": self.config_dict["inertia"]
+            "c1": self.config_dict_search["cognitive"],
+            "c2": self.config_dict_search["social"],
+            "w": self.config_dict_search["inertia"]
         }
 
-        config_dict = self.config_dict
-        config_dict.pop("iters")
+        config_dict = self.config_dict_search
         config_dict.pop("cognitive")
         config_dict.pop("social")
         config_dict.pop("inertia")
@@ -385,15 +384,14 @@ class PySwarmsLocal(AbstractPySwarms):
         import pyswarms
 
         options = {
-            "c1": self.config_dict["cognitive"],
-            "c2": self.config_dict["social"],
-            "w": self.config_dict["inertia"],
-            "k": self.config_dict["number_of_k_neighbors"],
-            "p": self.config_dict["minkowski_p_norm"],
+            "c1": self.config_dict_search["cognitive"],
+            "c2": self.config_dict_search["social"],
+            "w": self.config_dict_search["inertia"],
+            "k": self.config_dict_search["number_of_k_neighbors"],
+            "p": self.config_dict_search["minkowski_p_norm"],
         }
 
-        config_dict = self.config_dict
-        config_dict.pop("iters")
+        config_dict = self.config_dict_search
         config_dict.pop("cognitive")
         config_dict.pop("social")
         config_dict.pop("inertia")

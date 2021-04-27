@@ -29,6 +29,7 @@ class MockDynestySampler:
 class TestDynestyConfig:
 
     def test__loads_from_config_file_if_not_input(self):
+
         dynesty = af.DynestyStatic(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nlive=151,
@@ -42,8 +43,8 @@ class TestDynestyConfig:
         assert dynesty.prior_passer.use_widths is False
         assert dynesty.iterations_per_update == 501
 
-        assert dynesty.config_dict["nlive"] == 151
-        assert dynesty.config_dict["dlogz"] == 0.1
+        assert dynesty.config_dict_search["nlive"] == 151
+        assert dynesty.config_dict_run["dlogz"] == 0.1
         assert dynesty.number_of_cores == 2
 
         dynesty = af.DynestyStatic()
@@ -53,15 +54,15 @@ class TestDynestyConfig:
         assert dynesty.prior_passer.use_widths is True
         assert dynesty.iterations_per_update == 500
 
-        assert dynesty.config_dict["nlive"] == 150
-        assert dynesty.config_dict["dlogz"] == None
+        assert dynesty.config_dict_search["nlive"] == 150
+        assert dynesty.config_dict_run["dlogz"] == None
         assert dynesty.number_of_cores == 1
 
         dynesty = af.DynestyDynamic(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
-            nlive=500,
+            facc=0.4,
             iterations_per_update=501,
-            dlogz=0.2,
+            dlogz_init=0.2,
             number_of_cores=3,
         )
 
@@ -70,8 +71,8 @@ class TestDynestyConfig:
         assert dynesty.prior_passer.use_widths is False
         assert dynesty.iterations_per_update == 501
 
-        assert dynesty.config_dict["nlive"] == 500
-        assert dynesty.config_dict["dlogz"] == 0.2
+        assert dynesty.config_dict_search["facc"] == 0.4
+        assert dynesty.config_dict_run["dlogz_init"] == 0.2
         assert dynesty.number_of_cores == 3
 
         dynesty = af.DynestyDynamic()
@@ -81,8 +82,8 @@ class TestDynestyConfig:
         assert dynesty.prior_passer.use_widths is True
         assert dynesty.iterations_per_update == 501
 
-        assert dynesty.config_dict["nlive_init"] == 5
-        assert dynesty.config_dict["facc"] == 0.6
+        assert dynesty.config_dict_search["facc"] == 0.6
+        assert dynesty.config_dict_run["dlogz_init"] == 0.01
         assert dynesty.number_of_cores == 4
 
     def test__samples_from_model(self):

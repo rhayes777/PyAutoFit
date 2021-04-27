@@ -1,0 +1,189 @@
+import os
+import shutil
+from os import path
+import numpy as np
+import ultranest
+
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.log import logger
+from autofit.non_linear.nest import abstract_nest
+from autofit.non_linear.nest.abstract_nest import AbstractNest
+from autofit.non_linear.samples import NestSamples, Sample
+
+
+def prior_transform(cube, model):
+    phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+
+    for i in range(len(phys_cube)):
+        cube[i] = phys_cube[i]
+
+    return cube
+
+
+class UltraNest(abstract_nest.AbstractNest):
+
+    def __init__(
+            self,
+            name: str = "",
+            path_prefix: str = "",
+            prior_passer: PriorPasser = None,
+            iterations_per_update=None,
+            number_of_cores=None,
+            session=None,
+            **kwargs
+    ):
+        """
+        An UltraNest non-linear search.
+
+        For a full description of UltraNest and its Python wrapper PyUltraNest, checkout its Github and documentation
+        webpages:
+
+        https://github.com/JohannesBuchner/UltraNest
+        https://johannesbuchner.github.io/UltraNest/readme.html
+
+        Parameters
+        ----------
+        name : str
+            The name of the search, controlling the last folder results are output.
+        path_prefix : str
+            The path of folders prefixing the name folder where results are output.
+        prior_passer : af.PriorPasser
+            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
+        iterations_per_update : int
+            The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
+            pickle).
+        number_of_cores : int
+            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
+            pool instance is not created and the job runs in serial.
+        """
+
+        super().__init__(
+            name=name,
+            path_prefix=path_prefix,
+            prior_passer=prior_passer,
+            iterations_per_update=iterations_per_update,
+            session=session,
+            **kwargs
+        )
+
+        self.number_of_cores = (
+            self._config("parallel", "number_of_cores")
+            if number_of_cores is None
+            else number_of_cores
+        )
+
+        logger.debug("Creating UltraNest Search")
+
+    class Fitness(AbstractNest.Fitness):
+        @property
+        def resample_figure_of_merit(self):
+            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+             should be given a likelihood so low that it is discard.
+
+             -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
+            return -1.0e99
+
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+        """
+        Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
+        instances of the model, which the `NonLinearSearch` seeks to maximize.
+
+        Parameters
+        ----------
+        model : ModelMapper
+            The model which generates instances for different points in parameter space.
+        analysis : Analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the `NonLinearSearch` maximizes.
+
+        Returns
+        -------
+        A result object comprising the Samples object that includes the maximum log likelihood instance and full
+        set of accepted ssamples of the fit.
+        """
+
+        pool, pool_ids = self.make_pool()
+
+        fitness_function = self.fitness_function_from_model_and_analysis(
+            model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
+        )
+
+        sampler = ultranest.ReactiveNestedSampler(
+            param_names=model.parameter_names,
+            loglike=fitness_function,
+            transform=prior_transform,
+            log_dir=self.paths.path,
+            **self.config_dict_search
+        )
+
+        finished = False
+
+        while not finished:
+            #
+            # try:
+            #     total_iterations = np.sum(sampler.results.ncall)
+            # except AttributeError:
+            #     total_iterations = 0
+
+            total_iterations = 0
+
+            if self.config_dict_search["max_iters"] is not None:
+                iterations = self.config_dict_search["max_iters"] - total_iterations
+            else:
+                iterations = self.iterations_per_update
+
+            if iterations > 0:
+
+                result = sampler.run(
+                    max_iters=iterations,
+                    **self.config_dict_run
+                )
+
+            print(result)
+
+            stop
+
+            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+            iterations_after_run = np.sum(sampler.results.ncall)
+
+            if (
+                    total_iterations == iterations_after_run
+                    or total_iterations == self.config_dict_search["maxcall"]
+            ):
+                finished = True
+
+    def samples_via_sampler_from_model(self, model: AbstractPriorModel):
+        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For MulitNest, this requires us to load:
+
+            - The parameter samples, log likelihood values and weights from the ultranest.txt file.
+            - The total number of samples (e.g. accepted + rejected) from resume.dat.
+            - The log evidence of the model-fit from the ultranestsummary.txt file (if this is not yet estimated a
+              value of -1.0e99 is used.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+
+        sampler = None
+
+        return NestSamples(
+            model=model,
+            samples=Sample.from_lists(
+                parameters=parameters,
+                log_likelihoods=log_likelihoods,
+                log_priors=log_priors,
+                weights=weights,
+                model=model
+            ),
+            total_samples=total_samples,
+            log_evidence=log_evidence,
+            number_live_points=self.n_live_points,
+            time=self.timer.time
+        )

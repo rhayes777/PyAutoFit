@@ -1,9 +1,5 @@
-from os import path
-
 import pytest
-import zeus as ze
 import autofit as af
-from autofit.mock import mock
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -30,9 +26,9 @@ class TestZeusConfig:
         assert zeus.prior_passer.sigma == 2.0
         assert zeus.prior_passer.use_errors is False
         assert zeus.prior_passer.use_widths is False
-        assert zeus.config_dict["nwalkers"] == 51
-        assert zeus.config_dict["nsteps"] == 2001
-        assert zeus.config_dict["tune"] == False
+        assert zeus.config_dict_search["nwalkers"] == 51
+        assert zeus.config_dict_run["nsteps"] == 2001
+        assert zeus.config_dict_run["tune"] == False
         assert isinstance(zeus.initializer, af.InitializerBall)
         assert zeus.initializer.lower_limit == 0.2
         assert zeus.initializer.upper_limit == 0.8
@@ -47,9 +43,9 @@ class TestZeusConfig:
         assert zeus.prior_passer.sigma == 3.0
         assert zeus.prior_passer.use_errors is True
         assert zeus.prior_passer.use_widths is True
-        assert zeus.config_dict["nwalkers"] == 50
-        assert zeus.config_dict["nsteps"] == 2000
-        assert zeus.config_dict["tune"] == True
+        assert zeus.config_dict_search["nwalkers"] == 50
+        assert zeus.config_dict_run["nsteps"] == 2000
+        assert zeus.config_dict_run["tune"] == True
         assert isinstance(zeus.initializer, af.InitializerPrior)
         assert zeus.auto_correlations_settings.check_for_convergence is True
         assert zeus.auto_correlations_settings.check_size == 100

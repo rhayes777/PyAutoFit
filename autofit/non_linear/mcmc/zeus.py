@@ -139,14 +139,14 @@ class Zeus(AbstractMCMC):
             if samples.converged:
                 iterations_remaining = 0
             else:
-                iterations_remaining = self.config_dict["nsteps"] - total_iterations
+                iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
                 logger.info("Existing Zeus samples found, resuming non-linear search.")
 
         else:
 
             zeus_sampler = zeus.EnsembleSampler(
-                nwalkers=self.config_dict["nwalkers"],
+                nwalkers=self.config_dict_search["nwalkers"],
                 ndim=model.prior_count,
                 logprob_fn=fitness_function.__call__,
                 pool=pool,
@@ -167,7 +167,7 @@ class Zeus(AbstractMCMC):
                 zeus_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
-            iterations_remaining = self.config_dict["nsteps"]
+            iterations_remaining = self.config_dict_run["nsteps"]
 
         while iterations_remaining > 0:
 
@@ -193,7 +193,7 @@ class Zeus(AbstractMCMC):
             zeus_state = zeus_sampler.get_last_sample()
 
             total_iterations += iterations
-            iterations_remaining = self.config_dict["nsteps"] - total_iterations
+            iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
             samples = self.perform_update(
                 model=model, analysis=analysis, during_analysis=True
@@ -203,6 +203,12 @@ class Zeus(AbstractMCMC):
                 if zeus_sampler.iteration > self.auto_correlations_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
+
+            auto_correlation_time = zeus.AutoCorrTime(samples=zeus_sampler.get_chain())
+
+            discard = int(3.0 * np.max(auto_correlation_time))
+            thin = int(np.max(auto_correlation_time) / 2.0)
+            chain = zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)
 
         logger.info("Zeus sampling complete.")
 
@@ -360,4 +366,6 @@ class ZeusSamples(MCMCSamples):
 
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
-        return zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)
+        chain = zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)
+
+        return chain

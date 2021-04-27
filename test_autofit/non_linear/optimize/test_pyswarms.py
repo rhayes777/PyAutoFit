@@ -25,8 +25,9 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 2.0
         assert pso.prior_passer.use_errors is False
         assert pso.prior_passer.use_widths is False
-        assert pso.config_dict["n_particles"] == 51
-        assert pso.config_dict["cognitive"] == 0.4
+        assert pso.config_dict_search["n_particles"] == 51
+        assert pso.config_dict_search["cognitive"] == 0.4
+        assert pso.config_dict_run["iters"] == 2001
         assert isinstance(pso.initializer, af.InitializerBall)
         assert pso.initializer.lower_limit == 0.2
         assert pso.initializer.upper_limit == 0.8
@@ -38,8 +39,9 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 3.0
         assert pso.prior_passer.use_errors is True
         assert pso.prior_passer.use_widths is True
-        assert pso.config_dict["n_particles"] == 50
-        assert pso.config_dict["cognitive"] == 0.1
+        assert pso.config_dict_search["n_particles"] == 50
+        assert pso.config_dict_search["cognitive"] == 0.1
+        assert pso.config_dict_run["iters"] == 2000
         assert isinstance(pso.initializer, af.InitializerPrior)
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1
@@ -61,8 +63,9 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 2.0
         assert pso.prior_passer.use_errors is False
         assert pso.prior_passer.use_widths is False
-        assert pso.config_dict["n_particles"] == 51
-        assert pso.config_dict["cognitive"] == 0.4
+        assert pso.config_dict_search["n_particles"] == 51
+        assert pso.config_dict_search["cognitive"] == 0.4
+        assert pso.config_dict_run["iters"] == 2001
         assert isinstance(pso.initializer, af.InitializerBall)
         assert pso.initializer.lower_limit == 0.2
         assert pso.initializer.upper_limit == 0.8
@@ -74,8 +77,9 @@ class TestPySwarmsGlobalConfig:
         assert pso.prior_passer.sigma == 3.0
         assert pso.prior_passer.use_errors is True
         assert pso.prior_passer.use_widths is True
-        assert pso.config_dict["n_particles"] == 50
-        assert pso.config_dict["cognitive"] == 0.1
+        assert pso.config_dict_search["n_particles"] == 50
+        assert pso.config_dict_search["cognitive"] == 0.1
+        assert pso.config_dict_run["iters"] == 2000
         assert isinstance(pso.initializer, af.InitializerPrior)
         assert pso.iterations_per_update == 11
         assert pso.number_of_cores == 1

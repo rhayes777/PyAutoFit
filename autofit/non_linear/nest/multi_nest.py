@@ -136,7 +136,7 @@ class MultiNest(abstract_nest.AbstractNest):
             model.prior_count,
             outputfiles_basename="{}/multinest".format(self.paths.path),
             verbose=not self.silence,
-            **self.config_dict
+            **self.config_dict_search
         )
         self.copy_from_sym()
 

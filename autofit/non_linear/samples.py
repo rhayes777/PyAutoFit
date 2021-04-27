@@ -73,31 +73,6 @@ class Sample:
             in paths
         ]
 
-        #
-        #
-        # # TODO : The commented out code and try / except are equivalent, except the latter adds a _value string to a
-        # # TODO : path if the first is not found.
-        # # TODO: This is due to horrific backwards compaitbility issues which we currently cannot remove,
-        # # TODO: so it'll have to do for now. One day we'll delete this.
-        #
-        # # return [
-        # #     self.kwargs[path]
-        # #     for path
-        # #     in paths
-        # # ]
-        #
-        # parameters_bc = []
-        #
-        # print(self.kwargs)
-        #
-        # for path in paths:
-        #     try:
-        #         parameters_bc.append(self.kwargs[path])
-        #     except KeyError:
-        #         parameters_bc.append(self.kwargs[f"{path}_value"])
-        #
-        # return parameters_bc
-
     @classmethod
     def from_lists(
             cls,
@@ -844,47 +819,6 @@ class PDFSamples(OptimizerSamples):
 
         pass
 
-        # import getdist.plots
-        # import matplotlib
-        #
-        # backend = conf.instance["visualize"]["general"]["general"]["backend"]
-        # if not backend in "default":
-        #     matplotlib.use(backend)
-        # if conf.instance["general"]["hpc"]["hpc_mode"]:
-        #     matplotlib.use("Agg")
-        # import matplotlib.pyplot as plt
-        #
-        # pdf_plot = getdist.plots.corner.pyPlotter()
-        #
-        # plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
-        #
-        # if plot_pdf_1d_params:
-        #
-        #     for param_name in self.model.parameter_names:
-        #         pdf_plot.plot_1d(roots=self.getdist_samples, param=param_name)
-        #         pdf_plot.export(
-        #             fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
-        #         )
-        #
-        # plt.close()
-        #
-        # plot_pdf_triangle = conf.instance["visualize"]["plots"]["pdf"]["triangle"]
-        #
-        # if plot_pdf_triangle:
-        #
-        #     try:
-        #         pdf_plot.triangle_plot(roots=self.getdist_samples)
-        #         pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
-        #     except Exception as e:
-        #         logger.exception(e)
-        #         print(
-        #             "The PDF triangle of this `NonLinearSearch` could not be plotted. This is most likely due to a "
-        #             "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
-        #             "parameter evidence_tolerance."
-        #         )
-        #
-        # plt.close()
-
 
 class MCMCSamples(PDFSamples):
     def __init__(
@@ -958,7 +892,9 @@ class MCMCSamples(PDFSamples):
         Emcee samples can be analysed by corner.py irrespective of how long the sampler has run, albeit low run times
         will likely produce inaccurate results."""
         try:
-            self.samples_after_burn_in
+            samples_after_burn_in = self.samples_after_burn_in
+            if len(samples_after_burn_in) == 0:
+                return False
             return True
         except ValueError:
             return False
@@ -986,6 +922,7 @@ class MCMCSamples(PDFSamples):
         as a list of values.
 
         This is computed by binning all sampls after burn-in into a histogram and take its median (e.g. 50%) value. """
+
         if self.pdf_converged:
             return [
                 float(np.percentile(self.samples_after_burn_in[:, i], [50]))

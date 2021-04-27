@@ -9,7 +9,6 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
-from autofit.non_linear.result import Result
 from autofit.non_linear.samples import NestSamples, Sample
 
 
@@ -75,27 +74,6 @@ class AbstractDynesty(AbstractNest, ABC):
 
         logger.debug("Creating DynestyStatic Search")
 
-    @property
-    def no_limit(self):
-        if self.config_dict["maxcall"] is None:
-            return True
-        return False
-
-    def config_dict_run_nested_from(self, sampler):
-
-        config_dict = self.config_dict
-        config_dict_run_nested = {}
-
-        for key in sampler.run_nested.__code__.co_varnames:
-            try:
-                config_dict_run_nested[key] = config_dict[key]
-            except KeyError:
-                pass
-
-        config_dict_run_nested.pop("maxcall")
-
-        return config_dict_run_nested
-
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
@@ -155,8 +133,6 @@ class AbstractDynesty(AbstractNest, ABC):
 
             logger.info("No Dynesty samples found, beginning new non-linear search. ")
 
-        config_dict_run_nested = self.config_dict_run_nested_from(sampler=sampler)
-
         finished = False
 
         while not finished:
@@ -166,8 +142,8 @@ class AbstractDynesty(AbstractNest, ABC):
             except AttributeError:
                 total_iterations = 0
 
-            if not self.no_limit:
-                iterations = self.config_dict["maxcall"] - total_iterations
+            if self.config_dict_run["maxcall"] is not None:
+                iterations = self.config_dict_run["maxcall"] - total_iterations
             else:
                 iterations = self.iterations_per_update
 
@@ -177,10 +153,13 @@ class AbstractDynesty(AbstractNest, ABC):
 
                     try:
 
+                        config_dict_run = self.config_dict_run
+                        config_dict_run.pop("maxcall")
+
                         sampler.run_nested(
                             maxcall=iterations,
                             print_progress=not self.silence,
-                            **config_dict_run_nested
+                            **config_dict_run
                         )
 
                         if i == 9:
@@ -207,7 +186,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
             if (
                     total_iterations == iterations_after_run
-                    or total_iterations == self.config_dict["maxcall"]
+                    or total_iterations == self.config_dict_run["maxcall"]
             ):
                 finished = True
 
@@ -257,7 +236,7 @@ class AbstractDynesty(AbstractNest, ABC):
             ),
             total_samples=total_samples,
             log_evidence=log_evidence,
-            number_live_points=self.config_dict["nlive"],
+            number_live_points=self.total_live_points,
             time=self.timer.time
         )
 
@@ -266,14 +245,14 @@ class AbstractDynesty(AbstractNest, ABC):
     ):
 
         unit_parameters, parameters, log_likelihoods = self.initializer.initial_samples_from_model(
-            total_points=self.config_dict["nlive"],
+            total_points=self.total_live_points,
             model=model,
             fitness_function=fitness_function,
         )
 
-        init_unit_parameters = np.zeros(shape=(self.config_dict["nlive"], model.prior_count))
-        init_parameters = np.zeros(shape=(self.config_dict["nlive"], model.prior_count))
-        init_log_likelihoods = np.zeros(shape=(self.config_dict["nlive"]))
+        init_unit_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+        init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+        init_log_likelihoods = np.zeros(shape=(self.total_live_points))
 
         for index in range(len(parameters)):
 
@@ -286,6 +265,9 @@ class AbstractDynesty(AbstractNest, ABC):
     def remove_state_files(self):
         self.paths.remove_object("dynesty")
 
+    @property
+    def total_live_points(self):
+        raise NotImplementedError()
 
 class DynestyStatic(AbstractDynesty):
 
@@ -352,23 +334,12 @@ class DynestyStatic(AbstractDynesty):
             live_points=live_points,
             queue_size=self.number_of_cores,
             pool=pool,
-            **self.config_dict
+            **self.config_dict_search
         )
 
     @property
-    def config_dict_run_nested(self):
-
-        config_dict = self.config_dict
-
-        config_dict_run_nested = {}
-
-        config_dict_run_nested["dlogz"] = config_dict["dlogz"]
-        config_dict_run_nested["logl_max"] =  config_dict["logl_max"]
-        config_dict_run_nested["n_effective"] =  config_dict["n_effective"]
-        config_dict_run_nested["print_progress"] = not self.silence,
-
-        return config_dict_run_nested
-
+    def total_live_points(self):
+        return self.config_dict_search["nlive"]
 
 class DynestyDynamic(AbstractDynesty):
     def __init__(
@@ -434,5 +405,9 @@ class DynestyDynamic(AbstractDynesty):
             live_points=live_points,
             queue_size=self.number_of_cores,
             pool=pool,
-            **self.config_dict
+            **self.config_dict_search
         )
+
+    @property
+    def total_live_points(self):
+        return self.config_dict_run["nlive_init"]

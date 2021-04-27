@@ -153,16 +153,16 @@ class TestMulitNest:
         assert multi_nest.prior_passer.sigma == 2.0
         assert multi_nest.prior_passer.use_errors is False
         assert multi_nest.prior_passer.use_widths is False
-        assert multi_nest.config_dict["n_live_points"] == 40
-        assert multi_nest.config_dict["sampling_efficiency"] == 0.5
+        assert multi_nest.config_dict_search["n_live_points"] == 40
+        assert multi_nest.config_dict_search["sampling_efficiency"] == 0.5
 
         multi_nest = af.MultiNest()
 
         assert multi_nest.prior_passer.sigma == 3.0
         assert multi_nest.prior_passer.use_errors is True
         assert multi_nest.prior_passer.use_widths is True
-        assert multi_nest.config_dict["n_live_points"] == 50
-        assert multi_nest.config_dict["sampling_efficiency"] == 0.6
+        assert multi_nest.config_dict_search["n_live_points"] == 50
+        assert multi_nest.config_dict_search["sampling_efficiency"] == 0.6
 
         model = af.ModelMapper(mock_class_1=mock.MockClassx4)
 

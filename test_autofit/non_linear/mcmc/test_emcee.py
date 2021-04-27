@@ -29,8 +29,8 @@ class TestEmceeConfig:
         assert emcee.prior_passer.sigma == 2.0
         assert emcee.prior_passer.use_errors is False
         assert emcee.prior_passer.use_widths is False
-        assert emcee.config_dict["nwalkers"] == 51
-        assert emcee.config_dict["nsteps"] == 2001
+        assert emcee.config_dict_search["nwalkers"] == 51
+        assert emcee.config_dict_run["nsteps"] == 2001
         assert isinstance(emcee.initializer, af.InitializerBall)
         assert emcee.initializer.lower_limit == 0.2
         assert emcee.initializer.upper_limit == 0.8
@@ -45,8 +45,8 @@ class TestEmceeConfig:
         assert emcee.prior_passer.sigma == 3.0
         assert emcee.prior_passer.use_errors is True
         assert emcee.prior_passer.use_widths is True
-        assert emcee.config_dict["nwalkers"] == 50
-        assert emcee.config_dict["nsteps"] == 2000
+        assert emcee.config_dict_search["nwalkers"] == 50
+        assert emcee.config_dict_run["nsteps"] == 2000
         assert isinstance(emcee.initializer, af.InitializerPrior)
         assert emcee.auto_correlations_settings.check_for_convergence is True
         assert emcee.auto_correlations_settings.check_size == 100
