@@ -23,6 +23,7 @@ class DatabasePaths(AbstractPaths):
             parent=parent
         )
         self.session = session
+        self._fit = None
 
     parent: "DatabasePaths"
 
@@ -38,6 +39,9 @@ class DatabasePaths(AbstractPaths):
         results can be stored in the correct directory. It also
         allows database fit objects to be related correctly.
 
+        If no instance is set the prior median model is used
+        to ensure that the parent object is queryable.
+
         Parameters
         ----------
         name
@@ -51,6 +55,8 @@ class DatabasePaths(AbstractPaths):
         A new paths object
         """
         self.fit.is_grid_search = True
+        if self.fit.instance is None:
+            self.fit.instance = self.model.instance_from_prior_medians()
         return type(self)(
             session=self.session,
             name=name or self.name,
@@ -93,24 +99,25 @@ class DatabasePaths(AbstractPaths):
 
     @property
     def fit(self) -> Fit:
-        try:
-            fit = self.session.query(
-                Fit
-            ).filter(
-                Fit.id == self.identifier
-            ).one()
-        except NoResultFound:
-            fit = Fit(
-                id=self.identifier,
-                is_complete=False
-            )
-            self.session.add(
-                fit
-            )
+        if self._fit is None:
+            try:
+                self._fit = self.session.query(
+                    Fit
+                ).filter(
+                    Fit.id == self.identifier
+                ).one()
+            except NoResultFound:
+                self._fit = Fit(
+                    id=self.identifier,
+                    is_complete=False
+                )
+                self.session.add(
+                    self._fit
+                )
 
         if self.parent is not None:
-            fit.parent = self.parent.fit
-        return fit
+            self._fit.parent = self.parent.fit
+        return self._fit
 
     @property
     def is_complete(self) -> bool:

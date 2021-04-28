@@ -1,4 +1,5 @@
 import pickle
+from functools import wraps
 from typing import List
 
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
@@ -78,6 +79,17 @@ class Info(Base):
         "Fit",
         uselist=False
     )
+
+
+def try_none(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except TypeError:
+            return None
+
+    return wrapper
 
 
 class Fit(Base):
@@ -161,6 +173,7 @@ class Fit(Base):
             ]
 
     @property
+    @try_none
     def model(self) -> AbstractPriorModel:
         """
         The model that was fit
@@ -168,6 +181,7 @@ class Fit(Base):
         return self.__model()
 
     @property
+    @try_none
     def instance(self):
         """
         The instance of the model that had the highest likelihood

@@ -6,9 +6,11 @@ from autofit.mock import mock
 
 @pytest.fixture(name="mapper")
 def make_mapper():
-    mapper = af.ModelMapper()
-    mapper.component = mock.MockClassx2Tuple
-    return mapper
+    return af.Collection(
+        component=af.Model(
+            mock.MockClassx2Tuple
+        )
+    )
 
 
 @pytest.fixture(name="grid_search")

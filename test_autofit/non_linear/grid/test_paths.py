@@ -97,9 +97,11 @@ def test_paths_type(
         )
 
 
-def test_parent(
-        database_paths
-):
-    paths = database_paths[0]
-    assert paths.fit.parent is not None
-    assert paths.fit.parent.is_grid_search
+# def test_parent(
+#         database_paths,
+#         mapper
+# ):
+#     paths = database_paths[0]
+#     assert paths.fit.parent is not None
+#     assert paths.fit.instance is not None
+#     assert paths.fit.parent.is_grid_search
