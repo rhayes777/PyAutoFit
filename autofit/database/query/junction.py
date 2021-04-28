@@ -38,6 +38,10 @@ class AbstractJunction(AbstractCondition, ABC):
         their conditions.
         i.e. And(Named('name', A), Named('name', B)) -> Named('name', And(A, B))
 
+        An AttributeQuery is on an attribute of the fit class. If an AttributeQuery
+        is present in a conjunction then the fit_query must be returned instead
+        of a string.
+
         Parameters
         ----------
         conditions
