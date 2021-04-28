@@ -1,22 +1,6 @@
 from autoconf.exc import PriorException
 
 
-class EnvironmentException(Exception):
-    pass
-
-
-class MultiNestException(Exception):
-    pass
-
-
-class CheckpointException(Exception):
-    """
-    Thrown when a non linear optimiser recovery fails due to assertion failure
-    """
-
-    pass
-
-
 class FitException(Exception):
     """
     An exception to be thrown if the non linear search must resample; equivalent to returning an infinitely bad fit

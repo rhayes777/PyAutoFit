@@ -1,3 +1,5 @@
+import pytest
+
 import autofit as af
 from autofit import database as db
 from autofit.mapper.model_object import Identifier
@@ -11,6 +13,18 @@ class Class:
         self.three = three
 
     __identifier_fields__ = ("one", "two")
+
+
+def test_missing_field():
+    instance = Class()
+    instance.__identifier_fields__ = ("five",)
+
+    with pytest.raises(
+            AssertionError
+    ):
+        Identifier(
+            instance
+        )
 
 
 def test_identifier_fields():
