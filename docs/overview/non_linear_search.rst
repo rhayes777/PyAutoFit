@@ -6,17 +6,16 @@ Non-linear Searches
 **PyAutoFit** currently supports three types of non-linear search algorithms:
 
 - **Optimizers**: ``PySwarms``.
-- **MCMC**: ``emcee``.
-- **Nested Samplers**: ``dynesty`` and ``PyMultiNest`` (``PyMultiNest`` requires users to manually install it and
-  is omitted from this example).
+- **MCMC**: ``emcee`` and ``Zeus``.
+- **Nested Samplers**: ``dynesty``, ``UltraNest`` and ``PyMultiNest`` (``PyMultiNest`` requires users to manually
+install it and is omitted from this example).
 
 **PyAutoFit** extends the functionality of each non-linear search to ensure that they always perform the
 following tasks, even if the original package does not:
 
 - Stores the results of the non-linear search to the hard-disk, writing the results to human-readable files.
 - Allows the non-linear search to be resumed if a previous run was finished.
-- Backs up results and associated metadata in ``.zip`` files, with the option to remove all other outputs for
-  computing on HPCs where there may be file number quotas.
+- Can write results and associated metadata to an sqlite database for querying and inspection post model-fit.
 - Extends the functionality of the non-linear search's, for example providing auto-correlation analysis and
   stopping criteria for MCMC algorithms.
 
@@ -32,10 +31,10 @@ We've seen that we can call a non-linear search as follows:
 
 However, ``Emcee`` has many settings associated with it (the number of walkers, the number of steps they take,
 etc.). Above, we did not pass them to the ``Emcee`` constructor and they use the default values found in the
-``autofit_workspace`` configuration files ``autofit_workspace/config/non_linear/Emcee.ini``, which can be
-viewed at this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/Emcee.ini>`_.
+``autofit_workspace`` configuration files ``autofit_workspace/config/non_linear/mcmc/Emcee.ini``, which can be
+viewed at this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/mcmc/Emcee.ini>`_.
 
-Of course, we can instead manually specify all of the parameters:
+Of course, we can manually specify all of the parameters instead:
 
 .. code-block:: bash
 
@@ -68,7 +67,7 @@ converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps
 this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
 
 The nested sampling algorithm ``dynesty`` has its own config file for default settings, which are at
-this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/Dynesty.ini>`_.
+this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/nest/Dynesty.ini>`_.
 ``DynestyStatic`` parameters can be manually specified as follows:
 
 .. code-block:: bash
@@ -104,9 +103,8 @@ using the **PyAutoFit** parent project **PyAutoConf** and the following command:
 
    conf.instance.push(new_path="path/to/config", output_path="path/to/output")
 
-The path structure within this folder of a given non-linear search can be chosen using the ``path_prefix`` input
-when the non-linear search is instantiated. For fits to many data-sets, this is important in ensuring
-results are clearly labeled and the path where outputs occur do not clash.
+The path structure within this folder of a given non-linear search is set using the ``path_prefix``. For fits to many
+data-sets, this is important in ensuring results are clearly labeled and the path where outputs occur do not clash.
 
 The example code below would output the results to the path ``/path/to/output/folder_0/folder_1/example_mcmc``:
 
@@ -115,12 +113,12 @@ The example code below would output the results to the path ``/path/to/output/fo
    emcee = af.Emcee(
        path_prefix="folder_0/folder_1/",
        name="example_mcmc"
-       )
+   )
 
-Both *Emcee* and *Dynesty* support parallel analysis using the Python *multiprocessing* module. This distributes the
+Most searches support parallel analysis using the Python ``multiprocessing`` module. This distributes the
 non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used. To
-use this functionality in **PyAutoFit** you simply specifc the *number_of_cores* parameter (which is also
-found in the default config files):
+use this functionality you simply specifc the ``number_of_cores`` parameter (which is also found in the default
+config files):
 
 .. code-block:: bash
 
@@ -130,15 +128,6 @@ found in the default config files):
 
    result = emcee.fit(model=model, analysis=analysis)
 
-.. code-block:: bash
-
-   analysis = Analysis(data=data, noise_map=noise_map)
-
-   dynesty = af.DynestyStatic(number_of_cores=4)
-
-   result = dynesty.fit(model=model, analysis=analysis)
-
-An immediate goal of **PyAutoFit** development is to add more non-linear search packages to the library. If
-you are the developer of a package and would like it to get it implemented into **PyAutoFit** check out
+We are always looking to add more non-linear searches to **PyAutoFit**. If you are the developer of a package check out
 our `contributions section <https://github.com/rhayes777/PyAutoFit/blob/master/CONTRIBUTING.md>`_ and please
 contact us!
