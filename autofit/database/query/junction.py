@@ -43,7 +43,14 @@ class AbstractJunction(AbstractCondition, ABC):
         conditions
             A list of SQL conditions
         """
+        from .query.attribute import AttributeQuery
+
         self.conditions = self._match_conditions(conditions)
+
+        self.is_fit_only = any(map(
+            lambda condition: isinstance(condition, AttributeQuery),
+            self.conditions
+        ))
 
     @property
     def fit_query(self):
@@ -145,6 +152,8 @@ class AbstractJunction(AbstractCondition, ABC):
         """
         SQL string expressing combined query
         """
+        if self.is_fit_only:
+            return self.fit_query
         string = f" {self.join} ".join(map(
             str,
             sorted(
