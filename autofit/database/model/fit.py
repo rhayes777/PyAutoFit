@@ -132,8 +132,12 @@ class Fit(Base):
             parent_id
         ]
     )
-    child = relationship(
+    children = relationship(
         "Fit"
+    )
+
+    is_grid_search = Column(
+        Boolean
     )
 
     @property

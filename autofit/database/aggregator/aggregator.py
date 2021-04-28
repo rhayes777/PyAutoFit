@@ -18,6 +18,11 @@ class NullPredicate(AbstractQuery):
         return other
 
 
+class Query:
+    def __getattr__(self, name):
+        return q.Q(name)
+
+
 class Aggregator:
     def __init__(
             self,
@@ -137,6 +142,15 @@ class Aggregator:
             session=self.session,
             filename=self.filename,
             predicate=self._predicate & predicate
+        )
+
+    def children(self):
+        return Aggregator(
+            session=self.session,
+            filename=self.filename,
+            predicate=q.ChildQuery(
+                self._predicate
+            )
         )
 
     def _fits_for_query(

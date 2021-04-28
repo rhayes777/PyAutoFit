@@ -31,6 +31,7 @@ class DatabasePaths(AbstractPaths):
             path_prefix=None,
             is_identifier_in_paths=None
     ):
+        self.fit.is_grid_search = True
         return type(self)(
             session=self.session,
             name=name or self.name,

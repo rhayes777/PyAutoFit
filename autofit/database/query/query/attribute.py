@@ -82,3 +82,14 @@ class BooleanAttribute(Attribute, AttributeQuery):
 
     def __hash__(self):
         return hash(str(self))
+
+
+class ChildQuery(AttributeQuery):
+    def __init__(self, predicate: AbstractQuery):
+        super().__init__(
+            predicate
+        )
+
+    @property
+    def condition(self):
+        return f"parent_id in ({super().condition})"

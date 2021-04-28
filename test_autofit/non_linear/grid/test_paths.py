@@ -102,3 +102,4 @@ def test_parent(
 ):
     paths = database_paths[0]
     assert paths.fit.parent is not None
+    assert paths.fit.parent.is_grid_search
