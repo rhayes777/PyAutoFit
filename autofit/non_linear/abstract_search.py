@@ -85,7 +85,6 @@ class NonLinearSearch(ABC):
 
         self.iterations_per_update = iterations_per_update or self._config("updates", "iterations_per_update")
 
-
         if conf.instance["general"]["hpc"]["hpc_mode"]:
             self.iterations_per_update = conf.instance["general"]["hpc"]["iterations_per_update"]
 
@@ -118,6 +117,8 @@ class NonLinearSearch(ABC):
             setattr(self, key, value)
 
         self.number_of_cores = number_of_cores
+
+    __identifier_fields__ = tuple()
 
     @property
     def timer(self):
