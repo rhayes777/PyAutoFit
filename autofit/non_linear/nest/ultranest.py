@@ -3,6 +3,7 @@ import shutil
 from os import path
 import numpy as np
 import ultranest
+from functools import partial
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
@@ -10,15 +11,6 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples import NestSamples, Sample
-
-
-def prior_transform(cube, model):
-    phys_cube = model.vector_from_unit_vector(unit_vector=cube)
-
-    for i in range(len(phys_cube)):
-        cube[i] = phys_cube[i]
-
-    return cube
 
 
 class UltraNest(abstract_nest.AbstractNest):
@@ -109,48 +101,54 @@ class UltraNest(abstract_nest.AbstractNest):
             model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
         )
 
-        sampler = ultranest.ReactiveNestedSampler(
+        def prior_transform(cube):
+            return model.vector_from_unit_vector(unit_vector=cube)
+
+        print(self.config_dict_search)
+
+        self.sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
-            loglike=fitness_function,
+            loglike=fitness_function.__call__,
             transform=prior_transform,
-            log_dir=self.paths.path,
+            log_dir=self.paths.samples_path,
             **self.config_dict_search
         )
 
         finished = False
 
         while not finished:
-            #
-            # try:
-            #     total_iterations = np.sum(sampler.results.ncall)
-            # except AttributeError:
-            #     total_iterations = 0
 
-            total_iterations = 0
+            try:
+                total_iterations = self.sampler.ncall
+            except AttributeError:
+                total_iterations = 0
 
-            if self.config_dict_search["max_iters"] is not None:
-                iterations = self.config_dict_search["max_iters"] - total_iterations
+            if self.config_dict_run["max_ncalls"] is not None:
+                iterations = self.config_dict_run["max_ncalls"]
             else:
-                iterations = self.iterations_per_update
+                iterations = total_iterations + self.iterations_per_update
 
             if iterations > 0:
 
-                result = sampler.run(
-                    max_iters=iterations,
-                    **self.config_dict_run
+                config_dict_run = self.config_dict_run
+                config_dict_run.pop("max_ncalls")
+                config_dict_run["dKL"] = config_dict_run.pop("dkl")
+                config_dict_run["Lepsilon"] = config_dict_run.pop("lepsilon")
+                config_dict_run["update_interval_ncall"] = iterations
+
+                self.sampler.run(
+                    max_ncalls=iterations,
+                    **config_dict_run
                 )
 
-            print(result)
-
-            stop
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-            iterations_after_run = np.sum(sampler.results.ncall)
+            iterations_after_run = self.sampler.ncall
 
             if (
                     total_iterations == iterations_after_run
-                    or total_iterations == self.config_dict_search["maxcall"]
+                    or iterations_after_run == self.config_dict_run["max_ncalls"]
             ):
                 finished = True
 
@@ -171,7 +169,14 @@ class UltraNest(abstract_nest.AbstractNest):
             cube values to physical values via the priors.
         """
 
-        sampler = None
+        parameters = self.sampler.results["weighted_samples"]["points"]
+        log_likelihoods = self.sampler.results["weighted_samples"]["logl"]
+        log_priors = [
+            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
+        weights = self.sampler.results["weighted_samples"]["weights"]
+        total_samples = self.sampler.results["niter"]
+        log_evidence = self.sampler.results["logz"]
 
         return NestSamples(
             model=model,
@@ -184,6 +189,6 @@ class UltraNest(abstract_nest.AbstractNest):
             ),
             total_samples=total_samples,
             log_evidence=log_evidence,
-            number_live_points=self.n_live_points,
+            number_live_points=self.kwargs["min_num_live_points"],
             time=self.timer.time
         )

@@ -47,7 +47,7 @@ class NonLinearSearch(ABC):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
         from autofit.non_linear.paths.database import DatabasePaths
-
+#
         name = name or ""
         path_prefix = path_prefix or ""
 
@@ -149,6 +149,8 @@ class NonLinearSearch(ABC):
     class Fitness:
         def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None, pool_ids=None):
 
+            self.i = 0
+
             self.paths = paths
             self.max_log_likelihood = -np.inf
             self.analysis = analysis
@@ -180,9 +182,11 @@ class NonLinearSearch(ABC):
         def log_likelihood_from_parameters(self, parameters):
             instance = self.model.instance_from_vector(vector=parameters)
             log_likelihood = self.fit_instance(instance)
+
             return log_likelihood
 
         def log_posterior_from_parameters(self, parameters):
+
             log_likelihood = self.log_likelihood_from_parameters(parameters=parameters)
             log_priors = self.model.log_priors_from_vector(vector=parameters)
 

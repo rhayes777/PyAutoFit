@@ -152,6 +152,8 @@ class Zeus(AbstractMCMC):
                 pool=pool,
             )
 
+            zeus_sampler.ncall_total = 0
+
             initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
                 total_points=zeus_sampler.nwalkers,
                 model=model,
@@ -185,6 +187,8 @@ class Zeus(AbstractMCMC):
 
                 pass
 
+            zeus_sampler.ncall_total += zeus_sampler.ncall
+
             self.paths.save_object(
                 "zeus",
                 zeus_sampler
@@ -209,6 +213,10 @@ class Zeus(AbstractMCMC):
             discard = int(3.0 * np.max(auto_correlation_time))
             thin = int(np.max(auto_correlation_time) / 2.0)
             chain = zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)
+
+            if "maxcall" in self.kwargs:
+                if zeus_sampler.ncall_total > self.kwargs["maxcall"]:
+                    iterations_remaining = 0
 
         logger.info("Zeus sampling complete.")
 
@@ -247,7 +255,7 @@ class Zeus(AbstractMCMC):
         log_likelihoods = zeus_sampler.get_log_prob(flat=True).tolist()
         weights = len(log_likelihoods) * [1.0]
         total_walkers = len(zeus_sampler.get_chain()[0, :, 0])
-        total_steps = len(zeus_sampler.get_log_prob())
+        total_steps = int(zeus_sampler.ncall_total)
 
         auto_correlation_time = zeus.AutoCorrTime(samples=zeus_sampler.get_chain())
         try:
