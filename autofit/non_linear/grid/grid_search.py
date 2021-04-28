@@ -468,7 +468,7 @@ class GridSearch:
 
     def search_instance(self, name_path):
         search_instance = self.search.copy_with_paths(
-            self.paths.copy_with(
+            self.paths.create_child(
                 name=name_path,
                 path_prefix=self.paths.path_prefix,
                 is_identifier_in_paths=False

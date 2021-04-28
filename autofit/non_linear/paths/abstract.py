@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from functools import wraps
 from os import path
+from typing import Optional
 
 from autoconf import conf
 from autofit.mapper import link
@@ -33,7 +34,8 @@ class AbstractPaths(ABC):
             self,
             name=None,
             path_prefix=None,
-            is_identifier_in_paths=True
+            is_identifier_in_paths=True,
+            parent: Optional["AbstractPaths"] = None
     ):
         """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
         API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
@@ -78,6 +80,8 @@ class AbstractPaths(ABC):
 
         self.is_identifier_in_paths = is_identifier_in_paths
 
+        self.parent = parent
+
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
 
@@ -86,7 +90,7 @@ class AbstractPaths(ABC):
         except NoSectionError as e:
             logger.exception(e)
 
-    def copy_with(
+    def create_child(
             self,
             name=None,
             path_prefix=None,
@@ -99,7 +103,8 @@ class AbstractPaths(ABC):
                 is_identifier_in_paths
                 if is_identifier_in_paths is not None
                 else self.is_identifier_in_paths
-            )
+            ),
+            parent=self
         )
 
     @property

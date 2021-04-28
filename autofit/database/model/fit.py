@@ -119,6 +119,23 @@ class Fit(Base):
         ]
     )
 
+    parent_id = Column(
+        String,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    parent: "Fit" = relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[
+            parent_id
+        ]
+    )
+    child = relationship(
+        "Fit"
+    )
+
     @property
     def info(self):
         return {

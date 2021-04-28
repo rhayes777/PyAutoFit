@@ -12,16 +12,20 @@ class DatabasePaths(AbstractPaths):
             session,
             name=None,
             path_prefix=None,
-            is_identifier_in_paths=True
+            is_identifier_in_paths=True,
+            parent=None
     ):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
-            is_identifier_in_paths=is_identifier_in_paths
+            is_identifier_in_paths=is_identifier_in_paths,
+            parent=parent
         )
         self.session = session
 
-    def copy_with(
+    parent: "DatabasePaths"
+
+    def create_child(
             self,
             name=None,
             path_prefix=None,
@@ -35,7 +39,8 @@ class DatabasePaths(AbstractPaths):
                 is_identifier_in_paths
                 if is_identifier_in_paths is not None
                 else self.is_identifier_in_paths
-            )
+            ),
+            parent=self
         )
 
     def zip_remove(self):
@@ -55,21 +60,21 @@ class DatabasePaths(AbstractPaths):
             )
 
     def save_object(self, name: str, obj: object):
-        self._fit[name] = obj
+        self.fit[name] = obj
 
     def load_object(self, name: str):
-        return self._fit[name]
+        return self.fit[name]
 
     def remove_object(self, name: str):
-        del self._fit[name]
+        del self.fit[name]
 
     def is_object(self, name: str) -> bool:
-        return name in self._fit
+        return name in self.fit
 
     @property
-    def _fit(self) -> Fit:
+    def fit(self) -> Fit:
         try:
-            return self.session.query(
+            fit = self.session.query(
                 Fit
             ).filter(
                 Fit.id == self.identifier
@@ -82,33 +87,36 @@ class DatabasePaths(AbstractPaths):
             self.session.add(
                 fit
             )
-            return fit
+
+        if self.parent is not None:
+            fit.parent = self.parent.fit
+        return fit
 
     @property
     def is_complete(self) -> bool:
-        return self._fit.is_complete
+        return self.fit.is_complete
 
     def completed(self):
-        self._fit.is_complete = True
+        self.fit.is_complete = True
 
     def save_summary(
             self,
             samples,
             log_likelihood_function_time
     ):
-        self._fit.instance = samples.max_log_likelihood_instance
+        self.fit.instance = samples.max_log_likelihood_instance
         super().save_summary(
             samples,
             log_likelihood_function_time
         )
 
     def save_samples(self, samples):
-        self._fit.samples = Object.from_object(
+        self.fit.samples = Object.from_object(
             samples.minimise()
         )
 
     def _load_samples(self):
-        samples = self._fit.samples()
+        samples = self.fit.samples()
         samples.model = self.model
         return samples
 
@@ -119,8 +127,8 @@ class DatabasePaths(AbstractPaths):
         return self._load_samples().info_json
 
     def save_all(self, info, *_, **kwargs):
-        self._fit.info = info
-        self._fit.model = self.model
+        self.fit.info = info
+        self.fit.model = self.model
 
         if self.search is not None:
             self.search.paths = None

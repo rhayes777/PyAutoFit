@@ -68,7 +68,10 @@ def test_distinct_identifiers(
     assert grid_search.paths.identifier not in identifiers
 
 
-def test_paths_type(
+@pytest.fixture(
+    name="database_paths"
+)
+def make_database_paths(
         grid_search,
         mapper,
         session
@@ -78,13 +81,24 @@ def test_paths_type(
         name="grid_search"
     )
 
-    paths = _make_grid_paths(
+    return _make_grid_paths(
         grid_search,
         mapper
     )
 
-    for path in paths:
+
+def test_paths_type(
+        database_paths
+):
+    for path in database_paths:
         assert isinstance(
             path,
             af.DatabasePaths
         )
+
+
+def test_parent(
+        database_paths
+):
+    paths = database_paths[0]
+    assert paths.fit.parent is not None
