@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -6,7 +7,6 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from functools import wraps
 from os import path
-import json
 
 from autoconf import conf
 from autofit.mapper import link
@@ -85,6 +85,22 @@ class AbstractPaths(ABC):
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+    def copy_with(
+            self,
+            name=None,
+            path_prefix=None,
+            is_identifier_in_paths=None
+    ):
+        return type(self)(
+            name=name or self.name,
+            path_prefix=path_prefix or self.path_prefix,
+            is_identifier_in_paths=(
+                is_identifier_in_paths
+                if is_identifier_in_paths is not None
+                else self.is_identifier_in_paths
+            )
+        )
 
     @property
     def search(self):

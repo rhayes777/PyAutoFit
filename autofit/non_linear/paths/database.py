@@ -11,13 +11,32 @@ class DatabasePaths(AbstractPaths):
             self,
             session,
             name=None,
-            path_prefix=None
+            path_prefix=None,
+            is_identifier_in_paths=True
     ):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            is_identifier_in_paths=is_identifier_in_paths
         )
         self.session = session
+
+    def copy_with(
+            self,
+            name=None,
+            path_prefix=None,
+            is_identifier_in_paths=None
+    ):
+        return type(self)(
+            session=self.session,
+            name=name or self.name,
+            path_prefix=path_prefix or self.path_prefix,
+            is_identifier_in_paths=(
+                is_identifier_in_paths
+                if is_identifier_in_paths is not None
+                else self.is_identifier_in_paths
+            )
+        )
 
     def zip_remove(self):
         """

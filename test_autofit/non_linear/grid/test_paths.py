@@ -1,10 +1,9 @@
 import pytest
 
+import autofit as af
 
-@pytest.fixture(
-    name="grid_paths"
-)
-def make_grid_paths(
+
+def _make_grid_paths(
         grid_search,
         mapper
 ):
@@ -22,6 +21,19 @@ def make_grid_paths(
         job.search_instance.paths
         for job in jobs
     ]
+
+
+@pytest.fixture(
+    name="grid_paths"
+)
+def make_grid_paths(
+        grid_search,
+        mapper
+):
+    return _make_grid_paths(
+        grid_search,
+        mapper
+    )
 
 
 def test_contain_identifier(
@@ -54,3 +66,25 @@ def test_distinct_identifiers(
     }
     assert len(identifiers) == 100
     assert grid_search.paths.identifier not in identifiers
+
+
+def test_paths_type(
+        grid_search,
+        mapper,
+        session
+):
+    grid_search.paths = af.DatabasePaths(
+        session=session,
+        name="grid_search"
+    )
+
+    paths = _make_grid_paths(
+        grid_search,
+        mapper
+    )
+
+    for path in paths:
+        assert isinstance(
+            path,
+            af.DatabasePaths
+        )

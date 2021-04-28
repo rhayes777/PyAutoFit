@@ -1,6 +1,5 @@
 import os
 
-from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 from .. import model as m
 
 
@@ -18,6 +17,7 @@ def scrape_directory(directory: str):
     -------
     Generator yielding Fit database objects
     """
+    from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
     aggregator = ClassicAggregator(
         directory
     )
