@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -6,7 +7,7 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from functools import wraps
 from os import path
-import json
+from typing import Optional
 
 from autoconf import conf
 from autofit.mapper import link
@@ -32,7 +33,9 @@ class AbstractPaths(ABC):
     def __init__(
             self,
             name=None,
-            path_prefix=None
+            path_prefix=None,
+            is_identifier_in_paths=True,
+            parent: Optional["AbstractPaths"] = None
     ):
         """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
         API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
@@ -59,7 +62,10 @@ class AbstractPaths(ABC):
             The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For searchs
             this name is the ``name``.
         path_prefix : str
-            A prefixed path that appears after the output_path but beflore the name variable.
+            A prefixed path that appears after the output_path but before the name variable.
+        is_identifier_in_paths
+            If True output path and symlink path terminate with an identifier generated from the
+            search and model
         """
 
         self.name = name or ""
@@ -67,9 +73,14 @@ class AbstractPaths(ABC):
 
         self._search = None
         self.model = None
+        self.dataset_name = None
 
         self._non_linear_name = None
         self._identifier = None
+
+        self.is_identifier_in_paths = is_identifier_in_paths
+
+        self.parent = parent
 
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
@@ -78,6 +89,40 @@ class AbstractPaths(ABC):
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+    def create_child(
+            self,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
+            is_identifier_in_paths: Optional[bool] = None
+    ) -> "AbstractPaths":
+        """
+        Create a paths object which is the child of some parent
+        paths object. This is done during a GridSearch so that
+        results can be stored in the correct directory.
+
+        Parameters
+        ----------
+        name
+        path_prefix
+        is_identifier_in_paths
+            If False then this path's identifier will not be
+            added to its output path.
+
+        Returns
+        -------
+        A new paths object
+        """
+        return type(self)(
+            name=name or self.name,
+            path_prefix=path_prefix or self.path_prefix,
+            is_identifier_in_paths=(
+                is_identifier_in_paths
+                if is_identifier_in_paths is not None
+                else self.is_identifier_in_paths
+            ),
+            parent=self
+        )
 
     @property
     def search(self):
@@ -103,11 +148,16 @@ class AbstractPaths(ABC):
                 "Both model and search should be set"
             )
         if self._identifier is None:
+            identifier_list = [
+                self.search,
+                self.model
+            ]
+            if self.dataset_name is not None:
+                identifier_list.append(
+                    self.dataset_name
+                )
             self._identifier = str(
-                Identifier([
-                    self.search,
-                    self.model
-                ])
+                Identifier(identifier_list)
             )
         return self._identifier
 
@@ -143,11 +193,15 @@ class AbstractPaths(ABC):
                     str(conf.instance.output_path),
                     self.path_prefix,
                     self.name,
-                    self.identifier,
                 ],
             )
             )
         )
+
+        if self.is_identifier_in_paths:
+            strings.append(
+                self.identifier
+            )
 
         return path.join("", *strings)
 

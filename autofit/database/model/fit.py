@@ -1,4 +1,5 @@
 import pickle
+from functools import wraps
 from typing import List
 
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
@@ -80,6 +81,17 @@ class Info(Base):
     )
 
 
+def try_none(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except TypeError:
+            return None
+
+    return wrapper
+
+
 class Fit(Base):
     __tablename__ = "fit"
 
@@ -119,6 +131,27 @@ class Fit(Base):
         ]
     )
 
+    parent_id = Column(
+        String,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    parent: "Fit" = relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[
+            parent_id
+        ]
+    )
+    children = relationship(
+        "Fit"
+    )
+
+    is_grid_search = Column(
+        Boolean
+    )
+
     @property
     def info(self):
         return {
@@ -140,6 +173,7 @@ class Fit(Base):
             ]
 
     @property
+    @try_none
     def model(self) -> AbstractPriorModel:
         """
         The model that was fit
@@ -147,6 +181,7 @@ class Fit(Base):
         return self.__model()
 
     @property
+    @try_none
     def instance(self):
         """
         The instance of the model that had the highest likelihood

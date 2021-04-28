@@ -1,6 +1,5 @@
 import pytest
 
-from autofit import database as db
 from autofit.database import query as q
 
 
