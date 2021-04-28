@@ -13,6 +13,16 @@ from autofit.non_linear.samples import NestSamples, Sample
 
 class MultiNest(abstract_nest.AbstractNest):
 
+    __identifier_fields__ = (
+        "n_live_points",
+        "sampling_efficiency",
+        "const_efficiency_mode",
+        "importance_nested_sampling",
+        "max_modes",
+        "mode_tolerance",
+        "seed",
+    )
+
     def __init__(
             self,
             name=None,

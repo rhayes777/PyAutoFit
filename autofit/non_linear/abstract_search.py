@@ -116,6 +116,12 @@ class NonLinearSearch(ABC):
         for key, value in self.config_dict_search.items():
             setattr(self, key, value)
 
+        try:
+            for key, value in self.config_dict_run.items():
+                setattr(self, key, value)
+        except KeyError:
+            pass
+
         self.number_of_cores = number_of_cores
 
     __identifier_fields__ = tuple()

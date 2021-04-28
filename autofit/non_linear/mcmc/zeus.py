@@ -1,7 +1,4 @@
-import os
 from typing import List
-
-import pickle
 import zeus
 import numpy as np
 
@@ -13,9 +10,16 @@ from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
 
-import copy
-
 class Zeus(AbstractMCMC):
+
+    __identifier_fields__ = (
+        "nwalkers",
+        "tune",
+        "tolerance",
+        "patience",
+        "mu",
+        "light_mode"
+    )
 
     def __init__(
             self,

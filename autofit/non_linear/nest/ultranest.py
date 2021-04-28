@@ -1,13 +1,6 @@
-import os
-import shutil
-from os import path
-import numpy as np
 import ultranest
 from ultranest import stepsampler
-from functools import partial
 import copy
-
-import importlib
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
@@ -18,6 +11,17 @@ from autofit.non_linear.samples import NestSamples, Sample
 
 
 class UltraNest(abstract_nest.AbstractNest):
+
+    __identifier_fields__ = (
+        "draw_multiple",
+        "ndraw_min",
+        "ndraw_max",
+        "min_num_live_points",
+        "cluster_num_live_points",
+        "insertion_test_zscore_threshold",
+        "stepsampler_cls",
+        "nsteps"
+    )
 
     def __init__(
             self,
@@ -68,6 +72,11 @@ class UltraNest(abstract_nest.AbstractNest):
             if number_of_cores is None
             else number_of_cores
         )
+
+        for key, value in self.config_dict_stepsampler.items():
+            setattr(self, key, value)
+            if self.config_dict_stepsampler["stepsampler_cls"] is None:
+                self.nsteps = None
 
         logger.debug("Creating UltraNest Search")
 

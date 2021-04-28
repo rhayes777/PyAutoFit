@@ -13,7 +13,6 @@ from autofit.non_linear.samples import NestSamples, Sample
 
 
 def prior_transform(cube, model):
-
     phys_cube = model.vector_from_unit_vector(unit_vector=cube)
 
     for i in range(len(phys_cube)):
@@ -23,11 +22,12 @@ def prior_transform(cube, model):
 
 
 class AbstractDynesty(AbstractNest, ABC):
+
     def __init__(
             self,
-            name : str ="",
-            path_prefix : str= "",
-            prior_passer : PriorPasser = None,
+            name: str = "",
+            path_prefix: str = "",
+            prior_passer: PriorPasser = None,
             iterations_per_update=None,
             number_of_cores=None,
             session=None,
@@ -255,7 +255,6 @@ class AbstractDynesty(AbstractNest, ABC):
         init_log_likelihoods = np.zeros(shape=(self.total_live_points))
 
         for index in range(len(parameters)):
-
             init_unit_parameters[index, :] = np.asarray(unit_parameters[index])
             init_parameters[index, :] = np.asarray(parameters[index])
             init_log_likelihoods[index] = np.asarray(log_likelihoods[index])
@@ -269,7 +268,22 @@ class AbstractDynesty(AbstractNest, ABC):
     def total_live_points(self):
         raise NotImplementedError()
 
+
 class DynestyStatic(AbstractDynesty):
+
+    __identifier_fields__ = (
+        "nlive",
+        "bound",
+        "sample",
+        "enlarge",
+        "bootstrap",
+        "vol_dec",
+        "walks",
+        "facc",
+        "slices",
+        "fmove",
+        "max_move"
+    )
 
     def __init__(
             self,
@@ -341,7 +355,23 @@ class DynestyStatic(AbstractDynesty):
     def total_live_points(self):
         return self.config_dict_search["nlive"]
 
+
 class DynestyDynamic(AbstractDynesty):
+
+    __identifier_fields__ = (
+        "nlive",
+        "bound",
+        "sample",
+        "enlarge",
+        "bootstrap",
+        "vol_dec",
+        "walks",
+        "facc",
+        "slices",
+        "fmove",
+        "max_move"
+    )
+
     def __init__(
             self,
             name=None,

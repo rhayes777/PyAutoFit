@@ -257,6 +257,13 @@ class AbstractPySwarms(AbstractOptimizer):
 
 class PySwarmsGlobal(AbstractPySwarms):
 
+    __identifier_fields__ = (
+        "n_particles",
+        "cognitive",
+        "social",
+        "inertia",
+    )
+
     def __init__(
             self,
             name=None,
@@ -330,6 +337,15 @@ class PySwarmsGlobal(AbstractPySwarms):
 
 
 class PySwarmsLocal(AbstractPySwarms):
+
+    __identifier_fields__ = (
+        "n_particles",
+        "cognitive",
+        "social",
+        "inertia",
+        "number_of_k_neighbors",
+        "minkowski_p_norm"
+    )
 
     def __init__(
             self,

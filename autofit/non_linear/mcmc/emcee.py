@@ -15,6 +15,10 @@ from autofit.non_linear.samples import MCMCSamples, Sample
 
 class Emcee(AbstractMCMC):
 
+    __identifier_fields__ = (
+        "nwalkers",
+    )
+
     def __init__(
             self,
             name=None,
