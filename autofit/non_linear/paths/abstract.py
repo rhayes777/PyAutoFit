@@ -59,7 +59,7 @@ class AbstractPaths(ABC):
             The name of the non-linear search, which is used as a folder name after the ``path_prefix``. For searchs
             this name is the ``name``.
         path_prefix : str
-            A prefixed path that appears after the output_path but beflore the name variable.
+            A prefixed path that appears after the output_path but before the name variable.
         """
 
         self.name = name or ""
@@ -67,6 +67,7 @@ class AbstractPaths(ABC):
 
         self._search = None
         self.model = None
+        self.dataset_name = None
 
         self._non_linear_name = None
         self._identifier = None
@@ -103,11 +104,16 @@ class AbstractPaths(ABC):
                 "Both model and search should be set"
             )
         if self._identifier is None:
+            identifier_list = [
+                self.search,
+                self.model
+            ]
+            if self.dataset_name is not None:
+                identifier_list.append(
+                    self.dataset_name
+                )
             self._identifier = str(
-                Identifier([
-                    self.search,
-                    self.model
-                ])
+                Identifier(identifier_list)
             )
         return self._identifier
 

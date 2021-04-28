@@ -228,6 +228,7 @@ class NonLinearSearch(ABC):
             self,
             model,
             analysis: "Analysis",
+            dataset_name=Optional[None],
             info=None,
             pickle_files=None,
             log_likelihood_cap=None
@@ -243,6 +244,9 @@ class NonLinearSearch(ABC):
 
         Parameters
         ----------
+        dataset_name
+            Optional name for the dataset that is used in generating a unique
+            identifier
         log_likelihood_cap
         analysis : af.Analysis
             An object that encapsulates the data and a log likelihood function.
@@ -263,6 +267,7 @@ class NonLinearSearch(ABC):
         produced by this fit.
         """
         self.paths.model = model
+        self.paths.dataset_name = dataset_name
         self.paths.restore()
         self.setup_log_file()
 

@@ -29,6 +29,27 @@ def test_identifier_fields():
     )
 
 
+def test_dataset_name():
+    search = af.MockSearch()
+
+    search.fit(
+        model=af.Collection(),
+        analysis=af.mock.mock.MockAnalysis()
+    )
+
+    identifier = search.paths.identifier
+
+    search = af.MockSearch()
+
+    search.fit(
+        model=af.Collection(),
+        analysis=af.mock.mock.MockAnalysis(),
+        dataset_name="dataset"
+    )
+
+    assert search.paths.identifier != identifier
+
+
 def test_fit():
     assert db.Fit(
         info={"info": 1}
