@@ -34,11 +34,23 @@ class Identifier:
                     value,
                     "__identifier_fields__"
             ):
+                fields = value.__identifier_fields__
+                missing_fields = [
+                    field for field in fields
+                    if field not in d
+                ]
+                if len(missing_fields) > 0:
+                    string = '\n'.join(
+                        missing_fields
+                    )
+                    raise AssertionError(
+                        f"The following __identifier_fields__ do not exist for {type(value)}:\n{string}"
+                    )
                 d = {
                     k: v
                     for k, v
                     in d.items()
-                    if k in value.__identifier_fields__
+                    if k in fields
                 }
             self.add_value_to_hash_list(
                 d
