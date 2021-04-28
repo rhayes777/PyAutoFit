@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import shutil
@@ -7,6 +6,7 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from functools import wraps
 from os import path
+import json
 
 from autoconf import conf
 from autofit.mapper import link
@@ -32,7 +32,8 @@ class AbstractPaths(ABC):
     def __init__(
             self,
             name=None,
-            path_prefix=None
+            path_prefix=None,
+            is_identifier_in_paths=True
     ):
         """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
         API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
@@ -60,6 +61,9 @@ class AbstractPaths(ABC):
             this name is the ``name``.
         path_prefix : str
             A prefixed path that appears after the output_path but before the name variable.
+        is_identifier_in_paths
+            If True output path and symlink path terminate with an identifier generated from the
+            search and model
         """
 
         self.name = name or ""
@@ -71,6 +75,8 @@ class AbstractPaths(ABC):
 
         self._non_linear_name = None
         self._identifier = None
+
+        self.is_identifier_in_paths = is_identifier_in_paths
 
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
@@ -141,9 +147,6 @@ class AbstractPaths(ABC):
     def output_path(self) -> str:
         """
         The path to the output information for a search.
-
-        The path terminates with the identifier, unless the identifier has already
-        been added to the path.
         """
         strings = (
             list(filter(
@@ -157,13 +160,12 @@ class AbstractPaths(ABC):
             )
         )
 
-        path_ = path.join("", *strings)
-        if self.identifier not in path_:
-            path_ = path.join(
-                path_,
+        if self.is_identifier_in_paths:
+            strings.append(
                 self.identifier
             )
-        return path_
+
+        return path.join("", *strings)
 
     def zip_remove(self):
         """

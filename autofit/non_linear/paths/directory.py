@@ -239,7 +239,7 @@ class DirectoryPaths(AbstractPaths):
             self.path_prefix,
             self.name
         )
-        if self.identifier not in path_:
+        if self.is_identifier_in_paths:
             path_ = path.join(
                 path_,
                 self.identifier

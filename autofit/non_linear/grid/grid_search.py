@@ -329,21 +329,12 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
-        jobs = list()
-
-        for index, values in enumerate(lists):
-            jobs.append(
-                self.job_for_analysis_grid_priors_and_values(
-                    analysis=copy.deepcopy(analysis),
-                    model=model,
-                    grid_priors=grid_priors,
-                    values=values,
-                    index=index,
-                )
-            )
-
         for result in Process.run_jobs(
-                jobs,
+                self.make_jobs(
+                    model,
+                    analysis,
+                    grid_priors
+                ),
                 self.number_of_cores
         ):
             results.append(result)
@@ -390,14 +381,11 @@ class GridSearch:
             + ["max_log_likelihood"]
         ]
 
-        for index, values in enumerate(lists):
-            job = self.job_for_analysis_grid_priors_and_values(
-                analysis=analysis,
-                model=model,
-                grid_priors=grid_priors,
-                values=values,
-                index=index,
-            )
+        for job in self.make_jobs(
+                model,
+                analysis,
+                grid_priors
+        ):
 
             result = job.perform()
 
@@ -407,6 +395,24 @@ class GridSearch:
             self.write_results(results_list)
 
         return GridSearchResult(results, lists, physical_lists)
+
+    def make_jobs(self, model, analysis, grid_priors):
+        grid_priors = list(set(grid_priors))
+        lists = self.make_lists(grid_priors)
+
+        jobs = list()
+
+        for index, values in enumerate(lists):
+            jobs.append(
+                self.job_for_analysis_grid_priors_and_values(
+                    analysis=copy.deepcopy(analysis),
+                    model=model,
+                    grid_priors=grid_priors,
+                    values=values,
+                    index=index,
+                )
+            )
+        return jobs
 
     def write_results(self, results_list):
 
@@ -430,6 +436,9 @@ class GridSearch:
     def job_for_analysis_grid_priors_and_values(
             self, model, analysis, grid_priors, values, index
     ):
+        self.paths.model = model
+        self.paths.search = self
+
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
 
@@ -441,8 +450,6 @@ class GridSearch:
                 )
             )
 
-        self.paths.model = model
-
         name_path = path.join(
             self.paths.name,
             self.paths.identifier,
@@ -450,6 +457,7 @@ class GridSearch:
         )
 
         search_instance = self.search_instance(name_path=name_path)
+        search_instance.paths.model = model
 
         return Job(
             search_instance=search_instance,
@@ -464,6 +472,7 @@ class GridSearch:
             DirectoryPaths(
                 name=name_path,
                 path_prefix=self.paths.path_prefix,
+                is_identifier_in_paths=False
             )
         )
 
