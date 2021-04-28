@@ -3,7 +3,11 @@ import shutil
 from os import path
 import numpy as np
 import ultranest
+from ultranest import stepsampler
 from functools import partial
+import copy
+
+import importlib
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
@@ -67,6 +71,33 @@ class UltraNest(abstract_nest.AbstractNest):
 
         logger.debug("Creating UltraNest Search")
 
+    @property
+    def config_dict_stepsampler(self):
+
+        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"]._dict)
+
+        for key, value in config_dict.items():
+            try:
+                config_dict[key] = self.kwargs[key]
+            except KeyError:
+                pass
+
+        return config_dict
+
+    @property
+    def stepsampler(self):
+
+        config_dict_stepsampler = self.config_dict_stepsampler
+        stepsampler_cls = config_dict_stepsampler["stepsampler_cls"]
+        config_dict_stepsampler.pop("stepsampler_cls")
+
+        if stepsampler_cls is None:
+            return None
+        elif stepsampler_cls == "RegionMHSampler":
+            return stepsampler.RegionMHSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "AHARMSampler":
+            return stepsampler.AHARMSampler(**config_dict_stepsampler)
+
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
@@ -104,8 +135,6 @@ class UltraNest(abstract_nest.AbstractNest):
         def prior_transform(cube):
             return model.vector_from_unit_vector(unit_vector=cube)
 
-        print(self.config_dict_search)
-
         self.sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness_function.__call__,
@@ -113,6 +142,9 @@ class UltraNest(abstract_nest.AbstractNest):
             log_dir=self.paths.samples_path,
             **self.config_dict_search
         )
+
+
+        self.sampler.stepsampler = self.stepsampler
 
         finished = False
 
@@ -175,7 +207,7 @@ class UltraNest(abstract_nest.AbstractNest):
             sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
         weights = self.sampler.results["weighted_samples"]["weights"]
-        total_samples = self.sampler.results["niter"]
+        total_samples = self.sampler.results["ncall"]
         log_evidence = self.sampler.results["logz"]
 
         return NestSamples(
