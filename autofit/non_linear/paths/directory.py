@@ -230,11 +230,18 @@ class DirectoryPaths(AbstractPaths):
     def _make_path(self) -> str:
         """
         Returns the path to the folder at which the metadata should be saved
-        """
 
-        return path.join(
+        The path terminates with the identifier, unless the identifier has already
+        been added to the path.
+        """
+        path_ = path.join(
             conf.instance.output_path,
             self.path_prefix,
-            self.name,
-            self.identifier,
+            self.name
         )
+        if self.identifier not in path_:
+            path_ = path.join(
+                path_,
+                self.identifier
+            )
+        return path_

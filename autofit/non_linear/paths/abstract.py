@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -6,7 +7,6 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from functools import wraps
 from os import path
-import json
 
 from autoconf import conf
 from autofit.mapper import link
@@ -141,6 +141,9 @@ class AbstractPaths(ABC):
     def output_path(self) -> str:
         """
         The path to the output information for a search.
+
+        The path terminates with the identifier, unless the identifier has already
+        been added to the path.
         """
         strings = (
             list(filter(
@@ -149,13 +152,18 @@ class AbstractPaths(ABC):
                     str(conf.instance.output_path),
                     self.path_prefix,
                     self.name,
-                    self.identifier,
                 ],
             )
             )
         )
 
-        return path.join("", *strings)
+        path_ = path.join("", *strings)
+        if self.identifier not in path_:
+            path_ = path.join(
+                path_,
+                self.identifier
+            )
+        return path_
 
     def zip_remove(self):
         """
