@@ -1,4 +1,5 @@
 import shutil
+from typing import Optional
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -27,10 +28,28 @@ class DatabasePaths(AbstractPaths):
 
     def create_child(
             self,
-            name=None,
-            path_prefix=None,
-            is_identifier_in_paths=None
-    ):
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
+            is_identifier_in_paths: Optional[bool] = None
+    ) -> "DatabasePaths":
+        """
+        Create a paths object which is the child of some parent
+        paths object. This is done during a GridSearch so that
+        results can be stored in the correct directory. It also
+        allows database fit objects to be related correctly.
+
+        Parameters
+        ----------
+        name
+        path_prefix
+        is_identifier_in_paths
+            If False then this path's identifier will not be
+            added to its output path.
+
+        Returns
+        -------
+        A new paths object
+        """
         self.fit.is_grid_search = True
         return type(self)(
             session=self.session,

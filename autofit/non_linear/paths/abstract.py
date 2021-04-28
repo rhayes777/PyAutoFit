@@ -92,10 +92,27 @@ class AbstractPaths(ABC):
 
     def create_child(
             self,
-            name=None,
-            path_prefix=None,
-            is_identifier_in_paths=None
-    ):
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
+            is_identifier_in_paths: Optional[bool] = None
+    ) -> "AbstractPaths":
+        """
+        Create a paths object which is the child of some parent
+        paths object. This is done during a GridSearch so that
+        results can be stored in the correct directory.
+
+        Parameters
+        ----------
+        name
+        path_prefix
+        is_identifier_in_paths
+            If False then this path's identifier will not be
+            added to its output path.
+
+        Returns
+        -------
+        A new paths object
+        """
         return type(self)(
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,

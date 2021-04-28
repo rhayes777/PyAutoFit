@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -90,7 +90,11 @@ class Aggregator:
         return super().__eq__(other)
 
     @property
-    def fits(self):
+    def fits(self) -> List[m.Fit]:
+        """
+        Lazily query the database for a list of Fit objects that
+        match the aggregator's predicate.
+        """
         if self._fits is None:
             self._fits = self._fits_for_query(
                 self._predicate.fit_query
@@ -100,7 +104,22 @@ class Aggregator:
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename}>"
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Union[AbstractQuery, q.A]:
+        """
+        Facilitates query construction. If the Fit class has an
+        attribute with the given name then a predicate is generated
+        based on that attribute. Otherwise the query is assumed to
+        apply to the best fit instance.
+
+        Parameters
+        ----------
+        name
+            The name of an attribute of the Fit class or the model
+
+        Returns
+        -------
+        A query
+        """
         if name in m.fit_attributes:
             if m.fit_attributes[
                 name
@@ -110,6 +129,9 @@ class Aggregator:
         return q.Q(name)
 
     def __call__(self, predicate) -> "Aggregator":
+        """
+        Concise query syntax
+        """
         return self.query(predicate)
 
     def query(self, predicate: AbstractQuery) -> "Aggregator":
@@ -144,7 +166,11 @@ class Aggregator:
             predicate=self._predicate & predicate
         )
 
-    def children(self):
+    def children(self) -> "Aggregator":
+        """
+        An aggregator comprising the children of the fits encapsulated
+        by this aggregator. This is used to query children in a grid search.
+        """
         return Aggregator(
             session=self.session,
             filename=self.filename,
