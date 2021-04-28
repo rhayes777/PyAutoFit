@@ -16,6 +16,7 @@ Non-Linear Searches
    DynestyDynamic
    DynestyStatic
    MultiNest
+   UltraNest
 
 **MCMC:**
 
@@ -23,6 +24,7 @@ Non-Linear Searches
    :toctree: generated/
 
    Emcee
+   Zeus
 
 **Optimizers:**
 
