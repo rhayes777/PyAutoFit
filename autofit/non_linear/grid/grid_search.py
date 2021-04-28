@@ -1,20 +1,4 @@
-import copy
-from os import path
-from typing import List, Tuple, Union
-
-import numpy as np
-
-from autofit import exc
-from autofit.mapper import model_mapper as mm
-from autofit.mapper.prior import prior as p
-from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
-from autofit.non_linear.result import Result
-
-
-
-
-
-
+from autofit.non_linear.parallel import AbstractJob, AbstractJobResult
 
 
 class JobResult(AbstractJobResult):
