@@ -359,7 +359,6 @@ class DynestyStatic(AbstractDynesty):
 class DynestyDynamic(AbstractDynesty):
 
     __identifier_fields__ = (
-        "nlive",
         "bound",
         "sample",
         "enlarge",

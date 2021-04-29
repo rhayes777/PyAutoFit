@@ -1,0 +1,17 @@
+A description of the general.ini visualization config.
+
+[general]
+    backend -> str
+        The matploblib backend used for visualization (see
+        https://gist.github.com/CMCDragonkai/4e9464d9f32f5893d837f3de2c43daa4 for a description of backends).
+
+        If you use an invalid backend for your computer, PyAutoLens may crash without an error or reset your machine.
+        There may be no better way to find the right backend than simple trial and error. The following backends have
+        worked for PyAutoLens users:
+
+        TKAgg (default)
+        Qt5Agg (works on new MACS)
+        Qt4Agg
+        WXAgg
+        WX
+        Agg (outputs to .fits / .png but doesn't'display figures during a run on your computer screen)

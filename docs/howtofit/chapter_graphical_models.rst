@@ -14,8 +14,8 @@ and navigating to the folder `notebooks/howtofit/chapter_graphical_models`. They
 
 The chapter contains the following tutorials:
 
-`Tutorial 1: Global Model <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_graphical_models/tutorial_1_global_model.ipynb>`_
+`Tutorial 1: Global Model <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=notebooks/howtofit/chapter_graphical_models/tutorial_1_global_model.ipynb>`_
 - An example of inferring global parameters from a dataset by fitting the model to each dataset one-by-one.
 
-`Tutorial 2: Graphical Model <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/howtofit/chapter_graphical_models/tutorial_2_graphical_model.ipynb>`_
+`Tutorial 2: Graphical Model <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=notebooks/howtofit/chapter_graphical_models/tutorial_2_graphical_model.ipynb>`_
 - Fitting the dataset with a graphical model that fits all datasets simultaneously to infer the global parameters

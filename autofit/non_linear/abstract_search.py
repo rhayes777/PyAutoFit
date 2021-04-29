@@ -20,6 +20,7 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
+from autofit.non_linear.visualizer import Visualizer
 
 
 class NonLinearSearch(ABC):
@@ -415,6 +416,10 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
+
+            visualizer = Visualizer(visualize_path=self.paths.image_path)
+            visualizer.visualize_samples(samples=samples)
+
             analysis.visualize(
                 paths=self.paths,
                 instance=instance,

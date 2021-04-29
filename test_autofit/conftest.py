@@ -1,5 +1,6 @@
 import os
 from os import path
+from matplotlib import pyplot
 
 import pytest
 from sqlalchemy import create_engine
@@ -9,9 +10,24 @@ import autofit as af
 from autoconf import conf
 from autofit import database as db
 from autofit.mock import mock
+from autofit.non_linear import samples as samp
 
 directory = path.dirname(path.realpath(__file__))
 
+
+class PlotPatch:
+    def __init__(self):
+        self.paths = []
+
+    def __call__(self, path, *args, **kwargs):
+        self.paths.append(path)
+
+
+@pytest.fixture(name="plot_patch")
+def make_plot_patch(monkeypatch):
+    plot_patch = PlotPatch()
+    monkeypatch.setattr(pyplot, "savefig", plot_patch)
+    return plot_patch
 
 @pytest.fixture(name="session")
 def make_session():
@@ -44,6 +60,17 @@ def set_config_path():
 def model():
     return af.ModelMapper()
 
+
+@pytest.fixture(name="samples")
+def make_samples():
+
+    sample_0 = samp.Sample(log_likelihood=1.0, log_prior=2.0, weights=0.25)
+    sample_1 = samp.Sample(log_likelihood=3.0, log_prior=5.0, weights=0.75)
+
+    return af.PDFSamples(
+        model=af.Mapper(),
+        samples=[sample_0, sample_1],
+    )
 
 @pytest.fixture(name="result")
 def make_result():

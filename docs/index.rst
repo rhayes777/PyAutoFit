@@ -16,7 +16,7 @@ Try it now
 ----------
 
 You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/3a68a8335b54e5f54278d56e82f82389f09ebc61?filepath=introduction.ipynb>`_.
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=introduction.ipynb>`_.
 This allows you to run the code that is described below.
 
 Why PyAutoFit?
