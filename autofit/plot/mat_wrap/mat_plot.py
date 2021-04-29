@@ -1,16 +1,13 @@
 from autofit.plot.mat_wrap.wrap import wrap_base
-from autofit.plot.mat_wrap.wrap import wrap_2d
-from autofit.plot.mat_wrap.wrap import wrap_1d
 
 wrap_base.set_backend()
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from autofit import exc
+from autofit.plot.mat_wrap.wrap import wrap_1d
 from autofit.plot.mat_wrap import visuals as vis
 
-import typing
 from typing import Optional
 
 
@@ -379,12 +376,6 @@ class MatPlot2D(AbstractMatPlot):
         xlabel: wrap_base.XLabel = wrap_base.XLabel(),
         legend: wrap_base.Legend = wrap_base.Legend(),
         output: wrap_base.Output = wrap_base.Output(),
-        array_overlay: wrap_2d.ArrayOverlay = wrap_2d.ArrayOverlay(),
-        grid_scatter: wrap_2d.GridScatter = wrap_2d.GridScatter(),
-        grid_plot: wrap_2d.GridPlot = wrap_2d.GridPlot(),
-        vector_field_quiver: wrap_2d.VectorFieldQuiver = wrap_2d.VectorFieldQuiver(),
-        patch_overlay: wrap_2d.PatchOverlay = wrap_2d.PatchOverlay(),
-        voronoi_drawer: wrap_2d.VoronoiDrawer = wrap_2d.VoronoiDrawer(),
     ):
         """
         Visualizes 2D data structures (e.g an `Array2D`, `Grid2D`, `VectorField`, etc.) using Matplotlib.
@@ -467,11 +458,5 @@ class MatPlot2D(AbstractMatPlot):
             legend=legend,
             output=output,
         )
-
-        self.grid_plot = grid_plot
-        self.vector_field_quiver = vector_field_quiver
-        self.patch_overlay = patch_overlay
-        self.array_overlay = array_overlay
-        self.voronoi_drawer = voronoi_drawer
 
         self.is_for_subplot = False

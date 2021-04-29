@@ -40,19 +40,19 @@ def test__individual_attributes_are_output(
     assert path.join(plot_path, "progress.png") not in plot_patch.paths
 
 
-def test__subplot_is_output(
-    samples, grid_2d_irregular_7x7_list, mask_2d_7x7, plot_path, plot_patch
-):
-
-    visuals_1d = aplt.Visuals1D()
-
-    samples_plotter = aplt.SamplesPlotter(
-        samples=samples,
-        visuals_1d=visuals_1d,
-        mat_plot_1d=aplt.MatPlot1D(output=aplt.Output(plot_path, format="png")),
-    )
-
-    samples_plotter.subplot_samples()
-
-    assert path.join(plot_path, "subplot_samples.png") in plot_patch.paths
+# def test__subplot_is_output(
+#     samples, grid_2d_irregular_7x7_list, mask_2d_7x7, plot_path, plot_patch
+# ):
+#
+#     visuals_1d = aplt.Visuals1D()
+#
+#     samples_plotter = aplt.SamplesPlotter(
+#         samples=samples,
+#         visuals_1d=visuals_1d,
+#         mat_plot_1d=aplt.MatPlot1D(output=aplt.Output(plot_path, format="png")),
+#     )
+#
+#     samples_plotter.subplot_samples()
+#
+#     assert path.join(plot_path, "subplot_samples.png") in plot_patch.paths
 

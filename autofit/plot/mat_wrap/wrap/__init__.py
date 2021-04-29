@@ -14,12 +14,3 @@ from .wrap_base import (
     Legend,
     Output,
 )
-from .wrap_1d import YXPlot, AXVLine
-from .wrap_2d import (
-    ArrayOverlay,
-    GridScatter,
-    GridPlot,
-    VectorFieldQuiver,
-    PatchOverlay,
-    VoronoiDrawer,
-)

@@ -1,13 +1,13 @@
-from autoarray.plot.mat_wrap.wrap import wrap_base
+from autofit.plot.mat_wrap.wrap import wrap_base
 
 wrap_base.set_backend()
 
 import matplotlib.pyplot as plt
 import numpy as np
 import typing
+from typing import Optional
 
-from autoarray.structures.arrays.one_d import array_1d
-from autoarray import exc
+from autofit import exc
 
 
 class AbstractMatWrap1D(wrap_base.AbstractMatWrap):
@@ -39,8 +39,8 @@ class YXPlot(AbstractMatWrap1D):
 
     def plot_y_vs_x(
         self,
-        y: typing.Union[np.ndarray, array_1d.Array1D],
-        x: typing.Union[np.ndarray, array_1d.Array1D],
+        y: typing.Union[np.ndarray],
+        x: typing.Union[np.ndarray],
         label: str = None,
         plot_axis_type=None,
     ):

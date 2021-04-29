@@ -1,16 +1,6 @@
-from autoarray.mask import mask_1d
-from autoarray.structures.arrays.one_d import array_1d
-from autoarray.structures.arrays.two_d import array_2d
-from autoarray.structures.grids.two_d import grid_2d
-from autoarray.structures.grids.two_d import grid_2d_irregular
-from autoarray.structures.vector_fields import vector_field_irregular
-from autoarray.plot.mat_wrap import mat_plot, include as inc
-from autoarray.mask import mask_2d
-from matplotlib import patches as ptch
-import typing
+from autofit.plot.mat_wrap import mat_plot, include as inc
 from typing import Optional
 from abc import ABC
-from typing import List, Union
 
 
 class AbstractVisuals(ABC):

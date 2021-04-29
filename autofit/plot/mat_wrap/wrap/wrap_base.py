@@ -1,9 +1,6 @@
 from autoconf import conf
 import matplotlib
 
-from autoarray.structures.arrays.two_d import array_2d
-
-
 def set_backend():
 
     backend = conf.get_matplotlib_backend()
@@ -28,9 +25,7 @@ from os import path
 import os
 import typing
 
-
-from autoarray.structures import abstract_structure
-from autoarray import exc
+from autofit import exc
 
 
 class Units:
@@ -94,12 +89,12 @@ class AbstractMatWrap:
         """
         An abstract base class for wrapping matplotlib plotting methods.
         
-        Classes are used to wrap matplotlib so that the data structures in the `autoarray.structures` package can be 
+        Classes are used to wrap matplotlib so that the data structures in the `autofit.structures` package can be
         plotted in standardized withs. This exploits how these structures have specific formats, units, properties etc.
         This allows us to make a simple API for plotting structures, for example to plot an `Array2D` structure:
         
-        import autoarray as aa
-        import autoarray.plot as aplt
+        import autofit as aa
+        import autofit.plot as aplt
         
         arr = aa.Array2D.manual_native(array=[[1.0, 1.0], [2.0, 2.0]], pixel_scales=2.0)
         aplt.Array2D(array=arr)
@@ -114,10 +109,10 @@ class AbstractMatWrap:
         
         aplt.Array2D(array=arr, plotter=plotter)
         
-        The `Plotter` object is detailed in the `autoarray.plot.plotter` package.
+        The `Plotter` object is detailed in the `autofit.plot.plotter` package.
         
         The matplotlib wrapper objects in ths module also use configuration files to choose their default settings.
-        For example, in `autoarray.config.visualize.mat_base.Figure.ini` you will note the section:
+        For example, in `autofit.config.visualize.mat_base.Figure.ini` you will note the section:
         
         [figure]
         figsize=(7, 7)
@@ -501,7 +496,7 @@ class AbstractTicks(AbstractMatWrap):
             return np.linspace(min_value, max_value, 5)
 
     def tick_values_in_units_from(
-        self, array: array_2d.Array2D, min_value: float, max_value: float, units: Units
+        self, array: np.ndarray, min_value: float, max_value: float, units: Units
     ) -> typing.Optional[np.ndarray]:
         """
         Calculate the labels used for the yticks or xticks from input values of the minimum and maximum coordinate
@@ -547,7 +542,7 @@ class AbstractTicks(AbstractMatWrap):
 class YTicks(AbstractTicks):
     def set(
         self,
-        array: typing.Optional[array_2d.Array2D],
+        array: typing.Optional[np.ndarray],
         min_value: float,
         max_value: float,
         units: Units,
@@ -577,7 +572,7 @@ class YTicks(AbstractTicks):
 class XTicks(AbstractTicks):
     def set(
         self,
-        array: typing.Optional[array_2d.Array2D],
+        array: typing.Optional[np.ndarray],
         min_value: float,
         max_value: float,
         units: Units,
@@ -832,7 +827,7 @@ class Output:
 
     def to_figure(
         self,
-        structure: typing.Optional[abstract_structure.AbstractStructure],
+        structure,
         auto_filename=None,
     ):
         """Output the figure, by either displaying it on the user's screen or to the hard-disk as a .png or .fits file.

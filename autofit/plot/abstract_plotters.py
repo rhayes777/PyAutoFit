@@ -1,12 +1,12 @@
-from autoarray.plot.mat_wrap.wrap import wrap_base
+from autofit.plot.mat_wrap.wrap import wrap_base
 
 wrap_base.set_backend()
 
 import matplotlib.pyplot as plt
 
-from autoarray.plot.mat_wrap import visuals as vis
-from autoarray.plot.mat_wrap import include as inc
-from autoarray.plot.mat_wrap import mat_plot
+from autofit.plot.mat_wrap import visuals as vis
+from autofit.plot.mat_wrap import include as inc
+from autofit.plot.mat_wrap import mat_plot
 
 
 class AbstractPlotter:
