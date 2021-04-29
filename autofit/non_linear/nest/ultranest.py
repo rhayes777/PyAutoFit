@@ -1,5 +1,3 @@
-import ultranest
-from ultranest import stepsampler
 import copy
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -35,6 +33,9 @@ class UltraNest(abstract_nest.AbstractNest):
     ):
         """
         An UltraNest non-linear search.
+
+        UltraNest is an optional requirement and must be installed manually via the command `pip install ultranest`.
+        It is optional as it has certain dependencies which are generally straight forward to install (e.g. Cython).
 
         For a full description of UltraNest and its Python wrapper PyUltraNest, checkout its Github and documentation
         webpages:
@@ -96,6 +97,8 @@ class UltraNest(abstract_nest.AbstractNest):
     @property
     def stepsampler(self):
 
+        from ultranest import stepsampler
+
         config_dict_stepsampler = self.config_dict_stepsampler
         stepsampler_cls = config_dict_stepsampler["stepsampler_cls"]
         config_dict_stepsampler.pop("stepsampler_cls")
@@ -134,6 +137,8 @@ class UltraNest(abstract_nest.AbstractNest):
         A result object comprising the Samples object that includes the maximum log likelihood instance and full
         set of accepted ssamples of the fit.
         """
+
+        import ultranest
 
         pool, pool_ids = self.make_pool()
 

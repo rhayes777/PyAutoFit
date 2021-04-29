@@ -7,8 +7,7 @@ Non-linear Searches
 
 - **Optimizers**: ``PySwarms``.
 - **MCMC**: ``emcee`` and ``Zeus``.
-- **Nested Samplers**: ``dynesty``, ``UltraNest`` and ``PyMultiNest`` (``PyMultiNest`` requires users to manually
-install it and is omitted from this example).
+- **Nested Samplers**: ``dynesty``, ``UltraNest`` (optional) and ``PyMultiNest`` (optional).
 
 **PyAutoFit** extends the functionality of each non-linear search to ensure that they always perform the
 following tasks, even if the original package does not:
