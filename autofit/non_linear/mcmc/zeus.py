@@ -199,6 +199,7 @@ class Zeus(AbstractMCMC):
             )
 
             zeus_state = zeus_sampler.get_last_sample()
+            initial_log_posteriors = zeus_sampler.get_last_log_prob()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
