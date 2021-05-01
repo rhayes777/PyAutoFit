@@ -133,12 +133,18 @@ class AbstractPySwarms(AbstractOptimizer):
 
             logger.info("No PySwarms samples found, beginning new non-linear search. ")
 
+        ## TODO : Use actual limits
+
+        vector_lower = model.vector_from_unit_vector(unit_vector=[0.01] * model.prior_count)
+        vector_upper = model.vector_from_unit_vector(unit_vector=[0.99] * model.prior_count)
+
         lower_bounds = []
         upper_bounds = []
 
-        for key, value in model.prior_class_dict.items():
-            lower_bounds.append(key.lower_limit)
-            upper_bounds.append(key.upper_limit)
+        for lower in vector_lower:
+            lower_bounds.append(lower)
+        for upper in vector_upper:
+            upper_bounds.append(upper)
 
         bounds = (np.asarray(lower_bounds), np.asarray(upper_bounds))
 
