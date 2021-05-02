@@ -30,6 +30,7 @@ class MultiNest(abstract_nest.AbstractNest):
             path_prefix=None,
             unique_tag=Optional[None],
             prior_passer=None,
+            session=None,
             **kwargs
     ):
         """
@@ -60,6 +61,7 @@ class MultiNest(abstract_nest.AbstractNest):
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             prior_passer=prior_passer,
+            session=session,
             **kwargs
         )
 

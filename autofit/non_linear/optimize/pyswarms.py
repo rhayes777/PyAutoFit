@@ -18,6 +18,7 @@ class AbstractPySwarms(AbstractOptimizer):
             initializer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
+            session=None,
             **kwargs
     ):
         """
@@ -53,6 +54,7 @@ class AbstractPySwarms(AbstractOptimizer):
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
+            session=session,
             **kwargs
         )
 
@@ -285,6 +287,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             initializer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
+            session=None,
             **kwargs
     ):
         """
@@ -322,6 +325,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             initializer=initializer,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
+            session=session,
             **kwargs
         )
 
@@ -372,6 +376,7 @@ class PySwarmsLocal(AbstractPySwarms):
             prior_passer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
+            session=None,
             **kwargs
     ):
         """
@@ -408,6 +413,7 @@ class PySwarmsLocal(AbstractPySwarms):
             prior_passer=prior_passer,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
+            session=session,
             **kwargs
         )
 
