@@ -102,10 +102,18 @@ using the **PyAutoFit** parent project **PyAutoConf** and the following command:
 
    conf.instance.push(new_path="path/to/config", output_path="path/to/output")
 
-The path structure within this folder of a given non-linear search is set using the ``path_prefix``. For fits to many
-data-sets, this is important in ensuring results are clearly labeled and the path where outputs occur do not clash.
+The path structure within this folder of a given non-linear search is set using the ``path_prefix``.
 
-The example code below would output the results to the path ``/path/to/output/folder_0/folder_1/example_mcmc``:
+Results are output to a folder which is a collection of random characters, which is the 'unique_identifier' of
+the model-fit. This identifier is generated based on the model fitted and search used, such that an identical
+combination of model and search generates the same identifier.
+
+This ensures that rerunning an identical fit will use the existing results to resume the model-fit. In contrast, if
+you change the model or search, a new unique identifier will be generated, ensuring that the model-fit results are
+output into a separate folder.
+
+The example code below would output the results to the
+path ``/path/to/output/folder_0/folder_1/unique_tag/example_mcmc/sihfiuy838h``:
 
 .. code-block:: bash
 
@@ -113,6 +121,9 @@ The example code below would output the results to the path ``/path/to/output/fo
        path_prefix="folder_0/folder_1/",
        name="example_mcmc"
    )
+
+For model-fits to multiple datasets, checkout the `database feature <https://pyautofit.readthedocs.io/en/latest/features/database.html>`_
+which gives more options for customizing how the unique identifier is generated.
 
 Most searches support parallel analysis using the Python ``multiprocessing`` module. This distributes the
 non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used. To

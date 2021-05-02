@@ -4,7 +4,7 @@ Probabilistic Programming
 Probabilistic programming languages provide a framework that allows users to easily specify a probabilistic
 model and perform inference automatically. **PyAutoFit** is a Python-based probabilistic programming language which:
 
-- Makes it simple to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+- Makes it simple to compose and fit multi-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
 
 - Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, visualization and parameter inference.
 
@@ -15,9 +15,9 @@ model and perform inference automatically. **PyAutoFit** is a Python-based proba
 Try it now
 ----------
 
-You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=introduction.ipynb>`_.
-This allows you to run the code that is described below.
+You can try **PyAutoFit** now by going to the `introduction Jupyter Notebook on our
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=introduction.ipynb>`_, which runs
+**PyAutoFit** in a web browser without installation.
 
 Why PyAutoFit?
 --------------
@@ -107,7 +107,7 @@ likelihood function:
 
 The ``Analysis`` class provides a model specific interface between **PyAutoFit** and the modeling software, allowing
 it to handle the 'heavy lifting' that comes with writing *model-fitting* software. This includes interfacing with the
-non-linear search, model-specific visualization during and outputting results in a database.
+non-linear search, model-specific visualization during and outputting results to a queryable sqlite database.
 
 Performing a fit with a non-linear search, for example ``emcee``, is performed as follows:
 
@@ -127,7 +127,7 @@ model and marginalized probability density functions.
 Model Abstraction and Composition
 =================================
 
-For many modeling problems the model comprises abstract *model components* representing objects or processes in a
+For many model fitting problems the model comprises abstract *model components* representing objects or processes in a
 physical system. For example, our child project `PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_,  where
 *model components* represent the light and mass of galaxies. For these problems the likelihood function is typically a
 sequence of numerical processes (e.g. convolutions, Fourier transforms, linear algebra) and extensions to the *model* 

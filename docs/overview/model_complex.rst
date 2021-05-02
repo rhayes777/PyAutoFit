@@ -3,9 +3,8 @@
 Model Composition
 -----------------
 
-Lets extend our example of fitting a 1D ``Gaussian`` profile to noisy data, to a problem where the
-data contains a signal from two profiles. Specifically, it contains signals from a 1D ``Gaussian`` signal
-and 1D symmetric ``Exponential`` signal.
+Lets extend our example of fitting a 1D ``Gaussian`` profile to a problem where the data contains a signal from
+two 1D profiles. Specifically, it contains signals from a 1D ``Gaussian`` signal and 1D symmetric ``Exponential``.
 
 The example ``data`` with errors (black), including the model-fit we'll perform (red) and individual
 ``Gaussian`` (blue dashed) and ``Exponential`` (orange dashed) components are shown below:
@@ -63,22 +62,23 @@ Now lets define a new *model component*, a 1D ``Exponential``, using the same Py
                 self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
             )
 
-Before looking at the ``Analysis`` class, lets look at how we *compose* the *model* that we fit the ``data`` with.
-
-Because we now fit multiple *model compoentns*, we do not use the ``Model`` object used in the previous example,
-but instead uses the ``Collection`` object:
+We are now fitting multiple *model components*, therefore we create each component using the ``Model`` object we
+used in the previous tutorial and put them together in a ``Collection`` to build the overall model.
 
 .. code-block:: bash
 
-    model = af.Collection(gaussian=Gaussian, exponential=Exponential)
+    gaussian = af.Model(Gaussian)
+    exponential = af.Model(Exponential)
 
-The ``Collection`` allows us to *compose* models using multiple classes, in the example above using both the
-``Gaussian`` and ``Exponential`` classes. The model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
+    model = af.Collection(gaussian=gaussian, exponential=exponential)
+
+The ``Collection`` allows us to *compose* models using multiple classes, like in the example above which uses both the
+``Gaussian`` and ``Exponential`` classes. This model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
 ``Exponential``), thus the dimensionality of non-linear parameter space is 6.
 
-The *model components* given to the ``Collection`` are also given names, in this case, 'gaussian' and
-'exponential'. You can choose whatever name you want and the names are used by the ``instance`` passed to the ``Analysis``
-class:
+The *model components* given to the ``Collection`` were also given names, in this case, 'gaussian' and
+'exponential'. You can choose whatever name you want and the names are used by the ``instance`` passed to t
+he ``Analysis`` class:
 
 .. code-block:: bash
 
@@ -147,7 +147,7 @@ Now, lets consider how we *customize* the models that we *compose*. To begin, le
 
 .. code-block:: bash
 
-    model = af.Model(Gaussian)
+    gaussian = af.Model(Gaussian)
 
 By default, the priors on the ``Gaussian``'s parameters are loaded from configuration files. If you have downloaded the
 ``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/priors``. Alternatively,
@@ -157,9 +157,9 @@ Priors can be manually specified as follows:
 
 .. code-block:: bash
 
-    model.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
-    model.intensity = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
-    model.sigma = af.GaussianPrior(mean=10.0, sigma=5.0, lower_limit=0.0, upper_limit=np.inf)
+    gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
+    gaussian.intensity = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
+    gaussian.sigma = af.GaussianPrior(mean=10.0, sigma=5.0, lower_limit=0.0, upper_limit=np.inf)
 
 These priors will be used by the non-linear search to determine how it samples parameter space. The ``lower_limit``
 and ``upper_limit`` on the ``GaussianPrior`` set the physical limits of values of the parameter, specifying that the
@@ -175,26 +175,25 @@ We can fit this model, with all new priors, using a non-linear search as we did 
 
     # The model passed here now has updated priors!
 
-    result = emcee.fit(model=model, analysis=analysis)
+    result = emcee.fit(model=gaussian, analysis=analysis)
 
-We can *compose* and *customize* a ``Collection`` as follows:
+We can *compose* and *customize* the priors of multiple model components as follows:
 
 .. code-block:: bash
 
-    model = af.Collection(gaussian=Gaussian, exponential=Exponential)
+    gaussian = af.Model(Gaussian)
+    gaussian.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
 
-    model.gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
-    model.gaussian.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
-    model.gaussian.sigma = af.UniformPrior(lower_limit=0.0, upper_limit=30.0)
-    model.exponential.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
-    model.exponential.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
-    model.exponential.rate = af.UniformPrior(lower_limit=0.0, upper_limit=10.0)
+    exponential = af.Model(Exponential)
+    exponential.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
+    exponential.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
+    exponential.rate = af.UniformPrior(lower_limit=0.0, upper_limit=10.0)
 
 The model can be *customized* to fix any *parameter* of the model to an input value:
 
 .. code-block:: bash
 
-    model.gaussian.sigma = 0.5
+    gaussian.sigma = 0.5
 
 This fixes the ``Gaussian``'s ``sigma`` value to 0.5, reducing the number of free parameters and therefore
 dimensionality of *non-linear parameter space* by 1.
@@ -213,11 +212,23 @@ from *non-linear parameter space*:
 
 .. code-block:: bash
 
-    model.add_assertion(model.gaussian.sigma > 5.0)
-    model.add_assertion(model.gaussian.intensity > model.exponential.intensity)
+    gaussian.add_assertion(gaussian.sigma > 5.0)
+    gaussian.add_assertion(gaussian.intensity > exponential.intensity)
 
 Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``intensity`` is greater
 than that of the ``Exponential``.
+
+To fit the model, we pass both of these components into a `Collection` and fit it with a non-linear search:
+
+.. code-block:: bash
+
+    model = af.Collection(gaussian=gaussian, exponential=exponential)
+
+    emcee = af.Emcee(name="another_example_search")
+
+    # The model passed here is updated!
+
+    result = emcee.fit(model=model, analysis=analysis)
 
 If you'd like to perform the fit shown in this script, checkout the
 `complex examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/complex>`_ on the

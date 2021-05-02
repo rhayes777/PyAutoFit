@@ -19,9 +19,9 @@ To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
     import autofit as af
     import numpy as np
 
-we need to define our 1D Gaussian profile as a **PyAutoFit** *model-component*. A *model component* is a component
-of the model we fit to the ``data`` and it is has associated with it a set of *parameters* that can be varied for
-during *model-fitting*.
+we define our 1D Gaussian profile as a **PyAutoFit** *model-component*. A *model component* is a component of the
+model we fit to the ``data`` and it is has associated with it a set of *parameters* which are varied for during
+*model-fitting*.
 
 *Model components* are defined using Python classes using the format below, where the class name is the *model component*
 name and the constructor arguments are its *parameters*.
@@ -122,8 +122,8 @@ Lets consider exactly what is happening in the ``Analysis`` class above.
   input, but the constructor can be easily extended to add other parts of the dataset.
 
 - The ``log_likelihood_function`` receives an ``instance`` of the model, which in this example is an ``instance`` of the
-  ``Gaussian`` class. This ``instance`` has values for its *parameters* (``centre``, ``intensity`` and ``sigma``) which are
-  chosen by the non-linear search used to fit the model, as discussed next.
+  ``Gaussian`` class. This ``instance`` has values for its *parameters* (``centre``, ``intensity`` and ``sigma``) which
+  are chosen by the non-linear search used to fit the model, as discussed next.
 
 - The ``log_likelihood_function`` returns a log likelihood value, which the non-linear search uses evaluate the
   goodness-of-fit of a model to the data when sampling parameter space.
@@ -180,10 +180,10 @@ This can be used to straight forwardly plot the model fit to the data:
     plt.plot(range(data.shape[0]), data)
     plt.plot(range(data.shape[0]), model_data)
 
-This completes our basic introduction to the **PyAutoFit** API. Next, we'll cover how to *compose* and *fit*
+This completes our introduction to the **PyAutoFit** API. Next, we'll cover how to *compose* and *fit*
 models using multiple *model components* and *customize* the model parameterization.
 
 If you'd like to perform the fit shown in this script, checkout the
 `simple examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/simplee>`_ on the
-``autofit_workspace``. We also detail how **PyAutoFit** works in the first 3 tutorials of
+``autofit_workspace``. We detail how **PyAutoFit** works in the first 3 tutorials of
 the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.

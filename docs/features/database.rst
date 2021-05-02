@@ -13,13 +13,44 @@ relational database, such that all results can be efficiently loaded into a Jupy
 inspection, analysis and interpretation. This database supports advanced querying, so that specific
 model-fits (e.g., which fit a certain model or dataset) can be loaded.
 
-Lets suppose that we have performed 100 model-fits to 100 1D Gaussians, and when we ran **PyAutoFit** we told it
-to not output the results in folders on our hard-disc but instead to a ``.sqlite`` database file. We can load these
-results into a Python script or Jupyter notebook using the ``Aggregator`` as follows:
+To make it so that results are output to an .sqlite database we simply open a database session and pass this session
+to the non-linear search:
 
 .. code-block:: bash
 
-    agg = Aggregator.from_database("path/to/output/database_gaussian_x100_fits.sqlite")
+    session = af.db.open_database("database.sqlite")
+
+    emcee = af.Emcee(
+        path_prefix=path.join("features", "database"),
+        session=session,  # This instructs the search to write to the .sqlite database.
+    )
+
+When a model-fit is performed, a unique identifier is generated based on the model and non-linear search. However,
+if we were to fit many different datasets with the same model and non-linear search, they would all use the same
+unique identifier and not be distinguishable by the database.
+
+We can overcome this by using the name of the dataset as the ``unique_tag`` passed to the search, which is used alongside
+the model and search to create the unique identifier:
+
+.. code-block:: bash
+
+    session = af.db.open_database("database.sqlite")
+
+    dataset_name = "example_dataset_0"
+
+    emcee = af.Emcee(
+        path_prefix=path.join("features", "database"),
+        unique_tag=dataset_name,  # This makes the unique identifier use the dataset name
+        session=session,  # This instructs the search to write to the .sqlite database.
+    )
+
+Lets suppose that we have performed 100 model-fits to 100 1D Gaussians, and when we ran **PyAutoFit** we told it
+to write to the ``.sqlite`` database file. We can load these results into a Python script or Jupyter notebook using
+the ``Aggregator`` as follows:
+
+.. code-block:: bash
+
+    agg = Aggregator.from_database("path/to/output/database.sqlite")
 
 We can now use the ``Aggregator`` to inspect the results of all model-fits. For example, we can load the ``Samples``
 object of all 100 model-fits, which contains information on the best-fit model, posterior, Bayesian evidence, etc.
@@ -57,21 +88,7 @@ such that one can more readily interpret the results.
 The ``Aggregator`` contains tools for querying the database for certain results, for example to load subsets of
 model-fits. This can be done in many different ways, depending on what information you want.
 
-First, lets look at the ``info`` object, which can be passed into a model-fit and contains queryable information on the
-model-fit. The example below creates an ``info`` dictionary that includes the the dataset name as a string, which is
-then queried via the database to load the model-fit to that specific dataset, in this case the tenth Gaussian:
-
-.. code-block:: bash
-
-    info = {"dateset_name": f"gaussian_{dataset_index}"}
-
-    emcee.fit(model=model, analysis=analysis, info=info)
-
-    agg_query = agg.query(agg.info["dataset_name"] == "gaussian_10")
-
-    samples_gen = agg_query.values("samples")
-
-We can also query based on the model fitted. For example, we can load all results which fitted a ``Gaussian``
+Below, we query based on the model fitted. For example, we can load all results which fitted a ``Gaussian``
 model-component, which in this simple example is all 100 model-fits.
 
 .. code-block:: bash
@@ -93,6 +110,25 @@ The OR logical clause is also supported via the symbol |.
 .. code-block:: bash
 
     agg_query = agg.query((gaussian == m.Gaussian) & (gaussian.sigma < 3.0))
+
+We can query using the ``unique_tag`` to load the model-fit to a specific dataset:
+
+.. code-block:: bash
+
+    agg_query = agg.query(agg.unique_tag == "example_dataset_0")
+
+An ``info`` dictionary can be passed into a model-fit, which contains information on the model-fit. The example below
+creates an ``info`` dictionary which is passed to the model-fit, which is then loaded via the database.
+
+.. code-block:: bash
+
+    info = {"example_key": "example_value"}
+
+    emcee.fit(model=model, analysis=analysis, info=info)
+
+    agg = Aggregator.from_database("path/to/output/database.sqlite")
+
+    info_gen = agg.values("info")
 
 Databases are an extremely powerful feature for users tasked with fitting extremely large datasets as well as fitting
 many different models, where the scale of the problem can make the management of the large quantity of results produced
