@@ -1,4 +1,4 @@
-import json
+from typing import Optional
 
 from autoconf import conf
 from autofit.non_linear import samples as samp
@@ -12,11 +12,12 @@ class AbstractMCMC(NonLinearSearch):
             self,
             name=None,
             path_prefix=None,
+            unique_tag=Optional[None],
             prior_passer=None,
             initializer=None,
             auto_correlations_settings = AutoCorrelationsSettings(),
-            iterations_per_update=None,
-            number_of_cores=None,
+            iterations_per_update : int = None,
+            number_of_cores : int = None,
             session=None,
             **kwargs
     ):
@@ -29,6 +30,7 @@ class AbstractMCMC(NonLinearSearch):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,

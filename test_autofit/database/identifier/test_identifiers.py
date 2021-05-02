@@ -43,7 +43,7 @@ def test_identifier_fields():
     )
 
 
-def test_dataset_name():
+def test__unique_tag():
     search = af.MockSearch()
 
     search.fit(
@@ -53,12 +53,11 @@ def test_dataset_name():
 
     identifier = search.paths.identifier
 
-    search = af.MockSearch()
+    search = af.MockSearch(unique_tag="dataset")
 
     search.fit(
         model=af.Collection(),
         analysis=af.mock.mock.MockAnalysis(),
-        dataset_name="dataset"
     )
 
     assert search.paths.identifier != identifier

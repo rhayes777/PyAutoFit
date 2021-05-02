@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import zeus
 import numpy as np
 
@@ -25,11 +25,12 @@ class Zeus(AbstractMCMC):
             self,
             name=None,
             path_prefix=None,
+            unique_tag=Optional[None],
             prior_passer=None,
             initializer=None,
             auto_correlations_settings=AutoCorrelationsSettings(),
-            iterations_per_update=None,
-            number_of_cores=None,
+            iterations_per_update : int = None,
+            number_of_cores : int = None,
             session=None,
             **kwargs
     ):
@@ -47,11 +48,14 @@ class Zeus(AbstractMCMC):
 
         Parameters
         ----------
-        name : str
+        name
             The name of the search, controlling the last folder results are output.
-        path_prefix : str
+        path_prefix
             The path of folders prefixing the name folder where results are output.
-        prior_passer : af.PriorPasser
+        unique_tag
+            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+            and also acts as the folder after the path prefix and before the search name.
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         nwalkers : int
             The number of walkers in the ensemble used to sample parameter space.
@@ -74,6 +78,7 @@ class Zeus(AbstractMCMC):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
             initializer=initializer,
             auto_correlations_settings=auto_correlations_settings,

@@ -28,21 +28,30 @@ class NonLinearSearch(ABC):
             self,
             name=None,
             path_prefix=None,
-            prior_passer=None,
-            initializer=None,
-            iterations_per_update=None,
-            number_of_cores=1,
+            unique_tag=Optional[None],
+            prior_passer : "PriorPasser" = None,
+            initializer : Initializer = None,
+            iterations_per_update : int = None,
+            number_of_cores : int = 1,
             session=None,
             **kwargs
     ):
-        """Abstract base class for non-linear searches.
+        """
+        Abstract base class for non-linear searches.
 
         This class sets up the file structure for the non-linear search, which are standardized across all non-linear
         searches.
 
         Parameters
         ------------
-        prior_passer : af.PriorPasser
+        name
+            The name of the search, controlling the last folder results are output.
+        path_prefix
+            The path of folders prefixing the name folder where results are output.
+        unique_tag
+            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+            and also acts as the folder after the path prefix and before the search name.
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
@@ -51,6 +60,7 @@ class NonLinearSearch(ABC):
 #
         name = name or ""
         path_prefix = path_prefix or ""
+        self.unique_tag = unique_tag
 
         if session is not None:
             paths = DatabasePaths(
@@ -240,12 +250,12 @@ class NonLinearSearch(ABC):
             self,
             model,
             analysis: "Analysis",
-            dataset_name=Optional[None],
             info=None,
             pickle_files=None,
             log_likelihood_cap=None
     ) -> "Result":
-        """ Fit a model, M with some function f that takes instances of the
+        """
+        Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
 
         A model which represents possible instances with some dimensionality is fit.
@@ -256,9 +266,6 @@ class NonLinearSearch(ABC):
 
         Parameters
         ----------
-        dataset_name
-            Optional name for the dataset that is used in generating a unique
-            identifier
         log_likelihood_cap
         analysis : af.Analysis
             An object that encapsulates the data and a log likelihood function.
@@ -279,7 +286,7 @@ class NonLinearSearch(ABC):
         produced by this fit.
         """
         self.paths.model = model
-        self.paths.dataset_name = dataset_name
+        self.paths.unique_tag = self.unique_tag
         self.paths.restore()
         self.setup_log_file()
 

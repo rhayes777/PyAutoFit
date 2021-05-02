@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 from autoconf import conf
 from autofit import exc
@@ -12,8 +13,8 @@ from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
-    def __init__(self, name="",  samples=None, fit_fast=True):
-        super().__init__(name=name)
+    def __init__(self, name="",  unique_tag=Optional[None], samples=None, fit_fast=True):
+        super().__init__(name=name, unique_tag=unique_tag)
 
         self.fit_fast = fit_fast
         self.samples = samples or MockSamples()

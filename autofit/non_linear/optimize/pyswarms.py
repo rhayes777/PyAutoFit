@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -12,10 +13,11 @@ class AbstractPySwarms(AbstractOptimizer):
             self,
             name=None,
             path_prefix=None,
+            unique_tag=Optional[None],
             prior_passer=None,
             initializer=None,
-            iterations_per_update=None,
-            number_of_cores=None,
+            iterations_per_update : int = None,
+            number_of_cores : int = None,
             **kwargs
     ):
         """
@@ -28,11 +30,14 @@ class AbstractPySwarms(AbstractOptimizer):
 
         Parameters
         ----------
-        name : str
+        name
             The name of the search, controlling the last folder results are output.
-        path_prefix : str
+        path_prefix
             The path of folders prefixing the name folder where results are output.
-        prior_passer : af.PriorPasser
+        unique_tag
+            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+            and also acts as the folder after the path prefix and before the search name.
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
@@ -44,6 +49,7 @@ class AbstractPySwarms(AbstractOptimizer):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
@@ -274,10 +280,11 @@ class PySwarmsGlobal(AbstractPySwarms):
             self,
             name=None,
             path_prefix=None,
+            unique_tag=Optional[None],
             prior_passer=None,
             initializer=None,
-            iterations_per_update=None,
-            number_of_cores=None,
+            iterations_per_update : int = None,
+            number_of_cores : int = None,
             **kwargs
     ):
         """
@@ -291,11 +298,14 @@ class PySwarmsGlobal(AbstractPySwarms):
 
         Parameters
         ----------
-        name : str
+        name
             The name of the search, controlling the last folder results are output.
-        path_prefix : str
+        path_prefix
             The path of folders prefixing the name folder where results are output.
-        prior_passer : af.PriorPasser
+        unique_tag
+            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+            and also acts as the folder after the path prefix and before the search name.
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
@@ -307,6 +317,7 @@ class PySwarmsGlobal(AbstractPySwarms):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
@@ -357,9 +368,10 @@ class PySwarmsLocal(AbstractPySwarms):
             self,
             name=None,
             path_prefix=None,
+            unique_tag=Optional[None],
             prior_passer=None,
-            iterations_per_update=None,
-            number_of_cores=None,
+            iterations_per_update : int = None,
+            number_of_cores : int = None,
             **kwargs
     ):
         """
@@ -373,11 +385,14 @@ class PySwarmsLocal(AbstractPySwarms):
 
         Parameters
         ----------
-        name : str
+        name
             The name of the search, controlling the last folder results are output.
-        path_prefix : str
+        path_prefix
             The path of folders prefixing the name folder where results are output.
-        prior_passer : af.PriorPasser
+        unique_tag
+            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+            and also acts as the folder after the path prefix and before the search name.
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer : non_linear.initializer.Initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
@@ -389,6 +404,7 @@ class PySwarmsLocal(AbstractPySwarms):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,

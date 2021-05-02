@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 
 from autoconf import conf
 from autofit import exc
@@ -13,6 +14,7 @@ class AbstractNest(NonLinearSearch):
             self,
             name=None,
             path_prefix=None,
+            unique_tag=Optional[None],
             prior_passer=None,
             iterations_per_update=None,
             session=None,
@@ -32,12 +34,13 @@ class AbstractNest(NonLinearSearch):
 
         Parameters
         ----------
-        prior_passer : af.PriorPasser
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         """
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
             initializer=InitializerPrior(),
             iterations_per_update=iterations_per_update,

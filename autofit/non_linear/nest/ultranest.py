@@ -1,4 +1,5 @@
 import copy
+from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
@@ -25,9 +26,10 @@ class UltraNest(abstract_nest.AbstractNest):
             self,
             name: str = "",
             path_prefix: str = "",
+            unique_tag=Optional[None],
             prior_passer: PriorPasser = None,
-            iterations_per_update=None,
-            number_of_cores=None,
+            iterations_per_update : int = None,
+            number_of_cores : int = None,
             session=None,
             **kwargs
     ):
@@ -45,16 +47,19 @@ class UltraNest(abstract_nest.AbstractNest):
 
         Parameters
         ----------
-        name : str
+        name
             The name of the search, controlling the last folder results are output.
-        path_prefix : str
+        path_prefix
             The path of folders prefixing the name folder where results are output.
-        prior_passer : af.PriorPasser
+        unique_tag
+            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+            and also acts as the folder after the path prefix and before the search name.
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        iterations_per_update : int
+        iterations_per_update
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
-        number_of_cores : int
+        number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
         """
@@ -62,6 +67,7 @@ class UltraNest(abstract_nest.AbstractNest):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
             iterations_per_update=iterations_per_update,
             session=session,
