@@ -108,7 +108,14 @@ class UltraNest(abstract_nest.AbstractNest):
         elif stepsampler_cls == "RegionMHSampler":
             return stepsampler.RegionMHSampler(**config_dict_stepsampler)
         elif stepsampler_cls == "AHARMSampler":
+            config_dict_stepsampler.pop("scale")
             return stepsampler.AHARMSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "CubeMHSampler":
+            return stepsampler.CubeMHSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "CubeSliceSampler":
+            return stepsampler.CubeSliceSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "RegionSliceSampler":
+            return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
 
     class Fitness(AbstractNest.Fitness):
         @property
