@@ -28,7 +28,7 @@ class NonLinearSearch(ABC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer : "PriorPasser" = None,
             initializer : Initializer = None,
             iterations_per_update : int = None,
@@ -60,6 +60,13 @@ class NonLinearSearch(ABC):
 #
         name = name or ""
         path_prefix = path_prefix or ""
+
+        print(path_prefix)
+        print(unique_tag)
+
+        if unique_tag is not None:
+            path_prefix = path.join(path_prefix, unique_tag)
+
         self.unique_tag = unique_tag
 
         if session is not None:

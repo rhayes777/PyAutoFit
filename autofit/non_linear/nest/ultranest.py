@@ -26,7 +26,7 @@ class UltraNest(abstract_nest.AbstractNest):
             self,
             name: str = "",
             path_prefix: str = "",
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer: PriorPasser = None,
             iterations_per_update : int = None,
             number_of_cores : int = None,

@@ -28,7 +28,7 @@ class MultiNest(abstract_nest.AbstractNest):
             self,
             name=None,
             path_prefix=None,
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer=None,
             session=None,
             **kwargs

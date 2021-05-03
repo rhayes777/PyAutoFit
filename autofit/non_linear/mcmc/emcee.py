@@ -23,7 +23,7 @@ class Emcee(AbstractMCMC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer=None,
             initializer=None,
             auto_correlations_settings=AutoCorrelationsSettings(),

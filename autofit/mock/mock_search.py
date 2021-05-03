@@ -13,7 +13,7 @@ from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
-    def __init__(self, name="",  unique_tag=Optional[None], samples=None, fit_fast=True):
+    def __init__(self, name="",  unique_tag : Optional[str] = None, samples=None, fit_fast=True):
         super().__init__(name=name, unique_tag=unique_tag)
 
         self.fit_fast = fit_fast

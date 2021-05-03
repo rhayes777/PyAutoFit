@@ -14,7 +14,7 @@ class AbstractNest(NonLinearSearch):
             self,
             name=None,
             path_prefix=None,
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer=None,
             iterations_per_update=None,
             session=None,

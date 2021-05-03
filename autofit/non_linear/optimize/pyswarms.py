@@ -13,7 +13,7 @@ class AbstractPySwarms(AbstractOptimizer):
             self,
             name=None,
             path_prefix=None,
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer=None,
             initializer=None,
             iterations_per_update : int = None,
@@ -143,8 +143,8 @@ class AbstractPySwarms(AbstractOptimizer):
 
         ## TODO : Use actual limits
 
-        vector_lower = model.vector_from_unit_vector(unit_vector=[0.01] * model.prior_count)
-        vector_upper = model.vector_from_unit_vector(unit_vector=[0.99] * model.prior_count)
+        vector_lower = model.vector_from_unit_vector(unit_vector=[1e-6] * model.prior_count)
+        vector_upper = model.vector_from_unit_vector(unit_vector=[0.9999999] * model.prior_count)
 
         lower_bounds = []
         upper_bounds = []
@@ -282,7 +282,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             self,
             name=None,
             path_prefix=None,
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer=None,
             initializer=None,
             iterations_per_update : int = None,
@@ -372,7 +372,7 @@ class PySwarmsLocal(AbstractPySwarms):
             self,
             name=None,
             path_prefix=None,
-            unique_tag=Optional[None],
+            unique_tag : Optional[str] = None,
             prior_passer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
