@@ -33,7 +33,7 @@ class NonLinearSearch(ABC):
             initializer : Initializer = None,
             iterations_per_update : int = None,
             number_of_cores : int = 1,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """
@@ -60,9 +60,6 @@ class NonLinearSearch(ABC):
 #
         name = name or ""
         path_prefix = path_prefix or ""
-
-        print(path_prefix)
-        print(unique_tag)
 
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)

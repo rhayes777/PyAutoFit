@@ -17,7 +17,7 @@ class AbstractNest(NonLinearSearch):
             unique_tag : Optional[str] = None,
             prior_passer=None,
             iterations_per_update=None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """

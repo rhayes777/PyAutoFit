@@ -424,7 +424,7 @@ class PDFSamples(OptimizerSamples):
             time=time,
         )
 
-        self._unconverged_sample_size = unconverged_sample_size
+        self._unconverged_sample_size = int(unconverged_sample_size)
 
     @classmethod
     def from_table(self, filename: str, model, number_live_points=None):

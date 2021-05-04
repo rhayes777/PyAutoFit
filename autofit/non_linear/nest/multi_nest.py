@@ -30,7 +30,7 @@ class MultiNest(abstract_nest.AbstractNest):
             path_prefix=None,
             unique_tag : Optional[str] = None,
             prior_passer=None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """
@@ -211,7 +211,8 @@ class MultiNest(abstract_nest.AbstractNest):
             ),
             total_samples=total_samples,
             log_evidence=log_evidence,
-            number_live_points=self.n_live_points,
+            number_live_points=self.kwargs["n_live_points"],
+            unconverged_sample_size=1,
             time=self.timer.time
         )
 

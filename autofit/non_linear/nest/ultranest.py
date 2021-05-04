@@ -30,7 +30,7 @@ class UltraNest(abstract_nest.AbstractNest):
             prior_passer: PriorPasser = None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """
@@ -249,5 +249,6 @@ class UltraNest(abstract_nest.AbstractNest):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.kwargs["min_num_live_points"],
+            unconverged_sample_size=1,
             time=self.timer.time
         )

@@ -18,7 +18,7 @@ class AbstractPySwarms(AbstractOptimizer):
             initializer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """
@@ -287,7 +287,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             initializer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """
@@ -376,7 +376,7 @@ class PySwarmsLocal(AbstractPySwarms):
             prior_passer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """

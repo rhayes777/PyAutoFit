@@ -18,7 +18,7 @@ class AbstractMCMC(NonLinearSearch):
             auto_correlations_settings = AutoCorrelationsSettings(),
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
 

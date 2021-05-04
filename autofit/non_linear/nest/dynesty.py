@@ -33,7 +33,7 @@ class AbstractDynesty(AbstractNest, ABC):
             prior_passer: PriorPasser = None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """
@@ -244,7 +244,8 @@ class AbstractDynesty(AbstractNest, ABC):
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.total_live_points,
-            time=self.timer.time
+            unconverged_sample_size=1,
+            time=self.timer.time,
         )
 
     def initial_live_points_from_model_and_fitness_function(
@@ -300,7 +301,7 @@ class DynestyStatic(AbstractDynesty):
             prior_passer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session=None,
+            session : Optional[bool] = None,
             **kwargs
     ):
         """
