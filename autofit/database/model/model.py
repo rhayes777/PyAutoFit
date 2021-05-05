@@ -55,6 +55,9 @@ class Object(Base):
         uselist=True,
     )
 
+    def __len__(self):
+        return len(self.children)
+
     name = Column(String)
 
     __mapper_args__ = {

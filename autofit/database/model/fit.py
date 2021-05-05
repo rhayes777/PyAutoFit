@@ -6,6 +6,7 @@ from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
 from sqlalchemy.orm import relationship
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.samples import OptimizerSamples
 from .model import Base, Object
 from ...mapper.model_object import Identifier
 
@@ -128,14 +129,6 @@ class Fit(Base):
             info=info
         )
 
-    samples = relationship(
-        Object,
-        uselist=False,
-        foreign_keys=[
-            Object.samples_for_id
-        ]
-    )
-
     parent_id = Column(
         String,
         ForeignKey(
@@ -156,6 +149,24 @@ class Fit(Base):
     is_grid_search = Column(
         Boolean
     )
+
+    _samples = relationship(
+        Object,
+        uselist=False,
+        foreign_keys=[
+            Object.samples_for_id
+        ]
+    )
+
+    @property
+    def samples(self) -> OptimizerSamples:
+        return self._samples()
+
+    @samples.setter
+    def samples(self, samples):
+        self._samples = Object.from_object(
+            samples
+        )
 
     @property
     def info(self):

@@ -27,6 +27,19 @@ def test_missing_field():
         )
 
 
+def test_tiny_change():
+    # noinspection PyTypeChecker
+    instance = Class(
+        one=1.0
+    )
+    identifier = str(Identifier(instance))
+
+    instance.one += 1e-9
+    print(instance.one)
+
+    assert identifier == Identifier(instance)
+
+
 def test_identifier_fields():
     other = Class(three=4)
     assert Identifier(

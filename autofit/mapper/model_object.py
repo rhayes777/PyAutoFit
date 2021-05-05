@@ -3,6 +3,10 @@ import itertools
 from collections import Iterable
 from hashlib import md5
 
+# floats are rounded to this increment so floating point errors
+# have no impact on identifier value
+RESOLUTION = 1e-8
+
 
 class Identifier:
     def __init__(self, obj):
@@ -65,8 +69,18 @@ class Identifier:
                         value
                     )
         elif isinstance(
+                value, float
+        ):
+            self.hash_list.append(
+                str(
+                    RESOLUTION * int(
+                        value / RESOLUTION
+                    )
+                )
+            )
+        elif isinstance(
                 value,
-                (str, float, int, bool)
+                (str, int, bool)
         ):
             self.hash_list.append(
                 str(value)
@@ -101,6 +115,9 @@ class Identifier:
         return md5(".".join(
             self.hash_list
         ).encode("utf-8")).hexdigest()
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
 
     def __eq__(self, other):
         return str(self) == str(other)
