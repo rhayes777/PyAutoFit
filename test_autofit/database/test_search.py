@@ -64,3 +64,28 @@ def test_save_all_samples(
     ).one()
 
     assert len(fit.samples.samples) == n_samples
+
+
+def test_unique_tag(session):
+    analysis = MockAnalysis()
+    model = af.Model(Gaussian)
+
+    unique_tag = "unique"
+
+    optimizer = MockOptimizer(
+        session=session,
+        unique_tag=unique_tag
+    )
+
+    assert optimizer.paths.unique_tag == unique_tag
+
+    optimizer.fit(
+        model,
+        analysis
+    )
+
+    fit = session.query(
+        af.db.Fit
+    ).one()
+
+    assert fit.unique_tag == unique_tag
