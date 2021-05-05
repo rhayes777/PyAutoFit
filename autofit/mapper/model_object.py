@@ -71,12 +71,15 @@ class Identifier:
         elif isinstance(
                 value, float
         ):
-            self.hash_list.append(
-                str(
-                    RESOLUTION * int(
-                        value / RESOLUTION
-                    )
+            try:
+                value = RESOLUTION * int(
+                    value / RESOLUTION
                 )
+            except OverflowError:
+                pass
+
+            self.hash_list.append(
+                str(value)
             )
         elif isinstance(
                 value,
