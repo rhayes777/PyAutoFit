@@ -38,7 +38,9 @@ class Aggregator:
             self,
             session: Session,
             filename: Optional[str] = None,
-            predicate: AbstractQuery = NullPredicate()
+            predicate: AbstractQuery = NullPredicate(),
+            offset=0,
+            limit=None
     ):
         """
         Query results from an intermediary SQLite database.
@@ -55,14 +57,13 @@ class Aggregator:
         self.filename = filename
         self._fits = None
         self._predicate = predicate
+        self._offset = offset
+        self._limit = limit
 
     def __iter__(self):
         return iter(
             self.fits
         )
-
-    def __getitem__(self, item):
-        return self.fits[0]
 
     @property
     def info(self):
@@ -183,6 +184,34 @@ class Aggregator:
             )
         )
 
+    def __getitem__(self, item):
+        offset = self._offset
+        limit = self._limit
+        if isinstance(
+                item, int
+        ):
+            offset += item
+        elif isinstance(
+                item, slice
+        ):
+            if item.start is not None:
+                if item.start >= 0:
+                    offset += item.start
+                else:
+                    offset = len(self) + item.start
+            if item.stop is not None:
+                if item.stop >= 0:
+                    limit = len(self) - item.stop - offset
+                else:
+                    limit = len(self) + item.stop
+        return Aggregator(
+            session=self.session,
+            filename=self.filename,
+            predicate=self._predicate,
+            offset=offset,
+            limit=limit
+        )
+
     def _fits_for_query(
             self,
             query: str
@@ -214,6 +243,10 @@ class Aggregator:
             m.Fit.id.in_(
                 fit_ids
             )
+        ).offset(
+            self._offset
+        ).limit(
+            self._limit
         ).all()
 
     def add_directory(

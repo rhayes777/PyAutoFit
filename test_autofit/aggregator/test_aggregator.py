@@ -23,9 +23,14 @@ class TestOperations:
         ]
 
     def test_indexing(self, aggregator):
-        assert list(aggregator[1:].values("pipeline")) == ["pipeline1", "pipeline2"]
-        assert list(aggregator[-1:].values("pipeline")) == ["pipeline2"]
-        assert aggregator[0].pipeline == "pipeline1"
+        assert list(aggregator[1:].values("pipeline")) == ["pipeline1"]
+        assert list(aggregator[:1].values("pipeline")) == ["pipeline0"]
+        assert list(aggregator[1: 2].values("pipeline")) == ["pipeline1"]
+        assert list(aggregator[0: 1].values("pipeline")) == ["pipeline0"]
+        assert list(aggregator[-1:].values("pipeline")) == ["pipeline1"]
+        assert list(aggregator[:-1].values("pipeline")) == ["pipeline0"]
+        assert aggregator[0].pipeline == "pipeline0"
+        assert aggregator[-1].pipeline == "pipeline1"
 
     def test_group_by(self, aggregator):
         result = aggregator.group_by("pipeline")

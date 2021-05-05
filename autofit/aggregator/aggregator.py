@@ -13,14 +13,14 @@ Example:
 """
 
 import os
-from os import path
 import zipfile
 from collections import defaultdict
+from os import path
 from shutil import rmtree
-from typing import List, Union, Iterator, Tuple
+from typing import List, Union, Iterator
 
-from .search_output import SearchOutput
 from .predicate import AttributePredicate
+from .search_output import SearchOutput
 
 
 class AggregatorGroup:
