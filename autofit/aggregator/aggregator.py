@@ -13,14 +13,14 @@ Example:
 """
 
 import os
-from os import path
 import zipfile
 from collections import defaultdict
+from os import path
 from shutil import rmtree
-from typing import List, Union, Iterator, Tuple
+from typing import List, Union, Iterator
 
-from .search_output import SearchOutput
 from .predicate import AttributePredicate
+from .search_output import SearchOutput
 
 
 class AggregatorGroup:
@@ -189,45 +189,6 @@ class AbstractAggregator:
                 phase, name
             ),
             self.search_outputs
-        )
-
-    def homogenize(
-            self,
-            aggregator: "AbstractAggregator",
-            on: str
-    ) -> Tuple[
-        "AbstractAggregator",
-        "AbstractAggregator"
-    ]:
-        """
-        Filter this aggregator and another aggregator such that each only
-        contain results where at least one result in the other aggregator
-        has the same value for a given property.
-
-        Parameters
-        ----------
-        aggregator
-            Another aggregator to homogenize with this one.
-        on
-            The attribute of the underlying results which should match.
-
-        Returns
-        -------
-        A pair of aggregators with only matching results.
-        """
-        def _homogenize(a, b):
-            values = set(b.values(on))
-            return AbstractAggregator([
-                phase for phase in a.search_outputs
-                if getattr(phase, on) in values
-            ])
-
-        return _homogenize(
-            self,
-            aggregator
-        ), _homogenize(
-            aggregator,
-            self
         )
 
     def map(self, func):

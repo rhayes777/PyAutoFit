@@ -19,8 +19,18 @@ class NullPredicate(AbstractQuery):
 
 
 class Query:
-    def __getattr__(self, name):
+    @staticmethod
+    def for_name(name):
+        if name in m.fit_attributes:
+            if m.fit_attributes[
+                name
+            ].type.python_type == bool:
+                return q.BA(name)
+            return q.A(name)
         return q.Q(name)
+
+    def __getattr__(self, name):
+        return self.for_name(name)
 
 
 class Aggregator:
@@ -28,7 +38,9 @@ class Aggregator:
             self,
             session: Session,
             filename: Optional[str] = None,
-            predicate: AbstractQuery = NullPredicate()
+            predicate: AbstractQuery = NullPredicate(),
+            offset=0,
+            limit=None
     ):
         """
         Query results from an intermediary SQLite database.
@@ -45,14 +57,13 @@ class Aggregator:
         self.filename = filename
         self._fits = None
         self._predicate = predicate
+        self._offset = offset
+        self._limit = limit
 
     def __iter__(self):
         return iter(
             self.fits
         )
-
-    def __getitem__(self, item):
-        return self.fits[0]
 
     @property
     def info(self):
@@ -101,6 +112,10 @@ class Aggregator:
             )
         return self._fits
 
+    def map(self, function):
+        for fit in self.fits:
+            yield function(fit)
+
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename}>"
 
@@ -120,13 +135,7 @@ class Aggregator:
         -------
         A query
         """
-        if name in m.fit_attributes:
-            if m.fit_attributes[
-                name
-            ].type.python_type == bool:
-                return q.BA(name)
-            return q.A(name)
-        return q.Q(name)
+        return Query.for_name(name)
 
     def __call__(self, predicate) -> "Aggregator":
         """
@@ -160,10 +169,22 @@ class Aggregator:
         >>> aggregator.filter((lens.bulge == EllSersicCore) & (lens.disk == EllSersic))
         >>> aggregator.filter((lens.bulge == EllSersicCore) | (lens.disk == EllSersic))
         """
-        return Aggregator(
-            session=self.session,
-            filename=self.filename,
+        return self._new_with(
             predicate=self._predicate & predicate
+        )
+
+    def _new_with(
+            self,
+            **kwargs
+    ):
+        kwargs = {
+            "session": self.session,
+            "filename": self.filename,
+            "predicate": self._predicate,
+            **kwargs
+        }
+        return Aggregator(
+            **kwargs
         )
 
     def children(self) -> "Aggregator":
@@ -177,6 +198,31 @@ class Aggregator:
             predicate=q.ChildQuery(
                 self._predicate
             )
+        )
+
+    def __getitem__(self, item):
+        offset = self._offset
+        limit = self._limit
+        if isinstance(
+                item, int
+        ):
+            return self.fits[item]
+        elif isinstance(
+                item, slice
+        ):
+            if item.start is not None:
+                if item.start >= 0:
+                    offset += item.start
+                else:
+                    offset = len(self) + item.start
+            if item.stop is not None:
+                if item.stop >= 0:
+                    limit = len(self) - item.stop - offset
+                else:
+                    limit = len(self) + item.stop
+        return self._new_with(
+            offset=offset,
+            limit=limit
         )
 
     def _fits_for_query(
@@ -210,6 +256,10 @@ class Aggregator:
             m.Fit.id.in_(
                 fit_ids
             )
+        ).offset(
+            self._offset
+        ).limit(
+            self._limit
         ).all()
 
     def add_directory(

@@ -47,6 +47,11 @@ class Pickle(Base):
         """
         The unpickled object
         """
+        if isinstance(
+                self.string,
+                str
+        ):
+            return self.string
         return pickle.loads(
             self.string
         )
