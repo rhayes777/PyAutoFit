@@ -19,8 +19,18 @@ class NullPredicate(AbstractQuery):
 
 
 class Query:
-    def __getattr__(self, name):
+    @staticmethod
+    def for_name(name):
+        if name in m.fit_attributes:
+            if m.fit_attributes[
+                name
+            ].type.python_type == bool:
+                return q.BA(name)
+            return q.A(name)
         return q.Q(name)
+
+    def __getattr__(self, name):
+        return self.for_name(name)
 
 
 class Aggregator:
@@ -120,13 +130,7 @@ class Aggregator:
         -------
         A query
         """
-        if name in m.fit_attributes:
-            if m.fit_attributes[
-                name
-            ].type.python_type == bool:
-                return q.BA(name)
-            return q.A(name)
-        return q.Q(name)
+        return Query.for_name(name)
 
     def __call__(self, predicate) -> "Aggregator":
         """

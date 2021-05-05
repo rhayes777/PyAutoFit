@@ -2,6 +2,7 @@ from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
 from .database.aggregator import Aggregator
+from .database.aggregator import Query
 from .aggregator.search_output import SearchOutput
 from .mapper import link
 from .mapper import prior

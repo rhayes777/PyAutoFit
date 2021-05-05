@@ -119,7 +119,10 @@ class CollectionPriorModel(AbstractPriorModel):
         if key.startswith("_"):
             super().__setattr__(key, value)
         else:
-            super().__setattr__(key, AbstractPriorModel.from_object(value))
+            try:
+                super().__setattr__(key, AbstractPriorModel.from_object(value))
+            except AttributeError:
+                pass
 
     def remove(self, item):
         for key, value in self.__dict__.copy().items():

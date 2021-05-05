@@ -10,7 +10,7 @@ from autofit.mock.mock import MockSearchOutput
 def make_path_aggregator(aggregator_directory):
     aggregator = af.Aggregator(aggregator_directory)
     yield aggregator
-    aggregator.remove_unzipped()
+    # aggregator.remove_unzipped()
 
 
 @pytest.fixture(name="aggregator_directory")

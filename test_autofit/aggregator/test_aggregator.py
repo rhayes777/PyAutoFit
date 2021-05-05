@@ -1,17 +1,33 @@
 from os import path
+
 import pytest
 
 import autofit as af
 from autofit.mock.mock import MockSearchOutput
 
 
-def test_completed_aggregator(aggregator_directory):
+def test_completed_aggregator(
+        session,
+        aggregator_directory
+):
+    aggregator = af.Aggregator(
+        session,
+        predicate=af.Query().is_complete
+    )
 
-    print(aggregator_directory)
+    session.add_all([
+        af.db.Fit(
+            id="complete",
+            is_complete=True
+        ),
+        af.db.Fit(
+            id="incomplete",
+            is_complete=False
+        )
+    ])
+    session.flush()
 
-    aggregator = af.Aggregator(aggregator_directory, completed_only=True)
     assert len(aggregator) == 1
-    assert "completed" in aggregator[0].directory
 
 
 class TestLoading:
