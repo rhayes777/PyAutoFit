@@ -1,40 +1,25 @@
-from os import path
-
-import pytest
-
-import autofit as af
-from autofit.mock.mock import MockSearchOutput
-
-
 def test_completed_aggregator(
-        path_aggregator
+        aggregator
 ):
-    aggregator = path_aggregator(
-        path_aggregator.is_complete
+    aggregator = aggregator(
+        aggregator.is_complete
     )
     assert len(aggregator) == 1
 
 
 class TestLoading:
-    def test_unzip(self, path_aggregator):
-        assert len(path_aggregator) == 2
+    def test_unzip(self, aggregator):
+        assert len(aggregator) == 2
 
-    def test_pickles(self, path_aggregator):
-        assert list(path_aggregator.values("dataset"))[0]["name"] == "dataset"
+    def test_pickles(self, aggregator):
+        assert list(aggregator.values("dataset"))[0]["name"] == "dataset"
 
 
 class TestOperations:
     def test_attribute(self, aggregator):
         assert list(aggregator.values("pipeline")) == [
-            "pipeline1",
-            "pipeline1",
-            "pipeline2",
-        ]
-        assert list(aggregator.values("search")) == ["search1", "search2", "search2"]
-        assert list(aggregator.values("dataset")) == [
-            "dataset1",
-            "dataset1",
-            "dataset2",
+            "pipeline0",
+            "pipeline1"
         ]
 
     def test_indexing(self, aggregator):
