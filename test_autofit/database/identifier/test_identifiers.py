@@ -40,6 +40,14 @@ def test_tiny_change():
     assert identifier == Identifier(instance)
 
 
+def test_infinity():
+    # noinspection PyTypeChecker
+    instance = Class(
+        one=float("inf")
+    )
+    str(Identifier(instance))
+
+
 def test_identifier_fields():
     other = Class(three=4)
     assert Identifier(
