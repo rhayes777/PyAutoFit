@@ -112,9 +112,9 @@ class Aggregator:
             )
         return self._fits
 
-    def map(self, function):
+    def map(self, func):
         for fit in self.fits:
-            yield function(fit)
+            yield func(fit)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename} {len(self)}>"
