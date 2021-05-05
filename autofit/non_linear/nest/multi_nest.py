@@ -213,7 +213,7 @@ class MultiNest(abstract_nest.AbstractNest):
             log_evidence=log_evidence,
             number_live_points=self.config_dict_search["n_live_points"],
             unconverged_sample_size=1,
-            time=self.timer.time
+            time=self.timer.time 
         )
 
     @property
