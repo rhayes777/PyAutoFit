@@ -12,8 +12,18 @@ def make_perturbation_model():
     return af.PriorModel(Gaussian)
 
 
+@pytest.fixture(
+    name="search"
+)
+def make_search():
+    return GridSearch()
+
+
 @pytest.fixture(name="sensitivity")
-def make_sensitivity(perturbation_model):
+def make_sensitivity(
+        perturbation_model,
+        search
+):
     # noinspection PyTypeChecker
     instance = af.ModelInstance()
     instance.gaussian = Gaussian()
@@ -25,7 +35,7 @@ def make_sensitivity(perturbation_model):
         perturbation_model=perturbation_model,
         simulate_function=image_function,
         analysis_class=Analysis,
-        search=GridSearch(),
+        search=search,
         number_of_steps=2,
     )
 
@@ -63,7 +73,6 @@ def test_sensitivity(sensitivity):
 
 
 def test_tuple_step_size(sensitivity):
-
     sensitivity.number_of_steps = (2, 2, 4)
 
     assert len(sensitivity._lists) == 16
