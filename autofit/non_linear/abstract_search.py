@@ -28,12 +28,12 @@ class NonLinearSearch(ABC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
-            prior_passer : "PriorPasser" = None,
-            initializer : Initializer = None,
-            iterations_per_update : int = None,
-            number_of_cores : int = 1,
-            session : Optional[bool] = None,
+            unique_tag: Optional[str] = None,
+            prior_passer: "PriorPasser" = None,
+            initializer: Initializer = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = 1,
+            session: Optional[bool] = None,
             **kwargs
     ):
         """
@@ -57,7 +57,7 @@ class NonLinearSearch(ABC):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
         from autofit.non_linear.paths.database import DatabasePaths
-#
+        #
         name = name or ""
         path_prefix = path_prefix or ""
 

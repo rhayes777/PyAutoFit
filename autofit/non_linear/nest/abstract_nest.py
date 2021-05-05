@@ -1,5 +1,6 @@
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 from autoconf import conf
 from autofit import exc
@@ -14,10 +15,10 @@ class AbstractNest(NonLinearSearch):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
             iterations_per_update=None,
-            session : Optional[bool] = None,
+            session: Optional[bool] = None,
             **kwargs
     ):
         """
