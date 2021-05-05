@@ -53,3 +53,38 @@ def test_combine(
     assert aggregator.query(
         aggregator.is_complete & (aggregator.centre == 2)
     ) == []
+
+
+def test_unique_tag(
+        aggregator,
+        gaussian_1,
+        gaussian_2
+):
+    assert aggregator.query(
+        aggregator.unique_tag == "one"
+    ) == [gaussian_1]
+    assert aggregator.query(
+        aggregator.unique_tag == "two"
+    ) == [gaussian_2]
+
+
+def test_contains(
+        aggregator,
+        gaussian_1,
+        gaussian_2
+):
+    assert aggregator.query(
+        aggregator.unique_tag.contains(
+            "o"
+        )
+    ) == [
+               gaussian_2,
+               gaussian_1
+           ]
+    assert aggregator.query(
+        aggregator.unique_tag.contains(
+            "ne"
+        )
+    ) == [
+               gaussian_1,
+           ]

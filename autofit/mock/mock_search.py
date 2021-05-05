@@ -13,11 +13,28 @@ from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
-    def __init__(self, name="",  unique_tag : Optional[str] = None, samples=None, fit_fast=True):
-        super().__init__(name=name, unique_tag=unique_tag)
+    def __init__(
+            self,
+            name="",
+            unique_tag: Optional[str] = None,
+            samples=None,
+            fit_fast=True,
+            sample_multiplier=1,
+            **kwargs
+    ):
+        super().__init__(
+            name=name,
+            unique_tag=unique_tag,
+            **kwargs
+        )
 
         self.fit_fast = fit_fast
         self.samples = samples or MockSamples()
+        self.sample_multiplier = sample_multiplier
+
+    @property
+    def config_dict_search(self):
+        return {}
 
     def _fit_fast(self, model, analysis):
         class Fitness:
@@ -62,16 +79,20 @@ class MockSearch(NonLinearSearch):
                 if unit_vector[index] >= 1:
                     raise e
                 index = (index + 1) % model.prior_count
+        samples = MockSamples(
+            samples=samples_with_log_likelihoods(self.sample_multiplier * fit),
+            model=model,
+            gaussian_tuples=[
+                (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
+                for prior in sorted(model.priors, key=lambda prior: prior.id)
+            ],
+        )
+
+        self.paths.save_samples(samples)
+
         return MockResult(
             model=model,
-            samples=MockSamples(
-                samples=samples_with_log_likelihoods([fit]),
-                model=model,
-                gaussian_tuples=[
-                    (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
-                    for prior in sorted(model.priors, key=lambda prior: prior.id)
-                ],
-            ),
+            samples=samples,
         )
 
     @property

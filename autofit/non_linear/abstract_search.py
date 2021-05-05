@@ -37,7 +37,7 @@ class NonLinearSearch(ABC):
             **kwargs
     ):
         """
-        Abstract base class for non-linear searches.
+        Abstract base class for non-linear searches.L
 
         This class sets up the file structure for the non-linear search, which are standardized across all non-linear
         searches.
@@ -70,12 +70,18 @@ class NonLinearSearch(ABC):
             paths = DatabasePaths(
                 name=name,
                 path_prefix=path_prefix,
-                session=session
+                session=session,
+                save_all_samples=kwargs.get(
+                    "save_all_samples",
+                    False
+                ),
+                unique_tag=unique_tag
             )
         else:
             paths = DirectoryPaths(
                 name=name,
-                path_prefix=path_prefix
+                path_prefix=path_prefix,
+                unique_tag=unique_tag
             )
 
         self._paths = None
@@ -336,9 +342,13 @@ class NonLinearSearch(ABC):
         pass
 
     @property
+    def _class_config(self):
+        return self.config_type[self.__class__.__name__]
+
+    @property
     def config_dict_search(self):
 
-        config_dict = copy.copy(self.config_type[self.__class__.__name__]["search"]._dict)
+        config_dict = copy.copy(self._class_config["search"]._dict)
 
         for key, value in config_dict.items():
             try:
@@ -351,7 +361,7 @@ class NonLinearSearch(ABC):
     @property
     def config_dict_run(self):
 
-        config_dict = copy.copy(self.config_type[self.__class__.__name__]["run"]._dict)
+        config_dict = copy.copy(self._class_config["run"]._dict)
 
         for key, value in config_dict.items():
             try:
@@ -363,7 +373,7 @@ class NonLinearSearch(ABC):
 
     @property
     def config_dict_settings(self):
-        return self.config_type[self.__class__.__name__]["settings"]._dict
+        return self._class_config["settings"]._dict
 
     @property
     def config_type(self):
@@ -383,7 +393,7 @@ class NonLinearSearch(ABC):
         attribute
             An attribute for the key with the specified type.
         """
-        return self.config_type[self.__class__.__name__][section][attribute_name]
+        return self._class_config[section][attribute_name]
 
     def perform_update(self, model, analysis, during_analysis):
         """
@@ -409,13 +419,13 @@ class NonLinearSearch(ABC):
         """
 
         self.iterations += self.iterations_per_update
-        logger.info(f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.).")
+        logger.info(
+            f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
+        )
 
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model)
-
-        # self.paths.save_object("samples", samples)
 
         self.paths.save_samples(
             samples

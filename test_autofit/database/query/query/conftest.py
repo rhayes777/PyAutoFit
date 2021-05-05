@@ -13,7 +13,8 @@ def make_gaussian_1():
             centre=1
         ),
         info={"info": 1},
-        is_complete=True
+        is_complete=True,
+        unique_tag="one"
     )
 
 
@@ -26,7 +27,8 @@ def make_gaussian_2():
             centre=2
         ),
         info={"info": 2},
-        is_complete=False
+        is_complete=False,
+        unique_tag="two"
     )
 
 

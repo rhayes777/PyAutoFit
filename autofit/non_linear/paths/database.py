@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy.orm.exc import NoResultFound
 
 from .abstract import AbstractPaths
-from ...database.model import Fit, Object
+from ...database.model import Fit
 
 
 class DatabasePaths(AbstractPaths):
@@ -14,7 +14,9 @@ class DatabasePaths(AbstractPaths):
             name=None,
             path_prefix=None,
             is_identifier_in_paths=True,
-            parent=None
+            parent=None,
+            save_all_samples=False,
+            unique_tag: Optional["str"] = None
     ):
         super().__init__(
             name=name,
@@ -24,6 +26,8 @@ class DatabasePaths(AbstractPaths):
         )
         self.session = session
         self._fit = None
+        self.save_all_samples = save_all_samples
+        self.unique_tag = unique_tag
 
     parent: "DatabasePaths"
 
@@ -109,7 +113,8 @@ class DatabasePaths(AbstractPaths):
             except NoResultFound:
                 self._fit = Fit(
                     id=self.identifier,
-                    is_complete=False
+                    is_complete=False,
+                    unique_tag=self.unique_tag
                 )
                 self.session.add(
                     self._fit
@@ -138,12 +143,13 @@ class DatabasePaths(AbstractPaths):
         )
 
     def save_samples(self, samples):
-        self.fit.samples = Object.from_object(
-            samples.minimise()
-        )
+        if not self.save_all_samples:
+            samples = samples.minimise()
+
+        self.fit.samples = samples
 
     def _load_samples(self):
-        samples = self.fit.samples()
+        samples = self.fit.samples
         samples.model = self.model
         return samples
 

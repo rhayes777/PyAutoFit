@@ -27,6 +27,27 @@ def test_missing_field():
         )
 
 
+def test_tiny_change():
+    # noinspection PyTypeChecker
+    instance = Class(
+        one=1.0
+    )
+    identifier = str(Identifier(instance))
+
+    instance.one += 1e-9
+    print(instance.one)
+
+    assert identifier == Identifier(instance)
+
+
+def test_infinity():
+    # noinspection PyTypeChecker
+    instance = Class(
+        one=float("inf")
+    )
+    str(Identifier(instance))
+
+
 def test_identifier_fields():
     other = Class(three=4)
     assert Identifier(
@@ -43,7 +64,7 @@ def test_identifier_fields():
     )
 
 
-def test__unique_tag():
+def test_unique_tag():
     search = af.MockSearch()
 
     search.fit(

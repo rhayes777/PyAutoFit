@@ -152,8 +152,8 @@ def make_grid_search_05():
 class MockOptimizer(af.MockSearch):
     init_args = list()
 
-    def __init__(self):
-        super().__init__(fit_fast=False)
+    def __init__(self, **kwargs):
+        super().__init__(fit_fast=False, **kwargs)
         # self.init_args.append(paths)
 
 
