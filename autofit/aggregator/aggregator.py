@@ -191,45 +191,6 @@ class AbstractAggregator:
             self.search_outputs
         )
 
-    def homogenize(
-            self,
-            aggregator: "AbstractAggregator",
-            on: str
-    ) -> Tuple[
-        "AbstractAggregator",
-        "AbstractAggregator"
-    ]:
-        """
-        Filter this aggregator and another aggregator such that each only
-        contain results where at least one result in the other aggregator
-        has the same value for a given property.
-
-        Parameters
-        ----------
-        aggregator
-            Another aggregator to homogenize with this one.
-        on
-            The attribute of the underlying results which should match.
-
-        Returns
-        -------
-        A pair of aggregators with only matching results.
-        """
-        def _homogenize(a, b):
-            values = set(b.values(on))
-            return AbstractAggregator([
-                phase for phase in a.search_outputs
-                if getattr(phase, on) in values
-            ])
-
-        return _homogenize(
-            self,
-            aggregator
-        ), _homogenize(
-            aggregator,
-            self
-        )
-
     def map(self, func):
         """
         Map some function onto the aggregated output objects.

@@ -23,34 +23,6 @@ class TestLoading:
         assert list(path_aggregator.values("dataset"))[0]["name"] == "dataset"
 
 
-@pytest.fixture(name="aggregator_2")
-def make_aggregator_2():
-    aggregator = af.Aggregator("")
-    aggregator.search_outputs = [
-        MockSearchOutput(path.join("directory", "number", "one"), "apipeline1", "search1", "dataset1"),
-        MockSearchOutput(path.join("directory", "number", "two"), "pipeline1", "bsearch2", "dataset1"),
-        MockSearchOutput(path.join("directory", "letter", "a"), "pipeline2", "search2", "dataset2"),
-    ]
-    return aggregator
-
-
-class TestIntersection:
-
-    def test_on_pipeline(self, aggregator, aggregator_2):
-        aggregator, aggregator_2 = aggregator.homogenize(aggregator_2, on="pipeline")
-        assert list(aggregator.values("search")) == ["search1", "search2", "search2"]
-        assert list(aggregator_2.values("search")) == ["bsearch2", "search2"]
-
-    def test_on_search(self, aggregator, aggregator_2):
-        aggregator, aggregator_2 = aggregator.homogenize(aggregator_2, on="search")
-        assert list(aggregator.values("pipeline")) == [
-            "pipeline1",
-            "pipeline1",
-            "pipeline2",
-        ]
-        assert list(aggregator_2.values("pipeline")) == ["apipeline1", "pipeline2"]
-
-
 class TestOperations:
     def test_attribute(self, aggregator):
         assert list(aggregator.values("pipeline")) == [
