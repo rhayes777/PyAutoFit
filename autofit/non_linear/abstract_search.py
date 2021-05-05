@@ -28,12 +28,12 @@ class NonLinearSearch(ABC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
-            prior_passer : "PriorPasser" = None,
-            initializer : Initializer = None,
-            iterations_per_update : int = None,
-            number_of_cores : int = 1,
-            session : Optional[bool] = None,
+            unique_tag: Optional[str] = None,
+            prior_passer: "PriorPasser" = None,
+            initializer: Initializer = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = 1,
+            session: Optional[bool] = None,
             **kwargs
     ):
         """
@@ -57,7 +57,7 @@ class NonLinearSearch(ABC):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         """
         from autofit.non_linear.paths.database import DatabasePaths
-#
+        #
         name = name or ""
         path_prefix = path_prefix or ""
 
@@ -70,7 +70,11 @@ class NonLinearSearch(ABC):
             paths = DatabasePaths(
                 name=name,
                 path_prefix=path_prefix,
-                session=session
+                session=session,
+                save_all_samples=kwargs.get(
+                    "save_all_samples",
+                    False
+                )
             )
         else:
             paths = DirectoryPaths(
@@ -409,13 +413,13 @@ class NonLinearSearch(ABC):
         """
 
         self.iterations += self.iterations_per_update
-        logger.info(f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.).")
+        logger.info(
+            f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
+        )
 
         self.timer.update()
 
         samples = self.samples_via_sampler_from_model(model=model)
-
-        # self.paths.save_object("samples", samples)
 
         self.paths.save_samples(
             samples
