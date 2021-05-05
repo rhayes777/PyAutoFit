@@ -53,3 +53,16 @@ def test_combine(
     assert aggregator.query(
         aggregator.is_complete & (aggregator.centre == 2)
     ) == []
+
+
+def test_unique_tag(
+        aggregator,
+        gaussian_1,
+        gaussian_2
+):
+    assert aggregator.query(
+        aggregator.unique_tag == "one"
+    ) == [gaussian_1]
+    assert aggregator.query(
+        aggregator.unique_tag == "two"
+    ) == [gaussian_2]
