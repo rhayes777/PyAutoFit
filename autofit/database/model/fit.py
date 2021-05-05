@@ -150,6 +150,10 @@ class Fit(Base):
         Boolean
     )
 
+    unique_tag = Column(
+        String
+    )
+
     _samples = relationship(
         Object,
         uselist=False,

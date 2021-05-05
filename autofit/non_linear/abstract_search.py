@@ -74,12 +74,14 @@ class NonLinearSearch(ABC):
                 save_all_samples=kwargs.get(
                     "save_all_samples",
                     False
-                )
+                ),
+                unique_tag=unique_tag
             )
         else:
             paths = DirectoryPaths(
                 name=name,
-                path_prefix=path_prefix
+                path_prefix=path_prefix,
+                unique_tag=unique_tag
             )
 
         self._paths = None

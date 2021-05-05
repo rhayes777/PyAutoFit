@@ -56,7 +56,7 @@ def test_identifier_fields():
     )
 
 
-def test__unique_tag():
+def test_unique_tag():
     search = af.MockSearch()
 
     search.fit(
