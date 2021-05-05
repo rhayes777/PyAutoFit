@@ -7,10 +7,24 @@ from autofit.mock.mock import MockSearchOutput
 
 
 @pytest.fixture(name="path_aggregator")
-def make_path_aggregator(aggregator_directory):
-    aggregator = af.Aggregator(aggregator_directory)
-    yield aggregator
-    # aggregator.remove_unzipped()
+def make_path_aggregator(session):
+    fits = [
+        af.db.Fit(
+            id="complete",
+            is_complete=True
+        ),
+        af.db.Fit(
+            id="incomplete",
+            is_complete=False
+        )
+    ]
+    for fit in fits:
+        fit["dataset"] = {
+            "name": "dataset"
+        }
+    session.add_all(fits)
+    session.flush()
+    return af.Aggregator(session)
 
 
 @pytest.fixture(name="aggregator_directory")

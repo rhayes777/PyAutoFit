@@ -7,26 +7,11 @@ from autofit.mock.mock import MockSearchOutput
 
 
 def test_completed_aggregator(
-        session,
-        aggregator_directory
+        path_aggregator
 ):
-    aggregator = af.Aggregator(
-        session,
-        predicate=af.Query().is_complete
+    aggregator = path_aggregator(
+        path_aggregator.is_complete
     )
-
-    session.add_all([
-        af.db.Fit(
-            id="complete",
-            is_complete=True
-        ),
-        af.db.Fit(
-            id="incomplete",
-            is_complete=False
-        )
-    ])
-    session.flush()
-
     assert len(aggregator) == 1
 
 
@@ -36,9 +21,6 @@ class TestLoading:
 
     def test_pickles(self, path_aggregator):
         assert list(path_aggregator.values("dataset"))[0]["name"] == "dataset"
-        assert list(path_aggregator.values("model"))[0]["name"] == "model"
-        assert list(path_aggregator.values("non_linear"))[0]["name"] == "optimizer"
-        assert list(path_aggregator.values("nonsense"))[0] is None
 
 
 @pytest.fixture(name="aggregator_2")
