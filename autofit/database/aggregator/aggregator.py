@@ -112,6 +112,10 @@ class Aggregator:
             )
         return self._fits
 
+    def map(self, function):
+        for fit in self.fits:
+            yield function(fit)
+
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename}>"
 
@@ -165,10 +169,22 @@ class Aggregator:
         >>> aggregator.filter((lens.bulge == EllSersicCore) & (lens.disk == EllSersic))
         >>> aggregator.filter((lens.bulge == EllSersicCore) | (lens.disk == EllSersic))
         """
-        return Aggregator(
-            session=self.session,
-            filename=self.filename,
+        return self._new_with(
             predicate=self._predicate & predicate
+        )
+
+    def _new_with(
+            self,
+            **kwargs
+    ):
+        kwargs = {
+            "session": self.session,
+            "filename": self.filename,
+            "predicate": self._predicate,
+            **kwargs
+        }
+        return Aggregator(
+            **kwargs
         )
 
     def children(self) -> "Aggregator":
@@ -190,7 +206,7 @@ class Aggregator:
         if isinstance(
                 item, int
         ):
-            offset += item
+            return self.fits[item]
         elif isinstance(
                 item, slice
         ):
@@ -204,10 +220,7 @@ class Aggregator:
                     limit = len(self) - item.stop - offset
                 else:
                     limit = len(self) + item.stop
-        return Aggregator(
-            session=self.session,
-            filename=self.filename,
-            predicate=self._predicate,
+        return self._new_with(
             offset=offset,
             limit=limit
         )
