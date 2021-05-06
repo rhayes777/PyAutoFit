@@ -11,9 +11,7 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
             mat_plot_1d: mp.MatPlot1D = mp.MatPlot1D(),
             visuals_1d: vis.Visuals1D = vis.Visuals1D(),
             include_1d: inc.Include1D = inc.Include1D(),
-            mat_plot_2d: mp.MatPlot2D = mp.MatPlot2D(),
-            visuals_2d: vis.Visuals2D = vis.Visuals2D(),
-            include_2d: inc.Include2D = inc.Include2D(),
+            mat_plot_corner: mp.MatPlotCorner = mp.MatPlotCorner(),
     ):
 
         self.samples = samples
@@ -22,10 +20,9 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
             mat_plot_1d=mat_plot_1d,
             visuals_1d=visuals_1d,
             include_1d=include_1d,
-            mat_plot_2d=mat_plot_2d,
-            include_2d=include_2d,
-            visuals_2d=visuals_2d
         )
+
+        self.mat_plot_corner = mat_plot_corner
 
     @property
     def visuals_with_include_2d(self):
@@ -39,7 +36,7 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
         """Plot each attribute of the imaging data_type as individual figures one by one (e.g. the dataset, noise_map, PSF, \
          Signal-to_noise-map, etc).
 
-        Set *autolens.data_type.array.mat_plot_2d.mat_plot_2d* for a description of all innput parameters not described below.
+        Set *autolens.data_type.array.mat_plot_corner.mat_plot_corner* for a description of all innput parameters not described below.
 
         Parameters
         -----------
@@ -63,6 +60,12 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
                 ),
                 plot_axis_type_override="symlog",
             )
+
+    def figure_corner(self, triangle=False):
+
+        if triangle:
+
+            self.mat_plot_corner.plot_corner(samples=self.samples)
 
     def subplot(
         self,

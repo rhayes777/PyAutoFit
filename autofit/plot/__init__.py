@@ -16,8 +16,9 @@ from autofit.plot.mat_wrap.wrap.wrap_base import Output
 from autofit.plot.mat_wrap.mat_plot import MatPlot1D
 from autofit.plot.mat_wrap.include import Include1D
 from autofit.plot.mat_wrap.visuals import Visuals1D
-from autofit.plot.mat_wrap.mat_plot import MatPlot2D
+from autofit.plot.mat_wrap.mat_plot import MatPlotCorner
 from autofit.plot.mat_wrap.include import Include2D
 from autofit.plot.mat_wrap.visuals import Visuals2D
 
 from autofit.plot.samples_plotters import SamplesPlotter
+from autofit.plot.dynesty_plotter import DynestyPlotter

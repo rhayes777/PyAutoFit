@@ -191,6 +191,16 @@ class TestRegression:
             "three_label",
         ]
 
+        assert mm.parameter_labels_latex == [
+            "$one_label$",
+            "$two_label$",
+            "$three_label$",
+            "$one_label$",
+            "$two_label$",
+            "$three_label$",
+        ]
+
+
     def test__subscripts_of_parameters(self):
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth

@@ -3,9 +3,11 @@ from abc import ABC
 
 import numpy as np
 
-from typing import Optional
+from typing import Optional, List
+
 from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
+from dynesty.results import Results
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
@@ -232,7 +234,7 @@ class AbstractDynesty(AbstractNest, ABC):
         total_samples = int(np.sum(sampler.results.ncall))
         log_evidence = np.max(sampler.results.logz)
 
-        return NestSamples(
+        return DynestySamples(
             model=model,
             samples=Sample.from_lists(
                 log_priors=log_priors,
@@ -241,6 +243,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 model=model,
                 parameters=parameters
             ),
+        #    results=sampler.results,
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.total_live_points,
@@ -458,3 +461,49 @@ class DynestyDynamic(AbstractDynesty):
     @property
     def total_live_points(self):
         return self.config_dict_run["nlive_init"]
+
+
+class DynestySamples(NestSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            samples: List[Sample],
+        #    results: Results,
+            number_live_points: int,
+            log_evidence: float,
+            total_samples: float,
+            unconverged_sample_size: int = 100,
+            time: float = None,
+    ):
+        """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        as files on your hard-disk) and Python.
+
+        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
+
+        The Bayesian log evidence estimated by the nested sampling algorithm.
+
+        Parameters
+        ----------
+        model : af.ModelMapper
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        number_live_points : int
+            The number of live points used by the nested sampler.
+        log_evidence : float
+            The log of the Bayesian evidence estimated by the nested sampling algorithm.
+        """
+
+        super().__init__(
+            model=model,
+            samples=samples,
+            unconverged_sample_size=unconverged_sample_size,
+            number_live_points=number_live_points,
+            log_evidence=log_evidence,
+            total_samples=total_samples,
+            time=time,
+        )
+
+   #     self.results = results
+
+

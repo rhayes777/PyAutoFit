@@ -1,4 +1,4 @@
-from autofit.plot.mat_wrap.wrap import wrap_base
+from autofit.plot.mat_wrap.wrap import wrap_base, wrap_corner
 
 wrap_base.set_backend()
 
@@ -7,6 +7,8 @@ import numpy as np
 
 from autofit.plot.mat_wrap.wrap import wrap_1d
 from autofit.plot.mat_wrap import visuals as vis
+
+from autofit.non_linear.samples import PDFSamples
 
 from typing import Optional
 
@@ -359,7 +361,7 @@ class MatPlot1D(AbstractMatPlot):
             self.figure.close()
 
 
-class MatPlot2D(AbstractMatPlot):
+class MatPlotCorner(AbstractMatPlot):
     def __init__(
         self,
         units: wrap_base.Units = wrap_base.Units(),
@@ -376,6 +378,7 @@ class MatPlot2D(AbstractMatPlot):
         xlabel: wrap_base.XLabel = wrap_base.XLabel(),
         legend: wrap_base.Legend = wrap_base.Legend(),
         output: wrap_base.Output = wrap_base.Output(),
+        corner : wrap_corner.Corner = wrap_corner.Corner()
     ):
         """
         Visualizes 2D data structures (e.g an `Array2D`, `Grid2D`, `VectorField`, etc.) using Matplotlib.
@@ -459,4 +462,14 @@ class MatPlot2D(AbstractMatPlot):
             output=output,
         )
 
-        self.is_for_subplot = False
+        self.corner = corner
+
+    def plot_corner(self, samples : PDFSamples):
+
+        self.corner.corner(
+            xs=samples.parameters,
+            weights=samples.weights,
+            labels=samples.model.parameter_labels_latex
+        )
+
+        self.output.to_figure(structure=None)

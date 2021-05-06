@@ -31,7 +31,7 @@ class Visualizer:
         )
 
     def mat_plot_2d_from(self, subfolders, format="png"):
-        return mat_plot.MatPlot2D(
+        return mat_plot.MatPlotCorner(
             output=wrap_base.Output(
                 path=path.join(self.visualize_path, subfolders), format=format
             )

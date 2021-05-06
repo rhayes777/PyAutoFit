@@ -807,18 +807,6 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
-    def output_pdf_plots(self):
-        """Output plots of the probability density functions of the non-linear seach.
-
-        This uses *corner.py* to plot:
-
-         - The marginalize 1D PDF of every parameter.
-         - The marginalized 2D PDF of every parameter pair.
-         - A Triangle plot of the 2D and 1D PDF's.
-         """
-
-        pass
-
 
 class MCMCSamples(PDFSamples):
     def __init__(

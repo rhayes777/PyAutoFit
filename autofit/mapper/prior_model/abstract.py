@@ -1039,6 +1039,19 @@ class AbstractPriorModel(AbstractModel):
         return parameter_labels
 
     @property
+    def parameter_labels_latex(self) -> [str]:
+        """
+        Returns a list of the label of every parameter in a model.
+
+        This is used for displaying model results as text and for visualization with *corner.py*.
+
+        The parameter labels are defined for every parameter of every model component in the config files label.ini and
+        label_format.ini.
+        """
+
+        return [f"${label}$" for label in self.parameter_labels]
+
+    @property
     def subscripts(self) -> [str]:
         """
         Returns a list of the model component subscripts of every parameter in a model.

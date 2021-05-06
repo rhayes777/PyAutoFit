@@ -15,7 +15,7 @@ class AbstractPlotter:
         mat_plot_1d: mat_plot.MatPlot1D = None,
         visuals_1d: vis.Visuals1D = None,
         include_1d: inc.Include1D = None,
-        mat_plot_2d: mat_plot.MatPlot2D = None,
+        mat_plot_corner: mat_plot.MatPlotCorner = None,
         visuals_2d: vis.Visuals2D = None,
         include_2d: inc.Include2D = None,
     ):
@@ -25,7 +25,7 @@ class AbstractPlotter:
         self.mat_plot_1d = mat_plot_1d
         self.visuals_2d = visuals_2d
         self.include_2d = include_2d
-        self.mat_plot_2d = mat_plot_2d
+        self.mat_plot_corner = mat_plot_corner
 
     def extract_1d(self, name, value, include_name=None):
         """
@@ -98,16 +98,16 @@ class AbstractPlotter:
         if self.mat_plot_1d is not None:
             self.mat_plot_1d.title.manual_label = label
 
-        if self.mat_plot_2d is not None:
-            self.mat_plot_2d.title.manual_label = label
+        if self.mat_plot_corner is not None:
+            self.mat_plot_corner.title.manual_label = label
 
     def set_filename(self, filename):
 
         if self.mat_plot_1d is not None:
             self.mat_plot_1d.output.filename = filename
 
-        if self.mat_plot_2d is not None:
-            self.mat_plot_2d.output.filename = filename
+        if self.mat_plot_corner is not None:
+            self.mat_plot_corner.output.filename = filename
 
     def set_mat_plot_1d_for_multi_plot(self, is_for_multi_plot, color: str):
 
@@ -120,10 +120,10 @@ class AbstractPlotter:
             self.mat_plot_1d.set_for_subplot(is_for_subplot=is_for_subplot)
             self.mat_plot_1d.number_subplots = number_subplots
             self.mat_plot_1d.subplot_index = 1
-        if self.mat_plot_2d is not None:
-            self.mat_plot_2d.set_for_subplot(is_for_subplot=is_for_subplot)
-            self.mat_plot_2d.number_subplots = number_subplots
-            self.mat_plot_2d.subplot_index = 1
+        if self.mat_plot_corner is not None:
+            self.mat_plot_corner.set_for_subplot(is_for_subplot=is_for_subplot)
+            self.mat_plot_corner.number_subplots = number_subplots
+            self.mat_plot_corner.subplot_index = 1
 
     @property
     def is_for_subplot(self):
@@ -132,8 +132,8 @@ class AbstractPlotter:
             if self.mat_plot_1d.is_for_subplot:
                 return True
 
-        if self.mat_plot_2d is not None:
-            if self.mat_plot_2d.is_for_subplot:
+        if self.mat_plot_corner is not None:
+            if self.mat_plot_corner.is_for_subplot:
                 return True
 
         return False
@@ -159,7 +159,7 @@ class AbstractPlotter:
 
     def close_subplot_figure(self):
 
-        self.mat_plot_2d.figure.close()
+        self.mat_plot_corner.figure.close()
         self.set_mat_plots_for_subplot(is_for_subplot=False)
 
     def get_subplot_figsize(self, number_subplots):
@@ -175,9 +175,9 @@ class AbstractPlotter:
             if self.mat_plot_1d.figure.config_dict["figsize"] is not None:
                 return self.mat_plot_1d.figure.config_dict["figsize"]
 
-        if self.mat_plot_2d is not None:
-            if self.mat_plot_2d.figure.config_dict["figsize"] is not None:
-                return self.mat_plot_2d.figure.config_dict["figsize"]
+        if self.mat_plot_corner is not None:
+            if self.mat_plot_corner.figure.config_dict["figsize"] is not None:
+                return self.mat_plot_corner.figure.config_dict["figsize"]
 
         if number_subplots <= 2:
             return (18, 8)
@@ -208,7 +208,7 @@ class AbstractPlotter:
             if value:
                 self.figures_2d(**{key: True})
 
-        self.mat_plot_2d.output.subplot_to_figure(
+        self.mat_plot_corner.output.subplot_to_figure(
             auto_filename=kwargs["auto_labels"].filename
         )
 
@@ -222,6 +222,6 @@ class AbstractPlotter:
 
             plotter.figures_2d(**{name: True})
 
-        self.mat_plot_2d.output.subplot_to_figure(auto_filename=f"subplot_{name}")
+        self.mat_plot_corner.output.subplot_to_figure(auto_filename=f"subplot_{name}")
 
         self.close_subplot_figure()

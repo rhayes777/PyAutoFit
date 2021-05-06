@@ -105,7 +105,7 @@ class AbstractMatWrap:
         figure = aplt.Figure(figsize=(7,7), aspect="square")
         cmap = aplt.Cmap(cmap="jet", vmin=1.0, vmax=2.0)
         
-        plotter = aplt.MatPlot2D(figure=figure, cmap=cmap)
+        plotter = aplt.MatPlotCorner(figure=figure, cmap=cmap)
         
         aplt.Array2D(array=arr, plotter=plotter)
         
@@ -846,6 +846,10 @@ class Output:
             elif self.format == "png":
                 plt.savefig(
                     path.join(self.path, f"{filename}.png"), bbox_inches="tight"
+                )
+            elif self.format == "pdf":
+                plt.savefig(
+                    path.join(self.path, f"{filename}.pdf"), bbox_inches="tight"
                 )
             elif self.format == "fits":
                 if structure is not None:
