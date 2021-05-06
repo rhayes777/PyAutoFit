@@ -1,4 +1,5 @@
 import os
+from os import path
 from typing import List, Optional
 
 import emcee
@@ -135,7 +136,7 @@ class Emcee(AbstractMCMC):
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(
-                filename=self.paths.samples_path + "/emcee.hdf"
+                filename=self.backend_filename
             ),
             pool=pool,
         )
@@ -143,7 +144,7 @@ class Emcee(AbstractMCMC):
         try:
 
             emcee_state = emcee_sampler.get_last_sample()
-            samples = self.samples_via_sampler_from_model(model=model)
+            samples = self.samples_from(model=model)
 
             total_iterations = emcee_sampler.iteration
 
@@ -212,13 +213,80 @@ class Emcee(AbstractMCMC):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_via_sampler_from_model,
+            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids,
         )
 
-    def samples_via_sampler_from_model(self, model):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+    @property
+    def backend_filename(self):
+        return path.join(self.paths.samples_path, "emcee.hdf")
+
+    @property
+    def backend(self) -> emcee.backends.HDFBackend:
+        """
+        The `Emcee` hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+
+        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html
+        """
+
+        if os.path.isfile(self.backend_filename):
+            return emcee.backends.HDFBackend(
+                filename=self.backend_filename
+            )
+        else:
+            raise FileNotFoundError(
+                "The file emcee.hdf does not exist at the path "
+                + self.paths.samples_path
+            )
+
+    def samples_from(self, model):
+
+        return EmceeSamples(
+            model=model,
+            backend=self.backend,
+            auto_correlation_settings=self.auto_correlations_settings,
+            time=self.timer.time
+        )
+
+
+class EmceeSamples(MCMCSamples):
+
+    def __init__(
+            self,
+            model: ModelMapper,
+            backend: emcee.backends.HDFBackend,
+            auto_correlation_settings: AutoCorrelationsSettings,
+            unconverged_sample_size: int = 100,
+            time: float = None,
+    ):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Attributes
+        ----------
+        total_walkers : int
+            The total number of walkers used by this MCMC non-linear search.
+        total_steps : int
+            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
+            to the total steps * total walkers).
+        """
+
+        super().__init__(
+            model=model,
+            auto_correlation_settings=auto_correlation_settings,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+        self.backend = backend
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Emcee, all quantities are extracted via the hdf5 backend of results.
 
@@ -231,136 +299,53 @@ class Emcee(AbstractMCMC):
             Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
             etc.
         """
-
         parameters = self.backend.get_chain(flat=True).tolist()
         log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
         log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
         weights = len(log_likelihoods) * [1.0]
-        total_walkers = len(self.backend.get_chain()[0, :, 0])
-        total_steps = len(self.backend.get_log_prob())
 
-        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
-        try:
-            previous_auto_correlation_times = emcee.autocorr.integrated_time(
-                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
-            )
-        except IndexError:
-            previous_auto_correlation_times = None
-
-        return EmceeSamples(
-            model=model,
-            samples=Sample.from_lists(
-                model=model,
-                parameters=parameters,
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights
-            ),
-            auto_correlations=AutoCorrelations(
-                check_size=self.auto_correlations_settings.check_size,
-                required_length=self.auto_correlations_settings.required_length,
-                change_threshold=self.auto_correlations_settings.change_threshold,
-                times=auto_correlation_time,
-                previous_times=previous_auto_correlation_times
-            ),
-            total_walkers=total_walkers,
-            total_steps=total_steps,
-            backend=self.backend,
-            time=self.timer.time
+        return Sample.from_lists(
+            model=self.model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights
         )
-
-    def samples_via_csv_json_from_model(self, model):
-
-        # TODO : Better design to remove repetition.
-
-        samples = self.paths.load_samples()
-        samples_info = self.paths.load_samples_info()
-
-        try:
-            backend = self.backend
-            auto_correlation_times = self.backend.get_autocorr_time(tol=0)
-            previous_auto_correlation_times = emcee.autocorr.integrated_time(
-                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
-            )
-        except FileNotFoundError:
-            backend = None
-            auto_correlation_times = None
-            previous_auto_correlation_times = None
-
-        return EmceeSamples(
-            model=model,
-            samples=samples,
-            auto_correlations=AutoCorrelations(
-                check_size=samples_info["check_size"],
-                required_length=samples_info["required_length"],
-                change_threshold=samples_info["change_threshold"],
-                times=auto_correlation_times,
-                previous_times=previous_auto_correlation_times,
-            ),
-            total_walkers=samples_info["total_walkers"],
-            total_steps=samples_info["total_steps"],
-            time=samples_info["time"],
-            backend=backend
-        )
-
-    @property
-    def backend(self) -> emcee.backends.HDFBackend:
-        """The `Emcee` hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
-
-        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        if os.path.isfile(self.paths.samples_path + "/emcee.hdf"):
-            return emcee.backends.HDFBackend(
-                filename=self.paths.samples_path + "/emcee.hdf"
-            )
-        else:
-            raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path "
-                + self.paths.samples_path
-            )
-
-
-class EmceeSamples(MCMCSamples):
-
-    def __init__(
-            self,
-            model: ModelMapper,
-            samples: List[Sample],
-            auto_correlations: AutoCorrelations,
-            total_walkers: int,
-            total_steps: int,
-            backend: emcee.backends.HDFBackend,
-            unconverged_sample_size: int = 100,
-            time: float = None,
-    ):
-        """
-        Attributes
-        ----------
-        total_walkers : int
-            The total number of walkers used by this MCMC non-linear search.
-        total_steps : int
-            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
-            to the total steps * total walkers).
-        """
-
-        super().__init__(
-            model=model,
-            samples=samples,
-            auto_correlations=auto_correlations,
-            total_walkers=total_walkers,
-            total_steps=total_steps,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
-        )
-
-        self.backend = backend
 
     @property
     def samples_after_burn_in(self) -> [list]:
-        """The emcee samples with the initial burn-in samples removed.
+        """
+        The emcee samples with the initial burn-in samples removed.
 
-        The burn-in period is estimated using the auto-correlation times of the parameters."""
+        The burn-in period is estimated using the auto-correlation times of the parameters.
+        """
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
         return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+
+    @property
+    def total_walkers(self):
+        return len(self.backend.get_chain()[0, :, 0])
+
+    @property
+    def total_steps(self):
+        return len(self.backend.get_log_prob())
+
+    @property
+    def auto_correlations(self):
+
+        times = self.backend.get_autocorr_time(tol=0)
+
+        previous_auto_correlation_times = emcee.autocorr.integrated_time(
+            x=self.backend.get_chain()[: -self.auto_correlation_settings.check_size, :, :], tol=0
+        )
+
+        return AutoCorrelations(
+            check_size=self.auto_correlation_settings.check_size,
+            required_length=self.auto_correlation_settings.required_length,
+            change_threshold=self.auto_correlation_settings.change_threshold,
+            times=times,
+            previous_times=previous_auto_correlation_times,
+        )

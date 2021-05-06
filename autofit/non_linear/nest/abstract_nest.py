@@ -127,23 +127,8 @@ class AbstractNest(NonLinearSearch):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_via_sampler_from_model,
+            samples_from_model=self.samples_from,
             stagger_resampling_likelihood=self.config_dict_settings["stagger_resampling_likelihood"],
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids
-        )
-
-    def samples_via_csv_json_from_model(self, model):
-
-        samples = self.paths.load_samples()
-        samples_info = self.paths.load_samples_info()
-
-        return samp.NestSamples(
-            model=model,
-            samples=samples,
-            log_evidence=samples_info["log_evidence"],
-            total_samples=samples_info["total_samples"],
-            unconverged_sample_size=samples_info["unconverged_sample_size"],
-            number_live_points=samples_info["number_live_points"],
-            time=samples_info["time"],
         )

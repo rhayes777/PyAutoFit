@@ -9,7 +9,7 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations, AutoCorrelationsSettings
 
 
 class Sample:
@@ -191,7 +191,6 @@ class OptimizerSamples:
     def __init__(
             self,
             model: AbstractPriorModel,
-            samples: List[Sample],
             time: float = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of an search which only provides
@@ -204,8 +203,11 @@ class OptimizerSamples:
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
         self.model = model
-        self.samples = samples
         self.time = time
+
+    @property
+    def samples(self):
+        raise NotImplementedError
 
     @property
     def parameters(self):
@@ -405,7 +407,6 @@ class PDFSamples(OptimizerSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            samples: List[Sample],
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -420,7 +421,6 @@ class PDFSamples(OptimizerSamples):
 
         super().__init__(
             model=model,
-            samples=samples,
             time=time,
         )
 
@@ -812,10 +812,7 @@ class MCMCSamples(PDFSamples):
     def __init__(
             self,
             model: ModelMapper,
-            samples: List[Sample],
-            auto_correlations: AutoCorrelations,
-            total_walkers: int,
-            total_steps: int,
+            auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -829,17 +826,29 @@ class MCMCSamples(PDFSamples):
             to the total steps * total walkers).
         """
 
+        self.auto_correlation_settings = auto_correlation_settings
+
         super().__init__(
             model=model,
-            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
 
-        self.total_walkers = total_walkers
-        self.total_steps = total_steps
-        self.auto_correlations = auto_correlations
-        self.log_evidence = None
+    @property
+    def samples(self):
+        raise NotImplementedError
+
+    @property
+    def total_walkers(self):
+        raise NotImplementedError
+
+    @property
+    def total_steps(self):
+        raise NotImplementedError
+
+    @property
+    def auto_correlations(self):
+        raise NotImplementedError
 
     @classmethod
     def from_table(self, filename: str, model, number_live_points=None):

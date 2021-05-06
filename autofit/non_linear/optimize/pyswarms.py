@@ -207,7 +207,7 @@ class AbstractPySwarms(AbstractOptimizer):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_via_sampler_from_model,
+            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids,
         )
@@ -215,7 +215,7 @@ class AbstractPySwarms(AbstractOptimizer):
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         raise NotImplementedError()
 
-    def samples_via_sampler_from_model(self, model):
+    def samples_from(self, model):
         """
         Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
 

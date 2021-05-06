@@ -327,7 +327,7 @@ class NonLinearSearch(ABC):
         else:
 
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
-            samples = self.samples_via_csv_json_from_model(model=model)
+            samples = self.samples_from(model=model)
 
             if self.force_pickle_overwrite:
 
@@ -425,7 +425,7 @@ class NonLinearSearch(ABC):
 
         self.timer.update()
 
-        samples = self.samples_via_sampler_from_model(model=model)
+        samples = self.samples_from(model=model)
 
         self.paths.save_samples(
             samples
@@ -487,10 +487,7 @@ class NonLinearSearch(ABC):
     def remove_state_files(self):
         pass
 
-    def samples_via_sampler_from_model(self, model):
-        raise NotImplementedError()
-
-    def samples_via_csv_json_from_model(self, model):
+    def samples_from(self, model):
         raise NotImplementedError()
 
     def make_pool(self):

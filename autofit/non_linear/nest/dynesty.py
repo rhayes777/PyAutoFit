@@ -202,7 +202,7 @@ class AbstractDynesty(AbstractNest, ABC):
     def sampler_from(self, model, fitness_function, pool):
         return NotImplementedError()
 
-    def samples_via_sampler_from_model(self, model):
+    def samples_from(self, model):
         """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Dynesty, all information that we need is available from the instance of the dynesty sampler.
@@ -243,7 +243,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 model=model,
                 parameters=parameters
             ),
-        #    results=sampler.results,
+            results=sampler.results,
             total_samples=total_samples,
             log_evidence=log_evidence,
             number_live_points=self.total_live_points,
@@ -469,14 +469,15 @@ class DynestySamples(NestSamples):
             self,
             model: AbstractPriorModel,
             samples: List[Sample],
-        #    results: Results,
+            results: Results,
             number_live_points: int,
             log_evidence: float,
             total_samples: float,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
-        """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        """
+        The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
@@ -504,6 +505,6 @@ class DynestySamples(NestSamples):
             time=time,
         )
 
-   #     self.results = results
+        self.results = results
 
 

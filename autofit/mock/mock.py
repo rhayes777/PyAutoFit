@@ -130,10 +130,7 @@ class MockSearch(af.NonLinearSearch):
         self.paths.save_object("samples", self.samples)
         return self.samples
 
-    def samples_via_csv_json_from_model(self, model):
-        return self.samples
-
-    def samples_via_sampler_from_model(self, model):
+    def samples_from(self, model):
         return self.samples
 
 

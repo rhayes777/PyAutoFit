@@ -68,7 +68,7 @@ class TestZeusConfig:
 #
 #         zeus_sampler = ze.EnsembleSampler(nwalkers=100, ndim=4, logprob_fn=fitness_function)
 #
-#         samples = zeus.samples_via_sampler_from_model(model=model, zeus_sampler=zeus_sampler)
+#         samples = zeus.samples_from(model=model, zeus_sampler=zeus_sampler)
 #
 #         assert isinstance(samples.parameters, list)
 #         assert isinstance(samples.parameters[0], list)
@@ -97,7 +97,7 @@ class TestZeusConfig:
 #         model = af.ModelMapper(mock_class=mock.MockClassx4)
 #         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 #
-#         samples = zeus.samples_via_sampler_from_model(model=model)
+#         samples = zeus.samples_from(model=model)
 #
 #         assert samples.median_pdf_vector == pytest.approx(
 #             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
@@ -111,7 +111,7 @@ class TestZeusConfig:
 #         model = af.ModelMapper(mock_class=mock.MockClassx4)
 #         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 #
-#         samples = zeus.samples_via_sampler_from_model(model=model)
+#         samples = zeus.samples_from(model=model)
 #
 #         parameters = samples.vector_at_sigma(sigma=3.0)
 #
@@ -129,7 +129,7 @@ class TestZeusConfig:
 #         model = af.ModelMapper(mock_class=mock.MockClassx4)
 #         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 #
-#         samples = zeus.samples_via_sampler_from_model(model=model)
+#         samples = zeus.samples_from(model=model)
 #
 #         assert samples.auto_correlations.previous_times == pytest.approx(
 #             [31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4

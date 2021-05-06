@@ -55,6 +55,7 @@ class TestEmceeConfig:
         assert emcee.number_of_cores == 1
 
     def test__samples_from_model(self):
+
         emcee = af.Emcee()
         emcee.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "emcee"))
         emcee.paths._identifier = "tag"
@@ -62,7 +63,7 @@ class TestEmceeConfig:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
         assert isinstance(samples.parameters, list)
         assert isinstance(samples.parameters[0], list)
@@ -91,7 +92,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
         assert samples.median_pdf_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
@@ -105,7 +106,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
         parameters = samples.vector_at_sigma(sigma=3.0)
 
@@ -123,7 +124,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
         assert samples.auto_correlations.previous_times == pytest.approx(
             [31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4

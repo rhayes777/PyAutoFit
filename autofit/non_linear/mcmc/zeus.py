@@ -141,7 +141,7 @@ class Zeus(AbstractMCMC):
             zeus_state = zeus_sampler.get_last_sample()
             initial_log_posteriors = zeus_sampler.get_last_log_prob()
 
-            samples = self.samples_via_sampler_from_model(model=model)
+            samples = self.samples_from(model=model)
 
             total_iterations = zeus_sampler.iteration
 
@@ -236,12 +236,12 @@ class Zeus(AbstractMCMC):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_via_sampler_from_model,
+            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids,
         )
 
-    def samples_via_sampler_from_model(self, model):
+    def samples_from(self, model):
         """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Zeus, all quantities are extracted via the hdf5 backend of results.
@@ -295,40 +295,6 @@ class Zeus(AbstractMCMC):
             total_walkers=total_walkers,
             total_steps=total_steps,
             time=self.timer.time
-        )
-
-    def samples_via_csv_json_from_model(self, model):
-
-        zeus_sampler = self.zeus_pickled
-
-        # TODO : Better design to remove repetition.
-
-        samples = self.paths.load_samples()
-        samples_info = self.paths.load_samples_info()
-
-        try:
-            auto_correlation_times = zeus.AutoCorrTime(samples=zeus_sampler.get_chain())
-            previous_auto_correlation_times = zeus.AutoCorrTime(
-                samples=zeus_sampler.get_chain()[: -self.auto_correlations_settings.check_size, :, :],
-            )
-        except FileNotFoundError:
-            auto_correlation_times = None
-            previous_auto_correlation_times = None
-
-        return ZeusSamples(
-            model=model,
-            samples=samples,
-            paths=self.paths,
-            auto_correlations=AutoCorrelations(
-                check_size=samples_info["check_size"],
-                required_length=samples_info["required_length"],
-                change_threshold=samples_info["change_threshold"],
-                times=auto_correlation_times,
-                previous_times=previous_auto_correlation_times,
-            ),
-            total_walkers=samples_info["total_walkers"],
-            total_steps=samples_info["total_steps"],
-            time=samples_info["time"],
         )
 
     @property

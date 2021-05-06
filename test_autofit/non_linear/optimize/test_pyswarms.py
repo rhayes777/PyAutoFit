@@ -95,7 +95,7 @@ class TestPySwarmsGlobalConfig:
         model.mock_class.three = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
         # model.mock_class.four = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
 
-        samples = pyswarms.samples_via_sampler_from_model(model=model)
+        samples = pyswarms.samples_from(model=model)
 
         assert isinstance(samples.parameters, list)
         assert isinstance(samples.parameters[0], list)
