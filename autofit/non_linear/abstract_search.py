@@ -431,6 +431,8 @@ class NonLinearSearch(ABC):
             samples
         )
 
+        self.plot_results(samples=samples)
+
         try:
             instance = samples.max_log_likelihood_instance
         except exc.FitException:
@@ -526,6 +528,8 @@ class NonLinearSearch(ABC):
         self.__dict__.update(state)
     #  self.paths.restore()
 
+    def plot_results(self, samples):
+        pass
 
 class Analysis(ABC):
 

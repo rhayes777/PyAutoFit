@@ -1,13 +1,15 @@
-import sys
+from os import path
 from abc import ABC
 
 import numpy as np
 
-from typing import Optional, List
+from typing import Optional
 
 from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 from dynesty.results import Results
+
+from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
@@ -15,6 +17,8 @@ from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples import NestSamples, Sample
 
+from autofit.plot import DynestyPlotter
+from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(unit_vector=cube)
@@ -265,6 +269,32 @@ class AbstractDynesty(AbstractNest, ABC):
     @property
     def total_live_points(self):
         raise NotImplementedError()
+
+    def plot_results(self, samples):
+
+        if not samples.pdf_converged:
+            return
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["dynesty"][name]
+
+        plotter = DynestyPlotter(
+            samples=samples,
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+        )
+        
+        if should_plot("cornerplot"):
+            plotter.cornerplot()
+
+        if should_plot("runplot"):
+            plotter.cornerpoints()
+            
+        if should_plot("traceplot"):
+            plotter.traceplot()
+            
+        if should_plot("cornerpoints"):
+            plotter.cornerpoints()
+        
 
 
 class DynestyStatic(AbstractDynesty):
