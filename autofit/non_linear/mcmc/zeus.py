@@ -1,6 +1,9 @@
+from os import path
 from typing import List, Optional
 import zeus
 import numpy as np
+
+from autoconf import conf
 
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
@@ -9,6 +12,9 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
+
+from autofit.plot import ZeusPlotter
+from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
 class Zeus(AbstractMCMC):
 
@@ -269,6 +275,21 @@ class Zeus(AbstractMCMC):
             "zeus"
         )
 
+    def plot_results(self, samples):
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["emcee"][name]
+
+        plotter = ZeusPlotter(
+            samples=samples,
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+        )
+
+        if should_plot("corner"):
+            plotter.corner()
+
+        if should_plot("time_series"):
+            plotter.time_series()
 
 class ZeusSamples(MCMCSamples):
 

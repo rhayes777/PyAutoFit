@@ -266,8 +266,8 @@ class Emcee(AbstractMCMC):
         if should_plot("corner"):
             plotter.corner()
 
-        # if should_plot("time_series"):
-        #     plotter.time_series()
+        if should_plot("time_series"):
+            plotter.time_series()
 
 class EmceeSamples(MCMCSamples):
 
