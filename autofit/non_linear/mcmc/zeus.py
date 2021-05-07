@@ -256,44 +256,10 @@ class Zeus(AbstractMCMC):
             etc.
         """
 
-        zeus_sampler = self.zeus_pickled
-
-        parameters = zeus_sampler.get_chain(flat=True).tolist()
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
-        ]
-        log_likelihoods = zeus_sampler.get_log_prob(flat=True).tolist()
-        weights = len(log_likelihoods) * [1.0]
-        total_walkers = len(zeus_sampler.get_chain()[0, :, 0])
-        total_steps = int(zeus_sampler.ncall_total)
-
-        auto_correlation_time = zeus.AutoCorrTime(samples=zeus_sampler.get_chain())
-        try:
-            previous_auto_correlation_times = zeus.AutoCorrTime(
-                samples=zeus_sampler.get_chain()[: -self.auto_correlations_settings.check_size, :, :],
-            )
-        except IndexError:
-            previous_auto_correlation_times = None
-
         return ZeusSamples(
             model=model,
-            samples=Sample.from_lists(
-                model=model,
-                parameters=parameters,
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights
-            ),
-            paths=self.paths,
-            auto_correlations=AutoCorrelations(
-                check_size=self.auto_correlations_settings.check_size,
-                required_length=self.auto_correlations_settings.required_length,
-                change_threshold=self.auto_correlations_settings.change_threshold,
-                times=auto_correlation_time,
-                previous_times=previous_auto_correlation_times
-            ),
-            total_walkers=total_walkers,
-            total_steps=total_steps,
+            zeus_sampler=self.zeus_pickled,
+            auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time
         )
 
@@ -303,16 +269,14 @@ class Zeus(AbstractMCMC):
             "zeus"
         )
 
+
 class ZeusSamples(MCMCSamples):
 
     def __init__(
             self,
             model: ModelMapper,
-            samples: List[Sample],
-            auto_correlations: AutoCorrelations,
-            total_walkers: int,
-            total_steps: int,
-            paths,
+            zeus_sampler,
+            auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -326,17 +290,53 @@ class ZeusSamples(MCMCSamples):
             to the total steps * total walkers).
         """
 
+        self.zeus_sampler = zeus_sampler
+
         super().__init__(
             model=model,
-            samples=samples,
-            auto_correlations=auto_correlations,
-            total_walkers=total_walkers,
-            total_steps=total_steps,
+            auto_correlation_settings=auto_correlation_settings,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
 
-        self.paths = paths
+        self._samples = None
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameters = self.zeus_sampler.get_chain(flat=True).tolist()
+        log_priors = [
+            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
+        log_likelihoods = self.zeus_sampler.get_log_prob(flat=True).tolist()
+        weights = len(log_likelihoods) * [1.0]
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights
+        )
+
+        return self._samples
 
     @property
     def samples_after_burn_in(self) -> [list]:
@@ -344,12 +344,33 @@ class ZeusSamples(MCMCSamples):
 
         The burn-in period is estimated using the auto-correlation times of the parameters."""
 
-        zeus_sampler = self.paths.load_object(
-            "zeus"
-        )
-
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
-        chain = zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)
+        return self.zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)
 
-        return chain
+    @property
+    def total_walkers(self):
+        return len(self.zeus_sampler.get_chain()[0, :, 0])
+
+    @property
+    def total_steps(self):
+        return int(self.zeus_sampler.ncall_total)
+
+    @property
+    def auto_correlations(self):
+
+        times = zeus.AutoCorrTime(samples=self.zeus_sampler.get_chain())
+        try:
+            previous_auto_correlation_times = zeus.AutoCorrTime(
+                samples=self.zeus_sampler.get_chain()[: -self.auto_correlation_settings.check_size, :, :],
+            )
+        except IndexError:
+            previous_auto_correlation_times = None
+
+        return AutoCorrelations(
+            check_size=self.auto_correlation_settings.check_size,
+            required_length=self.auto_correlation_settings.required_length,
+            change_threshold=self.auto_correlation_settings.change_threshold,
+            times=times,
+            previous_times=previous_auto_correlation_times,
+        )

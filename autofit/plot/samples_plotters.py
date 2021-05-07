@@ -1,3 +1,4 @@
+from autofit.plot.mat_wrap.wrap import wrap_base
 from autofit.plot.mat_wrap import visuals as vis
 from autofit.plot.mat_wrap import include as inc
 from autofit.plot.mat_wrap import mat_plot as mp
@@ -11,10 +12,11 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
             mat_plot_1d: mp.MatPlot1D = mp.MatPlot1D(),
             visuals_1d: vis.Visuals1D = vis.Visuals1D(),
             include_1d: inc.Include1D = inc.Include1D(),
-            mat_plot_corner: mp.MatPlotCorner = mp.MatPlotCorner(),
+            output : wrap_base.Output = wrap_base.Output()
     ):
 
         self.samples = samples
+        self.output = output
 
         super().__init__(
             mat_plot_1d=mat_plot_1d,
@@ -22,7 +24,9 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
             include_1d=include_1d,
         )
 
-        self.mat_plot_corner = mat_plot_corner
+    @property
+    def model(self):
+        return self.samples.model
 
     @property
     def visuals_with_include_2d(self):
@@ -35,8 +39,6 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
     ):
         """Plot each attribute of the imaging data_type as individual figures one by one (e.g. the dataset, noise_map, PSF, \
          Signal-to_noise-map, etc).
-
-        Set *autolens.data_type.array.mat_plot_corner.mat_plot_corner* for a description of all innput parameters not described below.
 
         Parameters
         -----------
@@ -60,12 +62,6 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
                 ),
                 plot_axis_type_override="symlog",
             )
-
-    def figure_corner(self, triangle=False):
-
-        if triangle:
-
-            self.mat_plot_corner.plot_corner(samples=self.samples)
 
     def subplot(
         self,

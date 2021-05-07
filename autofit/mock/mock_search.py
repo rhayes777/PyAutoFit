@@ -150,18 +150,24 @@ class MockSamples(PDFSamples):
             gaussian_tuples=None
     ):
 
-        if samples is None:
-            samples = samples_with_log_likelihoods(
-                [1.0, 2.0, 3.0]
-            )
+        self._samples = samples
 
         super().__init__(
             model=model,
-            samples=samples
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self.gaussian_tuples = gaussian_tuples
+
+    @property
+    def samples(self):
+
+        if self._samples is None:
+            return samples_with_log_likelihoods(
+                [1.0, 2.0, 3.0]
+            )
+
+        return self._samples
 
     @property
     def max_log_likelihood_instance(self):

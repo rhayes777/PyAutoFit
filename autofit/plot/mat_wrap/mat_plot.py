@@ -1,4 +1,4 @@
-from autofit.plot.mat_wrap.wrap import wrap_base, wrap_corner
+from autofit.plot.mat_wrap.wrap import wrap_base
 
 wrap_base.set_backend()
 
@@ -7,8 +7,6 @@ import numpy as np
 
 from autofit.plot.mat_wrap.wrap import wrap_1d
 from autofit.plot.mat_wrap import visuals as vis
-
-from autofit.non_linear.samples import PDFSamples
 
 from typing import Optional
 
@@ -45,20 +43,20 @@ class AbstractMatPlot:
     ):
         """
         Visualizes data structures (e.g an `Array2D`, `Grid2D`, `VectorField`, etc.) using Matplotlib.
-        
+
         The `Plotter` is passed objects from the `wrap_base` package which wrap matplotlib plot functions and customize
         the appearance of the plots of the data structure. If the values of these matplotlib wrapper objects are not
         manually specified, they assume the default values provided in the `config.visualize.mat_*` `.ini` config files.
-        
+
         The following data structures can be plotted using the following matplotlib functions:
-        
+
         - `Array2D`:, using `plt.imshow`.
         - `Grid2D`: using `plt.scatter`.
         - `Line`: using `plt.plot`, `plt.semilogy`, `plt.loglog` or `plt.scatter`.
         - `VectorField`: using `plt.quiver`.
         - `RectangularMapper`: using `plt.imshow`.
         - `VoronoiMapper`: using `plt.fill`.
-        
+
         Parameters
         ----------
         units : wrap_base.Units
@@ -69,7 +67,7 @@ class AbstractMatPlot:
         axis : wrap_base.Axis
             Sets the extent of the figure axis via `plt.axis` and allows for a manual axis range.
         cmap : wrap_base.Cmap
-            Customizes the colormap of the plot and its normalization via matplotlib `colors` objects such 
+            Customizes the colormap of the plot and its normalization via matplotlib `colors` objects such
             as `colors.Normalize` and `colors.LogNorm`.
         colorbar : wrap_base.Colorbar
             Plots the colorbar of the plot via `plt.colorbar` and customizes its tick labels and values using method
@@ -85,7 +83,7 @@ class AbstractMatPlot:
             Sets the xticks of the plot, including scaling them to new units depending on the `Units` object, via
             `plt.xticks`.
         title : wrap_base.Title
-            Sets the figure title and customizes its appearance using `plt.title`.        
+            Sets the figure title and customizes its appearance using `plt.title`.
         ylabel : wrap_base.YLabel
             Sets the figure ylabel and customizes its appearance using `plt.ylabel`.
         xlabel : wrap_base.XLabel
@@ -220,7 +218,7 @@ class MatPlot1D(AbstractMatPlot):
         axis : wrap_base.Axis
             Sets the extent of the figure axis via `plt.axis` and allows for a manual axis range.
         cmap : wrap_base.Cmap
-            Customizes the colormap of the plot and its normalization via matplotlib `colors` objects such 
+            Customizes the colormap of the plot and its normalization via matplotlib `colors` objects such
             as `colors.Normalize` and `colors.LogNorm`.
         colorbar : wrap_base.Colorbar
             Plots the colorbar of the plot via `plt.colorbar` and customizes its tick labels and values using method
@@ -236,7 +234,7 @@ class MatPlot1D(AbstractMatPlot):
             Sets the xticks of the plot, including scaling them to new units depending on the `Units` object, via
             `plt.xticks`.
         title : wrap_base.Title
-            Sets the figure title and customizes its appearance using `plt.title`.        
+            Sets the figure title and customizes its appearance using `plt.title`.
         ylabel : wrap_base.YLabel
             Sets the figure ylabel and customizes its appearance using `plt.ylabel`.
         xlabel : wrap_base.XLabel
@@ -361,115 +359,3 @@ class MatPlot1D(AbstractMatPlot):
             self.figure.close()
 
 
-class MatPlotCorner(AbstractMatPlot):
-    def __init__(
-        self,
-        units: wrap_base.Units = wrap_base.Units(),
-        figure: wrap_base.Figure = wrap_base.Figure(),
-        axis: wrap_base.Axis = wrap_base.Axis(),
-        cmap: wrap_base.Cmap = wrap_base.Cmap(),
-        colorbar: wrap_base.Colorbar = wrap_base.Colorbar(),
-        colorbar_tickparams: wrap_base.ColorbarTickParams = wrap_base.ColorbarTickParams(),
-        tickparams: wrap_base.TickParams = wrap_base.TickParams(),
-        yticks: wrap_base.YTicks = wrap_base.YTicks(),
-        xticks: wrap_base.XTicks = wrap_base.XTicks(),
-        title: wrap_base.Title = wrap_base.Title(),
-        ylabel: wrap_base.YLabel = wrap_base.YLabel(),
-        xlabel: wrap_base.XLabel = wrap_base.XLabel(),
-        legend: wrap_base.Legend = wrap_base.Legend(),
-        output: wrap_base.Output = wrap_base.Output(),
-        corner : wrap_corner.Corner = wrap_corner.Corner()
-    ):
-        """
-        Visualizes 2D data structures (e.g an `Array2D`, `Grid2D`, `VectorField`, etc.) using Matplotlib.
-
-        The `Plotter` is passed objects from the `wrap` package which wrap matplotlib plot functions and customize
-        the appearance of the plots of the data structure. If the values of these matplotlib wrapper objects are not
-        manually specified, they assume the default values provided in the `config.visualize.mat_*` `.ini` config files.
-
-        The following 2D data structures can be plotted using the following matplotlib functions:
-
-        - `Array2D`:, using `plt.imshow`.
-        - `Grid2D`: using `plt.scatter`.
-        - `Line`: using `plt.plot`, `plt.semilogy`, `plt.loglog` or `plt.scatter`.
-        - `VectorField`: using `plt.quiver`.
-        - `RectangularMapper`: using `plt.imshow`.
-        - `VoronoiMapper`: using `plt.fill`.
-
-        Parameters
-        ----------
-        units : wrap_base.Units
-            The units of the figure used to plot the data structure which sets the y and x ticks and labels.
-        figure : wrap_base.Figure
-            Opens the matplotlib figure before plotting via `plt.figure` and closes it once plotting is complete
-            via `plt.close`.
-        axis : wrap_base.Axis
-            Sets the extent of the figure axis via `plt.axis` and allows for a manual axis range.
-        cmap : wrap_base.Cmap
-            Customizes the colormap of the plot and its normalization via matplotlib `colors` objects such 
-            as `colors.Normalize` and `colors.LogNorm`.
-        colorbar : wrap_base.Colorbar
-            Plots the colorbar of the plot via `plt.colorbar` and customizes its tick labels and values using method
-            like `cb.set_yticklabels`.
-        colorbar_tickparams : wrap_base.ColorbarTickParams
-            Customizes the yticks of the colorbar plotted via `plt.colorbar`.
-        tickparams : wrap_base.TickParams
-            Customizes the appearances of the y and x ticks on the plot, (e.g. the fontsize), using `plt.tick_params`.
-        yticks : wrap_base.YTicks
-            Sets the yticks of the plot, including scaling them to new units depending on the `Units` object, via
-            `plt.yticks`.
-        xticks : wrap_base.XTicks
-            Sets the xticks of the plot, including scaling them to new units depending on the `Units` object, via
-            `plt.xticks`.
-        title : wrap_base.Title
-            Sets the figure title and customizes its appearance using `plt.title`.        
-        ylabel : wrap_base.YLabel
-            Sets the figure ylabel and customizes its appearance using `plt.ylabel`.
-        xlabel : wrap_base.XLabel
-            Sets the figure xlabel and customizes its appearance using `plt.xlabel`.
-        legend : wrap_base.Legend
-            Sets whether the plot inclues a legend and customizes its appearance and labels using `plt.legend`.
-        output : wrap_base.Output
-            Sets if the figure is displayed on the user's screen or output to `.png` using `plt.show` and `plt.savefig`
-        array_overlay: wrap_2d.ArrayOverlay
-            Overlays an input `Array2D` over the figure using `plt.imshow`.
-        grid_scatter : wrap_2d.GridScatter
-            Scatters a `Grid2D` of (y,x) coordinates over the figure using `plt.scatter`.
-        grid_plot: wrap_2d.Grid2DPlot
-            Plots lines of data (e.g. a y versus x plot via `plt.plot`, vertical lines via `plt.avxline`, etc.)
-        vector_field_quiver: wrap_2d.VectorFieldQuiver
-            Plots a `VectorField` object using the matplotlib function `plt.quiver`.
-        patch_overlay: wrap_2d.PatchOverlay
-            Overlays matplotlib `patches.Patch` objects over the figure, such as an `Ellipse`.
-        voronoi_drawer: wrap_2d.VoronoiDrawer
-            Draws a colored Voronoi mesh of pixels using `plt.fill`.
-        """
-
-        super().__init__(
-            units=units,
-            figure=figure,
-            axis=axis,
-            cmap=cmap,
-            colorbar=colorbar,
-            colorbar_tickparams=colorbar_tickparams,
-            tickparams=tickparams,
-            yticks=yticks,
-            xticks=xticks,
-            title=title,
-            ylabel=ylabel,
-            xlabel=xlabel,
-            legend=legend,
-            output=output,
-        )
-
-        self.corner = corner
-
-    def plot_corner(self, samples : PDFSamples):
-
-        self.corner.corner(
-            xs=samples.parameters,
-            weights=samples.weights,
-            labels=samples.model.parameter_labels_latex
-        )
-
-        self.output.to_figure(structure=None)

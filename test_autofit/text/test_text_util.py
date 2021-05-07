@@ -3,7 +3,7 @@ from os import path
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockClassx2
+from autofit.mock.mock import MockSamples, MockClassx2
 from autofit.non_linear.samples import Sample
 from autofit.text import text_util
 
@@ -21,7 +21,7 @@ def make_samples(model):
 
     log_likelihoods = [1.0, 0.0]
 
-    return af.PDFSamples(
+    return MockSamples(
         model=model,
         samples=Sample.from_lists(
             parameters=parameters,
@@ -31,6 +31,56 @@ def make_samples(model):
             model=model
         )
     )
+
+
+class MockNestSamples(af.NestSamples):
+    def __init__(
+            self,
+            model,
+            samples=None,
+            total_samples=10,
+            log_evidence=0.0,
+            number_live_points=5,
+            time=2
+    ):
+
+        self.model = model
+        self._samples = samples
+
+        super().__init__(
+            model=model, time=time
+        )
+
+        self._total_samples = total_samples
+        self._log_evidence = log_evidence
+        self._number_live_points = number_live_points
+
+    @property
+    def samples(self):
+        if self._samples is not None:
+            return self._samples
+
+        return [
+            Sample(
+                log_likelihood=log_likelihood,
+                log_prior=0.0,
+                weights=0.0
+            )
+            for log_likelihood
+            in self.log_likelihoods
+        ]
+
+    @property
+    def total_samples(self):
+        return self._total_samples
+
+    @property
+    def log_evidence(self):
+        return self._log_evidence
+
+    @property
+    def number_live_points(self):
+        return self._number_live_points
 
 
 def test__results_to_file(samples):
@@ -57,7 +107,7 @@ def test__search_summary_to_file(model):
 
     log_likelihoods = [1.0, 0.0]
 
-    samples = af.PDFSamples(
+    samples = MockSamples(
         model=model,
         samples=Sample.from_lists(
             parameters=parameters,
@@ -76,7 +126,7 @@ def test__search_summary_to_file(model):
     assert lines[0] == "Total Samples = 2\n"
     results.close()
 
-    samples = af.NestSamples(
+    samples = MockNestSamples(
         model=model,
         samples=Sample.from_lists(
             parameters=parameters,

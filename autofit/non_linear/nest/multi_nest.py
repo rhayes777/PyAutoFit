@@ -159,7 +159,8 @@ class MultiNest(abstract_nest.AbstractNest):
         self.copy_from_sym()
 
     def samples_from(self, model: AbstractPriorModel):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
 
@@ -175,58 +176,15 @@ class MultiNest(abstract_nest.AbstractNest):
             cube values to physical values via the priors.
         """
 
-        parameters = parameters_from_file_weighted_samples(
-            file_weighted_samples=self.file_weighted_samples,
-            prior_count=model.prior_count,
-        )
-
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
-        ]
-
-        log_likelihoods = log_likelihoods_from_file_weighted_samples(
-            file_weighted_samples=self.file_weighted_samples
-        )
-
-        weights = weights_from_file_weighted_samples(
-            file_weighted_samples=self.file_weighted_samples
-        )
-
-        total_samples = total_samples_from_file_resume(
-            file_resume=self.file_resume
-        )
-
-        log_evidence = log_evidence_from_file_summary(
-            file_summary=self.file_summary, prior_count=model.prior_count
-        )
-
-        return NestSamples(
+        return MultiNestSamples(
             model=model,
-            samples=Sample.from_lists(
-                parameters=parameters,
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights,
-                model=model
-            ),
-            total_samples=total_samples,
-            log_evidence=log_evidence,
             number_live_points=self.config_dict_search["n_live_points"],
+            file_summary=path.join(self.paths.samples_path, "multinestsummary.txt"),
+            file_weighted_samples=path.join(self.paths.samples_path, "multinest.txt"),
+            file_resume=path.join(self.paths.samples_path, "multinestresume.dat"),
             unconverged_sample_size=1,
             time=self.timer.time
         )
-
-    @property
-    def file_summary(self) -> str:
-        return path.join(self.paths.samples_path, "multinestsummary.txt")
-
-    @property
-    def file_weighted_samples(self):
-        return path.join(self.paths.samples_path, "multinest.txt")
-
-    @property
-    def file_resume(self) -> str:
-        return path.join(self.paths.samples_path, "multinestresume.dat")
 
     def copy_from_sym(self):
         """
@@ -238,6 +196,112 @@ class MultiNest(abstract_nest.AbstractNest):
             full_file_name = path.join(self.paths.path, file_name)
             if path.isfile(full_file_name):
                 shutil.copy(full_file_name, self.paths.samples_path)
+
+
+class MultiNestSamples(NestSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            number_live_points : int,
+            file_summary : str,
+            file_weighted_samples : str,
+            file_resume : str,
+            unconverged_sample_size: int = 100,
+            time: float = None,
+    ):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For MulitNest, this requires us to load:
+
+            - The parameter samples, log likelihood values and weights from the multinest.txt file.
+            - The total number of samples (e.g. accepted + rejected) from resume.dat.
+            - The log evidence of the model-fit from the multinestsummary.txt file (if this is not yet estimated a
+              value of -1.0e99 is used.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+
+        self.file_summary = file_summary
+        self.file_weighted_samples = file_weighted_samples
+        self.file_resume = file_resume
+
+        super().__init__(
+            model=model,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+        self._samples = None
+        self._number_live_points = number_live_points
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameters = parameters_from_file_weighted_samples(
+            file_weighted_samples=self.file_weighted_samples,
+            prior_count=self.model.prior_count,
+        )
+
+        log_priors = [
+            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
+
+        log_likelihoods = log_likelihoods_from_file_weighted_samples(
+            file_weighted_samples=self.file_weighted_samples
+        )
+
+        weights = weights_from_file_weighted_samples(
+            file_weighted_samples=self.file_weighted_samples
+        )
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights
+        )
+
+        return self._samples
+
+    @property
+    def number_live_points(self):
+        return self._number_live_points
+
+    @property
+    def total_samples(self):
+        return total_samples_from_file_resume(
+            file_resume=self.file_resume
+        )
+
+    @property
+    def log_evidence(self):
+        return log_evidence_from_file_summary(
+            file_summary=self.file_summary, prior_count=self.model.prior_count
+        )
 
 
 def parameters_from_file_weighted_samples(

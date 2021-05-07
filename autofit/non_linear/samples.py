@@ -396,7 +396,7 @@ class OptimizerSamples:
         """
         samples = copy(self)
         samples.model = None
-        samples.samples = list({
+        samples._samples = list({
             self.max_log_likelihood_sample,
             self.max_log_posterior_sample
         })
@@ -835,10 +835,6 @@ class MCMCSamples(PDFSamples):
         )
 
     @property
-    def samples(self):
-        raise NotImplementedError
-
-    @property
     def total_walkers(self):
         raise NotImplementedError
 
@@ -975,10 +971,6 @@ class NestSamples(PDFSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            samples: List[Sample],
-            number_live_points: int,
-            log_evidence: float,
-            total_samples: float,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -1002,18 +994,21 @@ class NestSamples(PDFSamples):
 
         super().__init__(
             model=model,
-            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
 
-        self.number_live_points = number_live_points
-        self.log_evidence = log_evidence
-        self._total_samples = total_samples
+    @property
+    def number_live_points(self):
+        raise NotImplementedError
+
+    @property
+    def log_evidence(self):
+        raise NotImplementedError
 
     @property
     def total_samples(self):
-        return self._total_samples
+        raise NotImplementedError
 
     @property
     def info_json(self):
@@ -1098,6 +1093,7 @@ class NestSamples(PDFSamples):
             unconverged_sample_size=self.unconverged_sample_size,
             time=self.time
         )
+
 
 
 def quantile(x, q, weights=None):

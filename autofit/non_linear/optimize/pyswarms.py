@@ -216,44 +216,13 @@ class AbstractPySwarms(AbstractOptimizer):
         raise NotImplementedError()
 
     def samples_from(self, model):
-        """
-        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
 
-        For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        """
-
-        parameters = [
-            param.tolist() for parameters in self.load_points for param in parameters
-        ]
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
-        ]
-        log_posteriors = self.load_log_posteriors
-        log_likelihoods = [lp - prior for lp, prior in zip(log_posteriors, log_priors)]
-        weights = len(log_likelihoods) * [1.0]
-
-        return OptimizerSamples(
+        return PySwarmsSamples(
             model=model,
-            samples=Sample.from_lists(
-                parameters=[parameters.tolist()[0] for parameters in self.load_points],
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights,
-                model=model
-            ),
+            points=self.load_points,
+            log_posteriors=self.load_log_posteriors,
+            total_iterations=self.load_total_iterations,
             time=self.timer.time
-        )
-
-    @property
-    def load_total_iterations(self):
-        return self.paths.load_object(
-            "total_iterations"
         )
 
     @property
@@ -266,6 +235,12 @@ class AbstractPySwarms(AbstractOptimizer):
     def load_log_posteriors(self):
         return self.paths.load_object(
             "log_posteriors"
+        )
+
+    @property
+    def load_total_iterations(self):
+        return self.paths.load_object(
+            "total_iterations"
         )
 
 
@@ -449,3 +424,76 @@ class PySwarmsLocal(AbstractPySwarms):
             options=options,
             **config_dict
         )
+
+
+class PySwarmsSamples(OptimizerSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            points : np.ndarray,
+            log_posteriors : np.ndarray,
+            total_iterations : int,
+            time: float = None,
+    ):
+        """
+        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
+
+        For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+
+        self.points = points
+        self._log_posteriors = log_posteriors
+        self.total_iterations = total_iterations
+
+        super().__init__(
+            model=model,
+            time=time,
+        )
+
+        self._samples = None
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameters = [
+            param.tolist() for parameters in self.points for param in parameters
+        ]
+        log_priors = [
+            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
+        log_likelihoods = [lp - prior for lp, prior in zip(self._log_posteriors, log_priors)]
+        weights = len(log_likelihoods) * [1.0]
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameters=[parameters.tolist()[0] for parameters in self.points],
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights
+        )
+
+        return self._samples

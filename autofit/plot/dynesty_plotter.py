@@ -7,10 +7,12 @@ import matplotlib.pyplot as plt
 
 class DynestyPlotter(SamplesPlotter):
 
-    def figures(self, cornerplot=False):
+    def cornerplot(self, **kwargs):
 
-        if cornerplot:
+        dyplot.cornerplot(
+            results=self.samples.results,
+            labels=self.model.parameter_labels_latex,
+            **kwargs
+        )
 
-            plt.figure(figsize=(100, 100))
-            dyplot.cornerplot(results=self.samples.results)
-            plt.show()
+        self.output.to_figure(structure=None)

@@ -8,7 +8,7 @@ model and perform inference automatically. **PyAutoFit** is a Python-based proba
 
 - Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, visualization and parameter inference.
 
-- Is built for *big-data* analysis, whereby results are output as a database which can be loaded after model-fitting is complete.
+- Is built for *big-data* analysis, whereby results are output as a sqlite database which can be queried after model-fitting is complete.
 
 **PyAutoFit** supports advanced statistical methods such as `massively parallel non-linear search grid-searches <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_, `chaining together model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_  and `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_.
 

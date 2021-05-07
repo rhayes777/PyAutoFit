@@ -14,12 +14,13 @@ def save_samples(
         paths,
         sample
 ):
-    samples = af.OptimizerSamples(
+    samples = mock.MockSamples(
         model=af.Model(
             mock.Gaussian
         ),
-        samples=[sample]
+
     )
+    samples._samples = [sample]
     paths.save_samples(
         samples
     )

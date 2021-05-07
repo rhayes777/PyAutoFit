@@ -282,6 +282,7 @@ class EmceeSamples(MCMCSamples):
         )
 
         self.backend = backend
+        self._samples = None
 
     @property
     def samples(self):
@@ -299,6 +300,10 @@ class EmceeSamples(MCMCSamples):
             Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
             etc.
         """
+
+        if self._samples is not None:
+            return self._samples
+
         parameters = self.backend.get_chain(flat=True).tolist()
         log_priors = [
             sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
@@ -306,13 +311,15 @@ class EmceeSamples(MCMCSamples):
         log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
         weights = len(log_likelihoods) * [1.0]
 
-        return Sample.from_lists(
+        self._samples = Sample.from_lists(
             model=self.model,
             parameters=parameters,
             log_likelihoods=log_likelihoods,
             log_priors=log_priors,
             weights=weights
         )
+
+        return self._samples
 
     @property
     def samples_after_burn_in(self) -> [list]:

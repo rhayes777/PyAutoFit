@@ -215,37 +215,24 @@ class AbstractDynesty(AbstractNest, ABC):
         paths : af.Paths
             Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         """
-        sampler = self.paths.load_object(
-            "dynesty"
-        )
-        parameters = sampler.results.samples.tolist()
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
-        ]
-        log_likelihoods = list(sampler.results.logl)
 
         try:
-            weights = list(
-                np.exp(np.asarray(sampler.results.logwt) - sampler.results.logz[-1])
-            )
-        except:
-            weights = sampler.results["weights"]
 
-        total_samples = int(np.sum(sampler.results.ncall))
-        log_evidence = np.max(sampler.results.logz)
+            sampler = self.paths.load_object(
+                "dynesty"
+            )
+            results = sampler.results
+
+        except FileNotFoundError:
+
+            samples = self.paths.load_object(
+                "samples"
+            )
+            results = samples.results
 
         return DynestySamples(
             model=model,
-            samples=Sample.from_lists(
-                log_priors=log_priors,
-                log_likelihoods=log_likelihoods,
-                weights=weights,
-                model=model,
-                parameters=parameters
-            ),
-            results=sampler.results,
-            total_samples=total_samples,
-            log_evidence=log_evidence,
+            results=results,
             number_live_points=self.total_live_points,
             unconverged_sample_size=1,
             time=self.timer.time,
@@ -468,11 +455,8 @@ class DynestySamples(NestSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            samples: List[Sample],
             results: Results,
-            number_live_points: int,
-            log_evidence: float,
-            total_samples: float,
+            number_live_points : int,
             unconverged_sample_size: int = 100,
             time: float = None,
     ):
@@ -497,14 +481,65 @@ class DynestySamples(NestSamples):
 
         super().__init__(
             model=model,
-            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
-            number_live_points=number_live_points,
-            log_evidence=log_evidence,
-            total_samples=total_samples,
             time=time,
         )
 
         self.results = results
+        self._samples = None
+        self._number_live_points = number_live_points
 
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameters = self.results.samples.tolist()
+        log_priors = [
+            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        ]
+        log_likelihoods = list(self.results.logl)
+
+        try:
+            weights = list(
+                np.exp(np.asarray(self.results.logwt) - self.results.logz[-1])
+            )
+        except:
+            weights = self.results["weights"]
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameters=parameters,
+            log_likelihoods=log_likelihoods,
+            log_priors=log_priors,
+            weights=weights
+        )
+
+        return self._samples
+
+    @property
+    def number_live_points(self):
+        return self._number_live_points
+
+    @property
+    def total_samples(self):
+        return int(np.sum(self.results.ncall))
+
+    @property
+    def log_evidence(self):
+        return np.max(self.results.logz)

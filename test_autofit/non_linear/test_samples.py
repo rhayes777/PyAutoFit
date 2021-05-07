@@ -4,9 +4,31 @@ import pytest
 
 import autofit as af
 from autofit.mock.mock import MockClassx2, MockClassx4
-from autofit.non_linear.samples import OptimizerSamples, PDFSamples, Sample
+from autofit.non_linear.samples import Sample
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
+
+
+class MockSamples(af.PDFSamples):
+
+    def __init__(
+            self,
+            model,
+            samples=None,
+            unconverged_sample_size=10,
+            **kwargs,
+    ):
+
+        self.model = model
+        self._samples = samples
+
+        super().__init__(
+            model=model,  **kwargs
+        )
+
+    @property
+    def samples(self):
+        return self._samples
 
 
 @pytest.fixture(name="samples")
@@ -21,7 +43,7 @@ def make_samples():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    return OptimizerSamples(
+    return MockSamples(
         model=model,
         samples=Sample.from_lists(
             model=model,
@@ -86,7 +108,7 @@ class TestOptimizerSamples:
             [21.0, 22.0, 23.0, 24.0],
         ]
 
-        samples = OptimizerSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -118,7 +140,7 @@ class TestOptimizerSamples:
         ]
 
         model = af.ModelMapper(mock_class=MockClassx4)
-        samples = OptimizerSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -136,10 +158,10 @@ class TestOptimizerSamples:
         assert gaussian_priors[2][0] == 3.0
         assert gaussian_priors[3][0] == 4.0
 
-        assert gaussian_priors[0][1] == 0.0
-        assert gaussian_priors[1][1] == 0.0
-        assert gaussian_priors[2][1] == 0.0
-        assert gaussian_priors[3][1] == 0.0
+        assert gaussian_priors[0][1] == pytest.approx(0.12, 1.0e-4)
+        assert gaussian_priors[1][1] == pytest.approx(0.12, 1.0e-4)
+        assert gaussian_priors[2][1] == pytest.approx(0.12, 1.0e-4)
+        assert gaussian_priors[3][1] == pytest.approx(0.32, 1.0e-4)
 
     def test__instance_from_sample_index(self):
         model = af.ModelMapper(mock_class=MockClassx4)
@@ -152,7 +174,7 @@ class TestOptimizerSamples:
             [1.1, 2.1, 3.1, 4.1],
         ]
 
-        samples = OptimizerSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -215,7 +237,7 @@ class TestPDFSamples:
         weights = 10 * [0.1]
 
         model = af.ModelMapper(mock_class=MockClassx2)
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -223,7 +245,8 @@ class TestPDFSamples:
                 log_likelihoods=log_likelihoods,
                 log_priors=10 * [0.0],
                 weights=weights,
-            ))
+            )
+        )
 
         assert samples.pdf_converged is True
 
@@ -255,10 +278,9 @@ class TestPDFSamples:
         weights = 9 * [0.0] + [1.0]
 
         model = af.ModelMapper(mock_class=MockClassx2)
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
-
                 model=model,
                 parameters=parameters,
                 log_likelihoods=log_likelihoods,
@@ -292,7 +314,7 @@ class TestPDFSamples:
         weights = 10 * [0.1]
 
         model = af.ModelMapper(mock_class=MockClassx2)
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -357,7 +379,7 @@ class TestPDFSamples:
         weights = 9 * [0.0] + [1.0]
 
         model = af.ModelMapper(mock_class=MockClassx2)
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -398,7 +420,7 @@ class TestPDFSamples:
         weights = 10 * [0.1]
 
         model = af.ModelMapper(mock_class=MockClassx2)
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -451,7 +473,7 @@ class TestPDFSamples:
         log_likelihoods = 4 * [0.0] + [1.0]
         weights = 4 * [0.0] + [1.0]
 
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -467,7 +489,7 @@ class TestPDFSamples:
         assert samples.pdf_converged is False
         assert samples.unconverged_sample_size == 2
 
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -497,7 +519,7 @@ class TestPDFSamples:
 
         log_likelihoods = list(map(lambda weight: 10.0 * weight, weights))
 
-        samples = PDFSamples(
+        samples = MockSamples(
             model=model,
             samples=Sample.from_lists(
 
@@ -515,11 +537,60 @@ class TestPDFSamples:
         assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
 
+class MockNestSamples(af.NestSamples):
+    def __init__(
+            self,
+            model,
+            samples=None,
+            total_samples=10,
+            log_evidence=0.0,
+            number_live_points=5,
+    ):
+
+        self.model = model
+        self._samples = samples
+
+        super().__init__(
+            model=model,
+        )
+
+        self._total_samples = total_samples
+        self._log_evidence = log_evidence
+        self._number_live_points = number_live_points
+
+    @property
+    def samples(self):
+        if self._samples is not None:
+            return self._samples
+
+        return [
+            Sample(
+                log_likelihood=log_likelihood,
+                log_prior=0.0,
+                weights=0.0
+            )
+            for log_likelihood
+            in self.log_likelihoods
+        ]
+
+    @property
+    def total_samples(self):
+        return self._total_samples
+
+    @property
+    def log_evidence(self):
+        return self._log_evidence
+
+    @property
+    def number_live_points(self):
+        return self._number_live_points
+
+
 class TestNestSamples:
     def test__acceptance_ratio_is_correct(self):
         model = af.ModelMapper(mock_class_1=MockClassx4)
 
-        samples = af.NestSamples(
+        samples = MockNestSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
@@ -546,7 +617,7 @@ class TestNestSamples:
             [0.0, 1.0, 2.0, 3.0],
         ]
 
-        samples = af.NestSamples(
+        samples = MockNestSamples(
             model=model,
             samples=Sample.from_lists(
                 model=model,
