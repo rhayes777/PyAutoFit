@@ -1,5 +1,8 @@
+from os import path
 import numpy as np
 from typing import Optional
+
+from autoconf import conf
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -7,6 +10,8 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples, Sample
 
+from autofit.plot import PySwarmsPlotter
+from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
@@ -242,6 +247,22 @@ class AbstractPySwarms(AbstractOptimizer):
         return self.paths.load_object(
             "total_iterations"
         )
+
+    def plot_results(self, samples):
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["pyswarms"][name]
+
+        plotter = PySwarmsPlotter(
+            samples=samples,
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+        )
+
+        if should_plot("contour"):
+            plotter.contour()
+
+        if should_plot("cost_history"):
+            plotter.cost_history()
 
 
 class PySwarmsGlobal(AbstractPySwarms):

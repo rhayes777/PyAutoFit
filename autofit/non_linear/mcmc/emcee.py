@@ -269,6 +269,7 @@ class Emcee(AbstractMCMC):
         if should_plot("time_series"):
             plotter.time_series()
 
+
 class EmceeSamples(MCMCSamples):
 
     def __init__(
