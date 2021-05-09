@@ -266,6 +266,12 @@ class Emcee(AbstractMCMC):
         if should_plot("corner"):
             plotter.corner()
 
+        if should_plot("trajectories"):
+            plotter.trajectories()
+
+        if should_plot("likelihood_series"):
+            plotter.likelihood_series()
+
         if should_plot("time_series"):
             plotter.time_series()
 
@@ -328,7 +334,8 @@ class EmceeSamples(MCMCSamples):
         log_priors = [
             sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
-        log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
+        log_posteriors = self.backend.get_log_prob(flat=True).tolist()
+        log_likelihoods = [log_posterior - log_prior for log_posterior, log_prior in zip(log_posteriors, log_priors)]
         weights = len(log_likelihoods) * [1.0]
 
         self._samples = Sample.from_lists(

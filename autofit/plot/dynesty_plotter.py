@@ -37,20 +37,26 @@ class DynestyPlotter(SamplesPlotter):
 
     def cornerpoints(self, **kwargs):
 
-        dyplot.cornerpoints(
-            results=self.samples.results,
-            labels=self.model.parameter_labels_latex,
-            **kwargs
-        )
+        try:
+            dyplot.cornerpoints(
+                results=self.samples.results,
+                labels=self.model.parameter_labels_latex,
+                **kwargs
+            )
 
-        self.output.to_figure(structure=None, auto_filename="cornerpoints")
+            self.output.to_figure(structure=None, auto_filename="cornerpoints")
+        except ValueError:
+            pass
 
     def runplot(self, **kwargs):
 
-        dyplot.runplot(
-            results=self.samples.results,
-            **kwargs
-        )
+        try:
+            dyplot.runplot(
+                results=self.samples.results,
+                **kwargs
+            )
+        except ValueError:
+            pass
 
         self.output.to_figure(structure=None, auto_filename="runplot")
 

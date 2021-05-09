@@ -42,7 +42,6 @@ Non-Linear Searches
    SearchGridSearch
    GridSearchResult
 
-
 **Tools**:
 
 .. autosummary::
@@ -54,6 +53,20 @@ Non-Linear Searches
    InitializerPrior
    PriorPasser
    AutoCorrelationsSettings
+
+--------
+Plotters
+--------
+
+.. autosummary::
+   :toctree: generated/
+
+   DynestyPlotter
+   UltraNestPlotter
+   EmceePlotter
+   ZeusPlotter
+   PySwarmsPlotter
+
 
 ------
 Models
@@ -76,6 +89,7 @@ Priors
    UniformPrior
    GaussianPrior
    LogUniformPrior
+
 
 -------
 Samples

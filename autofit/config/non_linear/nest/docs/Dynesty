@@ -51,7 +51,7 @@
         before proposing a new live point. Default is 5. Note that 'slice' cycles through all dimensions when
         executing a “slice update”.
     fmove -> float
-        The target fraction of samples that are proposed along a trajectory (i.e. not reflecting) for the 'hslice'
+        The target fraction of samples that are proposed along a trajectories (i.e. not reflecting) for the 'hslice'
         sampling option. Default is 0.9.
     max_move -> int
         The maximum number of timesteps allowed for 'hslice' per proposal forwards and backwards in time.

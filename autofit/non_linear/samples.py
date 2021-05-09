@@ -966,6 +966,10 @@ class MCMCSamples(PDFSamples):
             for index in range(len(parameters_min))
         ]
 
+    @property
+    def log_evidence(self):
+        return None
+
 
 class NestSamples(PDFSamples):
     def __init__(

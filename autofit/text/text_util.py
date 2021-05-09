@@ -12,15 +12,28 @@ def results_to_file(samples, filename):
     if hasattr(samples, "log_evidence"):
         if samples.log_evidence is not None:
 
-            value = "{:.8f}".format(samples.log_evidence)
             results += [
-                frm.add_whitespace(str0="Bayesian Evidence ", str1=value, whitespace=90)
+                frm.add_whitespace(
+                    str0="Bayesian Evidence ",
+                    str1="{:.8f}".format(samples.log_evidence),
+                    whitespace=90
+                )
             ]
             results += ["\n"]
 
-    value = "{:.8f}".format(max(samples.log_likelihoods))
     results += [
-        frm.add_whitespace(str0="Maximum Likelihood ", str1=value, whitespace=90)
+        frm.add_whitespace(
+            str0="Maximum Log Likelihood ",
+            str1="{:.8f}".format(max(samples.log_likelihoods)),
+            whitespace=90
+        )
+    ]
+    results += [
+        frm.add_whitespace(
+            str0="Maximum Log Posterior ",
+            str1="{:.8f}".format(max(samples.log_posteriors)),
+            whitespace=90
+        )
     ]
     results += ["\n\n"]
 

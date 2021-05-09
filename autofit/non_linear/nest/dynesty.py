@@ -287,7 +287,7 @@ class AbstractDynesty(AbstractNest, ABC):
             plotter.cornerplot()
 
         if should_plot("runplot"):
-            plotter.cornerpoints()
+            plotter.runplot()
             
         if should_plot("traceplot"):
             plotter.traceplot()
@@ -295,7 +295,6 @@ class AbstractDynesty(AbstractNest, ABC):
         if should_plot("cornerpoints"):
             plotter.cornerpoints()
         
-
 
 class DynestyStatic(AbstractDynesty):
 

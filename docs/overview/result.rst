@@ -39,6 +39,22 @@ with every sample:
     print(samples.log_posteriors)
     print(samples.weights)
 
+This ``Result`` object contains the full posterior information of our non-linear search, including all
+parameter samples, log likelihood values and tools to compute the errors on the lens model. **PyAutoFit** includes
+many visualization tools for plotting the results of a non-linear search, for example we can make a corner plot of the
+probability density function (PDF):
+
+.. code-block:: bash
+
+    emcee_plotter = aplt.EmceePlotter(samples=result.samples)
+    emcee_plotter.corner()
+
+Here is an example of how a PDF estimated for a lens model appears:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/corner.png
+  :width: 600
+  :alt: Alternative text
+
 For MCMC analysis, these are used to perform parameter estimation by binning the samples in a histogram
 (assuming we have removed the burn-in search):
 

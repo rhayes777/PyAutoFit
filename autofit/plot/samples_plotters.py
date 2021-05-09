@@ -4,6 +4,7 @@ from autofit.plot.mat_wrap import include as inc
 from autofit.plot.mat_wrap import mat_plot as mp
 from autofit.plot import abstract_plotters
 
+import matplotlib.pyplot as plt
 
 class SamplesPlotter(abstract_plotters.AbstractPlotter):
     def __init__(
@@ -33,49 +34,47 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
 
         return self.visuals_2d + self.visuals_2d.__class__()
 
-    def figures_1d(
-        self,
-        progress=False,
-    ):
-        """Plot each attribute of the imaging data_type as individual figures one by one (e.g. the dataset, noise_map, PSF, \
-         Signal-to_noise-map, etc).
 
-        Parameters
-        -----------
-        imaging : data_type.ImagingData
-            The imaging data_type, which includes the observed data_type, noise_map, PSF, signal-to-noise_map, etc.
-        include_origin : True
-            If true, the include_origin of the dataset's coordinate system is plotted as a 'x'.
-        """
+class MCMCPlotter(SamplesPlotter):
 
-        if progress:
+    def _plot_trajectories(self, samples, log_posteriors, **kwargs):
 
-            self.mat_plot_1d.plot_yx(
-                y=self.samples.log_likelihoods,
-                x=range(len(self.samples.log_likelihoods)),
-                visuals_1d=self.visuals_1d,
-                auto_labels=mp.AutoLabels(
-                    title=f"Log Likelihood Progress (Max = {max(self.samples.log_likelihoods)}",
-                    filename="progress",
-                    ylabel="Log Likelihood",
-                    xlabel="Likelihood Evaluation Number"
-                ),
-                plot_axis_type_override="symlog",
-            )
+        fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7))
 
-    def subplot(
-        self,
-        progress=False,
-        auto_filename="subplot_samples",
-    ):
+        for i in range(self.samples.model.prior_count):
 
-        self._subplot_custom_plot(
-            progress=progress,
-            auto_labels=mp.AutoLabels(filename=auto_filename),
-        )
+            for walker_index in range(log_posteriors.shape[1]):
 
-    def subplot_samples(self):
-        self.subplot(
-            progress=True
-        )
+                ax = axes[i]
+                ax.plot(samples[:, walker_index, i], log_posteriors[:, walker_index], alpha=0.3)
 
+            ax.set_ylabel("Log Likelihood")
+            ax.set_xlabel(self.model.parameter_labels_latex[i])
+
+        self.output.to_figure(structure=None, auto_filename="tracjectories")
+
+    def _plot_likelihood_series(self, log_posteriors, **kwargs):
+
+        fig, axes = plt.subplots(1, figsize=(10, 7))
+
+        for walker_index in range(log_posteriors.shape[1]):
+
+            axes.plot(log_posteriors[:, walker_index], alpha=0.3)
+
+        axes.set_ylabel("Log Likelihood")
+        axes.set_xlabel("step number")
+
+        self.output.to_figure(structure=None, auto_filename="likelihood_series")
+
+    def _plot_time_series(self, samples, **kwargs):
+
+        fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7), sharex=True)
+
+        for i in range(self.samples.model.prior_count):
+            ax = axes[i]
+            ax.plot(samples[:, :, i], alpha=0.3)
+            ax.set_ylabel(self.model.parameter_labels_latex[i])
+
+        axes[-1].set_xlabel("step number")
+
+        self.output.to_figure(structure=None, auto_filename="time_series")

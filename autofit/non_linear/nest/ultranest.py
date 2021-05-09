@@ -1,5 +1,8 @@
+from os import path
 import copy
 from typing import Optional
+
+from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
@@ -8,6 +11,8 @@ from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples import NestSamples, Sample
 
+from autofit.plot import UltraNestPlotter
+from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
 class UltraNest(abstract_nest.AbstractNest):
 
@@ -123,6 +128,8 @@ class UltraNest(abstract_nest.AbstractNest):
         elif stepsampler_cls == "RegionSliceSampler":
             return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
 
+
+
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
@@ -162,7 +169,7 @@ class UltraNest(abstract_nest.AbstractNest):
         def prior_transform(cube):
             return model.vector_from_unit_vector(unit_vector=cube)
 
-        self.sampler = ultranest.ReactiveNestedSampler(
+        sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness_function.__call__,
             transform=prior_transform,
@@ -170,15 +177,14 @@ class UltraNest(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
-
-        self.sampler.stepsampler = self.stepsampler
+        sampler.stepsampler = self.stepsampler
 
         finished = False
 
         while not finished:
 
             try:
-                total_iterations = self.sampler.ncall
+                total_iterations = sampler.ncall
             except AttributeError:
                 total_iterations = 0
 
@@ -195,15 +201,19 @@ class UltraNest(abstract_nest.AbstractNest):
                 config_dict_run["Lepsilon"] = config_dict_run.pop("lepsilon")
                 config_dict_run["update_interval_ncall"] = iterations
 
-                self.sampler.run(
+                sampler.run(
                     max_ncalls=iterations,
                     **config_dict_run
                 )
 
+            self.paths.save_object(
+                "results",
+                sampler.results
+            )
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-            iterations_after_run = self.sampler.ncall
+            iterations_after_run = sampler.ncall
 
             if (
                     total_iterations == iterations_after_run
@@ -227,13 +237,49 @@ class UltraNest(abstract_nest.AbstractNest):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
+
+        try:
+
+            results = self.paths.load_object(
+                "results"
+            )
+
+        except FileNotFoundError:
+
+            samples = self.paths.load_object(
+                "samples"
+            )
+            results = samples.results
+
         return UltraNestSamples(
             model=model,
-            results=self.sampler.results,
+            results=results,
             number_live_points=self.config_dict_run["min_num_live_points"],
             unconverged_sample_size=1,
             time=self.timer.time,
         )
+
+    def plot_results(self, samples):
+
+        if not samples.pdf_converged:
+            return
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["ultranest"][name]
+
+        plotter = UltraNestPlotter(
+            samples=samples,
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+        )
+
+        if should_plot("cornerplot"):
+            plotter.cornerplot()
+
+        if should_plot("runplot"):
+            plotter.runplot()
+
+        if should_plot("traceplot"):
+            plotter.traceplot()
 
 class UltraNestSamples(NestSamples):
 

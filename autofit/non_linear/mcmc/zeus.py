@@ -250,8 +250,6 @@ class Zeus(AbstractMCMC):
     def samples_from(self, model):
         """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
-        For Zeus, all quantities are extracted via the hdf5 backend of results.
-
         Parameters
         ----------
         model
@@ -287,6 +285,12 @@ class Zeus(AbstractMCMC):
 
         if should_plot("corner"):
             plotter.corner()
+
+        if should_plot("trajectories"):
+            plotter.trajectories()
+
+        if should_plot("likelihood_series"):
+            plotter.likelihood_series()
 
         if should_plot("time_series"):
             plotter.time_series()
@@ -327,8 +331,6 @@ class ZeusSamples(MCMCSamples):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
-        For Emcee, all quantities are extracted via the hdf5 backend of results.
-
         Parameters
         ----------
         model
@@ -346,7 +348,9 @@ class ZeusSamples(MCMCSamples):
         log_priors = [
             sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
         ]
-        log_likelihoods = self.zeus_sampler.get_log_prob(flat=True).tolist()
+        log_posteriors = self.zeus_sampler.get_log_prob(flat=True).tolist()
+        log_likelihoods = [log_posterior - log_prior for log_posterior, log_prior in zip(log_posteriors, log_priors)]
+
         weights = len(log_likelihoods) * [1.0]
 
         self._samples = Sample.from_lists(

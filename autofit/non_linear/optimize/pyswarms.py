@@ -264,6 +264,11 @@ class AbstractPySwarms(AbstractOptimizer):
         if should_plot("cost_history"):
             plotter.cost_history()
 
+        if should_plot("trajectories"):
+            plotter.trajectories()
+
+        if should_plot("time_series"):
+            plotter.time_series()
 
 class PySwarmsGlobal(AbstractPySwarms):
 
