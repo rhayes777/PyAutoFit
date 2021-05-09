@@ -37,29 +37,29 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
 
 class MCMCPlotter(SamplesPlotter):
 
-    def _plot_trajectories(self, samples, log_posteriors, **kwargs):
+    def _plot_trajectories(self, samples, log_posterior_list, **kwargs):
 
         fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7))
 
         for i in range(self.samples.model.prior_count):
 
-            for walker_index in range(log_posteriors.shape[1]):
+            for walker_index in range(log_posterior_list.shape[1]):
 
                 ax = axes[i]
-                ax.plot(samples[:, walker_index, i], log_posteriors[:, walker_index], alpha=0.3)
+                ax.plot(samples[:, walker_index, i], log_posterior_list[:, walker_index], alpha=0.3)
 
             ax.set_ylabel("Log Likelihood")
             ax.set_xlabel(self.model.parameter_labels_latex[i])
 
         self.output.to_figure(structure=None, auto_filename="tracjectories")
 
-    def _plot_likelihood_series(self, log_posteriors, **kwargs):
+    def _plot_likelihood_series(self, log_posterior_list, **kwargs):
 
         fig, axes = plt.subplots(1, figsize=(10, 7))
 
-        for walker_index in range(log_posteriors.shape[1]):
+        for walker_index in range(log_posterior_list.shape[1]):
 
-            axes.plot(log_posteriors[:, walker_index], alpha=0.3)
+            axes.plot(log_posterior_list[:, walker_index], alpha=0.3)
 
         axes.set_ylabel("Log Likelihood")
         axes.set_xlabel("step number")

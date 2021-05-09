@@ -200,19 +200,19 @@ class TestMulitNest:
             [1.0, 2.0, 3.0, 4.0],
         ]
 
-        log_likelihoods = mn.log_likelihoods_from_file_weighted_samples(
+        log_likelihood_list = mn.log_likelihood_list_from_file_weighted_samples(
             file_weighted_samples=path.join(multi_nest.paths.path, "multinest.txt")
         )
 
         value = -0.5 * 9999999.9
 
-        assert log_likelihoods == 10 * [value]
+        assert log_likelihood_list == 10 * [value]
 
-        weights = mn.weights_from_file_weighted_samples(
+        weight_list = mn.weight_list_from_file_weighted_samples(
             file_weighted_samples=path.join(multi_nest.paths.path, "multinest.txt")
         )
 
-        assert weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
+        assert weight_list == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
 
     def test__read_total_samples_from_file_resume(self, multi_nest_resume_path):
         multi_nest = af.MultiNest()
@@ -253,7 +253,7 @@ class TestMulitNest:
 
         samples = multi_nest.samples_from(model=model)
 
-        assert samples.parameters == [
+        assert samples.parameter_lists == [
             [1.1, 2.1, 3.1, 4.1],
             [0.9, 1.9, 2.9, 3.9],
             [1.0, 2.0, 3.0, 4.0],
@@ -268,11 +268,11 @@ class TestMulitNest:
 
         value = -0.5 * 9999999.9
 
-        assert samples.log_likelihoods == 10 * [value]
-        assert samples.log_priors == pytest.approx(
+        assert samples.log_likelihood_list == 10 * [value]
+        assert samples.log_prior_list == pytest.approx(
             [0.243902, 0.256410, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25], 1.0e-4
         )
-        assert samples.weights == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
+        assert samples.weight_list == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
         assert samples.total_samples == 12345
         assert samples.log_evidence == 0.02
         assert samples.number_live_points == 50

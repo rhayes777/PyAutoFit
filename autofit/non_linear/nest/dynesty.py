@@ -246,7 +246,7 @@ class AbstractDynesty(AbstractNest, ABC):
             self, model, fitness_function
     ):
 
-        unit_parameters, parameters, log_likelihoods = self.initializer.initial_samples_from_model(
+        unit_parameters, parameters, log_likelihood_list = self.initializer.initial_samples_from_model(
             total_points=self.total_live_points,
             model=model,
             fitness_function=fitness_function,
@@ -254,14 +254,14 @@ class AbstractDynesty(AbstractNest, ABC):
 
         init_unit_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
         init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
-        init_log_likelihoods = np.zeros(shape=(self.total_live_points))
+        init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
 
         for index in range(len(parameters)):
             init_unit_parameters[index, :] = np.asarray(unit_parameters[index])
             init_parameters[index, :] = np.asarray(parameters[index])
-            init_log_likelihoods[index] = np.asarray(log_likelihoods[index])
+            init_log_likelihood_list[index] = np.asarray(log_likelihood_list[index])
 
-        return [init_unit_parameters, init_parameters, init_log_likelihoods]
+        return [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
     def remove_state_files(self):
         self.paths.remove_object("dynesty")
@@ -538,25 +538,25 @@ class DynestySamples(NestSamples):
         if self._samples is not None:
             return self._samples
 
-        parameters = self.results.samples.tolist()
-        log_priors = [
-            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        parameter_lists = self.results.samples.tolist()
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        log_likelihoods = list(self.results.logl)
+        log_likelihood_list = list(self.results.logl)
 
         try:
-            weights = list(
+            weight_list = list(
                 np.exp(np.asarray(self.results.logwt) - self.results.logz[-1])
             )
         except:
-            weights = self.results["weights"]
+            weight_list = self.results["weight_list"]
 
         self._samples = Sample.from_lists(
             model=self.model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
         return self._samples

@@ -24,14 +24,15 @@ def results_to_file(samples, filename):
     results += [
         frm.add_whitespace(
             str0="Maximum Log Likelihood ",
-            str1="{:.8f}".format(max(samples.log_likelihoods)),
+            str1="{:.8f}".format(max(samples.log_likelihood_list)),
             whitespace=90
         )
     ]
+    results += ["\n"]
     results += [
         frm.add_whitespace(
             str0="Maximum Log Posterior ",
-            str1="{:.8f}".format(max(samples.log_posteriors)),
+            str1="{:.8f}".format(max(samples.log_posterior_list)),
             whitespace=90
         )
     ]

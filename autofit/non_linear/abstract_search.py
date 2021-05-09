@@ -206,20 +206,20 @@ class NonLinearSearch(ABC):
 
             return log_likelihood
 
-        def log_likelihood_from_parameters(self, parameters):
-            instance = self.model.instance_from_vector(vector=parameters)
+        def log_likelihood_from(self, parameter_list):
+            instance = self.model.instance_from_vector(vector=parameter_list)
             log_likelihood = self.fit_instance(instance)
 
             return log_likelihood
 
-        def log_posterior_from_parameters(self, parameters):
+        def log_posterior_from(self, parameter_list):
 
-            log_likelihood = self.log_likelihood_from_parameters(parameters=parameters)
-            log_priors = self.model.log_priors_from_vector(vector=parameters)
+            log_likelihood = self.log_likelihood_from(parameter_list=parameter_list)
+            log_prior_list = self.model.log_prior_list_from_vector(vector=parameter_list)
 
-            return log_likelihood + sum(log_priors)
+            return log_likelihood + sum(log_prior_list)
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
             between different `NonLinearSearch`s, for example:
 

@@ -26,18 +26,18 @@ the ``parameters``:
 .. code-block:: bash
 
     samples = result.samples
-    print(samples.parameters)
+    print(samples.parameter_lists)
 
 The ``parameters`` are a list of lists of all accepted parameter values sampled by the non-linear search. Also
-available are lists of the ``log_likelihoods``, ``log_priors``, ``log_posteriors`` and ``weights`` associated
+available are lists of the ``log_likelihood_list``, ``log_prior_list``, ``log_posterior_list`` and ``weight_list`` associated
 with every sample:
 
 .. code-block:: bash
 
-    print(samples.log_likelihoods)
-    print(samples.log_priors)
-    print(samples.log_posteriors)
-    print(samples.weights)
+    print(samples.log_likelihood_list)
+    print(samples.log_prior_list)
+    print(samples.log_posterior_list)
+    print(samples.weight_list)
 
 This ``Result`` object contains the full posterior information of our non-linear search, including all
 parameter samples, log likelihood values and tools to compute the errors on the lens model. **PyAutoFit** includes

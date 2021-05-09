@@ -48,7 +48,7 @@ class GridSearch:
         return Result(
             samples=MockSamples(
                 max_log_likelihood_instance=best_instance,
-                log_likelihoods=likelihoods,
+                log_likelihood_list=likelihoods,
                 gaussian_tuples=None
             ),
             model=model

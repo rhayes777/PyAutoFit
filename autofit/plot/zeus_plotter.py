@@ -10,7 +10,7 @@ class ZeusPlotter(MCMCPlotter):
         try:
             zeus.cornerplot(
                 samples=self.samples.zeus_sampler.get_chain(flat=True),
-                weights=self.samples.weights,
+                weight_list=self.samples.weight_list,
                 labels=self.model.parameter_labels_latex,
                 **kwargs
             )
@@ -23,14 +23,14 @@ class ZeusPlotter(MCMCPlotter):
 
         self._plot_trajectories(
             samples=self.samples.zeus_sampler.get_chain(),
-            log_posteriors=self.samples.zeus_sampler.get_log_prob(),
+            log_posterior_list=self.samples.zeus_sampler.get_log_prob(),
             **kwargs
         )
 
     def likelihood_series(self, **kwargs):
 
         self._plot_likelihood_series(
-            log_posteriors = self.samples.zeus_sampler.get_log_prob()
+            log_posterior_list = self.samples.zeus_sampler.get_log_prob()
         )
 
     def time_series(self, **kwargs):

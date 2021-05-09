@@ -18,7 +18,7 @@ class PySwarmsPlotter(MCMCPlotter):
     def cost_history(self, **kwargs):
 
         plotters.plot_cost_history(
-            cost_history=self.samples.log_posteriors,
+            cost_history=self.samples.log_posterior_list,
             **kwargs
         )
 
@@ -32,7 +32,7 @@ class PySwarmsPlotter(MCMCPlotter):
 
         for i in range(self.samples.model.prior_count):
             ax = axes[i]
-            ax.plot(np.asarray(points)[:, -1, i], self.samples.log_posteriors, "k", alpha=0.3)
+            ax.plot(np.asarray(points)[:, -1, i], self.samples.log_posterior_list, "k", alpha=0.3)
             ax.set_ylabel("Log Likelihood")
             ax.set_xlabel(self.model.parameter_labels_latex[i])
 

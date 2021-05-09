@@ -226,7 +226,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
         For MulitNest, this requires us to load:
 
-            - The parameter samples, log likelihood values and weights from the ultranest.txt file.
+            - The parameter samples, log likelihood values and weight_list from the ultranest.txt file.
             - The total number of samples (e.g. accepted + rejected) from resume.dat.
             - The log evidence of the model-fit from the ultranestsummary.txt file (if this is not yet estimated a
               value of -1.0e99 is used.
@@ -341,18 +341,18 @@ class UltraNestSamples(NestSamples):
             return self._samples
 
         parameters = self.results["weighted_samples"]["points"]
-        log_likelihoods = self.results["weighted_samples"]["logl"]
-        log_priors = [
-            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        log_likelihood_list = self.results["weighted_samples"]["logl"]
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
-        weights = self.results["weighted_samples"]["weights"]
+        weight_list = self.results["weighted_samples"]["weight_list"]
 
         self._samples = Sample.from_lists(
             model=self.model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
         return self._samples

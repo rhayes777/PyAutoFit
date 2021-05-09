@@ -164,7 +164,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
         For MulitNest, this requires us to load:
 
-            - The parameter samples, log likelihood values and weights from the multinest.txt file.
+            - The parameter samples, log likelihood values and weight_list from the multinest.txt file.
             - The total number of samples (e.g. accepted + rejected) from resume.dat.
             - The log evidence of the model-fit from the multinestsummary.txt file (if this is not yet estimated a
               value of -1.0e99 is used.
@@ -215,7 +215,7 @@ class MultiNestSamples(NestSamples):
 
         For MulitNest, this requires us to load:
 
-            - The parameter samples, log likelihood values and weights from the multinest.txt file.
+            - The parameter samples, log likelihood values and weight_list from the multinest.txt file.
             - The total number of samples (e.g. accepted + rejected) from resume.dat.
             - The log evidence of the model-fit from the multinestsummary.txt file (if this is not yet estimated a
               value of -1.0e99 is used.
@@ -265,24 +265,24 @@ class MultiNestSamples(NestSamples):
             prior_count=self.model.prior_count,
         )
 
-        log_priors = [
-            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
 
-        log_likelihoods = log_likelihoods_from_file_weighted_samples(
+        log_likelihood_list = log_likelihood_list_from_file_weighted_samples(
             file_weighted_samples=self.file_weighted_samples
         )
 
-        weights = weights_from_file_weighted_samples(
+        weight_list = weight_list_from_file_weighted_samples(
             file_weighted_samples=self.file_weighted_samples
         )
 
         self._samples = Sample.from_lists(
             model=self.model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
         return self._samples
@@ -332,7 +332,7 @@ def parameters_from_file_weighted_samples(
     return parameters
 
 
-def log_likelihoods_from_file_weighted_samples(file_weighted_samples) -> [float]:
+def log_likelihood_list_from_file_weighted_samples(file_weighted_samples) -> [float]:
     """Open the file "multinest.txt" and extract the log likelihood values of every accepted live point as a list."""
     weighted_samples = open(file_weighted_samples)
 
@@ -342,19 +342,19 @@ def log_likelihoods_from_file_weighted_samples(file_weighted_samples) -> [float]
 
     weighted_samples.seek(0)
 
-    log_likelihoods = []
+    log_likelihood_list = []
 
     for line in range(total_samples):
         weighted_samples.read(28)
-        log_likelihoods.append(-0.5 * float(weighted_samples.read(28)))
+        log_likelihood_list.append(-0.5 * float(weighted_samples.read(28)))
         weighted_samples.readline()
 
     weighted_samples.close()
 
-    return log_likelihoods
+    return log_likelihood_list
 
 
-def weights_from_file_weighted_samples(file_weighted_samples) -> [float]:
+def weight_list_from_file_weighted_samples(file_weighted_samples) -> [float]:
     """Open the file "multinest.txt" and extract the weight values of every accepted live point as a list."""
     weighted_samples = open(file_weighted_samples)
 
@@ -364,16 +364,16 @@ def weights_from_file_weighted_samples(file_weighted_samples) -> [float]:
 
     weighted_samples.seek(0)
 
-    log_likelihoods = []
+    log_likelihood_list = []
 
     for line in range(total_samples):
         weighted_samples.read(4)
-        log_likelihoods.append(float(weighted_samples.read(24)))
+        log_likelihood_list.append(float(weighted_samples.read(24)))
         weighted_samples.readline()
 
     weighted_samples.close()
 
-    return log_likelihoods
+    return log_likelihood_list
 
 
 def total_samples_from_file_resume(file_resume):

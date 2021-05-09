@@ -100,18 +100,18 @@ class Zeus(AbstractMCMC):
     class Fitness(AbstractMCMC.Fitness):
         def __call__(self, parameters):
             try:
-                return self.figure_of_merit_from_parameters(parameters=parameters)
+                return self.figure_of_merit_from(parameter_list=parameters)
             except exc.FitException:
                 return self.resample_figure_of_merit
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """
             The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. 
             
             `Zeus` uses the log posterior.
             """
             try:
-                return self.log_posterior_from_parameters(parameters=parameters)
+                return self.log_posterior_from(parameter_list=parameter_list)
             except exc.FitException:
                 raise exc.FitException
 
@@ -145,7 +145,7 @@ class Zeus(AbstractMCMC):
             zeus_sampler = self.zeus_pickled
 
             zeus_state = zeus_sampler.get_last_sample()
-            initial_log_posteriors = zeus_sampler.get_last_log_prob()
+            initial_log_posterior_list = zeus_sampler.get_last_log_prob()
 
             samples = self.samples_from(model=model)
 
@@ -169,7 +169,7 @@ class Zeus(AbstractMCMC):
 
             zeus_sampler.ncall_total = 0
 
-            initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
+            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
                 total_points=zeus_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
@@ -179,7 +179,7 @@ class Zeus(AbstractMCMC):
 
             logger.info("No Zeus samples found, beginning new non-linear search.")
 
-            for index, parameters in enumerate(initial_parameters):
+            for index, parameters in enumerate(initial_parameter_lists):
 
                 zeus_state[index, :] = np.asarray(parameters)
 
@@ -195,7 +195,7 @@ class Zeus(AbstractMCMC):
 
             for sample in zeus_sampler.sample(
                     start=zeus_state,
-                    log_prob0=initial_log_posteriors,
+                    log_prob0=initial_log_posterior_list,
                     iterations=iterations,
                     progress=True,
             ):
@@ -210,7 +210,7 @@ class Zeus(AbstractMCMC):
             )
 
             zeus_state = zeus_sampler.get_last_sample()
-            initial_log_posteriors = zeus_sampler.get_last_log_prob()
+            initial_log_posterior_list = zeus_sampler.get_last_log_prob()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
@@ -344,21 +344,21 @@ class ZeusSamples(MCMCSamples):
         if self._samples is not None:
             return self._samples
 
-        parameters = self.zeus_sampler.get_chain(flat=True).tolist()
-        log_priors = [
-            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        parameter_lists = self.zeus_sampler.get_chain(flat=True).tolist()
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        log_posteriors = self.zeus_sampler.get_log_prob(flat=True).tolist()
-        log_likelihoods = [log_posterior - log_prior for log_posterior, log_prior in zip(log_posteriors, log_priors)]
+        log_posterior_list = self.zeus_sampler.get_log_prob(flat=True).tolist()
+        log_likelihood_list = [log_posterior - log_prior for log_posterior, log_prior in zip(log_posterior_list, log_prior_list)]
 
-        weights = len(log_likelihoods) * [1.0]
+        weight_list = len(log_likelihood_list) * [1.0]
 
         self._samples = Sample.from_lists(
             model=self.model,
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
         return self._samples

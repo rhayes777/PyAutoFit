@@ -97,19 +97,19 @@ class TestPySwarmsGlobalConfig:
 
         samples = pyswarms.samples_from(model=model)
 
-        assert isinstance(samples.parameters, list)
-        assert isinstance(samples.parameters[0], list)
-        assert isinstance(samples.log_likelihoods, list)
-        assert isinstance(samples.log_priors, list)
-        assert isinstance(samples.log_posteriors, list)
+        assert isinstance(samples.parameter_lists, list)
+        assert isinstance(samples.parameter_lists[0], list)
+        assert isinstance(samples.log_likelihood_list, list)
+        assert isinstance(samples.log_prior_list, list)
+        assert isinstance(samples.log_posterior_list, list)
 
-        assert samples.parameters[0] == pytest.approx(
+        assert samples.parameter_lists[0] == pytest.approx(
             [50.1254, 1.04626, 10.09456], 1.0e-4
         )
 
-        assert samples.log_likelihoods[0] == pytest.approx(-5071.80777, 1.0e-4)
-        assert samples.log_posteriors[0] == pytest.approx(-5070.73298, 1.0e-4)
-        assert samples.weights[0] == 1.0
+        assert samples.log_likelihood_list[0] == pytest.approx(-5071.80777, 1.0e-4)
+        assert samples.log_posterior_list[0] == pytest.approx(-5070.73298, 1.0e-4)
+        assert samples.weight_list[0] == 1.0
 
-        assert len(samples.parameters) == 500
-        assert len(samples.log_likelihoods) == 500
+        assert len(samples.parameter_lists) == 500
+        assert len(samples.log_likelihood_list) == 500

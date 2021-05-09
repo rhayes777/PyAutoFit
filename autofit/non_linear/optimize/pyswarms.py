@@ -79,8 +79,8 @@ class AbstractPySwarms(AbstractOptimizer):
             for params_of_particle in parameters:
 
                 try:
-                    figure_of_merit = self.figure_of_merit_from_parameters(
-                        parameters=params_of_particle
+                    figure_of_merit = self.figure_of_merit_from(
+                        parameter_list=params_of_particle
                     )
                 except exc.FitException:
                     figure_of_merit = -2.0 * self.resample_figure_of_merit
@@ -89,11 +89,11 @@ class AbstractPySwarms(AbstractOptimizer):
 
             return np.asarray(figures_of_merit)
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. *PySwarms*
             uses the chi-squared value, which is the -2.0*log_posterior."""
             try:
-                return -2.0 * self.log_posterior_from_parameters(parameters=parameters)
+                return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
             except exc.FitException:
                 raise exc.FitException
 
@@ -130,7 +130,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         else:
 
-            initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
+            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
                 total_points=self.config_dict_search["n_particles"],
                 model=model,
                 fitness_function=fitness_function,
@@ -138,7 +138,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
 
-            for index, parameters in enumerate(initial_parameters):
+            for index, parameters in enumerate(initial_parameter_lists):
 
                 init_pos[index, :] = np.asarray(parameters)
 
@@ -194,7 +194,7 @@ class AbstractPySwarms(AbstractOptimizer):
                     pso.pos_history
                 )
                 self.paths.save_object(
-                    "log_posteriors",
+                    "log_posterior_list",
                     [-0.5 * cost for cost in pso.cost_history]
                 )
 
@@ -225,7 +225,7 @@ class AbstractPySwarms(AbstractOptimizer):
         return PySwarmsSamples(
             model=model,
             points=self.load_points,
-            log_posteriors=self.load_log_posteriors,
+            log_posterior_list=self.load_log_posterior_list,
             total_iterations=self.load_total_iterations,
             time=self.timer.time
         )
@@ -237,9 +237,9 @@ class AbstractPySwarms(AbstractOptimizer):
         )
 
     @property
-    def load_log_posteriors(self):
+    def load_log_posterior_list(self):
         return self.paths.load_object(
-            "log_posteriors"
+            "log_posterior_list"
         )
 
     @property
@@ -458,7 +458,7 @@ class PySwarmsSamples(OptimizerSamples):
             self,
             model: AbstractPriorModel,
             points : np.ndarray,
-            log_posteriors : np.ndarray,
+            log_posterior_list : np.ndarray,
             total_iterations : int,
             time: float = None,
     ):
@@ -475,7 +475,7 @@ class PySwarmsSamples(OptimizerSamples):
         """
 
         self.points = points
-        self._log_posteriors = log_posteriors
+        self._log_posterior_list = log_posterior_list
         self.total_iterations = total_iterations
 
         super().__init__(
@@ -505,21 +505,21 @@ class PySwarmsSamples(OptimizerSamples):
         if self._samples is not None:
             return self._samples
 
-        parameters = [
+        parameter_lists = [
             param.tolist() for parameters in self.points for param in parameters
         ]
-        log_priors = [
-            sum(self.model.log_priors_from_vector(vector=vector)) for vector in parameters
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        log_likelihoods = [lp - prior for lp, prior in zip(self._log_posteriors, log_priors)]
-        weights = len(log_likelihoods) * [1.0]
+        log_likelihood_list = [lp - prior for lp, prior in zip(self._log_posterior_list, log_prior_list)]
+        weight_list = len(log_likelihood_list) * [1.0]
 
         self._samples = Sample.from_lists(
             model=self.model,
-            parameters=[parameters.tolist()[0] for parameters in self.points],
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights
+            parameter_lists=[parameters.tolist()[0] for parameters in self.points],
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
         return self._samples

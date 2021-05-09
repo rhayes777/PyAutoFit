@@ -78,16 +78,16 @@ class AbstractNest(NonLinearSearch):
         def __call__(self, parameters, *kwargs):
 
             try:
-                return self.figure_of_merit_from_parameters(parameters=parameters)
+                return self.figure_of_merit_from(parameter_list=parameters)
             except exc.FitException:
                 return self.stagger_resampling_figure_of_merit()
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
             samplers use the log likelihood.
             """
             try:
-                return self.log_likelihood_from_parameters(parameters=parameters)
+                return self.log_likelihood_from(parameter_list=parameter_list)
             except exc.FitException:
                 raise exc.FitException
 

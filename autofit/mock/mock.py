@@ -59,7 +59,7 @@ class MockSamples(af.PDFSamples):
             model=None,
             samples=None,
             max_log_likelihood_instance=None,
-            log_likelihoods=None,
+            log_likelihood_list=None,
             gaussian_tuples=None,
             unconverged_sample_size=10,
             **kwargs,
@@ -67,7 +67,7 @@ class MockSamples(af.PDFSamples):
 
         self.model = model
         self._samples = samples
-        self._log_likelihoods = log_likelihoods
+        self._log_likelihood_list = log_likelihood_list
 
         super().__init__(
             model=model, unconverged_sample_size=unconverged_sample_size, **kwargs
@@ -77,12 +77,12 @@ class MockSamples(af.PDFSamples):
         self.gaussian_tuples = gaussian_tuples
 
     @property
-    def log_likelihoods(self):
+    def log_likelihood_list(self):
 
-        if self._log_likelihoods is None:
+        if self._log_likelihood_list is None:
             return [1.0, 2.0, 3.0]
 
-        return self._log_likelihoods
+        return self._log_likelihood_list
 
     @property
     def samples(self):
@@ -94,10 +94,10 @@ class MockSamples(af.PDFSamples):
             Sample(
                 log_likelihood=log_likelihood,
                 log_prior=0.0,
-                weights=0.0
+                weight=0.0
             )
             for log_likelihood
-            in self.log_likelihoods
+            in self.log_likelihood_list
         ]
 
     @property

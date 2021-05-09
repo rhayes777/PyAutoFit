@@ -19,15 +19,15 @@ def make_model():
 def make_samples(model):
     parameters = [[1.0, 2.0], [1.2, 2.2]]
 
-    log_likelihoods = [1.0, 0.0]
+    log_likelihood_list = [1.0, 0.0]
 
     return MockSamples(
         model=model,
         samples=Sample.from_lists(
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[0.0, 0.0],
-            weights=log_likelihoods,
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=[0.0, 0.0],
+            weight_list=log_likelihood_list,
             model=model
         )
     )
@@ -64,10 +64,10 @@ class MockNestSamples(af.NestSamples):
             Sample(
                 log_likelihood=log_likelihood,
                 log_prior=0.0,
-                weights=0.0
+                weight=0.0
             )
             for log_likelihood
-            in self.log_likelihoods
+            in self.log_likelihood_list
         ]
 
     @property
@@ -96,8 +96,16 @@ def test__results_to_file(samples):
 
     assert (
             line
-            == "Maximum Likelihood                                                                        1.00000000\n"
+            == "Maximum Log Likelihood                                                                    3.00000000\n"
     )
+
+    line = results.readline()
+
+    assert (
+            line
+            == "Maximum Log Posterior                                                                     1.00000000\n"
+    )
+
 
 
 def test__search_summary_to_file(model):
@@ -105,15 +113,15 @@ def test__search_summary_to_file(model):
 
     parameters = [[1.0, 2.0], [1.2, 2.2]]
 
-    log_likelihoods = [1.0, 0.0]
+    log_likelihood_list = [1.0, 0.0]
 
     samples = MockSamples(
         model=model,
         samples=Sample.from_lists(
-            parameters=parameters,
-            log_likelihoods=log_likelihoods,
-            log_priors=[0.0, 0.0],
-            weights=log_likelihoods,
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=[0.0, 0.0],
+            weight_list=log_likelihood_list,
             model=model
         ),
         time=None,
@@ -129,10 +137,10 @@ def test__search_summary_to_file(model):
     samples = MockNestSamples(
         model=model,
         samples=Sample.from_lists(
-            parameters=parameters,
-            log_likelihoods=log_likelihoods + [2.0],
-            log_priors=[1.0, 1.0],
-            weights=log_likelihoods,
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list + [2.0],
+            log_prior_list=[1.0, 1.0],
+            weight_list=log_likelihood_list,
             model=model
         ),
         total_samples=10,

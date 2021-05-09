@@ -46,14 +46,14 @@ def test_importance_sampling(
 ):
     x_samples = q_cavity.sample(200)
 
-    log_weights = probit_factor({mp.Variable('x'): x_samples}).log_value
+    log_weight_list = probit_factor({mp.Variable('x'): x_samples}).log_value
 
-    q_importance_sampling = q_cavity.project(x_samples, log_weights)
+    q_importance_sampling = q_cavity.project(x_samples, log_weight_list)
 
     assert q_importance_sampling.mu == pytest.approx(-0.284, rel=0.5)
     assert q_importance_sampling.sigma == pytest.approx(0.478, rel=0.5)
 
-    mean = np.exp(log_weights).mean()
+    mean = np.exp(log_weight_list).mean()
 
     assert mean == pytest.approx(0.318, rel=0.1)
 

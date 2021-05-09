@@ -17,7 +17,7 @@ class Sample:
             self,
             log_likelihood: float,
             log_prior: float,
-            weights: float,
+            weight: float,
             **kwargs
     ):
         """
@@ -29,13 +29,13 @@ class Sample:
             The likelihood associated with this instance
         log_prior
             A logarithmic prior of the instance
-        weights
+        weight
         kwargs
             Dictionary mapping model paths to values for the sample
         """
         self.log_likelihood = log_likelihood
         self.log_prior = log_prior
-        self.weights = weights
+        self.weight = weight
         self.kwargs = kwargs
 
     @property
@@ -45,7 +45,7 @@ class Sample:
         """
         return self.log_likelihood + self.log_prior
 
-    def parameters_for_model(
+    def parameter_lists_for_model(
             self,
             model: AbstractPriorModel,
             paths=None
@@ -77,10 +77,10 @@ class Sample:
     def from_lists(
             cls,
             model: AbstractPriorModel,
-            parameters: List[List[float]],
-            log_likelihoods: List[float],
-            log_priors: List[float],
-            weights: List[float]
+            parameter_lists: List[List[float]],
+            log_likelihood_list: List[float],
+            log_prior_list: List[float],
+            weight_list: List[float]
     ) -> List["Sample"]:
         """
         Convenience method to create a list of samples
@@ -89,10 +89,10 @@ class Sample:
         Parameters
         ----------
         model
-        parameters
-        log_likelihoods
-        log_priors
-        weights
+        parameter_lists
+        log_likelihood_list
+        log_prior_list
+        weight_list
 
         Returns
         -------
@@ -104,10 +104,10 @@ class Sample:
         model_component_and_parameter_names = model.model_component_and_parameter_names
 
         for params, log_likelihood, log_prior, weight in zip(
-                parameters,
-                log_likelihoods,
-                log_priors,
-                weights
+                parameter_lists,
+                log_likelihood_list,
+                log_prior_list,
+                weight_list
         ):
             arg_dict = {
                 t: param
@@ -122,7 +122,7 @@ class Sample:
                 cls(
                     log_likelihood=log_likelihood,
                     log_prior=log_prior,
-                    weights=weight,
+                    weight=weight,
                     **arg_dict
                 )
             )
@@ -143,12 +143,12 @@ class Sample:
         """
         try:
             return model.instance_from_vector(
-                self.parameters_for_model(model)
+                self.parameter_lists_for_model(model)
             )
         except KeyError:
             paths = model.model_component_and_parameter_names
             return model.instance_from_vector(
-                self.parameters_for_model(model, paths)
+                self.parameter_lists_for_model(model, paths)
             )
 
 
@@ -210,12 +210,12 @@ class OptimizerSamples:
         raise NotImplementedError
 
     @property
-    def parameters(self):
+    def parameter_lists(self):
 
         paths = self.model.model_component_and_parameter_names
 
         return [
-            sample.parameters_for_model(
+            sample.parameter_lists_for_model(
                 self.model, paths
             )
             for sample in self.samples
@@ -226,15 +226,15 @@ class OptimizerSamples:
         return len(self.samples)
 
     @property
-    def weights(self):
+    def weight_list(self):
         return [
-            sample.weights
+            sample.weight
             for sample
             in self.samples
         ]
 
     @property
-    def log_likelihoods(self):
+    def log_likelihood_list(self):
         return [
             sample.log_likelihood
             for sample
@@ -242,7 +242,7 @@ class OptimizerSamples:
         ]
 
     @property
-    def log_posteriors(self):
+    def log_posterior_list(self):
         return [
             sample.log_posterior
             for sample
@@ -250,7 +250,7 @@ class OptimizerSamples:
         ]
 
     @property
-    def log_priors(self):
+    def log_prior_list(self):
         return [
             sample.log_prior
             for sample
@@ -260,7 +260,7 @@ class OptimizerSamples:
     @property
     def parameters_extract(self):
         return [
-            [params[i] for params in self.parameters]
+            [params[i] for params in self.parameter_lists]
             for i in range(self.model.prior_count)
         ]
 
@@ -274,7 +274,7 @@ class OptimizerSamples:
             "log_likelihood",
             "log_prior",
             "log_posterior",
-            "weights",
+            "weight_list",
         ]
 
     @property
@@ -283,17 +283,17 @@ class OptimizerSamples:
         Rows in the samples table
         """
 
-        log_likelihoods = self.log_likelihoods
-        log_priors = self.log_priors
-        log_posteriors = self.log_posteriors
-        weights = self.weights
+        log_likelihood_list = self.log_likelihood_list
+        log_prior_list = self.log_prior_list
+        log_posterior_list = self.log_posterior_list
+        weight_list = self.weight_list
 
-        for index, row in enumerate(self.parameters):
+        for index, row in enumerate(self.parameter_lists):
             yield row + [
-                log_likelihoods[index],
-                log_priors[index],
-                log_posteriors[index],
-                weights[index],
+                log_likelihood_list[index],
+                log_prior_list[index],
+                log_posterior_list[index],
+                weight_list[index],
             ]
 
     def write_table(self, filename: str):
@@ -338,7 +338,7 @@ class OptimizerSamples:
     @property
     def max_log_likelihood_vector(self) -> [float]:
         """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
-        return self.max_log_likelihood_sample.parameters_for_model(
+        return self.max_log_likelihood_sample.parameter_lists_for_model(
             self.model
         )
 
@@ -352,12 +352,12 @@ class OptimizerSamples:
     @property
     def max_log_posterior_index(self) -> int:
         """The index of the sample with the highest log posterior."""
-        return int(np.argmax(self.log_posteriors))
+        return int(np.argmax(self.log_posterior_list))
 
     @property
     def max_log_posterior_vector(self) -> [float]:
         """ The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values."""
-        return self.parameters[self.max_log_posterior_index]
+        return self.parameter_lists[self.max_log_posterior_index]
 
     @property
     def max_log_posterior_instance(self) -> ModelInstance:
@@ -388,7 +388,7 @@ class OptimizerSamples:
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return self.model.instance_from_vector(vector=self.parameters[sample_index])
+        return self.model.instance_from_vector(vector=self.parameter_lists[sample_index])
 
     def minimise(self) -> "OptimizerSamples":
         """
@@ -469,7 +469,7 @@ class PDFSamples(OptimizerSamples):
 
         This does not necessarily imply the `NonLinearSearch` has converged overall, only that errors and visualization
         can be performed numerically.."""
-        if np.max(self.weights) > 0.99:
+        if np.max(self.weight_list) > 0.99:
             return False
         return True
 
@@ -479,7 +479,7 @@ class PDFSamples(OptimizerSamples):
         as a list of values."""
         if self.pdf_converged:
             return [
-                quantile(x=params, q=0.5, weights=self.weights)[0]
+                quantile(x=params, q=0.5, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
         return self.max_log_likelihood_vector
@@ -514,22 +514,22 @@ class PDFSamples(OptimizerSamples):
             limit = math.erf(0.5 * sigma * math.sqrt(2))
 
             lower_errors = [
-                quantile(x=params, q=1.0 - limit, weights=self.weights)[0]
+                quantile(x=params, q=1.0 - limit, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
 
             upper_errors = [
-                quantile(x=params, q=limit, weights=self.weights)[0]
+                quantile(x=params, q=limit, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
 
             return [(lower, upper) for lower, upper in zip(lower_errors, upper_errors)]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -955,10 +955,10 @@ class MCMCSamples(PDFSamples):
             ]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -1028,7 +1028,7 @@ class NestSamples(PDFSamples):
     def total_accepted_samples(self) -> int:
         """The total number of accepted samples performed by the nested sampler.
         """
-        return len(self.log_likelihoods)
+        return len(self.log_likelihood_list)
 
     @property
     def acceptance_ratio(self) -> float:
@@ -1064,28 +1064,28 @@ class NestSamples(PDFSamples):
         """
 
         parameter_list = []
-        log_likelihoods = []
-        log_priors = []
-        weights = []
+        log_likelihood_list = []
+        log_prior_list = []
+        weight_list = []
 
         for sample in self.samples:
 
-            parameters = sample.parameters_for_model(model=self.model)
+            parameters = sample.parameter_lists_for_model(model=self.model)
 
             if (parameters[parameter_index] > parameter_range[0]) and (
                     parameters[parameter_index] < parameter_range[1]):
 
                 parameter_list.append(parameters)
-                log_likelihoods.append(sample.log_likelihood)
-                log_priors.append(sample.log_prior)
-                weights.append(sample.weights)
+                log_likelihood_list.append(sample.log_likelihood)
+                log_prior_list.append(sample.log_prior)
+                weight_list.append(sample.weight)
 
         samples = Sample.from_lists(
             model=self.model,
-            parameters=parameter_list,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights
+            parameter_lists=parameter_list,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
         return NestSamples(
@@ -1107,7 +1107,7 @@ def quantile(x, q, weights=None):
     Compute sample quantiles with support for weighted samples.
     Note
     ----
-    When ``weights`` is ``None``, this method simply calls numpy's percentile
+    When ``weight_list`` is ``None``, this method simply calls numpy's percentile
     function with the values of ``q`` multiplied by 100.
     Parameters
     ----------
@@ -1126,7 +1126,7 @@ def quantile(x, q, weights=None):
     ------
     ValueError
         For invalid quantiles; ``q`` not in ``[0, 1]`` or dimension mismatch
-        between ``x`` and ``weights``.
+        between ``x`` and ``weight_list``.
     """
     x = np.atleast_1d(x)
     q = np.atleast_1d(q)
@@ -1139,7 +1139,7 @@ def quantile(x, q, weights=None):
     else:
         weights = np.atleast_1d(weights)
         if len(x) != len(weights):
-            raise ValueError("Dimension mismatch: len(weights) != len(x)")
+            raise ValueError("Dimension mismatch: len(weight_list) != len(x)")
         idx = np.argsort(x)
         sw = weights[idx]
         cdf = np.cumsum(sw)[:-1]

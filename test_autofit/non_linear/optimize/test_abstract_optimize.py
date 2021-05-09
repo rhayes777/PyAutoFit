@@ -25,10 +25,10 @@ def make_samples():
         model=model,
         samples=Sample.from_lists(
             model=model,
-            parameters=parameters,
-            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
-            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+            parameter_lists=parameters,
+            log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
         )
     )
 

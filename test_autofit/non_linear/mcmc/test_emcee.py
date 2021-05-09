@@ -65,19 +65,19 @@ class TestEmceeConfig:
 
         samples = emcee.samples_from(model=model)
 
-        assert isinstance(samples.parameters, list)
-        assert isinstance(samples.parameters[0], list)
-        assert isinstance(samples.log_likelihoods, list)
-        assert isinstance(samples.log_priors, list)
-        assert isinstance(samples.log_posteriors, list)
-        assert isinstance(samples.weights, list)
+        assert isinstance(samples.parameter_lists, list)
+        assert isinstance(samples.parameter_lists[0], list)
+        assert isinstance(samples.log_likelihood_list, list)
+        assert isinstance(samples.log_prior_list, list)
+        assert isinstance(samples.log_posterior_list, list)
+        assert isinstance(samples.weight_list, list)
 
-        assert samples.parameters[0] == pytest.approx(
+        assert samples.parameter_lists[0] == pytest.approx(
             [0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4
         )
-        assert samples.log_likelihoods[0] == pytest.approx(-17257775239.32677, 1.0e-4)
-        assert samples.log_priors[0] == pytest.approx(1.6102016075510708, 1.0e-4)
-        assert samples.weights[0] == pytest.approx(1.0, 1.0e-4)
+        assert samples.log_likelihood_list[0] == pytest.approx(-17257775239.32677, 1.0e-4)
+        assert samples.log_prior_list[0] == pytest.approx(1.6102016075510708, 1.0e-4)
+        assert samples.weight_list[0] == pytest.approx(1.0, 1.0e-4)
         assert samples.total_steps == 1000
         assert samples.total_walkers == 10
         assert samples.auto_correlations.times[0] == pytest.approx(31.98507, 1.0e-4)

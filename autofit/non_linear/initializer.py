@@ -65,35 +65,35 @@ class Initializer:
 
         logger.info("Generating initial samples of model, which are subject to prior limits and other constraints.")
 
-        initial_unit_parameters = []
-        initial_parameters = []
-        initial_figures_of_merit = []
+        initial_unit_parameter_lists = []
+        initial_parameter_lists = []
+        initial_figures_of_merit_list = []
 
         point_index = 0
 
         while point_index < total_points:
 
-            unit_parameters = model.random_unit_vector_within_limits(
+            unit_parameter_list = model.random_unit_vector_within_limits(
                 lower_limit=self.lower_limit, upper_limit=self.upper_limit
             )
-            parameters = model.vector_from_unit_vector(unit_vector=unit_parameters)
+            parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
 
             try:
-                figure_of_merit = fitness_function.figure_of_merit_from_parameters(
-                    parameters=parameters
+                figure_of_merit = fitness_function.figure_of_merit_from(
+                    parameter_list=parameter_list
                 )
 
                 if np.isnan(figure_of_merit):
                     raise exc.FitException
 
-                initial_unit_parameters.append(unit_parameters)
-                initial_parameters.append(parameters)
-                initial_figures_of_merit.append(figure_of_merit)
+                initial_unit_parameter_lists.append(unit_parameter_list)
+                initial_parameter_lists.append(parameter_list)
+                initial_figures_of_merit_list.append(figure_of_merit)
                 point_index += 1
             except exc.FitException:
                 pass
 
-        return initial_unit_parameters, initial_parameters, initial_figures_of_merit
+        return initial_unit_parameter_lists, initial_parameter_lists, initial_figures_of_merit_list
 
     def initial_samples_in_test_mode(self, total_points, model):
         """
@@ -114,24 +114,24 @@ class Initializer:
             of free dimensions of the model.
         """
 
-        initial_unit_parameters = []
-        initial_parameters = []
-        initial_figures_of_merit = []
+        initial_unit_parameter_lists = []
+        initial_parameter_lists = []
+        initial_figure_of_merit_list = []
 
         point_index = 0
 
         while point_index < total_points:
 
-            unit_parameters = model.random_unit_vector_within_limits(
+            unit_parameter_list = model.random_unit_vector_within_limits(
                 lower_limit=self.lower_limit, upper_limit=self.upper_limit
             )
-            parameters = model.vector_from_unit_vector(unit_vector=unit_parameters)
-            initial_unit_parameters.append(unit_parameters)
-            initial_parameters.append(parameters)
-            initial_figures_of_merit.append(-1.0e99)
+            parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+            initial_unit_parameter_lists.append(unit_parameter_list)
+            initial_parameter_lists.append(parameter_list)
+            initial_figure_of_merit_list.append(-1.0e99)
             point_index += 1
 
-        return initial_unit_parameters, initial_parameters, initial_figures_of_merit
+        return initial_unit_parameter_lists, initial_parameter_lists, initial_figure_of_merit_list
 
 class InitializerPrior(Initializer):
     def __init__(self):
