@@ -441,7 +441,7 @@ class PDFSamples(OptimizerSamples):
             filename=filename
         )
 
-        return OptimizerSamples(
+        return StoredSamples(
             model=model,
             samples=samples
         )
@@ -1039,7 +1039,7 @@ class NestSamples(PDFSamples):
             self,
             parameter_index: int,
             parameter_range: [float, float]
-    ) -> "NestSamples":
+    ) -> "StoredSamples":
         """
         Returns a new set of Samples where all points without parameter values inside a specified range removed.
 
@@ -1088,17 +1088,42 @@ class NestSamples(PDFSamples):
             weight_list=weight_list
         )
 
-        return NestSamples(
+        return StoredSamples(
             model=self.model,
             samples=samples,
-            number_live_points=self.number_live_points,
-            log_evidence=self.log_evidence,
-            total_samples=self.total_samples,
             unconverged_sample_size=self.unconverged_sample_size,
-            time=self.time
         )
 
 
+class StoredSamples(PDFSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            samples,
+            unconverged_sample_size: int = 100,
+            time: float = None,
+    ):
+        """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
+        posterior of parameter space and thus does provide information on parameter errors.
+
+        Parameters
+        ----------
+        model : af.ModelMapper
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        """
+
+        super().__init__(
+            model=model,
+            time=time,
+        )
+
+        self._samples = samples
+        self._unconverged_sample_size = int(unconverged_sample_size)
+
+    @property
+    def samples(self):
+        return self._samples
 
 def quantile(x, q, weights=None):
     """

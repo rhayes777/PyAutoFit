@@ -182,6 +182,8 @@ class AbstractDynesty(AbstractNest, ABC):
 
                     except (ValueError, np.linalg.LinAlgError):
 
+                        dihfoisdj
+
                         continue
 
             sampler.loglikelihood = None

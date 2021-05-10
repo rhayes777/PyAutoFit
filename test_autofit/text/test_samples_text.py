@@ -4,7 +4,7 @@ import pytest
 
 import autofit as af
 from autofit.mock.mock import MockClassx2
-from autofit.non_linear.samples import Sample
+from autofit.non_linear.samples import Sample, StoredSamples
 from autofit.text import samples_text
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
@@ -21,7 +21,7 @@ def make_samples(model):
 
     log_likelihood_list = [1.0, 0.0]
 
-    return af.PDFSamples(
+    return StoredSamples(
         model=model,
         samples=Sample.from_lists(
             parameter_lists=parameters,
