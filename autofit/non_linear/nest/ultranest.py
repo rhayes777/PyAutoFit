@@ -345,7 +345,7 @@ class UltraNestSamples(NestSamples):
         log_prior_list = [
             sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
-        weight_list = self.results["weighted_samples"]["weight_list"]
+        weight_list = self.results["weighted_samples"]["weights"]
 
         self._samples = Sample.from_lists(
             model=self.model,

@@ -274,7 +274,7 @@ class OptimizerSamples:
             "log_likelihood",
             "log_prior",
             "log_posterior",
-            "weight_list",
+            "weight",
         ]
 
     @property

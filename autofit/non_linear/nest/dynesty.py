@@ -264,7 +264,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
     def remove_state_files(self):
-        self.paths.remove_object("dynesty")
+       self.paths.remove_object("dynesty")
 
     @property
     def total_live_points(self):
@@ -549,7 +549,7 @@ class DynestySamples(NestSamples):
                 np.exp(np.asarray(self.results.logwt) - self.results.logz[-1])
             )
         except:
-            weight_list = self.results["weight_list"]
+            weight_list = self.results["weights"]
 
         self._samples = Sample.from_lists(
             model=self.model,
