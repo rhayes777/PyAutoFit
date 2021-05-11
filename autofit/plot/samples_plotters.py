@@ -1,8 +1,10 @@
+from autofit.plot.mat_wrap.wrap import wrap_base
 from autofit.plot.mat_wrap import visuals as vis
 from autofit.plot.mat_wrap import include as inc
 from autofit.plot.mat_wrap import mat_plot as mp
 from autofit.plot import abstract_plotters
 
+import matplotlib.pyplot as plt
 
 class SamplesPlotter(abstract_plotters.AbstractPlotter):
     def __init__(
@@ -11,10 +13,11 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
             mat_plot_1d: mp.MatPlot1D = mp.MatPlot1D(),
             visuals_1d: vis.Visuals1D = vis.Visuals1D(),
             include_1d: inc.Include1D = inc.Include1D(),
-            mat_plot_corner: mp.MatPlotCorner = mp.MatPlotCorner(),
+            output : wrap_base.Output = wrap_base.Output()
     ):
 
         self.samples = samples
+        self.output = output
 
         super().__init__(
             mat_plot_1d=mat_plot_1d,
@@ -22,64 +25,56 @@ class SamplesPlotter(abstract_plotters.AbstractPlotter):
             include_1d=include_1d,
         )
 
-        self.mat_plot_corner = mat_plot_corner
+    @property
+    def model(self):
+        return self.samples.model
 
     @property
     def visuals_with_include_2d(self):
 
         return self.visuals_2d + self.visuals_2d.__class__()
 
-    def figures_1d(
-        self,
-        progress=False,
-    ):
-        """Plot each attribute of the imaging data_type as individual figures one by one (e.g. the dataset, noise_map, PSF, \
-         Signal-to_noise-map, etc).
 
-        Set *autolens.data_type.array.mat_plot_corner.mat_plot_corner* for a description of all innput parameters not described below.
+class MCMCPlotter(SamplesPlotter):
 
-        Parameters
-        -----------
-        imaging : data_type.ImagingData
-            The imaging data_type, which includes the observed data_type, noise_map, PSF, signal-to-noise_map, etc.
-        include_origin : True
-            If true, the include_origin of the dataset's coordinate system is plotted as a 'x'.
-        """
+    def _plot_trajectories(self, samples, log_posterior_list, **kwargs):
 
-        if progress:
+        fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7))
 
-            self.mat_plot_1d.plot_yx(
-                y=self.samples.log_likelihoods,
-                x=range(len(self.samples.log_likelihoods)),
-                visuals_1d=self.visuals_1d,
-                auto_labels=mp.AutoLabels(
-                    title=f"Log Likelihood Progress (Max = {max(self.samples.log_likelihoods)}",
-                    filename="progress",
-                    ylabel="Log Likelihood",
-                    xlabel="Likelihood Evaluation Number"
-                ),
-                plot_axis_type_override="symlog",
-            )
+        for i in range(self.samples.model.prior_count):
 
-    def figure_corner(self, triangle=False):
+            for walker_index in range(log_posterior_list.shape[1]):
 
-        if triangle:
+                ax = axes[i]
+                ax.plot(samples[:, walker_index, i], log_posterior_list[:, walker_index], alpha=0.3)
 
-            self.mat_plot_corner.plot_corner(samples=self.samples)
+            ax.set_ylabel("Log Likelihood")
+            ax.set_xlabel(self.model.parameter_labels_latex[i])
 
-    def subplot(
-        self,
-        progress=False,
-        auto_filename="subplot_samples",
-    ):
+        self.output.to_figure(structure=None, auto_filename="tracjectories")
 
-        self._subplot_custom_plot(
-            progress=progress,
-            auto_labels=mp.AutoLabels(filename=auto_filename),
-        )
+    def _plot_likelihood_series(self, log_posterior_list, **kwargs):
 
-    def subplot_samples(self):
-        self.subplot(
-            progress=True
-        )
+        fig, axes = plt.subplots(1, figsize=(10, 7))
 
+        for walker_index in range(log_posterior_list.shape[1]):
+
+            axes.plot(log_posterior_list[:, walker_index], alpha=0.3)
+
+        axes.set_ylabel("Log Likelihood")
+        axes.set_xlabel("step number")
+
+        self.output.to_figure(structure=None, auto_filename="likelihood_series")
+
+    def _plot_time_series(self, samples, **kwargs):
+
+        fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7), sharex=True)
+
+        for i in range(self.samples.model.prior_count):
+            ax = axes[i]
+            ax.plot(samples[:, :, i], alpha=0.3)
+            ax.set_ylabel(self.model.parameter_labels_latex[i])
+
+        axes[-1].set_xlabel("step number")
+
+        self.output.to_figure(structure=None, auto_filename="time_series")

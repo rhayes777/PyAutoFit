@@ -1,5 +1,8 @@
+from os import path
 import copy
 from typing import Optional
+
+from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
@@ -8,6 +11,8 @@ from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples import NestSamples, Sample
 
+from autofit.plot import UltraNestPlotter
+from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
 class UltraNest(abstract_nest.AbstractNest):
 
@@ -123,6 +128,8 @@ class UltraNest(abstract_nest.AbstractNest):
         elif stepsampler_cls == "RegionSliceSampler":
             return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
 
+
+
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
@@ -162,7 +169,7 @@ class UltraNest(abstract_nest.AbstractNest):
         def prior_transform(cube):
             return model.vector_from_unit_vector(unit_vector=cube)
 
-        self.sampler = ultranest.ReactiveNestedSampler(
+        sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness_function.__call__,
             transform=prior_transform,
@@ -170,15 +177,14 @@ class UltraNest(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
-
-        self.sampler.stepsampler = self.stepsampler
+        sampler.stepsampler = self.stepsampler
 
         finished = False
 
         while not finished:
 
             try:
-                total_iterations = self.sampler.ncall
+                total_iterations = sampler.ncall
             except AttributeError:
                 total_iterations = 0
 
@@ -195,15 +201,19 @@ class UltraNest(abstract_nest.AbstractNest):
                 config_dict_run["Lepsilon"] = config_dict_run.pop("lepsilon")
                 config_dict_run["update_interval_ncall"] = iterations
 
-                self.sampler.run(
+                sampler.run(
                     max_ncalls=iterations,
                     **config_dict_run
                 )
 
+            self.paths.save_object(
+                "results",
+                sampler.results
+            )
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-            iterations_after_run = self.sampler.ncall
+            iterations_after_run = sampler.ncall
 
             if (
                     total_iterations == iterations_after_run
@@ -211,12 +221,12 @@ class UltraNest(abstract_nest.AbstractNest):
             ):
                 finished = True
 
-    def samples_via_sampler_from_model(self, model: AbstractPriorModel):
+    def samples_from(self, model: AbstractPriorModel):
         """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
 
-            - The parameter samples, log likelihood values and weights from the ultranest.txt file.
+            - The parameter samples, log likelihood values and weight_list from the ultranest.txt file.
             - The total number of samples (e.g. accepted + rejected) from resume.dat.
             - The log evidence of the model-fit from the ultranestsummary.txt file (if this is not yet estimated a
               value of -1.0e99 is used.
@@ -228,27 +238,133 @@ class UltraNest(abstract_nest.AbstractNest):
             cube values to physical values via the priors.
         """
 
-        parameters = self.sampler.results["weighted_samples"]["points"]
-        log_likelihoods = self.sampler.results["weighted_samples"]["logl"]
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
-        ]
-        weights = self.sampler.results["weighted_samples"]["weights"]
-        total_samples = self.sampler.results["ncall"]
-        log_evidence = self.sampler.results["logz"]
+        try:
 
-        return NestSamples(
+            results = self.paths.load_object(
+                "results"
+            )
+
+        except FileNotFoundError:
+
+            samples = self.paths.load_object(
+                "samples"
+            )
+            results = samples.results
+
+        return UltraNestSamples(
             model=model,
-            samples=Sample.from_lists(
-                parameters=parameters,
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights,
-                model=model
-            ),
-            total_samples=total_samples,
-            log_evidence=log_evidence,
-            number_live_points=self.kwargs["min_num_live_points"],
+            results=results,
+            number_live_points=self.config_dict_run["min_num_live_points"],
             unconverged_sample_size=1,
-            time=self.timer.time
+            time=self.timer.time,
         )
+
+    def plot_results(self, samples):
+
+        if not samples.pdf_converged:
+            return
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["ultranest"][name]
+
+        plotter = UltraNestPlotter(
+            samples=samples,
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+        )
+
+        if should_plot("cornerplot"):
+            plotter.cornerplot()
+
+        if should_plot("runplot"):
+            plotter.runplot()
+
+        if should_plot("traceplot"):
+            plotter.traceplot()
+
+class UltraNestSamples(NestSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            results,
+            number_live_points : int,
+            unconverged_sample_size: int = 100,
+            time: Optional[float] = None,
+    ):
+        """
+        The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        as files on your hard-disk) and Python.
+
+        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
+
+        The Bayesian log evidence estimated by the nested sampling algorithm.
+
+        Parameters
+        ----------
+        model : af.ModelMapper
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        number_live_points : int
+            The number of live points used by the nested sampler.
+        log_evidence : float
+            The log of the Bayesian evidence estimated by the nested sampling algorithm.
+        """
+
+        super().__init__(
+            model=model,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+        self.results = results
+        self._samples = None
+        self._number_live_points = number_live_points
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameters = self.results["weighted_samples"]["points"]
+        log_likelihood_list = self.results["weighted_samples"]["logl"]
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameters
+        ]
+        weight_list = self.results["weighted_samples"]["weights"]
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        return self._samples
+
+    @property
+    def number_live_points(self):
+        return self._number_live_points
+
+    @property
+    def total_samples(self):
+        return self.results["ncall"]
+
+    @property
+    def log_evidence(self):
+        return self.results["logz"]

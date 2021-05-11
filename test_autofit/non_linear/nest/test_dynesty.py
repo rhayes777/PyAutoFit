@@ -114,23 +114,23 @@ class TestDynestyConfig:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = dynesty.samples_via_sampler_from_model(model=model)
+        samples = dynesty.samples_from(model=model)
 
-        assert isinstance(samples.parameters, list)
-        assert isinstance(samples.parameters[0], list)
-        assert isinstance(samples.log_likelihoods, list)
-        assert isinstance(samples.log_priors, list)
-        assert isinstance(samples.log_posteriors, list)
-        assert isinstance(samples.weights, list)
+        assert isinstance(samples.parameter_lists, list)
+        assert isinstance(samples.parameter_lists[0], list)
+        assert isinstance(samples.log_likelihood_list, list)
+        assert isinstance(samples.log_prior_list, list)
+        assert isinstance(samples.log_posterior_list, list)
+        assert isinstance(samples.weight_list, list)
 
-        assert samples.parameters == [
+        assert samples.parameter_lists == [
             [1.0, 2.0, 3.0, 5.0],
             [1.0, 2.0, 3.0, 4.0],
             [1.0, 2.0, 3.0, 4.0],
         ]
-        assert samples.log_likelihoods == [1.0, 2.0, 3.0]
-        assert samples.log_priors == [0.2, 0.25, 0.25]
-        assert samples.weights == pytest.approx([1.0, 2.0, 3.0], 1.0e-4)
+        assert samples.log_likelihood_list == [1.0, 2.0, 3.0]
+        assert samples.log_prior_list == [0.2, 0.25, 0.25]
+        assert samples.weight_list == pytest.approx([1.0, 2.0, 3.0], 1.0e-4)
         assert samples.total_samples == 10
         assert samples.log_evidence == 0.0
         assert samples.number_live_points == 3

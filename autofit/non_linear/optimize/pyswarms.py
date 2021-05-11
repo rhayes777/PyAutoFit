@@ -1,5 +1,8 @@
+from os import path
 import numpy as np
 from typing import Optional
+
+from autoconf import conf
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -7,6 +10,8 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples, Sample
 
+from autofit.plot import PySwarmsPlotter
+from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
@@ -74,8 +79,8 @@ class AbstractPySwarms(AbstractOptimizer):
             for params_of_particle in parameters:
 
                 try:
-                    figure_of_merit = self.figure_of_merit_from_parameters(
-                        parameters=params_of_particle
+                    figure_of_merit = self.figure_of_merit_from(
+                        parameter_list=params_of_particle
                     )
                 except exc.FitException:
                     figure_of_merit = -2.0 * self.resample_figure_of_merit
@@ -84,13 +89,10 @@ class AbstractPySwarms(AbstractOptimizer):
 
             return np.asarray(figures_of_merit)
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. *PySwarms*
             uses the chi-squared value, which is the -2.0*log_posterior."""
-            try:
-                return -2.0 * self.log_posterior_from_parameters(parameters=parameters)
-            except exc.FitException:
-                raise exc.FitException
+            return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
@@ -125,7 +127,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         else:
 
-            initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
+            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
                 total_points=self.config_dict_search["n_particles"],
                 model=model,
                 fitness_function=fitness_function,
@@ -133,7 +135,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
 
-            for index, parameters in enumerate(initial_parameters):
+            for index, parameters in enumerate(initial_parameter_lists):
 
                 init_pos[index, :] = np.asarray(parameters)
 
@@ -189,7 +191,7 @@ class AbstractPySwarms(AbstractOptimizer):
                     pso.pos_history
                 )
                 self.paths.save_object(
-                    "log_posteriors",
+                    "log_posterior_list",
                     [-0.5 * cost for cost in pso.cost_history]
                 )
 
@@ -207,7 +209,7 @@ class AbstractPySwarms(AbstractOptimizer):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_via_sampler_from_model,
+            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids,
         )
@@ -215,45 +217,14 @@ class AbstractPySwarms(AbstractOptimizer):
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         raise NotImplementedError()
 
-    def samples_via_sampler_from_model(self, model):
-        """
-        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
+    def samples_from(self, model):
 
-        For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        """
-
-        parameters = [
-            param.tolist() for parameters in self.load_points for param in parameters
-        ]
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
-        ]
-        log_posteriors = self.load_log_posteriors
-        log_likelihoods = [lp - prior for lp, prior in zip(log_posteriors, log_priors)]
-        weights = len(log_likelihoods) * [1.0]
-
-        return OptimizerSamples(
+        return PySwarmsSamples(
             model=model,
-            samples=Sample.from_lists(
-                parameters=[parameters.tolist()[0] for parameters in self.load_points],
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights,
-                model=model
-            ),
+            points=self.load_points,
+            log_posterior_list=self.load_log_posterior_list,
+            total_iterations=self.load_total_iterations,
             time=self.timer.time
-        )
-
-    @property
-    def load_total_iterations(self):
-        return self.paths.load_object(
-            "total_iterations"
         )
 
     @property
@@ -263,11 +234,38 @@ class AbstractPySwarms(AbstractOptimizer):
         )
 
     @property
-    def load_log_posteriors(self):
+    def load_log_posterior_list(self):
         return self.paths.load_object(
-            "log_posteriors"
+            "log_posterior_list"
         )
 
+    @property
+    def load_total_iterations(self):
+        return self.paths.load_object(
+            "total_iterations"
+        )
+
+    def plot_results(self, samples):
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["pyswarms"][name]
+
+        plotter = PySwarmsPlotter(
+            samples=samples,
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+        )
+
+        if should_plot("contour"):
+            plotter.contour()
+
+        if should_plot("cost_history"):
+            plotter.cost_history()
+
+        if should_plot("trajectories"):
+            plotter.trajectories()
+
+        if should_plot("time_series"):
+            plotter.time_series()
 
 class PySwarmsGlobal(AbstractPySwarms):
 
@@ -449,3 +447,76 @@ class PySwarmsLocal(AbstractPySwarms):
             options=options,
             **config_dict
         )
+
+
+class PySwarmsSamples(OptimizerSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            points : np.ndarray,
+            log_posterior_list : np.ndarray,
+            total_iterations : int,
+            time: Optional[float] = None,
+    ):
+        """
+        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
+
+        For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+
+        self.points = points
+        self._log_posterior_list = log_posterior_list
+        self.total_iterations = total_iterations
+
+        super().__init__(
+            model=model,
+            time=time,
+        )
+
+        self._samples = None
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameter_lists = [
+            param.tolist() for parameters in self.points for param in parameters
+        ]
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
+        ]
+        log_likelihood_list = [lp - prior for lp, prior in zip(self._log_posterior_list, log_prior_list)]
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameter_lists=[parameters.tolist()[0] for parameters in self.points],
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        return self._samples

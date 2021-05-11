@@ -55,6 +55,7 @@ class TestEmceeConfig:
         assert emcee.number_of_cores == 1
 
     def test__samples_from_model(self):
+
         emcee = af.Emcee()
         emcee.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "emcee"))
         emcee.paths._identifier = "tag"
@@ -62,21 +63,21 @@ class TestEmceeConfig:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
-        assert isinstance(samples.parameters, list)
-        assert isinstance(samples.parameters[0], list)
-        assert isinstance(samples.log_likelihoods, list)
-        assert isinstance(samples.log_priors, list)
-        assert isinstance(samples.log_posteriors, list)
-        assert isinstance(samples.weights, list)
+        assert isinstance(samples.parameter_lists, list)
+        assert isinstance(samples.parameter_lists[0], list)
+        assert isinstance(samples.log_likelihood_list, list)
+        assert isinstance(samples.log_prior_list, list)
+        assert isinstance(samples.log_posterior_list, list)
+        assert isinstance(samples.weight_list, list)
 
-        assert samples.parameters[0] == pytest.approx(
+        assert samples.parameter_lists[0] == pytest.approx(
             [0.173670, 0.162607, 3095.28, 0.62104], 1.0e-4
         )
-        assert samples.log_likelihoods[0] == pytest.approx(-17257775239.32677, 1.0e-4)
-        assert samples.log_priors[0] == pytest.approx(1.6102016075510708, 1.0e-4)
-        assert samples.weights[0] == pytest.approx(1.0, 1.0e-4)
+        assert samples.log_likelihood_list[0] == pytest.approx(-17257775239.32677, 1.0e-4)
+        assert samples.log_prior_list[0] == pytest.approx(1.6102016075510708, 1.0e-4)
+        assert samples.weight_list[0] == pytest.approx(1.0, 1.0e-4)
         assert samples.total_steps == 1000
         assert samples.total_walkers == 10
         assert samples.auto_correlations.times[0] == pytest.approx(31.98507, 1.0e-4)
@@ -91,7 +92,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
         assert samples.median_pdf_vector == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
@@ -105,7 +106,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
         parameters = samples.vector_at_sigma(sigma=3.0)
 
@@ -123,7 +124,7 @@ class TestEmceeOutput:
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        samples = emcee.samples_via_sampler_from_model(model=model)
+        samples = emcee.samples_from(model=model)
 
         assert samples.auto_correlations.previous_times == pytest.approx(
             [31.1079, 36.0910, 72.44768, 65.86194], 1.0e-4

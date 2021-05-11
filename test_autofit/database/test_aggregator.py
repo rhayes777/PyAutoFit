@@ -96,7 +96,7 @@ def test_random_api(
 ):
     for samples in aggregator.values("samples"):
         print("log(likelihood), log(prior), log(posterior) and weight of the tenth sample.")
-        print(samples.log_likelihoods[9])
-        print(samples.log_priors[9])
-        print(samples.log_posteriors[9])
-        print(samples.weights[9])
+        print(samples.log_likelihood_list[9])
+        print(samples.log_prior_list[9])
+        print(samples.log_posterior_list[9])
+        print(samples.weight_list[9])

@@ -502,15 +502,15 @@ class TestModelInstancesRealClasses:
         assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
         assert model_map.profile_1.phi == model_2.profile_1.phi == 1.0
 
-    def test_log_priors_from_vector(self):
+    def test_log_prior_list_from_vector(self):
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(mock.MockClassx2)
         mapper.mock_class.one = af.GaussianPrior(mean=1.0, sigma=2.0)
         mapper.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-        log_priors = mapper.log_priors_from_vector(vector=[0.0, 5.0])
+        log_prior_list = mapper.log_prior_list_from_vector(vector=[0.0, 5.0])
 
-        assert log_priors == [0.125, 0.2]
+        assert log_prior_list == [0.125, 0.2]
 
     def test_random_unit_vector_within_limits(self):
         mapper = af.ModelMapper()

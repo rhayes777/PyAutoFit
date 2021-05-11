@@ -1,8 +1,11 @@
 import os
-from typing import List, Optional
+from os import path
+from typing import Optional
 
 import emcee
 import numpy as np
+
+from autoconf import conf
 
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
@@ -12,9 +15,11 @@ from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
 
+from autofit.plot import EmceePlotter
+from autofit.plot.mat_wrap.wrap.wrap_base import Output
+
 
 class Emcee(AbstractMCMC):
-
     __identifier_fields__ = (
         "nwalkers",
     )
@@ -23,13 +28,13 @@ class Emcee(AbstractMCMC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
             initializer=None,
             auto_correlations_settings=AutoCorrelationsSettings(),
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[bool] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[bool] = None,
             **kwargs
     ):
         """
@@ -92,18 +97,15 @@ class Emcee(AbstractMCMC):
     class Fitness(AbstractMCMC.Fitness):
         def __call__(self, parameters):
             try:
-                return self.figure_of_merit_from_parameters(parameters=parameters)
+                return self.figure_of_merit_from(parameter_list=parameters)
             except exc.FitException:
                 return self.resample_figure_of_merit
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. `Emcee`
             uses the log posterior.
             """
-            try:
-                return self.log_posterior_from_parameters(parameters=parameters)
-            except exc.FitException:
-                raise exc.FitException
+            return self.log_posterior_from(parameter_list=parameter_list)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
@@ -135,7 +137,7 @@ class Emcee(AbstractMCMC):
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
             backend=emcee.backends.HDFBackend(
-                filename=self.paths.samples_path + "/emcee.hdf"
+                filename=self.backend_filename
             ),
             pool=pool,
         )
@@ -143,7 +145,7 @@ class Emcee(AbstractMCMC):
         try:
 
             emcee_state = emcee_sampler.get_last_sample()
-            samples = self.samples_via_sampler_from_model(model=model)
+            samples = self.samples_from(model=model)
 
             total_iterations = emcee_sampler.iteration
 
@@ -156,7 +158,7 @@ class Emcee(AbstractMCMC):
 
         except AttributeError:
 
-            initial_unit_parameters, initial_parameters, initial_log_posteriors = self.initializer.initial_samples_from_model(
+            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
                 total_points=emcee_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
@@ -166,8 +168,7 @@ class Emcee(AbstractMCMC):
 
             logger.info("No Emcee samples found, beginning new non-linear search.")
 
-            for index, parameters in enumerate(initial_parameters):
-
+            for index, parameters in enumerate(initial_parameter_lists):
                 emcee_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
@@ -187,7 +188,6 @@ class Emcee(AbstractMCMC):
                     skip_initial_state_check=True,
                     store=True,
             ):
-
                 pass
 
             emcee_state = emcee_sampler.get_last_sample()
@@ -212,13 +212,103 @@ class Emcee(AbstractMCMC):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_via_sampler_from_model,
+            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids,
         )
 
-    def samples_via_sampler_from_model(self, model):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+    @property
+    def backend_filename(self):
+        return path.join(self.paths.samples_path, "emcee.hdf")
+
+    @property
+    def backend(self) -> emcee.backends.HDFBackend:
+        """
+        The `Emcee` hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
+
+        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html
+        """
+
+        if os.path.isfile(self.backend_filename):
+            return emcee.backends.HDFBackend(
+                filename=self.backend_filename
+            )
+        else:
+            raise FileNotFoundError(
+                "The file emcee.hdf does not exist at the path "
+                + self.paths.samples_path
+            )
+
+    def samples_from(self, model):
+
+        return EmceeSamples(
+            model=model,
+            backend=self.backend,
+            auto_correlation_settings=self.auto_correlations_settings,
+            time=self.timer.time
+        )
+
+    def plot_results(self, samples):
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["emcee"][name]
+
+        plotter = EmceePlotter(
+            samples=samples,
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+        )
+
+        if should_plot("corner"):
+            plotter.corner()
+
+        if should_plot("trajectories"):
+            plotter.trajectories()
+
+        if should_plot("likelihood_series"):
+            plotter.likelihood_series()
+
+        if should_plot("time_series"):
+            plotter.time_series()
+
+
+class EmceeSamples(MCMCSamples):
+
+    def __init__(
+            self,
+            model: ModelMapper,
+            backend: emcee.backends.HDFBackend,
+            auto_correlation_settings: AutoCorrelationsSettings,
+            unconverged_sample_size: int = 100,
+            time: Optional[float] = None,
+    ):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Attributes
+        ----------
+        total_walkers : int
+            The total number of walkers used by this MCMC non-linear search.
+        total_steps : int
+            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
+            to the total steps * total walkers).
+        """
+
+        super().__init__(
+            model=model,
+            auto_correlation_settings=auto_correlation_settings,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+        self.backend = backend
+        self._samples = None
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Emcee, all quantities are extracted via the hdf5 backend of results.
 
@@ -232,135 +322,66 @@ class Emcee(AbstractMCMC):
             etc.
         """
 
-        parameters = self.backend.get_chain(flat=True).tolist()
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+        if self._samples is not None:
+            return self._samples
+
+        parameter_lists = self.backend.get_chain(flat=True).tolist()
+
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        log_likelihoods = self.backend.get_log_prob(flat=True).tolist()
-        weights = len(log_likelihoods) * [1.0]
-        total_walkers = len(self.backend.get_chain()[0, :, 0])
-        total_steps = len(self.backend.get_log_prob())
 
-        auto_correlation_time = self.backend.get_autocorr_time(tol=0)
-        try:
-            previous_auto_correlation_times = emcee.autocorr.integrated_time(
-                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
-            )
-        except IndexError:
-            previous_auto_correlation_times = None
+        log_posterior_list = self.backend.get_log_prob(flat=True).tolist()
 
-        return EmceeSamples(
-            model=model,
-            samples=Sample.from_lists(
-                model=model,
-                parameters=parameters,
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights
-            ),
-            auto_correlations=AutoCorrelations(
-                check_size=self.auto_correlations_settings.check_size,
-                required_length=self.auto_correlations_settings.required_length,
-                change_threshold=self.auto_correlations_settings.change_threshold,
-                times=auto_correlation_time,
-                previous_times=previous_auto_correlation_times
-            ),
-            total_walkers=total_walkers,
-            total_steps=total_steps,
-            backend=self.backend,
-            time=self.timer.time
+        log_likelihood_list = [
+            log_posterior - log_prior for
+            log_posterior, log_prior in
+            zip(log_posterior_list, log_prior_list)
+        ]
+
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
-    def samples_via_csv_json_from_model(self, model):
-
-        # TODO : Better design to remove repetition.
-
-        samples = self.paths.load_samples()
-        samples_info = self.paths.load_samples_info()
-
-        try:
-            backend = self.backend
-            auto_correlation_times = self.backend.get_autocorr_time(tol=0)
-            previous_auto_correlation_times = emcee.autocorr.integrated_time(
-                x=self.backend.get_chain()[: -self.auto_correlations_settings.check_size, :, :], tol=0
-            )
-        except FileNotFoundError:
-            backend = None
-            auto_correlation_times = None
-            previous_auto_correlation_times = None
-
-        return EmceeSamples(
-            model=model,
-            samples=samples,
-            auto_correlations=AutoCorrelations(
-                check_size=samples_info["check_size"],
-                required_length=samples_info["required_length"],
-                change_threshold=samples_info["change_threshold"],
-                times=auto_correlation_times,
-                previous_times=previous_auto_correlation_times,
-            ),
-            total_walkers=samples_info["total_walkers"],
-            total_steps=samples_info["total_steps"],
-            time=samples_info["time"],
-            backend=backend
-        )
-
-    @property
-    def backend(self) -> emcee.backends.HDFBackend:
-        """The `Emcee` hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
-
-        The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html"""
-        if os.path.isfile(self.paths.samples_path + "/emcee.hdf"):
-            return emcee.backends.HDFBackend(
-                filename=self.paths.samples_path + "/emcee.hdf"
-            )
-        else:
-            raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path "
-                + self.paths.samples_path
-            )
-
-
-class EmceeSamples(MCMCSamples):
-
-    def __init__(
-            self,
-            model: ModelMapper,
-            samples: List[Sample],
-            auto_correlations: AutoCorrelations,
-            total_walkers: int,
-            total_steps: int,
-            backend: emcee.backends.HDFBackend,
-            unconverged_sample_size: int = 100,
-            time: float = None,
-    ):
-        """
-        Attributes
-        ----------
-        total_walkers : int
-            The total number of walkers used by this MCMC non-linear search.
-        total_steps : int
-            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
-            to the total steps * total walkers).
-        """
-
-        super().__init__(
-            model=model,
-            samples=samples,
-            auto_correlations=auto_correlations,
-            total_walkers=total_walkers,
-            total_steps=total_steps,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
-        )
-
-        self.backend = backend
+        return self._samples
 
     @property
     def samples_after_burn_in(self) -> [list]:
-        """The emcee samples with the initial burn-in samples removed.
+        """
+        The emcee samples with the initial burn-in samples removed.
 
-        The burn-in period is estimated using the auto-correlation times of the parameters."""
+        The burn-in period is estimated using the auto-correlation times of the parameters.
+        """
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
         return self.backend.get_chain(discard=discard, thin=thin, flat=True)
+
+    @property
+    def total_walkers(self):
+        return len(self.backend.get_chain()[0, :, 0])
+
+    @property
+    def total_steps(self):
+        return len(self.backend.get_log_prob())
+
+    @property
+    def auto_correlations(self):
+        times = self.backend.get_autocorr_time(tol=0)
+
+        previous_auto_correlation_times = emcee.autocorr.integrated_time(
+            x=self.backend.get_chain()[: -self.auto_correlation_settings.check_size, :, :], tol=0
+        )
+
+        return AutoCorrelations(
+            check_size=self.auto_correlation_settings.check_size,
+            required_length=self.auto_correlation_settings.required_length,
+            change_threshold=self.auto_correlation_settings.change_threshold,
+            times=times,
+            previous_times=previous_auto_correlation_times,
+        )

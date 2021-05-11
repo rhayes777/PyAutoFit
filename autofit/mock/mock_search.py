@@ -80,7 +80,7 @@ class MockSearch(NonLinearSearch):
                     raise e
                 index = (index + 1) % model.prior_count
         samples = MockSamples(
-            samples=samples_with_log_likelihoods(self.sample_multiplier * fit),
+            samples=samples_with_log_likelihood_list(self.sample_multiplier * fit),
             model=model,
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
@@ -101,17 +101,14 @@ class MockSearch(NonLinearSearch):
 
     def perform_update(self, model, analysis, during_analysis):
         return MockSamples(
-            samples=samples_with_log_likelihoods([1.0, 2.0]),
+            samples=samples_with_log_likelihood_list([1.0, 2.0]),
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
             ]
         )
 
-    def samples_via_sampler_from_model(self, model):
-        return MockSamples()
-
-    def samples_via_csv_json_from_model(self, model):
+    def samples_from(self, model):
         return MockSamples()
 
     @property
@@ -130,17 +127,17 @@ class MockAnalysis(Analysis):
         self.data = data
 
 
-def samples_with_log_likelihoods(
-        log_likelihoods
+def samples_with_log_likelihood_list(
+        log_likelihood_list
 ):
     return [
         Sample(
             log_likelihood=log_likelihood,
             log_prior=0,
-            weights=0
+            weight=0
         )
         for log_likelihood
-        in log_likelihoods
+        in log_likelihood_list
     ]
 
 
@@ -153,18 +150,24 @@ class MockSamples(PDFSamples):
             gaussian_tuples=None
     ):
 
-        if samples is None:
-            samples = samples_with_log_likelihoods(
-                [1.0, 2.0, 3.0]
-            )
+        self._samples = samples
 
         super().__init__(
             model=model,
-            samples=samples
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self.gaussian_tuples = gaussian_tuples
+
+    @property
+    def samples(self):
+
+        if self._samples is None:
+            return samples_with_log_likelihood_list(
+                [1.0, 2.0, 3.0]
+            )
+
+        return self._samples
 
     @property
     def max_log_likelihood_instance(self):

@@ -28,7 +28,7 @@ class Result:
 
     @property
     def log_likelihood(self):
-        return max(self.samples.log_likelihoods)
+        return max(self.samples.log_likelihood_list)
 
     @property
     def instance(self):

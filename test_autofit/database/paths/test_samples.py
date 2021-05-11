@@ -14,12 +14,13 @@ def save_samples(
         paths,
         sample
 ):
-    samples = af.OptimizerSamples(
+    samples = mock.MockSamples(
         model=af.Model(
             mock.Gaussian
         ),
-        samples=[sample]
+
     )
+    samples._samples = [sample]
     paths.save_samples(
         samples
     )
@@ -32,7 +33,7 @@ def make_sample():
     return Sample(
         log_likelihood=1.0,
         log_prior=1.0,
-        weights=0.5,
+        weight=0.5,
         centre=1.0,
         intensity=2.0,
         sigma=3.0
@@ -59,4 +60,4 @@ def test_load_samples(
     assert samples.model.cls is mock.Gaussian
 
     sample, = samples.samples
-    assert sample.weights == 0.5
+    assert sample.weight == 0.5

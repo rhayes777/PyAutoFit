@@ -636,7 +636,7 @@ class AbstractPriorModel(AbstractModel):
             unit_vector=[0.5] * len(self.prior_tuples)
         )
 
-    def log_priors_from_vector(
+    def log_prior_list_from_vector(
             self,
             vector: [float],
     ):
@@ -649,7 +649,7 @@ class AbstractPriorModel(AbstractModel):
             A vector of physical parameter values.
         Returns
         -------
-        log_priors : []
+        log_prior_list : []
             An list of the log prior value of every parameter.
         """
         return list(

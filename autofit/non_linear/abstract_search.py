@@ -20,7 +20,6 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
-from autofit.non_linear.visualizer import Visualizer
 
 
 class NonLinearSearch(ABC):
@@ -207,20 +206,20 @@ class NonLinearSearch(ABC):
 
             return log_likelihood
 
-        def log_likelihood_from_parameters(self, parameters):
-            instance = self.model.instance_from_vector(vector=parameters)
+        def log_likelihood_from(self, parameter_list):
+            instance = self.model.instance_from_vector(vector=parameter_list)
             log_likelihood = self.fit_instance(instance)
 
             return log_likelihood
 
-        def log_posterior_from_parameters(self, parameters):
+        def log_posterior_from(self, parameter_list):
 
-            log_likelihood = self.log_likelihood_from_parameters(parameters=parameters)
-            log_priors = self.model.log_priors_from_vector(vector=parameters)
+            log_likelihood = self.log_likelihood_from(parameter_list=parameter_list)
+            log_prior_list = self.model.log_prior_list_from_vector(vector=parameter_list)
 
-            return log_likelihood + sum(log_priors)
+            return log_likelihood + sum(log_prior_list)
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
             between different `NonLinearSearch`s, for example:
 
@@ -327,7 +326,7 @@ class NonLinearSearch(ABC):
         else:
 
             logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
-            samples = self.samples_via_csv_json_from_model(model=model)
+            samples = self.samples_from(model=model)
 
             if self.force_pickle_overwrite:
 
@@ -425,11 +424,13 @@ class NonLinearSearch(ABC):
 
         self.timer.update()
 
-        samples = self.samples_via_sampler_from_model(model=model)
+        samples = self.samples_from(model=model)
 
         self.paths.save_samples(
             samples
         )
+
+        self.plot_results(samples=samples)
 
         try:
             instance = samples.max_log_likelihood_instance
@@ -437,9 +438,6 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-
-            visualizer = Visualizer(visualize_path=self.paths.image_path)
-            visualizer.visualize_samples(samples=samples)
 
             analysis.visualize(
                 paths=self.paths,
@@ -487,10 +485,7 @@ class NonLinearSearch(ABC):
     def remove_state_files(self):
         pass
 
-    def samples_via_sampler_from_model(self, model):
-        raise NotImplementedError()
-
-    def samples_via_csv_json_from_model(self, model):
+    def samples_from(self, model):
         raise NotImplementedError()
 
     def make_pool(self):
@@ -529,6 +524,8 @@ class NonLinearSearch(ABC):
         self.__dict__.update(state)
     #  self.paths.restore()
 
+    def plot_results(self, samples):
+        pass
 
 class Analysis(ABC):
 

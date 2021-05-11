@@ -153,7 +153,7 @@ parameter samples, the maximum likelihood model, marginalized parameters estimat
 
 .. code-block:: bash
 
-    print(result.samples.parameters)
+    print(result.samples.parameter_lists)
     print(result.samples.max_log_likelihood_vector)
     print(result.samples.median_pdf_vector)
     print(result.samples.error_vector_at_sigma)

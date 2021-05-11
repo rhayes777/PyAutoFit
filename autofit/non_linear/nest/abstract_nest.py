@@ -78,18 +78,15 @@ class AbstractNest(NonLinearSearch):
         def __call__(self, parameters, *kwargs):
 
             try:
-                return self.figure_of_merit_from_parameters(parameters=parameters)
+                return self.figure_of_merit_from(parameter_list=parameters)
             except exc.FitException:
                 return self.stagger_resampling_figure_of_merit()
 
-        def figure_of_merit_from_parameters(self, parameters):
+        def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
             samplers use the log likelihood.
             """
-            try:
-                return self.log_likelihood_from_parameters(parameters=parameters)
-            except exc.FitException:
-                raise exc.FitException
+            return self.log_likelihood_from(parameter_list=parameter_list)
 
         def stagger_resampling_figure_of_merit(self):
             """By default, when a fit raises an exception a log likelihood of -np.inf is returned, which leads the
@@ -127,23 +124,8 @@ class AbstractNest(NonLinearSearch):
             paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_via_sampler_from_model,
+            samples_from_model=self.samples_from,
             stagger_resampling_likelihood=self.config_dict_settings["stagger_resampling_likelihood"],
             log_likelihood_cap=log_likelihood_cap,
             pool_ids=pool_ids
-        )
-
-    def samples_via_csv_json_from_model(self, model):
-
-        samples = self.paths.load_samples()
-        samples_info = self.paths.load_samples_info()
-
-        return samp.NestSamples(
-            model=model,
-            samples=samples,
-            log_evidence=samples_info["log_evidence"],
-            total_samples=samples_info["total_samples"],
-            unconverged_sample_size=samples_info["unconverged_sample_size"],
-            number_live_points=samples_info["number_live_points"],
-            time=samples_info["time"],
         )

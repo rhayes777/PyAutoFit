@@ -64,8 +64,8 @@ def model():
 @pytest.fixture(name="samples")
 def make_samples():
 
-    sample_0 = samp.Sample(log_likelihood=1.0, log_prior=2.0, weights=0.25)
-    sample_1 = samp.Sample(log_likelihood=3.0, log_prior=5.0, weights=0.75)
+    sample_0 = samp.Sample(log_likelihood=1.0, log_prior=2.0, weight=0.25)
+    sample_1 = samp.Sample(log_likelihood=3.0, log_prior=5.0, weight=0.75)
 
     return af.PDFSamples(
         model=af.Mapper(),

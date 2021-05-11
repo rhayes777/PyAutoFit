@@ -121,7 +121,6 @@ class TestClasses:
         db.Object.from_object(
             OptimizerSamples(
                 af.ModelMapper(),
-                [],
                 None
             )
         )()
