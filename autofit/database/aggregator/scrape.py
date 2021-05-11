@@ -30,7 +30,7 @@ def scrape_directory(directory: str):
         samples = item.samples
         try:
             instance = samples.max_log_likelihood_instance
-        except AttributeError:
+        except (AttributeError, NotImplementedError):
             instance = None
         fit = m.Fit(
             model=model,
