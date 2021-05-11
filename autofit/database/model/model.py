@@ -81,6 +81,10 @@ class Object(Base):
         The specific database class used depends on the type of
         the object.
 
+        If __getstate__ is defined for any instance then that
+        dictionary is used in place of the __dict__ when
+        serialising.
+
         Parameters
         ----------
         source
@@ -158,15 +162,27 @@ class Object(Base):
     def __call__(self):
         """
         Create the real instance for this object, with child
-        attributes attached
+        attributes attached.
+
+        If the instance implements __setstate__ then this is
+        called with a dictionary of instantiated children.
         """
         instance = self._make_instance()
-        for child in self.children:
-            setattr(
+        if hasattr(
                 instance,
-                child.name,
-                child()
-            )
+                "__setstate__"
+        ):
+            instance.__setstate__({
+                child.name: child()
+                for child in self.children
+            })
+        else:
+            for child in self.children:
+                setattr(
+                    instance,
+                    child.name,
+                    child()
+                )
         return instance
 
     def _add_children(
