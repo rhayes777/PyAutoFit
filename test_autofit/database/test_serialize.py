@@ -131,6 +131,28 @@ class TestClasses:
         )()
 
 
+class Serialisable:
+    def __init__(self):
+        self.value = 1
+
+    def __getstate__(self):
+        return {
+            "value": 2 * self.value
+        }
+
+    def __setstate__(self, state):
+        state["value"] *= -1
+        self.__dict__.update(
+            state
+        )
+
+
+def test_get_set_state():
+    assert db.Object.from_object(
+        Serialisable()
+    )().value == -2
+
+
 def test_none():
     assert db.Object.from_object(None)() is None
 
