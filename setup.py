@@ -13,8 +13,7 @@ with open(join(this_dir, "requirements.txt")) as f:
 
 version = environ.get("VERSION", "1.0.dev0")
 requirements.extend([
-    #f'autoconf=={version}'
-    f'autoconf_tmp=={version}'
+    f'autoconf=={version}'
 ])
 
 setup(
