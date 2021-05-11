@@ -1,6 +1,6 @@
 import inspect
 from numbers import Real
-from typing import Optional, Set
+from typing import Optional, Set, cast
 
 from autofit.database.query import condition as c
 from autofit.database.query.junction import AbstractJunction
@@ -280,7 +280,13 @@ class NamedQuery(AbstractQuery):
         ):
             return NamedQuery(
                 self.name,
-                self.other_condition == other
+                cast(
+                    NamedQuery,
+                    self.other_condition
+                )._recursive_comparison(
+                    symbol,
+                    other
+                )
             )
 
         if isinstance(
