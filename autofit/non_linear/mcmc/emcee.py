@@ -1,6 +1,7 @@
 import os
 from os import path
 from typing import Optional
+from sqlalchemy.orm import Session
 
 import emcee
 import numpy as np
@@ -34,7 +35,7 @@ class Emcee(AbstractMCMC):
             auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -65,17 +66,15 @@ class Emcee(AbstractMCMC):
         nsteps : int
             The number of steps that must be taken by every walker. The `NonLinearSearch` will thus run for nwalkers *
             nsteps iterations.
-        initializer : non_linear.initializer.Initializer
+        initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         auto_correlations_settings : AutoCorrelationsSettings
             Customizes and performs auto correlation calculations performed during and after the search.
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
-
-        All remaining attributes are emcee parameters and described at the emcee API webpage:
-
-        https://emcee.readthedocs.io/en/stable/
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
         super().__init__(

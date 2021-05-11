@@ -1,6 +1,7 @@
 from os import path
 import copy
 from typing import Optional
+from sqlalchemy.orm import Session
 
 from autoconf import conf
 
@@ -35,7 +36,7 @@ class UltraNest(abstract_nest.AbstractNest):
             prior_passer: PriorPasser = None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session : Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -67,6 +68,8 @@ class UltraNest(abstract_nest.AbstractNest):
         number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
         super().__init__(

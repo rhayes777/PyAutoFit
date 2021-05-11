@@ -1,10 +1,9 @@
 from typing import Optional
-
+from sqlalchemy.orm import Session
 import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.non_linear import samples as samp
 from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.initializer import InitializerPrior
@@ -18,7 +17,7 @@ class AbstractNest(NonLinearSearch):
             unique_tag: Optional[str] = None,
             prior_passer=None,
             iterations_per_update=None,
-            session: Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -37,6 +36,8 @@ class AbstractNest(NonLinearSearch):
         ----------
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         super().__init__(
             name=name,

@@ -3,6 +3,7 @@ from abc import ABC
 
 import numpy as np
 
+from sqlalchemy.orm import Session
 from typing import Optional
 
 from dynesty import NestedSampler as StaticSampler
@@ -39,7 +40,7 @@ class AbstractDynesty(AbstractNest, ABC):
             prior_passer: PriorPasser = None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session : Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -67,6 +68,8 @@ class AbstractDynesty(AbstractNest, ABC):
         number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
         super().__init__(
@@ -227,7 +230,7 @@ class AbstractDynesty(AbstractNest, ABC):
             )
             results = sampler.results
 
-        except FileNotFoundError:
+        except (FileNotFoundError, AttributeError):
 
             samples = self.paths.load_object(
                 "samples"
@@ -320,7 +323,7 @@ class DynestyStatic(AbstractDynesty):
             prior_passer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session : Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -348,6 +351,8 @@ class DynestyStatic(AbstractDynesty):
         number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
         super().__init__(
@@ -438,6 +443,8 @@ class DynestyDynamic(AbstractDynesty):
         number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
         super().__init__(

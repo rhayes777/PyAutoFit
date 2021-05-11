@@ -38,7 +38,8 @@ class AbstractPaths(ABC):
             parent: Optional["AbstractPaths"] = None,
             unique_tag: Optional[str] = None
     ):
-        """Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
+        """
+        Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
         API. Use via non-linear searches requires manual input of paths, whereas the search API manages this using the
         search attributes.
 

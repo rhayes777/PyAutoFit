@@ -1,6 +1,7 @@
 from os import path
 import numpy as np
 from typing import Optional
+from sqlalchemy.orm import Session
 
 from autoconf import conf
 
@@ -23,7 +24,7 @@ class AbstractPySwarms(AbstractOptimizer):
             initializer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session : Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -45,11 +46,13 @@ class AbstractPySwarms(AbstractOptimizer):
             and also acts as the folder after the path prefix and before the search name.
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        initializer : non_linear.initializer.Initializer
+        initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
         super().__init__(
@@ -285,7 +288,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             initializer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session : Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -308,7 +311,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             and also acts as the folder after the path prefix and before the search name.
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        initializer : non_linear.initializer.Initializer
+        initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
@@ -374,7 +377,7 @@ class PySwarmsLocal(AbstractPySwarms):
             prior_passer=None,
             iterations_per_update : int = None,
             number_of_cores : int = None,
-            session : Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -397,7 +400,7 @@ class PySwarmsLocal(AbstractPySwarms):
             and also acts as the folder after the path prefix and before the search name.
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        initializer : non_linear.initializer.Initializer
+        initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         number_of_cores : int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a

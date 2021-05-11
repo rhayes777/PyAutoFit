@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from os import path
 from time import sleep
 from typing import Optional
+from sqlalchemy.orm import Session
 
 import numpy as np
 
@@ -32,7 +33,7 @@ class NonLinearSearch(ABC):
             initializer: Initializer = None,
             iterations_per_update: int = None,
             number_of_cores: int = 1,
-            session: Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -52,8 +53,10 @@ class NonLinearSearch(ABC):
             and also acts as the folder after the path prefix and before the search name.
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        initializer : non_linear.initializer.Initializer
+        initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         from autofit.non_linear.paths.database import DatabasePaths
         #

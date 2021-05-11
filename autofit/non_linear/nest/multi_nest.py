@@ -2,6 +2,7 @@ import os
 import shutil
 from os import path
 from typing import Optional
+from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -29,7 +30,7 @@ class MultiNest(abstract_nest.AbstractNest):
             path_prefix=None,
             unique_tag: Optional[str] = None,
             prior_passer=None,
-            session: Optional[bool] = None,
+            session : Optional[Session] = None,
             **kwargs
     ):
         """
@@ -53,6 +54,8 @@ class MultiNest(abstract_nest.AbstractNest):
             and also acts as the folder after the path prefix and before the search name.
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
         super().__init__(
