@@ -110,10 +110,7 @@ class Zeus(AbstractMCMC):
             
             `Zeus` uses the log posterior.
             """
-            try:
-                return self.log_posterior_from(parameter_list=parameter_list)
-            except exc.FitException:
-                raise exc.FitException
+            return self.log_posterior_from(parameter_list=parameter_list)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
@@ -303,7 +300,7 @@ class ZeusSamples(MCMCSamples):
             zeus_sampler,
             auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """
         Attributes

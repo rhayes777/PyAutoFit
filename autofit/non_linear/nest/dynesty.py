@@ -182,8 +182,6 @@ class AbstractDynesty(AbstractNest, ABC):
 
                     except (ValueError, np.linalg.LinAlgError):
 
-                        dihfoisdj
-
                         continue
 
             sampler.loglikelihood = None
@@ -489,7 +487,7 @@ class DynestySamples(NestSamples):
             results: Results,
             number_live_points : int,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """
         The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.

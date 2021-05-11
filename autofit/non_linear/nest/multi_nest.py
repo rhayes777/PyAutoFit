@@ -208,7 +208,7 @@ class MultiNestSamples(NestSamples):
             file_weighted_samples : str,
             file_resume : str,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.

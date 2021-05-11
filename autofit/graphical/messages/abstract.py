@@ -269,8 +269,7 @@ class AbstractMessage(ABC):
     logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
-    def project(cls, samples: np.ndarray, log_weight_list: np.ndarray
-    ) -> "AbstractMessage":
+    def project(cls, samples: np.ndarray, log_weight_list: np.ndarray) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
         that match the sufficient statistics

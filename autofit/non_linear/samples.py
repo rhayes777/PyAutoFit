@@ -191,7 +191,7 @@ class OptimizerSamples:
     def __init__(
             self,
             model: AbstractPriorModel,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
@@ -408,7 +408,7 @@ class PDFSamples(OptimizerSamples):
             self,
             model: AbstractPriorModel,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
@@ -814,7 +814,7 @@ class MCMCSamples(PDFSamples):
             model: ModelMapper,
             auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """
         Attributes
@@ -976,7 +976,7 @@ class NestSamples(PDFSamples):
             self,
             model: AbstractPriorModel,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
@@ -1102,7 +1102,7 @@ class StoredSamples(PDFSamples):
             model: AbstractPriorModel,
             samples,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.

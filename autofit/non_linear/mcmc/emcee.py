@@ -18,8 +18,8 @@ from autofit.non_linear.samples import MCMCSamples, Sample
 from autofit.plot import EmceePlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
-class Emcee(AbstractMCMC):
 
+class Emcee(AbstractMCMC):
     __identifier_fields__ = (
         "nwalkers",
     )
@@ -28,13 +28,13 @@ class Emcee(AbstractMCMC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
             initializer=None,
             auto_correlations_settings=AutoCorrelationsSettings(),
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[bool] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[bool] = None,
             **kwargs
     ):
         """
@@ -105,10 +105,7 @@ class Emcee(AbstractMCMC):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. `Emcee`
             uses the log posterior.
             """
-            try:
-                return self.log_posterior_from(parameter_list=parameter_list)
-            except exc.FitException:
-                raise exc.FitException
+            return self.log_posterior_from(parameter_list=parameter_list)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
@@ -172,7 +169,6 @@ class Emcee(AbstractMCMC):
             logger.info("No Emcee samples found, beginning new non-linear search.")
 
             for index, parameters in enumerate(initial_parameter_lists):
-
                 emcee_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
@@ -192,7 +188,6 @@ class Emcee(AbstractMCMC):
                     skip_initial_state_check=True,
                     store=True,
             ):
-
                 pass
 
             emcee_state = emcee_sampler.get_last_sample()
@@ -284,7 +279,7 @@ class EmceeSamples(MCMCSamples):
             backend: emcee.backends.HDFBackend,
             auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
@@ -331,11 +326,19 @@ class EmceeSamples(MCMCSamples):
             return self._samples
 
         parameter_lists = self.backend.get_chain(flat=True).tolist()
+
         log_prior_list = [
             sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
+
         log_posterior_list = self.backend.get_log_prob(flat=True).tolist()
-        log_likelihood_list = [log_posterior - log_prior for log_posterior, log_prior in zip(log_posterior_list, log_prior_list)]
+
+        log_likelihood_list = [
+            log_posterior - log_prior for
+            log_posterior, log_prior in
+            zip(log_posterior_list, log_prior_list)
+        ]
+
         weight_list = len(log_likelihood_list) * [1.0]
 
         self._samples = Sample.from_lists(
@@ -369,7 +372,6 @@ class EmceeSamples(MCMCSamples):
 
     @property
     def auto_correlations(self):
-
         times = self.backend.get_autocorr_time(tol=0)
 
         previous_auto_correlation_times = emcee.autocorr.integrated_time(

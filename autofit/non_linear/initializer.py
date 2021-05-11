@@ -133,6 +133,7 @@ class Initializer:
 
         return initial_unit_parameter_lists, initial_parameter_lists, initial_figure_of_merit_list
 
+
 class InitializerPrior(Initializer):
     def __init__(self):
         """

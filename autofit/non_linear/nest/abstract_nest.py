@@ -86,10 +86,7 @@ class AbstractNest(NonLinearSearch):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
             samplers use the log likelihood.
             """
-            try:
-                return self.log_likelihood_from(parameter_list=parameter_list)
-            except exc.FitException:
-                raise exc.FitException
+            return self.log_likelihood_from(parameter_list=parameter_list)
 
         def stagger_resampling_figure_of_merit(self):
             """By default, when a fit raises an exception a log likelihood of -np.inf is returned, which leads the
