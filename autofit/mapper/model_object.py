@@ -8,6 +8,15 @@ from hashlib import md5
 RESOLUTION = 1e-8
 
 
+def is_identifiable(value):
+    return hasattr(
+        value,
+        "identifier"
+    ) and not inspect.isclass(
+        value
+    )
+
+
 class Identifier:
     def __init__(self, obj):
         """
@@ -56,6 +65,24 @@ class Identifier:
                     in d.items()
                     if k in fields
                 }
+            elif hasattr(
+                    value,
+                    "__class__"
+            ) and not inspect.isclass(
+                value
+            ) and not isinstance(
+                value,
+                ModelObject
+            ):
+                args = inspect.getfullargspec(
+                    value.__class__
+                ).args
+                d = {
+                    k: v
+                    for k, v
+                    in d.items()
+                    if k in args
+                }
             self.add_value_to_hash_list(
                 d
             )
@@ -72,7 +99,7 @@ class Identifier:
                 value, float
         ):
             try:
-                value = RESOLUTION * int(
+                value = RESOLUTION * round(
                     value / RESOLUTION
                 )
             except OverflowError:
@@ -100,14 +127,10 @@ class Identifier:
                 property
         ):
             return
-        if hasattr(
-                value,
-                "identifier"
-        ) and not inspect.isclass(
-            value
-        ):
+        if is_identifiable(value):
+            string = value.identifier
             self.hash_list.append(
-                value.identifier
+                string
             )
         else:
             self._add_value_to_hash_list(
