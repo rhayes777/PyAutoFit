@@ -74,29 +74,3 @@ def test_values(
         sample,
         NestSamples
     )
-
-
-def test_values_on_filtered(
-        aggregator,
-        fit
-):
-    sample, = aggregator.query(
-        aggregator.galaxies
-    ).values(
-        "samples"
-    )
-    assert isinstance(
-        sample,
-        NestSamples
-    )
-
-
-def test_random_api(
-        aggregator
-):
-    for samples in aggregator.values("samples"):
-        print("log(likelihood), log(prior), log(posterior) and weight of the tenth sample.")
-        print(samples.log_likelihood_list[9])
-        print(samples.log_prior_list[9])
-        print(samples.log_posterior_list[9])
-        print(samples.weight_list[9])
