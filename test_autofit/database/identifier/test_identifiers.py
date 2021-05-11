@@ -11,8 +11,25 @@ class Class:
         self.one = one
         self.two = two
         self.three = three
+        self.four = None
 
     __identifier_fields__ = ("one", "two")
+
+
+class AttributeClass:
+    def __init__(self):
+        self.attribute = None
+
+
+def test_constructor_only():
+    attribute = AttributeClass()
+    attribute.attribute = 1
+
+    assert Identifier(
+        AttributeClass()
+    ) == Identifier(
+        attribute
+    )
 
 
 def test_missing_field():

@@ -148,11 +148,13 @@ class AbstractPaths(ABC):
             logger.warn(
                 "Both model and search should be set"
             )
+
         if self._identifier is None:
             identifier_list = [
                 self.search,
                 self.model
             ]
+
             if self.unique_tag is not None:
                 identifier_list.append(
                     self.unique_tag

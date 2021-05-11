@@ -286,9 +286,8 @@ class Sensitivity:
         """
         paths = self.search.paths
         search_instance = self.search.copy_with_paths(
-            DirectoryPaths(
+            paths.create_child(
                 name=name_path,
-                path_prefix=paths.path_prefix,
             )
         )
 

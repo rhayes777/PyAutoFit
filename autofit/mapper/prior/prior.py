@@ -10,6 +10,7 @@ from scipy.special import erfcinv
 
 from autoconf import conf
 from autofit import exc
+from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior_model.attribute_pair import (
@@ -71,7 +72,7 @@ class AbsoluteWidthModifier(WidthModifier):
         return self.value
 
 
-class TuplePrior:
+class TuplePrior(ModelObject):
     """
     A prior comprising one or more priors in a tuple
     """
