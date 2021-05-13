@@ -201,9 +201,16 @@ class NonLinearSearch(ABC):
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
 
+            old_stdout = sys.stdout
+            log_file = open("message.log", "a")
+
             sys.stdout = log_file
 
             print(mp.current_process().pid, log_likelihood)
+
+            sys.stdout = old_stdout
+
+            log_file.close()
 
             return log_likelihood
 
