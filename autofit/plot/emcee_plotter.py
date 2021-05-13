@@ -1,5 +1,6 @@
 from autofit.plot.samples_plotters import MCMCPlotter
 
+import numpy as np
 import corner
 
 class EmceePlotter(MCMCPlotter):
@@ -7,7 +8,7 @@ class EmceePlotter(MCMCPlotter):
     def corner(self, **kwargs):
 
         corner.corner(
-            xs=self.samples.parameter_lists,
+            data=np.asarray(self.samples.parameter_lists),
             weight_list=self.samples.weight_list,
             labels=self.model.parameter_labels_latex,
             **kwargs
