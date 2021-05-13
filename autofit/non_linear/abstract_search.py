@@ -182,7 +182,6 @@ class NonLinearSearch(ABC):
             self.i = 0
 
             self.paths = paths
-            self.max_log_likelihood = -np.inf
             self.analysis = analysis
 
             self.model = model
@@ -199,13 +198,8 @@ class NonLinearSearch(ABC):
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
 
-            if log_likelihood > self.max_log_likelihood:
-
-                if self.pool_ids is not None:
-                    if mp.current_process().pid != min(self.pool_ids):
-                        return log_likelihood
-
-                self.max_log_likelihood = log_likelihood
+            if self.pool_ids is not None:
+                print(mp.current_process().pid, log_likelihood)
 
             return log_likelihood
 
