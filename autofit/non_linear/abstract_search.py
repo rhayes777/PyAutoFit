@@ -22,6 +22,7 @@ from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 
+import sys
 
 class NonLinearSearch(ABC):
     def __init__(
@@ -198,8 +199,16 @@ class NonLinearSearch(ABC):
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
 
-            if self.pool_ids is not None:
-                print(mp.current_process().pid, log_likelihood)
+            old_stdout = sys.stdout
+            log_file = open("message.log", "w")
+
+            sys.stdout = log_file
+
+            print(mp.current_process().pid, log_likelihood)
+
+            sys.stdout = old_stdout
+
+            log_file.close()
 
             return log_likelihood
 
