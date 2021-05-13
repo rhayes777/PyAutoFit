@@ -24,7 +24,6 @@ from autofit.non_linear.timer import Timer
 
 import sys
 
-old_stdout = sys.stdout
 log_file = open("message.log", "w")
 
 class NonLinearSearch(ABC):
@@ -201,6 +200,8 @@ class NonLinearSearch(ABC):
             if self.log_likelihood_cap is not None:
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
+
+            sys.stdout = log_file
 
             print(mp.current_process().pid, log_likelihood)
 
