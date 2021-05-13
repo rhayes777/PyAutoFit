@@ -210,6 +210,7 @@ class NonLinearSearch(ABC):
             return log_likelihood
 
         def log_likelihood_from(self, parameter_list):
+
             instance = self.model.instance_from_vector(vector=parameter_list)
             log_likelihood = self.fit_instance(instance)
 
