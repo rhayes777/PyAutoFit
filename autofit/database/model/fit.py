@@ -115,18 +115,10 @@ class Fit(Base):
 
     def __init__(
             self,
-            model=None,
-            info=None,
             **kwargs
     ):
-        self.id = str(Identifier((
-            model,
-            info
-        )))
         super().__init__(
-            **kwargs,
-            model=model,
-            info=info
+            **kwargs
         )
 
     parent_id = Column(

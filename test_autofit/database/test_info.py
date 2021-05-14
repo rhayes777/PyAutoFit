@@ -8,6 +8,7 @@ from autofit import database as db
 )
 def make_fit():
     return db.Fit(
+        id="id",
         info={
             "key": "value"
         }
