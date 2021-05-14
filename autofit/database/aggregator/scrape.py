@@ -29,6 +29,8 @@ def scrape_directory(directory: str):
 
         model = item.model
         samples = item.samples
+        search = item.search
+
         try:
             instance = samples.max_log_likelihood_instance
         except (AttributeError, NotImplementedError):
@@ -36,8 +38,9 @@ def scrape_directory(directory: str):
 
         fit = m.Fit(
             id=str(Identifier([
-                item.search,
-                model
+                search,
+                model,
+                search.unique_tag
             ])),
             model=model,
             instance=instance,
