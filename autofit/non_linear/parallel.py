@@ -163,7 +163,22 @@ class SneakyJob(AbstractJob):
     def __init__(self, function, *args):
         super().__init__()
         self.function = function
-        self.args = args
+
+        self.args = list()
+        self.fitness_index = None
+
+        for i, arg in enumerate(args):
+            if isinstance(
+                    arg,
+                    NonLinearSearch.Fitness
+            ):
+                if self.fitness_index is not None:
+                    raise AssertionError(
+                        f"Two arguments of type NonLinear.Fitness passed to {function.__name__}"
+                    )
+                self.fitness_index = i
+            else:
+                self.args.append(arg)
 
     def perform(self):
         return self.function(

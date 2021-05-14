@@ -5,7 +5,7 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from autofit.non_linear.parallel import SneakyPool
+from autofit.non_linear.parallel import SneakyPool, SneakyJob
 
 
 @pytest.fixture(
@@ -62,6 +62,22 @@ def make_paths(
     return model
 
 
+@pytest.fixture(
+    name="fitness"
+)
+def make_fitness(
+        paths,
+        model,
+        analysis,
+):
+    return Fitness(
+        paths=paths,
+        model=model,
+        analysis=analysis,
+        samples_from_model=None
+    )
+
+
 class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
         return -1
@@ -72,25 +88,28 @@ class Fitness(af.NonLinearSearch.Fitness):
         return -1
 
 
+def test_sneaky_job(fitness):
+    job = SneakyJob(
+        times_two,
+        1,
+        fitness
+    )
+    assert job.args == [1]
+    assert job.fitness_index == 1
+
+
 def times_two(x):
     return 2 * x
 
 
 def test_sneaky_pool(
-        model,
-        analysis,
-        paths
+        fitness
 ):
     number_of_cores = 2
 
     pool = SneakyPool(
         processes=number_of_cores,
-        fitness=Fitness(
-            paths=paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=None
-        )
+        fitness=fitness
     )
     ids = pool.map(times_two, range(number_of_cores))
 
