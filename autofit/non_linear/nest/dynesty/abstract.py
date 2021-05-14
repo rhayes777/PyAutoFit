@@ -213,8 +213,6 @@ class AbstractDynesty(AbstractNest, ABC):
         model
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         """
 
         try:

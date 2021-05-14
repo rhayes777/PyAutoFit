@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from itertools import count
 from typing import Iterable
 
+from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.log import logger
 
 
@@ -44,7 +45,8 @@ class Process(multiprocessing.Process):
             name: str,
             job_queue: multiprocessing.Queue,
             initializer=None,
-            initargs=None
+            initargs=None,
+            **_
     ):
         """
         A parallel process that consumes Jobs through the job queue and outputs results through its own queue.
@@ -90,7 +92,6 @@ class Process(multiprocessing.Process):
             if self.job_queue.empty():
                 break
             else:
-                self.count = 0
                 job = self.job_queue.get()
                 self.queue.put(job.perform())
         logger.info("terminating process {}".format(self.name))
@@ -102,7 +103,8 @@ class Process(multiprocessing.Process):
             jobs: Iterable[AbstractJob],
             number_of_cores: int,
             initializer=None,
-            initargs=None
+            initargs=None,
+            **kwargs
     ):
         """
         Run the collection of jobs across n - 1 other cores.
@@ -124,11 +126,12 @@ class Process(multiprocessing.Process):
         job_queue = multiprocessing.Queue()
 
         processes = [
-            Process(
+            cls(
                 str(number),
                 job_queue,
                 initializer=initializer,
-                initargs=initargs
+                initargs=initargs,
+                **kwargs
             )
             for number in range(number_of_cores - 1)
         ]
@@ -172,12 +175,14 @@ class SneakyPool:
     def __init__(
             self,
             processes,
+            fitness,
             initializer=None,
             initargs=None
     ):
         self.processes = processes
         self.initializer = initializer
         self.initargs = initargs
+        self.fitness = fitness
 
     def map(self, function, args_list):
         jobs = [
@@ -193,11 +198,30 @@ class SneakyPool:
         ]
 
         results = list()
-        for result in Process.run_jobs(
+        for result in SneakyProcess.run_jobs(
                 jobs,
                 self.processes,
                 initializer=self.initializer,
-                initargs=self.initargs
+                initargs=self.initargs,
+                fitness=self.fitness
         ):
             results.append(result)
         return results
+
+
+class SneakyProcess(Process):
+    def __init__(
+            self,
+            name: str,
+            job_queue: multiprocessing.Queue,
+            fitness: NonLinearSearch.Fitness,
+            initializer=None,
+            initargs=None,
+    ):
+        super().__init__(
+            name=name,
+            job_queue=job_queue,
+            initializer=initializer,
+            initargs=initargs
+        )
+        self.fitness = fitness
