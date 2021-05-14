@@ -91,7 +91,7 @@ class Process(multiprocessing.Process):
                 *initargs
             )
 
-        logger.info("starting process {}".format(self.name))
+        logger.debug("starting process {}".format(self.name))
         while True:
             if self.job_queue.empty():
                 break
@@ -102,7 +102,7 @@ class Process(multiprocessing.Process):
                         *self.job_args
                     )
                 )
-        logger.info("terminating process {}".format(self.name))
+        logger.debug("terminating process {}".format(self.name))
         self.job_queue.close()
 
     @classmethod
