@@ -1,25 +1,22 @@
-from os import path
 from abc import ABC
-
-import numpy as np
-
-from sqlalchemy.orm import Session
+from os import path
 from typing import Optional
 
+import numpy as np
 from dynesty import NestedSampler as StaticSampler
 from dynesty.dynesty import DynamicNestedSampler
 from dynesty.results import Results
+from sqlalchemy.orm import Session
 
 from autoconf import conf
-
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.log import logger
 from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples import NestSamples, Sample
-
 from autofit.plot import DynestyPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
+
 
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(unit_vector=cube)
@@ -36,11 +33,11 @@ class AbstractDynesty(AbstractNest, ABC):
             self,
             name: str = "",
             path_prefix: str = "",
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer: PriorPasser = None,
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -267,7 +264,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
     def remove_state_files(self):
-       self.paths.remove_object("dynesty")
+        self.paths.remove_object("dynesty")
 
     @property
     def total_live_points(self):
@@ -285,22 +282,21 @@ class AbstractDynesty(AbstractNest, ABC):
             samples=samples,
             output=Output(path=path.join(self.paths.image_path, "search"), format="png")
         )
-        
+
         if should_plot("cornerplot"):
             plotter.cornerplot()
 
         if should_plot("runplot"):
             plotter.runplot()
-            
+
         if should_plot("traceplot"):
             plotter.traceplot()
-            
+
         if should_plot("cornerpoints"):
             plotter.cornerpoints()
-        
+
 
 class DynestyStatic(AbstractDynesty):
-
     __identifier_fields__ = (
         "nlive",
         "bound",
@@ -319,11 +315,11 @@ class DynestyStatic(AbstractDynesty):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -394,7 +390,6 @@ class DynestyStatic(AbstractDynesty):
 
 
 class DynestyDynamic(AbstractDynesty):
-
     __identifier_fields__ = (
         "bound",
         "sample",
@@ -412,10 +407,10 @@ class DynestyDynamic(AbstractDynesty):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
             **kwargs
     ):
         """
@@ -492,7 +487,7 @@ class DynestySamples(NestSamples):
             self,
             model: AbstractPriorModel,
             results: Results,
-            number_live_points : int,
+            number_live_points: int,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
