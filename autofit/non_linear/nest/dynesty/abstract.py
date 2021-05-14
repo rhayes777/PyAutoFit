@@ -13,6 +13,7 @@ from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.plot import DynestyPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 from .samples import DynestySamples
+from ...parallel import SneakyPool
 
 
 def prior_transform(cube, model):
@@ -112,10 +113,13 @@ class AbstractDynesty(AbstractNest, ABC):
         set of accepted ssamples of the fit.
         """
 
-        pool, pool_ids = self.make_pool()
-
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
+        )
+
+        pool = SneakyPool(
+            processes=self.number_of_cores,
+            fitness=fitness_function
         )
 
         if self.paths.is_object("dynesty"):
@@ -213,8 +217,6 @@ class AbstractDynesty(AbstractNest, ABC):
         model
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
         """
 
         try:

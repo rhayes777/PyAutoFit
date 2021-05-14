@@ -58,8 +58,7 @@ class AbstractNest(NonLinearSearch):
                 model,
                 samples_from_model,
                 stagger_resampling_likelihood,
-                log_likelihood_cap=None,
-                pool_ids=None
+                log_likelihood_cap=None
         ):
 
             super().__init__(
@@ -67,8 +66,7 @@ class AbstractNest(NonLinearSearch):
                 analysis=analysis,
                 model=model,
                 samples_from_model=samples_from_model,
-                log_likelihood_cap=log_likelihood_cap,
-                pool_ids=pool_ids
+                log_likelihood_cap=log_likelihood_cap
             )
 
             self.stagger_resampling_likelihood = stagger_resampling_likelihood
@@ -120,7 +118,7 @@ class AbstractNest(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
+    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
 
         return self.__class__.Fitness(
             paths=self.paths,
@@ -128,6 +126,5 @@ class AbstractNest(NonLinearSearch):
             analysis=analysis,
             samples_from_model=self.samples_from,
             stagger_resampling_likelihood=self.config_dict_settings["stagger_resampling_likelihood"],
-            log_likelihood_cap=log_likelihood_cap,
-            pool_ids=pool_ids
+            log_likelihood_cap=log_likelihood_cap
         )
