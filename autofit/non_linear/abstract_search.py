@@ -196,8 +196,6 @@ class NonLinearSearch(ABC):
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
 
-            print(mp.current_process().pid, log_likelihood)
-
             return log_likelihood
 
         def log_likelihood_from(self, parameter_list):
