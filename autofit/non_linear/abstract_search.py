@@ -4,7 +4,6 @@ import multiprocessing as mp
 import time
 from abc import ABC, abstractmethod
 from os import path
-from time import sleep
 from typing import Optional
 
 import numpy as np
@@ -177,7 +176,7 @@ class NonLinearSearch(ABC):
         return search_instance
 
     class Fitness:
-        def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None, pool_ids=None):
+        def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None):
 
             self.i = 0
 
@@ -188,7 +187,6 @@ class NonLinearSearch(ABC):
             self.samples_from_model = samples_from_model
 
             self.log_likelihood_cap = log_likelihood_cap
-            self.pool_ids = pool_ids
 
         def fit_instance(self, instance):
 
@@ -498,15 +496,12 @@ class NonLinearSearch(ABC):
 
         if self.number_of_cores == 1:
 
-            return None, None
+            return None
 
         else:
-            pool = mp.Pool(
+            return mp.Pool(
                 processes=self.number_of_cores
             )
-            ids = pool.map(f, range(self.number_of_cores))
-
-            return pool, ids
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
@@ -647,8 +642,3 @@ class PriorPasser:
         use_errors = config("prior_passer", "use_errors")
         use_widths = config("prior_passer", "use_widths")
         return PriorPasser(sigma=sigma, use_errors=use_errors, use_widths=use_widths)
-
-
-def f(_):
-    process = mp.current_process()
-    return process.pid

@@ -112,10 +112,10 @@ class AbstractDynesty(AbstractNest, ABC):
         set of accepted ssamples of the fit.
         """
 
-        pool, pool_ids = self.make_pool()
+        pool = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
         if self.paths.is_object("dynesty"):
