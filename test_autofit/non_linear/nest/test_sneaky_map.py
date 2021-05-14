@@ -121,10 +121,6 @@ def identity(*args):
     return args
 
 
-def times_two(x):
-    return 2 * x
-
-
 def test_sneaky_pool(
         fitness
 ):
@@ -134,9 +130,16 @@ def test_sneaky_pool(
         processes=number_of_cores,
         fitness=fitness
     )
-    ids = pool.map(times_two, range(number_of_cores))
+    results = pool.map(identity, [(0, fitness), (1, fitness)])
 
-    assert list(ids) == [0, 2]
+    assert len(results) == 2
+
+    for i, t in enumerate(results):
+        assert t[0] == i
+        assert isinstance(
+            t[1],
+            Fitness
+        )
 
 
 def _test_sneaky_map(

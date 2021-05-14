@@ -95,7 +95,11 @@ class Process(multiprocessing.Process):
                 break
             else:
                 job = self.job_queue.get()
-                self.queue.put(job.perform())
+                self.queue.put(
+                    job.perform(
+                        *self.job_args
+                    )
+                )
         logger.info("terminating process {}".format(self.name))
         self.job_queue.close()
 
@@ -226,7 +230,7 @@ class SneakyPool:
                 self.processes,
                 initializer=self.initializer,
                 initargs=self.initargs,
-                job_args=self.fitness,
+                job_args=(self.fitness,),
         ):
             results.append(result)
         return results
