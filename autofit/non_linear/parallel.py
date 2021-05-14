@@ -32,7 +32,7 @@ class AbstractJob(ABC):
         self.number = next(self._number)
 
     @abstractmethod
-    def perform(self):
+    def perform(self, *args):
         """
         Perform the task and return the result
         """
@@ -180,9 +180,14 @@ class SneakyJob(AbstractJob):
             else:
                 self.args.append(arg)
 
-    def perform(self):
+    def perform(self, fitness_argument):
+        args = (
+                self.args[:self.fitness_index]
+                + [fitness_argument]
+                + self.args[self.fitness_index:]
+        )
         return self.function(
-            *self.args
+            *args
         )
 
 

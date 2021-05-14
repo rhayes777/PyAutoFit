@@ -88,14 +88,37 @@ class Fitness(af.NonLinearSearch.Fitness):
         return -1
 
 
-def test_sneaky_job(fitness):
-    job = SneakyJob(
-        times_two,
+@pytest.fixture(
+    name="sneaky_job"
+)
+def make_sneaky_job(
+        fitness
+):
+    return SneakyJob(
+        identity,
         1,
         fitness
     )
-    assert job.args == [1]
-    assert job.fitness_index == 1
+
+
+def test_sneaky_removal(
+        sneaky_job
+):
+    assert sneaky_job.args == [1]
+    assert sneaky_job.fitness_index == 1
+
+
+def test_sneaky_call(
+        sneaky_job,
+        fitness
+):
+    assert sneaky_job.perform(
+        fitness
+    ) == (1, fitness)
+
+
+def identity(*args):
+    return args
 
 
 def times_two(x):
@@ -116,7 +139,7 @@ def test_sneaky_pool(
     assert list(ids) == [0, 2]
 
 
-def test_sneaky_map(
+def _test_sneaky_map(
         search,
         model,
         analysis
