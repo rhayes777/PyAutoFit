@@ -107,9 +107,6 @@ class MultiNest(abstract_nest.AbstractNest):
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
 
-            if log_likelihood > self.max_log_likelihood:
-                self.max_log_likelihood = log_likelihood
-
             return log_likelihood
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> res.Result:
