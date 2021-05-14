@@ -131,7 +131,7 @@ def test_sneaky_pool(
         processes=number_of_cores,
         fitness=fitness
     )
-    results = pool.map(identity, [(0, fitness), (1, fitness)])
+    results = list(pool.map(identity, [(0, fitness), (1, fitness)]))
 
     assert len(results) == 2
 

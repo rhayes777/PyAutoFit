@@ -170,7 +170,23 @@ class Process(multiprocessing.Process):
 
 def _is_likelihood_function(
         function
-):
+) -> bool:
+    """
+    Is the function a callable used to evaluate likelihood?
+
+    Naturally in Autofit this would be a child of the Fitness class.
+    In Dynesty the likelihood function is wrapped in _function_wrapper
+    and called 'loglikelihood'
+
+    Parameters
+    ----------
+    function
+        Some object
+
+    Returns
+    -------
+    Is the object a log likelihood function?
+    """
     return isinstance(
         function,
         NonLinearSearch.Fitness
@@ -184,6 +200,20 @@ def _is_likelihood_function(
 
 class SneakyJob(AbstractJob):
     def __init__(self, function, *args):
+        """
+        A job performed on a process.
+
+        The log likelhood function is filtered from the args, but its index retained.
+        This prevents large amounts of data comprised in an Analysis class from being
+        copied over to processes multiple times.
+
+        Parameters
+        ----------
+        function
+            Some function to which a pool.map has been applied
+        args
+            The arguments to that function
+        """
         super().__init__()
         self.function = function
 
@@ -202,10 +232,24 @@ class SneakyJob(AbstractJob):
             else:
                 self.args.append(arg)
 
-    def perform(self, fitness_argument):
+    def perform(self, likelihood_function):
+        """
+        Computes the log likelihood. The likelihood function
+        is passed from a copy associated with the current process
+
+        Parameters
+        ----------
+        likelihood_function
+            A likelihood function associated with the processes
+            to avoid copying data for every single function call
+
+        Returns
+        -------
+        The log likelihood
+        """
         args = (
                 self.args[:self.fitness_index]
-                + [fitness_argument]
+                + [likelihood_function]
                 + self.args[self.fitness_index:]
         )
         return self.function(
@@ -216,17 +260,49 @@ class SneakyJob(AbstractJob):
 class SneakyPool:
     def __init__(
             self,
-            processes,
-            fitness,
+            processes: int,
+            fitness: NonLinearSearch.Fitness,
             initializer=None,
             initargs=None
     ):
+        """
+        Implements the same interface as multiprocessing's pool,
+        but associates the fitness object with each process to
+        prevent data being copies to each process for every function
+        call.
+
+        Parameters
+        ----------
+        processes
+            The number of cores to be used simultaneously.
+        fitness
+            A class comprising data and a model which can be used
+            to evaluate the likelihood of a live point
+        initializer
+        initargs
+        """
         self.processes = processes
         self.initializer = initializer
         self.initargs = initargs
         self.fitness = fitness
 
     def map(self, function, args_list):
+        """
+        Execute the function with the given arguments across all of the
+        processes. The likelihood  argument is removed from each args in
+        the args_list.
+
+        Parameters
+        ----------
+        function
+            Some function
+        args_list
+            An iterable of iterables of arguments passed to the function
+
+        Yields
+        ------
+        Results from the function evaluation
+        """
         jobs = [
             SneakyJob(
                 function,
@@ -239,7 +315,6 @@ class SneakyPool:
             ) for args in args_list
         ]
 
-        results = list()
         for result in Process.run_jobs(
                 jobs,
                 self.processes,
@@ -247,5 +322,4 @@ class SneakyPool:
                 initargs=self.initargs,
                 job_args=(self.fitness,),
         ):
-            results.append(result)
-        return results
+            yield result
