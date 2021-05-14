@@ -2,7 +2,6 @@ import collections
 import multiprocessing
 from abc import ABC, abstractmethod
 from itertools import count
-from time import sleep
 from typing import Iterable
 
 from autofit.non_linear.log import logger
@@ -62,8 +61,6 @@ class Process(multiprocessing.Process):
 
         self.job_queue = job_queue
         self.queue = multiprocessing.Queue()
-        self.count = 0
-        self.max_count = 250
 
         self.initializer = initializer
         self.initargs = initargs
@@ -90,11 +87,8 @@ class Process(multiprocessing.Process):
 
         logger.info("starting process {}".format(self.name))
         while True:
-            sleep(0.025)
-            if self.count >= self.max_count:
-                break
             if self.job_queue.empty():
-                self.count += 1
+                break
             else:
                 self.count = 0
                 job = self.job_queue.get()
