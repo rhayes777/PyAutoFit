@@ -509,8 +509,6 @@ class NonLinearSearch(ABC):
     def __setstate__(self, state):
         self.__dict__.update(state)
 
-    #  self.paths.restore()
-
     def plot_results(self, samples):
         pass
 

@@ -30,7 +30,8 @@ def manage_output_path():
 )
 def make_search():
     return af.DynestyStatic(
-        number_of_cores=2
+        number_of_cores=2,
+        maxcall=10
     )
 
 
@@ -114,7 +115,7 @@ def test_sneaky_call(
 ):
     assert sneaky_job.perform(
         fitness
-    ) == (1, fitness)
+    ) == ([1, fitness],)
 
 
 def identity(*args):
@@ -135,9 +136,9 @@ def test_sneaky_pool(
     assert len(results) == 2
 
     for i, t in enumerate(results):
-        assert t[0] == i
+        assert t[0][0] == i
         assert isinstance(
-            t[1],
+            t[0][1],
             Fitness
         )
 
