@@ -142,7 +142,7 @@ def test_sneaky_pool(
         )
 
 
-def _test_sneaky_map(
+def test_sneaky_map(
         search,
         model,
         analysis

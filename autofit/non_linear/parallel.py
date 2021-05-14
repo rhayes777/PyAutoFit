@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from itertools import count
 from typing import Iterable
 
+from dynesty.dynesty import _function_wrapper
+
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.log import logger
 
@@ -166,6 +168,20 @@ class Process(multiprocessing.Process):
             process.join(timeout=1.0)
 
 
+def _is_likelihood_function(
+        function
+):
+    return isinstance(
+        function,
+        NonLinearSearch.Fitness
+    ) or (
+                   isinstance(
+                       function,
+                       _function_wrapper
+                   ) and function.name == 'loglikelihood'
+           )
+
+
 class SneakyJob(AbstractJob):
     def __init__(self, function, *args):
         super().__init__()
@@ -175,9 +191,8 @@ class SneakyJob(AbstractJob):
         self.fitness_index = None
 
         for i, arg in enumerate(args):
-            if isinstance(
-                    arg,
-                    NonLinearSearch.Fitness
+            if _is_likelihood_function(
+                    arg
             ):
                 if self.fitness_index is not None:
                     raise AssertionError(
