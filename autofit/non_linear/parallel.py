@@ -46,7 +46,7 @@ class Process(multiprocessing.Process):
             job_queue: multiprocessing.Queue,
             initializer=None,
             initargs=None,
-            **_
+            job_args=tuple()
     ):
         """
         A parallel process that consumes Jobs through the job queue and outputs results through its own queue.
@@ -66,6 +66,8 @@ class Process(multiprocessing.Process):
 
         self.initializer = initializer
         self.initargs = initargs
+
+        self.job_args = job_args
 
     def run(self):
         """
@@ -104,13 +106,14 @@ class Process(multiprocessing.Process):
             number_of_cores: int,
             initializer=None,
             initargs=None,
-            **kwargs
+            job_args=tuple()
     ):
         """
         Run the collection of jobs across n - 1 other cores.
 
         Parameters
         ----------
+        job_args
         initargs
         initializer
         jobs
@@ -131,7 +134,7 @@ class Process(multiprocessing.Process):
                 job_queue,
                 initializer=initializer,
                 initargs=initargs,
-                **kwargs
+                job_args=job_args
             )
             for number in range(number_of_cores - 1)
         ]
@@ -218,30 +221,12 @@ class SneakyPool:
         ]
 
         results = list()
-        for result in SneakyProcess.run_jobs(
+        for result in Process.run_jobs(
                 jobs,
                 self.processes,
                 initializer=self.initializer,
                 initargs=self.initargs,
-                fitness=self.fitness
+                job_args=self.fitness,
         ):
             results.append(result)
         return results
-
-
-class SneakyProcess(Process):
-    def __init__(
-            self,
-            name: str,
-            job_queue: multiprocessing.Queue,
-            fitness: NonLinearSearch.Fitness,
-            initializer=None,
-            initargs=None,
-    ):
-        super().__init__(
-            name=name,
-            job_queue=job_queue,
-            initializer=initializer,
-            initargs=initargs
-        )
-        self.fitness = fitness
