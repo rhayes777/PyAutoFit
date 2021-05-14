@@ -55,7 +55,7 @@ class NonLinearSearch(ABC):
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         session
-            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+            An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         from autofit.non_linear.paths.database import DatabasePaths
         #
