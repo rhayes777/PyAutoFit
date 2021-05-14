@@ -209,7 +209,7 @@ class SneakyJob(AbstractJob):
                 + self.args[self.fitness_index:]
         )
         return self.function(
-            *args
+            args
         )
 
 
