@@ -115,10 +115,9 @@ class AbstractPySwarms(AbstractOptimizer):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-        pool, pool_ids = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids
+            model=model, analysis=analysis
         )
 
         if self.paths.is_object("points"):
@@ -206,15 +205,14 @@ class AbstractPySwarms(AbstractOptimizer):
 
         logger.info("PySwarmsGlobal complete")
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None, pool_ids=None):
+    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
 
         return PySwarmsGlobal.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap,
-            pool_ids=pool_ids,
+            log_likelihood_cap=log_likelihood_cap
         )
 
     def sampler_from(self, model, fitness_function, bounds, init_pos):
