@@ -6,9 +6,9 @@ from abc import ABC, abstractmethod
 from os import path
 from time import sleep
 from typing import Optional
-from sqlalchemy.orm import Session
 
 import numpy as np
+from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
@@ -22,6 +22,7 @@ from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 
+
 class NonLinearSearch(ABC):
     def __init__(
             self,
@@ -32,7 +33,7 @@ class NonLinearSearch(ABC):
             initializer: Initializer = None,
             iterations_per_update: int = None,
             number_of_cores: int = 1,
-            session : Optional[Session] = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -518,10 +519,12 @@ class NonLinearSearch(ABC):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
+
     #  self.paths.restore()
 
     def plot_results(self, samples):
         pass
+
 
 class Analysis(ABC):
 

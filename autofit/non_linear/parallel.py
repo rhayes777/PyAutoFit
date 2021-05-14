@@ -1,3 +1,4 @@
+import collections
 import multiprocessing
 from abc import ABC, abstractmethod
 from itertools import count
@@ -39,7 +40,13 @@ class AbstractJob(ABC):
 
 class Process(multiprocessing.Process):
 
-    def __init__(self, name: str, job_queue: multiprocessing.Queue):
+    def __init__(
+            self,
+            name: str,
+            job_queue: multiprocessing.Queue,
+            initializer=None,
+            initargs=None
+    ):
         """
         A parallel process that consumes Jobs through the job queue and outputs results through its own queue.
 
@@ -58,11 +65,29 @@ class Process(multiprocessing.Process):
         self.count = 0
         self.max_count = 250
 
+        self.initializer = initializer
+        self.initargs = initargs
+
     def run(self):
         """
         Run this process, completing each job in the job_queue and
         passing the result to the queue.
         """
+        if self.initializer is not None:
+            if self.initargs is None:
+                return self.initializer()
+            if isinstance(
+                    self.initargs,
+                    collections.Iterable
+            ):
+                initargs = tuple(self.initargs)
+            else:
+                initargs = (self.initargs,)
+
+            self.initializer(
+                *initargs
+            )
+
         logger.info("starting process {}".format(self.name))
         while True:
             sleep(0.025)
@@ -81,13 +106,17 @@ class Process(multiprocessing.Process):
     def run_jobs(
             cls,
             jobs: Iterable[AbstractJob],
-            number_of_cores: int
+            number_of_cores: int,
+            initializer=None,
+            initargs=None
     ):
         """
         Run the collection of jobs across n - 1 other cores.
 
         Parameters
         ----------
+        initargs
+        initializer
         jobs
             Serializable concrete children of the AbstractJob class
         number_of_cores
@@ -101,7 +130,12 @@ class Process(multiprocessing.Process):
         job_queue = multiprocessing.Queue()
 
         processes = [
-            Process(str(number), job_queue)
+            Process(
+                str(number),
+                job_queue,
+                initializer=initializer,
+                initargs=initargs
+            )
             for number in range(number_of_cores - 1)
         ]
 
@@ -126,3 +160,50 @@ class Process(multiprocessing.Process):
 
         for process in processes:
             process.join(timeout=1.0)
+
+
+class SneakyJob(AbstractJob):
+    def __init__(self, function, *args):
+        super().__init__()
+        self.function = function
+        self.args = args
+
+    def perform(self):
+        return self.function(
+            *self.args
+        )
+
+
+class SneakyPool:
+    def __init__(
+            self,
+            processes,
+            initializer=None,
+            initargs=None
+    ):
+        self.processes = processes
+        self.initializer = initializer
+        self.initargs = initargs
+
+    def map(self, function, args_list):
+        jobs = [
+            SneakyJob(
+                function,
+                *(
+                    (args,) if not isinstance(
+                        args,
+                        Iterable
+                    ) else tuple(args)
+                )
+            ) for args in args_list
+        ]
+
+        results = list()
+        for result in Process.run_jobs(
+                jobs,
+                self.processes,
+                initializer=self.initializer,
+                initargs=self.initargs
+        ):
+            results.append(result)
+        return results

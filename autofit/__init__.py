@@ -64,6 +64,7 @@ from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
 from .non_linear.samples import OptimizerSamples
 from .non_linear.samples import PDFSamples
+from .mock.mock import Gaussian
 from .text import formatter
 from .text import samples_text
 from .tools import util
