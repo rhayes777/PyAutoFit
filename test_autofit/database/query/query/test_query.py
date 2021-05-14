@@ -78,8 +78,8 @@ def test_contains(
             "o"
         )
     ) == [
-               gaussian_2,
-               gaussian_1
+               gaussian_1,
+               gaussian_2
            ]
     assert aggregator.query(
         aggregator.unique_tag.contains(
