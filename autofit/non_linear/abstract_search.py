@@ -501,18 +501,12 @@ class NonLinearSearch(ABC):
             return None, None
 
         else:
-
-            manager = mp.Manager()
-            idQueue = manager.Queue()
-
-            [idQueue.put(i) for i in range(self.number_of_cores)]
-
             pool = mp.Pool(
-                processes=self.number_of_cores, initializer=init, initargs=(idQueue,)
+                processes=self.number_of_cores
             )
             ids = pool.map(f, range(self.number_of_cores))
 
-            return pool, [id[1] for id in ids]
+            return pool, ids
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
@@ -655,13 +649,6 @@ class PriorPasser:
         return PriorPasser(sigma=sigma, use_errors=use_errors, use_widths=use_widths)
 
 
-def init(queue):
-    global idx
-    idx = queue.get()
-
-
-def f(x):
-    global idx
+def f(_):
     process = mp.current_process()
-    sleep(1)
-    return idx, process.pid, x * x
+    return process.pid
