@@ -60,6 +60,7 @@ from .non_linear.paths import DatabasePaths
 from .non_linear.paths import make_path
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
+from .non_linear.samples import StoredSamples
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
 from .non_linear.samples import OptimizerSamples

@@ -461,6 +461,9 @@ class NonLinearSearch(ABC):
 
     def setup_log_file(self):
 
+        if self.number_of_cores > 1:
+            logger.disabled = True
+
         if conf.instance["general"]["output"]["log_to_file"]:
 
             if len(self.log_file) == 0:
@@ -470,7 +473,6 @@ class NonLinearSearch(ABC):
             log_path = path.join(self.paths.output_path, self.log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
-     #       logger.setLevel("CRITICAL")
 
     @property
     def samples_cls(self):

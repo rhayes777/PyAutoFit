@@ -291,6 +291,12 @@ class Fit(Base):
             if p.name != key
         ]
 
+    def value(self, name : str):
+        try:
+            return self.__getitem__(item=name)
+        except AttributeError:
+            return None
+
     model_id = Column(
         Integer,
         ForeignKey(
