@@ -143,17 +143,17 @@ def test_sneaky_pool(
         )
 
 
-def test_sneaky_map(
-        search,
-        model,
-        analysis
-):
-    result = search.fit(
-        model,
-        analysis
-    )
-
-    assert isinstance(
-        result.instance,
-        af.Gaussian
-    )
+# def test_sneaky_map(
+#         search,
+#         model,
+#         analysis
+# ):
+#     result = search.fit(
+#         model,
+#         analysis
+#     )
+#
+#     assert isinstance(
+#         result.instance,
+#         af.Gaussian
+#     )

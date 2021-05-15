@@ -470,6 +470,7 @@ class NonLinearSearch(ABC):
             log_path = path.join(self.paths.output_path, self.log_file)
             logger.handlers = [logging.FileHandler(log_path)]
             logger.propagate = False
+     #       logger.setLevel("CRITICAL")
 
     @property
     def samples_cls(self):

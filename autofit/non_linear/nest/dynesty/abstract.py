@@ -117,10 +117,13 @@ class AbstractDynesty(AbstractNest, ABC):
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
-        pool = SneakyPool(
-            processes=self.number_of_cores,
-            fitness=fitness_function
-        )
+        if self.number_of_cores == 1:
+            pool = None
+        else:
+            pool = SneakyPool(
+                processes=self.number_of_cores,
+                fitness=fitness_function
+            )
 
         if self.paths.is_object("dynesty"):
 
