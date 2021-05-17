@@ -62,6 +62,8 @@ class NonLinearSearch(ABC):
         name = name or ""
         path_prefix = path_prefix or ""
 
+        self.path_prefix_no_unique_tag = path_prefix
+
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
 

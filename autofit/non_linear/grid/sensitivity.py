@@ -175,7 +175,7 @@ class Sensitivity:
         self.number_of_steps = number_of_steps
         self.perturbation_model = perturbation_model
         self.simulate_function = simulate_function
-        self.number_of_cores = number_of_cores
+        self.number_of_cores = number_of_cores or 2
 
     @property
     def step_size(self):
