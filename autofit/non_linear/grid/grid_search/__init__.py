@@ -26,7 +26,7 @@ class GridSearch:
         """
         self.paths = search.paths
 
-        self.number_of_cores = number_of_cores
+        self.number_of_cores = number_of_cores or 1
 
         if self.number_of_cores == 1:
             self.parallel = False

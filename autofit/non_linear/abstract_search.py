@@ -423,7 +423,8 @@ class NonLinearSearch(ABC):
             samples
         )
 
-        self.plot_results(samples=samples)
+        if not during_analysis:
+            self.plot_results(samples=samples)
 
         try:
             instance = samples.max_log_likelihood_instance
