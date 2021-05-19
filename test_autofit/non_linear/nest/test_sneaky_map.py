@@ -1,3 +1,4 @@
+import multiprocessing as mp
 import shutil
 from pathlib import Path
 
@@ -123,14 +124,9 @@ def identity(*args):
 
 
 def test_sneaky_pool(
-        fitness
+        fitness,
+        pool
 ):
-    number_of_cores = 2
-
-    pool = SneakyPool(
-        processes=number_of_cores,
-        fitness=fitness
-    )
     results = list(pool.map(identity, [(0, fitness), (1, fitness)]))
 
     assert len(results) == 2
@@ -143,17 +139,64 @@ def test_sneaky_pool(
         )
 
 
-# def test_sneaky_map(
-#         search,
-#         model,
-#         analysis
-# ):
-#     result = search.fit(
-#         model,
-#         analysis
-#     )
-#
-#     assert isinstance(
-#         result.instance,
-#         af.Gaussian
-#     )
+def get_pid(*_):
+    return mp.current_process().pid
+
+
+@pytest.fixture(
+    name="pool"
+)
+def make_pool(fitness):
+    return SneakyPool(
+        processes=1,
+        fitness=fitness
+    )
+
+
+def test_process_ids(pool):
+    results = set(pool.map(
+        get_pid,
+        range(10)
+    ))
+    assert results == set(pool.map(
+        get_pid,
+        range(10)
+    ))
+
+
+class MyException(Exception):
+    pass
+
+
+def raise_exception(*_):
+    raise MyException()
+
+
+def test_raising_error(fitness):
+    pool = SneakyPool(
+        processes=1,
+        fitness=fitness
+    )
+    with pytest.raises(
+        MyException
+    ):
+        list(pool.map(
+            raise_exception,
+            range(10)
+        ))
+
+
+def test_sneaky_map(
+        search,
+        model,
+        analysis
+):
+    result = search.fit(
+        model,
+        analysis
+    )
+
+    assert isinstance(
+        result.instance,
+        af.Gaussian
+    )
