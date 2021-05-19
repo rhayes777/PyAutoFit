@@ -81,8 +81,8 @@ def make_fitness(
 
 
 class Analysis(af.Analysis):
-    def log_likelihood_function(self, instance):
-        return -1
+    def log_likelihood_function(self, instance: af.Gaussian):
+        return -(10 - instance.centre) ** 2
 
 
 class Fitness(af.NonLinearSearch.Fitness):
@@ -172,13 +172,9 @@ def raise_exception(*_):
     raise MyException()
 
 
-def test_raising_error(fitness):
-    pool = SneakyPool(
-        processes=1,
-        fitness=fitness
-    )
+def test_raising_error(pool):
     with pytest.raises(
-        MyException
+            MyException
     ):
         list(pool.map(
             raise_exception,
