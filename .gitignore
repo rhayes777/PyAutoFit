@@ -1,3 +1,6 @@
+test_autofit/output/non_linear/abstract_search/pickles/test.pickle
+test_autofit/output/non_linear/dynesty/tag/samples/dynesty.pickle
+
 *.sqlite
 test_autofit/non_linear/samples.csv
 
