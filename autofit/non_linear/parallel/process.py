@@ -3,8 +3,7 @@ import multiprocessing
 from abc import ABC, abstractmethod
 from itertools import count
 from typing import Iterable
-
-from autofit.non_linear.log import logger
+import logging
 
 
 class AbstractJobResult(ABC):
@@ -58,7 +57,11 @@ class Process(multiprocessing.Process):
             The queue through which jobs are submitted
         """
         super().__init__(name=name)
-        logger.info("created process {}".format(name))
+        self.logger = logging.getLogger(
+            f"process {name}"
+        )
+
+        self.logger.info("created")
 
         self.job_queue = job_queue
         self.queue = multiprocessing.Queue()
@@ -68,11 +71,7 @@ class Process(multiprocessing.Process):
 
         self.job_args = job_args
 
-    def run(self):
-        """
-        Run this process, completing each job in the job_queue and
-        passing the result to the queue.
-        """
+    def _init(self):
         if self.initializer is not None:
             if self.initargs is None:
                 return self.initializer()
@@ -88,7 +87,14 @@ class Process(multiprocessing.Process):
                 *initargs
             )
 
-        logger.debug("starting process {}".format(self.name))
+    def run(self):
+        """
+        Run this process, completing each job in the job_queue and
+        passing the result to the queue.
+        """
+        self._init()
+
+        self.logger.debug("starting")
         while True:
             if self.job_queue.empty():
                 break
@@ -99,7 +105,7 @@ class Process(multiprocessing.Process):
                         *self.job_args
                     )
                 )
-        logger.debug("terminating process {}".format(self.name))
+        self.logger.debug("terminating")
         self.job_queue.close()
 
     @classmethod

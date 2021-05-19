@@ -1,3 +1,5 @@
+import multiprocessing as mp
+from time import sleep
 from typing import Iterable
 
 from dynesty.dynesty import _function_wrapper
@@ -95,6 +97,32 @@ class SneakyJob(AbstractJob):
         )
 
 
+class SneakyProcess(Process):
+    def run(self):
+        """
+        Run this process, completing each job in the job_queue and
+        passing the result to the queue.
+        """
+
+        self._init()
+        self.logger.debug("starting")
+        while True:
+            if self.job_queue.empty():
+                sleep(1)
+            else:
+                job = self.job_queue.get()
+                try:
+                    self.queue.put(
+                        job.perform(
+                            *self.job_args
+                        )
+                    )
+                except Exception as e:
+                    self.queue.put(e)
+        # self.logger.debug("terminating process {}".format(self.name))
+        # self.job_queue.close()
+
+
 class SneakyPool:
     def __init__(
             self,
@@ -119,10 +147,19 @@ class SneakyPool:
         initializer
         initargs
         """
-        self.processes = processes
-        self.initializer = initializer
-        self.initargs = initargs
-        self.fitness = fitness
+        self.job_queue = mp.Queue()
+        self.processes = [
+            SneakyProcess(
+                str(number),
+                self.job_queue,
+                initializer=initializer,
+                initargs=initargs,
+                job_args=(fitness,)
+            )
+            for number in range(processes)
+        ]
+        for process in self.processes:
+            process.start()
 
     def map(self, function, args_list):
         """
@@ -153,11 +190,22 @@ class SneakyPool:
             ) for args in args_list
         ]
 
-        for result in Process.run_jobs(
-                jobs,
-                self.processes + 1,
-                initializer=self.initializer,
-                initargs=self.initargs,
-                job_args=(self.fitness,),
-        ):
-            yield result
+        for job in jobs:
+            self.job_queue.put(
+                job
+            )
+
+        target = len(jobs)
+        count = 0
+
+        while count < target:
+            for process in self.processes:
+                if not process.queue.empty():
+                    item = process.queue.get()
+                    if isinstance(
+                            item,
+                            Exception
+                    ):
+                        raise item
+                    count += 1
+                    yield item
