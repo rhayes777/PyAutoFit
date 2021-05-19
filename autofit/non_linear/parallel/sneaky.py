@@ -155,7 +155,7 @@ class SneakyPool:
 
         for result in Process.run_jobs(
                 jobs,
-                self.processes,
+                self.processes + 1,
                 initializer=self.initializer,
                 initargs=self.initargs,
                 job_args=(self.fitness,),

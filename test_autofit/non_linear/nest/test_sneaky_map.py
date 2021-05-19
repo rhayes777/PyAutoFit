@@ -1,3 +1,4 @@
+import multiprocessing as mp
 import shutil
 from pathlib import Path
 
@@ -122,15 +123,20 @@ def identity(*args):
     return args
 
 
-def test_sneaky_pool(
-        fitness
-):
-    number_of_cores = 2
-
-    pool = SneakyPool(
-        processes=number_of_cores,
+@pytest.fixture(
+    name="pool"
+)
+def make_pool(fitness):
+    return SneakyPool(
+        processes=2,
         fitness=fitness
     )
+
+
+def test_sneaky_pool(
+        fitness,
+        pool
+):
     results = list(pool.map(identity, [(0, fitness), (1, fitness)]))
 
     assert len(results) == 2
@@ -143,17 +149,34 @@ def test_sneaky_pool(
         )
 
 
-# def test_sneaky_map(
-#         search,
-#         model,
-#         analysis
-# ):
-#     result = search.fit(
-#         model,
-#         analysis
-#     )
-#
-#     assert isinstance(
-#         result.instance,
-#         af.Gaussian
-#     )
+def get_pid(*args, **kwargs):
+    return mp.current_process().pid
+
+
+def test_process_ids(
+        pool
+):
+    results = set(pool.map(
+        get_pid,
+        range(20)
+    ))
+    assert results == set(pool.map(
+        get_pid,
+        range(20)
+    ))
+
+
+def test_sneaky_map(
+        search,
+        model,
+        analysis
+):
+    result = search.fit(
+        model,
+        analysis
+    )
+
+    assert isinstance(
+        result.instance,
+        af.Gaussian
+    )
