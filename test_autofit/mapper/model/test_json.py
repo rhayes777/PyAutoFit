@@ -1,4 +1,7 @@
+import os
+from os import path
 import pytest
+import json
 
 import autofit as af
 from autofit.mock.mock import Gaussian
@@ -137,3 +140,28 @@ class TestToDict:
             "gaussian": instance_dict,
             "type": "collection"
         }
+
+
+class TestFromJson:
+
+    def test__from_json(self, model_dict):
+
+        model = af.Model.from_dict(
+            model_dict
+        )
+
+        model_file = path.join(path.dirname(path.realpath(__file__)), "model.json")
+
+        if path.exists(model_file):
+            os.remove(model_file)
+
+        with open(model_file, "w+") as f:
+            json.dump(model.dict, f, indent=4)
+
+        model = af.Model.from_json(file=model_file)
+
+        assert model.cls == Gaussian
+        assert model.prior_count == 3
+        assert model.centre.upper_limit == 2.0
+
+        os.remove(model_file)

@@ -7,6 +7,7 @@ from random import random
 from typing import Tuple, Optional
 
 import numpy as np
+import json
 
 from autoconf import conf
 from autoconf.exc import ConfigException
@@ -69,6 +70,14 @@ class AbstractPriorModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self._assertions = list()
+
+    @classmethod
+    def from_json(cls, file) -> object:
+
+        with open(file) as json_file:
+            model_dict = json.load(json_file)
+
+        return cls.from_dict(d=model_dict)
 
     @staticmethod
     def from_dict(d) -> object:
