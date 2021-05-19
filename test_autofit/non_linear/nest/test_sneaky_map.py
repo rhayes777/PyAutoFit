@@ -94,6 +94,11 @@ class Fitness(af.NonLinearSearch.Fitness):
     def figure_of_merit_from(self, parameter_list):
         return -1
 
+    def __call__(self, parameter_list):
+        return self.figure_of_merit_from(
+            parameter_list
+        )
+
 
 @pytest.fixture(
     name="sneaky_job"
@@ -106,6 +111,17 @@ def make_sneaky_job(
         1,
         fitness
     )
+
+
+def test_perform_fitness(
+        pool,
+        fitness
+):
+    results = list(pool.map(
+        fitness,
+        range(2)
+    ))
+    assert results == [-1, -1]
 
 
 def test_sneaky_removal(
