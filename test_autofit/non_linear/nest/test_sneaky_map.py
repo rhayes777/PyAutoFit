@@ -143,7 +143,7 @@ def test_sneaky_pool(
         )
 
 
-def get_pid(*args, **kwargs):
+def get_pid(*_):
     return mp.current_process().pid
 
 
