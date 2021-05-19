@@ -60,17 +60,24 @@ class TestTuple:
         tuple_prior.tup_0 = 0
         tuple_prior.tup_1 = 1
 
-        af.Model.from_dict
+        result = af.Model.from_dict(
+            tuple_prior.dict
+        )
+        assert isinstance(
+            result,
+            af.TuplePrior
+        )
 
     def test_model_with_tuple(self):
         tuple_model = af.Model(WithTuple)
         tuple_model.instance_from_prior_medians()
         model_dict = tuple_model.dict
-        print(model_dict)
+
         model = af.Model.from_dict(
             model_dict
         )
-        model.instance_from_prior_medians()
+        instance = model.instance_from_prior_medians()
+        assert instance.tup == (0.5, 0.5)
 
 
 class TestFromDict:
