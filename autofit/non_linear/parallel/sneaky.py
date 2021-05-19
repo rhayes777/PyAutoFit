@@ -1,5 +1,4 @@
 import multiprocessing as mp
-from time import sleep
 from typing import Iterable
 
 from dynesty.dynesty import _function_wrapper
@@ -117,20 +116,17 @@ class SneakyProcess(Process):
         self._init()
         self.logger.debug("starting")
         while True:
-            if self.job_queue.empty():
-                sleep(1)
-            else:
-                job = self.job_queue.get()
-                if job is StopCommand:
-                    break
-                try:
-                    self.queue.put(
-                        job.perform(
-                            *self.job_args
-                        )
+            job = self.job_queue.get()
+            if job is StopCommand:
+                break
+            try:
+                self.queue.put(
+                    job.perform(
+                        *self.job_args
                     )
-                except Exception as e:
-                    self.queue.put(e)
+                )
+            except Exception as e:
+                self.queue.put(e)
         self.logger.debug("terminating process {}".format(self.name))
         self.job_queue.close()
 
