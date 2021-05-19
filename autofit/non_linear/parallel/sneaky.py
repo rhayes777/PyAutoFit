@@ -97,12 +97,11 @@ class SneakyJob(AbstractJob):
         )
 
 
-class StopException(Exception):
-    pass
-
-
 class StopCommand:
-    pass
+    """
+    A command that can be passed into a process queue to gracefully stop
+    the process
+    """
 
 
 class SneakyProcess(Process):
@@ -110,6 +109,9 @@ class SneakyProcess(Process):
         """
         Run this process, completing each job in the job_queue and
         passing the result to the queue.
+
+        The process continues to execute until a StopCommand is passed.
+        This occurs when the SneakyMap goes out of scope.
         """
 
         self._init()
@@ -221,10 +223,14 @@ class SneakyPool:
                     yield item
 
     def __del__(self):
-        print("del")
+        """
+        Called when the map goes out of scope.
+
+        Tell each process to terminate with a StopCommand and then join
+        each process with a timeout of one second.
+        """
         for _ in range(len(self.processes)):
             self.job_queue.put(StopCommand)
 
         for process in self.processes:
             process.join(1)
-        print("done")
