@@ -3,10 +3,15 @@ import shutil
 from pathlib import Path
 
 import pytest
+# noinspection PyProtectedMember
+from dynesty.dynesty import _function_wrapper
+from emcee.ensemble import _FunctionWrapper
 
 import autofit as af
 from autoconf import conf
 from autofit.non_linear.parallel import SneakyPool, SneakyJob
+# noinspection PyProtectedMember
+from autofit.non_linear.parallel.sneaky import _is_likelihood_function
 
 
 @pytest.fixture(
@@ -89,6 +94,11 @@ class Fitness(af.NonLinearSearch.Fitness):
     def figure_of_merit_from(self, parameter_list):
         return -1
 
+    def __call__(self, parameter_list):
+        return self.figure_of_merit_from(
+            parameter_list
+        )
+
 
 @pytest.fixture(
     name="sneaky_job"
@@ -101,6 +111,17 @@ def make_sneaky_job(
         1,
         fitness
     )
+
+
+def test_perform_fitness(
+        pool,
+        fitness
+):
+    results = list(pool.map(
+        fitness,
+        range(2)
+    ))
+    assert results == [-1, -1]
 
 
 def test_sneaky_removal(
@@ -195,4 +216,20 @@ def test_sneaky_map(
     assert isinstance(
         result.instance,
         af.Gaussian
+    )
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        _FunctionWrapper(lambda: 1, None, None),
+        Fitness(None, None, None, None),
+        _function_wrapper(lambda: 1, [], {}, "loglikelihood")
+    ]
+)
+def test_is_likelihood_function(
+        function
+):
+    assert _is_likelihood_function(
+        function
     )

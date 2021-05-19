@@ -2,6 +2,7 @@ import multiprocessing as mp
 from typing import Iterable
 
 from dynesty.dynesty import _function_wrapper
+from emcee.ensemble import _FunctionWrapper
 
 from autofit.non_linear.abstract_search import NonLinearSearch
 from .process import AbstractJob, Process
@@ -26,15 +27,20 @@ def _is_likelihood_function(
     -------
     Is the object a log likelihood function?
     """
-    return isinstance(
-        function,
-        NonLinearSearch.Fitness
-    ) or (
-                   isinstance(
-                       function,
-                       _function_wrapper
-                   ) and function.name == 'loglikelihood'
-           )
+    return any([
+        isinstance(
+            function,
+            NonLinearSearch.Fitness
+        ),
+        isinstance(
+            function,
+            _function_wrapper
+        ) and function.name == 'loglikelihood',
+        isinstance(
+            function,
+            _FunctionWrapper
+        )
+    ])
 
 
 class SneakyJob(AbstractJob):
@@ -42,7 +48,11 @@ class SneakyJob(AbstractJob):
         """
         A job performed on a process.
 
-        The log likelhood function is filtered from the args, but its index retained.
+        If the function is the log likelihood function then it is set to None.
+
+        If the log likelihood function is in the args, it is filtered from the args,
+        but its index retained.
+
         This prevents large amounts of data comprised in an Analysis class from being
         copied over to processes multiple times.
 
@@ -54,7 +64,10 @@ class SneakyJob(AbstractJob):
             The arguments to that function
         """
         super().__init__()
-        self.function = function
+        if _is_likelihood_function(function):
+            self.function = None
+        else:
+            self.function = function
 
         self.args = list()
         self.fitness_index = None
@@ -74,7 +87,12 @@ class SneakyJob(AbstractJob):
     def perform(self, likelihood_function):
         """
         Computes the log likelihood. The likelihood function
-        is passed from a copy associated with the current process
+        is passed from a copy associated with the current process.
+
+        Depending on whether the likelihood function itself is
+        being mapped, or some function mapped onto the likelihood
+        function as an argument, the likelihood function will be
+        called or added to the arguments.
 
         Parameters
         ----------
@@ -86,6 +104,10 @@ class SneakyJob(AbstractJob):
         -------
         The log likelihood
         """
+        if self.function is None:
+            return likelihood_function(
+                self.args
+            )
         args = (
                 self.args[:self.fitness_index]
                 + [likelihood_function]

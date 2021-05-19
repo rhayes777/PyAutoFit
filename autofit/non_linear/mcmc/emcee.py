@@ -1,21 +1,20 @@
 import os
 from os import path
 from typing import Optional
-from sqlalchemy.orm import Session
 
 import emcee
 import numpy as np
+from sqlalchemy.orm import Session
 
 from autoconf import conf
-
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
+from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.samples import MCMCSamples, Sample
-
 from autofit.plot import EmceePlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
@@ -35,7 +34,7 @@ class Emcee(AbstractMCMC):
             auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session : Optional[Session] = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -124,12 +123,17 @@ class Emcee(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-
-        pool = self.make_pool()
-
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis
         )
+
+        if self.number_of_cores == 1:
+            pool = None
+        else:
+            pool = SneakyPool(
+                processes=self.number_of_cores,
+                fitness=fitness_function
+            )
 
         emcee_sampler = emcee.EnsembleSampler(
             nwalkers=self.config_dict_search["nwalkers"],
