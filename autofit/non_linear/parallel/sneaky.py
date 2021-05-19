@@ -210,17 +210,23 @@ class SneakyPool:
         target = len(jobs)
         count = 0
 
+        exception = None
+
         while count < target:
             for process in self.processes:
                 if not process.queue.empty():
                     item = process.queue.get()
+                    count += 1
                     if isinstance(
                             item,
                             Exception
                     ):
-                        raise item
-                    count += 1
-                    yield item
+                        exception = item
+                    else:
+                        yield item
+
+        if exception is not None:
+            raise exception
 
     def __del__(self):
         """
@@ -233,4 +239,4 @@ class SneakyPool:
             self.job_queue.put(StopCommand)
 
         for process in self.processes:
-            process.join(1)
+            process.join(0.5)

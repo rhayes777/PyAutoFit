@@ -124,13 +124,9 @@ def identity(*args):
 
 
 def test_sneaky_pool(
-        fitness
+        fitness,
+        pool
 ):
-    pool = SneakyPool(
-        processes=2,
-        fitness=fitness
-    )
-
     results = list(pool.map(identity, [(0, fitness), (1, fitness)]))
 
     assert len(results) == 2
@@ -147,11 +143,17 @@ def get_pid(*_):
     return mp.current_process().pid
 
 
-def test_process_ids(fitness):
-    pool = SneakyPool(
+@pytest.fixture(
+    name="pool"
+)
+def make_pool(fitness):
+    return SneakyPool(
         processes=1,
         fitness=fitness
     )
+
+
+def test_process_ids(pool):
     results = set(pool.map(
         get_pid,
         range(10)
@@ -160,6 +162,28 @@ def test_process_ids(fitness):
         get_pid,
         range(10)
     ))
+
+
+class MyException(Exception):
+    pass
+
+
+def raise_exception(*_):
+    raise MyException()
+
+
+def test_raising_error(fitness):
+    pool = SneakyPool(
+        processes=1,
+        fitness=fitness
+    )
+    with pytest.raises(
+        MyException
+    ):
+        list(pool.map(
+            raise_exception,
+            range(10)
+        ))
 
 
 def test_sneaky_map(
