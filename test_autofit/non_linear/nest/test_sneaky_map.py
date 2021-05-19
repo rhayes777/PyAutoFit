@@ -123,20 +123,14 @@ def identity(*args):
     return args
 
 
-@pytest.fixture(
-    name="pool"
-)
-def make_pool(fitness):
-    return SneakyPool(
+def test_sneaky_pool(
+        fitness
+):
+    pool = SneakyPool(
         processes=2,
         fitness=fitness
     )
 
-
-def test_sneaky_pool(
-        fitness,
-        pool
-):
     results = list(pool.map(identity, [(0, fitness), (1, fitness)]))
 
     assert len(results) == 2
@@ -153,16 +147,18 @@ def get_pid(*args, **kwargs):
     return mp.current_process().pid
 
 
-def test_process_ids(
-        pool
-):
+def test_process_ids(fitness):
+    pool = SneakyPool(
+        processes=1,
+        fitness=fitness
+    )
     results = set(pool.map(
         get_pid,
-        range(20)
+        range(10)
     ))
     assert results == set(pool.map(
         get_pid,
-        range(20)
+        range(10)
     ))
 
 

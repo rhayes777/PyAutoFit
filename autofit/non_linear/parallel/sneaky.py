@@ -97,6 +97,14 @@ class SneakyJob(AbstractJob):
         )
 
 
+class StopException(Exception):
+    pass
+
+
+class StopCommand:
+    pass
+
+
 class SneakyProcess(Process):
     def run(self):
         """
@@ -111,6 +119,8 @@ class SneakyProcess(Process):
                 sleep(1)
             else:
                 job = self.job_queue.get()
+                if job is StopCommand:
+                    break
                 try:
                     self.queue.put(
                         job.perform(
@@ -119,8 +129,8 @@ class SneakyProcess(Process):
                     )
                 except Exception as e:
                     self.queue.put(e)
-        # self.logger.debug("terminating process {}".format(self.name))
-        # self.job_queue.close()
+        self.logger.debug("terminating process {}".format(self.name))
+        self.job_queue.close()
 
 
 class SneakyPool:
@@ -209,3 +219,12 @@ class SneakyPool:
                         raise item
                     count += 1
                     yield item
+
+    def __del__(self):
+        print("del")
+        for _ in range(len(self.processes)):
+            self.job_queue.put(StopCommand)
+
+        for process in self.processes:
+            process.join(1)
+        print("done")
