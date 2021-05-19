@@ -3,9 +3,12 @@ import shutil
 from pathlib import Path
 
 import pytest
+# noinspection PyProtectedMember,PyPep8Naming
+from dynesty.dynesty import _function_wrapper as DynestyFunctionWrapper
 # noinspection PyProtectedMember
-from dynesty.dynesty import _function_wrapper
-from emcee.ensemble import _FunctionWrapper
+from emcee.ensemble import _FunctionWrapper as EMCEEFunctionWrapper
+# noinspection PyProtectedMember
+from zeus.fwrapper import _FunctionWrapper as ZeusFunctionWrapper
 
 import autofit as af
 from autoconf import conf
@@ -210,9 +213,10 @@ def test_sneaky_map(
 @pytest.mark.parametrize(
     "function",
     [
-        _FunctionWrapper(lambda: 1, None, None),
+        ZeusFunctionWrapper(lambda: 1, [], {}),
+        EMCEEFunctionWrapper(lambda: 1, None, None),
+        DynestyFunctionWrapper(lambda: 1, [], {}, "loglikelihood"),
         Fitness(None, None, None, None),
-        _function_wrapper(lambda: 1, [], {}, "loglikelihood")
     ]
 )
 def test_is_likelihood_function(
