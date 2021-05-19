@@ -4,7 +4,7 @@ import pytest
 import json
 
 import autofit as af
-from autofit.mock.mock import Gaussian
+from autofit.mock.mock import Gaussian, WithTuple
 
 
 @pytest.fixture(
@@ -55,6 +55,32 @@ def make_model():
             upper_limit=2.0
         )
     )
+
+
+class TestTuple:
+    def test_tuple_prior(self):
+        tuple_prior = af.TuplePrior()
+        tuple_prior.tup_0 = 0
+        tuple_prior.tup_1 = 1
+
+        result = af.Model.from_dict(
+            tuple_prior.dict
+        )
+        assert isinstance(
+            result,
+            af.TuplePrior
+        )
+
+    def test_model_with_tuple(self):
+        tuple_model = af.Model(WithTuple)
+        tuple_model.instance_from_prior_medians()
+        model_dict = tuple_model.dict
+
+        model = af.Model.from_dict(
+            model_dict
+        )
+        instance = model.instance_from_prior_medians()
+        assert instance.tup == (0.5, 0.5)
 
 
 class TestFromDict:

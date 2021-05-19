@@ -1,5 +1,6 @@
 import copy
 import inspect
+import json
 import logging
 from functools import wraps
 from numbers import Number
@@ -7,7 +8,6 @@ from random import random
 from typing import Tuple, Optional
 
 import numpy as np
-import json
 
 from autoconf import conf
 from autoconf.exc import ConfigException
@@ -23,7 +23,6 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
-from autofit.util import get_class
 
 logger = logging.getLogger(
     __name__
@@ -72,7 +71,7 @@ class AbstractPriorModel(AbstractModel):
         self._assertions = list()
 
     @classmethod
-    def from_json(cls, file : str):
+    def from_json(cls, file: str):
         """
         Loads the model from a .json file, which was written using the model's dictionary (`dict`) attribute as
         follows:
@@ -97,106 +96,6 @@ class AbstractPriorModel(AbstractModel):
             model_dict = json.load(json_file)
 
         return cls.from_dict(d=model_dict)
-
-    @staticmethod
-    def from_dict(d):
-        """
-        Recursively parse a dictionary returning the model, collection or
-        instance that is represents.
-
-        Parameters
-        ----------
-        d
-            A dictionary representation of some object
-
-        Returns
-        -------
-        An instance
-        """
-        from .prior_model import PriorModel
-        from .collection import CollectionPriorModel
-
-        if not isinstance(
-                d, dict
-        ):
-            return d
-
-        type_ = d["type"]
-
-        if type_ == "model":
-            instance = PriorModel(
-                get_class(
-                    d.pop("class_path")
-                )
-            )
-        elif type_ == "collection":
-            instance = CollectionPriorModel()
-        elif type_ == "instance":
-            cls = get_class(
-                d.pop("class_path")
-            )
-            instance = object.__new__(cls)
-
-        else:
-            return Prior.from_dict(d)
-
-        d.pop("type")
-
-        for key, value in d.items():
-            setattr(
-                instance,
-                key,
-                AbstractPriorModel.from_dict(value)
-            )
-        return instance
-
-    @property
-    def dict(self) -> dict:
-        """
-        A dictionary representation of this object
-        """
-        from .prior_model import PriorModel
-        from .collection import CollectionPriorModel
-
-        if isinstance(
-                self,
-                CollectionPriorModel
-        ):
-            type_ = "collection"
-        elif self.prior_count == 0:
-            type_ = "instance"
-        elif isinstance(
-                self,
-                PriorModel
-        ):
-            type_ = "model"
-        else:
-            raise AssertionError(
-                f"{self.__class__.__name__} cannot be serialised to dict"
-            )
-
-        dict_ = {
-            "type": type_
-        }
-
-        for key, value in self._dict.items():
-            try:
-                value = AbstractPriorModel.from_instance(
-                    value
-                ).dict
-            except AttributeError:
-                pass
-            dict_[key] = value
-        return dict_
-
-    @property
-    def _dict(self):
-        return {
-            key: value
-            for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id", "cls")
-               and not key.startswith("_")
-        }
 
     def add_assertion(self, assertion, name=""):
         """
@@ -340,7 +239,10 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        return self.instance_for_arguments(arguments, assert_priors_in_limits=assert_priors_in_limits)
+        return self.instance_for_arguments(
+            arguments,
+            assert_priors_in_limits=assert_priors_in_limits
+        )
 
     @property
     @cast_collection(PriorNameValue)
@@ -701,6 +603,7 @@ class AbstractPriorModel(AbstractModel):
     def from_instance(instance, model_classes=tuple()):
         """
         Recursively create an prior object model from an object model.
+
         Parameters
         ----------
         model_classes
