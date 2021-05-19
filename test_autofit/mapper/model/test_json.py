@@ -1,5 +1,5 @@
 import os
-from os import path
+from pathlib import Path
 import pytest
 import json
 
@@ -150,10 +150,12 @@ class TestFromJson:
             model_dict
         )
 
-        model_file = path.join(path.dirname(path.realpath(__file__)), "model.json")
+        model_file = Path(__file__).parent / "model.json"
 
-        if path.exists(model_file):
+        try:
             os.remove(model_file)
+        except OSError:
+            pass
 
         with open(model_file, "w+") as f:
             json.dump(model.dict, f, indent=4)
