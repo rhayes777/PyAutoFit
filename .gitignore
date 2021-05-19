@@ -1,3 +1,5 @@
+test_autofit/mapper/model/model.json
+
 *.sqlite
 test_autofit/non_linear/samples.csv
 

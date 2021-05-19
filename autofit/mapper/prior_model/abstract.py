@@ -1,5 +1,6 @@
 import copy
 import inspect
+import json
 import logging
 from functools import wraps
 from numbers import Number
@@ -22,7 +23,6 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
-
 
 logger = logging.getLogger(
     __name__
@@ -69,6 +69,33 @@ class AbstractPriorModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self._assertions = list()
+
+    @classmethod
+    def from_json(cls, file: str):
+        """
+        Loads the model from a .json file, which was written using the model's dictionary (`dict`) attribute as
+        follows:
+
+        import json
+
+        with open(filename, "w+") as f:
+            json.dump(model.dict, f, indent=4)
+
+        Parameters
+        ----------
+        file
+            The path and name of the .json file the model is loaded from.
+
+        Returns
+        -------
+        object
+            The model, which may be a `Collection` of `PriorModel` objects or a single `PriorModel`.
+        """
+
+        with open(file) as json_file:
+            model_dict = json.load(json_file)
+
+        return cls.from_dict(d=model_dict)
 
     def add_assertion(self, assertion, name=""):
         """
