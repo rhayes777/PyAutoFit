@@ -71,7 +71,7 @@ class AbstractPriorModel(AbstractModel):
         self._assertions = list()
 
     @staticmethod
-    def from_dict(d) -> object:
+    def from_dict(d):
         """
         Recursively parse a dictionary returning the model, collection or
         instance that is represents.
@@ -312,7 +312,10 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        return self.instance_for_arguments(arguments, assert_priors_in_limits=assert_priors_in_limits)
+        return self.instance_for_arguments(
+            arguments,
+            assert_priors_in_limits=assert_priors_in_limits
+        )
 
     @property
     @cast_collection(PriorNameValue)
