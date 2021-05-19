@@ -3,10 +3,15 @@ import shutil
 from pathlib import Path
 
 import pytest
+# noinspection PyProtectedMember
+from dynesty.dynesty import _function_wrapper
+from emcee.ensemble import _FunctionWrapper
 
 import autofit as af
 from autoconf import conf
 from autofit.non_linear.parallel import SneakyPool, SneakyJob
+# noinspection PyProtectedMember
+from autofit.non_linear.parallel.sneaky import _is_likelihood_function
 
 
 @pytest.fixture(
@@ -178,7 +183,7 @@ def test_raising_error(fitness):
         fitness=fitness
     )
     with pytest.raises(
-        MyException
+            MyException
     ):
         list(pool.map(
             raise_exception,
@@ -199,4 +204,20 @@ def test_sneaky_map(
     assert isinstance(
         result.instance,
         af.Gaussian
+    )
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        _FunctionWrapper(lambda: 1, None, None),
+        Fitness(None, None, None, None),
+        _function_wrapper(lambda: 1, [], {}, "loglikelihood")
+    ]
+)
+def test_is_likelihood_function(
+        function
+):
+    assert _is_likelihood_function(
+        function
     )

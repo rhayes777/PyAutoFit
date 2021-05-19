@@ -2,6 +2,7 @@ import multiprocessing as mp
 from typing import Iterable
 
 from dynesty.dynesty import _function_wrapper
+from emcee.ensemble import _FunctionWrapper
 
 from autofit.non_linear.abstract_search import NonLinearSearch
 from .process import AbstractJob, Process
@@ -26,15 +27,20 @@ def _is_likelihood_function(
     -------
     Is the object a log likelihood function?
     """
-    return isinstance(
-        function,
-        NonLinearSearch.Fitness
-    ) or (
-                   isinstance(
-                       function,
-                       _function_wrapper
-                   ) and function.name == 'loglikelihood'
-           )
+    return any([
+        isinstance(
+            function,
+            NonLinearSearch.Fitness
+        ),
+        isinstance(
+            function,
+            _function_wrapper
+        ) and function.name == 'loglikelihood',
+        isinstance(
+            function,
+            _FunctionWrapper
+        )
+    ])
 
 
 class SneakyJob(AbstractJob):
