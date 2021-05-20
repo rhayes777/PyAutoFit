@@ -10,15 +10,6 @@ from autofit.util import get_class
 RESOLUTION = 1e-8
 
 
-def is_identifiable(value):
-    return hasattr(
-        value,
-        "identifier"
-    ) and not inspect.isclass(
-        value
-    )
-
-
 class Identifier:
     def __init__(self, obj):
         """
@@ -28,6 +19,10 @@ class Identifier:
         self._add_value_to_hash_list(
             obj
         )
+
+    @property
+    def description(self):
+        return "\n".join(self.hash_list)
 
     def _add_value_to_hash_list(self, value):
         """
@@ -129,15 +124,9 @@ class Identifier:
                 property
         ):
             return
-        if is_identifiable(value):
-            string = value.identifier
-            self.hash_list.append(
-                string
-            )
-        else:
-            self._add_value_to_hash_list(
-                value
-            )
+        self._add_value_to_hash_list(
+            value
+        )
 
     def __str__(self):
         return md5(".".join(
