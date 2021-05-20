@@ -1,8 +1,12 @@
 import multiprocessing as mp
 from typing import Iterable
 
-from dynesty.dynesty import _function_wrapper
-from emcee.ensemble import _FunctionWrapper
+# noinspection PyProtectedMember,PyPep8Naming
+from dynesty.dynesty import _function_wrapper as DynestyFunctionWrapper
+# noinspection PyProtectedMember
+from emcee.ensemble import _FunctionWrapper as EMCEEFunctionWrapper
+# noinspection PyProtectedMember
+from zeus.fwrapper import _FunctionWrapper as ZeusFunctionWrapper
 
 from autofit.non_linear.abstract_search import NonLinearSearch
 from .process import AbstractJob, Process
@@ -30,16 +34,16 @@ def _is_likelihood_function(
     return any([
         isinstance(
             function,
-            NonLinearSearch.Fitness
+            (
+                NonLinearSearch.Fitness,
+                EMCEEFunctionWrapper,
+                ZeusFunctionWrapper
+            )
         ),
         isinstance(
             function,
-            _function_wrapper
+            DynestyFunctionWrapper
         ) and function.name == 'loglikelihood',
-        isinstance(
-            function,
-            _FunctionWrapper
-        )
     ])
 
 
