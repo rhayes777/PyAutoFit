@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from scipy.optimize import approx_fprime
 
 import autofit.mapper.variable
@@ -18,11 +17,13 @@ def log_phi(x):
 def plus_two(x):
     return x + 2
 
+
 @pytest.fixture(
     name="x"
 )
 def make_x():
     return mp.Variable('x')
+
 
 @pytest.fixture(
     name="y"
@@ -50,6 +51,7 @@ def make_vectorised_sigmoid(x):
         vectorised=True,
         x=x
     )
+
 
 @pytest.fixture(
     name="phi"
@@ -100,7 +102,7 @@ def test_factor_jacobian():
     shape = 4, 3
     z_ = mp.Variable('z', *(mp.Plate() for _ in shape))
     likelihood = mp.NormalMessage(
-        np.random.randn(*shape), 
+        np.random.randn(*shape),
         np.random.exponential(size=shape))
     likelihood_factor = likelihood.as_factor(z_)
 
@@ -108,8 +110,8 @@ def test_factor_jacobian():
     fval, jval = likelihood_factor.func_jacobian(
         values, axis=None)
     ngrad = approx_fprime(
-        values[z_].ravel(), 
-        lambda x: likelihood.logpdf(x.reshape(*shape)).sum(), 
+        values[z_].ravel(),
+        lambda x: likelihood.logpdf(x.reshape(*shape)).sum(),
         1e-8).reshape(*shape)
     assert np.allclose(ngrad, jval[z_])
 
@@ -131,18 +133,18 @@ class TestFactorGraph:
             phi,
             compound
     ):
-        values = {mp.Variable('x') : 5}
+        values = {mp.Variable('x'): 5}
         assert sigmoid(values).log_value == -0.006715348489118068
         assert phi(values).log_value == -13.418938533204672
         assert compound(values).log_value == -13.42565388169379
-        
+
     def test_factor_shape(
             self,
             sigmoid,
             phi,
             compound
     ):
-        values = {mp.Variable('x') : [5]}
+        values = {mp.Variable('x'): [5]}
         assert sigmoid(values).log_value[0] == -0.006715348489118068
         assert phi(values).log_value[0] == -13.418938533204672
         assert compound(values).log_value[0] == -13.42565388169379
@@ -153,12 +155,12 @@ class TestFactorGraph:
         x_ = mp.Variable('x', p3, p1)
         y_ = mp.Variable('y', p1, p2)
         z_ = mp.Variable('z', p2, p3)
-        
+
         n1, n2, n3 = shape = (2, 3, 4)
 
         def sumxyz(x, y, z):
             return (
-                np.moveaxis(x[:, :, None], 0, 2) + y[:, :, None] + z[None])
+                    np.moveaxis(x[:, :, None], 0, 2) + y[:, :, None] + z[None])
 
         factor = mp.Factor(sumxyz, x=x_, y=y_, z=z_)
 
@@ -171,21 +173,21 @@ class TestFactorGraph:
         factor(variables)
 
         model_dist = mp.MeanField({
-            x_: mp.NormalMessage(x, 1*np.ones_like(x)),
-            y_: mp.NormalMessage(y, 1*np.ones_like(y)),
-            z_: mp.NormalMessage(z, 1*np.ones_like(z)),
+            x_: mp.NormalMessage(x, 1 * np.ones_like(x)),
+            y_: mp.NormalMessage(y, 1 * np.ones_like(y)),
+            z_: mp.NormalMessage(z, 1 * np.ones_like(z)),
         })
-        
+
         assert model_dist(variables).log_value.shape == shape
-        
+
     def test_vectorisation(
-            self, 
+            self,
             sigmoid,
             vectorised_sigmoid
     ):
         variables = {mp.Variable('x'): np.full(1000, 5.)}
         assert np.allclose(
-            sigmoid(variables).log_value, 
+            sigmoid(variables).log_value,
             vectorised_sigmoid(variables).log_value)
 
     def test_broadcast(

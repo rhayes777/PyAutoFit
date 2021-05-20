@@ -4,7 +4,7 @@ from inspect import getfullargspec
 from itertools import chain, repeat
 from typing import \
     (
-    Tuple, Dict, Union, Set, Callable
+    Tuple, Dict, Union, Set, Callable, List
 )
 
 import numpy as np
@@ -363,7 +363,14 @@ class Factor(AbstractFactor):
 
     def __call__(
             self,
-            variable_dict: Dict[Variable, np.ndarray],
+            variable_dict: Dict[
+                Variable,
+                Union[
+                    np.ndarray,
+                    float,
+                    List[float]
+                ]
+            ],
             axis: Axis = False,
     ) -> FactorValue:
         """
