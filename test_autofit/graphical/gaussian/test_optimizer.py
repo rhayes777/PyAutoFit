@@ -4,8 +4,15 @@ import autofit.graphical as g
 from test_autofit.graphical.gaussian.model import Analysis
 
 
-def test_gaussian(x, y, prior_model):
-    factor_model = g.ModelFactor(
+@pytest.fixture(
+    name="factor_model"
+)
+def make_factor_model(
+        prior_model,
+        x,
+        y
+):
+    return g.ModelFactor(
         prior_model,
         analysis=Analysis(
             x=x,
@@ -13,6 +20,8 @@ def test_gaussian(x, y, prior_model):
         )
     )
 
+
+def test_gaussian(factor_model):
     laplace = g.LaplaceFactorOptimiser()
     model = factor_model.optimise(laplace)
 
