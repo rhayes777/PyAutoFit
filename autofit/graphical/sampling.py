@@ -108,7 +108,7 @@ class AbstractSampler(AbstractFactorOptimiser):
         sample = self(factor_approx, **sample_kws)
         model_dist = project_factor_approx_sample(factor_approx, sample)
         projection, status = factor_approx.project(model_dist, delta=delta)
-        return model_approx.project(projection, status=status), status
+        return model_approx.project(projection, status=status)
 
 
 class ImportanceSampler(AbstractSampler):
