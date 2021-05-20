@@ -1,5 +1,9 @@
+import os
+from pathlib import Path
+
 import pytest
 
+from autoconf.conf import output_path_for_test
 from autofit import database as m
 from autofit.mock.mock import Gaussian
 
@@ -10,6 +14,23 @@ from autofit.mock.mock import Gaussian
 def query_fit(session, paths):
     fit, = m.Fit.all(session)
     return fit
+
+
+output_path = str(
+    Path(
+        __file__
+    ).parent / "temp"
+)
+
+
+@output_path_for_test(
+    output_path
+)
+def test_create():
+    m.open_database("test.sqlite")
+    assert os.path.exists(
+        output_path
+    )
 
 
 def test_incomplete(paths):
@@ -73,4 +94,3 @@ def test_save_all(
     assert fit.model is not None
     assert "search" in fit
     assert fit.info["key"] == "value"
-
