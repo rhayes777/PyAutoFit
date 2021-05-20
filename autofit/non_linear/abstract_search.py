@@ -613,7 +613,7 @@ class PriorPasser:
 
                Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
                we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-               searchs - fast `NonLinearSearch` settings, simplified models, etc.
+               searches - fast `NonLinearSearch` settings, simplified models, etc.
 
                Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
                is suspiciously small, we instead use the value specified in the widths file. These values are chosen

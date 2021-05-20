@@ -6,7 +6,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
-from autofit.graphical import Factor
+from autofit.graphical import ModelFactor
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser, EPMeanField
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -89,11 +89,37 @@ class AbstractDynesty(AbstractNest, AbstractFactorOptimiser, ABC):
 
     def optimise(
             self,
-            factor: Factor,
+            factor: ModelFactor,
             model_approx: EPMeanField,
             status: Optional[Status] = None
     ) -> Tuple[EPMeanField, Status]:
-        pass
+        if not isinstance(
+                factor,
+                ModelFactor
+        ):
+            raise NotImplementedError(
+                f"Optimizer {self.__class__.__name__} can only be applied to ModelFactors"
+            )
+
+        factor_approx = model_approx.factor_approximation(
+            factor
+        )
+        arguments = {
+            prior: factor_approx.model_dist[
+                prior
+            ].as_prior()
+            for prior in factor_approx.variables
+        }
+
+        model = factor.prior_model.mapper_from_prior_arguments(
+            arguments
+        )
+        analysis = factor.analysis
+
+        result = self.fit(
+            model=model,
+            analysis=analysis
+        )
 
     class Fitness(AbstractNest.Fitness):
         @property
@@ -120,7 +146,7 @@ class AbstractDynesty(AbstractNest, AbstractFactorOptimiser, ABC):
         Returns
         -------
         A result object comprising the Samples object that includes the maximum log likelihood instance and full
-        set of accepted ssamples of the fit.
+        set of accepted samples of the fit.
         """
 
         fitness_function = self.fitness_function_from_model_and_analysis(
