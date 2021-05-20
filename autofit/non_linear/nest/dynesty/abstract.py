@@ -1,11 +1,14 @@
 from abc import ABC
 from os import path
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
+from autofit.graphical import Factor
+from autofit.graphical.expectation_propagation import AbstractFactorOptimiser, EPMeanField
+from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.log import logger
@@ -13,7 +16,6 @@ from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.plot import DynestyPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 from .samples import DynestySamples
-from ...parallel import SneakyPool
 
 
 def prior_transform(cube, model):
@@ -25,7 +27,7 @@ def prior_transform(cube, model):
     return cube
 
 
-class AbstractDynesty(AbstractNest, ABC):
+class AbstractDynesty(AbstractNest, AbstractFactorOptimiser, ABC):
 
     def __init__(
             self,
@@ -84,6 +86,14 @@ class AbstractDynesty(AbstractNest, ABC):
         )
 
         logger.debug("Creating DynestyStatic Search")
+
+    def optimise(
+            self,
+            factor: Factor,
+            model_approx: EPMeanField,
+            status: Optional[Status] = None
+    ) -> Tuple[EPMeanField, Status]:
+        pass
 
     class Fitness(AbstractNest.Fitness):
         @property
