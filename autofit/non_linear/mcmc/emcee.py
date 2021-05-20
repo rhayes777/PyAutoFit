@@ -127,13 +127,9 @@ class Emcee(AbstractMCMC):
             model=model, analysis=analysis
         )
 
-        if self.number_of_cores == 1:
-            pool = None
-        else:
-            pool = SneakyPool(
-                processes=self.number_of_cores,
-                fitness=fitness_function
-            )
+        pool = self.make_sneaky_pool(
+            fitness_function
+        )
 
         emcee_sampler = emcee.EnsembleSampler(
             nwalkers=self.config_dict_search["nwalkers"],

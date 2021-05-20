@@ -1,6 +1,4 @@
 import multiprocessing as mp
-import shutil
-from pathlib import Path
 
 import pytest
 # noinspection PyProtectedMember
@@ -8,27 +6,10 @@ from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
 import autofit as af
-from autoconf import conf
+from autoconf.conf import output_path_for_test
 from autofit.non_linear.parallel import SneakyPool, SneakyJob
 # noinspection PyProtectedMember
 from autofit.non_linear.parallel.sneaky import _is_likelihood_function
-
-
-@pytest.fixture(
-    autouse=True
-)
-def manage_output_path():
-    original_path = conf.instance.output_path
-    new_output_path = str(
-        Path(__file__).parent / "output"
-    )
-    conf.instance.output_path = new_output_path
-    yield
-    shutil.rmtree(
-        new_output_path,
-        ignore_errors=True
-    )
-    conf.instance.output_path = original_path
 
 
 @pytest.fixture(
@@ -37,7 +18,7 @@ def manage_output_path():
 def make_search():
     return af.DynestyStatic(
         number_of_cores=2,
-        maxcall=10
+        maxcall=2
     )
 
 
@@ -203,6 +184,9 @@ def test_raising_error(pool):
         ))
 
 
+@output_path_for_test(
+    "temp"
+)
 def test_sneaky_map(
         search,
         model,

@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -22,6 +24,12 @@ def open_database(
     A SQLAlchemy session
     """
     output_path = conf.instance.output_path
+
+    os.makedirs(
+        output_path,
+        exist_ok=True
+    )
+
     engine = create_engine(
         f'sqlite:///{output_path}/{filename}'
     )
