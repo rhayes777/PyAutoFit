@@ -170,20 +170,28 @@ def test_optimise_factor_model(
     assert collection[0].intensity is collection[1].intensity
 
 
-def test_gaussian():
-    n_observations = 100
-    x = np.arange(n_observations)
-    y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
+@pytest.fixture(
+    name="y"
+)
+def make_y(x):
+    return make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
 
-    prior_model = af.PriorModel(
+
+@pytest.fixture(
+    name="prior_model_2"
+)
+def make_prior_model_2():
+    return af.PriorModel(
         Gaussian,
         centre=af.GaussianPrior(mean=50, sigma=20),
         intensity=af.GaussianPrior(mean=25, sigma=10),
         sigma=af.GaussianPrior(mean=10, sigma=10),
     )
 
+
+def test_gaussian(x, y, prior_model_2):
     factor_model = ep.ModelFactor(
-        prior_model,
+        prior_model_2,
         analysis=Analysis(
             x=x,
             y=y
