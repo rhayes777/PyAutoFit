@@ -89,13 +89,18 @@ def make_fitness(
 
 
 class Analysis(af.Analysis):
-    def log_likelihood_function(self, instance):
-        return -1
+    def log_likelihood_function(self, instance: af.Gaussian):
+        return -(10 - instance.centre) ** 2
 
 
 class Fitness(af.NonLinearSearch.Fitness):
     def figure_of_merit_from(self, parameter_list):
         return -1
+
+    def __call__(self, parameter_list):
+        return self.figure_of_merit_from(
+            parameter_list
+        )
 
 
 @pytest.fixture(
@@ -109,6 +114,17 @@ def make_sneaky_job(
         1,
         fitness
     )
+
+
+def test_perform_fitness(
+        pool,
+        fitness
+):
+    results = list(pool.map(
+        fitness,
+        range(2)
+    ))
+    assert results == [-1, -1]
 
 
 def test_sneaky_removal(
@@ -180,11 +196,7 @@ def raise_exception(*_):
     raise MyException()
 
 
-def test_raising_error(fitness):
-    pool = SneakyPool(
-        processes=1,
-        fitness=fitness
-    )
+def test_raising_error(pool):
     with pytest.raises(
             MyException
     ):
