@@ -141,7 +141,7 @@ class FactorGraph(AbstractNode):
                 det_vars = factor.deterministic_variables
                 calls.append(factor)
                 # TODO: this might cause problems 
-                # if det_vars appear more than once
+                # TODO: if det_vars appear more than once
                 new_variables.update(det_vars)
 
             call_sequence.append(calls)
@@ -184,7 +184,11 @@ class FactorGraph(AbstractNode):
         det_values = {}
         variables = variable_dict.copy()
 
-        missing = set(v.name for v in self.variables).difference(v.name for v in variables)
+        missing = set(
+            v.name for v in self.variables
+        ).difference(
+            v.name for v in variables
+        )
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)
