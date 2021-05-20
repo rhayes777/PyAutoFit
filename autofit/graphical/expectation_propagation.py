@@ -130,7 +130,7 @@ class EPMeanField(FactorGraph):
 
     def project_factor_approx(
             self, projection: FactorApproximation, status: Optional[Status] = None,
-    ) -> "EPMeanField":
+    ) -> Tuple["EPMeanField", Status]:
         """
         """
         factor_mean_field = self.factor_mean_field

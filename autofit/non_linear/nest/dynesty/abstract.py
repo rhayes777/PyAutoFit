@@ -6,7 +6,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
-from autofit.graphical import ModelFactor
+from autofit.graphical import ModelFactor, MeanField, NormalMessage
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser, EPMeanField
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -120,6 +120,21 @@ class AbstractDynesty(AbstractNest, AbstractFactorOptimiser, ABC):
             model=model,
             analysis=analysis
         )
+
+        new_model_dist = MeanField({
+            prior: NormalMessage.from_prior(
+                result.model.prior_with_id(
+                    prior.id
+                )
+            )
+            for prior in factor_approx.variables
+        })
+
+        projection, status = factor_approx.project(
+            new_model_dist,
+            delta=1
+        )
+        return model_approx.project(projection, status)
 
     class Fitness(AbstractNest.Fitness):
         @property
