@@ -3,17 +3,18 @@ from typing import Callable, cast, Set, List, Dict, Optional
 
 import numpy as np
 
-from autofit import ModelInstance, Analysis
-from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import NormalMessage
+from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
+from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.paths.directory import DirectoryPaths
 
 
 class AbstractModelFactor(Analysis, ABC):
