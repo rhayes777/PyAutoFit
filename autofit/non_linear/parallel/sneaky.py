@@ -8,7 +8,6 @@ from emcee.ensemble import _FunctionWrapper as EMCEEFunctionWrapper
 # noinspection PyProtectedMember
 from zeus.fwrapper import _FunctionWrapper as ZeusFunctionWrapper
 
-from autofit.non_linear.abstract_search import NonLinearSearch
 from .process import AbstractJob, Process
 
 
@@ -31,6 +30,7 @@ def _is_likelihood_function(
     -------
     Is the object a log likelihood function?
     """
+    from autofit.non_linear.abstract_search import NonLinearSearch
     return any([
         isinstance(
             function,
@@ -161,7 +161,7 @@ class SneakyPool:
     def __init__(
             self,
             processes: int,
-            fitness: NonLinearSearch.Fitness,
+            fitness,
             initializer=None,
             initargs=None
     ):
