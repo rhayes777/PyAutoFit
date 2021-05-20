@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 import autofit.graphical as g
+from autofit.graphical.utils import Status
 from test_autofit.graphical.gaussian.model import Analysis
 
 
@@ -49,10 +50,31 @@ def test_default(
     assert model.sigma.mean == pytest.approx(10, rel=0.1)
 
 
-def test_dynesty(
-        factor_model,
-        laplace,
-        dynesty
-):
-    factor_model.optimiser = dynesty
-    factor_model.optimise(laplace)
+class TestDynesty:
+    def test_optimisation(
+            self,
+            factor_model,
+            laplace,
+            dynesty
+    ):
+        factor_model.optimiser = dynesty
+        factor_model.optimise(laplace)
+
+    def test_optimise(
+            self,
+            factor_model,
+            dynesty
+    ):
+        result, status = dynesty.optimise(
+            factor_model,
+            factor_model.mean_field_approximation()
+        )
+
+        assert isinstance(
+            result,
+            g.EPMeanField
+        )
+        assert isinstance(
+            status,
+            Status
+        )
