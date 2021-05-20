@@ -1,14 +1,11 @@
 from abc import ABC
 from os import path
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
-from autofit.graphical import ModelFactor, MeanField, NormalMessage
-from autofit.graphical.expectation_propagation import AbstractFactorOptimiser, EPMeanField
-from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.log import logger
@@ -27,7 +24,7 @@ def prior_transform(cube, model):
     return cube
 
 
-class AbstractDynesty(AbstractNest, AbstractFactorOptimiser, ABC):
+class AbstractDynesty(AbstractNest, ABC):
 
     def __init__(
             self,
@@ -86,55 +83,6 @@ class AbstractDynesty(AbstractNest, AbstractFactorOptimiser, ABC):
         )
 
         logger.debug("Creating DynestyStatic Search")
-
-    def optimise(
-            self,
-            factor: ModelFactor,
-            model_approx: EPMeanField,
-            status: Optional[Status] = None
-    ) -> Tuple[EPMeanField, Status]:
-        if not isinstance(
-                factor,
-                ModelFactor
-        ):
-            raise NotImplementedError(
-                f"Optimizer {self.__class__.__name__} can only be applied to ModelFactors"
-            )
-
-        factor_approx = model_approx.factor_approximation(
-            factor
-        )
-        arguments = {
-            prior: factor_approx.model_dist[
-                prior
-            ].as_prior()
-            for prior in factor_approx.variables
-        }
-
-        model = factor.prior_model.mapper_from_prior_arguments(
-            arguments
-        )
-        analysis = factor.analysis
-
-        result = self.fit(
-            model=model,
-            analysis=analysis
-        )
-
-        new_model_dist = MeanField({
-            prior: NormalMessage.from_prior(
-                result.model.prior_with_id(
-                    prior.id
-                )
-            )
-            for prior in factor_approx.variables
-        })
-
-        projection, status = factor_approx.project(
-            new_model_dist,
-            delta=1
-        )
-        return model_approx.project(projection, status)
 
     class Fitness(AbstractNest.Fitness):
         @property
