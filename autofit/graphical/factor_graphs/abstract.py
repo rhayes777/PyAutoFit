@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import \
-    List, Tuple, Dict, cast, Set, NamedTuple, Optional, Union
+    (
+    List, Tuple, Dict, cast, Set, NamedTuple, Optional, Union, Collection
+)
 from itertools import count
 
 import numpy as np
@@ -255,7 +257,7 @@ class AbstractNode(ABC):
 
     def _match_plates(
             self,
-            plates: List[Plate]
+            plates: Collection[Plate]
     ) -> np.ndarray:
         """
         Find indices plates from some factor in the collection of

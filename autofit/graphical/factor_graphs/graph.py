@@ -1,15 +1,19 @@
 from collections import Counter, defaultdict
+from functools import reduce
 from typing import \
-    Tuple, Dict, Collection, List, Callable, Optional, Union
-from functools import reduce 
+    (
+    Tuple, Dict, Collection, List
+)
 
 import numpy as np
 
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
-from autofit.mapper.variable import Variable, Plate
 from autofit.graphical.utils import \
+    (
     add_arrays, aggregate, Axis, cached_property
+)
+from autofit.mapper.variable import Variable, Plate
 
 
 class FactorGraph(AbstractNode):
@@ -80,10 +84,16 @@ class FactorGraph(AbstractNode):
         If there is an inconsistency with this graph
         """
         det_var_counts = ", ".join(
-            v for v, c in Counter(
-                v for f in self.factors
-                for v in f.deterministic_variables).items()
-            if c > 1)
+            map(
+                str,
+                [
+                    v for v, c in Counter(
+                    v for f in self.factors
+                    for v in f.deterministic_variables).items()
+                    if c > 1
+                ]
+            )
+        )
         if det_var_counts:
             raise ValueError(
                 "Improper FactorGraph, "
@@ -94,13 +104,13 @@ class FactorGraph(AbstractNode):
     @cached_property
     def all_variables(self):
         return reduce(
-            set.union, 
+            set.union,
             (factor.all_variables for factor in self.factors))
 
     @cached_property
     def deterministic_variables(self):
         return reduce(
-            set.union, 
+            set.union,
             (factor.deterministic_variables for factor in self.factors))
 
     @cached_property
@@ -147,7 +157,7 @@ class FactorGraph(AbstractNode):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False, 
+            axis: Axis = False,
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
