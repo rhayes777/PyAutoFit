@@ -1,11 +1,11 @@
 from os import path
-from typing import List, Optional
-from sqlalchemy.orm import Session
-import zeus
+from typing import Optional
+
 import numpy as np
+import zeus
+from sqlalchemy.orm import Session
 
 from autoconf import conf
-
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -13,12 +13,11 @@ from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
-
 from autofit.plot import ZeusPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
-class Zeus(AbstractMCMC):
 
+class Zeus(AbstractMCMC):
     __identifier_fields__ = (
         "nwalkers",
         "tune",
@@ -32,13 +31,13 @@ class Zeus(AbstractMCMC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
             initializer=None,
             auto_correlations_settings=AutoCorrelationsSettings(),
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -129,11 +128,12 @@ class Zeus(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-
-        pool = self.make_pool()
-
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis
+        )
+
+        pool = self.make_sneaky_pool(
+            fitness_function
         )
 
         if self.paths.is_object("zeus"):
@@ -290,6 +290,7 @@ class Zeus(AbstractMCMC):
         if should_plot("time_series"):
             plotter.time_series()
 
+
 class ZeusSamples(MCMCSamples):
 
     def __init__(
@@ -344,7 +345,8 @@ class ZeusSamples(MCMCSamples):
             sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
         log_posterior_list = self.zeus_sampler.get_log_prob(flat=True).tolist()
-        log_likelihood_list = [log_posterior - log_prior for log_posterior, log_prior in zip(log_posterior_list, log_prior_list)]
+        log_likelihood_list = [log_posterior - log_prior for log_posterior, log_prior in
+                               zip(log_posterior_list, log_prior_list)]
 
         weight_list = len(log_likelihood_list) * [1.0]
 
