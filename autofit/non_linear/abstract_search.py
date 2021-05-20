@@ -16,6 +16,7 @@ from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
+from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
@@ -506,6 +507,33 @@ class NonLinearSearch(ABC):
             return mp.Pool(
                 processes=self.number_of_cores
             )
+
+    def make_sneaky_pool(
+            self,
+            fitness_function: Fitness
+    ) -> Optional[SneakyPool]:
+        """
+        Create a pool for multiprocessing that uses slight-of-hand
+        to avoid copying the fitness function between processes
+        multiple times.
+
+        Parameters
+        ----------
+        fitness_function
+            An instance of a fitness class used to evaluate the
+            likelihood that a particular model is correct
+
+        Returns
+        -------
+        An implementation of a multiprocessing pool
+        """
+        if self.number_of_cores == 1:
+            return None
+
+        return SneakyPool(
+            processes=self.number_of_cores,
+            fitness=fitness_function
+        )
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__

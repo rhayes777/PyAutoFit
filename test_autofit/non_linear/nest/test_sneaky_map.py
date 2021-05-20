@@ -37,7 +37,7 @@ def manage_output_path():
 def make_search():
     return af.DynestyStatic(
         number_of_cores=2,
-        maxcall=10
+        maxcall=2
     )
 
 
