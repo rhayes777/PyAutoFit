@@ -3,7 +3,8 @@ from typing import Callable, cast, Set, List, Dict, Optional
 
 import numpy as np
 
-from autofit import ModelInstance, Analysis, DirectoryPaths
+from autofit import ModelInstance, Analysis
+from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
