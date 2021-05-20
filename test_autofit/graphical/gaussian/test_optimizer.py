@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 import autofit.graphical as g
+from autoconf.conf import output_path_for_test
 from autofit.graphical.utils import Status
 from test_autofit.graphical.gaussian.model import Analysis
 
@@ -51,6 +52,7 @@ def test_default(
 
 
 class TestDynesty:
+    @output_path_for_test()
     def test_optimisation(
             self,
             factor_model,
@@ -60,6 +62,7 @@ class TestDynesty:
         factor_model.optimiser = dynesty
         factor_model.optimise(laplace)
 
+    @output_path_for_test()
     def test_optimise(
             self,
             factor_model,

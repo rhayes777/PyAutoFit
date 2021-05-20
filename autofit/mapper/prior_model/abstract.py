@@ -543,7 +543,7 @@ class AbstractPriorModel(AbstractModel):
             elif use_errors and use_widths:
                 sigma = max(tuples[i][1], width)
             else:
-                raise exc.PriorException("use_passed_errors and use_widths are both False, meeaning there is no "
+                raise exc.PriorException("use_passed_errors and use_widths are both False, meaning there is no "
                                          "way to pass priors to set up the new model's Gaussian Priors.")
 
             arguments[prior] = GaussianPrior(
@@ -795,14 +795,6 @@ class AbstractPriorModel(AbstractModel):
     @property
     def prior_count(self):
         return len(self.unique_prior_tuples)
-
-    @property
-    def variable_promise_count(self):
-        return len([
-            value for key, value in
-            self.unique_promise_tuples
-            if not value.is_instance
-        ])
 
     @property
     def priors(self):
