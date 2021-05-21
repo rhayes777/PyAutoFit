@@ -160,9 +160,15 @@ class AbstractPaths(ABC):
                 identifier_list.append(
                     self.unique_tag
                 )
+            identifier = Identifier(identifier_list)
             self._identifier = str(
-                Identifier(identifier_list)
+                identifier
             )
+            with open(f"{self._sym_path}/.identifier", "w+") as f:
+                f.write(
+                    identifier.description
+                )
+
         return self._identifier
 
     @property
