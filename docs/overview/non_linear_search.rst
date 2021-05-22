@@ -126,9 +126,15 @@ For model-fits to multiple datasets, checkout the `database feature <https://pya
 which gives more options for customizing how the unique identifier is generated.
 
 Most searches support parallel analysis using the Python ``multiprocessing`` module. This distributes the
-non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used. To
-use this functionality you simply specifc the ``number_of_cores`` parameter (which is also found in the default
-config files):
+non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used.
+
+The in-built parallelization of Libraries such as ``emcee`` and ``dynesty`` can be slow, because the default behaviour
+is for them to pass the full likelihood function to every CPU. If this function includes a large dataset that is being
+fitted, this can lead to long communication overheads and slow performance.
+
+**PyAutoFit** implements *sneaky parallelization*, whereby the data is passed to every CPU before the model-fit. This
+requires no extra user input and is performed by default. To perform a parallel search, you simply specify
+the ``number_of_cores`` parameter (which is also found in the default config files):
 
 .. code-block:: bash
 
