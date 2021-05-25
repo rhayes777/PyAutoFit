@@ -11,11 +11,11 @@ one over-arching model.
 Graphical models are a fairly abstract concept, and so to describe them we are going to introduce a real-world
 model-fitting example. We will use an example from Astronomy; fitting images of gravitationally lensed galaxies.
 This is the science case that sparked the development of **PyAutoFit** as a spin off of our astronomy software
-``PyAutoLens <https://github.com/Jammy2211/PyAutoLens>``_.
+`PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_.
 
 The schematic below depicts a strong gravitational lens:
 
-.. image:: https://raw.githubusercontent.com/Jammy2211/PyAuto/master/docs/overview/images/lensing/schematic.jpg
+.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoLens/master/docs/overview/images/lensing/schematic.jpg
   :width: 600
   :alt: Alternative text
 
@@ -29,7 +29,7 @@ lens. The amount light is deflected by is defined by the distances between each 
 We therefore need a model which contains separate model-components for every galaxy, and where each galaxy contains
 separate model-components describing its light and mass. A graphical representation of this model is as follows:
 
-.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoFit/master/docs/overview/images/lens_model.png
+.. image:: https://github.com/rhayes777/PyAutoFit/blob/master/docs/overview/image/lens_model.png?raw=true
   :width: 600
   :alt: Alternative text
 
@@ -258,20 +258,18 @@ This model can therefore be used in a **PyAutoFit** ``Analysis`` class and ``log
 This example highlights how graphical models can make certain model-fitting problem fully extensible. For example:
 
  1) A ``Galaxy`` class can be created using any combination of light and mass profiles. Although this was not shown 
-explicitly in this example, this is because it implements their ``image_from_grid`` and ``deflections_from_grid`` 
-methods as the sum of individual profiles.
+explicitly in this example, this is because it implements their ``image_from_grid`` and ``deflections_from_grid`` methods as the sum of individual profiles.
 
- 2) The overall strong lens model can contain any number of ``Galaxy``'s, as these methods and their redshifts are used
- to implement the lensing calculations in the ``Analysis`` class and ``log_likelihood_function``.
+ 2) The overall strong lens model can contain any number of ``Galaxy``'s, as these methods and their redshifts are used to implement the lensing calculations in the ``Analysis`` class and ``log_likelihood_function``.
 
 Thus, for problems of this nature, we can design and write code in a way that fully utilizes **PyAutoFit**'s graphical
 modeling features to compose and fits models of arbitrary complexity and dimensionality.
 
 To illustrate this further, consider the following dataset which is called a **strong lens galaxy cluster**:
 
-.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoFit/master/docs/overview/images/cluster_example.png
-  :width: 600
-  :alt: Alternative text
+.. image:: https://github.com/rhayes777/PyAutoFit/blob/master/docs/overview/image/cluster_example.jpg?raw=true
+   :width: 600
+   :alt: Alternative text
 
 For this strong lens, there are many tens of strong lens galaxies as well as multiple background source galaxies.
 However, despite it being a significantly more complex system than the single-galaxy strong lens we modeled above,
@@ -310,6 +308,12 @@ example:
             # ... repeat for desired model complexity ...
         )
     )
+
+Here is an illustration of this model's graph:
+
+.. image:: https://github.com/rhayes777/PyAutoFit/blob/master/docs/overview/image/lens_model_cluster.png?raw=true
+  :width: 600
+  :alt: Alternative text
 
 **PyAutoFit** therefore gives us full control over the composition and customization of high dimensional graphical
 models.
