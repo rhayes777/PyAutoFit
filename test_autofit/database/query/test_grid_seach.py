@@ -51,7 +51,7 @@ def test_grid_search(
         grid_fit
 ):
     result, = aggregator.query(
-        aggregator.is_grid_search
+        aggregator.fit.is_grid_search
     ).fits
 
     assert result is grid_fit
@@ -64,7 +64,7 @@ class TestChildren:
             children
     ):
         assert aggregator.query(
-            aggregator.is_grid_search
+            aggregator.fit.is_grid_search
         ).children().fits == children
 
     def test_query_after(
@@ -72,7 +72,7 @@ class TestChildren:
             aggregator
     ):
         results = aggregator.query(
-            aggregator.is_grid_search
+            aggregator.fit.is_grid_search
         ).children().query(
             aggregator.centre <= 5
         ).fits
@@ -96,7 +96,7 @@ class TestChildren:
         session.flush()
 
         parent_aggregator = aggregator.query(
-            aggregator.is_grid_search & (aggregator.centre == 1)
+            aggregator.fit.is_grid_search & (aggregator.centre == 1)
         )
 
         result, = parent_aggregator.fits
@@ -109,6 +109,6 @@ class TestChildren:
         assert len(results) == 10
 
         results = aggregator.query(
-            aggregator.is_grid_search & (aggregator.centre == 2)
+            aggregator.fit.is_grid_search & (aggregator.centre == 2)
         ).children().fits
         assert len(results) == 0

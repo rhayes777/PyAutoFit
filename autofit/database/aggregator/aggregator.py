@@ -21,16 +21,29 @@ class NullPredicate(AbstractQuery):
 class Query:
     @staticmethod
     def for_name(name):
-        if name in m.fit_attributes:
-            if m.fit_attributes[
-                name
-            ].type.python_type == bool:
-                return q.BA(name)
-            return q.A(name)
         return q.Q(name)
 
     def __getattr__(self, name):
         return self.for_name(name)
+
+
+class FitQuery:
+    @staticmethod
+    def for_name(name):
+        if name not in m.fit_attributes:
+            raise AttributeError(
+                f"Fit has no attribute {name}"
+            )
+        if m.fit_attributes[
+            name
+        ].type.python_type == bool:
+            return q.BA(name)
+        return q.A(name)
+
+    def __getattr__(self, item):
+        return FitQuery.for_name(
+            item
+        )
 
 
 class Aggregator:
@@ -64,6 +77,10 @@ class Aggregator:
         return iter(
             self.fits
         )
+
+    @property
+    def fit(self):
+        return FitQuery()
 
     @property
     def info(self):
@@ -333,6 +350,6 @@ class Aggregator:
         )
         if completed_only:
             return aggregator(
-                aggregator.is_complete
+                aggregator.fit.is_complete
             )
         return aggregator
