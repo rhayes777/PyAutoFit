@@ -1,0 +1,15 @@
+version: 1
+disable_existing_loggers: false
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: WARN
+    stream: ext://sys.stdout
+  file:
+    class: logging.FileHandler
+    level: INFO
+    filename: logconfig.log
+
+root:
+  level: DEBUG
+  handlers: [ console, file ]
