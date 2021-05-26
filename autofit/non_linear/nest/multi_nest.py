@@ -67,7 +67,7 @@ class MultiNest(abstract_nest.AbstractNest):
             **kwargs
         )
 
-        self.self.logger.debug("Creating MultiNest Search")
+        self.logger.debug("Creating MultiNest Search")
 
     class Fitness(abstract_nest.AbstractNest.Fitness):
 
@@ -143,7 +143,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
         import pymultinest
 
-        self.self.logger.info("Beginning MultiNest non-linear search. ")
+        self.logger.info("Beginning MultiNest non-linear search. ")
 
         pymultinest.run(
             fitness_function,
