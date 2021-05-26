@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from autofit.database import query as q
 from .scrape import scrape_directory
 from .. import model as m
-from ..query.query import AbstractQuery
+from ..query.query import AbstractQuery, Attribute
 
 
 class NullPredicate(AbstractQuery):
@@ -19,17 +19,63 @@ class NullPredicate(AbstractQuery):
 
 
 class Query:
+    """
+    API for creating a query on the best fit instance
+    """
+
     @staticmethod
-    def for_name(name):
+    def for_name(name: str) -> q.Q:
+        """
+        Create a query for fits based on the name of a
+        top level instance attribute
+
+        Parameters
+        ----------
+        name
+            The name of the attribute. e.g. galaxies
+
+        Returns
+        -------
+        A query generating object
+        """
         return q.Q(name)
 
     def __getattr__(self, name):
         return self.for_name(name)
 
 
-class FitQuery:
+class FitQuery(Query):
+    """
+    API for creating a query on the attributes of a fit,
+    such as:
+        name
+        unique_tag
+        path_prefix
+        is_complete
+        is_grid_search
+    """
+
     @staticmethod
-    def for_name(name):
+    def for_name(name: str) -> Union[
+        AbstractQuery,
+        Attribute
+    ]:
+        """
+        Create a query based on some attribute of the Fit.
+
+        Parameters
+        ----------
+        name
+            The name of an attribute of the Fit class
+
+        Returns
+        -------
+        A query based on an attribute
+
+        Examples
+        --------
+        aggregator.fit.name == 'example name'
+        """
         if name not in m.fit_attributes:
             raise AttributeError(
                 f"Fit has no attribute {name}"
@@ -39,11 +85,6 @@ class FitQuery:
         ].type.python_type == bool:
             return q.BA(name)
         return q.A(name)
-
-    def __getattr__(self, item):
-        return FitQuery.for_name(
-            item
-        )
 
 
 class Aggregator:
