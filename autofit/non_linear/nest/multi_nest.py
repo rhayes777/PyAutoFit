@@ -2,13 +2,13 @@ import os
 import shutil
 from os import path
 from typing import Optional
+
 from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
 from autofit.non_linear import result as res
-from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.samples import NestSamples, Sample
 
@@ -30,7 +30,7 @@ class MultiNest(abstract_nest.AbstractNest):
             path_prefix=None,
             unique_tag: Optional[str] = None,
             prior_passer=None,
-            session : Optional[Session] = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -67,7 +67,7 @@ class MultiNest(abstract_nest.AbstractNest):
             **kwargs
         )
 
-        logger.debug("Creating MultiNest Search")
+        self.self.logger.debug("Creating MultiNest Search")
 
     class Fitness(abstract_nest.AbstractNest.Fitness):
 
@@ -143,7 +143,7 @@ class MultiNest(abstract_nest.AbstractNest):
 
         import pymultinest
 
-        logger.info("Beginning MultiNest non-linear search. ")
+        self.self.logger.info("Beginning MultiNest non-linear search. ")
 
         pymultinest.run(
             fitness_function,
@@ -200,10 +200,10 @@ class MultiNestSamples(NestSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            number_live_points : int,
-            file_summary : str,
-            file_weighted_samples : str,
-            file_resume : str,
+            number_live_points: int,
+            file_summary: str,
+            file_weighted_samples: str,
+            file_resume: str,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):

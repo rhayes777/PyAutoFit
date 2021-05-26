@@ -15,7 +15,6 @@ from autofit.mapper import model_mapper as mm
 from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
-from autofit.non_linear.log import logger
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
@@ -59,11 +58,15 @@ class NonLinearSearch(ABC):
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         from autofit.non_linear.paths.database import DatabasePaths
-        #
+
         name = name or ""
         path_prefix = path_prefix or ""
 
         self.path_prefix_no_unique_tag = path_prefix
+
+        self.logger = logging.getLogger(
+            name
+        )
 
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
@@ -321,7 +324,7 @@ class NonLinearSearch(ABC):
 
         else:
 
-            logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
+            self.logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
             samples = self.samples_from(model=model)
 
             if self.force_pickle_overwrite:
@@ -414,7 +417,7 @@ class NonLinearSearch(ABC):
         """
 
         self.iterations += self.iterations_per_update
-        logger.info(
+        self.logger.info(
             f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
         )
 
@@ -464,19 +467,14 @@ class NonLinearSearch(ABC):
         return samples
 
     def setup_log_file(self):
-
-        if self.number_of_cores > 1:
-            logger.disabled = True
-
-        if conf.instance["general"]["output"]["log_to_file"]:
-
-            if len(self.log_file) == 0:
-                raise ValueError("In general.ini log_to_file is True, but log_file is an empty string. "
-                                 "Either give log_file a name or set log_to_file to False.")
-
-            log_path = path.join(self.paths.output_path, self.log_file)
-            logger.handlers = [logging.FileHandler(log_path)]
-            logger.propagate = False
+        log_path = path.join(
+            self.paths.output_path,
+            self.log_file
+        )
+        self.logger.handlers.append(
+            logging.FileHandler(log_path)
+        )
+        self.logger.propagate = False
 
     @property
     def samples_cls(self):

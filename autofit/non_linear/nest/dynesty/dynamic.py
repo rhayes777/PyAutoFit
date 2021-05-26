@@ -2,7 +2,6 @@ from typing import Optional
 
 from dynesty.dynesty import DynamicNestedSampler
 
-from autofit.non_linear.log import logger
 from .abstract import AbstractDynesty, prior_transform
 
 
@@ -69,7 +68,7 @@ class DynestyDynamic(AbstractDynesty):
             **kwargs
         )
 
-        logger.debug("Creating DynestyDynamic Search")
+        self.logger.debug("Creating DynestyDynamic Search")
 
     def sampler_from(self, model, fitness_function, pool):
         """

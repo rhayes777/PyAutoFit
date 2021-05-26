@@ -1,22 +1,20 @@
-from os import path
 import copy
+from os import path
 from typing import Optional
+
 from sqlalchemy.orm import Session
 
 from autoconf import conf
-
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.log import logger
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples import NestSamples, Sample
-
 from autofit.plot import UltraNestPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
-class UltraNest(abstract_nest.AbstractNest):
 
+class UltraNest(abstract_nest.AbstractNest):
     __identifier_fields__ = (
         "draw_multiple",
         "ndraw_min",
@@ -32,11 +30,11 @@ class UltraNest(abstract_nest.AbstractNest):
             self,
             name: str = "",
             path_prefix: str = "",
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer: PriorPasser = None,
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -93,7 +91,7 @@ class UltraNest(abstract_nest.AbstractNest):
             if self.config_dict_stepsampler["stepsampler_cls"] is None:
                 self.nsteps = None
 
-        logger.debug("Creating UltraNest Search")
+        self.logger.debug("Creating UltraNest Search")
 
     @property
     def config_dict_stepsampler(self):
@@ -130,8 +128,6 @@ class UltraNest(abstract_nest.AbstractNest):
             return stepsampler.CubeSliceSampler(**config_dict_stepsampler)
         elif stepsampler_cls == "RegionSliceSampler":
             return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
-
-
 
     class Fitness(AbstractNest.Fitness):
         @property
@@ -284,13 +280,14 @@ class UltraNest(abstract_nest.AbstractNest):
         if should_plot("traceplot"):
             plotter.traceplot()
 
+
 class UltraNestSamples(NestSamples):
 
     def __init__(
             self,
             model: AbstractPriorModel,
             results,
-            number_live_points : int,
+            number_live_points: int,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
