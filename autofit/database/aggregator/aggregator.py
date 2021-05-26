@@ -120,7 +120,15 @@ class Aggregator:
         )
 
     @property
-    def fit(self):
+    def search(self) -> FitQuery:
+        """
+        An object facilitating queries on fit attributes such as:
+            name
+            unique_tag
+            path_prefix
+            is_complete
+            is_grid_search
+        """
         return FitQuery()
 
     @property

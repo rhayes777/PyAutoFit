@@ -6,7 +6,7 @@ def test_is_complete(
         aggregator
 ):
     assert aggregator.query(
-        aggregator.fit.is_complete
+        aggregator.search.is_complete
     ) == [gaussian_1]
 
 
@@ -15,7 +15,7 @@ def test_is_not_complete(
         aggregator
 ):
     assert aggregator.query(
-        ~aggregator.fit.is_complete
+        ~aggregator.search.is_complete
     ) == [gaussian_2]
 
 
@@ -24,7 +24,7 @@ def test_call(
         aggregator
 ):
     assert aggregator(
-        aggregator.fit.is_complete
+        aggregator.search.is_complete
     ) == [gaussian_1]
 
 
@@ -45,13 +45,13 @@ def test_combine(
         gaussian_1
 ):
     assert aggregator.query(
-        aggregator.fit.is_complete & (aggregator.centre == 1)
+        aggregator.search.is_complete & (aggregator.centre == 1)
     ) == [gaussian_1]
     assert aggregator.query(
-        (~aggregator.fit.is_complete) & (aggregator.centre == 1)
+        (~aggregator.search.is_complete) & (aggregator.centre == 1)
     ) == []
     assert aggregator.query(
-        aggregator.fit.is_complete & (aggregator.centre == 2)
+        aggregator.search.is_complete & (aggregator.centre == 2)
     ) == []
 
 
@@ -61,10 +61,10 @@ def test_unique_tag(
         gaussian_2
 ):
     assert aggregator.query(
-        aggregator.fit.unique_tag == "one"
+        aggregator.search.unique_tag == "one"
     ) == [gaussian_1]
     assert aggregator.query(
-        aggregator.fit.unique_tag == "two"
+        aggregator.search.unique_tag == "two"
     ) == [gaussian_2]
 
 
@@ -74,7 +74,7 @@ def test_contains(
         gaussian_2
 ):
     assert aggregator.query(
-        aggregator.fit.unique_tag.contains(
+        aggregator.search.unique_tag.contains(
             "o"
         )
     ) == [
@@ -82,7 +82,7 @@ def test_contains(
                gaussian_2
            ]
     assert aggregator.query(
-        aggregator.fit.unique_tag.contains(
+        aggregator.search.unique_tag.contains(
             "ne"
         )
     ) == [
