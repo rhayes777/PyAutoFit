@@ -399,6 +399,6 @@ class Aggregator:
         )
         if completed_only:
             return aggregator(
-                aggregator.fit.is_complete
+                aggregator.search.is_complete
             )
         return aggregator
