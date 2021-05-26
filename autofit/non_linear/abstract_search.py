@@ -68,12 +68,19 @@ class NonLinearSearch(ABC):
             name
         )
 
+        self.logger.info(
+            f"Creating search"
+        )
+
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
 
         self.unique_tag = unique_tag
 
         if session is not None:
+            self.logger.debug(
+                "Session found. Using database."
+            )
             paths = DatabasePaths(
                 name=name,
                 path_prefix=path_prefix,
@@ -85,6 +92,9 @@ class NonLinearSearch(ABC):
                 unique_tag=unique_tag
             )
         else:
+            self.logger.debug(
+                "Session not found. Using directory output."
+            )
             paths = DirectoryPaths(
                 name=name,
                 path_prefix=path_prefix,
@@ -107,6 +117,7 @@ class NonLinearSearch(ABC):
         )
 
         if initializer is None:
+            self.logger.debug("Creating initializer ")
             self.initializer = Initializer.from_config(config=self._config)
         else:
             self.initializer = initializer
@@ -176,6 +187,9 @@ class NonLinearSearch(ABC):
             self,
             paths
     ):
+        self.logger.debug(
+            f"Creating a copy of {self._paths.name}"
+        )
         search_instance = copy.copy(self)
         search_instance.paths = paths
 
@@ -293,12 +307,19 @@ class NonLinearSearch(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
+        self.logger.info(
+            "Starting search"
+        )
+
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
         self.paths.restore()
         self.setup_log_file()
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
+            self.logger.info(
+                "Saving path info"
+            )
 
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
@@ -308,6 +329,9 @@ class NonLinearSearch(ABC):
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
         if not self.paths.is_complete:
+            self.logger.info(
+                "Not complete. Starting non-linear search."
+            )
 
             self.timer.start()
 
@@ -323,15 +347,19 @@ class NonLinearSearch(ABC):
             self.paths.save_object("samples", samples)
 
         else:
-
-            self.logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
+            self.logger.info(f"Already completed, skipping non-linear search.")
             samples = self.samples_from(model=model)
 
             if self.force_pickle_overwrite:
-
+                self.logger.info(
+                    "Forcing pickle overwrite"
+                )
                 self.paths.save_object("samples", samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
+        self.logger.info(
+            "Removing zip file"
+        )
         self.paths.zip_remove()
         return analysis.make_result(samples=samples, model=model, search=self)
 
@@ -438,7 +466,7 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-
+            self.logger.debug("Visualizing")
             analysis.visualize(
                 paths=self.paths,
                 instance=instance,
@@ -446,6 +474,9 @@ class NonLinearSearch(ABC):
             )
 
         if self.should_output_model_results() or not during_analysis:
+            self.logger.debug(
+                "Outputting model result"
+            )
             try:
                 start = time.time()
                 analysis.log_likelihood_function(instance=instance)
@@ -459,6 +490,9 @@ class NonLinearSearch(ABC):
                 pass
 
         if not during_analysis and self.remove_state_files_at_end:
+            self.logger.debug(
+                "Removing state files"
+            )
             try:
                 self.remove_state_files()
             except FileNotFoundError:
@@ -467,6 +501,12 @@ class NonLinearSearch(ABC):
         return samples
 
     def setup_log_file(self):
+        """
+        Sets up the log file. This happens when the search commences.
+
+        A file handler is used to output logs into a file in the search
+        directory.
+        """
         log_path = path.join(
             self.paths.output_path,
             self.log_file
@@ -498,9 +538,7 @@ class NonLinearSearch(ABC):
         etc."""
 
         if self.number_of_cores == 1:
-
             return None
-
         else:
             return mp.Pool(
                 processes=self.number_of_cores
