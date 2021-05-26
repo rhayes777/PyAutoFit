@@ -2,7 +2,7 @@ def test_completed_aggregator(
         aggregator
 ):
     aggregator = aggregator(
-        aggregator.is_complete
+        aggregator.search.is_complete
     )
     assert len(aggregator) == 1
 

@@ -114,7 +114,9 @@ class DatabasePaths(AbstractPaths):
                 self._fit = Fit(
                     id=self.identifier,
                     is_complete=False,
-                    unique_tag=self.unique_tag
+                    unique_tag=self.unique_tag,
+                    path_prefix=self.path_prefix,
+                    name=self.name
                 )
                 self.session.add(
                     self._fit
