@@ -232,7 +232,7 @@ class SneakyPool:
             ) for args in args_list
         ]
 
-        logger.info(
+        logger.debug(
             f"Running {len(jobs)} jobs across {self.processes} processes"
         )
 
