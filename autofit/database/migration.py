@@ -24,14 +24,27 @@ class Identifiable(ABC):
 
 class Migrator:
     def __init__(self, *steps):
-        self.steps = steps
+        self._steps = steps
 
     @property
     def revisions(self):
-        for i in range(1, len(self.steps) + 1):
+        for i in range(1, len(self._steps) + 1):
             yield Revision(
-                self.steps[:i]
+                self._steps[:i]
             )
+
+    def get_steps(self, revision_id=None):
+        for revision in self.revisions:
+            if revision_id == revision.id:
+                return (self.latest_revision - revision).steps
+
+        return self._steps
+
+    @property
+    def latest_revision(self):
+        return Revision(
+            self._steps
+        )
 
 
 class Revision(Identifiable):
