@@ -3,7 +3,6 @@ from typing import Optional
 from dynesty import NestedSampler as StaticSampler
 from sqlalchemy.orm import Session
 
-from autofit.non_linear.log import logger
 from .abstract import AbstractDynesty, prior_transform
 
 
@@ -73,7 +72,7 @@ class DynestyStatic(AbstractDynesty):
             **kwargs
         )
 
-        logger.debug("Creating DynestyStatic Search")
+        self.logger.debug("Creating DynestyStatic Search")
 
     def sampler_from(self, model, fitness_function, pool):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty

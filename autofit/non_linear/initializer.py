@@ -1,10 +1,15 @@
+import configparser
+import logging
+
+import numpy as np
+
 from autoconf import conf
 from autofit import exc
 
-from autofit.non_linear.log import logger
+logger = logging.getLogger(
+    __name__
+)
 
-import configparser
-import numpy as np
 
 class Initializer:
     def __init__(self, lower_limit, upper_limit):

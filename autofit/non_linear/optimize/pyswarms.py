@@ -1,30 +1,29 @@
 from os import path
-import numpy as np
 from typing import Optional
+
+import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
-
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.log import logger
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples, Sample
-
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
+
 
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
             initializer=None,
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -72,7 +71,7 @@ class AbstractPySwarms(AbstractOptimizer):
             else number_of_cores
         )
 
-        logger.debug("Creating PySwarms Search")
+        self.logger.debug("Creating PySwarms Search")
 
     class Fitness(AbstractOptimizer.Fitness):
         def __call__(self, parameters):
@@ -125,7 +124,7 @@ class AbstractPySwarms(AbstractOptimizer):
             init_pos = self.load_points[-1]
             total_iterations = self.load_total_iterations
 
-            logger.info("Existing PySwarms samples found, resuming non-linear search.")
+            self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
 
         else:
 
@@ -143,7 +142,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             total_iterations = 0
 
-            logger.info("No PySwarms samples found, beginning new non-linear search. ")
+            self.logger.info("No PySwarms samples found, beginning new non-linear search. ")
 
         ## TODO : Use actual limits
 
@@ -160,7 +159,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         bounds = (np.asarray(lower_bounds), np.asarray(upper_bounds))
 
-        logger.info("Running PySwarmsGlobal Optimizer...")
+        self.logger.info("Running PySwarmsGlobal Optimizer...")
 
         while total_iterations < self.config_dict_run["iters"]:
 
@@ -203,7 +202,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 init_pos = self.load_points[-1]
 
-        logger.info("PySwarmsGlobal complete")
+        self.logger.info("PySwarmsGlobal complete")
 
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
 
@@ -268,8 +267,8 @@ class AbstractPySwarms(AbstractOptimizer):
         if should_plot("time_series"):
             plotter.time_series()
 
-class PySwarmsGlobal(AbstractPySwarms):
 
+class PySwarmsGlobal(AbstractPySwarms):
     __identifier_fields__ = (
         "n_particles",
         "cognitive",
@@ -281,12 +280,12 @@ class PySwarmsGlobal(AbstractPySwarms):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
             initializer=None,
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -328,7 +327,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             **kwargs
         )
 
-        logger.debug("Creating PySwarms Search")
+        self.logger.debug("Creating PySwarms Search")
 
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
@@ -357,7 +356,6 @@ class PySwarmsGlobal(AbstractPySwarms):
 
 
 class PySwarmsLocal(AbstractPySwarms):
-
     __identifier_fields__ = (
         "n_particles",
         "cognitive",
@@ -371,11 +369,11 @@ class PySwarmsLocal(AbstractPySwarms):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -416,7 +414,7 @@ class PySwarmsLocal(AbstractPySwarms):
             **kwargs
         )
 
-        logger.debug("Creating PySwarms Search")
+        self.logger.debug("Creating PySwarms Search")
 
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         """
@@ -455,9 +453,9 @@ class PySwarmsSamples(OptimizerSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            points : np.ndarray,
-            log_posterior_list : np.ndarray,
-            total_iterations : int,
+            points: np.ndarray,
+            log_posterior_list: np.ndarray,
+            total_iterations: int,
             time: Optional[float] = None,
     ):
         """

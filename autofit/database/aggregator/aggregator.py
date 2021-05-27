@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, List, Union
 
 from sqlalchemy import create_engine
@@ -7,6 +8,10 @@ from autofit.database import query as q
 from .scrape import scrape_directory
 from .. import model as m
 from ..query.query import AbstractQuery, Attribute
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class NullPredicate(AbstractQuery):
@@ -309,6 +314,9 @@ class Aggregator:
         A list of fit objects, one for each id returned by the
         query
         """
+        logger.debug(
+            f"Executing query: {query}"
+        )
         fit_ids = {
             row[0]
             for row
@@ -316,6 +324,9 @@ class Aggregator:
                 query
             )
         }
+        logger.info(
+            f"{len(fit_ids)} fit(s) found matching query"
+        )
         return self.session.query(
             m.Fit
         ).filter(

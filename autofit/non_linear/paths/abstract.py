@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import shutil
@@ -12,8 +13,11 @@ from typing import Optional
 from autoconf import conf
 from autofit.mapper import link
 from autofit.mapper.model_object import Identifier
-from autofit.non_linear.log import logger
 from autofit.text import text_util
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 def make_path(func):
@@ -146,7 +150,7 @@ class AbstractPaths(ABC):
     @property
     def identifier(self):
         if None in (self.model, self.search):
-            logger.warn(
+            logger.warning(
                 "Both model and search should be set"
             )
 
