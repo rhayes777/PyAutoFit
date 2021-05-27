@@ -112,10 +112,6 @@ class NonLinearSearch(ABC):
 
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
-        self.log_file = conf.instance["general"]["output"]["log_file"].replace(
-            " ", ""
-        )
-
         if initializer is None:
             self.logger.debug("Creating initializer ")
             self.initializer = Initializer.from_config(config=self._config)
@@ -509,7 +505,7 @@ class NonLinearSearch(ABC):
         """
         log_path = path.join(
             self.paths.output_path,
-            self.log_file
+            "output.log"
         )
         self.logger.handlers.append(
             logging.FileHandler(log_path)
