@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from hashlib import md5
 
+from sqlalchemy.exc import OperationalError
+
 
 class Identifiable(ABC):
     @property
@@ -44,6 +46,43 @@ class Migrator:
     def latest_revision(self):
         return Revision(
             self._steps
+        )
+
+    def migrate(self, session):
+        wrapper = SessionWrapper(
+            session
+        )
+        steps = self.get_steps(
+            wrapper.revision_id
+        )
+
+
+class SessionWrapper:
+    def __init__(self, session):
+        self.session = session
+
+    def _init_revision_table(self):
+        self.session.execute(
+            "CREATE TABLE revision (revision_id VARCHAR PRIMARY KEY)"
+        )
+        self.session.execute(
+            "INSERT INTO revision (revision_id) VALUES ('origin')"
+        )
+
+    @property
+    def revision_id(self):
+        try:
+            return self.session.execute(
+                "SELECT revision_id FROM revision"
+            )
+        except OperationalError:
+            self._init_revision_table()
+            return None
+
+    @revision_id.setter
+    def revision_id(self, revision_id):
+        self.session.execute(
+            f"UPDATE revision SET revision_id = {revision_id}"
         )
 
 
