@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import wraps
 from hashlib import md5
 
 from sqlalchemy import text
@@ -63,6 +64,20 @@ class Migrator:
         wrapper.revision_id = self.latest_revision.id
 
 
+def needs_revision_table(
+        func
+):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except OperationalError:
+            self._init_revision_table()
+            return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class SessionWrapper:
     def __init__(self, session):
         self.session = session
@@ -76,17 +91,16 @@ class SessionWrapper:
         )
 
     @property
+    @needs_revision_table
     def revision_id(self):
-        try:
-            for row in self.session.execute(
-                    "SELECT revision_id FROM revision"
-            ):
-                return row[0]
-        except OperationalError:
-            self._init_revision_table()
+        for row in self.session.execute(
+                "SELECT revision_id FROM revision"
+        ):
+            return row[0]
         return None
 
     @revision_id.setter
+    @needs_revision_table
     def revision_id(self, revision_id):
         self.session.execute(
             text(

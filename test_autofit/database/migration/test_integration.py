@@ -33,6 +33,31 @@ def test_run_migration(
     ).revision_id == revision_2
 
 
+def test_run_partial_migration(
+        migrator,
+        session,
+        revision_1,
+        revision_2
+):
+    wrapper = SessionWrapper(
+        session
+    )
+    wrapper.revision_id = revision_1.id
+
+    assert len(migrator.get_steps(revision_1.id)) == 1
+
+    migrator.migrate(
+        session
+    )
+    assert len(list(
+        session.execute(
+            "SELECT * FROM test"
+        )
+    )) == 1
+
+    assert wrapper.revision_id == revision_2
+
+
 def test_session_wrapper(session):
     wrapper = SessionWrapper(session)
     assert wrapper.revision_id is None
