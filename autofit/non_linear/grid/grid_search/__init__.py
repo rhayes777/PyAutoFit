@@ -46,7 +46,10 @@ class GridSearch:
         self.prior_passer = search.prior_passer
 
     @property
-    def parallel(self):
+    def parallel(self) -> bool:
+        """
+        Should this grid search run in parallel?
+        """
         return self.number_of_cores > 1
 
     @property
@@ -132,6 +135,7 @@ class GridSearch:
             "Running grid search..."
         )
         func = self.fit_parallel if self.parallel else self.fit_sequential
+        # noinspection PyArgumentList
         return func(
             model=model,
             analysis=analysis,

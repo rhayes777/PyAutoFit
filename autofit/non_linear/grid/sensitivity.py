@@ -1,3 +1,4 @@
+import logging
 from copy import copy
 from itertools import count
 from os import path
@@ -166,6 +167,12 @@ class Sensitivity:
         number_of_cores
             How many cores does this computer have? Minimum 2.
         """
+        self.logger = logging.getLogger(
+            f"Sensitivity ({search.name})"
+        )
+
+        self.logger.info("Creating")
+
         self.instance = simulation_instance
         self.model = base_model
 
@@ -194,6 +201,7 @@ class Sensitivity:
         Run fits and comparisons for all perturbations, returning
         a list of results.
         """
+        self.logger.info("Running")
         results = list()
         for result in Process.run_jobs(
                 self._make_jobs(),
