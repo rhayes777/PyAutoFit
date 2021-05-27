@@ -1,20 +1,15 @@
 import pytest
 from sqlalchemy.exc import OperationalError
 
-from autofit.database.migration import Migrator
+from autofit.database.migration import Migrator, SessionWrapper
 
 
-# @pytest.fixture(
-#     name="session",
-#     scope="module"
-# )
-# def make_session():
-#     engine = create_engine('sqlite://')
-#     session = sessionmaker(bind=engine)()
-#     db.Base.metadata.create_all(engine)
-#     yield session
-#     session.close()
-#     engine.dispose()
+def test_session_wrapper(session):
+    wrapper = SessionWrapper(session)
+    assert wrapper.revision_id is None
+
+    wrapper.revision_id = "revision_id"
+    assert wrapper.revision_id == "revision_id"
 
 
 def test_creates_table(session):
@@ -29,10 +24,8 @@ def test_creates_table(session):
 
     migrator.migrate(session)
 
-    result = session.execute(
-        "SELECT revision_id FROM revision"
-    )
-    print(result)
-
-    # assert False
-# self.session.execute
+    assert len(list(
+        session.execute(
+            "SELECT revision_id FROM revision"
+        )
+    )) == 1

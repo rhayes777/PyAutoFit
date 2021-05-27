@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from hashlib import md5
 
+from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 
 
@@ -66,23 +67,27 @@ class SessionWrapper:
             "CREATE TABLE revision (revision_id VARCHAR PRIMARY KEY)"
         )
         self.session.execute(
-            "INSERT INTO revision (revision_id) VALUES ('origin')"
+            "INSERT INTO revision (revision_id) VALUES (null)"
         )
 
     @property
     def revision_id(self):
         try:
-            return self.session.execute(
-                "SELECT revision_id FROM revision"
-            )
+            for row in self.session.execute(
+                    "SELECT revision_id FROM revision"
+            ):
+                return row[0]
         except OperationalError:
             self._init_revision_table()
-            return None
+        return None
 
     @revision_id.setter
     def revision_id(self, revision_id):
-        self.session.execute(
-            f"UPDATE revision SET revision_id = {revision_id}"
+        proxy = self.session.execute(
+            text(
+                f"UPDATE revision SET revision_id = :revision_id"
+            ),
+            {"revision_id": revision_id}
         )
 
 
