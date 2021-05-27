@@ -1,9 +1,13 @@
 import collections
+import logging
 import multiprocessing
 from abc import ABC, abstractmethod
 from itertools import count
 from typing import Iterable
-import logging
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class AbstractJobResult(ABC):
@@ -153,8 +157,14 @@ class Process(multiprocessing.Process):
             job_queue.put(job)
             total += 1
 
+        logger.info(
+            f"Running {total} jobs over {number_of_cores} cores"
+        )
+
         for process in processes:
             process.start()
+
+        logger.debug("Starting processes")
 
         count = 0
 
@@ -167,5 +177,9 @@ class Process(multiprocessing.Process):
 
         job_queue.close()
 
+        logger.debug("Finished jobs")
+
         for process in processes:
             process.join(timeout=1.0)
+
+        logger.debug("Joining processes")
