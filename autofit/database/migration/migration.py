@@ -59,9 +59,13 @@ class Migrator:
         )
         for step in steps:
             for string in step.strings:
-                session.execute(
-                    string
-                )
+                try:
+                    session.execute(
+                        string
+                    )
+                except OperationalError as e:
+                    pass
+
         wrapper.revision_id = self.latest_revision.id
 
 
