@@ -46,7 +46,7 @@ class MCMCPlotter(SamplesPlotter):
             for walker_index in range(log_posterior_list.shape[1]):
 
                 ax = axes[i]
-                ax.plot_array(samples[:, walker_index, i], log_posterior_list[:, walker_index], alpha=0.3)
+                ax.plot(samples[:, walker_index, i], log_posterior_list[:, walker_index], alpha=0.3)
 
             ax.set_ylabel("Log Likelihood")
             ax.set_xlabel(self.model.parameter_labels_latex[i])
@@ -60,7 +60,7 @@ class MCMCPlotter(SamplesPlotter):
 
         for walker_index in range(log_posterior_list.shape[1]):
 
-            axes.plot_array(log_posterior_list[:, walker_index], alpha=0.3)
+            axes.plot(log_posterior_list[:, walker_index], alpha=0.3)
 
         axes.set_ylabel("Log Likelihood")
         axes.set_xlabel("step number")
@@ -74,7 +74,7 @@ class MCMCPlotter(SamplesPlotter):
 
         for i in range(self.samples.model.prior_count):
             ax = axes[i]
-            ax.plot_array(samples[:, :, i], alpha=0.3)
+            ax.plot(samples[:, :, i], alpha=0.3)
             ax.set_ylabel(self.model.parameter_labels_latex[i])
 
         axes[-1].set_xlabel("step number")

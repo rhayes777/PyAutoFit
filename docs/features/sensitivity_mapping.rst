@@ -95,7 +95,7 @@ The ``perturbation_model`` is therefore another ``Gaussian`` but now corresponds
 
 By fitting both of these models to every simulated dataset, we will therefore infer the Bayesian evidence of every
 model to every dataset. Sensitivity mapping therefore maps out for what values of ``intensity`` in the ``gaussian_feature``
- does the more complex model-fit provide higher values of Bayesian evidence than the simpler model-fit. We also fix the
+does the more complex model-fit provide higher values of Bayesian evidence than the simpler model-fit. We also fix the
 values ot the ``centre`` and ``sigma`` of the ``Gaussian`` so we only map over its ``intensity``.
 
 .. code-block:: bash

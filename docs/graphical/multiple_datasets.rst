@@ -1,11 +1,9 @@
-.. _graphical:
+.. _multiple_datasets:
 
 Multiple Datasets
 -----------------
 
-**NOTE: Graphical models are an in-development feature. This example serves to illustrate what we currently developing ,
-but the API is subject to change. If you are interested in using graphical models I recommend you contact me directly
-(https://github.com/Jammy2211) so we can discuss how to implement **PyAutoFit** for your use-case.**
+**NOTE: Graphical models are an in-development feature. This example serves to illustrate what we currently developing , but the API is subject to change. If you are interested in using graphical models I recommend you contact me directly ( https://github.com/Jammy2211 ) so we can discuss how to implement **PyAutoFit** for your use-case.**
 
 For graphical model composition, we saw how to compose a graphical model which fitted a single dataset. In this 
 example, we will show how to build a graphical model that fits multiple datasets. 
@@ -21,9 +19,9 @@ conditional dependencies with the local parameters.
 The major selling point of **PyAutoFit**'s graphical modeling framework is the high level of customization it offers,
 whereby: 
 
- - Specific ``Analysis`` classes can be defined for fitting differnent local models to different datasets. 
- - Each pairing of a local model-fit to data can be given its own non-linear search.
- - Graphical model networks of any topology can be defined and fitted.
+- Specific ``Analysis`` classes can be defined for fitting differnent local models to different datasets.
+- Each pairing of a local model-fit to data can be given its own non-linear search.
+- Graphical model networks of any topology can be defined and fitted.
 
 In this example, we demonstrate the API for composing and fitting a graphical model to multiple-datasets, using the 
 simple example of fitting noisy 1D Gaussians. In this example, I will explicitly write code that stores each dataset 
@@ -84,7 +82,7 @@ formats (e.g. images) it would be straight forward to write customized ``Analysi
 We now compose the graphical model we will fit using the ``Model`` and ``Collection`` objects. We begin by setting up a
 shared prior for their ``centre`` using a single ``GaussianPrior``. This is passed to a unique ``Model`` for
 each ``Gaussian`` and means that all three ``Gaussian``'s are fitted wih the same value of ``centre``. That is, we have
-defined our graphical model to have a shared value of ``centre``when it fits each dataset.
+defined our graphical model to have a shared value of ``centre`` when it fits each dataset.
 
 .. code-block:: bash
 
@@ -140,10 +138,10 @@ We combine our ``ModelFactors`` into one, to compose the factor graph.
 So, what does our factor graph looks like? Unfortunately, we haven't yet build visualization of this into **PyAutoFit**,
 so you'll have to make do with a description for now. The factor graph above is made up of two components:
 
-- Nodes: these are points on the graph where we have a unique set of data and a model that is made up of a subset of
+**Nodes:** these are points on the graph where we have a unique set of data and a model that is made up of a subset of
 our overall graphical model. This is effectively the ``ModelFactor`` objects we created above.
 
-- Links: these define the model components and parameters that are shared across different nodes and thus retain the
+**Links:** these define the model components and parameters that are shared across different nodes and thus retain the
 same values when fitting different datasets.
 
 .. code-block:: bash

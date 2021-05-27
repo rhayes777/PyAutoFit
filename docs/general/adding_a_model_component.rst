@@ -144,8 +144,7 @@ classes, we receive the same configuration error as before.
 This is because if a model-component is contained in a Python module, the prior configuration file must be named after
 that ``module`` and structured to contain Python class itself.
 
-Open the file ``autofit_workspace/config/priors/template_module.json``, (https://github.com/Jammy2211/autofit_workspace/blob/master/config/priors/template_module.json)
-which reads as follows:
+Open the file ``autofit_workspace/config/priors/template_module.json``, (https://github.com/Jammy2211/autofit_workspace/blob/master/config/priors/template_module.json) which reads as follows:
 
 .. code-block:: bash
     
@@ -250,10 +249,10 @@ These configuration files include the following additional settings for our mode
 ``label_ini`` -> [label]: 
    This is a short-hand label for each parameter of each model-component used by certain **PyAutoFit** output files.
 
-``label_ini`` -> [subscript]: 
+``label_ini`` -> [subscript]:
    A subscript for the model-component used by certain **PyAutoFit** output files.
 
-``label_format.ini -> [format]
+``label_format.ini`` -> [format]
    The format that the values of a parameter appear in the ``model.results`` file.
 
 For our ``LinearFit`` update the ``label.ini`` config as follows:

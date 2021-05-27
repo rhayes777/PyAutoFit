@@ -35,8 +35,7 @@ this model-fit into a chained of three searches where:
 
 1) The first model fits just the left ``Gaussian`` where N=3.
 2) The second model fits just the right ``Gaussian`` where again N=3.
-3) The final model is fitted with both ``Gaussians`` where N=6. Crucially, the results of the first two searches
-are used to initialize the search and tell it the highest likelihood regions of parameter space.
+3) The final model is fitted with both ``Gaussians`` where N=6. Crucially, the results of the first two searches are used to initialize the search and tell it the highest likelihood regions of parameter space.
 
 By initially fitting parameter spaces of reduced complexity we can achieve a more efficient and reliable model-fitting
 procedure.
@@ -74,7 +73,7 @@ We could remove the data on the left like we did the ``Gaussian`` above. However
 dataset. To fit the left Gaussian we use the maximum log likelihood model of the model inferred in search 1.
 
 For search chaining, **PyAutoFit** has many convenient methods for passing the results of a search to a subsequence
-search. Below, we achieve this by passing the result of the search above as an ``instance.
+search. Below, we achieve this by passing the result of the search above as an ``instance``.
 
 .. code-block:: bash
 

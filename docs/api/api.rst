@@ -47,7 +47,8 @@ Non-Linear Searches
 .. autosummary::
    :toctree: generated/
 
-   Paths
+   DirectoryPaths
+   DatabasePaths
    Result
    InitializerBall
    InitializerPrior
@@ -58,6 +59,7 @@ Non-Linear Searches
 Plotters
 --------
 
+.. currentmodule:: autofit.plot
 .. autosummary::
    :toctree: generated/
 
@@ -71,6 +73,8 @@ Plotters
 ------
 Models
 ------
+
+.. currentmodule:: autofit
 
 .. autosummary::
    :toctree: generated/
