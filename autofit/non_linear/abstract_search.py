@@ -542,7 +542,7 @@ class NonLinearSearch(ABC):
         self.logger.handlers.append(
             logging.FileHandler(log_path)
         )
-        self.logger.propagate = False
+        # self.logger.propagate = False
 
     @property
     def samples_cls(self):
