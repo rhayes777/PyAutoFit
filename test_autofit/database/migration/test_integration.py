@@ -33,6 +33,21 @@ def test_run_migration(
     ).revision_id == revision_2
 
 
+def test_apply_twice(
+        migrator,
+        session
+):
+    for _ in range(2):
+        migrator.migrate(
+            session
+        )
+    assert len(list(
+        session.execute(
+            "SELECT * FROM test"
+        )
+    )) == 2
+
+
 def test_run_partial_migration(
         migrator,
         session,
