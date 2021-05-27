@@ -41,7 +41,7 @@ def check_cores(func):
     """
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        self.logger.debug(
+        self.logger.info(
             f"number_of_cores == {self.number_of_cores}..."
         )
         if self.number_of_cores == 1:
