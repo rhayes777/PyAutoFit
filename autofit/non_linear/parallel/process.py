@@ -158,7 +158,7 @@ class Process(multiprocessing.Process):
             total += 1
 
         logger.info(
-            f"Running {total} jobs over {number_of_cores} cores"
+            f"Running {total} jobs across {number_of_cores} processes"
         )
 
         for process in processes:
