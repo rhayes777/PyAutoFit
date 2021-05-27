@@ -56,6 +56,10 @@ class Migrator:
         steps = self.get_steps(
             wrapper.revision_id
         )
+        for step in steps:
+            session.execute(
+                step.string
+            )
 
 
 class SessionWrapper:
@@ -83,7 +87,7 @@ class SessionWrapper:
 
     @revision_id.setter
     def revision_id(self, revision_id):
-        proxy = self.session.execute(
+        self.session.execute(
             text(
                 f"UPDATE revision SET revision_id = :revision_id"
             ),
