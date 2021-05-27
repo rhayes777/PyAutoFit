@@ -1,1 +1,2 @@
-from .migration import Step, Migrator, SessionWrapper
+from .migration import Step, Migrator
+from .session_wrapper import SessionWrapper
