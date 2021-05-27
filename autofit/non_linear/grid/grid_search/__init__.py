@@ -1,4 +1,5 @@
 import copy
+import logging
 from os import path
 from typing import List, Tuple, Union
 
@@ -24,18 +25,29 @@ class GridSearch:
         search: class
             The class of the search that is run at each step
         """
+        self.logger = logging.getLogger(
+            f"GridSearch ({search.name})"
+        )
+
+        self.logger.info(
+            "Creating grid search"
+        )
+
         self.paths = search.paths
 
         self.number_of_cores = number_of_cores or 1
 
-        if self.number_of_cores == 1:
-            self.parallel = False
-        else:
-            self.parallel = True
+        self.logger.info(
+            f"Using {number_of_cores} core(s)"
+        )
 
         self.number_of_steps = number_of_steps
         self.search = search
         self.prior_passer = search.prior_passer
+
+    @property
+    def parallel(self):
+        return self.number_of_cores > 1
 
     @property
     def step_size(self):
@@ -116,6 +128,9 @@ class GridSearch:
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
+        self.logger.info(
+            "Running grid search..."
+        )
         func = self.fit_parallel if self.parallel else self.fit_sequential
         return func(
             model=model,
@@ -140,6 +155,9 @@ class GridSearch:
         result: GridSearchResult
             The result of the grid search
         """
+        self.logger.info(
+            "...in parallel"
+        )
 
         grid_priors = list(set(grid_priors))
         results = []
@@ -192,6 +210,9 @@ class GridSearch:
         result: GridSearchResult
             The result of the grid search
         """
+        self.logger.info(
+            "...sequentially"
+        )
 
         grid_priors = list(sorted(set(grid_priors), key=lambda prior: prior.id))
         results = []
@@ -238,7 +259,9 @@ class GridSearch:
         return jobs
 
     def write_results(self, results_list):
-
+        self.logger.debug(
+            "Writing results"
+        )
         with open(path.join(self.paths.output_path, "results"), "w+") as f:
             f.write(
                 "\n".join(

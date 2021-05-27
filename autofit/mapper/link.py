@@ -44,6 +44,7 @@ def path_for(path):
         "al_{}".format(encoded_string[:start] + encoded_string[-end:]).replace('-', '')
     )
 
+
 def make_linked_folder(sym_path):
     """
         Returns a folder in the ~/.autolens directory and create a sym link to it at the provided path.

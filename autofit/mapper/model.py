@@ -1,9 +1,14 @@
 import copy
+import logging
 from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 def frozen_cache(func):
@@ -87,6 +92,7 @@ class AbstractModel(ModelObject):
         A frozen object caches results for some function calls
         and does not allow its state to be modified.
         """
+        logger.debug("Freezing model")
         tuples = self.direct_tuples_with_type(
             AbstractModel
         )
@@ -100,6 +106,7 @@ class AbstractModel(ModelObject):
         Unfreeze this object. Allows modification and removes
         caches associated with some functions.
         """
+        logger.debug("Thawing model")
         self._is_frozen = False
         tuples = self.direct_tuples_with_type(
             AbstractModel

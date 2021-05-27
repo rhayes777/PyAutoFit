@@ -39,6 +39,7 @@ def check_cores(func):
     -------
     None or a pool
     """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         self.logger.info(
@@ -192,6 +193,10 @@ class NonLinearSearch(ABC):
         self.number_of_cores = number_of_cores
 
     __identifier_fields__ = tuple()
+
+    @property
+    def name(self):
+        return self.paths.name
 
     @property
     def timer(self):
