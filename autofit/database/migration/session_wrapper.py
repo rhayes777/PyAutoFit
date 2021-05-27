@@ -1,8 +1,10 @@
 import logging
 from functools import wraps
+from typing import Optional
 
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(
     __name__
@@ -12,6 +14,21 @@ logger = logging.getLogger(
 def needs_revision_table(
         func
 ):
+    """
+    Applies to functions that depend on the existence
+    of the revision table. If the table does not exist
+    it is created and then the function is executed.
+
+    Parameters
+    ----------
+    func
+        Some function that depends on the revision table
+
+    Returns
+    -------
+    A decorated function
+    """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
@@ -24,10 +41,21 @@ def needs_revision_table(
 
 
 class SessionWrapper:
-    def __init__(self, session):
+    def __init__(self, session: Session):
+        """
+        Wraps a SQLAlchemy session so that certain commands can be
+        encapsulated.
+
+        Parameters
+        ----------
+        session
+        """
         self.session = session
 
     def _init_revision_table(self):
+        """
+        Creates the revision table with a single null entry
+        """
         self.session.execute(
             "CREATE TABLE revision (revision_id VARCHAR PRIMARY KEY)"
         )
@@ -37,7 +65,11 @@ class SessionWrapper:
 
     @property
     @needs_revision_table
-    def revision_id(self):
+    def revision_id(self) -> Optional[str]:
+        """
+        Describes the current revision of the database. None if no
+        revisions have been made.
+        """
         for row in self.session.execute(
                 "SELECT revision_id FROM revision"
         ):
@@ -46,7 +78,7 @@ class SessionWrapper:
 
     @revision_id.setter
     @needs_revision_table
-    def revision_id(self, revision_id):
+    def revision_id(self, revision_id: str):
         self.session.execute(
             text(
                 f"UPDATE revision SET revision_id = :revision_id"

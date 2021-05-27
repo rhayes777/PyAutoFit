@@ -214,6 +214,9 @@ class Migrator:
             )
         )
         if len(steps) == 0:
+            logger.info(
+                "Database already at latest revision"
+            )
             return
 
         latest_revision_id = self.latest_revision.id
