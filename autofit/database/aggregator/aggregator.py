@@ -7,8 +7,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from autofit.database import query as q
 from .scrape import scrape_directory
 from .. import model as m
-from ..migration import Migrator
-from ..migration.steps import steps
+from ..migration.steps import migrator
 from ..query.query import AbstractQuery, Attribute
 
 
@@ -397,9 +396,7 @@ class Aggregator:
         )()
 
         if exists:
-            Migrator(
-                *steps
-            ).migrate(
+            migrator.migrate(
                 session
             )
 

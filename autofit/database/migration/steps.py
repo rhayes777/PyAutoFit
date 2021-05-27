@@ -1,4 +1,4 @@
-from autofit.database.migration import Step
+from autofit.database.migration import Step, Migrator
 
 steps = [
     Step(
@@ -6,3 +6,5 @@ steps = [
         "ALTER TABLE fit ADD path_prefix VARCHAR;"
     )
 ]
+
+migrator = Migrator(*steps)
