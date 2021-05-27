@@ -1,7 +1,12 @@
+import logging
 import os
 
 from .. import model as m
 from ...mapper.model_object import Identifier
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 def scrape_directory(directory: str):
@@ -18,9 +23,15 @@ def scrape_directory(directory: str):
     -------
     Generator yielding Fit database objects
     """
+    logger.info(
+        f"Scraping directory {directory}"
+    )
     from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
     aggregator = ClassicAggregator(
         directory
+    )
+    logger.info(
+        f"{len(aggregator)} searches found"
     )
     for item in aggregator:
         is_complete = os.path.exists(

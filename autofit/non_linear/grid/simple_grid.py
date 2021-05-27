@@ -10,10 +10,15 @@ from autofit.non_linear.grid.grid_search import make_lists
 
 class GridSearch:
 
-    def __init__(self, step_size=0.5):
-
+    def __init__(self, step_size=0.5, name=None):
         self.step_size = step_size
-        self.paths = paths.DirectoryPaths()
+        self.paths = paths.DirectoryPaths(
+            name=name
+        )
+
+    @property
+    def name(self):
+        return self.paths.name
 
     def copy_with_paths(self, paths):
         search = copy(self)

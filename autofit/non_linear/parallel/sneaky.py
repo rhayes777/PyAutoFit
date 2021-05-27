@@ -1,3 +1,4 @@
+import logging
 import multiprocessing as mp
 from typing import Iterable
 
@@ -5,6 +6,10 @@ from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
 from .process import AbstractJob, Process
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 def _is_likelihood_function(
@@ -140,6 +145,9 @@ class SneakyProcess(Process):
         while True:
             job = self.job_queue.get()
             if job is StopCommand:
+                self.logger.debug(
+                    "StopCommand found"
+                )
                 break
             try:
                 self.queue.put(
@@ -148,6 +156,7 @@ class SneakyProcess(Process):
                     )
                 )
             except Exception as e:
+                self.logger.exception(e)
                 self.queue.put(e)
         self.logger.debug("terminating process {}".format(self.name))
         self.job_queue.close()
@@ -177,6 +186,9 @@ class SneakyPool:
         initializer
         initargs
         """
+        logger.debug(
+            f"Creating SneakyPool with {processes} processes"
+        )
         self.job_queue = mp.Queue()
         self.processes = [
             SneakyProcess(
@@ -220,6 +232,10 @@ class SneakyPool:
             ) for args in args_list
         ]
 
+        logger.debug(
+            f"Running {len(jobs)} jobs across {self.processes} processes"
+        )
+
         for job in jobs:
             self.job_queue.put(
                 job
@@ -243,6 +259,10 @@ class SneakyPool:
                     else:
                         yield item
 
+        logger.debug(
+            "All jobs complete"
+        )
+
         if exception is not None:
             raise exception
 
@@ -253,8 +273,21 @@ class SneakyPool:
         Tell each process to terminate with a StopCommand and then join
         each process with a timeout of one second.
         """
+        logger.debug(
+            "Deconstructing SneakyMap"
+        )
+
+        logger.debug(
+            "Terminating processes..."
+        )
         for _ in range(len(self.processes)):
             self.job_queue.put(StopCommand)
 
+        logger.debug(
+            "Joining processes..."
+        )
         for process in self.processes:
-            process.join(0.5)
+            try:
+                process.join(0.5)
+            except Exception as e:
+                logger.exception(e)

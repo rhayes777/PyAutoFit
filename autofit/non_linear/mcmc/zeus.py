@@ -1,24 +1,22 @@
 from os import path
-from typing import List, Optional
-from sqlalchemy.orm import Session
-import zeus
+from typing import Optional
+
 import numpy as np
+import zeus
+from sqlalchemy.orm import Session
 
 from autoconf import conf
-
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
-
 from autofit.plot import ZeusPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
-class Zeus(AbstractMCMC):
 
+class Zeus(AbstractMCMC):
     __identifier_fields__ = (
         "nwalkers",
         "tune",
@@ -32,13 +30,13 @@ class Zeus(AbstractMCMC):
             self,
             name=None,
             path_prefix=None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
             initializer=None,
             auto_correlations_settings=AutoCorrelationsSettings(),
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
-            session : Optional[Session] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -94,7 +92,7 @@ class Zeus(AbstractMCMC):
 
         self.number_of_cores = number_of_cores or self._config("parallel", "number_of_cores")
 
-        logger.debug("Creating Zeus Search")
+        self.logger.debug("Creating Zeus Search")
 
     class Fitness(AbstractMCMC.Fitness):
         def __call__(self, parameters):
@@ -152,7 +150,7 @@ class Zeus(AbstractMCMC):
             else:
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-                logger.info("Existing Zeus samples found, resuming non-linear search.")
+                self.logger.info("Existing Zeus samples found, resuming non-linear search.")
 
         else:
 
@@ -173,7 +171,7 @@ class Zeus(AbstractMCMC):
 
             zeus_state = np.zeros(shape=(zeus_sampler.nwalkers, model.prior_count))
 
-            logger.info("No Zeus samples found, beginning new non-linear search.")
+            self.logger.info("No Zeus samples found, beginning new non-linear search.")
 
             for index, parameters in enumerate(initial_parameter_lists):
 
@@ -230,7 +228,7 @@ class Zeus(AbstractMCMC):
                 if zeus_sampler.ncall_total > self.kwargs["maxcall"]:
                     iterations_remaining = 0
 
-        logger.info("Zeus sampling complete.")
+        self.logger.info("Zeus sampling complete.")
 
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
 
@@ -290,6 +288,7 @@ class Zeus(AbstractMCMC):
         if should_plot("time_series"):
             plotter.time_series()
 
+
 class ZeusSamples(MCMCSamples):
 
     def __init__(
@@ -344,7 +343,8 @@ class ZeusSamples(MCMCSamples):
             sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
         log_posterior_list = self.zeus_sampler.get_log_prob(flat=True).tolist()
-        log_likelihood_list = [log_posterior - log_prior for log_posterior, log_prior in zip(log_posterior_list, log_prior_list)]
+        log_likelihood_list = [log_posterior - log_prior for log_posterior, log_prior in
+                               zip(log_posterior_list, log_prior_list)]
 
         weight_list = len(log_likelihood_list) * [1.0]
 

@@ -444,6 +444,8 @@ class AbstractPriorModel(AbstractModel):
         model_mapper: ModelMapper
             A new model mapper with updated priors.
         """
+        logger.debug(f"Creating a new mapper from arguments")
+
         mapper = copy.deepcopy(self)
 
         for prior_model_tuple in self.prior_model_tuples:
@@ -594,6 +596,7 @@ class AbstractPriorModel(AbstractModel):
         """
         Returns a random instance of the model.
         """
+        logger.debug(f"Creating a random instance")
         return self.instance_from_unit_vector(
             unit_vector=[random() for _ in self.prior_tuples]
         )
@@ -784,6 +787,7 @@ class AbstractPriorModel(AbstractModel):
         -------
             An instance of the class
         """
+        logger.debug(f"Creating an instance for arguments")
         if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
             for prior, value in arguments.items():
                 if isinstance(value, Number):

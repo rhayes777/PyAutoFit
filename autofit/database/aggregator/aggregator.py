@@ -1,4 +1,5 @@
 import os
+import logging
 from typing import Optional, List, Union
 
 from sqlalchemy import create_engine
@@ -9,6 +10,10 @@ from .scrape import scrape_directory
 from .. import model as m
 from ..migration.steps import migrator
 from ..query.query import AbstractQuery, Attribute
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class NullPredicate(AbstractQuery):
@@ -311,6 +316,9 @@ class Aggregator:
         A list of fit objects, one for each id returned by the
         query
         """
+        logger.debug(
+            f"Executing query: {query}"
+        )
         fit_ids = {
             row[0]
             for row
@@ -318,6 +326,9 @@ class Aggregator:
                 query
             )
         }
+        logger.info(
+            f"{len(fit_ids)} fit(s) found matching query"
+        )
         return self.session.query(
             m.Fit
         ).filter(

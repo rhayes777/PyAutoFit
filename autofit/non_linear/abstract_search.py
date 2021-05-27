@@ -3,6 +3,7 @@ import logging
 import multiprocessing as mp
 import time
 from abc import ABC, abstractmethod
+from functools import wraps
 from os import path
 from typing import Optional
 
@@ -15,12 +16,43 @@ from autofit.mapper import model_mapper as mm
 from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
-from autofit.non_linear.log import logger
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
+
+
+def check_cores(func):
+    """
+    Checks how many cores the search has been configured to
+    use and then returns None instead of calling the pool
+    creation function in the case that only one core has
+    been set.
+
+    Parameters
+    ----------
+    func
+        A function that creates a pool
+
+    Returns
+    -------
+    None or a pool
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self.logger.info(
+            f"number_of_cores == {self.number_of_cores}..."
+        )
+        if self.number_of_cores == 1:
+            self.logger.info(
+                "...not using pool"
+            )
+            return None
+        return func(self, *args, **kwargs)
+
+    return wrapper
 
 
 class NonLinearSearch(ABC):
@@ -59,11 +91,19 @@ class NonLinearSearch(ABC):
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         from autofit.non_linear.paths.database import DatabasePaths
-        #
+
         name = name or ""
         path_prefix = path_prefix or ""
 
         self.path_prefix_no_unique_tag = path_prefix
+
+        self.logger = logging.getLogger(
+            name
+        )
+
+        self.logger.info(
+            f"Creating search"
+        )
 
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
@@ -71,6 +111,9 @@ class NonLinearSearch(ABC):
         self.unique_tag = unique_tag
 
         if session is not None:
+            self.logger.debug(
+                "Session found. Using database."
+            )
             paths = DatabasePaths(
                 name=name,
                 path_prefix=path_prefix,
@@ -82,6 +125,9 @@ class NonLinearSearch(ABC):
                 unique_tag=unique_tag
             )
         else:
+            self.logger.debug(
+                "Session not found. Using directory output."
+            )
             paths = DirectoryPaths(
                 name=name,
                 path_prefix=path_prefix,
@@ -99,11 +145,8 @@ class NonLinearSearch(ABC):
 
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
-        self.log_file = conf.instance["general"]["output"]["log_file"].replace(
-            " ", ""
-        )
-
         if initializer is None:
+            self.logger.debug("Creating initializer ")
             self.initializer = Initializer.from_config(config=self._config)
         else:
             self.initializer = initializer
@@ -152,6 +195,10 @@ class NonLinearSearch(ABC):
     __identifier_fields__ = tuple()
 
     @property
+    def name(self):
+        return self.paths.name
+
+    @property
     def timer(self):
         if self._timer is None:
             self._timer = Timer(
@@ -173,6 +220,9 @@ class NonLinearSearch(ABC):
             self,
             paths
     ):
+        self.logger.debug(
+            f"Creating a copy of {self._paths.name}"
+        )
         search_instance = copy.copy(self)
         search_instance.paths = paths
 
@@ -290,12 +340,19 @@ class NonLinearSearch(ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
+        self.logger.info(
+            "Starting search"
+        )
+
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
         self.paths.restore()
         self.setup_log_file()
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
+            self.logger.info(
+                "Saving path info"
+            )
 
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
@@ -305,6 +362,9 @@ class NonLinearSearch(ABC):
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
         if not self.paths.is_complete:
+            self.logger.info(
+                "Not complete. Starting non-linear search."
+            )
 
             self.timer.start()
 
@@ -320,15 +380,19 @@ class NonLinearSearch(ABC):
             self.paths.save_object("samples", samples)
 
         else:
-
-            logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
+            self.logger.info(f"Already completed, skipping non-linear search.")
             samples = self.samples_from(model=model)
 
             if self.force_pickle_overwrite:
-
+                self.logger.info(
+                    "Forcing pickle overwrite"
+                )
                 self.paths.save_object("samples", samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
+        self.logger.info(
+            "Removing zip file"
+        )
         self.paths.zip_remove()
         return analysis.make_result(samples=samples, model=model, search=self)
 
@@ -414,7 +478,7 @@ class NonLinearSearch(ABC):
         """
 
         self.iterations += self.iterations_per_update
-        logger.info(
+        self.logger.info(
             f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
         )
 
@@ -435,7 +499,7 @@ class NonLinearSearch(ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-
+            self.logger.debug("Visualizing")
             analysis.visualize(
                 paths=self.paths,
                 instance=instance,
@@ -443,6 +507,9 @@ class NonLinearSearch(ABC):
             )
 
         if self.should_output_model_results() or not during_analysis:
+            self.logger.debug(
+                "Outputting model result"
+            )
             try:
                 start = time.time()
                 analysis.log_likelihood_function(instance=instance)
@@ -456,6 +523,9 @@ class NonLinearSearch(ABC):
                 pass
 
         if not during_analysis and self.remove_state_files_at_end:
+            self.logger.debug(
+                "Removing state files"
+            )
             try:
                 self.remove_state_files()
             except FileNotFoundError:
@@ -464,19 +534,20 @@ class NonLinearSearch(ABC):
         return samples
 
     def setup_log_file(self):
+        """
+        Sets up the log file. This happens when the search commences.
 
-        if self.number_of_cores > 1:
-            logger.disabled = True
-
-        if conf.instance["general"]["output"]["log_to_file"]:
-
-            if len(self.log_file) == 0:
-                raise ValueError("In general.ini log_to_file is True, but log_file is an empty string. "
-                                 "Either give log_file a name or set log_to_file to False.")
-
-            log_path = path.join(self.paths.output_path, self.log_file)
-            logger.handlers = [logging.FileHandler(log_path)]
-            logger.propagate = False
+        A file handler is used to output logs into a file in the search
+        directory.
+        """
+        log_path = path.join(
+            self.paths.output_path,
+            "output.log"
+        )
+        self.logger.handlers.append(
+            logging.FileHandler(log_path)
+        )
+        # self.logger.propagate = False
 
     @property
     def samples_cls(self):
@@ -488,6 +559,7 @@ class NonLinearSearch(ABC):
     def samples_from(self, model):
         raise NotImplementedError()
 
+    @check_cores
     def make_pool(self):
         """Make the pool instance used to parallelize a `NonLinearSearch` alongside a set of unique ids for every
         process in the pool. If the specified number of cores is 1, a pool instance is not made and None is returned.
@@ -498,16 +570,14 @@ class NonLinearSearch(ABC):
         The pool instance is also set up with a list of unique pool ids, which are used during model-fitting to
         identify a 'master core' (the one whose id value is lowest) which handles model result output, visualization,
         etc."""
+        self.logger.info(
+            "...using pool"
+        )
+        return mp.Pool(
+            processes=self.number_of_cores
+        )
 
-        if self.number_of_cores == 1:
-
-            return None
-
-        else:
-            return mp.Pool(
-                processes=self.number_of_cores
-            )
-
+    @check_cores
     def make_sneaky_pool(
             self,
             fitness_function: Fitness
@@ -527,9 +597,11 @@ class NonLinearSearch(ABC):
         -------
         An implementation of a multiprocessing pool
         """
-        if self.number_of_cores == 1:
-            return None
-
+        self.logger.warning(
+            "...using SneakyPool. This copies the likelihood function"
+            "to each process on instantiation to avoid copying multiple"
+            "times."
+        )
         return SneakyPool(
             processes=self.number_of_cores,
             fitness=fitness_function

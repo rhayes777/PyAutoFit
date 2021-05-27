@@ -38,6 +38,10 @@ class Identifier:
         value
             An object
         """
+        if isinstance(
+                value, Exception
+        ):
+            raise value
         if hasattr(value, "__dict__"):
             d = value.__dict__
             if hasattr(
