@@ -1,5 +1,4 @@
 import pytest
-from sqlalchemy.exc import OperationalError
 
 from autofit.database.migration import Migrator, SessionWrapper, Step
 
@@ -10,14 +9,22 @@ from autofit.database.migration import Migrator, SessionWrapper, Step
 def make_migrator():
     return Migrator(
         Step(
-            "CREATE TABLE test (id INTEGER PRIMARY KEY)"
-        ),
-        Step(
             "INSERT INTO test (id) VALUES (1)"
         ),
         Step(
             "INSERT INTO test (id) VALUES (2)"
         )
+    )
+
+
+@pytest.fixture(
+    autouse=True
+)
+def create_table(
+        session
+):
+    session.execute(
+        "CREATE TABLE test (id INTEGER PRIMARY KEY)"
     )
 
 
@@ -41,20 +48,3 @@ def test_session_wrapper(session):
 
     wrapper.revision_id = "revision_id"
     assert wrapper.revision_id == "revision_id"
-
-
-def test_creates_table(session, migrator):
-    with pytest.raises(
-            OperationalError
-    ):
-        session.execute(
-            "SELECT revision_id FROM revision"
-        )
-
-    migrator.migrate(session)
-
-    assert len(list(
-        session.execute(
-            "SELECT revision_id FROM revision"
-        )
-    )) == 1
