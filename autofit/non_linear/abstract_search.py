@@ -3,6 +3,7 @@ import logging
 import multiprocessing as mp
 import time
 from abc import ABC, abstractmethod
+from functools import wraps
 from os import path
 from typing import Optional
 
@@ -20,6 +21,37 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
+
+
+def check_cores(func):
+    """
+    Checks how many cores the search has been configured to
+    use and then returns None instead of calling the pool
+    creation function in the case that only one core has
+    been set.
+
+    Parameters
+    ----------
+    func
+        A function that creates a pool
+
+    Returns
+    -------
+    None or a pool
+    """
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self.logger.debug(
+            f"number_of_cores == {self.number_of_cores}..."
+        )
+        if self.number_of_cores == 1:
+            self.logger.info(
+                "...not using pool"
+            )
+            return None
+        return func(self, *args, **kwargs)
+
+    return wrapper
 
 
 class NonLinearSearch(ABC):
@@ -522,6 +554,7 @@ class NonLinearSearch(ABC):
     def samples_from(self, model):
         raise NotImplementedError()
 
+    @check_cores
     def make_pool(self):
         """Make the pool instance used to parallelize a `NonLinearSearch` alongside a set of unique ids for every
         process in the pool. If the specified number of cores is 1, a pool instance is not made and None is returned.
@@ -532,14 +565,14 @@ class NonLinearSearch(ABC):
         The pool instance is also set up with a list of unique pool ids, which are used during model-fitting to
         identify a 'master core' (the one whose id value is lowest) which handles model result output, visualization,
         etc."""
+        self.logger.info(
+            "...using pool"
+        )
+        return mp.Pool(
+            processes=self.number_of_cores
+        )
 
-        if self.number_of_cores == 1:
-            return None
-        else:
-            return mp.Pool(
-                processes=self.number_of_cores
-            )
-
+    @check_cores
     def make_sneaky_pool(
             self,
             fitness_function: Fitness
@@ -559,9 +592,11 @@ class NonLinearSearch(ABC):
         -------
         An implementation of a multiprocessing pool
         """
-        if self.number_of_cores == 1:
-            return None
-
+        self.logger.warning(
+            "...using SneakyPool. This copies the likelihood function"
+            "to each process on instantiation to avoid copying multiple"
+            "times."
+        )
         return SneakyPool(
             processes=self.number_of_cores,
             fitness=fitness_function
