@@ -78,8 +78,7 @@ class MultiNest(abstract_nest.AbstractNest):
                 analysis,
                 samples_from_model,
                 stagger_resampling_likelihood,
-                log_likelihood_cap=None,
-                pool_ids=None
+                log_likelihood_cap=None
         ):
 
             super().__init__(
@@ -88,7 +87,6 @@ class MultiNest(abstract_nest.AbstractNest):
                 samples_from_model=samples_from_model,
                 stagger_resampling_likelihood=stagger_resampling_likelihood,
                 log_likelihood_cap=log_likelihood_cap,
-                pool_ids=pool_ids,
                 paths=paths
             )
 
@@ -106,9 +104,6 @@ class MultiNest(abstract_nest.AbstractNest):
             if self.log_likelihood_cap is not None:
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
-
-            if log_likelihood > self.max_log_likelihood:
-                self.max_log_likelihood = log_likelihood
 
             return log_likelihood
 

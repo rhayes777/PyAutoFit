@@ -193,13 +193,14 @@ class OptimizerSamples:
             model: AbstractPriorModel,
             time: Optional[float] = None,
     ):
-        """The `Samples` of a non-linear search, specifically the samples of an search which only provides
+        """
+        The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
 
         Parameters
         ----------
-        model : af.ModelMapper
+        model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
         self.model = model
@@ -410,12 +411,13 @@ class PDFSamples(OptimizerSamples):
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
-        """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
+        """
+        The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
         Parameters
         ----------
-        model : af.ModelMapper
+        model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
@@ -809,6 +811,7 @@ class PDFSamples(OptimizerSamples):
 
 
 class MCMCSamples(PDFSamples):
+
     def __init__(
             self,
             model: ModelMapper,
@@ -816,15 +819,6 @@ class MCMCSamples(PDFSamples):
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
-        """
-        Attributes
-        ----------
-        total_walkers : int
-            The total number of walkers used by this MCMC non-linear search.
-        total_steps : int
-            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
-            to the total steps * total walkers).
-        """
 
         self.auto_correlation_settings = auto_correlation_settings
 
@@ -978,7 +972,8 @@ class NestSamples(PDFSamples):
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
-        """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        """
+        The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
@@ -988,12 +983,8 @@ class NestSamples(PDFSamples):
 
         Parameters
         ----------
-        model : af.ModelMapper
+        model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        number_live_points : int
-            The number of live points used by the nested sampler.
-        log_evidence : float
-            The log of the Bayesian evidence estimated by the nested sampling algorithm.
         """
 
         super().__init__(

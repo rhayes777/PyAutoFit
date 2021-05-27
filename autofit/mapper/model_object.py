@@ -3,18 +3,11 @@ import itertools
 from collections import Iterable
 from hashlib import md5
 
+from autofit.util import get_class
+
 # floats are rounded to this increment so floating point errors
 # have no impact on identifier value
 RESOLUTION = 1e-8
-
-
-def is_identifiable(value):
-    return hasattr(
-        value,
-        "identifier"
-    ) and not inspect.isclass(
-        value
-    )
 
 
 class Identifier:
@@ -26,6 +19,10 @@ class Identifier:
         self._add_value_to_hash_list(
             obj
         )
+
+    @property
+    def description(self):
+        return "\n".join(self.hash_list)
 
     def _add_value_to_hash_list(self, value):
         """
@@ -41,6 +38,10 @@ class Identifier:
         value
             An object
         """
+        if isinstance(
+                value, Exception
+        ):
+            raise value
         if hasattr(value, "__dict__"):
             d = value.__dict__
             if hasattr(
@@ -127,15 +128,9 @@ class Identifier:
                 property
         ):
             return
-        if is_identifiable(value):
-            string = value.identifier
-            self.hash_list.append(
-                string
-            )
-        else:
-            self._add_value_to_hash_list(
-                value
-            )
+        self._add_value_to_hash_list(
+            value
+        )
 
     def __str__(self):
         return md5(".".join(
@@ -171,3 +166,121 @@ class ModelObject:
     @property
     def identifier(self):
         return str(Identifier(self))
+
+    @staticmethod
+    def from_dict(d):
+        """
+        Recursively parse a dictionary returning the model, collection or
+        instance that is represents.
+
+        Parameters
+        ----------
+        d
+            A dictionary representation of some object
+
+        Returns
+        -------
+        An instance
+        """
+        from autofit.mapper.prior_model.abstract import AbstractPriorModel
+        from autofit.mapper.prior_model.collection import CollectionPriorModel
+        from autofit.mapper.prior_model.prior_model import PriorModel
+        from autofit.mapper.prior.prior import Prior
+        from autofit.mapper.prior.prior import TuplePrior
+
+        if not isinstance(
+                d, dict
+        ):
+            return d
+
+        type_ = d["type"]
+
+        if type_ == "model":
+            instance = PriorModel(
+                get_class(
+                    d.pop("class_path")
+                )
+            )
+        elif type_ == "collection":
+            instance = CollectionPriorModel()
+        elif type_ == "instance":
+            cls = get_class(
+                d.pop("class_path")
+            )
+            instance = object.__new__(cls)
+        elif type_ == "tuple_prior":
+            instance = TuplePrior()
+        else:
+            return Prior.from_dict(d)
+
+        d.pop("type")
+
+        for key, value in d.items():
+            setattr(
+                instance,
+                key,
+                AbstractPriorModel.from_dict(value)
+            )
+        return instance
+
+    @property
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this object
+        """
+        from autofit.mapper.prior_model.abstract import AbstractPriorModel
+        from autofit.mapper.prior_model.collection import CollectionPriorModel
+        from autofit.mapper.prior_model.prior_model import PriorModel
+        from autofit.mapper.prior.prior import TuplePrior
+
+        if isinstance(
+                self,
+                CollectionPriorModel
+        ):
+            type_ = "collection"
+        elif isinstance(
+                self,
+                AbstractPriorModel
+        ) and self.prior_count == 0:
+            type_ = "instance"
+        elif isinstance(
+                self,
+                PriorModel
+        ):
+            type_ = "model"
+        elif isinstance(
+                self,
+                TuplePrior
+        ):
+            type_ = "tuple_prior"
+        else:
+            raise AssertionError(
+                f"{self.__class__.__name__} cannot be serialised to dict"
+            )
+
+        dict_ = {
+            "type": type_
+        }
+
+        for key, value in self._dict.items():
+            try:
+                if not isinstance(
+                        value, ModelObject
+                ):
+                    value = AbstractPriorModel.from_instance(
+                        value
+                    )
+                value = value.dict
+            except AttributeError:
+                pass
+            dict_[key] = value
+        return dict_
+
+    @property
+    def _dict(self):
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key not in ("component_number", "item_number", "id", "cls")
+               and not key.startswith("_")
+        }

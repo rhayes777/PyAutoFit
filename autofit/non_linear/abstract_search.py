@@ -4,11 +4,10 @@ import multiprocessing as mp
 import time
 from abc import ABC, abstractmethod
 from os import path
-from time import sleep
 from typing import Optional
-from sqlalchemy.orm import Session
 
 import numpy as np
+from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
@@ -17,6 +16,7 @@ from autofit.non_linear import result as res
 from autofit.non_linear import samples as samps
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.log import logger
+from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
@@ -33,7 +33,7 @@ class NonLinearSearch(ABC):
             initializer: Initializer = None,
             iterations_per_update: int = None,
             number_of_cores: int = 1,
-            session : Optional[Session] = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
         """
@@ -56,12 +56,14 @@ class NonLinearSearch(ABC):
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         session
-            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+            An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         from autofit.non_linear.paths.database import DatabasePaths
         #
         name = name or ""
         path_prefix = path_prefix or ""
+
+        self.path_prefix_no_unique_tag = path_prefix
 
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
@@ -177,19 +179,17 @@ class NonLinearSearch(ABC):
         return search_instance
 
     class Fitness:
-        def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None, pool_ids=None):
+        def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None):
 
             self.i = 0
 
             self.paths = paths
-            self.max_log_likelihood = -np.inf
             self.analysis = analysis
 
             self.model = model
             self.samples_from_model = samples_from_model
 
             self.log_likelihood_cap = log_likelihood_cap
-            self.pool_ids = pool_ids
 
         def fit_instance(self, instance):
 
@@ -199,17 +199,10 @@ class NonLinearSearch(ABC):
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
 
-            if log_likelihood > self.max_log_likelihood:
-
-                if self.pool_ids is not None:
-                    if mp.current_process().pid != min(self.pool_ids):
-                        return log_likelihood
-
-                self.max_log_likelihood = log_likelihood
-
             return log_likelihood
 
         def log_likelihood_from(self, parameter_list):
+
             instance = self.model.instance_from_vector(vector=parameter_list)
             log_likelihood = self.fit_instance(instance)
 
@@ -433,7 +426,8 @@ class NonLinearSearch(ABC):
             samples
         )
 
-        self.plot_results(samples=samples)
+        if not during_analysis:
+            self.plot_results(samples=samples)
 
         try:
             instance = samples.max_log_likelihood_instance
@@ -471,6 +465,9 @@ class NonLinearSearch(ABC):
 
     def setup_log_file(self):
 
+        if self.number_of_cores > 1:
+            logger.disabled = True
+
         if conf.instance["general"]["output"]["log_to_file"]:
 
             if len(self.log_file) == 0:
@@ -504,31 +501,49 @@ class NonLinearSearch(ABC):
 
         if self.number_of_cores == 1:
 
-            return None, None
+            return None
 
         else:
-
-            manager = mp.Manager()
-            idQueue = manager.Queue()
-
-            [idQueue.put(i) for i in range(self.number_of_cores)]
-
-            pool = mp.Pool(
-                processes=self.number_of_cores, initializer=init, initargs=(idQueue,)
+            return mp.Pool(
+                processes=self.number_of_cores
             )
-            ids = pool.map(f, range(self.number_of_cores))
 
-            return pool, [id[1] for id in ids]
+    def make_sneaky_pool(
+            self,
+            fitness_function: Fitness
+    ) -> Optional[SneakyPool]:
+        """
+        Create a pool for multiprocessing that uses slight-of-hand
+        to avoid copying the fitness function between processes
+        multiple times.
+
+        Parameters
+        ----------
+        fitness_function
+            An instance of a fitness class used to evaluate the
+            likelihood that a particular model is correct
+
+        Returns
+        -------
+        An implementation of a multiprocessing pool
+        """
+        if self.number_of_cores == 1:
+            return None
+
+        return SneakyPool(
+            processes=self.number_of_cores,
+            fitness=fitness_function
+        )
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-    #  self.paths.restore()
 
     def plot_results(self, samples):
         pass
+
 
 class Analysis(ABC):
 
@@ -564,58 +579,59 @@ class IntervalCounter:
 class PriorPasser:
 
     def __init__(self, sigma, use_errors, use_widths):
-        """Class to package the API for prior passing.
+        """
+        Class to package the API for prior passing.
 
         This class contains the parameters that controls how priors are passed from the results of one non-linear
         search to the next.
 
         Using the Phase API, we can pass priors from the result of one search to another follows:
 
-            model_component.parameter = search1_result.model.model_component.parameter
+        model_component.parameter = search1_result.model.model_component.parameter
 
         By invoking the 'model' attribute, the prior is passed following 3 rules:
 
-            1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
-               the end of a search are easily summarized as a Gaussian.
+        1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
+        the end of a search are easily summarized as a Gaussian.
 
-            2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
+        2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
 
-              This ensures that the initial sampling of the new search's non-linear starts by searching the region of
-              non-linear parameter space that correspond to highest log likelihood solutions in the previous search.
-              Thus, we're setting our priors to look in the 'correct' regions of parameter space.
+        This ensures that the initial sampling of the new search's non-linear starts by searching the region of
+        non-linear parameter space that correspond to highest log likelihood solutions in the previous search.
+        Thus, we're setting our priors to look in the 'correct' regions of parameter space.
 
-            3) The sigma of the Gaussian will use the maximum of two values:
+        3) The sigma of the Gaussian will use the maximum of two values:
 
-                    (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
-                    (ii) The value specified for the profile in the 'config/priors/*.json' config
-                         file's 'width_modifer' field (check these files out now).
+        (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
+        (ii) The value specified for the profile in the 'config/priors/*.json' config
+        file's 'width_modifer' field (check these files out now).
 
-               The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
-               broad region of parameter space, so that the model can change if a better solution is nearby. However,
-               we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
-               risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
-               previous search.
+        The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
+        broad region of parameter space, so that the model can change if a better solution is nearby. However,
+        we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
+        risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
+        previous search.
 
-               Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
-               we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-               searchs - fast `NonLinearSearch` settings, simplified models, etc.
+        Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
+        we underestimate the parameter errors. This is especially true when we take the shortcuts in early
+        searchs, fast `NonLinearSearch` settings, simplified models, etc.
 
-               Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
-               is suspiciously small, we instead use the value specified in the widths file. These values are chosen
-               based on our experience as being a good balance broadly sampling parameter space but not being so narrow
-               important solutions are missed.
+        Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
+        is suspiciously small, we instead use the value specified in the widths file. These values are chosen
+        based on our experience as being a good balance broadly sampling parameter space but not being so narrow
+        important solutions are missed.
 
         There are two ways a value is specified using the priors/width file:
 
-            1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
-               example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
-               a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
-               sigma of its GaussianPrior in this search will be 0.05.
+        1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
+        example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
+        a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
+        sigma of its GaussianPrior in this search will be 0.05.
 
-            2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
-               given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
-               relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
-               will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
+        2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
+        given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
+        relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
+        will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
 
         The PriorPasser allows us to customize at what sigma the error values the model results are computed at to
         compute the passed sigma values and customizes whether the widths in the config file, these computed errors,
@@ -631,7 +647,7 @@ class PriorPasser:
         Lets say in search 1 we fit a model, and we estimate that a parameter is equal to 4.0 +- 2.0, where the error
         value of 2.0 was computed at 3.0 sigma confidence. To pass this as a prior to search 2, we would write:
 
-            model_component.parameter = result_1.model.model_component.parameter
+        model_component.parameter = result_1.model.model_component.parameter
 
         The prior on the parameter in search 2 would thus be a GaussianPrior, with mean=4.0 and
         sigma=2.0. If we had used a sigma value of 1.0 to compute the error, which reduced the estimate from 4.0 +- 2.0
@@ -652,20 +668,10 @@ class PriorPasser:
 
     @classmethod
     def from_config(cls, config):
-        """Load the PriorPasser from a non_linear config file."""
+        """
+        Load the PriorPasser from a non_linear config file.
+        """
         sigma = config("prior_passer", "sigma")
         use_errors = config("prior_passer", "use_errors")
         use_widths = config("prior_passer", "use_widths")
         return PriorPasser(sigma=sigma, use_errors=use_errors, use_widths=use_widths)
-
-
-def init(queue):
-    global idx
-    idx = queue.get()
-
-
-def f(x):
-    global idx
-    process = mp.current_process()
-    sleep(1)
-    return idx, process.pid, x * x

@@ -67,7 +67,7 @@ def make_samples():
     sample_0 = samp.Sample(log_likelihood=1.0, log_prior=2.0, weight=0.25)
     sample_1 = samp.Sample(log_likelihood=3.0, log_prior=5.0, weight=0.75)
 
-    return af.PDFSamples(
+    return af.StoredSamples(
         model=af.Mapper(),
         samples=[sample_0, sample_1],
     )

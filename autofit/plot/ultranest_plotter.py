@@ -12,6 +12,7 @@ class UltraNestPlotter(SamplesPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="cornerplot")
+        self.mat_plot_1d.figure.close()
 
     def runplot(self, **kwargs):
 
@@ -26,6 +27,7 @@ class UltraNestPlotter(SamplesPlotter):
             pass
 
         self.output.to_figure(structure=None, auto_filename="runplot")
+        self.mat_plot_1d.figure.close()
 
     def traceplot(self, **kwargs):
 
@@ -40,3 +42,4 @@ class UltraNestPlotter(SamplesPlotter):
             pass
 
         self.output.to_figure(structure=None, auto_filename="traceplot")
+        self.mat_plot_1d.figure.close()

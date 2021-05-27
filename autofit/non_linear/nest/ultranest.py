@@ -163,10 +163,10 @@ class UltraNest(abstract_nest.AbstractNest):
 
         import ultranest
 
-        pool, pool_ids = self.make_pool()
+        pool = self.make_pool()
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, pool_ids=pool_ids, log_likelihood_cap=log_likelihood_cap,
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
         def prior_transform(cube):

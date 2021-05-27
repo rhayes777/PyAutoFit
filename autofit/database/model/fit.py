@@ -8,7 +8,6 @@ from sqlalchemy.orm import relationship
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import OptimizerSamples
 from .model import Base, Object
-from ...mapper.model_object import Identifier
 
 
 class Pickle(Base):
@@ -115,18 +114,10 @@ class Fit(Base):
 
     def __init__(
             self,
-            model=None,
-            info=None,
             **kwargs
     ):
-        self.id = str(Identifier((
-            model,
-            info
-        )))
         super().__init__(
-            **kwargs,
-            model=model,
-            info=info
+            **kwargs
         )
 
     parent_id = Column(
@@ -151,6 +142,12 @@ class Fit(Base):
     )
 
     unique_tag = Column(
+        String
+    )
+    name = Column(
+        String
+    )
+    path_prefix = Column(
         String
     )
 
@@ -298,6 +295,12 @@ class Fit(Base):
             in self.pickles
             if p.name != key
         ]
+
+    def value(self, name: str):
+        try:
+            return self.__getitem__(item=name)
+        except AttributeError:
+            return None
 
     model_id = Column(
         Integer,

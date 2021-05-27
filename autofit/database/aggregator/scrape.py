@@ -1,6 +1,7 @@
 import os
 
 from .. import model as m
+from ...mapper.model_object import Identifier
 
 
 def scrape_directory(directory: str):
@@ -28,11 +29,19 @@ def scrape_directory(directory: str):
 
         model = item.model
         samples = item.samples
+        search = item.search
+
         try:
             instance = samples.max_log_likelihood_instance
         except (AttributeError, NotImplementedError):
             instance = None
+
         fit = m.Fit(
+            id=str(Identifier([
+                search,
+                model,
+                search.unique_tag
+            ])),
             model=model,
             instance=instance,
             is_complete=is_complete,

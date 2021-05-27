@@ -52,6 +52,7 @@ class MCMCPlotter(SamplesPlotter):
             ax.set_xlabel(self.model.parameter_labels_latex[i])
 
         self.output.to_figure(structure=None, auto_filename="tracjectories")
+        self.mat_plot_1d.figure.close()
 
     def _plot_likelihood_series(self, log_posterior_list, **kwargs):
 
@@ -65,6 +66,7 @@ class MCMCPlotter(SamplesPlotter):
         axes.set_xlabel("step number")
 
         self.output.to_figure(structure=None, auto_filename="likelihood_series")
+        self.mat_plot_1d.figure.close()
 
     def _plot_time_series(self, samples, **kwargs):
 
@@ -78,3 +80,4 @@ class MCMCPlotter(SamplesPlotter):
         axes[-1].set_xlabel("step number")
 
         self.output.to_figure(structure=None, auto_filename="time_series")
+        self.mat_plot_1d.figure.close()

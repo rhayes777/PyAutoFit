@@ -97,11 +97,17 @@ def test_paths_type(
         )
 
 
-# def test_parent(
-#         database_paths,
-#         mapper
-# ):
-#     paths = database_paths[0]
-#     assert paths.fit.parent is not None
-#     assert paths.fit.instance is not None
-#     assert paths.fit.parent.is_grid_search
+def test_name_prefix_tag(
+        session
+):
+    paths = af.DatabasePaths(
+        session,
+        name="name",
+        path_prefix="prefix",
+        unique_tag="tag"
+    )
+
+    fit = paths.fit
+    assert fit.name == "name"
+    assert fit.path_prefix == "prefix"
+    assert fit.unique_tag == "tag"

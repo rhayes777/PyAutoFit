@@ -1,7 +1,7 @@
 .. _non_linear_search:
 
-Non-linear Searches
--------------------
+Non-linear Search
+-----------------
 
 **PyAutoFit** currently supports three types of non-linear search algorithms:
 
@@ -57,13 +57,9 @@ Of course, we can manually specify all of the parameters instead:
 A number of these parameters are not part of the ``emcee`` package, but additional functionality added by
 **PyAutoFit**:
 
-- Initialization methods for the walkers are provided, including the strategy recommended at
-this `page <https://emcee.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where
-the walkers are initialized as a compact 'ball' in parameter space.
+- Initialization methods for the walkers are provided, including the strategy recommended at this `page <https://emcee.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where the walkers are initialized as a compact 'ball' in parameter space.
 
-- Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have
-converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at
-this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
+- Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
 
 The nested sampling algorithm ``dynesty`` has its own config file for default settings, which are at
 this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/nest/Dynesty.ini>`_.
@@ -126,9 +122,15 @@ For model-fits to multiple datasets, checkout the `database feature <https://pya
 which gives more options for customizing how the unique identifier is generated.
 
 Most searches support parallel analysis using the Python ``multiprocessing`` module. This distributes the
-non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used. To
-use this functionality you simply specifc the ``number_of_cores`` parameter (which is also found in the default
-config files):
+non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used.
+
+The in-built parallelization of Libraries such as ``emcee`` and ``dynesty`` can be slow, because the default behaviour
+is for them to pass the full likelihood function to every CPU. If this function includes a large dataset that is being
+fitted, this can lead to long communication overheads and slow performance.
+
+**PyAutoFit** implements *sneaky parallelization*, whereby the data is passed to every CPU before the model-fit. This
+requires no extra user input and is performed by default. To perform a parallel search, you simply specify
+the ``number_of_cores`` parameter (which is also found in the default config files):
 
 .. code-block:: bash
 

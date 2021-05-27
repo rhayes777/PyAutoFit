@@ -15,6 +15,7 @@ class EmceePlotter(MCMCPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="corner")
+        self.mat_plot_1d.figure.close()
 
     def trajectories(self, **kwargs):
 

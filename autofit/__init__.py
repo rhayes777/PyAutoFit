@@ -60,10 +60,12 @@ from .non_linear.paths import DatabasePaths
 from .non_linear.paths import make_path
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
+from .non_linear.samples import StoredSamples
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
 from .non_linear.samples import OptimizerSamples
 from .non_linear.samples import PDFSamples
+from .mock.mock import Gaussian
 from .text import formatter
 from .text import samples_text
 from .tools import util
@@ -72,4 +74,4 @@ from . import database as db
 
 conf.instance.register(__file__)
 
-__version__ = '0.76.0'
+__version__ = '0.77.1'
