@@ -1,20 +1,6 @@
 import pytest
 
-from autofit.database.migration import Migrator, SessionWrapper, Step
-
-
-@pytest.fixture(
-    name="migrator"
-)
-def make_migrator():
-    return Migrator(
-        Step(
-            "INSERT INTO test (id) VALUES (1)"
-        ),
-        Step(
-            "INSERT INTO test (id) VALUES (2)"
-        )
-    )
+from autofit.database.migration import SessionWrapper
 
 
 @pytest.fixture(

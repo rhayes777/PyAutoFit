@@ -1,25 +1,5 @@
 import pytest
 
-from autofit.database.migration import Step, Migrator
-
-
-@pytest.fixture(
-    name="step_1"
-)
-def make_step_1():
-    return Step(
-        "ALTER TABLE fit ADD name VARCHAR"
-    )
-
-
-@pytest.fixture(
-    name="step_2"
-)
-def make_step_2():
-    return Step(
-        "ALTER TABLE fit ADD path_prefix VARCHAR"
-    )
-
 
 def test_step_id(
         step_1,
@@ -35,19 +15,6 @@ def test_step_id(
 
     assert step_2 != step_1
     assert step_2 == step_2
-
-
-@pytest.fixture(
-    name="migrator"
-)
-def make_migrator(
-        step_1,
-        step_2
-):
-    return Migrator(
-        step_1,
-        step_2
-    )
 
 
 @pytest.fixture(
