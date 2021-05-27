@@ -58,9 +58,10 @@ class Migrator:
             wrapper.revision_id
         )
         for step in steps:
-            session.execute(
-                step.string
-            )
+            for string in step.strings:
+                session.execute(
+                    string
+                )
         wrapper.revision_id = self.latest_revision.id
 
 
@@ -131,13 +132,15 @@ class Revision(Identifiable):
 
 
 class Step(Identifiable):
-    def __init__(self, string):
-        self.string = string
+    def __init__(self, *strings):
+        self.strings = strings
 
     @property
     def id(self):
         return md5(
-            self.string.encode(
+            ":".join(
+                self.strings
+            ).encode(
                 "utf-8"
             )
         ).hexdigest()
