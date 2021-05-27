@@ -49,6 +49,12 @@ class Revision(Identifiable):
             ).encode("utf-8")
         ).hexdigest()
 
+    def __sub__(self, other):
+        return Revision(tuple(
+            step for step in self.steps
+            if step not in other.steps
+        ))
+
 
 class Step(Identifiable):
     def __init__(self, string):
@@ -110,22 +116,38 @@ def make_migrator(
     )
 
 
+@pytest.fixture(
+    name="revision_1"
+)
+def make_revision_1(migrator):
+    return list(
+        migrator.revisions
+    )[0]
+
+
+@pytest.fixture(
+    name="revision_2"
+)
+def make_revision_2(migrator):
+    return list(
+        migrator.revisions
+    )[1]
+
+
 def test_revision_steps(
         step_1,
         step_2,
-        migrator
+        revision_1,
+        revision_2
 ):
-    revision_1, revision_2 = migrator.revisions
-
     assert revision_1.steps == (step_1,)
     assert revision_2.steps == (step_1, step_2)
 
 
 def test_revision_ids(
-        migrator
+        revision_1,
+        revision_2
 ):
-    revision_1, revision_2 = migrator.revisions
-
     assert revision_1.id != revision_2.id
     assert isinstance(
         revision_1.id,
@@ -137,5 +159,9 @@ def test_revision_ids(
     assert revision_1 == revision_1.id
 
 
-def test_find_steps():
-    pass
+def test_difference(
+        revision_1,
+        revision_2,
+        step_2
+):
+    assert (revision_2 - revision_1).steps == (step_2,)
