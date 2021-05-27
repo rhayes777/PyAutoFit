@@ -32,3 +32,21 @@ def make_migrator(
         step_1,
         step_2
     )
+
+
+@pytest.fixture(
+    name="revision_1"
+)
+def make_revision_1(migrator):
+    return list(
+        migrator.revisions
+    )[0]
+
+
+@pytest.fixture(
+    name="revision_2"
+)
+def make_revision_2(migrator):
+    return list(
+        migrator.revisions
+    )[1]

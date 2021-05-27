@@ -60,6 +60,7 @@ class Migrator:
             session.execute(
                 step.string
             )
+        wrapper.revision_id = self.latest_revision.id
 
 
 class SessionWrapper:

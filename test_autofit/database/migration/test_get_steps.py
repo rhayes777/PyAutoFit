@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_step_id(
         step_1,
         step_2
@@ -15,24 +12,6 @@ def test_step_id(
 
     assert step_2 != step_1
     assert step_2 == step_2
-
-
-@pytest.fixture(
-    name="revision_1"
-)
-def make_revision_1(migrator):
-    return list(
-        migrator.revisions
-    )[0]
-
-
-@pytest.fixture(
-    name="revision_2"
-)
-def make_revision_2(migrator):
-    return list(
-        migrator.revisions
-    )[1]
 
 
 def test_revision_steps(

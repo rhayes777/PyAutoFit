@@ -16,7 +16,8 @@ def create_table(
 
 def test_run_migration(
         migrator,
-        session
+        session,
+        revision_2
 ):
     migrator.migrate(
         session
@@ -26,6 +27,10 @@ def test_run_migration(
             "SELECT * FROM test"
         )
     )) == 2
+
+    assert SessionWrapper(
+        session
+    ).revision_id == revision_2
 
 
 def test_session_wrapper(session):
