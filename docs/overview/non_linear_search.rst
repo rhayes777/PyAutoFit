@@ -1,7 +1,7 @@
 .. _non_linear_search:
 
-Non-linear Searches
--------------------
+Non-linear Search
+-----------------
 
 **PyAutoFit** currently supports three types of non-linear search algorithms:
 
@@ -57,13 +57,9 @@ Of course, we can manually specify all of the parameters instead:
 A number of these parameters are not part of the ``emcee`` package, but additional functionality added by
 **PyAutoFit**:
 
-- Initialization methods for the walkers are provided, including the strategy recommended at
-this `page <https://emcee.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where
-the walkers are initialized as a compact 'ball' in parameter space.
+- Initialization methods for the walkers are provided, including the strategy recommended at this `page <https://emcee.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where the walkers are initialized as a compact 'ball' in parameter space.
 
-- Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have
-converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at
-this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
+- Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
 
 The nested sampling algorithm ``dynesty`` has its own config file for default settings, which are at
 this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/nest/Dynesty.ini>`_.

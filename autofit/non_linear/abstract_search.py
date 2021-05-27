@@ -651,58 +651,59 @@ class IntervalCounter:
 class PriorPasser:
 
     def __init__(self, sigma, use_errors, use_widths):
-        """Class to package the API for prior passing.
+        """
+        Class to package the API for prior passing.
 
         This class contains the parameters that controls how priors are passed from the results of one non-linear
         search to the next.
 
         Using the Phase API, we can pass priors from the result of one search to another follows:
 
-            model_component.parameter = search1_result.model.model_component.parameter
+        model_component.parameter = search1_result.model.model_component.parameter
 
         By invoking the 'model' attribute, the prior is passed following 3 rules:
 
-            1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
-               the end of a search are easily summarized as a Gaussian.
+        1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
+        the end of a search are easily summarized as a Gaussian.
 
-            2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
+        2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
 
-              This ensures that the initial sampling of the new search's non-linear starts by searching the region of
-              non-linear parameter space that correspond to highest log likelihood solutions in the previous search.
-              Thus, we're setting our priors to look in the 'correct' regions of parameter space.
+        This ensures that the initial sampling of the new search's non-linear starts by searching the region of
+        non-linear parameter space that correspond to highest log likelihood solutions in the previous search.
+        Thus, we're setting our priors to look in the 'correct' regions of parameter space.
 
-            3) The sigma of the Gaussian will use the maximum of two values:
+        3) The sigma of the Gaussian will use the maximum of two values:
 
-                    (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
-                    (ii) The value specified for the profile in the 'config/priors/*.json' config
-                         file's 'width_modifer' field (check these files out now).
+        (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
+        (ii) The value specified for the profile in the 'config/priors/*.json' config
+        file's 'width_modifer' field (check these files out now).
 
-               The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
-               broad region of parameter space, so that the model can change if a better solution is nearby. However,
-               we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
-               risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
-               previous search.
+        The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
+        broad region of parameter space, so that the model can change if a better solution is nearby. However,
+        we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
+        risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
+        previous search.
 
-               Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
-               we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-               searchs - fast `NonLinearSearch` settings, simplified models, etc.
+        Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
+        we underestimate the parameter errors. This is especially true when we take the shortcuts in early
+        searchs, fast `NonLinearSearch` settings, simplified models, etc.
 
-               Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
-               is suspiciously small, we instead use the value specified in the widths file. These values are chosen
-               based on our experience as being a good balance broadly sampling parameter space but not being so narrow
-               important solutions are missed.
+        Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
+        is suspiciously small, we instead use the value specified in the widths file. These values are chosen
+        based on our experience as being a good balance broadly sampling parameter space but not being so narrow
+        important solutions are missed.
 
         There are two ways a value is specified using the priors/width file:
 
-            1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
-               example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
-               a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
-               sigma of its GaussianPrior in this search will be 0.05.
+        1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
+        example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
+        a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
+        sigma of its GaussianPrior in this search will be 0.05.
 
-            2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
-               given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
-               relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
-               will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
+        2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
+        given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
+        relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
+        will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
 
         The PriorPasser allows us to customize at what sigma the error values the model results are computed at to
         compute the passed sigma values and customizes whether the widths in the config file, these computed errors,
@@ -718,7 +719,7 @@ class PriorPasser:
         Lets say in search 1 we fit a model, and we estimate that a parameter is equal to 4.0 +- 2.0, where the error
         value of 2.0 was computed at 3.0 sigma confidence. To pass this as a prior to search 2, we would write:
 
-            model_component.parameter = result_1.model.model_component.parameter
+        model_component.parameter = result_1.model.model_component.parameter
 
         The prior on the parameter in search 2 would thus be a GaussianPrior, with mean=4.0 and
         sigma=2.0. If we had used a sigma value of 1.0 to compute the error, which reduced the estimate from 4.0 +- 2.0
@@ -739,7 +740,9 @@ class PriorPasser:
 
     @classmethod
     def from_config(cls, config):
-        """Load the PriorPasser from a non_linear config file."""
+        """
+        Load the PriorPasser from a non_linear config file.
+        """
         sigma = config("prior_passer", "sigma")
         use_errors = config("prior_passer", "use_errors")
         use_widths = config("prior_passer", "use_widths")

@@ -1,4 +1,4 @@
-.. _graphical:
+.. _composition:
 
 Composition
 -----------
@@ -176,19 +176,13 @@ Lets first create a model of the lens galaxy:
 
 Lets consider what the code above is doing:
 
- 1) We use a ``Model`` to create the overall model component. The ``cls`` input is the ``Galaxy`` class, therefore the
- overall model that is created is a ``Galaxy``.
+1) We use a ``Model`` to create the overall model component. The ``cls`` input is the ``Galaxy`` class, therefore the overall model that is created is a ``Galaxy``.
 
- 2) **PyAutoFit** next inspects whether the key word argument inputs to the ``Model`` match any of the ``__init__``
-constructor arguments of the ``Galaxy`` class. This determine if these inputs are to be composed as 
-**model sub-components** of the overall ``Galaxy`` model.
+2) **PyAutoFit** next inspects whether the key word argument inputs to the ``Model`` match any of the ``__init__`` constructor arguments of the ``Galaxy`` class. This determine if these inputs are to be composed as **model sub-components** of the overall ``Galaxy`` model.
 
- 3) **PyAutoFit** matches the ``light_profiles`` and  ``mass_profiles`` inputs, noting they are passed as separate 
-lists containing ``Model``'s of the ``LightProfile`` and ``MassProfile`` classes. They are both created as 
-sub-components of the overall ``Galaxy`` model.
+3) **PyAutoFit** matches the ``light_profiles`` and  ``mass_profiles`` inputs, noting they are passed as separate lists containing ``Model``'s of the ``LightProfile`` and ``MassProfile`` classes. They are both created as sub-components of the overall ``Galaxy`` model.
 
- 4) It also matches the ``redshift`` input, making it a fixed value of 0.5 for the model and not treating it as a
- free parameter.
+4) It also matches the ``redshift`` input, making it a fixed value of 0.5 for the model and not treating it as a free parameter.
 
 We can confirm this by printing the ``prior_count`` of the lens, and noting it is 7 (4 parameters for
 the ``LightProfile`` and 3 for the ``MassProfile``).

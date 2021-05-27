@@ -34,7 +34,7 @@ class PySwarmsPlotter(MCMCPlotter):
 
         for i in range(self.samples.model.prior_count):
             ax = axes[i]
-            ax.plot_array(np.asarray(points)[:, -1, i], self.samples.log_posterior_list, "k", alpha=0.3)
+            ax.plot(np.asarray(points)[:, -1, i], self.samples.log_posterior_list, "k", alpha=0.3)
             ax.set_ylabel("Log Likelihood")
             ax.set_xlabel(self.model.parameter_labels_latex[i])
 
@@ -48,7 +48,7 @@ class PySwarmsPlotter(MCMCPlotter):
 
         for i in range(self.samples.model.prior_count):
             ax = axes[i]
-            ax.plot_array(np.asarray(points)[:, -1, i], "k", alpha=0.3)
+            ax.plot(np.asarray(points)[:, -1, i], "k", alpha=0.3)
             ax.set_ylabel(self.model.parameter_labels_latex[i])
 
         axes[-1].set_xlabel("step number")
