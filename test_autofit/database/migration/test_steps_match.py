@@ -1,10 +1,12 @@
-import os
 import shutil
 from pathlib import Path
 
 import pytest
+from sqlalchemy import String, Column
+from sqlalchemy.exc import OperationalError
 
 import autofit as af
+from autofit.database import Fit
 
 origin = Path(
     __file__
@@ -30,7 +32,33 @@ def manage_files():
     )
 
 
+def _check_migration():
+    try:
+        print(
+            af.Aggregator.from_database(
+                copy
+            ).fits
+        )
+    except OperationalError as e:
+        raise AssertionError(
+            "Migration steps are not complete"
+        ) from e
+
+
 def test():
-    af.Aggregator.from_database(
-        copy
+    """
+    Raises an exception if changes to autofit/database/migration/steps.py
+    are required to migrate old database files correctly.
+    """
+    _check_migration()
+
+
+def test_fail():
+    Fit.random_column = Column(
+        String
     )
+
+    with pytest.raises(
+            AssertionError
+    ):
+        _check_migration()
