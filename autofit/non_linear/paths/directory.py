@@ -37,15 +37,18 @@ class DirectoryPaths(AbstractPaths):
         obj
             A serialisable object
         """
-        with open(
-                self._path_for_pickle(
-                    name
-                ),
-                "wb"
-        ) as f:
-            dill.dump(
-                obj, f
-            )
+        try:
+            with open(
+                    self._path_for_pickle(
+                        name
+                    ),
+                    "wb"
+            ) as f:
+                dill.dump(
+                    obj, f
+                )
+        except TypeError:
+            pass
 
     def load_object(
             self,
