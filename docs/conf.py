@@ -17,6 +17,7 @@ workspace_path = str(here())
 
 import os
 import sys
+import autofit
 
 sys.path.insert(0, os.path.abspath('.'))
 
