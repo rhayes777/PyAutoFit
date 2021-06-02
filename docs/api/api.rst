@@ -13,8 +13,5 @@ Non-Linear Searches
 .. autosummary::
    :toctree: generated/
 
-   DynestyDynamic
    DynestyStatic
-   MultiNest
-   UltraNest
 
