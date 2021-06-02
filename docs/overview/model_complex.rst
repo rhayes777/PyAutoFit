@@ -1,10 +1,13 @@
 .. _model_complex:
 
 Model Composition
------------------
+=================
 
 Lets extend our example of fitting a 1D ``Gaussian`` profile to a problem where the data contains a signal from
 two 1D profiles. Specifically, it contains signals from a 1D ``Gaussian`` signal and 1D symmetric ``Exponential``.
+
+Data
+----
 
 The example ``data`` with errors (black), including the model-fit we'll perform (red) and individual
 ``Gaussian`` (blue dashed) and ``Exponential`` (orange dashed) components are shown below:
@@ -12,6 +15,9 @@ The example ``data`` with errors (black), including the model-fit we'll perform 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit_x2.png
   :width: 600
   :alt: Alternative text
+
+Model Composition
+-----------------
 
 we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFit**:
 
@@ -72,13 +78,17 @@ used in the previous tutorial and put them together in a ``Collection`` to build
 
     model = af.Collection(gaussian=gaussian, exponential=exponential)
 
-The ``Collection`` allows us to *compose* models using multiple classes, like in the example above which uses both the
-``Gaussian`` and ``Exponential`` classes. This model is defined with 6 free parameters (3 for the ``Gaussian``, 3 for the
-``Exponential``), thus the dimensionality of non-linear parameter space is 6.
+The ``Collection`` allows us to *compose* models using multiple classes. This model is defined with 6 free
+parameters (3 for the ``Gaussian``, 3 for the ``Exponential``), thus the dimensionality of non-linear parameter space
+is 6.
 
-The *model components* given to the ``Collection`` were also given names, in this case, 'gaussian' and
-'exponential'. You can choose whatever name you want and the names are used by the ``instance`` passed to t
-he ``Analysis`` class:
+Analysis
+--------
+
+The *model components* given to the ``Collection`` were also given names, in this case, ``gaussian`` and
+``exponential``.
+
+You are free to choose whichever names you want;  the names are used to pass the ``instance`` to the ``Analysis`` class:
 
 .. code-block:: bash
 
@@ -93,10 +103,12 @@ he ``Analysis`` class:
 
         def log_likelihood_function(self, instance):
 
-            # The 'instance' that comes into this method is a Collection. It contains
-            # instances of every class we instantiated it with, where each instance is named
-            # following the names given to the Collection, which in this example is a
-            # Gaussian (with name 'gaussian) and Exponential (with name 'exponential'):
+            """
+            The 'instance' that comes into this method is a Collection. It contains
+            instances of every class we instantiated it with, where each instance is named
+            following the names given to the Collection, which in this example is a
+            Gaussian (with name 'gaussian) and Exponential (with name 'exponential'):
+            """
 
             print("Gaussian Instance:")
             print("Centre = ", instance.gaussian.centre)
@@ -108,25 +120,34 @@ he ``Analysis`` class:
             print("Intensity = ", instance.exponential.intensity)
             print("Rate = ", instance.exponential.rate)
 
-            # Get the range of x-values the data is defined on, to evaluate the model of the
-            # line profiles.
+            """
+            Get the range of x-values the data is defined on, to evaluate the model of the
+            line profiles.
+            """
 
             xvalues = np.arange(self.data.shape[0])
 
-            # The instance variable is a list of our model components. We can iterate over
-            # this list, calling their profile_from_xvalues and summing the result to compute
-            # the summed line profile of our model.
+            """
+            The instance variable is a list of our model components. We can iterate over
+            this list, calling their profile_from_xvalues and summing the result to compute
+            the summed line profile of our model.
+            """
 
             model_data = sum([line.profile_from_xvalues(xvalues=xvalues) for line in instance])
 
-            # Fit the model line profile data to the observed data, computing the residuals and
-            # chi-squareds.
+            """
+            Fit the model line profile data to the observed data, computing the residuals and
+            chi-squared.
+            """
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)
 
             return log_likelihood
+
+Model_Fit
+---------
 
 Performing the *model-fit* uses the same steps as the previous example, whereby we  *compose* our *model* (now using a
 ``Collection``), instantiate the ``Analysis`` and pass them a non-linear search. In this example, we'll use
@@ -141,6 +162,9 @@ the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
     dynesty = af.DynestyStatic(name="example_search")
 
     result = dynesty.fit(model=model, analysis=analysis)
+
+Model Priors
+------------
 
 Now, lets consider how we *customize* the models that we *compose*. To begin, lets *compose* a model using a single
 ``Gaussian`` with the ``Model`` object:
@@ -189,6 +213,11 @@ We can *compose* and *customize* the priors of multiple model components as foll
     exponential.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
     exponential.rate = af.UniformPrior(lower_limit=0.0, upper_limit=10.0)
 
+    model = af.Collection(gaussian=gaussian, exponential=exponential)
+
+Model Customization
+-------------------
+
 The model can be *customized* to fix any *parameter* of the model to an input value:
 
 .. code-block:: bash
@@ -218,17 +247,8 @@ from *non-linear parameter space*:
 Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``intensity`` is greater
 than that of the ``Exponential``.
 
-To fit the model, we pass both of these components into a `Collection` and fit it with a non-linear search:
-
-.. code-block:: bash
-
-    model = af.Collection(gaussian=gaussian, exponential=exponential)
-
-    emcee = af.Emcee(name="another_example_search")
-
-    # The model passed here is updated!
-
-    result = emcee.fit(model=model, analysis=analysis)
+Wrap Up
+-------
 
 If you'd like to perform the fit shown in this script, checkout the
 `complex examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/complex>`_ on the

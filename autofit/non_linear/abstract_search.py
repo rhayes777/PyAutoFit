@@ -243,7 +243,11 @@ class NonLinearSearch(ABC):
 
         def fit_instance(self, instance):
 
+      #      start = time.time()
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+      #      fit_time = (time.time() - start)
+
+      #      print(mp.current_process().pid, log_likelihood, fit_time)
 
             if self.log_likelihood_cap is not None:
                 if log_likelihood > self.log_likelihood_cap:

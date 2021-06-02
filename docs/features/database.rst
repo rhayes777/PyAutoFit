@@ -1,7 +1,7 @@
 .. _database:
 
 Database
---------
+========
 
 The default behaviour of **PyAutoFit** is for model-fitting results to be output to hard-disc in folders, which are
 straight forward to navigate and manually check the model-fitting results. For small model-fitting tasks this is
@@ -12,6 +12,9 @@ PyAutoFit's database feature outputs all model-fitting results as a sqlite3 (htt
 relational database, such that all results can be efficiently loaded into a Jupyter notebook or Python script for
 inspection, analysis and interpretation. This database supports advanced querying, so that specific
 model-fits (e.g., which fit a certain model or dataset) can be loaded.
+
+Session
+-------
 
 To make it so that results are output to an .sqlite database we simply open a database session and pass this session
 to the non-linear search:
@@ -24,6 +27,9 @@ to the non-linear search:
         path_prefix=path.join("features", "database"),
         session=session,  # This instructs the search to write to the .sqlite database.
     )
+
+Unique Tag
+----------
 
 When a model-fit is performed, a unique identifier is generated based on the model and non-linear search. However,
 if we were to fit many different datasets with the same model and non-linear search, they would all use the same
@@ -43,6 +49,9 @@ the model and search to create the unique identifier:
         unique_tag=dataset_name,  # This makes the unique identifier use the dataset name
         session=session,  # This instructs the search to write to the .sqlite database.
     )
+
+Loading
+-------
 
 Lets suppose that we have performed 100 model-fits to 100 1D Gaussians, and when we ran **PyAutoFit** we told it
 to write to the ``.sqlite`` database file. We can load these results in a Python script or Jupyter notebook using
@@ -81,6 +90,9 @@ We can iterate over the samples to print the maximum log likelihood model ``Gaus
         print("sigma = ", instance.sigma)
 
 
+Queries
+-------
+
 The ``Aggregator`` contains tools for querying the database for certain results, for example to load subsets of
 model-fits. This can be done in many different ways, depending on what information you want.
 
@@ -115,6 +127,9 @@ We can query using the ``unique_tag`` to load the model-fit to a specific datase
 
     agg_query = agg.query(agg.unique_tag == "example_dataset_0")
 
+Info
+----
+
 An ``info`` dictionary can be passed into a model-fit, which contains information on the model-fit. The example below
 creates an ``info`` dictionary which is passed to the model-fit, which is then loaded via the database.
 
@@ -132,6 +147,9 @@ Databases are an extremely powerful feature for users tasked with fitting extrem
 many different models, where the scale of the problem can make the management of the large quantity of results produced
 prohibitive. This is especially true on high performance computing facilities, which often have restrictions on the
 number of files that a user can store on the machine.
+
+Wrap Up
+-------
 
 If you'd like to see the ``Aggregator`` in action, checkout the
 `database example <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/features/database.ipynb>`_ on the

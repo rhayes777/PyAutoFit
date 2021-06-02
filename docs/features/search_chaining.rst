@@ -1,7 +1,7 @@
 .. _search_chaining:
 
 Search Chaining
----------------
+===============
 
 To perform a model-fit, we typically compose one model and fit it to our data using one non-linear search.
 
@@ -10,8 +10,8 @@ fits are performed using simplified model parameterizations and faster non-linea
 these simplified fits can then be used to initialize fits using a higher dimensionality model with more detailed
 non-linear search.
 
-To fit highly complex models our aim is therefore to **granularize** the fitting procedure into a series of **bite-sized**
-searches which are faster and more reliable than fitting the more complex model straight away.
+To fit highly complex models our aim is therefore to **granularize** the fitting procedure into a series
+of **bite-sized** searches which are faster and more reliable than fitting the more complex model straight away.
 
 Our ability to construct chained non-linear searches that perform model fitting more accurately and efficiently relies
 on our **domain specific knowledge** of the model fitting task. For example, we may know that our dataset contains
@@ -23,12 +23,18 @@ or changing making a likelihood evaluation faster (most likely at the expense of
 using chained searches speed-ups can be relaxed towards the end of the model-fitting sequence when we want the most
 precise, most accurate model that best fits the dataset available.
 
+Data
+----
+
 In this example we demonstrate search chaining using the example data where there are two ``Gaussians`` that are visibly
 split:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/gaussian_x2_split.png
   :width: 600
   :alt: Alternative text
+
+Approach
+--------
 
 Instead of fitting them simultaneously using a single non-linear search consisting of N=6 parameters, we break
 this model-fit into a chained of three searches where:
@@ -39,6 +45,9 @@ this model-fit into a chained of three searches where:
 
 By initially fitting parameter spaces of reduced complexity we can achieve a more efficient and reliable model-fitting
 procedure.
+
+Search 1
+--------
 
 To fit the left ``Gaussian``, our first ``analysis`` receive only half data removing the right ``Gaussian``. Note that
 this give a speed-up in log likelihood evaluation.
@@ -67,6 +76,9 @@ By plotting the result we can see we have fitted the left ``Gaussian`` reasonabl
   :width: 600
   :alt: Alternative text
 
+Search 2
+--------
+
 We now repeat the above process for the right ``Gaussian``.
 
 We could remove the data on the left like we did the ``Gaussian`` above. However, we are instead going to fit the full
@@ -94,13 +106,16 @@ and use a low number of live points to achieve a fast model-fit.
         iterations_per_update=500,
     )
 
-search_2_result = dynesty.fit(model=model, analysis=analysis)
+    search_2_result = dynesty.fit(model=model, analysis=analysis)
 
-We can now see our model has successfully fitted both Gaussians:
+We can now see our model has successfully fitted both Gaussian's:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/gaussian_x2_right_fit.png
   :width: 600
   :alt: Alternative text
+
+Search 3
+--------
 
 We now fit both ``Gaussians``'s simultaneously, using the results of the previous two searches to initialize where
 the non-linear searches parameter space.
@@ -133,6 +148,9 @@ We can now see our model has successfully fitted both Gaussians simultaneously:
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/gaussian_x2_fit.png
   :width: 600
   :alt: Alternative text
+
+Wrap Up
+-------
 
 This fit used a technique called 'prior passing' to pass results from searches 1 and 2 to search 3. Full details of how
 prior passing works can be found in the ``search_chaining.ipynb`` feature notebook.

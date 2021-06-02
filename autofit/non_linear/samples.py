@@ -752,6 +752,7 @@ class PDFSamples(OptimizerSamples):
         """
 
         means = self.median_pdf_vector
+
         uppers = self.vector_at_upper_sigma(sigma=sigma)
         lowers = self.vector_at_lower_sigma(sigma=sigma)
 

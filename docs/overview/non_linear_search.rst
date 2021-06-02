@@ -1,7 +1,7 @@
 .. _non_linear_search:
 
 Non-linear Search
------------------
+=================
 
 **PyAutoFit** currently supports three types of non-linear search algorithms:
 
@@ -9,14 +9,23 @@ Non-linear Search
 - **MCMC**: ``emcee`` and ``Zeus``.
 - **Nested Samplers**: ``dynesty``, ``UltraNest`` (optional) and ``PyMultiNest`` (optional).
 
+Functionality
+-------------
+
 **PyAutoFit** extends the functionality of each non-linear search to ensure that they always perform the
 following tasks, even if the original package does not:
 
 - Stores the results of the non-linear search to the hard-disk, writing the results to human-readable files.
+
 - Allows the non-linear search to be resumed if a previous run was finished.
+
 - Can write results and associated metadata to an sqlite database for querying and inspection post model-fit.
+
 - Extends the functionality of the non-linear search's, for example providing auto-correlation analysis and
   stopping criteria for MCMC algorithms.
+
+Settings
+--------
 
 We've seen that we can call a non-linear search as follows:
 
@@ -84,10 +93,12 @@ this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/no
        slices=5,
        fmove=0.9,
        max_move=100,
-       iterations_per_update=500,
    )
 
    result = dynesty.fit(model=model, analysis=analysis)
+
+Output Paths
+------------
 
 We can also customize the output folder and path structure where results are output. The output folder is set
 using the **PyAutoFit** parent project **PyAutoConf** and the following command:
@@ -113,13 +124,15 @@ path ``/path/to/output/folder_0/folder_1/unique_tag/example_mcmc/sihfiuy838h``:
 
 .. code-block:: bash
 
+    from os import path
+
    emcee = af.Emcee(
-       path_prefix="folder_0/folder_1/",
+       path_prefix=path.join("folder_0", "folder_1"),
        name="example_mcmc"
    )
 
-For model-fits to multiple datasets, checkout the `database feature <https://pyautofit.readthedocs.io/en/latest/features/database.html>`_
-which gives more options for customizing how the unique identifier is generated.
+Parallelization
+---------------
 
 Most searches support parallel analysis using the Python ``multiprocessing`` module. This distributes the
 non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number of CPUs used.
@@ -139,6 +152,9 @@ the ``number_of_cores`` parameter (which is also found in the default config fil
    emcee = af.Emcee(number_of_cores=4)
 
    result = emcee.fit(model=model, analysis=analysis)
+
+Wrap-Up
+-------
 
 We are always looking to add more non-linear searches to **PyAutoFit**. If you are the developer of a package check out
 our `contributions section <https://github.com/rhayes777/PyAutoFit/blob/master/CONTRIBUTING.md>`_ and please
