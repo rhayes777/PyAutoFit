@@ -83,6 +83,18 @@ Models
    CollectionPriorModel
 
 
+--------
+Analysis
+--------
+
+.. currentmodule:: autofit
+
+.. autosummary::
+   :toctree: generated/
+
+   Analysis
+
+
 ------
 Priors
 ------
@@ -106,6 +118,7 @@ Samples
    PDFSamples
    MCMCSamples
    NestSamples
+   StoredSamples
 
 ----------
 Aggregator
