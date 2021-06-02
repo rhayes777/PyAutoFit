@@ -2,7 +2,7 @@
 API Reference
 =============
 
-.. currentmodule:: autofit
+.. currentmodule:: autofit.non_linear.nest.dynesty
 
 -------------------
 Non-Linear Searches
