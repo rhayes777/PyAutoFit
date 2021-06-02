@@ -2,7 +2,7 @@
 API Reference
 =============
 
-.. currentmodule:: autofit.non_linear.nest.dynesty.static
+.. currentmodule:: autofit
 
 -------------------
 Non-Linear Searches
@@ -13,5 +13,8 @@ Non-Linear Searches
 .. autosummary::
    :toctree: generated/
 
+   DynestyDynamic
    DynestyStatic
+   MultiNest
+   UltraNest
 
