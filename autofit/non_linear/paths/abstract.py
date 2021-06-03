@@ -33,15 +33,6 @@ def make_path(func):
 pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
 
-def nullify_identifier(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        self._identifier = None
-        return func(self, *args, **kwargs)
-
-    return wrapper
-
-
 class AbstractPaths(ABC):
     def __init__(
             self,
