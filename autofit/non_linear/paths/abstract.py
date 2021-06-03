@@ -12,7 +12,7 @@ from typing import Optional
 
 from autoconf import conf
 from autofit.mapper import link
-from autofit.mapper.model_object import Identifier
+from autofit.mapper.model_object import Identifier, IdentifierField
 from autofit.text import text_util
 
 logger = logging.getLogger(
@@ -40,78 +40,6 @@ def nullify_identifier(func):
         return func(self, *args, **kwargs)
 
     return wrapper
-
-
-class IdentifierField:
-    """
-    A field that the identifier depends on.
-
-    If the value of the field is changed then the identifier
-    must be recomputed prior to use.
-    """
-
-    def __set_name__(
-            self,
-            owner: object,
-            name: str
-    ):
-        """
-        Called on instantiation
-
-        Parameters
-        ----------
-        owner
-            The object for which this field is an attribute
-        name
-            The name of the attribute
-        """
-        self.private = f"_{name}"
-        setattr(
-            owner,
-            self.private,
-            None
-        )
-
-    def __get__(
-            self,
-            obj: object,
-            objtype=None
-    ) -> Optional:
-        """
-        Retrieve the value of this field.
-
-        Parameters
-        ----------
-        obj
-            The object for which this field is an attribute
-        objtype
-
-        Returns
-        -------
-        The value (or None if it has not been set)
-        """
-        return getattr(
-            obj,
-            self.private
-        )
-
-    def __set__(self, obj, value):
-        """
-        Set a value for this field
-
-        Parameters
-        ----------
-        obj
-            The object for which the field is an attribute
-        value
-            A new value for the attribute
-        """
-        obj._identifier = None
-        setattr(
-            obj,
-            self.private,
-            value
-        )
 
 
 class AbstractPaths(ABC):
