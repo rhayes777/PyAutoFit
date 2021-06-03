@@ -2,7 +2,8 @@ from typing import Optional
 
 import numpy as np
 
-from autofit import ModelInstance, Analysis
+from autofit.mapper.model import ModelInstance
+from autofit.non_linear.analysis import Analysis
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
 from .abstract import AbstractModelFactor

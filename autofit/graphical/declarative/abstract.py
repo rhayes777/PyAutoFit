@@ -3,15 +3,17 @@ from typing import Callable, cast, Set, List, Dict
 
 import numpy as np
 
-from autofit import ModelInstance, Analysis, Paths
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.messages import NormalMessage
+from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.paths.abstract import AbstractPaths
 
 
 class AbstractDeclarativeFactor(Analysis, ABC):
@@ -162,7 +164,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
     def visualize(
             self,
-            paths: Paths,
+            paths: AbstractPaths,
             instance: ModelInstance,
             during_analysis: bool
     ):

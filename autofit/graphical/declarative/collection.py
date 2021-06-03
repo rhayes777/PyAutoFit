@@ -1,4 +1,4 @@
-from autofit import ModelInstance
+from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor

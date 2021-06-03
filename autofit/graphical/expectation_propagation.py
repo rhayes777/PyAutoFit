@@ -228,22 +228,13 @@ class EPMeanField(FactorGraph):
 
 class AbstractFactorOptimiser(ABC):
     @abstractmethod
-    def project(
-        self, 
-        factor_approx: FactorApproximation,
-        status: Status = Status()
-    ) -> Tuple[FactorApproximation, Status]:
-        pass
-
     def optimise(
             self,
             factor: Factor,
             model_approx: EPMeanField,
             status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
-        factor_approximation = model_approx.factor_approximation(factor)
-        projection, status = self.project(factor_approximation, status)
-        return model_approx.project(projection, status)
+        pass
 
 
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
@@ -275,7 +266,7 @@ class EPHistory:
 
         if status.success:
             stop = any([
-                callback(factor, approx, status) 
+                callback(factor, approx, status)
                 for callback in self._callbacks
             ])
             if stop:
@@ -365,9 +356,11 @@ class EPOptimiser:
             for factor, optimiser in self.factor_optimisers.items():
                 try:
                     model_approx, status = optimiser.optimise(factor, model_approx)
+                except TypeError as e:
+                    raise e
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     status = Status(
-                        False, 
+                        False,
                         f"Factor: {factor} experienced error {e}")
 
                 if self.callback(factor, model_approx, status):
