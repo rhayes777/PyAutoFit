@@ -1,7 +1,5 @@
-import sys
 from os import path
 
-import dill
 import numpy as np
 import pytest
 
@@ -29,7 +27,6 @@ class MockDynestySampler:
 class TestDynestyConfig:
 
     def test__loads_from_config_file_if_not_input(self):
-
         dynesty = af.DynestyStatic(
             prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             nlive=151,
@@ -107,12 +104,14 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyStatic(nlive=3)
         dynesty.paths = paths
-
-        with open(path.join(dynesty.paths.samples_path, "dynesty.pickle"), "wb") as f:
-            dill.dump(sampler, f)
-
         model = af.ModelMapper(mock_class=mock.MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
+        dynesty.model = model
+
+        dynesty.paths.save_object(
+            "dynesty",
+            sampler
+        )
 
         samples = dynesty.samples_from(model=model)
 
