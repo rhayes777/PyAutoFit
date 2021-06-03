@@ -68,13 +68,6 @@ def make_make_model_factor(
 
 
 @pytest.fixture(
-    name="x"
-)
-def make_x():
-    return np.arange(100)
-
-
-@pytest.fixture(
     name="intensity"
 )
 def make_intensity():
@@ -168,34 +161,6 @@ def test_optimise_factor_model(
     """
     assert 25.0 == pytest.approx(collection[0].intensity.mean, rel=0.1)
     assert collection[0].intensity is collection[1].intensity
-
-
-def test_gaussian():
-    n_observations = 100
-    x = np.arange(n_observations)
-    y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
-
-    prior_model = af.PriorModel(
-        Gaussian,
-        centre=af.GaussianPrior(mean=50, sigma=20),
-        intensity=af.GaussianPrior(mean=25, sigma=10),
-        sigma=af.GaussianPrior(mean=10, sigma=10),
-    )
-
-    factor_model = ep.ModelFactor(
-        prior_model,
-        analysis=Analysis(
-            x=x,
-            y=y
-        )
-    )
-
-    laplace = ep.LaplaceFactorOptimiser()
-    model = factor_model.optimise(laplace)
-
-    assert model.centre.mean == pytest.approx(50, rel=0.1)
-    assert model.intensity.mean == pytest.approx(25, rel=0.1)
-    assert model.sigma.mean == pytest.approx(10, rel=0.1)
 
 
 @pytest.fixture(name="prior_model")

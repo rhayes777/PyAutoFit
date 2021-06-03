@@ -6,21 +6,23 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from os import path
 from typing import Optional
+from typing import Tuple
 
 import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
-from autofit.mapper import model_mapper as mm
-from autofit.non_linear import result as res
-from autofit.non_linear import samples as samps
+from autofit.graphical import ModelFactor, EPMeanField, MeanField, NormalMessage, Factor
+from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
+from .analysis import Analysis
+from ..graphical.expectation_propagation import AbstractFactorOptimiser
 
 
 def check_cores(func):
@@ -55,7 +57,7 @@ def check_cores(func):
     return wrapper
 
 
-class NonLinearSearch(ABC):
+class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
             self,
             name=None,
@@ -193,6 +195,81 @@ class NonLinearSearch(ABC):
         self.number_of_cores = number_of_cores
 
     __identifier_fields__ = tuple()
+
+    def optimise(
+            self,
+            factor: Factor,
+            model_approx: EPMeanField,
+            status: Optional[Status] = None
+    ) -> Tuple[EPMeanField, Status]:
+        """
+        Perform optimisation for expectation propagation. Currently only
+        applicable for ModelFactors created by the declarative interface.
+
+        1. Analysis and model classes are extracted from the factor.
+        2. Priors are updated from the mean field.
+        3. Analysis and model are fit as usual.
+        4. A new mean field is constructed with the (posterior) 'linking' priors.
+        5. Projection is performed to produce an updated EPMeanField object.
+
+        Parameters
+        ----------
+        factor
+            A factor comprising a model and an analysis
+        model_approx
+            A collection of messages defining the current best approximation to
+            some global model
+        status
+
+        Returns
+        -------
+        An updated approximation to the model having performed optimisation on
+        a single factor.
+        """
+
+        _ = status
+        if not isinstance(
+                factor,
+                ModelFactor
+        ):
+            raise NotImplementedError(
+                f"Optimizer {self.__class__.__name__} can only be applied to ModelFactors"
+            )
+
+        factor_approx = model_approx.factor_approximation(
+            factor
+        )
+        arguments = {
+            prior: factor_approx.model_dist[
+                prior
+            ].as_prior()
+            for prior in factor_approx.variables
+        }
+
+        model = factor.prior_model.mapper_from_prior_arguments(
+            arguments
+        )
+        analysis = factor.analysis
+
+        result = self.fit(
+            model=model,
+            analysis=analysis
+        )
+
+        new_model_dist = MeanField({
+            prior: NormalMessage.from_prior(
+                result.model.prior_with_id(
+                    prior.id
+                )
+            )
+            for prior in factor_approx.variables
+        })
+
+        projection, status = factor_approx.project(
+            new_model_dist,
+            delta=1
+        )
+        return model_approx.project(projection, status)
 
     @property
     def name(self):
@@ -643,25 +720,6 @@ class NonLinearSearch(ABC):
         pass
 
 
-class Analysis(ABC):
-
-    def log_likelihood_function(self, instance):
-        raise NotImplementedError()
-
-    def visualize(self, paths: AbstractPaths, instance, during_analysis):
-        pass
-
-    def save_attributes_for_aggregator(self, paths: AbstractPaths):
-        pass
-
-    def save_results_for_aggregator(self, paths: AbstractPaths, model: mm.CollectionPriorModel,
-                                    samples: samps.OptimizerSamples):
-        pass
-
-    def make_result(self, samples, model, search):
-        return res.Result(samples=samples, model=model, search=search)
-
-
 class IntervalCounter:
     def __init__(self, interval):
         self.count = 0
@@ -710,9 +768,15 @@ class PriorPasser:
         risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
         previous search.
 
+<<<<<<< HEAD
+               Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
+               we underestimate the parameter errors. This is especially true when we take the shortcuts in early
+               searches - fast `NonLinearSearch` settings, simplified models, etc.
+=======
         Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
         we underestimate the parameter errors. This is especially true when we take the shortcuts in early
         searchs, fast `NonLinearSearch` settings, simplified models, etc.
+>>>>>>> master
 
         Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
         is suspiciously small, we instead use the value specified in the widths file. These values are chosen

@@ -108,7 +108,7 @@ class AbstractDynesty(AbstractNest, ABC):
         Returns
         -------
         A result object comprising the Samples object that includes the maximum log likelihood instance and full
-        set of accepted ssamples of the fit.
+        set of accepted samples of the fit.
         """
 
         fitness_function = self.fitness_function_from_model_and_analysis(

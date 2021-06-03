@@ -9,7 +9,7 @@ from typing import (
 import numpy as np
 
 from autofit.graphical.factor_graphs import (
-    Factor, AbstractNode, FactorGraph
+    Factor, FactorGraph
 )
 from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.messages.abstract import AbstractMessage
@@ -130,7 +130,7 @@ class EPMeanField(FactorGraph):
 
     def project_factor_approx(
             self, projection: FactorApproximation, status: Optional[Status] = None,
-    ) -> "EPMeanField":
+    ) -> Tuple["EPMeanField", Status]:
         """
         """
         factor_mean_field = self.factor_mean_field
@@ -317,8 +317,8 @@ class EPOptimiser:
     def __init__(
             self,
             factor_graph: FactorGraph,
-            default_optimiser: AbstractFactorOptimiser = None,
-            factor_optimisers: Dict[Factor, AbstractFactorOptimiser] = None,
+            default_optimiser: Optional[AbstractFactorOptimiser] = None,
+            factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
             callback: Optional[EPCallBack] = None,
             factor_order: Optional[List[Factor]] = None
     ):
@@ -336,8 +336,12 @@ class EPOptimiser:
                 ))
         else:
             self.factor_optimisers = {
-                factor: factor_optimisers.get(factor, default_optimiser)
-                for factor in self.factors}
+                factor: factor_optimisers.get(
+                    factor,
+                    default_optimiser
+                )
+                for factor in self.factors
+            }
 
         self.callback = callback or EPHistory()
 

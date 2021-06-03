@@ -545,7 +545,7 @@ class AbstractPriorModel(AbstractModel):
             elif use_errors and use_widths:
                 sigma = max(tuples[i][1], width)
             else:
-                raise exc.PriorException("use_passed_errors and use_widths are both False, meeaning there is no "
+                raise exc.PriorException("use_passed_errors and use_widths are both False, meaning there is no "
                                          "way to pass priors to set up the new model's Gaussian Priors.")
 
             arguments[prior] = GaussianPrior(

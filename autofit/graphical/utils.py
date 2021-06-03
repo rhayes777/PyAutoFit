@@ -1,6 +1,5 @@
 from functools import reduce
 from operator import mul
-from itertools import chain
 from typing import (
     Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
 )
@@ -11,6 +10,7 @@ from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable
+
 
 class Status(NamedTuple):
     success: bool = True
@@ -39,7 +39,7 @@ class FlattenArrays(dict):
         self.splits = np.cumsum([
             np.prod(s) for s in self.values()], dtype=int)
         self.inds = [
-            slice(i0, i1) for i0, i1 in 
+            slice(i0, i1) for i0, i1 in
             # np.arange(i0, i1, dtype=int) for i0, i1 in
             zip(np.r_[0, self.splits[:-1]], self.splits)]
         self.sizes = {
@@ -94,7 +94,7 @@ class OptResult(NamedTuple):
     full_hess_inv: np.ndarray
     result: OptimizeResult
     status: Status = Status()
-    
+
 
 def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     """Sums over broadcasting multidimensional arrays
@@ -113,7 +113,9 @@ def add_arrays(*arrays: np.ndarray) -> np.ndarray:
     b = np.broadcast(*arrays)
     return sum(a * np.size(a) / b.size for a in arrays)
 
+
 Axis = Optional[Union[bool, int, Tuple[int, ...]]]
+
 
 def aggregate(array: np.ndarray, axis: Axis = False, **kwargs) -> np.ndarray:
     """
@@ -127,7 +129,7 @@ def aggregate(array: np.ndarray, axis: Axis = False, **kwargs) -> np.ndarray:
         return array
     else:
         return np.sum(array, axis=axis, **kwargs)
-    
+
 
 def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
     array = np.asanyarray(array)
@@ -142,7 +144,10 @@ def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
     out[diag_inds] = array.ravel()
     return out
 
-_M = TypeVar('M')
+
+_M = TypeVar('_M')
+
+
 def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     """calculates the product of the passed iterable,
     much like sum, if a second argument is passed,
@@ -158,6 +163,7 @@ def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     """
     return reduce(mul, iterable, *arg)
 
+
 def r2_score(y_true, y_pred, axis=None):
     y_true = np.asanyarray(y_true)
     y_pred = np.asanyarray(y_pred)
@@ -165,26 +171,30 @@ def r2_score(y_true, y_pred, axis=None):
     mse = np.square(y_true - y_pred).mean(axis=axis)
     var = y_true.var(axis=axis)
 
-    return 1 - mse/var
+    return 1 - mse / var
+
 
 class CachedProperty(object):
-    ''' 
+    """
     A property that is only computed once per instance and then replaces
     itself with an ordinary attribute. Deleting the attribute resets the
     property. 
     
     Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
-    '''
+    """
 
     def __init__(self, func):
         self.func = func
 
     def __get__(self, obj, cls):
-        if obj is None: return self
+        if obj is None:
+            return self
         value = obj.__dict__[self.func.__name__] = self.func(obj)
         return value
 
+
 cached_property = CachedProperty
+
 
 def propagate_uncertainty(
         cov: np.ndarray, jac: np.ndarray) -> np.ndarray:
