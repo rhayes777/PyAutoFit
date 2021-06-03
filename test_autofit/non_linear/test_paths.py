@@ -1,8 +1,10 @@
 import os
-
-import autofit as af
+import pickle
 from pathlib import Path
 
+import pytest
+
+import autofit as af
 from autoconf.conf import output_path_for_test
 
 
@@ -40,16 +42,36 @@ output_path = Path(
 ).parent / "path"
 
 
+@pytest.fixture(
+    name="model"
+)
+def make_model():
+    return af.Model(
+        af.Gaussian
+    )
+
+
 @output_path_for_test(
     output_path
 )
-def test_identifier_file():
+def test_identifier_file(model):
     paths = af.DirectoryPaths()
-    paths.model = af.Model(
-        af.Gaussian
-    )
+    paths.model = model
     paths.search = af.DynestyStatic()
 
     assert os.path.exists(
         output_path / paths.identifier / ".identifier"
     )
+
+
+def test_serialize(model):
+    paths = af.DirectoryPaths()
+    paths.model = model
+
+    pickled_paths = pickle.loads(
+        pickle.dumps(
+            paths
+        )
+    )
+
+    assert pickled_paths.model is not None

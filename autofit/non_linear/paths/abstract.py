@@ -33,6 +33,15 @@ def make_path(func):
 pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
 
+def nullify_identifier(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self._identifier = None
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class AbstractPaths(ABC):
     def __init__(
             self,
@@ -78,7 +87,9 @@ class AbstractPaths(ABC):
         self.path_prefix = path_prefix or ""
 
         self._search = None
-        self.model = None
+        self._model = None
+        self._unique_tag = None
+
         self.unique_tag = unique_tag
 
         self._non_linear_name = None
@@ -131,10 +142,29 @@ class AbstractPaths(ABC):
         )
 
     @property
+    def model(self):
+        return self._model
+
+    @model.setter
+    @nullify_identifier
+    def model(self, model):
+        self._model = model
+
+    @property
+    def unique_tag(self):
+        return self._unique_tag
+
+    @unique_tag.setter
+    @nullify_identifier
+    def unique_tag(self, unique_tag):
+        self._unique_tag = unique_tag
+
+    @property
     def search(self):
         return self._search
 
     @search.setter
+    @nullify_identifier
     def search(self, search):
         self._search = search
         self._non_linear_name = pattern.sub(
