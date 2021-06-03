@@ -257,10 +257,10 @@ class AbstractPaths(ABC):
         self._zip()
 
         if self.remove_files:
-            try:
-                shutil.rmtree(self.path)
-            except (FileNotFoundError, PermissionError):
-                pass
+            shutil.rmtree(
+                self.path,
+                ignore_errors=True
+            )
 
     def _zip(self):
 
