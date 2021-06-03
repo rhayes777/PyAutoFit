@@ -8,19 +8,27 @@ from test_autofit.graphical.gaussian.model import Analysis
 
 
 @pytest.fixture(
+    name="analysis"
+)
+def make_analysis(
+        x, y
+):
+    return Analysis(
+        x=x,
+        y=y
+    )
+
+
+@pytest.fixture(
     name="factor_model"
 )
 def make_factor_model(
         prior_model,
-        x,
-        y
+        analysis
 ):
     return g.ModelFactor(
         prior_model,
-        analysis=Analysis(
-            x=x,
-            y=y
-        )
+        analysis=analysis
     )
 
 
@@ -49,6 +57,28 @@ def test_default(
     assert model.centre.mean == pytest.approx(50, rel=0.1)
     assert model.intensity.mean == pytest.approx(25, rel=0.1)
     assert model.sigma.mean == pytest.approx(10, rel=0.1)
+
+
+def test_set_model_identifier(
+        dynesty,
+        prior_model,
+        analysis
+):
+    dynesty.fit(
+        prior_model,
+        analysis
+    )
+
+    identifier = dynesty.paths.identifier
+    assert identifier is not None
+
+    prior_model.centre = af.GaussianPrior(mean=20, sigma=20)
+    dynesty.fit(
+        prior_model,
+        analysis
+    )
+
+    assert identifier != dynesty.paths.identifier
 
 
 class TestDynesty:

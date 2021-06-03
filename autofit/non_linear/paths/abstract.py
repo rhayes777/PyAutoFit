@@ -12,7 +12,7 @@ from typing import Optional
 
 from autoconf import conf
 from autofit.mapper import link
-from autofit.mapper.model_object import Identifier
+from autofit.mapper.model_object import Identifier, IdentifierField
 from autofit.text import text_util
 
 logger = logging.getLogger(
@@ -77,8 +77,6 @@ class AbstractPaths(ABC):
         self.name = name or ""
         self.path_prefix = path_prefix or ""
 
-        self._search = None
-        self.model = None
         self.unique_tag = unique_tag
 
         self._non_linear_name = None
@@ -130,21 +128,19 @@ class AbstractPaths(ABC):
             parent=self
         )
 
-    @property
-    def search(self):
-        return self._search
-
-    @search.setter
-    def search(self, search):
-        self._search = search
-        self._non_linear_name = pattern.sub(
-            '_', type(
-                self.search
-            ).__name__
-        ).lower()
+    search = IdentifierField()
+    model = IdentifierField()
+    unique_tag = IdentifierField()
 
     @property
     def non_linear_name(self):
+        if self._non_linear_name is None:
+            if self.search is not None:
+                self._non_linear_name = pattern.sub(
+                    '_', type(
+                        self.search
+                    ).__name__
+                ).lower()
         return self._non_linear_name
 
     @property
@@ -227,10 +223,10 @@ class AbstractPaths(ABC):
         self._zip()
 
         if self.remove_files:
-            try:
-                shutil.rmtree(self.path)
-            except (FileNotFoundError, PermissionError):
-                pass
+            shutil.rmtree(
+                self.path,
+                ignore_errors=True
+            )
 
     def _zip(self):
 

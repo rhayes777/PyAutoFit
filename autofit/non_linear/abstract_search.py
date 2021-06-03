@@ -137,7 +137,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
         self._paths = None
-        self._timer = None
 
         self.paths: AbstractPaths = paths
 
@@ -312,11 +311,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def timer(self):
-        if self._timer is None:
-            self._timer = Timer(
-                self.paths.samples_path
-            )
-        return self._timer
+        return Timer(
+            self.paths.samples_path
+        )
 
     @property
     def paths(self) -> Optional[AbstractPaths]:
@@ -777,15 +774,9 @@ class PriorPasser:
         risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
         previous search.
 
-<<<<<<< HEAD
-               Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
-               we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-               searches - fast `NonLinearSearch` settings, simplified models, etc.
-=======
         Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
         we underestimate the parameter errors. This is especially true when we take the shortcuts in early
-        searchs, fast `NonLinearSearch` settings, simplified models, etc.
->>>>>>> master
+        searches, fast `NonLinearSearch` settings, simplified models, etc.
 
         Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
         is suspiciously small, we instead use the value specified in the widths file. These values are chosen

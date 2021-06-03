@@ -2,12 +2,85 @@ import inspect
 import itertools
 from collections import Iterable
 from hashlib import md5
+from typing import Optional
 
 from autofit.util import get_class
 
 # floats are rounded to this increment so floating point errors
 # have no impact on identifier value
 RESOLUTION = 1e-8
+
+
+class IdentifierField:
+    """
+    A field that the identifier depends on.
+
+    If the value of the field is changed then the identifier
+    must be recomputed prior to use.
+    """
+
+    def __set_name__(
+            self,
+            owner: object,
+            name: str
+    ):
+        """
+        Called on instantiation
+
+        Parameters
+        ----------
+        owner
+            The object for which this field is an attribute
+        name
+            The name of the attribute
+        """
+        self.private = f"_{name}"
+        setattr(
+            owner,
+            self.private,
+            None
+        )
+
+    def __get__(
+            self,
+            obj: object,
+            objtype=None
+    ) -> Optional:
+        """
+        Retrieve the value of this field.
+
+        Parameters
+        ----------
+        obj
+            The object for which this field is an attribute
+        objtype
+
+        Returns
+        -------
+        The value (or None if it has not been set)
+        """
+        return getattr(
+            obj,
+            self.private
+        )
+
+    def __set__(self, obj, value):
+        """
+        Set a value for this field
+
+        Parameters
+        ----------
+        obj
+            The object for which the field is an attribute
+        value
+            A new value for the attribute
+        """
+        obj._identifier = None
+        setattr(
+            obj,
+            self.private,
+            value
+        )
 
 
 class Identifier:
