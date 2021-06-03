@@ -184,9 +184,7 @@ def test_raising_error(pool):
         ))
 
 
-@output_path_for_test(
-    "temp"
-)
+@output_path_for_test()
 def test_sneaky_map(
         search,
         model,

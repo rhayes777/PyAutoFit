@@ -801,14 +801,6 @@ class AbstractPriorModel(AbstractModel):
         return len(self.unique_prior_tuples)
 
     @property
-    def variable_promise_count(self):
-        return len([
-            value for key, value in
-            self.unique_promise_tuples
-            if not value.is_instance
-        ])
-
-    @property
     def priors(self):
         return [prior_tuple.prior for prior_tuple in self.prior_tuples]
 
