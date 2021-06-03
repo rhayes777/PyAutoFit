@@ -1,8 +1,8 @@
 import os
 from os import path
-from matplotlib import pyplot
 
 import pytest
+from matplotlib import pyplot
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -29,6 +29,7 @@ def make_plot_patch(monkeypatch):
     monkeypatch.setattr(pyplot, "savefig", plot_patch)
     return plot_patch
 
+
 @pytest.fixture(name="session")
 def make_session():
     engine = create_engine('sqlite://')
@@ -39,12 +40,15 @@ def make_session():
     engine.dispose()
 
 
-@pytest.fixture(autouse=True)
-def remove_reports():
+@pytest.fixture(
+    autouse=True,
+    scope="session"
+)
+def remove_logs():
     yield
     for d, _, files in os.walk(directory):
         for file in files:
-            if file == "report.log":
+            if file.endswith(".log"):
                 os.remove(path.join(d, file))
 
 
@@ -63,7 +67,6 @@ def model():
 
 @pytest.fixture(name="samples")
 def make_samples():
-
     sample_0 = samp.Sample(log_likelihood=1.0, log_prior=2.0, weight=0.25)
     sample_1 = samp.Sample(log_likelihood=3.0, log_prior=5.0, weight=0.75)
 
@@ -71,6 +74,7 @@ def make_samples():
         model=af.Mapper(),
         samples=[sample_0, sample_1],
     )
+
 
 @pytest.fixture(name="result")
 def make_result():
