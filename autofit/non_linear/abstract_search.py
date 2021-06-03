@@ -198,6 +198,21 @@ class NonLinearSearch(ABC):
     def name(self):
         return self.paths.name
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["logger"]
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(
+            state
+        )
+        self.logger = logging.getLogger(
+            self.name
+        )
+        if self.paths.model is not None:
+            self.setup_log_file()
+
     @property
     def timer(self):
         if self._timer is None:
@@ -243,11 +258,11 @@ class NonLinearSearch(ABC):
 
         def fit_instance(self, instance):
 
-      #      start = time.time()
+            #      start = time.time()
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-      #      fit_time = (time.time() - start)
+            #      fit_time = (time.time() - start)
 
-      #      print(mp.current_process().pid, log_likelihood, fit_time)
+            #      print(mp.current_process().pid, log_likelihood, fit_time)
 
             if self.log_likelihood_cap is not None:
                 if log_likelihood > self.log_likelihood_cap:
@@ -551,7 +566,6 @@ class NonLinearSearch(ABC):
         self.logger.handlers.append(
             logging.FileHandler(log_path)
         )
-        # self.logger.propagate = False
 
     @property
     def samples_cls(self):
@@ -613,9 +627,6 @@ class NonLinearSearch(ABC):
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
 
     def plot_results(self, samples):
         pass
