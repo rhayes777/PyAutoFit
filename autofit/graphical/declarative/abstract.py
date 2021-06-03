@@ -32,11 +32,6 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         pass
 
     @property
-    @abstractmethod
-    def optimiser(self):
-        pass
-
-    @property
     def priors(self) -> Set[Prior]:
         """
         A set of all priors encompassed by the contained likelihood models

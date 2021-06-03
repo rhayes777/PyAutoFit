@@ -13,10 +13,6 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
     def prior_model(self):
         return self._prior_model
 
-    @property
-    def optimiser(self):
-        return self._optimiser
-
     def __init__(
             self,
             prior_model: AbstractPriorModel,
@@ -38,7 +34,7 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
             instead of the default optimiser
         """
         self._prior_model = prior_model
-        self._optimiser = optimiser
+        self.optimiser = optimiser
 
         super().__init__(
             factor,

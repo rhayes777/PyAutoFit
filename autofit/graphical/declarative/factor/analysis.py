@@ -14,10 +14,6 @@ class AnalysisFactor(AbstractModelFactor):
     def prior_model(self):
         return self._prior_model
 
-    @property
-    def optimiser(self):
-        return self._optimiser
-
     def __init__(
             self,
             prior_model: AbstractPriorModel,
