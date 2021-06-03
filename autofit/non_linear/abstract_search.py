@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
-from autofit.graphical import EPMeanField, MeanField, NormalMessage, Factor
+from autofit.graphical import EPMeanField, MeanField, NormalMessage, Factor, AnalysisFactor
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
@@ -23,7 +23,6 @@ from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
-from ..graphical.master import ModelFactor
 
 
 def check_cores(func):
@@ -230,7 +229,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         _ = status
         if not isinstance(
                 factor,
-                ModelFactor
+                AnalysisFactor
         ):
             raise NotImplementedError(
                 f"Optimizer {self.__class__.__name__} can only be applied to ModelFactors"

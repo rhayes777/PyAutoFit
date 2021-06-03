@@ -3,7 +3,7 @@ from .factor_graphs import \
     Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue, \
     DiagonalTransform, CholeskyTransform, VariableTransform, \
     FullCholeskyTransform , CovarianceTransform, identity_transform
-from .master import ModelFactor
+
 from .mean_field import FactorApproximation, MeanField
 from .expectation_propagation import EPMeanField, EPOptimiser
 from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage
