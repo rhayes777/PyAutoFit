@@ -145,7 +145,7 @@ def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
     return out
 
 
-_M = TypeVar('M')
+_M = TypeVar('_M')
 
 
 def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
@@ -175,13 +175,13 @@ def r2_score(y_true, y_pred, axis=None):
 
 
 class CachedProperty(object):
-    ''' 
+    """
     A property that is only computed once per instance and then replaces
     itself with an ordinary attribute. Deleting the attribute resets the
     property. 
     
     Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
-    '''
+    """
 
     def __init__(self, func):
         self.func = func
@@ -236,11 +236,10 @@ def numerical_jacobian(x: np.ndarray, func, eps=1e-8, args=(), **kwargs):
         for i, val in enumerate(it):
             val += eps
             f1 = func(x0, *args, **kwargs)
-            jac[:, i] = (f1 - f0)/eps
+            jac[:, i] = (f1 - f0) / eps
             val -= eps
-            
-    return jac.reshape(np.shape(f0) + np.shape(x0))
 
+    return jac.reshape(np.shape(f0) + np.shape(x0))
 
 
 def psilog(x: np.ndarray) -> np.ndarray:

@@ -1,7 +1,7 @@
 .. _sensitivity_mapping:
 
 Sensitivity Mapping
--------------------
+===================
 
 Bayesian model comparison allows us to take a dataset, fit it with multiple models and use the Bayesian evidence to
 quantify which model objectively gives the best-fit following the principles of Occam's Razor.
@@ -16,6 +16,9 @@ We then use this function to simulate many datasets, for many different models, 
 model-fitting procedure we used to perform Bayesian model comparison. This allows us to infer how much of a Bayesian
 evidence increase we should expect for datasets of varying quality and / or models with different parameters.
 
+Data
+----
+
 To illustrate sensitivity mapping we will again use the example of fitting 1D Gaussian's in noisy data. This 1D data
 includes a small feature to the right of the central ``Gaussian``, a second ``Gaussian`` centred on pixel 70.
 
@@ -23,6 +26,9 @@ includes a small feature to the right of the central ``Gaussian``, a second ``Ga
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/gaussian_x1_with_feature.png
   :width: 600
   :alt: Alternative text
+
+Model Comparison
+----------------
 
 Before performing sensitivity mapping, we will quickly perform Bayesian model comparison on this data to get a sense
 for whether the ``Gaussian`` feature is detectable and how much the Bayesian evidence increases when it is included in
@@ -32,28 +38,28 @@ We therefore fit the data using two models, one where the model is a single ``Ga
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian_main=m.Gaussian)
+    model = af.Collection(gaussian_main=m.Gaussian)
 
     dynesty = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "single_gaussian"),
-        n_live_points=100,
+        nlive=100,
         iterations_per_update=500,
     )
 
     result_single = dynesty.fit(model=model, analysis=analysis)
 
-For the second model it contains two ``Gaussians``. To avoid slow model-fitting and more clearly prounce the results of
+For the second model it contains two ``Gaussians``. To avoid slow model-fitting and more clearly pronounce the results of
 model comparison, we restrict the centre of the ``gaussian_feature`` to its true centre of 70 and sigma value of 0.5.
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
+    model = af.Collection(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
     model.gaussian_feature.centre = 70.0
     model.gaussian_feature.sigma = 0.5
 
     dynesty = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "two_gaussians"),
-        n_live_points=100,
+        nlive=100,
         iterations_per_update=500,
     )
 
@@ -76,6 +82,9 @@ A lower value of intensity makes the ``Gaussian`` fainter and harder to detect. 
 by answering the following question, at what value of intensity does the ``Gaussian`` feature become undetectable and
 not provide us with a noticeable increase in Bayesian evidence?
 
+Base Model
+----------
+
 To begin, we define the ``base_model`` that we use to perform sensitivity mapping. This model is used to simulate every
 dataset. It is also fitted to every simulated dataset without the extra model component below, to give us the Bayesian
 evidence of the every simpler model to compare to the more complex model.
@@ -84,7 +93,10 @@ The ``base_model`` corresponds to the ``gaussian_main`` above.
 
 .. code-block:: bash
 
-    base_model = af.CollectionPriorModel(gaussian_main=m.Gaussian)
+    base_model = af.Collection(gaussian_main=m.Gaussian)
+
+Perturbation Model
+------------------
 
 We now define the ``perturbation_model``, which is the model component whose parameters we iterate over to perform
 sensitivity mapping. Many instances of the ``perturbation_model`` are created and used to simulate the many datasets
@@ -95,15 +107,18 @@ The ``perturbation_model`` is therefore another ``Gaussian`` but now corresponds
 
 By fitting both of these models to every simulated dataset, we will therefore infer the Bayesian evidence of every
 model to every dataset. Sensitivity mapping therefore maps out for what values of ``intensity`` in the ``gaussian_feature``
- does the more complex model-fit provide higher values of Bayesian evidence than the simpler model-fit. We also fix the
+does the more complex model-fit provide higher values of Bayesian evidence than the simpler model-fit. We also fix the
 values ot the ``centre`` and ``sigma`` of the ``Gaussian`` so we only map over its ``intensity``.
 
 .. code-block:: bash
 
-    perturbation_model = af.PriorModel(m.Gaussian)
+    perturbation_model = af.Model(m.Gaussian)
     perturbation_model.centre = 70.0
     perturbation_model.sigma = 0.5
     perturbation_model.intensity = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)
+
+Simulation
+----------
 
 We are performing sensitivity mapping to determine how bright the ``gaussian_feature`` needs to be in order to be
 detectable. However, every simulated dataset must include the ``main_gaussian``, as its presence in the data will effect
@@ -174,6 +189,9 @@ Here are what the two most extreme simulated datasets look like, corresponding t
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/sensitivity_data_high.png
   :width: 600
   :alt: Alternative text
+
+Summary
+-------
 
 We can now combine all of the objects created above and perform sensitivity mapping. The inputs to the ``Sensitivity``
 object below are:

@@ -1,14 +1,15 @@
 import csv
 import json
 import math
-from typing import List
+from copy import copy
+from typing import List, Optional
 
 import numpy as np
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.tools import util
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations, AutoCorrelationsSettings
 
 
 class Sample:
@@ -16,7 +17,7 @@ class Sample:
             self,
             log_likelihood: float,
             log_prior: float,
-            weights: float,
+            weight: float,
             **kwargs
     ):
         """
@@ -28,13 +29,13 @@ class Sample:
             The likelihood associated with this instance
         log_prior
             A logarithmic prior of the instance
-        weights
+        weight
         kwargs
             Dictionary mapping model paths to values for the sample
         """
         self.log_likelihood = log_likelihood
         self.log_prior = log_prior
-        self.weights = weights
+        self.weight = weight
         self.kwargs = kwargs
 
     @property
@@ -44,10 +45,10 @@ class Sample:
         """
         return self.log_likelihood + self.log_prior
 
-    def parameters_for_model(
+    def parameter_lists_for_model(
             self,
             model: AbstractPriorModel,
-            paths=None,
+            paths=None
     ) -> List[float]:
         """
         Values for instantiating a model, in the same order as priors
@@ -72,39 +73,14 @@ class Sample:
             in paths
         ]
 
-        #
-        #
-        # # TODO : The commented out code and try / except are equivalent, except the latter adds a _value string to a
-        # # TODO : path if the first is not found.
-        # # TODO: This is due to horrific backwards compaitbility issues which we currently cannot remove,
-        # # TODO: so it'll have to do for now. One day we'll delete this.
-        #
-        # # return [
-        # #     self.kwargs[path]
-        # #     for path
-        # #     in paths
-        # # ]
-        #
-        # parameters_bc = []
-        #
-        # print(self.kwargs)
-        #
-        # for path in paths:
-        #     try:
-        #         parameters_bc.append(self.kwargs[path])
-        #     except KeyError:
-        #         parameters_bc.append(self.kwargs[f"{path}_value"])
-        #
-        # return parameters_bc
-
     @classmethod
     def from_lists(
             cls,
             model: AbstractPriorModel,
-            parameters: List[List[float]],
-            log_likelihoods: List[float],
-            log_priors: List[float],
-            weights: List[float]
+            parameter_lists: List[List[float]],
+            log_likelihood_list: List[float],
+            log_prior_list: List[float],
+            weight_list: List[float]
     ) -> List["Sample"]:
         """
         Convenience method to create a list of samples
@@ -113,10 +89,10 @@ class Sample:
         Parameters
         ----------
         model
-        parameters
-        log_likelihoods
-        log_priors
-        weights
+        parameter_lists
+        log_likelihood_list
+        log_prior_list
+        weight_list
 
         Returns
         -------
@@ -128,10 +104,10 @@ class Sample:
         model_component_and_parameter_names = model.model_component_and_parameter_names
 
         for params, log_likelihood, log_prior, weight in zip(
-                parameters,
-                log_likelihoods,
-                log_priors,
-                weights
+                parameter_lists,
+                log_likelihood_list,
+                log_prior_list,
+                weight_list
         ):
             arg_dict = {
                 t: param
@@ -146,7 +122,7 @@ class Sample:
                 cls(
                     log_likelihood=log_likelihood,
                     log_prior=log_prior,
-                    weights=weight,
+                    weight=weight,
                     **arg_dict
                 )
             )
@@ -167,12 +143,12 @@ class Sample:
         """
         try:
             return model.instance_from_vector(
-                self.parameters_for_model(model)
+                self.parameter_lists_for_model(model)
             )
         except KeyError:
             paths = model.model_component_and_parameter_names
             return model.instance_from_vector(
-                self.parameters_for_model(model, paths)
+                self.parameter_lists_for_model(model, paths)
             )
 
 
@@ -214,57 +190,52 @@ def load_from_table(filename: str) -> List[Sample]:
 class OptimizerSamples:
     def __init__(
             self,
-            model: ModelMapper,
-            samples: List[Sample],
-            time: float = None,
+            model: AbstractPriorModel,
+            time: Optional[float] = None,
     ):
-        """The `Samples` of a non-linear search, specifically the samples of an search which only provides
+        """
+        The `Samples` of a non-linear search, specifically the samples of an search which only provides
         information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
         not provide information on parameter errors.
 
         Parameters
         ----------
-        model : af.ModelMapper
+        model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
         self.model = model
-        self.samples = samples
         self.time = time
 
     @property
-    def parameters(self):
+    def samples(self):
+        raise NotImplementedError
+
+    @property
+    def parameter_lists(self):
 
         paths = self.model.model_component_and_parameter_names
 
-        try:
-            return [
-                sample.parameters_for_model(
-                    self.model, paths
-                )
-                for sample in self.samples
-            ]
-        except KeyError:
-            return [
-                sample.parameters_for_model(
-                    self.model, paths
-                )
-                for sample in self.samples
-            ]
+        return [
+            sample.parameter_lists_for_model(
+                self.model, paths
+            )
+            for sample in self.samples
+        ]
 
     @property
     def total_samples(self):
         return len(self.samples)
 
     @property
-    def weights(self):
+    def weight_list(self):
         return [
-            sample.weights
+            sample.weight
             for sample
             in self.samples
         ]
 
     @property
-    def log_likelihoods(self):
+    def log_likelihood_list(self):
         return [
             sample.log_likelihood
             for sample
@@ -272,7 +243,7 @@ class OptimizerSamples:
         ]
 
     @property
-    def log_posteriors(self):
+    def log_posterior_list(self):
         return [
             sample.log_posterior
             for sample
@@ -280,7 +251,7 @@ class OptimizerSamples:
         ]
 
     @property
-    def log_priors(self):
+    def log_prior_list(self):
         return [
             sample.log_prior
             for sample
@@ -290,7 +261,7 @@ class OptimizerSamples:
     @property
     def parameters_extract(self):
         return [
-            [params[i] for params in self.parameters]
+            [params[i] for params in self.parameter_lists]
             for i in range(self.model.prior_count)
         ]
 
@@ -304,7 +275,7 @@ class OptimizerSamples:
             "log_likelihood",
             "log_prior",
             "log_posterior",
-            "weights",
+            "weight",
         ]
 
     @property
@@ -313,17 +284,17 @@ class OptimizerSamples:
         Rows in the samples table
         """
 
-        log_likelihoods = self.log_likelihoods
-        log_priors = self.log_priors
-        log_posteriors = self.log_posteriors
-        weights = self.weights
+        log_likelihood_list = self.log_likelihood_list
+        log_prior_list = self.log_prior_list
+        log_posterior_list = self.log_posterior_list
+        weight_list = self.weight_list
 
-        for index, row in enumerate(self.parameters):
+        for index, row in enumerate(self.parameter_lists):
             yield row + [
-                log_likelihoods[index],
-                log_priors[index],
-                log_posteriors[index],
-                weights[index],
+                log_likelihood_list[index],
+                log_prior_list[index],
+                log_posterior_list[index],
+                weight_list[index],
             ]
 
     def write_table(self, filename: str):
@@ -342,12 +313,13 @@ class OptimizerSamples:
             for row in self._rows:
                 writer.writerow(row)
 
+    @property
+    def info_json(self):
+        return {}
+
     def info_to_json(self, filename):
-
-        info = {}
-
         with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
+            json.dump(self.info_json, outfile)
 
     @property
     def max_log_likelihood_sample(self) -> Sample:
@@ -359,9 +331,15 @@ class OptimizerSamples:
         return most_likely_sample
 
     @property
+    def max_log_posterior_sample(self) -> Sample:
+        return self.samples[
+            self.max_log_posterior_index
+        ]
+
+    @property
     def max_log_likelihood_vector(self) -> [float]:
         """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
-        return self.max_log_likelihood_sample.parameters_for_model(
+        return self.max_log_likelihood_sample.parameter_lists_for_model(
             self.model
         )
 
@@ -375,12 +353,12 @@ class OptimizerSamples:
     @property
     def max_log_posterior_index(self) -> int:
         """The index of the sample with the highest log posterior."""
-        return int(np.argmax(self.log_posteriors))
+        return int(np.argmax(self.log_posterior_list))
 
     @property
     def max_log_posterior_vector(self) -> [float]:
         """ The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values."""
-        return self.parameters[self.max_log_posterior_index]
+        return self.parameter_lists[self.max_log_posterior_index]
 
     @property
     def max_log_posterior_instance(self) -> ModelInstance:
@@ -389,11 +367,11 @@ class OptimizerSamples:
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
         """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent phase, where:
+        same (or similar) parameters in a subsequent search, where:
 
          - The mean is given by maximum log likelihood model values.
          - Their errors are omitted, as this information is not available from an search. When these priors are
-           used to link to another phase, it will thus automatically use the prior config values.
+           used to link to another search, it will thus automatically use the prior config values.
 
         Parameters
         -----------
@@ -411,33 +389,44 @@ class OptimizerSamples:
         sample_index : int
             The sample index of the weighted sample to return.
         """
-        return self.model.instance_from_vector(vector=self.parameters[sample_index])
+        return self.model.instance_from_vector(vector=self.parameter_lists[sample_index])
+
+    def minimise(self) -> "OptimizerSamples":
+        """
+        A copy of this object with only important samples retained
+        """
+        samples = copy(self)
+        samples.model = None
+        samples._samples = list({
+            self.max_log_likelihood_sample,
+            self.max_log_posterior_sample
+        })
+        return samples
 
 
 class PDFSamples(OptimizerSamples):
     def __init__(
             self,
-            model: ModelMapper,
-            samples: List[Sample],
+            model: AbstractPriorModel,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
-        """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
+        """
+        The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
         Parameters
         ----------
-        model : af.ModelMapper
+        model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
         super().__init__(
             model=model,
-            samples=samples,
             time=time,
         )
 
-        self._unconverged_sample_size = unconverged_sample_size
+        self._unconverged_sample_size = int(unconverged_sample_size)
 
     @classmethod
     def from_table(self, filename: str, model, number_live_points=None):
@@ -454,7 +443,7 @@ class PDFSamples(OptimizerSamples):
             filename=filename
         )
 
-        return OptimizerSamples(
+        return StoredSamples(
             model=model,
             samples=samples
         )
@@ -482,7 +471,7 @@ class PDFSamples(OptimizerSamples):
 
         This does not necessarily imply the `NonLinearSearch` has converged overall, only that errors and visualization
         can be performed numerically.."""
-        if np.max(self.weights) > 0.99:
+        if np.max(self.weight_list) > 0.99:
             return False
         return True
 
@@ -492,7 +481,7 @@ class PDFSamples(OptimizerSamples):
         as a list of values."""
         if self.pdf_converged:
             return [
-                quantile(x=params, q=0.5, weights=self.weights)[0]
+                quantile(x=params, q=0.5, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
         return self.max_log_likelihood_vector
@@ -527,22 +516,22 @@ class PDFSamples(OptimizerSamples):
             limit = math.erf(0.5 * sigma * math.sqrt(2))
 
             lower_errors = [
-                quantile(x=params, q=1.0 - limit, weights=self.weights)[0]
+                quantile(x=params, q=1.0 - limit, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
 
             upper_errors = [
-                quantile(x=params, q=limit, weights=self.weights)[0]
+                quantile(x=params, q=limit, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
 
             return [(lower, upper) for lower, upper in zip(lower_errors, upper_errors)]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -750,7 +739,7 @@ class PDFSamples(OptimizerSamples):
 
     def gaussian_priors_at_sigma(self, sigma) -> [list]:
         """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent phase, where:
+        same (or similar) parameters in a subsequent search, where:
 
          - The mean is given by their most-probable values (using *median_pdf_vector*).
          - Their errors are computed at an input sigma value (using *errors_at_sigma*).
@@ -763,6 +752,7 @@ class PDFSamples(OptimizerSamples):
         """
 
         means = self.median_pdf_vector
+
         uppers = self.vector_at_upper_sigma(sigma=sigma)
         lowers = self.vector_at_lower_sigma(sigma=sigma)
 
@@ -820,98 +810,36 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
-    def output_pdf_plots(self):
-        """Output plots of the probability density functions of the non-linear seach.
-
-        This uses *corner.py* to plot:
-
-         - The marginalize 1D PDF of every parameter.
-         - The marginalized 2D PDF of every parameter pair.
-         - A Triangle plot of the 2D and 1D PDF's.
-         """
-
-        pass
-
-        # import getdist.plots
-        # import matplotlib
-        #
-        # backend = conf.instance["visualize"]["general"]["general"]["backend"]
-        # if not backend in "default":
-        #     matplotlib.use(backend)
-        # if conf.instance["general"]["hpc"]["hpc_mode"]:
-        #     matplotlib.use("Agg")
-        # import matplotlib.pyplot as plt
-        #
-        # pdf_plot = getdist.plots.corner.pyPlotter()
-        #
-        # plot_pdf_1d_params = conf.instance.visualize_plots.get("pdf", "1d_params", bool)
-        #
-        # if plot_pdf_1d_params:
-        #
-        #     for param_name in self.model.parameter_names:
-        #         pdf_plot.plot_1d(roots=self.getdist_samples, param=param_name)
-        #         pdf_plot.export(
-        #             fname="{}/pdf_{}_1D.png".format(self.paths.pdf_path, param_name)
-        #         )
-        #
-        # plt.close()
-        #
-        # plot_pdf_triangle = conf.instance["visualize"]["plots"]["pdf"]["triangle"]
-        #
-        # if plot_pdf_triangle:
-        #
-        #     try:
-        #         pdf_plot.triangle_plot(roots=self.getdist_samples)
-        #         pdf_plot.export(fname="{}/pdf_triangle.png".format(self.paths.pdf_path))
-        #     except Exception as e:
-        #         logger.exception(e)
-        #         print(
-        #             "The PDF triangle of this `NonLinearSearch` could not be plotted. This is most likely due to a "
-        #             "lack of smoothness in the sampling of parameter space. Sampler further by decreasing the "
-        #             "parameter evidence_tolerance."
-        #         )
-        #
-        # plt.close()
-
 
 class MCMCSamples(PDFSamples):
+
     def __init__(
             self,
             model: ModelMapper,
-            samples: List[Sample],
-            auto_correlation_times: np.ndarray,
-            auto_correlation_check_size: int,
-            auto_correlation_required_length: int,
-            auto_correlation_change_threshold: float,
-            total_walkers: int,
-            total_steps: int,
+            auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
-        """
-        Attributes
-        ----------
-        total_walkers : int
-            The total number of walkers used by this MCMC non-linear search.
-        total_steps : int
-            The total number of steps taken by each walker of this MCMC `NonLinearSearch` (the total samples is equal
-            to the total steps * total walkers).
-        """
+
+        self.auto_correlation_settings = auto_correlation_settings
 
         super().__init__(
             model=model,
-            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
 
-        self.total_walkers = total_walkers
-        self.total_steps = total_steps
-        self.auto_correlation_times = auto_correlation_times
-        self.auto_correlation_check_size = auto_correlation_check_size
-        self.auto_correlation_required_length = auto_correlation_required_length
-        self.auto_correlation_change_threshold = auto_correlation_change_threshold
-        self.log_evidence = None
+    @property
+    def total_walkers(self):
+        raise NotImplementedError
+
+    @property
+    def total_steps(self):
+        raise NotImplementedError
+
+    @property
+    def auto_correlations(self):
+        raise NotImplementedError
 
     @classmethod
     def from_table(self, filename: str, model, number_live_points=None):
@@ -931,20 +859,17 @@ class MCMCSamples(PDFSamples):
             samples=samples
         )
 
-    def info_to_json(self, filename):
-
-        info = {
-            "auto_correlation_times": None,
-            "auto_correlation_check_size": self.auto_correlation_check_size,
-            "auto_correlation_required_length": self.auto_correlation_required_length,
-            "auto_correlation_change_threshold": self.auto_correlation_change_threshold,
+    @property
+    def info_json(self):
+        return {
+            "times": None,
+            "check_size": self.auto_correlations.check_size,
+            "required_length": self.auto_correlations.required_length,
+            "change_threshold": self.auto_correlations.change_threshold,
             "total_walkers": self.total_walkers,
             "total_steps": self.total_steps,
             "time": self.time,
         }
-
-        with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
 
     @property
     def pdf_converged(self):
@@ -955,7 +880,9 @@ class MCMCSamples(PDFSamples):
         Emcee samples can be analysed by corner.py irrespective of how long the sampler has run, albeit low run times
         will likely produce inaccurate results."""
         try:
-            self.samples_after_burn_in
+            samples_after_burn_in = self.samples_after_burn_in
+            if len(samples_after_burn_in) == 0:
+                return False
             return True
         except ValueError:
             return False
@@ -968,33 +895,14 @@ class MCMCSamples(PDFSamples):
         raise NotImplementedError()
 
     @property
-    def previous_auto_correlation_times(self) -> [float]:
-        raise NotImplementedError()
-
-    @property
-    def relative_auto_correlation_times(self) -> [float]:
-        return (
-                np.abs(self.previous_auto_correlation_times - self.auto_correlation_times)
-                / self.auto_correlation_times
-        )
-
-    @property
     def converged(self) -> bool:
-        """Whether the emcee samples have converged on a solution or if they are still in a burn-in period, based on the
-        auto correlation times of parameters."""
-        converged = np.all(
-            self.auto_correlation_times * self.auto_correlation_required_length
-            < self.total_samples
+        """
+        Whether the emcee samples have converged on a solution or if they are still in a burn-in period, based on the
+        auto correlation times of parameters.
+        """
+        return self.auto_correlations.check_if_converged(
+            total_samples=self.total_samples
         )
-        if converged:
-            try:
-                converged &= np.all(
-                    self.relative_auto_correlation_times
-                    < self.auto_correlation_change_threshold
-                )
-            except IndexError:
-                return False
-        return converged
 
     @property
     def median_pdf_vector(self) -> [float]:
@@ -1002,6 +910,7 @@ class MCMCSamples(PDFSamples):
         as a list of values.
 
         This is computed by binning all sampls after burn-in into a histogram and take its median (e.g. 50%) value. """
+
         if self.pdf_converged:
             return [
                 float(np.percentile(self.samples_after_burn_in[:, i], [50]))
@@ -1041,10 +950,10 @@ class MCMCSamples(PDFSamples):
             ]
 
         parameters_min = list(
-            np.min(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameters[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
         )
 
         return [
@@ -1052,19 +961,20 @@ class MCMCSamples(PDFSamples):
             for index in range(len(parameters_min))
         ]
 
+    @property
+    def log_evidence(self):
+        return None
+
 
 class NestSamples(PDFSamples):
     def __init__(
             self,
-            model: ModelMapper,
-            samples: List[Sample],
-            number_live_points: int,
-            log_evidence: float,
-            total_samples: float,
+            model: AbstractPriorModel,
             unconverged_sample_size: int = 100,
-            time: float = None,
+            time: Optional[float] = None,
     ):
-        """The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        """
+        The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
@@ -1074,31 +984,31 @@ class NestSamples(PDFSamples):
 
         Parameters
         ----------
-        model : af.ModelMapper
+        model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        number_live_points : int
-            The number of live points used by the nested sampler.
-        log_evidence : float
-            The log of the Bayesian evidence estimated by the nested sampling algorithm.
         """
 
         super().__init__(
             model=model,
-            samples=samples,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
 
-        self.number_live_points = number_live_points
-        self.log_evidence = log_evidence
-        self._total_samples = total_samples
+    @property
+    def number_live_points(self):
+        raise NotImplementedError
+
+    @property
+    def log_evidence(self):
+        raise NotImplementedError
 
     @property
     def total_samples(self):
-        return self._total_samples
+        raise NotImplementedError
 
-    def info_to_json(self, filename):
-        info = {
+    @property
+    def info_json(self):
+        return {
             "log_evidence": self.log_evidence,
             "total_samples": self.total_samples,
             "unconverged_sample_size": self.unconverged_sample_size,
@@ -1106,14 +1016,11 @@ class NestSamples(PDFSamples):
             "number_live_points": self.number_live_points
         }
 
-        with open(filename, 'w') as outfile:
-            json.dump(info, outfile)
-
     @property
     def total_accepted_samples(self) -> int:
         """The total number of accepted samples performed by the nested sampler.
         """
-        return len(self.log_likelihoods)
+        return len(self.log_likelihood_list)
 
     @property
     def acceptance_ratio(self) -> float:
@@ -1124,7 +1031,7 @@ class NestSamples(PDFSamples):
             self,
             parameter_index: int,
             parameter_range: [float, float]
-    ) -> "NestSamples":
+    ) -> "StoredSamples":
         """
         Returns a new set of Samples where all points without parameter values inside a specified range removed.
 
@@ -1149,40 +1056,66 @@ class NestSamples(PDFSamples):
         """
 
         parameter_list = []
-        log_likelihoods = []
-        log_priors = []
-        weights = []
+        log_likelihood_list = []
+        log_prior_list = []
+        weight_list = []
 
         for sample in self.samples:
 
-            parameters = sample.parameters_for_model(model=self.model)
+            parameters = sample.parameter_lists_for_model(model=self.model)
 
             if (parameters[parameter_index] > parameter_range[0]) and (
                     parameters[parameter_index] < parameter_range[1]):
 
                 parameter_list.append(parameters)
-                log_likelihoods.append(sample.log_likelihood)
-                log_priors.append(sample.log_prior)
-                weights.append(sample.weights)
+                log_likelihood_list.append(sample.log_likelihood)
+                log_prior_list.append(sample.log_prior)
+                weight_list.append(sample.weight)
 
         samples = Sample.from_lists(
             model=self.model,
-            parameters=parameter_list,
-            log_likelihoods=log_likelihoods,
-            log_priors=log_priors,
-            weights=weights
+            parameter_lists=parameter_list,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
-        return NestSamples(
+        return StoredSamples(
             model=self.model,
             samples=samples,
-            number_live_points=self.number_live_points,
-            log_evidence=self.log_evidence,
-            total_samples=self.total_samples,
             unconverged_sample_size=self.unconverged_sample_size,
-            time=self.time
         )
 
+
+class StoredSamples(PDFSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            samples,
+            unconverged_sample_size: int = 100,
+            time: Optional[float] = None,
+    ):
+        """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
+        posterior of parameter space and thus does provide information on parameter errors.
+
+        Parameters
+        ----------
+        model : af.ModelMapper
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        """
+
+        super().__init__(
+            model=model,
+            time=time,
+        )
+
+        self._samples = samples
+        self._unconverged_sample_size = int(unconverged_sample_size)
+
+    @property
+    def samples(self):
+        return self._samples
 
 def quantile(x, q, weights=None):
     """
@@ -1191,7 +1124,7 @@ def quantile(x, q, weights=None):
     Compute sample quantiles with support for weighted samples.
     Note
     ----
-    When ``weights`` is ``None``, this method simply calls numpy's percentile
+    When ``weight_list`` is ``None``, this method simply calls numpy's percentile
     function with the values of ``q`` multiplied by 100.
     Parameters
     ----------
@@ -1210,7 +1143,7 @@ def quantile(x, q, weights=None):
     ------
     ValueError
         For invalid quantiles; ``q`` not in ``[0, 1]`` or dimension mismatch
-        between ``x`` and ``weights``.
+        between ``x`` and ``weight_list``.
     """
     x = np.atleast_1d(x)
     q = np.atleast_1d(q)
@@ -1223,7 +1156,7 @@ def quantile(x, q, weights=None):
     else:
         weights = np.atleast_1d(weights)
         if len(x) != len(weights):
-            raise ValueError("Dimension mismatch: len(weights) != len(x)")
+            raise ValueError("Dimension mismatch: len(weight_list) != len(x)")
         idx = np.argsort(x)
         sw = weights[idx]
         cdf = np.cumsum(sw)[:-1]

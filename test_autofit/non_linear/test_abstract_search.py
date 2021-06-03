@@ -1,7 +1,6 @@
-import os
-from os import path
 import pickle
 import shutil
+from os import path
 
 import numpy as np
 import pytest
@@ -9,7 +8,6 @@ import pytest
 import autofit as af
 from autoconf import conf
 from autofit.mock import mock
-from autofit.mock.mock_search import MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -30,8 +28,8 @@ def make_result():
     mapper.component = mock.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
-        previous_model=mapper,
+        samples=mock.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
+        model=mapper,
         search=mock.MockSearch(),
     )
 
@@ -65,20 +63,6 @@ class TestResult:
             )
 
 
-class TestCopyWithNameExtension:
-    @staticmethod
-    def assert_non_linear_attributes_equal(copy):
-        assert copy.paths.name ==  path.join("name", "one")
-
-    def test_copy_with_name_extension(self):
-        search = af.MockSearch(af.Paths("name", tag="tag"))
-        copy = search.copy_with_name_extension("one")
-
-        self.assert_non_linear_attributes_equal(copy)
-        assert search.paths.tag == copy.paths.tag
-
-
-
 class TestLabels:
     def test_param_names(self):
         model = af.PriorModel(mock.MockClassx4)
@@ -104,7 +88,8 @@ test_path = path.join(
 class TestMovePickleFiles:
     def test__move_pickle_files(self):
 
-        search = af.MockSearch(paths=af.Paths(name="pickles", path_prefix=path.join("non_linear", "abstract_search")))
+        search = af.MockSearch()
+        search.paths=af.DirectoryPaths(name="pickles", path_prefix=path.join("non_linear", "abstract_search"))
 
         pickle_paths = [
             path.join(
@@ -127,7 +112,7 @@ class TestMovePickleFiles:
             )
         ]
 
-        search.move_pickle_files(pickle_files=pickle_paths)
+        search.paths._move_pickle_files(pickle_files=pickle_paths)
 
         with open(path.join(pickle_paths[0]), "rb") as f:
             arr_load = pickle.load(f)

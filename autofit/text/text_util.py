@@ -1,16 +1,10 @@
-import logging
-
 from autoconf import conf
 from autofit.text import formatter as frm, samples_text
 
 
-def results_to_file(samples, filename, during_analysis):
+def results_to_file(samples, filename):
     """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
-    Parameters
-    ----------
-    during_analysis : bool
-        Whether the model.results are being written during the analysis or after the `NonLinearSearch` has finished.
     """
 
     results = []
@@ -18,15 +12,29 @@ def results_to_file(samples, filename, during_analysis):
     if hasattr(samples, "log_evidence"):
         if samples.log_evidence is not None:
 
-            value = "{:.8f}".format(samples.log_evidence)
             results += [
-                frm.add_whitespace(str0="Bayesian Evidence ", str1=value, whitespace=90)
+                frm.add_whitespace(
+                    str0="Bayesian Evidence ",
+                    str1="{:.8f}".format(samples.log_evidence),
+                    whitespace=90
+                )
             ]
             results += ["\n"]
 
-    value = "{:.8f}".format(max(samples.log_likelihoods))
     results += [
-        frm.add_whitespace(str0="Maximum Likelihood ", str1=value, whitespace=90)
+        frm.add_whitespace(
+            str0="Maximum Log Likelihood ",
+            str1="{:.8f}".format(max(samples.log_likelihood_list)),
+            whitespace=90
+        )
+    ]
+    results += ["\n"]
+    results += [
+        frm.add_whitespace(
+            str0="Maximum Log Posterior ",
+            str1="{:.8f}".format(max(samples.log_posterior_list)),
+            whitespace=90
+        )
     ]
     results += ["\n\n"]
 
@@ -69,7 +77,6 @@ def results_to_file(samples, filename, during_analysis):
 
 
 def search_summary_from_samples(samples) -> [str]:
-
     line = [f"Total Samples = {samples.total_samples}\n"]
     if hasattr(samples, "total_accepted_samples"):
         line.append(f"Total Accepted Samples = {samples.total_accepted_samples}\n")
@@ -80,7 +87,6 @@ def search_summary_from_samples(samples) -> [str]:
 
 
 def search_summary_to_file(samples, log_likelihood_function_time, filename):
-
     summary = search_summary_from_samples(samples=samples)
     summary.append(f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}")
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)

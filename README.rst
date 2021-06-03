@@ -11,16 +11,16 @@ PyAutoFit: Classy Probabilistic Programming
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
 `readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
-`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_ |
+`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=introduction.ipynb>`_ |
 `HowToFit <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
 
 **PyAutoFit** is a Python-based probabilistic programming language which:
 
-- Makes it simple to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+- Makes it simple to compose and fit mult-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
 
 - Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, model-specific visualization and posterior analysis.
 
-- Is built for *big-data* analysis, whereby results are output as a database which can be loaded after model-fitting is complete.
+- Is built for *big-data* analysis, whereby results are output as a sqlite database which can be queried after model-fitting is complete.
 
 **PyAutoFit** supports advanced statistical methods such as `massively parallel non-linear search grid-searches <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_, `chaining together model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_  and `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_.
 
@@ -29,7 +29,7 @@ Getting Started
 
 The following links are useful for new starters:
 
-- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/26262bc184d0c77795db70636a004c9dce9c52b0?filepath=introduction.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
+- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=introduction.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
 
 - `The PyAutoFit readthedocs <https://pyautofit.readthedocs.io/en/latest>`_, which includes an `installation guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ and an overview of **PyAutoFit**'s core features.
 
@@ -40,11 +40,11 @@ Why PyAutoFit?
 
 **PyAutoFit** began as an Astronomy project for fitting large imaging datasets of galaxies after the developers found that existing PPLs
 (e.g., `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_, `STAN <https://github.com/stan-dev/stan>`_)
-were not suited to the type of model fitting problems Astronomers faced. This includes:
+were not suited to the model fitting problems many Astronomers faced. This includes:
 
 - Efficiently analysing large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
 
-- Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
+- Problems where likelihood evaluations are expensive (e.g. run times of days per model-fit), necessitating highly customizable model-fitting pipelines with support for massively parallel computing.
 
 - Fitting many different models to the same dataset with tools that streamline model comparison.
 
@@ -79,7 +79,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
         """
         An instance of the Gaussian class will be available during model fitting.
 
-        This method will be used to fit the model to ``data`` and compute a likelihood.
+        This method will be used to fit the model to data and compute a likelihood.
         """
 
         def profile_from_xvalues(self, xvalues):
@@ -90,7 +90,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
                     np.exp(-0.5 * (transformed_xvalues / self.sigma) ** 2.0)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
-a ``NonLinearSearch`` like `emcee <https://github.com/dfm/emcee>`_.
+a non-linear search like `emcee <https://github.com/dfm/emcee>`_.
 
 To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a
 ``log_likelihood_function`` describing how to fit the ``data`` with the model:
@@ -130,11 +130,11 @@ To fit this Gaussian to the ``data`` we create an Analysis object, which gives *
 
             return log_likelihood
 
-We can now fit our model to the ``data`` using a ``NonLinearSearch``:
+We can now fit our model to the ``data`` using a non-linear search:
 
 .. code-block:: python
 
-    model = af.PriorModel(Gaussian)
+    model = af.Model(Gaussian)
 
     analysis = Analysis(data=data, noise_map=noise_map)
 

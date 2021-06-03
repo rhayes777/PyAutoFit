@@ -1,23 +1,29 @@
 from abc import ABC
+from functools import lru_cache
 from inspect import getfullargspec
 from itertools import chain, repeat
 from typing import \
-    Tuple, Dict, Union, Set, NamedTuple, Callable, Optional
-from functools import lru_cache
+    (
+    Tuple, Dict, Union, Set, Callable, List
+)
 
 import numpy as np
 
-from autofit.graphical.utils import \
-    aggregate, Axis, cached_property
 from autofit.graphical.factor_graphs.abstract import \
-    AbstractNode, FactorValue, JacobianValue
+    (
+    AbstractNode, FactorValue
+)
+from autofit.graphical.utils import \
+    (
+    aggregate, Axis, cached_property
+)
 from autofit.mapper.variable import Variable
 
 
 class AbstractFactor(AbstractNode, ABC):
     def __init__(
             self,
-            name=None,
+            name="",
             **kwargs: Variable,
     ):
         super().__init__(**kwargs)
@@ -99,7 +105,7 @@ class AbstractFactor(AbstractNode, ABC):
 
         """
         return {n: kwargs[v.name] for n, v in self._kwargs.items()}
-    
+
 
 class Factor(AbstractFactor):
     """
@@ -117,9 +123,9 @@ class Factor(AbstractFactor):
         of the function passed
 
     vectorised: optional, bool
-        if true the factor will call it the function directly over multiple 
-        inputs. If false the factor will call the function iteratively over
-        each argument. 
+        if true the factor will call the function directly over multiple
+        inputs. If false the factor will call the function iteratively
+        over each argument.
 
     is_scalar: optional, bool
         if true the factor returns a scalar value. Note if multiple arguments
@@ -136,10 +142,10 @@ class Factor(AbstractFactor):
         as input. The Variable keys only have to match the _names_
         of the variables of the function.  
 
-        `axis` controls the shape of the output if the variables and factor
-        have plates associated with them, when axis=False then 
-        no reduction is performed, otherwise it is equivalent to calling
-        np.sum(log_val, axis=axis) on the returned value
+        `axis` controls the shape of the output if the variables and factor have
+        plates associated with them, when axis=False then no reduction is performed,
+        otherwise it is equivalent to calling np.sum(log_val, axis=axis) on the
+        returned value
         
         returns a FactorValue object which behaves like an np.ndarray
         
@@ -151,10 +157,11 @@ class Factor(AbstractFactor):
 
         returns fval, {x: d fval / dx}
     """
+
     def __init__(
             self,
             factor: Callable,
-            name=None,
+            name="",
             vectorised=False,
             is_scalar=False,
             **kwargs: Variable
@@ -200,14 +207,13 @@ class Factor(AbstractFactor):
         self._calc_exact_update = getattr(
             factor, 'calc_exact_update', None)
 
-
     def has_exact_projection(self, mean_field) -> bool:
         if self._has_exact_projection:
             return self._has_exact_projection(
                 **self.resolve_variable_dict(mean_field))
         else:
             return False
-    
+
     def calc_exact_projection(self, mean_field) -> 'MeanField':
         if self._calc_exact_projection:
             from autofit.graphical.mean_field import MeanField
@@ -239,10 +245,8 @@ class Factor(AbstractFactor):
                 return True, MeanField({
                     self._kwargs[v]: dist for v, dist in projection.items()
                 })
-        
+
         return False, mean_field
-
-
 
     def __hash__(self) -> int:
         # TODO: might this break factor repetition somewhere?
@@ -255,22 +259,20 @@ class Factor(AbstractFactor):
         if self.is_scalar:
             if shift:
                 return np.sum(
-                    factor_val, axis=np.arange(1,np.ndim(factor_val)))
-            else:
-                return np.sum(factor_val)
-        else:
-            return np.reshape(factor_val, shape)
+                    factor_val, axis=np.arange(1, np.ndim(factor_val)))
+            return np.sum(factor_val)
+        return np.reshape(factor_val, shape)
 
     def _function_shape(
-            self, 
-            **kwargs: np.ndarray) -> Tuple[int, Tuple[int, ...]]:
+            self,
+            **kwargs: np.ndarray) -> Tuple[int, ...]:
         """
         Calculates the expected function shape based on the variables
         """
         var_shapes = {
             k: np.shape(x) for k, x in kwargs.items()}
         return self._var_shape(**var_shapes)
-    
+
     @lru_cache()
     def _var_shape(self, **kwargs: Tuple[int, ...]) -> Tuple[int, ...]:
         """This is called by _function_shape
@@ -326,7 +328,7 @@ class Factor(AbstractFactor):
                         "Shapes do not match"
                     )
                 shape[ind] = np.maximum(shape[ind], vshape)
-        
+
         return shift, tuple(shape)
 
     def _call_factor(
@@ -353,7 +355,7 @@ class Factor(AbstractFactor):
 
         if self.vectorised:
             return self._factor(**kwargs)
-            
+
         """Some factors may not be vectorised to broadcast over
         multiple inputs
 
@@ -409,12 +411,17 @@ class Factor(AbstractFactor):
 
         return res
 
-    # @accept_variable_dict
     def __call__(
             self,
-            variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False, 
-            # **kwargs: np.ndarray
+            variable_dict: Dict[
+                Variable,
+                Union[
+                    np.ndarray,
+                    float,
+                    List[float]
+                ]
+            ],
+            axis: Axis = False,
     ) -> FactorValue:
         """
         Call the underlying factor
@@ -535,6 +542,7 @@ class DeterministicFactor(Factor):
     kwargs
         Variables for the original factor
     """
+
     def __init__(
             self,
             factor: Callable,
@@ -569,7 +577,7 @@ class DeterministicFactor(Factor):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False, 
+            axis: Axis = False,
             # **kwargs: np.ndarray
     ) -> FactorValue:
         """
@@ -601,7 +609,7 @@ class DeterministicFactor(Factor):
             res = res,
 
         log_val = (
-            0. if (shape == () or axis is None) else 
+            0. if (shape == () or axis is None) else
             aggregate(np.zeros(tuple(1 for _ in shape)), axis))
         det_vals = {
             k: np.reshape(val, det_shapes[k])

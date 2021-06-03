@@ -22,7 +22,7 @@
         The upper limit of the uniform distribution unit values are drawn from when initializing walkers using the
         ball method.
 
-[auto_correlation]
+[auto_correlations]
     check_for_convergence -> bool
         Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
         If `True`, this option may terminate the Emcee run before the input number of steps, nsteps, has

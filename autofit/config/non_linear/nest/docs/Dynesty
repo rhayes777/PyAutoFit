@@ -1,5 +1,5 @@
 [search]
-    n_live_points -> int
+    nlive -> int
         The number of live points used to sample non-linear parameter space. More points provides a more thorough
         sampling of parameter space, at the expense of taking longer to run. The number of live points required for
         accurate sampling depends on the complexity of parameter space.
@@ -25,7 +25,7 @@
         bounding ellipsoids. Default is 0 (no bootstrap).
     enlarge -> float
         Enlarge the volumes of the specified bounding object(s) by this fraction. The preferred method is to
-        determine this organically using bootstrapping. If bootstrap > 0, this defaults to 1.0. If bootstrap=0,
+        determine this organically using bootstrapping. If bootstrap > 0, this defaults to 1.0. If bootstrap=None,
         this instead defaults to 1.25.
     vol_dec -> float
         For the 'multi' bounding option, the required fractional reduction in volume after splitting an ellipsoid
@@ -51,17 +51,11 @@
         before proposing a new live point. Default is 5. Note that 'slice' cycles through all dimensions when
         executing a “slice update”.
     fmove -> float
-        The target fraction of samples that are proposed along a trajectory (i.e. not reflecting) for the 'hslice'
+        The target fraction of samples that are proposed along a trajectories (i.e. not reflecting) for the 'hslice'
         sampling option. Default is 0.9.
     max_move -> int
         The maximum number of timesteps allowed for 'hslice' per proposal forwards and backwards in time.
         Default is 100.
-    terminate_at_acceptance_ratio -> bool
-        If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
-        threshold value (see *Nest* for a full description of this feature).
-    acceptance_ratio_threshold -> float
-        The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-        `True` (see *Nest* for a full description of this feature).
 
 [updates]
     iterations_per_update -> int
@@ -73,7 +67,7 @@
         visualization_interval of -1 turns off on-the-fly visualization.
    backup_every_update -> int
         The number of new maximum likelihood models that must be sampled for PyAutoLens to backup the
-        results to the samples_backup folder of the phase. A backup_every_update of -1 turns off backups.
+        results to the samples_backup folder of the search. A backup_every_update of -1 turns off backups.
    model_results_every_update -> int
         The number of new maximum likelihood models that must be sampled for PyAutoLens to output a new model.results
         file using the latest MultiNest samples and thus most up to data PDFs. A model_results_every_update of -1

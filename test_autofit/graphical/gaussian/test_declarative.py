@@ -68,13 +68,6 @@ def make_make_model_factor(
 
 
 @pytest.fixture(
-    name="x"
-)
-def make_x():
-    return np.arange(100)
-
-
-@pytest.fixture(
     name="intensity"
 )
 def make_intensity():

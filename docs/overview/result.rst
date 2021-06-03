@@ -1,9 +1,9 @@
 .. _result:
 
 Results & Samples
------------------
+=================
 
-A ``NonLinearSearch``'s fit function returns a ``Result`` object:
+A non-linear search's fit function returns a ``Result`` object:
 
 .. code-block:: bash
 
@@ -13,68 +13,122 @@ A ``NonLinearSearch``'s fit function returns a ``Result`` object:
 
    result = emcee.fit(model=model, analysis=analysis)
 
-Here, we'll look in detail at what information is contained in the ``Result``. The result contains the model
-we used to fit the data:
+Here, we'll look in detail at what information is contained in the ``Result``.
 
-.. code-block:: bash
+Samples
+-------
 
-    model = result.model
-
-It also contains a ``Samples`` object, which contains information on the non-linear sampling, for example
-the ``parameters``:
+A result contains a ``Samples`` object, which contains information on the non-linear sampling, for example the parameters.
+The parameters are stored as a list of lists, where the first entry corresponds to the sample index and second entry
+the parameter index.
 
 .. code-block:: bash
 
     samples = result.samples
-    print(samples.parameters)
 
-The ``parameters`` are a list of lists of all accepted parameter values sampled by the ``NonLinearSearch``. Also
-available are lists of the ``log_likelihoods``, ``log_priors``, ``log_posteriors`` and ``weights`` associated
-with every sample:
+    print("Final 10 Parameters:")
+    print(samples.parameter_lists[-10:])
+
+    print("Sample 10`s third parameter value (Gaussian -> sigma)")
+    print(samples.parameter_lists[9][2], "\n")
+
+The Samples class also contains the log likelihood, log prior, log posterior and weight_list of every accepted sample,
+where:
+
+- The log likelihood is the value evaluated from the likelihood function (e.g. -0.5 * chi_squared + the noise normalized).
+
+- The log prior encodes information on how the priors on the parameters maps the log likelihood value to the log posterior value.
+
+- The log posterior is log_likelihood + log_prior.
+
+- The weight gives information on how samples should be combined to estimate the posterior. The weight values depend on the sampler used, for MCMC samples they are all 1 (e.g. all weighted equally).
+
+Lets inspect the last 10 values of each for the analysis.
 
 .. code-block:: bash
 
-    print(samples.log_likelihoods)
-    print(samples.log_priors)
-    print(samples.log_posteriors)
-    print(samples.weights)
+    print("Final 10 Log Likelihoods:")
+    print(samples.log_likelihood_list[-10:])
 
-For MCMC analysis, these are used to perform parameter estimation by binning the samples in a histogram
-(assuming we have removed the burn-in phase):
+    print("Final 10 Log Priors:")
+    print(samples.log_prior_list[-10:])
 
-.. code-block:: bash
+    print("Final 10 Log Posteriors:")
+    print(samples.log_posterior_list[-10:])
 
-    samples = result.samples.samples_after_burn_in
+    print("Final 10 Sample Weights:")
+    print(samples.weight_list[-10:], "\n")
 
-    median_pdf_vector = [float(np.percentile(samples[:, i], [50])) for i in range(model.prior_count)]
+Posterior
+---------
 
-The ``median_pdf_vector`` is readily available from the ``Samples`` object for you convenience (and
-if a nested sampling ``NonLinearSearch`` is used, it will use an appropriate method to estimate the
-parameters):
+The ``Result`` object therefore contains the full posterior information of our non-linear search, that can be used for
+parameter estimation. The median pdf vector is readily available from the ``Samples`` object, which estimates the every
+parameter via 1D marginalization of their PDFs.
 
 .. code-block:: bash
 
     median_pdf_vector = samples.median_pdf_vector
 
-The ``Samples`` contain many useful vectors, including the ``Samples`` with the highest likelihood and
-posterior values:
+The samples include methods for computing the error estimates of all parameters via 1D marginalization at an input sigma
+confidence limit. This can be returned as the size of each parameter error:
 
 .. code-block:: bash
 
-    max_log_likelihood_vector = samples.max_log_likelihood_vector
-    max_log_posterior_vector = samples.max_log_posterior_vector
+    error_vector_at_upper_sigma = samples.error_vector_at_upper_sigma(sigma=3.0)
+    error_vector_at_lower_sigma = samples.error_vector_at_lower_sigma(sigma=3.0)
 
-It also provides methods for computing the error estimates of all parameters at an input ``sigma``
-confidence limit, which can be returned at the values of the parameters including their errors
-or the size of the errors on each parameter:
+    print("Upper Error values (at 3.0 sigma confidence):")
+    print(error_vector_at_upper_sigma)
+
+    print("lower Error values (at 3.0 sigma confidence):")
+    print(error_vector_at_lower_sigma, "\n")
+
+They can also be returned at the values of the parameters at their error values:
 
 .. code-block:: bash
 
     vector_at_upper_sigma = samples.vector_at_upper_sigma(sigma=3.0)
     vector_at_lower_sigma = samples.vector_at_lower_sigma(sigma=3.0)
 
-    error_vector_at_upper_sigma = samples.error_vector_at_upper_sigma(sigma=3.0)
-    error_vector_at_lower_sigma = samples.error_vector_at_lower_sigma(sigma=3.0)
+    print("Upper Parameter values w/ error (at 3.0 sigma confidence):")
+    print(vector_at_upper_sigma)
+    print("lower Parameter values w/ errors (at 3.0 sigma confidence):")
+    print(vector_at_lower_sigma, "\n")
+
+**PyAutoFit** includes many visualization tools for plotting the results of a non-linear search, for example we can
+make a corner plot of the probability density function (PDF):
+
+.. code-block:: bash
+
+    emcee_plotter = aplt.EmceePlotter(samples=result.samples)
+    emcee_plotter.corner()
+
+Here is an example of how a PDF estimated for a lens model appears:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/corner.png
+  :width: 600
+  :alt: Alternative text
+
+Other Vectors
+-------------
+
+The samples contain many useful vectors, including the samples with the highest likelihood and posterior values:
+
+.. code-block:: bash
+
+    max_log_likelihood_vector = samples.max_log_likelihood_vector
+    max_log_posterior_vector = samples.max_log_posterior_vector
+
+    print("Maximum Log Likelihood Vector:")
+    print(max_log_likelihood_vector)
+
+    print("Maximum Log Posterior Vector:")
+    print(max_log_posterior_vector, "\n")
+
+
+Labels
+------
 
 These vectors return the results as a list, which means you need to know the parameter ordering. The
 list of ``parameter_names`` are available as a property of the ``Samples``, as are ``parameter_labels``
@@ -84,6 +138,9 @@ which can be used for labeling figures:
 
     samples.model.parameter_names
     samples.model.parameter_labels
+
+Instances
+---------
 
 ``Result``'s can instead be returned as an ``instance``, which is an instance of the model using the Python
 classes used to compose it:
@@ -96,6 +153,7 @@ classes used to compose it:
     print("Centre = ", max_log_likelihood_instance.centre)
     print("Intensity = ", max_log_likelihood_instance.intensity)
     print("Sigma = ", max_log_likelihood_instance.sigma)
+
 
 For our example problem of fitting a 1D ``Gaussian`` profile, this makes it straight forward to plot
 the maximum likelihood model:
@@ -130,26 +188,41 @@ An ``instance`` of any accepted sample can be created:
 
     instance = samples.instance_from_sample_index(sample_index=500)
 
-If a nested sampling ``NonLinearSearch`` is used, the Bayesian evidence of the model is also
+Bayesian Evidence
+-----------------
+
+If a nested sampling non-linear search is used, the Bayesian evidence of the model is also
 available which enables model comparison to be performed:
 
 .. code-block:: bash
 
     log_evidence = samples.log_evidence
 
-At this point, you might be wondering what else the ``Result``'s contains, pretty much everything we
-discussed above was a part of its ``Samples`` property! For projects which use **PyAutoFit**'s phase
-API (see `here <https://pyautofit.readthedocs.io/en/latest/overview/phase.html>`_), the ``Result``'s object
-can be extended to include model-specific results.
+Result Extensions
+-----------------
 
-For example, we may extend the results of our 1D ``Gaussian`` example to include properties like the
-``max_log_likelihood_profile`` (e.g. the 1D model data of the best-fit profile) or a list of these
-profiles for every individual line profile in the model:
+You might be wondering what else the results contains, as nearly everything we discussed above was a part of its
+``samples`` property! The answer is, not much, however the result can be extended to include  model-specific results for
+your project.
+
+We detail how to do this in the **HowToFit** lectures, but for the example of fitting a 1D Gaussian we could extend
+the result to include the maximum log likelihood profile:
 
 .. code-block:: bash
 
-    max_log_likelihood_profile = results.max_log_likelihood_profile
-    max_log_likelihood_profile_list = results.max_log_likelihood_profile_list
+    max_log_likelihood_profile = samples.max_log_likelihood_profile
+
+Database
+--------
+
+For large-scaling model-fitting problems to large datasets, the results of the many model-fits performed can be output
+and stored in a queryable sqlite3 database. The ``Result`` and ``Samples`` objects have been designed to streamline the
+analysis and interpretation of model-fits to large datasets using the database.
+
+The database is described `here <https://pyautofit.readthedocs.io/en/latest/features/database.html>`_
+
+Wrap-Up
+-------
 
 More information on the ``Result`` class can be found at the
 `results examples <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/overview/simple/result.ipynb>`_ on

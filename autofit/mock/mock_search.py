@@ -1,24 +1,40 @@
 import math
+from typing import Optional
 
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.abstract_search import Analysis, Result
+from autofit.non_linear.abstract_search import Analysis
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.paths import convert_paths
+from autofit.non_linear.result import Result
 from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
-
-    @convert_paths
-    def __init__(self, paths=None, samples=None, fit_fast=True):
-        super().__init__(paths=paths)
+    def __init__(
+            self,
+            name="",
+            unique_tag: Optional[str] = None,
+            samples=None,
+            fit_fast=True,
+            sample_multiplier=1,
+            **kwargs
+    ):
+        super().__init__(
+            name=name,
+            unique_tag=unique_tag,
+            **kwargs
+        )
 
         self.fit_fast = fit_fast
         self.samples = samples or MockSamples()
+        self.sample_multiplier = sample_multiplier
+
+    @property
+    def config_dict_search(self):
+        return {}
 
     def _fit_fast(self, model, analysis):
         class Fitness:
@@ -63,39 +79,36 @@ class MockSearch(NonLinearSearch):
                 if unit_vector[index] >= 1:
                     raise e
                 index = (index + 1) % model.prior_count
+        samples = MockSamples(
+            samples=samples_with_log_likelihood_list(self.sample_multiplier * fit),
+            model=model,
+            gaussian_tuples=[
+                (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
+                for prior in sorted(model.priors, key=lambda prior: prior.id)
+            ],
+        )
+
+        self.paths.save_samples(samples)
+
         return MockResult(
             model=model,
-            samples=MockSamples(
-                samples=samples_with_log_likelihoods([fit]),
-                model=model,
-                gaussian_tuples=[
-                    (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
-                    for prior in sorted(model.priors, key=lambda prior: prior.id)
-                ],
-            ),
+            samples=samples,
         )
 
     @property
     def config_type(self):
         return conf.instance["non_linear"]["mock"]
 
-    @property
-    def tag(self):
-        return "mock"
-
     def perform_update(self, model, analysis, during_analysis):
         return MockSamples(
-            samples=samples_with_log_likelihoods([1.0, 2.0]),
+            samples=samples_with_log_likelihood_list([1.0, 2.0]),
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
             ]
         )
 
-    def samples_via_sampler_from_model(self, model):
-        return MockSamples()
-
-    def samples_via_csv_json_from_model(self, model):
+    def samples_from(self, model):
         return MockSamples()
 
     @property
@@ -114,17 +127,17 @@ class MockAnalysis(Analysis):
         self.data = data
 
 
-def samples_with_log_likelihoods(
-        log_likelihoods
+def samples_with_log_likelihood_list(
+        log_likelihood_list
 ):
     return [
         Sample(
             log_likelihood=log_likelihood,
             log_prior=0,
-            weights=0
+            weight=0
         )
         for log_likelihood
-        in log_likelihoods
+        in log_likelihood_list
     ]
 
 
@@ -137,18 +150,24 @@ class MockSamples(PDFSamples):
             gaussian_tuples=None
     ):
 
-        if samples is None:
-            samples = samples_with_log_likelihoods(
-                [1.0, 2.0, 3.0]
-            )
+        self._samples = samples
 
         super().__init__(
             model=model,
-            samples=samples
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self.gaussian_tuples = gaussian_tuples
+
+    @property
+    def samples(self):
+
+        if self._samples is None:
+            return samples_with_log_likelihood_list(
+                [1.0, 2.0, 3.0]
+            )
+
+        return self._samples
 
     @property
     def max_log_likelihood_instance(self):
@@ -175,7 +194,7 @@ class MockResult(Result):
         self.model = model or ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
 
-        self.previous_model = model
+        self.model = model
         self.gaussian_tuples = None
         self.analysis = analysis
         self.search = search

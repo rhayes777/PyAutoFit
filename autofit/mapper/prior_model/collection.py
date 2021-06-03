@@ -1,5 +1,4 @@
-from autofit import exc
-from autofit.mapper.model import ModelInstance
+from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
@@ -27,7 +26,12 @@ class CollectionPriorModel(AbstractPriorModel):
             if prior == direct_prior:
                 return name
 
+    def __contains__(self, item):
+        return item in self._dict or item in self._dict.values()
+
     def __getitem__(self, item):
+        if item in self._dict:
+            return self._dict[item]
         return self.values[item]
 
     def __len__(self):
@@ -44,20 +48,11 @@ class CollectionPriorModel(AbstractPriorModel):
         return f"<{self.__class__.__name__} {self}>"
 
     @property
-    def dict(self):
-        return {
-            key: value
-            for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id")
-               and not key.startswith("_")
-        }
-
-    @property
     def values(self):
-        return list(self.dict.values())
+        return list(self._dict.values())
 
     def items(self):
-        return self.dict.items()
+        return self._dict.items()
 
     def with_prefix(
             self,
@@ -94,13 +89,12 @@ class CollectionPriorModel(AbstractPriorModel):
             A list classes, prior_models or instances
         """
         super().__init__()
+        self.item_number = 0
         arguments = list(arguments)
         if len(arguments) == 0:
             self.add_dict_items(kwargs)
         elif len(arguments) == 1:
             arguments = arguments[0]
-
-            self.item_number = 0
 
             if isinstance(arguments, list):
                 for argument in arguments:
@@ -110,11 +104,14 @@ class CollectionPriorModel(AbstractPriorModel):
         else:
             self.__init__(arguments)
 
+    @assert_not_frozen
     def add_dict_items(self, item_dict):
         for key, value in item_dict.items():
             setattr(self, key, AbstractPriorModel.from_object(value))
 
     def __eq__(self, other):
+        if other is None:
+            return False
         if len(self) != len(other):
             return False
         for i, item in enumerate(self):
@@ -122,10 +119,12 @@ class CollectionPriorModel(AbstractPriorModel):
                 return False
         return True
 
+    @assert_not_frozen
     def append(self, item):
         setattr(self, str(self.item_number), AbstractPriorModel.from_object(item))
         self.item_number += 1
 
+    @assert_not_frozen
     def __setitem__(self, key, value):
         obj = AbstractPriorModel.from_object(value)
         try:
@@ -134,11 +133,15 @@ class CollectionPriorModel(AbstractPriorModel):
             pass
         setattr(self, str(key), obj)
 
+    @assert_not_frozen
     def __setattr__(self, key, value):
         if key.startswith("_"):
             super().__setattr__(key, value)
         else:
-            super().__setattr__(key, AbstractPriorModel.from_object(value))
+            try:
+                super().__setattr__(key, AbstractPriorModel.from_object(value))
+            except AttributeError:
+                pass
 
     def remove(self, item):
         for key, value in self.__dict__.copy().items():
@@ -158,16 +161,12 @@ class CollectionPriorModel(AbstractPriorModel):
         model_instances: [object]
             A list of instances constructed from the list of prior models.
         """
-        if self.promise_count > 0:
-            raise exc.PriorException(
-                "All promises must be populated prior to instantiation"
-            )
         result = ModelInstance()
         for key, value in self.__dict__.items():
             if isinstance(value, AbstractPriorModel):
                 value = value.instance_for_arguments(arguments)
             if isinstance(value, Prior):
-                value = value.value_for(arguments[value])
+                value = arguments[value]
             setattr(result, key, value)
         return result
 

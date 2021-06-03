@@ -16,6 +16,7 @@ Non-Linear Searches
    DynestyDynamic
    DynestyStatic
    MultiNest
+   UltraNest
 
 **MCMC:**
 
@@ -23,21 +24,75 @@ Non-Linear Searches
    :toctree: generated/
 
    Emcee
+   Zeus
 
 **Optimizers:**
 
 .. autosummary::
    :toctree: generated/
 
+   PySwarmsLocal
    PySwarmsGlobal
 
-*`GridSearch`*:
+**GridSearch**:
 
 .. autosummary::
    :toctree: generated/
 
-   NonLinearSearchGridSearch
+   SearchGridSearch
    GridSearchResult
+
+**Tools**:
+
+.. autosummary::
+   :toctree: generated/
+
+   DirectoryPaths
+   DatabasePaths
+   Result
+   InitializerBall
+   InitializerPrior
+   PriorPasser
+   AutoCorrelationsSettings
+
+--------
+Plotters
+--------
+
+.. currentmodule:: autofit.plot
+.. autosummary::
+   :toctree: generated/
+
+   DynestyPlotter
+   UltraNestPlotter
+   EmceePlotter
+   ZeusPlotter
+   PySwarmsPlotter
+
+
+------
+Models
+------
+
+.. currentmodule:: autofit
+
+.. autosummary::
+   :toctree: generated/
+
+   PriorModel
+   CollectionPriorModel
+
+
+--------
+Analysis
+--------
+
+.. currentmodule:: autofit
+
+.. autosummary::
+   :toctree: generated/
+
+   Analysis
 
 
 ------
@@ -51,24 +106,6 @@ Priors
    GaussianPrior
    LogUniformPrior
 
-------
-Models
-------
-
-.. autosummary::
-   :toctree: generated/
-
-   PriorModel
-   CollectionPriorModel
-
------
-Paths
------
-
-.. autosummary::
-   :toctree: generated/
-
-   Paths
 
 -------
 Samples
@@ -81,6 +118,7 @@ Samples
    PDFSamples
    MCMCSamples
    NestSamples
+   StoredSamples
 
 ----------
 Aggregator

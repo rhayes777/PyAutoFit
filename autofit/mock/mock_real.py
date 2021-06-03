@@ -31,34 +31,34 @@ class GeometryProfile:
         return self.__dict__ == other.__dict__
 
 
-class SphericalProfile(GeometryProfile):
+class SphProfile(GeometryProfile):
     def __init__(self, centre=(0.0, 0.0)):
         """ Generic circular profiles class to contain functions shared by light and
         mass profiles.
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) coordinates of the origin of the profile.
         """
-        super(SphericalProfile, self).__init__(centre)
+        super(SphProfile, self).__init__(centre)
 
 
-class EllipticalProfile(SphericalProfile):
+class EllProfile(SphProfile):
     def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):
         """ Generic elliptical profiles class to contain functions shared by light
         and mass profiles.
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) coordinates of the origin of the profiles
-        axis_ratio : float
+        axis_ratio
             Ratio of profiles ellipse's minor and major axes (b/a)
         phi : float
             Rotational angle of profiles ellipse counter-clockwise from positive x-axis
         """
-        super(EllipticalProfile, self).__init__(centre)
+        super(EllProfile, self).__init__(centre)
         self.axis_ratio = axis_ratio
         self.phi = phi
 
@@ -70,35 +70,35 @@ class MassProfile:
     def surface_density_from_grid(self, grid):
         pass
 
-    def potential_from_grid(self, grid):
+    def potential_2d_from_grid(self, grid):
         pass
 
-    def deflections_from_grid(self, grid):
-        raise NotImplementedError("deflections_from_grid should be overridden")
+    def deflections_2d_from_grid(self, grid):
+        raise NotImplementedError("deflections_2d_from_grid should be overridden")
 
 
 # noinspection PyAbstractClass
-class EllipticalMassProfile(EllipticalProfile, MassProfile):
+class EllMassProfile(EllProfile, MassProfile):
     def __init__(self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0):
         """
         Abstract class for elliptical mass profiles.
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The origin of the profile
-        axis_ratio : float
+        axis_ratio
             Ellipse's minor-to-major axis ratio (b/a)
         phi : float
             Rotation angle of profile's ellipse counter-clockwise from positive x-axis
         """
-        super(EllipticalMassProfile, self).__init__(centre=centre, axis_ratio=axis_ratio, phi=phi)
+        super(EllMassProfile, self).__init__(centre=centre, axis_ratio=axis_ratio, phi=phi)
         self.axis_ratio = axis_ratio
         self.phi = phi
 
 
 # noinspection PyAbstractClass
-class EllipticalCoredIsothermal(EllipticalProfile):
+class EllIsothermalCored(EllProfile):
     def __init__(
             self,
             centre=(0.0, 0.0),
@@ -113,10 +113,10 @@ class EllipticalCoredIsothermal(EllipticalProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The image_grid of the origin of the profiles
-        axis_ratio : float
-            Elliptical mass profile's minor-to-major axis ratio (b/a)
+        axis_ratio
+            Ell mass profile's minor-to-major axis ratio (b/a)
         phi : float
             Rotation angle of mass profile's ellipse counter-clockwise from positive
             x-axis
@@ -126,14 +126,14 @@ class EllipticalCoredIsothermal(EllipticalProfile):
             The radius of the inner core
         """
 
-        super(EllipticalCoredIsothermal, self).__init__(
+        super(EllIsothermalCored, self).__init__(
             centre=centre, axis_ratio=axis_ratio, phi=phi,
         )
         self.einstein_radius = einstein_radius
         self.core_radius = core_radius
 
 
-class EllipticalSersic(EllipticalProfile):
+class EllSersic(EllProfile):
     def __init__(
             self,
             centre=(0.0, 0.0),
@@ -147,16 +147,16 @@ class EllipticalSersic(EllipticalProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
-        effective_radius : float
+        effective_radius
             The circular radius containing half the light of this profile.
         sersic_index : Int
             Controls the concentration of the of the light profile.
@@ -169,7 +169,7 @@ class EllipticalSersic(EllipticalProfile):
         self.sersic_index = sersic_index
 
 
-class EllipticalCoreSersic(EllipticalSersic):
+class EllSersicCore(EllSersic):
     def __init__(
             self,
             centre=(0.0, 0.0),
@@ -188,16 +188,16 @@ class EllipticalCoreSersic(EllipticalSersic):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
-        effective_radius : float
+        effective_radius
             The circular radius containing half the light of this profile.
         sersic_index : Int
             Controls the concetration of the of the light profile.
@@ -212,7 +212,7 @@ class EllipticalCoreSersic(EllipticalSersic):
             Controls the sharpness of the transition between the inner core / outer
             Sersic profiles.
         """
-        super(EllipticalCoreSersic, self).__init__(
+        super(EllSersicCore, self).__init__(
             centre=centre,
             axis_ratio=axis_ratio,
             phi=phi,
@@ -226,7 +226,7 @@ class EllipticalCoreSersic(EllipticalSersic):
         self.gamma = gamma
 
 
-class EllipticalExponential(EllipticalSersic):
+class EllExponential(EllSersic):
     def __init__(
             self,
             centre=(0.0, 0.0),
@@ -242,19 +242,19 @@ class EllipticalExponential(EllipticalSersic):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
-        effective_radius : float
+        effective_radius
             The circular radius containing half the light of this profile.
         """
-        super(EllipticalExponential, self).__init__(
+        super(EllExponential, self).__init__(
             centre=centre,
             axis_ratio=axis_ratio,
             phi=phi,
@@ -264,7 +264,9 @@ class EllipticalExponential(EllipticalSersic):
         )
 
 
-class EllipticalGaussian(EllipticalProfile):
+
+class EllGaussian(EllProfile):
+
     def __init__(
             self, centre=(0.0, 0.0), axis_ratio=1.0, phi=0.0, intensity=0.1, sigma=0.01
     ):
@@ -272,19 +274,19 @@ class EllipticalGaussian(EllipticalProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
         sigma : float
             The full-width half-maximum of the Gaussian.
         """
-        super(EllipticalGaussian, self).__init__(centre, axis_ratio, phi)
+        super(EllGaussian, self).__init__(centre, axis_ratio, phi)
 
         self.intensity = intensity
         self.sigma = sigma
@@ -314,6 +316,15 @@ class Tracer:
         self.lens_galaxy = lens_galaxy
         self.source_galaxy = source_galaxy
         self.grid = grid
+
+
+# # noinspection PyAbstractClass
+# class GalaxyModel(af.AbstractPriorModel):
+#     def instance_for_arguments(self, arguments):
+#         try:
+#             return Galaxy(redshift=self.redshift.instance_for_arguments(arguments))
+#         except AttributeError:
+#             return Galaxy()
 
 
 # noinspection PyAbstractClass

@@ -1,13 +1,121 @@
 import copy
-import inspect
+import logging
+from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
-from autofit.tools.pipeline import ResultsCollection
+
+logger = logging.getLogger(
+    __name__
+)
+
+
+def frozen_cache(func):
+    """
+    Decorator that caches results from function calls when
+    a model is frozen.
+
+    Value is cached by function name, instance and arguments.
+
+    Parameters
+    ----------
+    func
+        Some function attached to a freezable, hashable object
+        that takes hashable arguments
+
+    Returns
+    -------
+    Function with cache
+    """
+
+    @wraps(func)
+    def cache(self, *args, **kwargs):
+        if hasattr(self, "_is_frozen") and self._is_frozen:
+            key = (func.__name__, self, *args,) + tuple(
+                kwargs.items()
+            )
+            if key not in self._frozen_cache:
+                self._frozen_cache[
+                    key
+                ] = func(self, *args, **kwargs)
+            return self._frozen_cache[
+                key
+            ]
+        return func(self, *args, **kwargs)
+
+    return cache
+
+
+def assert_not_frozen(func):
+    """
+    Decorator that asserts a function is not called when an object
+    is frozen. For example, it should not be possible to set an
+    attribute on a frozen model as that might invalidate the results
+    in the cache.
+
+    Parameters
+    ----------
+    func
+        Some function
+
+    Raises
+    ------
+    AssertionError
+        If the function is called when the object is frozen
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if "_is_frozen" not in filter(
+                lambda arg: isinstance(arg, str),
+                args
+        ) and hasattr(self, "_is_frozen") and self._is_frozen:
+            raise AssertionError(
+                "Frozen models cannot be modified"
+            )
+        return func(self, *args, **kwargs)
+
+    return wrapper
 
 
 class AbstractModel(ModelObject):
+    def __init__(self):
+        super().__init__()
+        self._is_frozen = False
+        self._frozen_cache = dict()
+
+    def freeze(self):
+        """
+        Freeze this object.
+
+        A frozen object caches results for some function calls
+        and does not allow its state to be modified.
+        """
+        logger.debug("Freezing model")
+        tuples = self.direct_tuples_with_type(
+            AbstractModel
+        )
+        for _, model in tuples:
+            if model is not self:
+                model.freeze()
+        self._is_frozen = True
+
+    def unfreeze(self):
+        """
+        Unfreeze this object. Allows modification and removes
+        caches associated with some functions.
+        """
+        logger.debug("Thawing model")
+        self._is_frozen = False
+        tuples = self.direct_tuples_with_type(
+            AbstractModel
+        )
+        for _, model in tuples:
+            if model is not self:
+                model.unfreeze()
+        self._frozen_cache = dict()
+
     def __add__(self, other):
         instance = self.__class__()
 
@@ -24,9 +132,6 @@ class AbstractModel(ModelObject):
 
     def copy(self):
         return copy.deepcopy(self)
-
-    def populate(self, collection):
-        return populate(self, collection)
 
     def object_for_path(
             self, path: Iterable[Union[str, int, type]]
@@ -71,6 +176,7 @@ class AbstractModel(ModelObject):
                 instance = getattr(instance, name)
         return instance
 
+    @frozen_cache
     def path_instance_tuples_for_class(
             self,
             cls: Union[Tuple, Type],
@@ -98,6 +204,7 @@ class AbstractModel(ModelObject):
             ignore_class=ignore_class
         )
 
+    @frozen_cache
     def direct_tuples_with_type(self, class_type):
         return list(
             filter(
@@ -106,46 +213,45 @@ class AbstractModel(ModelObject):
             )
         )
 
-    def attribute_tuples_with_type(self, class_type, ignore_class=None):
+    @frozen_cache
+    def model_tuples_with_type(self, cls):
+        from .prior_model.prior_model import PriorModel
+        return [
+            (path, model)
+            for path, model
+            in self.attribute_tuples_with_type(
+                PriorModel
+            )
+            if model.cls == cls
+        ]
+
+    @frozen_cache
+    def attribute_tuples_with_type(
+            self,
+            class_type,
+            ignore_class=None
+    ) -> List[tuple]:
+        """
+        Tuples describing the name and instance for attributes in the model
+        with a given type, recursively.
+
+        Parameters
+        ----------
+        class_type
+            The type of the objects to find
+        ignore_class
+            Any classes which should not be recursively searched
+
+        Returns
+        -------
+        Tuples containing the name and instance of each attribute with the type
+        """
         return [
             (t[0][-1], t[1])
             for t in self.path_instance_tuples_for_class(
                 class_type, ignore_class=ignore_class
             )
         ]
-
-
-@DynamicRecursionCache()
-def populate(obj, collection: ResultsCollection):
-    """
-    Replace promises with instances and instances. Promises are placeholders expressing that a given attribute should
-    be replaced with an actual value once the phase that generates that value is complete.
-
-    Parameters
-    ----------
-    obj
-        The object to be populated
-    collection
-        A collection of Results from previous phases
-
-    Returns
-    -------
-    obj
-        The same object with all promises populated, or if the object was a promise the replacement for that promise
-    """
-    if isinstance(obj, list):
-        return [populate(item, collection) for item in obj]
-    if isinstance(obj, dict):
-        return {key: populate(value, collection) for key, value in obj.items()}
-    from autofit.mapper.prior.promise import AbstractPromise
-    if isinstance(obj, AbstractPromise):
-        return obj.populate(collection)
-    if not hasattr(obj, "__dict__") or inspect.isclass(obj):
-        return obj
-    new = copy.copy(obj)
-    for key, value in obj.__dict__.items():
-        setattr(new, key, populate(value, collection))
-    return new
 
 
 @DynamicRecursionCache()

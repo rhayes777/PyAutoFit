@@ -4,20 +4,20 @@ Probabilistic Programming
 Probabilistic programming languages provide a framework that allows users to easily specify a probabilistic
 model and perform inference automatically. **PyAutoFit** is a Python-based probabilistic programming language which:
 
-- Makes it simple to compose and fit models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+- Makes it simple to compose and fit multi-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
 
 - Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, visualization and parameter inference.
 
-- Is built for *big-data* analysis, whereby results are output as a database which can be loaded after model-fitting is complete.
+- Is built for *big-data* analysis, whereby results are output as a sqlite database which can be queried after model-fitting is complete.
 
 **PyAutoFit** supports advanced statistical methods such as `massively parallel non-linear search grid-searches <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_, `chaining together model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_  and `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_.
 
 Try it now
 ----------
 
-You can try **PyAutoFit** now by going to the `overview Jupyter Notebook on our
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/664a86aa84ddf8fdf044e2e4e7db21876ac1de91?filepath=overview.ipynb>`_.
-This allows you to run the code that is described below.
+You can try **PyAutoFit** now by going to the `introduction Jupyter Notebook on our
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/master?filepath=introduction.ipynb>`_, which runs
+**PyAutoFit** in a web browser without installation.
 
 Why PyAutoFit?
 --------------
@@ -107,13 +107,13 @@ likelihood function:
 
 The ``Analysis`` class provides a model specific interface between **PyAutoFit** and the modeling software, allowing
 it to handle the 'heavy lifting' that comes with writing *model-fitting* software. This includes interfacing with the
-non-linear search, model-specific visualization during and outputting results in a database.
+non-linear search, model-specific visualization during and outputting results to a queryable sqlite database.
 
 Performing a fit with a non-linear search, for example ``emcee``, is performed as follows:
 
 .. code-block:: python
 
-    model = af.PriorModel(Gaussian)
+    model = af.Model(Gaussian)
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -127,7 +127,7 @@ model and marginalized probability density functions.
 Model Abstraction and Composition
 =================================
 
-For many modeling problems the model comprises abstract *model components* representing objects or processes in a
+For many model fitting problems the model comprises abstract *model components* representing objects or processes in a
 physical system. For example, our child project `PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_,  where
 *model components* represent the light and mass of galaxies. For these problems the likelihood function is typically a
 sequence of numerical processes (e.g. convolutions, Fourier transforms, linear algebra) and extensions to the *model* 
@@ -159,7 +159,6 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    overview/model_complex
    overview/non_linear_search
    overview/result
-   overview/database
 
 .. toctree::
    :caption: Installation:
@@ -192,8 +191,8 @@ provides new users with a more detailed introduction to **PyAutoFit**.
 
    howtofit/howtofit
    howtofit/chapter_1_introduction
+   howtofit/chapter_database
    howtofit/chapter_graphical_models
-   howtofit/chapter_phase_api
 
 .. toctree::
    :caption: API Reference:
@@ -203,12 +202,20 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    api/api
 
 .. toctree::
+   :caption: Graphical models:
+   :maxdepth: 1
+   :hidden:
+
+   graphical/composition
+   graphical/multiple_datasets
+   graphical/expectation_propagation
+
+.. toctree::
    :caption: Features:
    :maxdepth: 1
    :hidden:
 
+   features/database
    features/search_grid_search
    features/search_chaining
    features/sensitivity_mapping
-   features/graphical_models
-   features/phase

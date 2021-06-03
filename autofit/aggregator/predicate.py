@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Iterator
 
-from .phase_output import PhaseOutput
+from .search_output import SearchOutput
 
 
 class AttributePredicate:
@@ -18,19 +18,19 @@ class AttributePredicate:
         path
             A series of names of attributes that can be used to get a value.
             For example, (mask, pixel_size) would get the pixel size of a mask
-            when evaluated for a given phase.
+            when evaluated for a given search.
         """
         self.path = path
 
-    def value_for_phase(
+    def value_for_search_output(
             self,
-            phase: PhaseOutput
+            search_output: SearchOutput
     ):
         """
-        Recurse the phase output by iterating the attributes in the path
+        Recurse the search output by iterating the attributes in the path
         and getting a value for each attribute.
         """
-        value = phase
+        value = search_output
         for attribute in self.path:
             value = getattr(
                 value,
@@ -41,7 +41,7 @@ class AttributePredicate:
     def __eq__(self, value):
         """
         Returns a predicate which asks whether the given value is equal to
-        the attribute of a phase.
+        the attribute of a search.
         """
         return EqualityPredicate(
             self,
@@ -70,7 +70,7 @@ class AttributePredicate:
 
     def __gt__(self, other):
         """
-        Is the value of this attribute for a given phase greater than some
+        Is the value of this attribute for a given search greater than some
         other value?
         """
         return GreaterThanPredicate(
@@ -79,7 +79,7 @@ class AttributePredicate:
 
     def __lt__(self, other):
         """
-        Is the value of this attribute for a given phase less than some
+        Is the value of this attribute for a given search less than some
         other value?
         """
         return LessThanPredicate(
@@ -89,14 +89,14 @@ class AttributePredicate:
     def __ne__(self, other):
         """
         Returns a predicate which asks whether the given value is not equal to
-        the attribute of a phase.
+        the attribute of a search.
         """
         return ~(self == other)
 
     def contains(self, value):
         """
         Returns a predicate which asks whether the given is contained within
-        the attribute of a phase.
+        the attribute of a search.
         """
         return ContainsPredicate(
             self,
@@ -106,27 +106,27 @@ class AttributePredicate:
 
 class AbstractPredicate(ABC):
     """
-    Comparison between a value and some attribute of a phase
+    Comparison between a value and some attribute of a search
     """
 
     def filter(
             self,
-            phases: List[PhaseOutput]
-    ) -> Iterator[PhaseOutput]:
+            search_outputs: List[SearchOutput]
+    ) -> Iterator[SearchOutput]:
         """
-        Only return phases for which this predicate evaluates to True
+        Only return searchs for which this predicate evaluates to True
 
         Parameters
         ----------
-        phases
+        search_outputs
 
         Returns
         -------
 
         """
         return filter(
-            lambda phase: self(phase),
-            phases
+            lambda search_output: self(search_output),
+            search_outputs
         )
 
     def __invert__(self) -> "NotPredicate":
@@ -141,21 +141,21 @@ class AbstractPredicate(ABC):
     def __or__(self, other: "AbstractPredicate") -> "OrPredicate":
         """
         Returns a predicate that is true if either predicate is true
-        for a given phase.
+        for a given search.
         """
         return OrPredicate(self, other)
 
     def __and__(self, other: "AbstractPredicate") -> "AndPredicate":
         """
         Returns a predicate that is true if both predicates are true
-        for a given phase.
+        for a given search.
         """
         return AndPredicate(self, other)
 
     @abstractmethod
-    def __call__(self, phase: PhaseOutput) -> bool:
+    def __call__(self, search_output: SearchOutput) -> bool:
         """
-        Does the attribute of the phase match the requirement of this predicate?
+        Does the attribute of the search match the requirement of this predicate?
         """
 
 
@@ -179,37 +179,37 @@ class CombinationPredicate(AbstractPredicate, ABC):
 
 
 class OrPredicate(CombinationPredicate):
-    def __call__(self, phase: PhaseOutput):
+    def __call__(self, search_output: SearchOutput):
         """
         The disjunction of two predicates.
 
         Parameters
         ----------
-        phase
-            An object representing the output of a given phase.
+        search_output
+            An object representing the output of a given search.
 
         Returns
         -------
-        True if either predicate is `True` for the phase
+        True if either predicate is `True` for the search
         """
-        return self.one(phase) or self.two(phase)
+        return self.one(search_output) or self.two(search_output)
 
 
 class AndPredicate(CombinationPredicate):
-    def __call__(self, phase: PhaseOutput):
+    def __call__(self, search_output: SearchOutput):
         """
         The conjunction of two predicates.
 
         Parameters
         ----------
-        phase
-            An object representing the output of a given phase.
+        search_output
+            An object representing the output of a given search.
 
         Returns
         -------
-        True if both predicates are `True` for the phase
+        True if both predicates are `True` for the search
         """
-        return self.one(phase) and self.two(phase)
+        return self.one(search_output) and self.two(search_output)
 
 
 class ComparisonPredicate(AbstractPredicate, ABC):
@@ -219,12 +219,12 @@ class ComparisonPredicate(AbstractPredicate, ABC):
             value
     ):
         """
-        Compare an attribute of a phase with a value.
+        Compare an attribute of a search with a value.
 
         Parameters
         ----------
         attribute_predicate
-            An attribute path of a phase
+            An attribute path of a search
         value
             A value to which the attribute is compared
         """
@@ -233,11 +233,11 @@ class ComparisonPredicate(AbstractPredicate, ABC):
 
     def value(
             self,
-            phase
+            search_output
     ):
         if isinstance(self._value, AttributePredicate):
-            return self._value.value_for_phase(
-                phase
+            return self._value.value_for_search_output(
+                search_output
             )
         return self._value
 
@@ -245,94 +245,94 @@ class ComparisonPredicate(AbstractPredicate, ABC):
 class GreaterThanPredicate(ComparisonPredicate):
     def __call__(
             self,
-            phase: PhaseOutput
+            search_output: SearchOutput
     ) -> bool:
         """
         Parameters
         ----------
-        phase
-            An object representing the output of a given phase.
+        search_output
+            An object representing the output of a given search.
 
         Returns
         -------
-        True iff the value of the attribute of the phase is greater than
+        True iff the value of the attribute of the search is greater than
         the value associated with this predicate
         """
 
-        return self.attribute_predicate.value_for_phase(
-            phase
+        return self.attribute_predicate.value_for_search_output(
+            search_output
         ) > self.value(
-            phase
+            search_output
         )
 
 
 class LessThanPredicate(ComparisonPredicate):
     def __call__(
             self,
-            phase: PhaseOutput
+            search_output: SearchOutput
     ) -> bool:
         """
         Parameters
         ----------
-        phase
-            An object representing the output of a given phase.
+        search_output
+            An object representing the output of a given search.
 
         Returns
         -------
-        True iff the value of the attribute of the phase is less than
+        True iff the value of the attribute of the search is less than
         the value associated with this predicate
         """
-        return self.attribute_predicate.value_for_phase(
-            phase
+        return self.attribute_predicate.value_for_search_output(
+            search_output
         ) < self.value(
-            phase
+            search_output
         )
 
 
 class ContainsPredicate(ComparisonPredicate):
     def __call__(
             self,
-            phase: PhaseOutput
+            search_output: SearchOutput
     ) -> bool:
         """
         Parameters
         ----------
-        phase
-            An object representing the output of a given phase.
+        search_output
+            An object representing the output of a given search.
 
         Returns
         -------
-        True iff the value of the attribute of the phase contains
+        True iff the value of the attribute of the search contains
         the value associated with this predicate
         """
         return self.value(
-            phase
-        ) in self.attribute_predicate.value_for_phase(
-            phase
+            search_output
+        ) in self.attribute_predicate.value_for_search_output(
+            search_output
         )
 
 
 class EqualityPredicate(ComparisonPredicate):
-    def __call__(self, phase):
+    def __call__(self, search_output):
         """
         Parameters
         ----------
-        phase
-            An object representing the output of a given phase.
+        search_output
+            An object representing the output of a given search.
 
         Returns
         -------
-        True iff the value of the attribute of the phase is equal to
+        True iff the value of the attribute of the search is equal to
         the value associated with this predicate
         """
         try:
             value = self.value(
-                phase
+                search_output
             )
         except AttributeError:
             value = self.value
-        return self.attribute_predicate.value_for_phase(
-            phase
+        return self.attribute_predicate.value_for_search_output(
+            search_output
         ) == value
 
 
@@ -344,7 +344,7 @@ class NotPredicate(AbstractPredicate):
         """
         Negates the output of a predicate.
 
-        If the predicate would have returned `True` for a given phase
+        If the predicate would have returned `True` for a given search
         it now returns `False` and vice-versa.
 
         Parameters
@@ -354,20 +354,20 @@ class NotPredicate(AbstractPredicate):
         """
         self.predicate = predicate
 
-    def __call__(self, phase: PhaseOutput) -> bool:
+    def __call__(self, search_output: SearchOutput) -> bool:
         """
-        Evaluate the predicate for the phase and return the negation
+        Evaluate the predicate for the search and return the negation
         of the result.
 
         Parameters
         ----------
-        phase
-            The output of an AutoFit phase
+        search_output
+            The output of an AutoFit search
 
         Returns
         -------
         The negation of the underlying predicate
         """
         return not self.predicate(
-            phase
+            search_output
         )

@@ -1,16 +1,24 @@
 from copy import copy
 
-import autofit as af
+from autofit import Result
+from autofit.mapper.prior_model import abstract
 from autofit.mock.mock import MockSamples
+from autofit.non_linear import abstract_search
+from autofit.non_linear import paths
 from autofit.non_linear.grid.grid_search import make_lists
 
 
 class GridSearch:
 
-    def __init__(self, step_size=0.5):
-
+    def __init__(self, step_size=0.5, name=None):
         self.step_size = step_size
-        self.paths = af.Paths()
+        self.paths = paths.DirectoryPaths(
+            name=name
+        )
+
+    @property
+    def name(self):
+        return self.paths.name
 
     def copy_with_paths(self, paths):
         search = copy(self)
@@ -19,8 +27,8 @@ class GridSearch:
 
     def fit(
             self,
-            model: af.AbstractPriorModel,
-            analysis: af.Analysis
+            model: abstract.AbstractPriorModel,
+            analysis: abstract_search.Analysis
     ):
         best_likelihood = float("-inf")
         best_instance = None
@@ -42,11 +50,11 @@ class GridSearch:
                 best_likelihood = likelihood
                 best_instance = instance
 
-        return af.Result(
+        return Result(
             samples=MockSamples(
                 max_log_likelihood_instance=best_instance,
-                log_likelihoods=likelihoods,
+                log_likelihood_list=likelihoods,
                 gaussian_tuples=None
             ),
-            previous_model=model
+            model=model
         )

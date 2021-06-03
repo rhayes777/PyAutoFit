@@ -11,7 +11,7 @@
             "upper_limit": 2.0
         }
     },
-    "EllipticalProfile": {
+    "EllProfile": {
         "phi": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -65,7 +65,7 @@
             }
         }
     },
-    "SphericalProfile": {
+    "SphProfile": {
         "centre_0": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -93,7 +93,7 @@
             }
         }
     },
-    "EllipticalSersic": {
+    "EllSersic": {
         "sersic_index": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -186,7 +186,7 @@
             }
         }
     },
-    "EllipticalCoredIsothermal": {
+    "EllIsothermalCored": {
         "core_radius": {
             "type": "Uniform",
             "lower_limit": 0.0,
@@ -266,7 +266,7 @@
             }
         }
     },
-    "EllipticalCoreSersic": {
+    "EllSersicCore": {
         "alpha": {
             "type": "Uniform",
             "lower_limit": 0.0,

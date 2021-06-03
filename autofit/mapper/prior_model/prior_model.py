@@ -2,14 +2,18 @@ import copy
 import inspect
 import logging
 
+from autoconf.exc import ConfigException
+from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior.deferred import DeferredInstance
-from autofit.mapper.prior.promise import Promise
+from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
+from autofit.util import get_class_path
 
 logger = logging.getLogger(__name__)
+
+class_args_dict = dict()
 
 
 class PriorModel(AbstractPriorModel):
@@ -42,13 +46,6 @@ class PriorModel(AbstractPriorModel):
             )
         return super().__add__(other)
 
-    @property
-    def constructor_argument_names(self):
-        try:
-            return inspect.getfullargspec(self.cls).args[1:]
-        except TypeError:
-            return []
-
     def __init__(self, cls, **kwargs):
         """
         Parameters
@@ -59,6 +56,11 @@ class PriorModel(AbstractPriorModel):
         super().__init__()
         if cls is self:
             return
+
+        if not (inspect.isclass(cls) or inspect.isfunction(cls)):
+            raise AssertionError(
+                f"{cls} is not a class or function"
+            )
 
         self.cls = cls
 
@@ -110,13 +112,15 @@ class PriorModel(AbstractPriorModel):
                 setattr(self, arg, tuple_prior)
             elif arg in annotations and annotations[arg] != float:
                 spec = annotations[arg]
+
                 # noinspection PyUnresolvedReferences
                 if inspect.isclass(spec) and issubclass(spec, float):
                     from autofit.mapper.prior_model.annotation import (
                         AnnotationPriorModel,
                     )
-
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
+                elif hasattr(spec, "__args__") and type(None) in spec.__args__:
+                    setattr(self, arg, None)
                 else:
                     setattr(self, arg, PriorModel(annotations[arg]))
             else:
@@ -126,6 +130,25 @@ class PriorModel(AbstractPriorModel):
                 setattr(
                     self, key, PriorModel(value) if inspect.isclass(value) else value
                 )
+
+    @property
+    def dict(self):
+        return {
+            "class_path": get_class_path(
+                self.cls
+            ),
+            **super().dict
+        }
+
+    # noinspection PyAttributeOutsideInit
+    @property
+    def constructor_argument_names(self):
+        if self.cls not in class_args_dict:
+            try:
+                class_args_dict[self.cls] = inspect.getfullargspec(self.cls).args[1:]
+            except TypeError:
+                class_args_dict[self.cls] = []
+        return class_args_dict[self.cls]
 
     def __eq__(self, other):
         return (
@@ -166,14 +189,19 @@ class PriorModel(AbstractPriorModel):
         if not inspect.isclass(cls):
             # noinspection PyProtectedMember
             cls = inspect._findclass(cls)
-        return Prior.for_class_and_attribute_name(cls, attribute_name)
+        try:
+            return Prior.for_class_and_attribute_name(cls, attribute_name)
+        except ConfigException as e:
+            return e
 
+    @assert_not_frozen
     def __setattr__(self, key, value):
         if key not in (
                 "component_number",
                 "phase_property_position",
                 "mapping_name",
                 "id",
+                "_is_frozen"
         ):
             try:
                 if "_" in key:
@@ -193,7 +221,10 @@ class PriorModel(AbstractPriorModel):
 
     def __getattr__(self, item):
         try:
-            if "_" in item:
+            if "_" in item and item not in (
+                    "_is_frozen",
+                    "tuple_prior_tuples"
+            ):
                 return getattr(
                     [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
                         0
@@ -271,7 +302,7 @@ class PriorModel(AbstractPriorModel):
             if (
                     not hasattr(result, key)
                     and not isinstance(value, Prior)
-                    and not isinstance(value, Promise)
+                    and not key == "cls"
             ):
                 if isinstance(value, PriorModel):
                     value = value.instance_for_arguments(arguments)
@@ -299,7 +330,9 @@ class PriorModel(AbstractPriorModel):
         new_model: ModelMapper
             A new model mapper populated with Gaussian priors
         """
+        self.unfreeze()
         new_model = copy.deepcopy(self)
+
         new_model._assertions = list()
 
         model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}

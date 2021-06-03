@@ -1,5 +1,7 @@
 import copy
 import inspect
+import json
+import logging
 from functools import wraps
 from numbers import Number
 from random import random
@@ -8,9 +10,10 @@ from typing import Tuple, Optional
 import numpy as np
 
 from autoconf import conf
+from autoconf.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
-from autofit.mapper.model import AbstractModel
+from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
@@ -20,6 +23,10 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 def check_assertions(func):
@@ -61,7 +68,34 @@ class AbstractPriorModel(AbstractModel):
         super().__init__()
         self._assertions = list()
 
-    def add_assertion(self, assertion, name=None):
+    @classmethod
+    def from_json(cls, file: str):
+        """
+        Loads the model from a .json file, which was written using the model's dictionary (`dict`) attribute as
+        follows:
+
+        import json
+
+        with open(filename, "w+") as f:
+            json.dump(model.dict, f, indent=4)
+
+        Parameters
+        ----------
+        file
+            The path and name of the .json file the model is loaded from.
+
+        Returns
+        -------
+        object
+            The model, which may be a `Collection` of `PriorModel` objects or a single `PriorModel`.
+        """
+
+        with open(file) as json_file:
+            model_dict = json.load(json_file)
+
+        return cls.from_dict(d=model_dict)
+
+    def add_assertion(self, assertion, name=""):
         """
         Assert that some relationship holds between physical values associated with
         priors at the point an instance is created. If this fails a FitException is
@@ -119,7 +153,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         source
-            An instance or prior model from a previous phase from which attributes
+            An instance or prior model from a previous search from which attributes
             are passed to this model.
         """
 
@@ -179,6 +213,19 @@ class AbstractPriorModel(AbstractModel):
         exc.FitException
             If any assertion attached to this object returns False.
         """
+        exception_tuples = self.attribute_tuples_with_type(
+            ConfigException
+        )
+        if len(exception_tuples) > 0:
+            for name, exception in exception_tuples:
+                logger.exception(
+                    f"Could not load {name} because:\n\n{exception}"
+                )
+            names = [name for name, _ in exception_tuples]
+            raise ConfigException(
+                f"No configuration was found for some attributes ({', '.join(names)})"
+            )
+
         arguments = dict(
             map(
                 lambda prior_tuple, unit: (
@@ -190,10 +237,14 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        return self.instance_for_arguments(arguments, assert_priors_in_limits=assert_priors_in_limits)
+        return self.instance_for_arguments(
+            arguments,
+            assert_priors_in_limits=assert_priors_in_limits
+        )
 
     @property
     @cast_collection(PriorNameValue)
+    @frozen_cache
     def unique_prior_tuples(self):
         """
         Returns
@@ -204,15 +255,6 @@ class AbstractPriorModel(AbstractModel):
         return {
             prior_tuple[1]: prior_tuple
             for prior_tuple in self.attribute_tuples_with_type(Prior)
-        }.values()
-
-    @property
-    def unique_promise_tuples(self):
-        from autofit.mapper.prior.promise import AbstractPromise
-
-        return {
-            prior_tuple[1]: prior_tuple
-            for prior_tuple in self.attribute_tuples_with_type(AbstractPromise)
         }.values()
 
     @property
@@ -336,6 +378,41 @@ class AbstractPriorModel(AbstractModel):
             assert_priors_in_limits=assert_priors_in_limits
         )
 
+    def has_instance(self, cls) -> bool:
+        """
+        True iff this model contains an instance of type
+        cls, recursively.
+        """
+        return len(
+            self.attribute_tuples_with_type(cls)
+        ) > 0
+
+    def has_model(self, cls) -> bool:
+        """
+        True iff this model contains a PriorModel of type
+        cls, recursively.
+        """
+        return len(
+            self.model_tuples_with_type(cls)
+        ) > 0
+
+    def is_only_model(self, cls) -> bool:
+        """
+        True iff this model contains at least one PriorModel
+        of type cls and contains no PriorModels that are not
+        of type cls, recursively.
+        """
+        from .prior_model import PriorModel
+        return self.has_model(
+            cls
+        ) and len(
+            self.model_tuples_with_type(cls)
+        ) == len(
+            self.attribute_tuples_with_type(
+                PriorModel
+            )
+        )
+
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Returns a new model mapper from a dictionary mapping_matrix existing priors to
@@ -365,6 +442,8 @@ class AbstractPriorModel(AbstractModel):
         model_mapper: ModelMapper
             A new model mapper with updated priors.
         """
+        logger.debug(f"Creating a new mapper from arguments")
+
         mapper = copy.deepcopy(self)
 
         for prior_model_tuple in self.prior_model_tuples:
@@ -464,7 +543,7 @@ class AbstractPriorModel(AbstractModel):
             elif use_errors and use_widths:
                 sigma = max(tuples[i][1], width)
             else:
-                raise exc.PriorException("use_passed_errors and use_widths are both False, meeaning there is no "
+                raise exc.PriorException("use_passed_errors and use_widths are both False, meaning there is no "
                                          "way to pass priors to set up the new model's Gaussian Priors.")
 
             arguments[prior] = GaussianPrior(
@@ -487,7 +566,7 @@ class AbstractPriorModel(AbstractModel):
             unit_vector=[0.5] * len(self.prior_tuples)
         )
 
-    def log_priors_from_vector(
+    def log_prior_list_from_vector(
             self,
             vector: [float],
     ):
@@ -500,7 +579,7 @@ class AbstractPriorModel(AbstractModel):
             A vector of physical parameter values.
         Returns
         -------
-        log_priors : []
+        log_prior_list : []
             An list of the log prior value of every parameter.
         """
         return list(
@@ -515,6 +594,7 @@ class AbstractPriorModel(AbstractModel):
         """
         Returns a random instance of the model.
         """
+        logger.debug(f"Creating a random instance")
         return self.instance_from_unit_vector(
             unit_vector=[random() for _ in self.prior_tuples]
         )
@@ -524,6 +604,7 @@ class AbstractPriorModel(AbstractModel):
     def from_instance(instance, model_classes=tuple()):
         """
         Recursively create an prior object model from an object model.
+
         Parameters
         ----------
         model_classes
@@ -535,7 +616,9 @@ class AbstractPriorModel(AbstractModel):
             A concrete child of an abstract prior model
         """
         from autofit.mapper.prior_model import collection
-        if isinstance(instance, list):
+        if isinstance(instance, (Prior, AbstractPriorModel)):
+            return instance
+        elif isinstance(instance, list):
             result = collection.CollectionPriorModel(
                 [
                     AbstractPriorModel.from_instance(item, model_classes=model_classes)
@@ -702,15 +785,7 @@ class AbstractPriorModel(AbstractModel):
         -------
             An instance of the class
         """
-        if self.promise_count > 0:
-            unpopulated_string = "\n".join(
-                f"{promise} -> {path}"
-                for path, promise
-                in self.unique_promise_tuples
-            )
-            raise exc.PriorException(
-                f"All promises must be populated prior to instantiation.\n\nUnpopulated promises:\n{unpopulated_string}"
-            )
+        logger.debug(f"Creating an instance for arguments")
         if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
             for prior, value in arguments.items():
                 if isinstance(value, Number):
@@ -722,18 +797,6 @@ class AbstractPriorModel(AbstractModel):
     @property
     def prior_count(self):
         return len(self.unique_prior_tuples)
-
-    @property
-    def promise_count(self):
-        return len(self.unique_promise_tuples)
-
-    @property
-    def variable_promise_count(self):
-        return len([
-            value for key, value in
-            self.unique_promise_tuples
-            if not value.is_instance
-        ])
 
     @property
     def priors(self):
@@ -790,7 +853,7 @@ class AbstractPriorModel(AbstractModel):
         excluded_classes
             Classes that should be left model
         instance
-            The best fit from the previous phase
+            The best fit from the previous search
         """
         mapper = copy.deepcopy(self)
         transfer_classes(instance, mapper, excluded_classes)
@@ -850,11 +913,10 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        from autofit.mapper.prior.promise import AbstractPromise
         formatter = TextFormatter()
 
         for t in self.path_instance_tuples_for_class((
-                Prior, float, AbstractPromise, tuple
+                Prior, float, tuple
         )):
             formatter.add(t)
 
@@ -902,6 +964,19 @@ class AbstractPriorModel(AbstractModel):
         return parameter_labels
 
     @property
+    def parameter_labels_latex(self) -> [str]:
+        """
+        Returns a list of the label of every parameter in a model.
+
+        This is used for displaying model results as text and for visualization with *corner.py*.
+
+        The parameter labels are defined for every parameter of every model component in the config files label.ini and
+        label_format.ini.
+        """
+
+        return [f"${label}$" for label in self.parameter_labels]
+
+    @property
     def subscripts(self) -> [str]:
         """
         Returns a list of the model component subscripts of every parameter in a model.
@@ -939,9 +1014,9 @@ def transfer_classes(instance, mapper, model_classes=None):
     model_classes
         Classes whose descendants should not be overwritten
     instance
-        The best fit from the previous phase
+        The best fit from the previous search
     mapper
-        The prior model from the previous phase
+        The prior model from the previous search
     """
     from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 

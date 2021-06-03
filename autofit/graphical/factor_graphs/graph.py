@@ -1,16 +1,19 @@
 from collections import Counter, defaultdict
-from typing import \
-    Tuple, Dict, Collection, List, Callable, Optional, Union
+from functools import reduce
 from itertools import count
-from functools import reduce 
+from typing import (
+    Tuple, Dict, Collection, List
+)
 
 import numpy as np
 
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
-from autofit.mapper.variable import Variable, Plate
 from autofit.graphical.utils import \
+    (
     add_arrays, aggregate, Axis, cached_property
+)
+from autofit.mapper.variable import Variable, Plate
 
 
 class FactorGraph(AbstractNode):
@@ -81,10 +84,16 @@ class FactorGraph(AbstractNode):
         If there is an inconsistency with this graph
         """
         det_var_counts = ", ".join(
-            v for v, c in Counter(
-                v for f in self.factors
-                for v in f.deterministic_variables).items()
-            if c > 1)
+            map(
+                str,
+                [
+                    v for v, c in Counter(
+                    v for f in self.factors
+                    for v in f.deterministic_variables).items()
+                    if c > 1
+                ]
+            )
+        )
         if det_var_counts:
             raise ValueError(
                 "Improper FactorGraph, "
@@ -95,13 +104,13 @@ class FactorGraph(AbstractNode):
     @cached_property
     def all_variables(self):
         return reduce(
-            set.union, 
+            set.union,
             (factor.all_variables for factor in self.factors))
 
     @cached_property
     def deterministic_variables(self):
         return reduce(
-            set.union, 
+            set.union,
             (factor.deterministic_variables for factor in self.factors))
 
     @cached_property
@@ -132,7 +141,7 @@ class FactorGraph(AbstractNode):
                 det_vars = factor.deterministic_variables
                 calls.append(factor)
                 # TODO: this might cause problems 
-                # if det_vars appear more than once
+                # TODO: if det_vars appear more than once
                 new_variables.update(det_vars)
 
             call_sequence.append(calls)
@@ -148,7 +157,7 @@ class FactorGraph(AbstractNode):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False, 
+            axis: Axis = False,
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -175,7 +184,11 @@ class FactorGraph(AbstractNode):
         det_values = {}
         variables = variable_dict.copy()
 
-        missing = set(v.name for v in self.variables).difference(v.name for v in variables)
+        missing = set(
+            v.name for v in self.variables
+        ).difference(
+            v.name for v in variables
+        )
         if missing:
             n_miss = len(missing)
             missing_str = ", ".join(missing)
@@ -241,7 +254,7 @@ class FactorGraph(AbstractNode):
         return G
 
     def draw_graph(
-            self, 
+            self,
             pos=None, ax=None, size=20, color='k', fill='w',
             factor_shape='s', variable_shape='o',
             factor_kws=None, variable_kws=None, edge_kws=None,
@@ -297,44 +310,44 @@ class FactorGraph(AbstractNode):
         return fs, vs, edges
 
     def draw_graph_labels(
-            self, 
-            pos, 
-            factor_labels=None, 
-            variable_labels=None, 
-            shift = 0.1,
-            f_shift = None, 
-            v_shift = None, 
-            f_horizontalalignment='right', 
-            v_horizontalalignment='left', 
-            f_kws=None, 
+            self,
+            pos,
+            factor_labels=None,
+            variable_labels=None,
+            shift=0.1,
+            f_shift=None,
+            v_shift=None,
+            f_horizontalalignment='right',
+            v_horizontalalignment='left',
+            f_kws=None,
             v_kws=None,
-            graph = None, 
+            graph=None,
             **kwargs
     ):
         try:
             import networkx as nx
         except ImportError as e:
             raise ImportError("Matplotlib and networkx required for draw_graph()") from e
-        
+
         graph = graph or self.graph
         factor_labels = (
-            factor_labels or {f: f.name for f in self.factors})
+                factor_labels or {f: f.name for f in self.factors})
         variable_labels = (
-            variable_labels or {v: v.name for v in self.all_variables})
+                variable_labels or {v: v.name for v in self.all_variables})
         f_kws = f_kws or {'horizontalalignment': 'right'}
         v_kws = v_kws or {'horizontalalignment': 'left'}
 
-        f_shift = f_shift or shift 
+        f_shift = f_shift or shift
         f_pos = {f: (x - f_shift, y) for f, (x, y) in pos.items()}
-        v_shift = v_shift or shift 
+        v_shift = v_shift or shift
         v_pos = {f: (x + v_shift, y) for f, (x, y) in pos.items()}
-        
+
         return {
             **nx.draw_networkx_labels(
                 graph, f_pos, labels=factor_labels, **f_kws, **kwargs),
             **nx.draw_networkx_labels(
-                graph, v_pos, labels=variable_labels, **v_kws, **kwargs)}
-
+                graph, v_pos, labels=variable_labels, **v_kws, **kwargs)
+        }
 
 
 def bipartite_layout(factors):
@@ -342,7 +355,7 @@ def bipartite_layout(factors):
     n_variables = len(set().union(*(f.variables for f in factors)))
     n = max(n_factors, n_variables)
     factor_count = count()
-    variable_count = count()    
+    variable_count = count()
 
     pos = {}
     for factor in factors:

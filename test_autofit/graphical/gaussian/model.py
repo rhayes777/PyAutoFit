@@ -1,7 +1,8 @@
 import numpy as np
-
 # TODO: Use autofit class?
 from scipy import stats
+
+import autofit as af
 
 
 def _gaussian(x, centre, intensity, sigma):
@@ -24,7 +25,7 @@ class Profile:
         ----------
         centre : float
             The x coordinate of the profile centre.
-        intensity : float
+        intensity
             Overall intensity normalisation of the profile.
         """
         self.centre = centre
@@ -45,7 +46,7 @@ class Gaussian(Profile):
         ----------
         centre : float
             The x coordinate of the profile centre.
-        intensity : float
+        intensity
             Overall intensity normalisation of the Gaussian profile.
         sigma : float
             The sigma value controlling the size of the Gaussian.
@@ -79,7 +80,7 @@ def make_data(gaussian, x):
     return y
 
 
-class Analysis:
+class Analysis(af.Analysis):
     def __init__(self, x, y, sigma=.04):
         self.x = x
         self.y = y
@@ -91,4 +92,4 @@ class Analysis:
         likelihood that it fits the data.
         """
         y_model = instance(self.x)
-        return np.sum(_likelihood(y_model, self.y) / self.sigma**2)
+        return np.sum(_likelihood(y_model, self.y) / self.sigma ** 2)

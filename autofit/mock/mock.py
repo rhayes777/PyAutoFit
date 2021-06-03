@@ -5,7 +5,6 @@ import numpy as np
 import autofit as af
 from autoconf import conf
 from autofit.non_linear.samples import Sample
-from autofit.tools.phase import Dataset
 
 
 class MockAnalysis(af.Analysis):
@@ -31,7 +30,6 @@ class MockResult:
             self,
             samples=None,
             instance=None,
-            previous_model=None,
             model=None,
             analysis=None,
             search=None,
@@ -40,11 +38,10 @@ class MockResult:
         self.model = model or af.ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
 
-        self.previous_model = model
         self.gaussian_tuples = None
         self.analysis = analysis
         self.search = search
-        self.previous_model = previous_model
+        self.model = model
 
     def model_absolute(self, absolute):
         return self.model
@@ -57,32 +54,53 @@ class MockResult:
         return self
 
 
+
 class MockSamples(af.PDFSamples):
     def __init__(
             self,
+            model=None,
+            samples=None,
             max_log_likelihood_instance=None,
-            log_likelihoods=None,
+            log_likelihood_list=None,
             gaussian_tuples=None,
+            unconverged_sample_size=10,
+            **kwargs,
     ):
 
-        if log_likelihoods is None:
-            log_likelihoods = [1.0, 2.0, 3.0]
+        self.model = model
+        self._samples = samples
+        self._log_likelihood_list = log_likelihood_list
 
         super().__init__(
-            model=None,
-            samples=[
-                Sample(
-                    log_likelihood=log_likelihood,
-                    log_prior=0.0,
-                    weights=0.0
-                )
-                for log_likelihood
-                in log_likelihoods
-            ]
+            model=model, unconverged_sample_size=unconverged_sample_size, **kwargs
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self.gaussian_tuples = gaussian_tuples
+
+    @property
+    def log_likelihood_list(self):
+
+        if self._log_likelihood_list is None:
+            return [1.0, 2.0, 3.0]
+
+        return self._log_likelihood_list
+
+    @property
+    def samples(self):
+
+        if self._samples is not None:
+            return self._samples
+
+        return [
+            Sample(
+                log_likelihood=log_likelihood,
+                log_prior=0.0,
+                weight=0.0
+            )
+            for log_likelihood
+            in self.log_likelihood_list
+        ]
 
     @property
     def max_log_likelihood_instance(self):
@@ -99,9 +117,8 @@ class MockSamples(af.PDFSamples):
 
 
 class MockSearch(af.NonLinearSearch):
-    def __init__(self, paths=None, samples=None, name=None):
-        self.name = name
-        super().__init__(paths=paths)
+    def __init__(self, samples=None, name=""):
+        super().__init__(name=name)
 
         self.samples = samples or MockSamples()
 
@@ -131,29 +148,12 @@ class MockSearch(af.NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["mock"]
 
-    @property
-    def tag(self):
-        return "mock"
-
     def perform_update(self, model, analysis, during_analysis):
-        self.save_samples(samples=self.samples)
+        self.paths.save_object("samples", self.samples)
         return self.samples
 
-    def samples_via_csv_json_from_model(self, model):
+    def samples_from(self, model):
         return self.samples
-
-    def samples_via_sampler_from_model(self, model):
-        return self.samples
-
-
-class MockDataset(Dataset):
-    @property
-    def metadata(self) -> dict:
-        return dict()
-
-    @property
-    def name(self) -> str:
-        return "name"
 
 
 ### Mock Classes ###
@@ -257,17 +257,17 @@ class MedianPDFInstance:
         self.name = name
 
 
-class MockPhaseOutput:
-    def __init__(self, directory, pipeline, phase, dataset):
+class MockSearchOutput:
+    def __init__(self, directory, pipeline, search, dataset):
         self.directory = directory
         self.pipeline = pipeline
-        self.phase = phase
+        self.search = search
         self.dataset = dataset
 
     @property
     def median_pdf_instance(self):
         return MedianPDFInstance(
-            self.phase
+            self.search
         )
 
     @property
@@ -283,7 +283,7 @@ class Profile:
         ----------
         centre : float
             The x coordinate of the profile centre.
-        intensity : float
+        intensity
             Overall intensity normalisation of the profile.
         """
         self.centre = centre
@@ -304,13 +304,20 @@ class Gaussian(Profile):
         ----------
         centre : float
             The x coordinate of the profile centre.
-        intensity : float
+        intensity
             Overall intensity normalisation of the Gaussian profile.
         sigma : float
             The sigma value controlling the size of the Gaussian.
         """
         super().__init__(centre=centre, intensity=intensity)
         self.sigma = sigma  # We still need to set sigma for the Gaussian, of course.
+
+    def __eq__(self, other):
+        return all([
+            self.centre == other.centre,
+            self.intensity == other.intensity,
+            self.sigma == other.sigma
+        ])
 
     def __call__(self, xvalues):
         """

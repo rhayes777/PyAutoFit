@@ -11,6 +11,7 @@ from scipy.special import erfcinv
 
 from autoconf import conf
 from autofit import exc
+from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior_model.attribute_pair import (
@@ -72,7 +73,7 @@ class AbsoluteWidthModifier(WidthModifier):
         return self.value
 
 
-class TuplePrior:
+class TuplePrior(ModelObject):
     """
     A prior comprising one or more priors in a tuple
     """
@@ -303,13 +304,17 @@ class GaussianPrior(Prior):
         self.mean = float(mean)
         self.sigma = float(sigma)
 
-    @property
-    def norm(self):
-        return stats.norm(loc=self.mean, scale=self.sigma)
+        self._log_pdf = None
 
     @property
     def logpdf(self):
-        return self.norm.logpdf
+        if self._log_pdf is None:
+            norm = stats.norm(
+                loc=self.mean,
+                scale=self.sigma
+            )
+            self._log_pdf = norm.logpdf
+        return self._log_pdf
 
     def __call__(self, x):
         return self.logpdf(x)
@@ -330,7 +335,7 @@ class GaussianPrior(Prior):
 
     def log_prior_from_value(self, value):
         """
-    Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
         This is used by Emcee in the log likelihood function evaluation.

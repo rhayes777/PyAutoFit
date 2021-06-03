@@ -1,14 +1,13 @@
-import builtins
-import importlib
 import inspect
-import re
-from typing import List, Tuple, Any, Iterable, Union, ItemsView
+from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
+import numpy as np
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 import autofit as af
+from autofit.util import get_class_path, get_class
 
 Base = declarative_base()
 
@@ -38,10 +37,26 @@ class Object(Base):
         uselist=False,
         remote_side=[id]
     )
+
+    samples_for_id = Column(
+        Integer,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    samples_for = relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[samples_for_id]
+    )
+
     children: List["Object"] = relationship(
         "Object",
         uselist=True,
     )
+
+    def __len__(self):
+        return len(self.children)
 
     name = Column(String)
 
@@ -58,13 +73,17 @@ class Object(Base):
     def from_object(
             cls,
             source,
-            name=None
+            name=""
     ):
         """
         Create a database object for an object in a model.
 
         The specific database class used depends on the type of
         the object.
+
+        If __getstate__ is defined for any instance then that
+        dictionary is used in place of the __dict__ when
+        serialising.
 
         Parameters
         ----------
@@ -77,7 +96,10 @@ class Object(Base):
         -------
         An instance of a concrete child of this class
         """
-        if source is None:
+        if source is None or isinstance(
+                source,
+                np.ndarray
+        ):
             from .instance import NoneInstance
             instance = NoneInstance()
         elif isinstance(source, af.PriorModel):
@@ -100,7 +122,7 @@ class Object(Base):
             instance = Collection._from_object(
                 source
             )
-        elif isinstance(source, (af.CollectionPriorModel, dict, list)):
+        elif isinstance(source, (af.CollectionPriorModel, dict)):
             from .prior import CollectionPriorModel
             instance = CollectionPriorModel._from_object(
                 source
@@ -130,20 +152,37 @@ class Object(Base):
         """
         Create the real instance for this object
         """
-        return object.__new__(self.cls)
+        try:
+            return object.__new__(self.cls)
+        except TypeError as e:
+            raise TypeError(
+                f"Could not instantiate {self.name} of type {self.cls}"
+            ) from e
 
     def __call__(self):
         """
         Create the real instance for this object, with child
-        attributes attached
+        attributes attached.
+
+        If the instance implements __setstate__ then this is
+        called with a dictionary of instantiated children.
         """
         instance = self._make_instance()
-        for child in self.children:
-            setattr(
+        if hasattr(
                 instance,
-                child.name,
-                child()
-            )
+                "__setstate__"
+        ):
+            instance.__setstate__({
+                child.name: child()
+                for child in self.children
+            })
+        else:
+            for child in self.children:
+                setattr(
+                    instance,
+                    child.name,
+                    child()
+                )
         return instance
 
     def _add_children(
@@ -166,7 +205,9 @@ class Object(Base):
             if isinstance(
                     value,
                     property
-            ):
+            ) or key.startswith(
+                "__"
+            ) or key == "dtype":
                 continue
             child = Object.from_object(
                 value,
@@ -181,56 +222,14 @@ class Object(Base):
     )
 
     @property
-    def _class_path_array(self) -> List[str]:
-        """
-        A list of strings describing the module and class of the
-        real object represented here
-        """
-        return self.class_path.split(".")
-
-    @property
-    def _class_name(self) -> str:
-        """
-        The name of the real class
-        """
-        return self._class_path_array[-1]
-
-    @property
-    def _module_path(self) -> str:
-        """
-        The path of the module containing the real class
-        """
-        return ".".join(self._class_path_array[:-1])
-
-    @property
-    def _module(self):
-        """
-        The module containing the real class
-        """
-        try:
-            return importlib.import_module(
-                self._module_path
-            )
-        except ValueError:
-            return builtins
-
-    @property
-    def cls(self) -> type:
+    def cls(self) -> Type[object]:
         """
         The class of the real object
         """
-        return getattr(
-            self._module,
-            self._class_name
+        return get_class(
+            self.class_path
         )
 
     @cls.setter
     def cls(self, cls: type):
         self.class_path = get_class_path(cls)
-
-
-def get_class_path(cls: type) -> str:
-    """
-    The full import path of the type
-    """
-    return re.search("'(.*)'", str(cls))[1]

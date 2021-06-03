@@ -3,7 +3,7 @@ from autofit.mock.mock import MockClassx4
 
 
 class MockFitness:
-    def figure_of_merit_from_parameters(self, parameters):
+    def figure_of_merit_from(self, parameter_list):
         return 1.0
 
 
@@ -18,29 +18,29 @@ class TestInitializePrior:
 
         initializer = af.InitializerPrior()
 
-        initial_unit_parameters, initial_parameters, initial_figures_of_merit = initializer.initial_samples_from_model(
+        initial_unit_parameter_lists, initial_parameter_lists, initial_figure_of_merit_list = initializer.initial_samples_from_model(
             total_points=2, model=model, fitness_function=MockFitness()
         )
 
-        assert 0.0 < initial_unit_parameters[0][0] < 1.0
-        assert 0.0 < initial_unit_parameters[1][0] < 1.0
-        assert 0.0 < initial_unit_parameters[0][1] < 1.0
-        assert 0.0 < initial_unit_parameters[1][1] < 1.0
-        assert 0.0 < initial_unit_parameters[0][2] < 1.0
-        assert 0.0 < initial_unit_parameters[1][2] < 1.0
-        assert 0.0 < initial_unit_parameters[0][3] < 1.0
-        assert 0.0 < initial_unit_parameters[1][3] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][0] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][0] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][1] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][1] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][2] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][2] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][3] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][3] < 1.0
 
-        assert 0.099 < initial_parameters[0][0] < 0.101
-        assert 0.099 < initial_parameters[1][0] < 0.101
-        assert 0.199 < initial_parameters[0][1] < 0.201
-        assert 0.199 < initial_parameters[1][1] < 0.201
-        assert 0.299 < initial_parameters[0][2] < 0.301
-        assert 0.299 < initial_parameters[1][2] < 0.301
-        assert 0.399 < initial_parameters[0][3] < 0.401
-        assert 0.399 < initial_parameters[1][3] < 0.401
+        assert 0.099 < initial_parameter_lists[0][0] < 0.101
+        assert 0.099 < initial_parameter_lists[1][0] < 0.101
+        assert 0.199 < initial_parameter_lists[0][1] < 0.201
+        assert 0.199 < initial_parameter_lists[1][1] < 0.201
+        assert 0.299 < initial_parameter_lists[0][2] < 0.301
+        assert 0.299 < initial_parameter_lists[1][2] < 0.301
+        assert 0.399 < initial_parameter_lists[0][3] < 0.401
+        assert 0.399 < initial_parameter_lists[1][3] < 0.401
 
-        assert initial_figures_of_merit == [1.0, 1.0]
+        assert initial_figure_of_merit_list == [1.0, 1.0]
 
     def test__initial_samples_in_test_model(self):
 
@@ -52,29 +52,29 @@ class TestInitializePrior:
 
         initializer = af.InitializerPrior()
 
-        initial_unit_parameters, initial_parameters, initial_figures_of_merit = initializer.initial_samples_in_test_mode(
+        initial_unit_parameter_lists, initial_parameter_lists, initial_figure_of_merit_list = initializer.initial_samples_in_test_mode(
             total_points=2, model=model,
         )
 
-        assert 0.0 < initial_unit_parameters[0][0] < 1.0
-        assert 0.0 < initial_unit_parameters[1][0] < 1.0
-        assert 0.0 < initial_unit_parameters[0][1] < 1.0
-        assert 0.0 < initial_unit_parameters[1][1] < 1.0
-        assert 0.0 < initial_unit_parameters[0][2] < 1.0
-        assert 0.0 < initial_unit_parameters[1][2] < 1.0
-        assert 0.0 < initial_unit_parameters[0][3] < 1.0
-        assert 0.0 < initial_unit_parameters[1][3] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][0] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][0] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][1] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][1] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][2] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][2] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[0][3] < 1.0
+        assert 0.0 < initial_unit_parameter_lists[1][3] < 1.0
 
-        assert 0.099 < initial_parameters[0][0] < 0.101
-        assert 0.099 < initial_parameters[1][0] < 0.101
-        assert 0.199 < initial_parameters[0][1] < 0.201
-        assert 0.199 < initial_parameters[1][1] < 0.201
-        assert 0.299 < initial_parameters[0][2] < 0.301
-        assert 0.299 < initial_parameters[1][2] < 0.301
-        assert 0.399 < initial_parameters[0][3] < 0.401
-        assert 0.399 < initial_parameters[1][3] < 0.401
+        assert 0.099 < initial_parameter_lists[0][0] < 0.101
+        assert 0.099 < initial_parameter_lists[1][0] < 0.101
+        assert 0.199 < initial_parameter_lists[0][1] < 0.201
+        assert 0.199 < initial_parameter_lists[1][1] < 0.201
+        assert 0.299 < initial_parameter_lists[0][2] < 0.301
+        assert 0.299 < initial_parameter_lists[1][2] < 0.301
+        assert 0.399 < initial_parameter_lists[0][3] < 0.401
+        assert 0.399 < initial_parameter_lists[1][3] < 0.401
 
-        assert initial_figures_of_merit == [-1.0e99, -1.0e99]
+        assert initial_figure_of_merit_list == [-1.0e99, -1.0e99]
 
 
 class TestInitializeBall:
@@ -88,41 +88,41 @@ class TestInitializeBall:
 
         initializer = af.InitializerBall(lower_limit=0.4999, upper_limit=0.5001)
 
-        initial_unit_parameters, initial_parameters, initial_figures_of_merit = initializer.initial_samples_from_model(
+        initial_unit_parameter_lists, initial_parameter_lists, initial_figure_of_merit_list = initializer.initial_samples_from_model(
             total_points=2, model=model, fitness_function=MockFitness()
         )
 
-        assert 0.4999 < initial_unit_parameters[0][0] < 0.5001
-        assert 0.4999 < initial_unit_parameters[1][0] < 0.5001
-        assert 0.4999 < initial_unit_parameters[0][1] < 0.5001
-        assert 0.4999 < initial_unit_parameters[1][1] < 0.5001
-        assert 0.4999 < initial_unit_parameters[0][2] < 0.5001
-        assert 0.4999 < initial_unit_parameters[1][2] < 0.5001
-        assert 0.4999 < initial_unit_parameters[0][3] < 0.5001
-        assert 0.4999 < initial_unit_parameters[1][3] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[0][0] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[1][0] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[0][1] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[1][1] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[0][2] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[1][2] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[0][3] < 0.5001
+        assert 0.4999 < initial_unit_parameter_lists[1][3] < 0.5001
 
-        assert 0.499 < initial_parameters[0][0] < 0.501
-        assert 0.499 < initial_parameters[1][0] < 0.501
-        assert 0.999 < initial_parameters[0][1] < 1.001
-        assert 0.999 < initial_parameters[1][1] < 1.001
-        assert 1.499 < initial_parameters[0][2] < 1.501
-        assert 1.499 < initial_parameters[1][2] < 1.501
-        assert 1.999 < initial_parameters[0][3] < 2.001
-        assert 1.999 < initial_parameters[1][3] < 2.001
+        assert 0.499 < initial_parameter_lists[0][0] < 0.501
+        assert 0.499 < initial_parameter_lists[1][0] < 0.501
+        assert 0.999 < initial_parameter_lists[0][1] < 1.001
+        assert 0.999 < initial_parameter_lists[1][1] < 1.001
+        assert 1.499 < initial_parameter_lists[0][2] < 1.501
+        assert 1.499 < initial_parameter_lists[1][2] < 1.501
+        assert 1.999 < initial_parameter_lists[0][3] < 2.001
+        assert 1.999 < initial_parameter_lists[1][3] < 2.001
 
         initializer = af.InitializerBall(lower_limit=0.7999, upper_limit=0.8001)
 
-        initial_unit_parameters, initial_parameters, initial_figures_of_merit = initializer.initial_samples_from_model(
+        initial_unit_parameter_lists, initial_parameter_lists, initial_figure_of_merit_list = initializer.initial_samples_from_model(
             total_points=2, model=model, fitness_function=MockFitness()
         )
 
-        assert 0.799 < initial_parameters[0][0] < 0.801
-        assert 0.799 < initial_parameters[1][0] < 0.801
-        assert 1.599 < initial_parameters[0][1] < 1.601
-        assert 1.599 < initial_parameters[1][1] < 1.601
-        assert 2.399 < initial_parameters[0][2] < 2.401
-        assert 2.399 < initial_parameters[1][2] < 2.401
-        assert 3.199 < initial_parameters[0][3] < 3.201
-        assert 3.199 < initial_parameters[1][3] < 3.201
+        assert 0.799 < initial_parameter_lists[0][0] < 0.801
+        assert 0.799 < initial_parameter_lists[1][0] < 0.801
+        assert 1.599 < initial_parameter_lists[0][1] < 1.601
+        assert 1.599 < initial_parameter_lists[1][1] < 1.601
+        assert 2.399 < initial_parameter_lists[0][2] < 2.401
+        assert 2.399 < initial_parameter_lists[1][2] < 2.401
+        assert 3.199 < initial_parameter_lists[0][3] < 3.201
+        assert 3.199 < initial_parameter_lists[1][3] < 3.201
 
-        assert initial_figures_of_merit == 2 * [1.0]
+        assert initial_figure_of_merit_list == 2 * [1.0]

@@ -1,7 +1,7 @@
 .. _search_grid_search:
 
 Search Grid-Search
-------------------
+==================
 
 A classic method to perform model-fitting is a grid search, where the parameters of a model are divided on to a grid of
 values and the likelihood of each set of parameters on this grid is sampled. For low dimensionality problems this
@@ -21,6 +21,9 @@ The benefits of using a search grid search are:
 
 - The search grid search is embarrassingly parallel, and if sufficient computing facilities are available one can perform model-fitting faster in real-time than a single non-linear search. The **PyAutoFit** search grid search includes an option for parallel model-fitting via the Python ``multiprocessing`` module.
 
+Data
+----
+
 In this example we will demonstrate the search grid search feature, again using the example of fitting 1D Gaussian's
 in noisy data. This 1D data includes a small feature to the right of the central ``Gaussian``, a second ``Gaussian``
 centred on pixel 70.
@@ -29,18 +32,21 @@ centred on pixel 70.
   :width: 600
   :alt: Alternative text
 
+Basic Fit
+---------
+
 Without the search grid search we can fit this data as normal, by composing and fitting a model
 containing two ``Gaussians``'s.
 
 .. code-block:: bash
 
-    model = af.CollectionPriorModel(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
+    model = af.Collection(gaussian_main=m.Gaussian, gaussian_feature=m.Gaussian)
 
     analysis = a.Analysis(data=data, noise_map=noise_map)
 
     dynesty = af.DynestyStatic(
         name="single_fit",
-        n_live_points=100,
+        nlive=100,
     )
 
     result = dynesty.fit(model=model, analysis=analysis)
@@ -55,13 +61,16 @@ The image below shows a fit where we failed to detect the feature:
   :width: 600
   :alt: Alternative text
 
+Grid Search
+-----------
+
 Lets now perform the search grid search using the ``SearchGridSearch`` object:
 
 .. code-block:: bash
 
     dynesty = af.DynestyStatic(
         name="grid_fit",
-        n_live_points=100,
+        nlive=100,
     )
 
     grid_search = af.SearchGridSearch(
@@ -92,6 +101,9 @@ the ``centre`` of the ``gaussian_feature`` in our model.
         analysis=analysis,
         grid_priors=[model.gaussian_feature.centre]
     )
+
+Result
+------
 
 This returns a ``GridSearchResult``, which includes information on every model-fit performed on the grid. For example,
 I can use it to print the ``log_evidence`` of all 5 model-fits.

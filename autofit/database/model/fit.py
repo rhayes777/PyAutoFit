@@ -1,10 +1,12 @@
 import pickle
+from functools import wraps
 from typing import List
 
-from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
 from sqlalchemy.orm import relationship
 
-from autofit import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.samples import OptimizerSamples
 from .model import Base, Object
 
 
@@ -30,7 +32,7 @@ class Pickle(Base):
         String
     )
     fit_id = Column(
-        Integer,
+        String,
         ForeignKey(
             "fit.id"
         )
@@ -45,6 +47,11 @@ class Pickle(Base):
         """
         The unpickled object
         """
+        if isinstance(
+                self.string,
+                str
+        ):
+            return self.string
         return pickle.loads(
             self.string
         )
@@ -56,26 +63,134 @@ class Pickle(Base):
         )
 
 
+class Info(Base):
+    __tablename__ = "info"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    key = Column(String)
+    value = Column(String)
+
+    fit_id = Column(
+        String,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    fit = relationship(
+        "Fit",
+        uselist=False
+    )
+
+
+def try_none(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except TypeError:
+            return None
+
+    return wrapper
+
+
 class Fit(Base):
     __tablename__ = "fit"
 
     id = Column(
-        Integer,
+        String,
         primary_key=True,
     )
-    dataset_name = Column(
-        String
-    )
-    phase_name = Column(
-        String
+    is_complete = Column(
+        Boolean
     )
 
-    def __init__(self, **kwargs):
+    _info: List[Info] = relationship(
+        "Info"
+    )
+
+    def __init__(
+            self,
+            **kwargs
+    ):
         super().__init__(
             **kwargs
         )
 
+    parent_id = Column(
+        String,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    parent: "Fit" = relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[
+            parent_id
+        ]
+    )
+    children = relationship(
+        "Fit"
+    )
+
+    is_grid_search = Column(
+        Boolean
+    )
+
+    unique_tag = Column(
+        String
+    )
+    name = Column(
+        String
+    )
+    path_prefix = Column(
+        String
+    )
+
+    _samples = relationship(
+        Object,
+        uselist=False,
+        foreign_keys=[
+            Object.samples_for_id
+        ]
+    )
+
     @property
+    def samples(self) -> OptimizerSamples:
+        return self._samples()
+
+    @samples.setter
+    def samples(self, samples):
+        self._samples = Object.from_object(
+            samples
+        )
+
+    @property
+    def info(self):
+        return {
+            info.key: info.value
+            for info
+            in self._info
+        }
+
+    @info.setter
+    def info(self, info):
+        if info is not None:
+            self._info = [
+                Info(
+                    key=key,
+                    value=value
+                )
+                for key, value
+                in info.items()
+            ]
+
+    @property
+    @try_none
     def model(self) -> AbstractPriorModel:
         """
         The model that was fit
@@ -83,6 +198,7 @@ class Fit(Base):
         return self.__model()
 
     @property
+    @try_none
     def instance(self):
         """
         The instance of the model that had the highest likelihood
@@ -129,6 +245,12 @@ class Fit(Base):
             item
         )
 
+    def __contains__(self, item):
+        for p in self.pickles:
+            if p.name == item:
+                return True
+        return False
+
     def __setitem__(
             self,
             key: str,
@@ -166,6 +288,20 @@ class Fit(Base):
                            new
                        ]
 
+    def __delitem__(self, key):
+        self.pickles = [
+            p
+            for p
+            in self.pickles
+            if p.name != key
+        ]
+
+    def value(self, name: str):
+        try:
+            return self.__getitem__(item=name)
+        except AttributeError:
+            return None
+
     model_id = Column(
         Integer,
         ForeignKey(
@@ -191,3 +327,18 @@ class Fit(Base):
         backref="fit_instance",
         foreign_keys=[instance_id]
     )
+
+    @classmethod
+    def all(cls, session):
+        return session.query(
+            cls
+        ).all()
+
+    def __str__(self):
+        return self.id
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
+
+
+fit_attributes = inspect(Fit).columns

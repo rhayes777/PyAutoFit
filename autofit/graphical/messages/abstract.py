@@ -269,17 +269,16 @@ class AbstractMessage(ABC):
     logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
-    def project(cls, samples: np.ndarray, log_weights: np.ndarray
-    ) -> "AbstractMessage":
+    def project(cls, samples: np.ndarray, log_weight_list: np.ndarray) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
         that match the sufficient statistics
         """
-        # if weights aren't passed then equally weight all samples
+        # if weight_list aren't passed then equally weight all samples
 
-        # Numerically stable weighting for very small/large weights
-        log_w_max = np.max(log_weights, axis=0, keepdims=True)
-        w = np.exp(log_weights - log_w_max)
+        # Numerically stable weighting for very small/large weight_list
+        log_w_max = np.max(log_weight_list, axis=0, keepdims=True)
+        w = np.exp(log_weight_list - log_w_max)
         norm = w.mean(0)
         log_norm = np.log(norm) + log_w_max[0]
 

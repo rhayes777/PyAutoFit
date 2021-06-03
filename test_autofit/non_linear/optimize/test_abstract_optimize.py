@@ -25,34 +25,10 @@ def make_samples():
         model=model,
         samples=Sample.from_lists(
             model=model,
-            parameters=parameters,
-            log_likelihoods=[1.0, 2.0, 3.0, 10.0, 5.0],
-            log_priors=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weights=[1.0, 1.0, 1.0, 1.0, 1.0],
+            parameter_lists=parameters,
+            log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
         )
     )
 
-
-class TestJsonCSV:
-    def test__from_csv_table_and_json_info(self, samples):
-
-        optimize = af.PySwarmsGlobal(paths=af.Paths(path_prefix=path.join("non_linear", "pyswarms")))
-
-        samples.write_table(filename=path.join(optimize.paths.samples_path, "samples.csv"))
-        samples.info_to_json(filename=path.join(optimize.paths.samples_path, "info.json"))
-
-        model = af.ModelMapper(mock_class_1=MockClassx4)
-
-        samples = optimize.samples_via_csv_json_from_model(model=model)
-
-        assert samples.parameters == [
-            [0.0, 1.0, 2.0, 3.0],
-            [0.0, 1.0, 2.0, 3.0],
-            [0.0, 1.0, 2.0, 3.0],
-            [21.0, 22.0, 23.0, 24.0],
-            [0.0, 1.0, 2.0, 3.0],
-        ]
-        assert samples.log_likelihoods == [1.0, 2.0, 3.0, 10.0, 5.0]
-        assert samples.log_priors == [0.0, 0.0, 0.0, 0.0, 0.0]
-        assert samples.log_posteriors == [1.0, 2.0, 3.0, 10.0, 5.0]
-        assert samples.weights == [1.0, 1.0, 1.0, 1.0, 1.0]

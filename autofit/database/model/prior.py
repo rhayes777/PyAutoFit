@@ -2,7 +2,7 @@ from typing import Union
 
 from sqlalchemy import Column, Integer, ForeignKey
 
-import autofit as af
+from autofit import mapper as af
 from .model import Object
 
 

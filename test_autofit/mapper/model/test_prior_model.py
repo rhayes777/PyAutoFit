@@ -25,6 +25,11 @@ def make_complex_prior_model():
     return af.AbstractPriorModel.from_instance(instance)
 
 
+def test_class_assertion():
+    with pytest.raises(AssertionError):
+        af.Model("Hello")
+
+
 class TestAsModel:
     def test_instance(self, instance_prior_model):
         model = instance_prior_model.as_model()
@@ -144,8 +149,8 @@ class TestFromInstance:
 
 class TestSum:
     def test_add_prior_models(self):
-        profile_1 = af.PriorModel(mock_real.EllipticalProfile)
-        profile_2 = af.PriorModel(mock_real.EllipticalProfile)
+        profile_1 = af.PriorModel(mock_real.EllProfile)
+        profile_2 = af.PriorModel(mock_real.EllProfile)
 
         profile_1.axis_ratio = 1.0
         profile_2.phi = 0.0
@@ -153,13 +158,13 @@ class TestSum:
         result = profile_1 + profile_2
 
         assert isinstance(result, af.PriorModel)
-        assert result.cls == mock_real.EllipticalProfile
+        assert result.cls == mock_real.EllProfile
         assert isinstance(result.axis_ratio, af.Prior)
         assert isinstance(result.phi, af.Prior)
 
     def test_fail_for_mismatch(self):
-        profile_1 = af.PriorModel(mock_real.EllipticalProfile)
-        profile_2 = af.PriorModel(mock_real.EllipticalMassProfile)
+        profile_1 = af.PriorModel(mock_real.EllProfile)
+        profile_2 = af.PriorModel(mock_real.EllMassProfile)
 
         with pytest.raises(TypeError):
             profile_1 + profile_2
@@ -167,16 +172,16 @@ class TestSum:
     def test_add_children(self):
         galaxy_1 = af.PriorModel(
             mock.MockComponents,
-            components_0=af.CollectionPriorModel(light_1=mock_real.EllipticalProfile),
+            components_0=af.CollectionPriorModel(light_1=mock_real.EllProfile),
             components_1=af.CollectionPriorModel(
-                mass_1=mock_real.EllipticalMassProfile
+                mass_1=mock_real.EllMassProfile
             ),
         )
         galaxy_2 = af.PriorModel(
             mock.MockComponents,
-            components_0=af.CollectionPriorModel(light_2=mock_real.EllipticalProfile),
+            components_0=af.CollectionPriorModel(light_2=mock_real.EllProfile),
             components_1=af.CollectionPriorModel(
-                mass_2=mock_real.EllipticalMassProfile
+                mass_2=mock_real.EllMassProfile
             ),
         )
 
@@ -191,14 +196,14 @@ class TestSum:
     def test_prior_model_override(self):
         galaxy_1 = af.PriorModel(
             mock.MockComponents,
-            components_0=af.CollectionPriorModel(light=mock_real.EllipticalProfile()),
-            components_1=af.CollectionPriorModel(mass=mock_real.EllipticalMassProfile),
+            components_0=af.CollectionPriorModel(light=mock_real.EllProfile()),
+            components_1=af.CollectionPriorModel(mass=mock_real.EllMassProfile),
         )
         galaxy_2 = af.PriorModel(
             mock.MockComponents,
-            components_0=af.CollectionPriorModel(light=mock_real.EllipticalProfile),
+            components_0=af.CollectionPriorModel(light=mock_real.EllProfile),
             components_1=af.CollectionPriorModel(
-                mass=mock_real.EllipticalMassProfile()
+                mass=mock_real.EllMassProfile()
             ),
         )
 
@@ -293,15 +298,15 @@ class TestPriorModelArguments:
     def test_arbitrary_keyword_arguments(self):
         prior_model = af.PriorModel(
             mock.MockComponents,
-            light=mock_real.EllipticalCoredIsothermal,
-            mass=mock_real.EllipticalMassProfile,
+            light=mock_real.EllIsothermalCored,
+            mass=mock_real.EllMassProfile,
         )
         assert prior_model.prior_count == 11
         instance = prior_model.instance_from_unit_vector(
             [0.5] * prior_model.prior_count
         )
-        assert isinstance(instance.light, mock_real.EllipticalCoredIsothermal)
-        assert isinstance(instance.mass, mock_real.EllipticalMassProfile)
+        assert isinstance(instance.light, mock_real.EllIsothermalCored)
+        assert isinstance(instance.mass, mock_real.EllMassProfile)
 
 
 class TestCase:

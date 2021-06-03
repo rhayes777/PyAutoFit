@@ -22,7 +22,7 @@ from autofit.graphical.utils import add_arrays
 class SamplingResult(NamedTuple):
     samples: Dict[str, np.ndarray]
     det_variables: Dict[str, np.ndarray]
-    log_weights: np.ndarray
+    log_weight_list: np.ndarray
     log_factor: np.ndarray
     log_measure: np.ndarray
     log_propose: np.ndarray
@@ -32,8 +32,8 @@ class SamplingResult(NamedTuple):
         return merge_sampling_results(self, other)
 
     @property
-    def weights(self):
-        return np.exp(self.log_weights)
+    def weight_list(self):
+        return np.exp(self.log_weight_list)
 
 
 def merge_sampling_results(*results: SamplingResult) -> SamplingResult:
@@ -54,19 +54,19 @@ def merge_sampling_results(*results: SamplingResult) -> SamplingResult:
     det_variables = {
         v: np.concatenate([r.det_variables[v] for r in results])
         for v in results[0].det_variables}
-    log_weights = np.concatenate([r.log_weights for r in results])
+    log_weight_list = np.concatenate([r.log_weight_list for r in results])
     log_factor = np.concatenate([r.log_factor for r in results])
     log_measure = np.concatenate([r.log_measure for r in results])
     log_propose = np.concatenate([r.log_propose for r in results])
 
     n_samples = sum(r.n_samples for r in results)
     return SamplingResult(
-        samples, det_variables, log_weights, log_factor,
+        samples, det_variables, log_weight_list, log_factor,
         log_measure, log_propose, n_samples)
 
 
-def effective_sample_size(weights: np.ndarray, axis=None) -> np.ndarray:
-    return np.sum(weights, axis=axis) ** 2 / np.square(weights).sum(axis=axis)
+def effective_sample_size(weight_list: np.ndarray, axis=None) -> np.ndarray:
+    return np.sum(weight_list, axis=axis) ** 2 / np.square(weight_list).sum(axis=axis)
 
 
 class SamplingHistory(NamedTuple):
@@ -192,14 +192,14 @@ class ImportanceSampler(AbstractSampler):
             log_propose = add_arrays(
                 log_propose, factor.broadcast_variable(*res))
 
-        log_weights = log_factor + log_measure - log_propose
+        log_weight_list = log_factor + log_measure - log_propose
 
-        assert np.isfinite(log_weights).all()
+        assert np.isfinite(log_weight_list).all()
 
         return SamplingResult(
             samples=samples,
             det_variables=det_vars,
-            log_weights=log_weights,
+            log_weight_list=log_weight_list,
             log_factor=log_factor,
             log_measure=log_measure,
             log_propose=log_propose,
@@ -223,8 +223,8 @@ class ImportanceSampler(AbstractSampler):
 
     def stop_criterion(self, sample: SamplingResult, **kwargs) -> bool:
         params = {**self.params, **kwargs}
-        ess = effective_sample_size(sample.weights, 0).mean()
-        n = len(sample.weights)
+        ess = effective_sample_size(sample.weight_list, 0).mean()
+        n = len(sample.weight_list)
 
         return ess > params['min_n_eff'] or n > params['max_samples']
 
@@ -247,11 +247,11 @@ class ImportanceSampler(AbstractSampler):
                 if last_samples is None:
                     samples = self.sample(factor_approx)
                 else:
-                    # update weights of the sample for the new 
+                    # update weight_list of the sample for the new
                     # factor approximation
                     samples = self.reweight_sample(factor_approx, last_samples)
 
-                    # test whether the updated weights satisfy the stopping
+                    # test whether the updated weight_list satisfy the stopping
                     # criterion
                     if self.stop_criterion(samples):
                         break
@@ -270,22 +270,22 @@ def project_factor_approx_sample(
         factor_approx: FactorApproximation,
         sample: SamplingResult) -> Dict[str, AbstractMessage]:
     # Calculate log_norm
-    log_weights = sample.log_weights
-    # Need to collapse the weights to match the shapes of the different
+    log_weight_list = sample.log_weight_list
+    # Need to collapse the weight_list to match the shapes of the different
     # variables
-    variable_log_weights = {
-        v: factor_approx.factor.collapse(v, log_weights, agg_func=np.sum)
+    variable_log_weight_list = {
+        v: factor_approx.factor.collapse(v, log_weight_list, agg_func=np.sum)
         for v in factor_approx.cavity_dist}
 
-    log_weights = log_weights.sum(
-        tuple(range(1, log_weights.ndim)))
+    log_weight_list = log_weight_list.sum(
+        tuple(range(1, log_weight_list.ndim)))
     # subtract max log_weight for numerical stability
-    log_w_max = np.max(log_weights)
-    w = np.exp(log_weights - log_w_max)
+    log_w_max = np.max(log_weight_list)
+    w = np.exp(log_weight_list - log_w_max)
     log_norm = np.log(w.mean(0)) + log_w_max
 
     model_dist = MeanField({
-        v: factor_approx.factor_dist[v].project(x, variable_log_weights.get(v))
+        v: factor_approx.factor_dist[v].project(x, variable_log_weight_list.get(v))
         for v, x in chain(sample.samples.items(), sample.det_variables.items())},
         log_norm=log_norm)
     return model_dist

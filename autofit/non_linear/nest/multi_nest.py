@@ -1,40 +1,37 @@
+import os
+import shutil
+from os import path
+from typing import Optional
+
+from sqlalchemy.orm import Session
+
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
-from autofit.non_linear.log import logger
+from autofit.non_linear import result as res
 from autofit.non_linear.nest import abstract_nest
-from autofit.non_linear.paths import convert_paths
 from autofit.non_linear.samples import NestSamples, Sample
 
 
 class MultiNest(abstract_nest.AbstractNest):
+    __identifier_fields__ = (
+        "n_live_points",
+        "sampling_efficiency",
+        "const_efficiency_mode",
+        "importance_nested_sampling",
+        "max_modes",
+        "mode_tolerance",
+        "seed",
+    )
 
-    @convert_paths
     def __init__(
             self,
-            paths=None,
+            name=None,
+            path_prefix=None,
+            unique_tag: Optional[str] = None,
             prior_passer=None,
-            n_live_points=None,
-            sampling_efficiency=None,
-            const_efficiency_mode=None,
-            multimodal=None,
-            importance_nested_sampling=None,
-            evidence_tolerance=None,
-            max_modes=None,
-            mode_tolerance=None,
-            max_iter=None,
-            n_iter_before_update=None,
-            null_log_evidence=None,
-            seed=None,
-            verbose=None,
-            resume=None,
-            context=None,
-            write_output=None,
-            log_zero=None,
-            init_MPI=None,
-            terminate_at_acceptance_ratio=None,
-            acceptance_ratio_threshold=None,
-            stagger_resampling_likelihood=None,
+            session: Optional[Session] = None,
+            **kwargs
     ):
         """
         A MultiNest non-linear search.
@@ -48,174 +45,50 @@ class MultiNest(abstract_nest.AbstractNest):
 
         Parameters
         ----------
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the samples, etc.
-        prior_passer : af.PriorPasser
+        name
+            The name of the search, controlling the last folder results are output.
+        path_prefix
+            The path of folders prefixing the name folder where results are output.
+        unique_tag
+            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+            and also acts as the folder after the path prefix and before the search name.
+        prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        n_live_points : int
-            The number of live points used to sample non-linear parameter space. More points provides a more thorough
-            sampling of parameter space, at the expense of taking longer to run. The number of live points required for
-            accurate sampling depends on the complexity of parameter space.
-        sampling_efficiency : float
-            The ratio of accepted to total samples MultiNest targets. A higher efficiency will converges on the high
-            log_likelihood regions of parameter space faster at the risk of missing the global maxima solution. By
-            default we recommend a value of 0.8 (without constant efficiency mode) and 0.3 (with constant efficiency
-            mode). Reduce to lower values if the inferred solution does not look accurate.
-        const_efficiency_mode : bool
-            The sampling efficiency determines the acceptance rate MultiNest targets. However, if MultiNest cannot map
-            out parameter-space accurately it reduce the acceptance rate. Constant efficiency mode forces MultiNest to
-            maintain the sampling efficiency acceptance rate. This can dramatically reduce run-times but increases the
-            risk of missing the global maximum log likelihood solution.
-        multimodal : bool
-            Whether MultiNest uses multi-modal sampling, whereby the parameter space search will 'split' into
-            multiple modes if it detects there are multiple peaks in log_likelihood space.
-        importance_nested_sampling : bool
-            Importance nested sampling mode uses information from the rejected points to improve the non-linear search.
-        evidence_tolerance : float
-            MultiNest will stop sampling when it estimates that continuing sampling will not increase the log evidence
-            more than the evidence_tolerance value. Thus, the higher the evidence_tolerance the sooner MultiNest will
-            stop running. Higher tolerances provide more accurate parameter errors.
-        max_modes : int
-            If multimodal sampling is True, the maximum number of models MultiNest can split into.
-        mode_tolerance : float
-            MultiNest can find multiple modes & also specify which samples belong to which mode. It might be desirable
-            to have separate samples & mode statistics for modes with local log-evidence value greater than a
-            particular value in which case Ztol should be set to that value. If there isn’t any particularly
-            interesting Ztol value, then Ztol should be set to a very large negative number (e.g. -1e90).
-        max_iter : int
-            maximum number of iterations. 0 is unlimited.
-        n_iter_before_update : int
-            Number of accepted samples (times 10) per MultiNest output to hard disk.
-        null_log_evidence : float
-            If multimodal is True, MultiNest can find multiple modes & also specify which samples belong to which mode.
-            It might be desirable to have separate samples & mode statistics for modes with local log-evidence value
-            greater than a particular value in which case nullZ should be set to that value. If there isn’t any
-            particulrly interesting nullZ value, then nullZ should be set to a very large negative number (e.g. -1.d90).
-        seed : int
-            The random number generator seed of MultiNest, enabling reproducible results.
-        verbose : bool
-            Whether MultiNest prints messages.
-        resume : bool
-            If `True` and existing results are found at the output path, MultiNest will resume that run. If False,
-            MultiNest will start a new run.
-        context : None
-            Not used by PyAutoFit.
-        write_output : bool
-            Whether the results are written to the hard-disk as text files (allowing the run to be resumed).
-        log_zero : float
-            points with loglike < logZero will be ignored by MultiNest.
-        init_MPI : None
-            MPI not supported by PyAutoFit for MultiNest.
-        terminate_at_acceptance_ratio : bool
-            If `True`, the sampler will automatically terminate when the acceptance ratio falls behind an input
-            threshold value (see *Nest* for a full description of this feature).
-        acceptance_ratio_threshold : float
-            The acceptance ratio threshold below which sampling terminates if *terminate_at_acceptance_ratio* is
-            `True` (see *Nest* for a full description of this feature).
+        session
+            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
-        self.n_live_points = (
-            self._config("search", "n_live_points")
-            if n_live_points is None
-            else n_live_points
-        )
-        self.sampling_efficiency = (
-            self._config("search", "sampling_efficiency")
-            if sampling_efficiency is None
-            else sampling_efficiency
-        )
-        self.const_efficiency_mode = (
-            self._config("search", "const_efficiency_mode")
-            if const_efficiency_mode is None
-            else const_efficiency_mode
-        )
-        self.evidence_tolerance = (
-            self._config("search", "evidence_tolerance")
-            if evidence_tolerance is None
-            else evidence_tolerance
-        )
-
-        if self.evidence_tolerance <= 0.0:
-            self.evidence_tolerance = 0.8
-
-        self.multimodal = (
-            multimodal or self._config("search", "multimodal")
-            if multimodal is None
-            else multimodal
-        )
-        self.importance_nested_sampling = (
-            self._config("search", "importance_nested_sampling")
-            if importance_nested_sampling is None
-            else importance_nested_sampling
-        )
-        self.max_modes = (
-            self._config("search", "max_modes") if max_modes is None else max_modes
-        )
-        self.mode_tolerance = (
-            self._config("search", "mode_tolerance")
-            if mode_tolerance is None
-            else mode_tolerance
-        )
-        self.max_iter = (
-            self._config("search", "max_iter") if max_iter is None else max_iter
-        )
-        self.n_iter_before_update = (
-            self._config("settings", "n_iter_before_update")
-            if n_iter_before_update is None
-            else n_iter_before_update
-        )
-        self.null_log_evidence = (
-            self._config("settings", "null_log_evidence")
-            if null_log_evidence is None
-            else null_log_evidence
-        )
-        self.seed = self._config("settings", "seed") if seed is None else seed
-        self.verbose = (
-            self._config("settings", "verbose") if verbose is None else verbose
-        )
-        self.resume = (
-            self._config("settings", "resume") if resume is None else resume
-        )
-        self.context = (
-            self._config("settings", "context") if context is None else context
-        )
-        self.write_output = (
-            self._config("settings", "write_output")
-            if write_output is None
-            else write_output
-        )
-        self.log_zero = (
-            self._config("settings", "log_zero")
-            if log_zero is None
-            else log_zero
-        )
-        self.init_MPI = (
-            self._config("settings", "init_MPI") if init_MPI is None else init_MPI
-        )
-
         super().__init__(
-            paths=paths,
+            name=name,
+            path_prefix=path_prefix,
+            unique_tag=unique_tag,
             prior_passer=prior_passer,
-            terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-            acceptance_ratio_threshold=acceptance_ratio_threshold,
-            stagger_resampling_likelihood=stagger_resampling_likelihood,
+            session=session,
+            **kwargs
         )
 
-        logger.debug("Creating MultiNest NLO")
+        self.logger.debug("Creating MultiNest Search")
 
     class Fitness(abstract_nest.AbstractNest.Fitness):
 
-        def __init__(self, paths, model, analysis, samples_from_model, stagger_resampling_likelihood,
-                     terminate_at_acceptance_ratio,
-                     acceptance_ratio_threshold, log_likelihood_cap=None, pool_ids=None):
+        def __init__(
+                self,
+                paths,
+                model,
+                analysis,
+                samples_from_model,
+                stagger_resampling_likelihood,
+                log_likelihood_cap=None
+        ):
 
-            super().__init__(paths=paths, model=model, analysis=analysis,
-                             samples_from_model=samples_from_model,
-                             stagger_resampling_likelihood=stagger_resampling_likelihood,
-                             terminate_at_acceptance_ratio=terminate_at_acceptance_ratio,
-                             acceptance_ratio_threshold=acceptance_ratio_threshold,
-                             log_likelihood_cap=log_likelihood_cap,
-                             pool_ids=pool_ids)
+            super().__init__(
+                model=model,
+                analysis=analysis,
+                samples_from_model=samples_from_model,
+                stagger_resampling_likelihood=stagger_resampling_likelihood,
+                log_likelihood_cap=log_likelihood_cap,
+                paths=paths
+            )
 
             should_update_sym = conf.instance["non_linear"]["nest"]["MultiNest"]["updates"]["should_update_sym"]
 
@@ -232,12 +105,9 @@ class MultiNest(abstract_nest.AbstractNest):
                 if log_likelihood > self.log_likelihood_cap:
                     log_likelihood = self.log_likelihood_cap
 
-            if log_likelihood > self.max_log_likelihood:
-                self.max_log_likelihood = log_likelihood
-
             return log_likelihood
 
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> abstract_search.Result:
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None) -> res.Result:
         """
         Fit a model using MultiNest and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -256,6 +126,7 @@ class MultiNest(abstract_nest.AbstractNest):
         set of accepted ssamples of the fit.
         """
 
+        # noinspection PyUnusedLocal
         def prior(cube, ndim, nparams):
             # NEVER EVER REFACTOR THIS LINE! Haha.
 
@@ -272,102 +143,25 @@ class MultiNest(abstract_nest.AbstractNest):
 
         import pymultinest
 
-        logger.info("Beginning MultiNest non-linear search. ")
+        self.logger.info("Beginning MultiNest non-linear search. ")
 
         pymultinest.run(
             fitness_function,
             prior,
             model.prior_count,
             outputfiles_basename="{}/multinest".format(self.paths.path),
-            n_live_points=self.n_live_points,
-            const_efficiency_mode=self.const_efficiency_mode,
-            importance_nested_sampling=self.importance_nested_sampling,
-            evidence_tolerance=self.evidence_tolerance,
-            sampling_efficiency=self.sampling_efficiency,
-            null_log_evidence=self.null_log_evidence,
-            n_iter_before_update=self.n_iter_before_update,
-            multimodal=self.multimodal,
-            max_modes=self.max_modes,
-            mode_tolerance=self.mode_tolerance,
-            seed=self.seed,
             verbose=not self.silence,
-            resume=self.resume,
-            context=self.context,
-            write_output=self.write_output,
-            log_zero=self.log_zero,
-            max_iter=self.max_iter,
-            init_MPI=self.init_MPI,
+            **self.config_dict_search
         )
-        self.paths.copy_from_sym()
+        self.copy_from_sym()
 
-    @property
-    def tag(self):
-        """Tag the output folder of the PySwarms non-linear search, according to the number of particles and
-        parameters defining the search strategy."""
-
-        name_tag = self._config("tag", "name")
-        n_live_points_tag = (
-            f"{self._config('tag', 'n_live_points')}_{self.n_live_points}"
-        )
-        sampling_efficiency_tag = (
-            f"{self._config('tag', 'sampling_efficiency')}_{self.sampling_efficiency}"
-        )
-        if self.const_efficiency_mode:
-            const_efficiency_mode_tag = (
-                f"_{self._config('tag', 'const_efficiency_mode')}"
-            )
-        else:
-            const_efficiency_mode_tag = ""
-        if self.multimodal:
-            multimodal_tag = f"_{self._config('tag', 'multimodal')}"
-        else:
-            multimodal_tag = ""
-        if self.importance_nested_sampling:
-            importance_nested_sampling_tag = (
-                f"_{self._config('tag', 'importance_nested_sampling')}"
-            )
-        else:
-            importance_nested_sampling_tag = ""
-
-        return f"{name_tag}[{n_live_points_tag}_{sampling_efficiency_tag}{const_efficiency_mode_tag}{multimodal_tag}{importance_nested_sampling_tag}]"
-
-    def copy_with_name_extension(self, extension, path_prefix=None, remove_phase_tag=False):
-        """Copy this instance of the multinest `NonLinearSearch` with all associated attributes.
-
-        This is used to set up the `NonLinearSearch` on phase extensions."""
-        copy = super().copy_with_name_extension(
-            extension=extension, path_prefix=path_prefix, remove_phase_tag=remove_phase_tag
-        )
-        copy.prior_passer = self.prior_passer
-        copy.importance_nested_sampling = self.importance_nested_sampling
-        copy.multimodal = self.multimodal
-        copy.const_efficiency_mode = self.const_efficiency_mode
-        copy.n_live_points = self.n_live_points
-        copy.evidence_tolerance = self.evidence_tolerance
-        copy.sampling_efficiency = self.sampling_efficiency
-        copy.n_iter_before_update = self.n_iter_before_update
-        copy.null_log_evidence = self.null_log_evidence
-        copy.max_modes = self.max_modes
-        copy.mode_tolerance = self.mode_tolerance
-        copy.seed = self.seed
-        copy.verbose = self.verbose
-        copy.resume = self.resume
-        copy.context = self.context
-        copy.write_output = self.write_output
-        copy.log_zero = self.log_zero
-        copy.max_iter = self.max_iter
-        copy.init_MPI = self.init_MPI
-        copy.terminate_at_acceptance_ratio = self.terminate_at_acceptance_ratio
-        copy.acceptance_ratio_threshold = self.acceptance_ratio_threshold
-        copy.stagger_resampling_likelihood = self.stagger_resampling_likelihood
-        return copy
-
-    def samples_via_sampler_from_model(self, model: AbstractPriorModel):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+    def samples_from(self, model: AbstractPriorModel):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
 
-            - The parameter samples, log likelihood values and weights from the multinest.txt file.
+            - The parameter samples, log likelihood values and weight_list from the multinest.txt file.
             - The total number of samples (e.g. accepted + rejected) from resume.dat.
             - The log evidence of the model-fit from the multinestsummary.txt file (if this is not yet estimated a
               value of -1.0e99 is used.
@@ -379,44 +173,131 @@ class MultiNest(abstract_nest.AbstractNest):
             cube values to physical values via the priors.
         """
 
-        parameters = parameters_from_file_weighted_samples(
-            file_weighted_samples=self.paths.file_weighted_samples,
-            prior_count=model.prior_count,
+        return MultiNestSamples(
+            model=model,
+            number_live_points=self.config_dict_search["n_live_points"],
+            file_summary=path.join(self.paths.samples_path, "multinestsummary.txt"),
+            file_weighted_samples=path.join(self.paths.samples_path, "multinest.txt"),
+            file_resume=path.join(self.paths.samples_path, "multinestresume.dat"),
+            unconverged_sample_size=1,
+            time=self.timer.time
         )
 
-        log_priors = [
-            sum(model.log_priors_from_vector(vector=vector)) for vector in parameters
+    def copy_from_sym(self):
+        """
+        Copy files from the sym-linked search folder to the samples folder.
+        """
+
+        src_files = os.listdir(self.paths.path)
+        for file_name in src_files:
+            full_file_name = path.join(self.paths.path, file_name)
+            if path.isfile(full_file_name):
+                shutil.copy(full_file_name, self.paths.samples_path)
+
+
+class MultiNestSamples(NestSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            number_live_points: int,
+            file_summary: str,
+            file_weighted_samples: str,
+            file_resume: str,
+            unconverged_sample_size: int = 100,
+            time: Optional[float] = None,
+    ):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For MulitNest, this requires us to load:
+
+            - The parameter samples, log likelihood values and weight_list from the multinest.txt file.
+            - The total number of samples (e.g. accepted + rejected) from resume.dat.
+            - The log evidence of the model-fit from the multinestsummary.txt file (if this is not yet estimated a
+              value of -1.0e99 is used.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+
+        self.file_summary = file_summary
+        self.file_weighted_samples = file_weighted_samples
+        self.file_resume = file_resume
+
+        super().__init__(
+            model=model,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+        self._samples = None
+        self._number_live_points = number_live_points
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Emcee, all quantities are extracted via the hdf5 backend of results.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        paths : af.Paths
+            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
+            etc.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameters = parameters_from_file_weighted_samples(
+            file_weighted_samples=self.file_weighted_samples,
+            prior_count=self.model.prior_count,
+        )
+
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
 
-        log_likelihoods = log_likelihoods_from_file_weighted_samples(
-            file_weighted_samples=self.paths.file_weighted_samples
+        log_likelihood_list = log_likelihood_list_from_file_weighted_samples(
+            file_weighted_samples=self.file_weighted_samples
         )
 
-        weights = weights_from_file_weighted_samples(
-            file_weighted_samples=self.paths.file_weighted_samples
+        weight_list = weight_list_from_file_weighted_samples(
+            file_weighted_samples=self.file_weighted_samples
         )
 
-        total_samples = total_samples_from_file_resume(
-            file_resume=self.paths.file_resume
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
 
-        log_evidence = log_evidence_from_file_summary(
-            file_summary=self.paths.file_summary, prior_count=model.prior_count
+        return self._samples
+
+    @property
+    def number_live_points(self):
+        return self._number_live_points
+
+    @property
+    def total_samples(self):
+        return total_samples_from_file_resume(
+            file_resume=self.file_resume
         )
 
-        return NestSamples(
-            model=model,
-            samples=Sample.from_lists(
-                parameters=parameters,
-                log_likelihoods=log_likelihoods,
-                log_priors=log_priors,
-                weights=weights,
-                model=model
-            ),
-            total_samples=total_samples,
-            log_evidence=log_evidence,
-            number_live_points=self.n_live_points,
-            time=self.timer.time,
+    @property
+    def log_evidence(self):
+        return log_evidence_from_file_summary(
+            file_summary=self.file_summary, prior_count=self.model.prior_count
         )
 
 
@@ -448,7 +329,7 @@ def parameters_from_file_weighted_samples(
     return parameters
 
 
-def log_likelihoods_from_file_weighted_samples(file_weighted_samples) -> [float]:
+def log_likelihood_list_from_file_weighted_samples(file_weighted_samples) -> [float]:
     """Open the file "multinest.txt" and extract the log likelihood values of every accepted live point as a list."""
     weighted_samples = open(file_weighted_samples)
 
@@ -458,19 +339,19 @@ def log_likelihoods_from_file_weighted_samples(file_weighted_samples) -> [float]
 
     weighted_samples.seek(0)
 
-    log_likelihoods = []
+    log_likelihood_list = []
 
     for line in range(total_samples):
         weighted_samples.read(28)
-        log_likelihoods.append(-0.5 * float(weighted_samples.read(28)))
+        log_likelihood_list.append(-0.5 * float(weighted_samples.read(28)))
         weighted_samples.readline()
 
     weighted_samples.close()
 
-    return log_likelihoods
+    return log_likelihood_list
 
 
-def weights_from_file_weighted_samples(file_weighted_samples) -> [float]:
+def weight_list_from_file_weighted_samples(file_weighted_samples) -> [float]:
     """Open the file "multinest.txt" and extract the weight values of every accepted live point as a list."""
     weighted_samples = open(file_weighted_samples)
 
@@ -480,16 +361,16 @@ def weights_from_file_weighted_samples(file_weighted_samples) -> [float]:
 
     weighted_samples.seek(0)
 
-    log_likelihoods = []
+    log_likelihood_list = []
 
     for line in range(total_samples):
         weighted_samples.read(4)
-        log_likelihoods.append(float(weighted_samples.read(24)))
+        log_likelihood_list.append(float(weighted_samples.read(24)))
         weighted_samples.readline()
 
     weighted_samples.close()
 
-    return log_likelihoods
+    return log_likelihood_list
 
 
 def total_samples_from_file_resume(file_resume):

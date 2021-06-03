@@ -56,7 +56,7 @@ class Collection(Object):
         ])
         return instance
 
-    def __call__(self) -> tuple:
+    def __call__(self):
         return self.cls([
             child()
             for child
@@ -95,9 +95,18 @@ class Instance(Object):
         instance.cls = type(source)
         if hasattr(
                 source,
+                "__getstate__"
+        ):
+            instance._add_children(
+                source.__getstate__().items()
+            )
+        elif hasattr(
+                source,
                 "__dict__"
         ):
-            instance._add_children(source.__dict__.items())
+            instance._add_children(
+                source.__dict__.items()
+            )
         return instance
 
 
