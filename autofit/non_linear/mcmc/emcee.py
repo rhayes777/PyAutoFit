@@ -10,10 +10,8 @@ from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.log import logger
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
-from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.samples import MCMCSamples, Sample
 from autofit.plot import EmceePlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
@@ -90,7 +88,7 @@ class Emcee(AbstractMCMC):
 
         self.number_of_cores = number_of_cores or self._config("parallel", "number_of_cores")
 
-        logger.debug("Creating Emcee Search")
+        self.logger.debug("Creating Emcee Search")
 
     class Fitness(AbstractMCMC.Fitness):
         def __call__(self, parameters):
@@ -153,7 +151,7 @@ class Emcee(AbstractMCMC):
             else:
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-                logger.info("Existing Emcee samples found, resuming non-linear search.")
+                self.logger.info("Existing Emcee samples found, resuming non-linear search.")
 
         except AttributeError:
 
@@ -165,7 +163,7 @@ class Emcee(AbstractMCMC):
 
             emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
 
-            logger.info("No Emcee samples found, beginning new non-linear search.")
+            self.logger.info("No Emcee samples found, beginning new non-linear search.")
 
             for index, parameters in enumerate(initial_parameter_lists):
                 emcee_state[index, :] = np.asarray(parameters)
@@ -203,7 +201,7 @@ class Emcee(AbstractMCMC):
                     if samples.converged:
                         iterations_remaining = 0
 
-        logger.info("Emcee sampling complete.")
+        self.logger.info("Emcee sampling complete.")
 
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
 

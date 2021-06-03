@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Callable, cast, Set, List, Dict, Optional
 
@@ -15,6 +16,10 @@ from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.directory import DirectoryPaths
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class AbstractModelFactor(Analysis, ABC):
@@ -133,6 +138,7 @@ class AbstractModelFactor(Analysis, ABC):
         A collection of prior models
         """
         # self.freeze()
+        logger.info("Optimising factor model")
 
         opt = self._make_ep_optimiser(
             optimiser
@@ -178,6 +184,9 @@ class AbstractModelFactor(Analysis, ABC):
         during_analysis
             Is this visualisation during analysis?
         """
+        logger.info(
+            "Visualising factor model"
+        )
         for model_factor, instance in zip(
                 self.model_factors,
                 instance
@@ -265,6 +274,10 @@ class ModelFactor(Factor, AbstractModelFactor):
             in prior_model.priors
         }
 
+        logger.info(
+            f"Creating ModelFactor with {len(prior_variable_dict)} priors"
+        )
+
         def _factor(
                 **kwargs: np.ndarray
         ) -> float:
@@ -337,6 +350,9 @@ class FactorGraphModel(AbstractModelFactor):
         ----------
         model_factors
         """
+        logger.info(
+            f"Creating FactorGraphModel with {len(model_factors)} factors"
+        )
         self._model_factors = model_factors
 
     @property

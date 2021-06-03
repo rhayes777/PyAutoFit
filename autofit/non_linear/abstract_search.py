@@ -3,6 +3,7 @@ import logging
 import multiprocessing as mp
 import time
 from abc import ABC, abstractmethod
+from functools import wraps
 from os import path
 from typing import Optional
 from typing import Tuple
@@ -15,7 +16,6 @@ from autofit import exc
 from autofit.graphical import ModelFactor, EPMeanField, MeanField, NormalMessage, Factor
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
-from autofit.non_linear.log import logger
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
@@ -23,6 +23,38 @@ from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
+
+
+def check_cores(func):
+    """
+    Checks how many cores the search has been configured to
+    use and then returns None instead of calling the pool
+    creation function in the case that only one core has
+    been set.
+
+    Parameters
+    ----------
+    func
+        A function that creates a pool
+
+    Returns
+    -------
+    None or a pool
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self.logger.info(
+            f"number_of_cores == {self.number_of_cores}..."
+        )
+        if self.number_of_cores == 1:
+            self.logger.info(
+                "...not using pool"
+            )
+            return None
+        return func(self, *args, **kwargs)
+
+    return wrapper
 
 
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
@@ -61,11 +93,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         from autofit.non_linear.paths.database import DatabasePaths
-        #
+
         name = name or ""
         path_prefix = path_prefix or ""
 
         self.path_prefix_no_unique_tag = path_prefix
+
+        self.logger = logging.getLogger(
+            name
+        )
+
+        self.logger.info(
+            f"Creating search"
+        )
 
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
@@ -73,6 +113,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.unique_tag = unique_tag
 
         if session is not None:
+            self.logger.debug(
+                "Session found. Using database."
+            )
             paths = DatabasePaths(
                 name=name,
                 path_prefix=path_prefix,
@@ -84,6 +127,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 unique_tag=unique_tag
             )
         else:
+            self.logger.debug(
+                "Session not found. Using directory output."
+            )
             paths = DirectoryPaths(
                 name=name,
                 path_prefix=path_prefix,
@@ -101,11 +147,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
 
-        self.log_file = conf.instance["general"]["output"]["log_file"].replace(
-            " ", ""
-        )
-
         if initializer is None:
+            self.logger.debug("Creating initializer ")
             self.initializer = Initializer.from_config(config=self._config)
         else:
             self.initializer = initializer
@@ -229,6 +272,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return model_approx.project(projection, status)
 
     @property
+    def name(self):
+        return self.paths.name
+
+    @property
     def timer(self):
         if self._timer is None:
             self._timer = Timer(
@@ -250,6 +297,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self,
             paths
     ):
+        self.logger.debug(
+            f"Creating a copy of {self._paths.name}"
+        )
         search_instance = copy.copy(self)
         search_instance.paths = paths
 
@@ -270,7 +320,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         def fit_instance(self, instance):
 
+            #      start = time.time()
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+            #      fit_time = (time.time() - start)
+
+            #      print(mp.current_process().pid, log_likelihood, fit_time)
 
             if self.log_likelihood_cap is not None:
                 if log_likelihood > self.log_likelihood_cap:
@@ -367,12 +421,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
         """
+        self.logger.info(
+            "Starting search"
+        )
+
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
         self.paths.restore()
         self.setup_log_file()
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
+            self.logger.info(
+                "Saving path info"
+            )
 
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
@@ -382,6 +443,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
         if not self.paths.is_complete:
+            self.logger.info(
+                "Not complete. Starting non-linear search."
+            )
 
             self.timer.start()
 
@@ -397,15 +461,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.save_object("samples", samples)
 
         else:
-
-            logger.info(f"{self.paths.name} already completed, skipping non-linear search.")
+            self.logger.info(f"Already completed, skipping non-linear search.")
             samples = self.samples_from(model=model)
 
             if self.force_pickle_overwrite:
-
+                self.logger.info(
+                    "Forcing pickle overwrite"
+                )
                 self.paths.save_object("samples", samples)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
+        self.logger.info(
+            "Removing zip file"
+        )
         self.paths.zip_remove()
         return analysis.make_result(samples=samples, model=model, search=self)
 
@@ -491,7 +559,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         self.iterations += self.iterations_per_update
-        logger.info(
+        self.logger.info(
             f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
         )
 
@@ -512,7 +580,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         if self.should_visualize() or not during_analysis:
-
+            self.logger.debug("Visualizing")
             analysis.visualize(
                 paths=self.paths,
                 instance=instance,
@@ -520,6 +588,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
         if self.should_output_model_results() or not during_analysis:
+            self.logger.debug(
+                "Outputting model result"
+            )
             try:
                 start = time.time()
                 analysis.log_likelihood_function(instance=instance)
@@ -533,6 +604,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 pass
 
         if not during_analysis and self.remove_state_files_at_end:
+            self.logger.debug(
+                "Removing state files"
+            )
             try:
                 self.remove_state_files()
             except FileNotFoundError:
@@ -541,19 +615,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return samples
 
     def setup_log_file(self):
+        """
+        Sets up the log file. This happens when the search commences.
 
-        if self.number_of_cores > 1:
-            logger.disabled = True
-
-        if conf.instance["general"]["output"]["log_to_file"]:
-
-            if len(self.log_file) == 0:
-                raise ValueError("In general.ini log_to_file is True, but log_file is an empty string. "
-                                 "Either give log_file a name or set log_to_file to False.")
-
-            log_path = path.join(self.paths.output_path, self.log_file)
-            logger.handlers = [logging.FileHandler(log_path)]
-            logger.propagate = False
+        A file handler is used to output logs into a file in the search
+        directory.
+        """
+        log_path = path.join(
+            self.paths.output_path,
+            "output.log"
+        )
+        self.logger.handlers.append(
+            logging.FileHandler(log_path)
+        )
+        # self.logger.propagate = False
 
     @property
     def samples_cls(self):
@@ -565,6 +640,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def samples_from(self, model):
         raise NotImplementedError()
 
+    @check_cores
     def make_pool(self):
         """Make the pool instance used to parallelize a `NonLinearSearch` alongside a set of unique ids for every
         process in the pool. If the specified number of cores is 1, a pool instance is not made and None is returned.
@@ -575,16 +651,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         The pool instance is also set up with a list of unique pool ids, which are used during model-fitting to
         identify a 'master core' (the one whose id value is lowest) which handles model result output, visualization,
         etc."""
+        self.logger.info(
+            "...using pool"
+        )
+        return mp.Pool(
+            processes=self.number_of_cores
+        )
 
-        if self.number_of_cores == 1:
-
-            return None
-
-        else:
-            return mp.Pool(
-                processes=self.number_of_cores
-            )
-
+    @check_cores
     def make_sneaky_pool(
             self,
             fitness_function: Fitness
@@ -604,9 +678,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         -------
         An implementation of a multiprocessing pool
         """
-        if self.number_of_cores == 1:
-            return None
-
+        self.logger.warning(
+            "...using SneakyPool. This copies the likelihood function"
+            "to each process on instantiation to avoid copying multiple"
+            "times."
+        )
         return SneakyPool(
             processes=self.number_of_cores,
             fitness=fitness_function
@@ -637,58 +713,65 @@ class IntervalCounter:
 class PriorPasser:
 
     def __init__(self, sigma, use_errors, use_widths):
-        """Class to package the API for prior passing.
+        """
+        Class to package the API for prior passing.
 
         This class contains the parameters that controls how priors are passed from the results of one non-linear
         search to the next.
 
         Using the Phase API, we can pass priors from the result of one search to another follows:
 
-            model_component.parameter = search1_result.model.model_component.parameter
+        model_component.parameter = search1_result.model.model_component.parameter
 
         By invoking the 'model' attribute, the prior is passed following 3 rules:
 
-            1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
-               the end of a search are easily summarized as a Gaussian.
+        1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
+        the end of a search are easily summarized as a Gaussian.
 
-            2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
+        2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
 
-              This ensures that the initial sampling of the new search's non-linear starts by searching the region of
-              non-linear parameter space that correspond to highest log likelihood solutions in the previous search.
-              Thus, we're setting our priors to look in the 'correct' regions of parameter space.
+        This ensures that the initial sampling of the new search's non-linear starts by searching the region of
+        non-linear parameter space that correspond to highest log likelihood solutions in the previous search.
+        Thus, we're setting our priors to look in the 'correct' regions of parameter space.
 
-            3) The sigma of the Gaussian will use the maximum of two values:
+        3) The sigma of the Gaussian will use the maximum of two values:
 
-                    (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
-                    (ii) The value specified for the profile in the 'config/priors/*.json' config
-                         file's 'width_modifer' field (check these files out now).
+        (i) the 1D error of the parameter computed at an input sigma value (default sigma=3.0).
+        (ii) The value specified for the profile in the 'config/priors/*.json' config
+        file's 'width_modifer' field (check these files out now).
 
-               The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
-               broad region of parameter space, so that the model can change if a better solution is nearby. However,
-               we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
-               risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
-               previous search.
+        The idea here is simple. We want a value of sigma that gives a GaussianPrior wide enough to search a
+        broad region of parameter space, so that the model can change if a better solution is nearby. However,
+        we want it to be narrow enough that we don't search too much of parameter space, as this will be slow or
+        risk leading us into an incorrect solution! A natural choice is the errors of the parameter from the
+        previous search.
 
+<<<<<<< HEAD
                Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
                we underestimate the parameter errors. This is especially true when we take the shortcuts in early
                searches - fast `NonLinearSearch` settings, simplified models, etc.
+=======
+        Unfortunately, this doesn't always work. Modeling can be prone to an effect called 'over-fitting' where
+        we underestimate the parameter errors. This is especially true when we take the shortcuts in early
+        searchs, fast `NonLinearSearch` settings, simplified models, etc.
+>>>>>>> master
 
-               Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
-               is suspiciously small, we instead use the value specified in the widths file. These values are chosen
-               based on our experience as being a good balance broadly sampling parameter space but not being so narrow
-               important solutions are missed.
+        Therefore, the 'width_modifier' in the json config files are our fallback. If the error on a parameter
+        is suspiciously small, we instead use the value specified in the widths file. These values are chosen
+        based on our experience as being a good balance broadly sampling parameter space but not being so narrow
+        important solutions are missed.
 
         There are two ways a value is specified using the priors/width file:
 
-            1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
-               example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
-               a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
-               sigma of its GaussianPrior in this search will be 0.05.
+        1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
+        example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
+        a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
+        sigma of its GaussianPrior in this search will be 0.05.
 
-            2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
-               given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
-               relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
-               will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
+        2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
+        given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
+        relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
+        will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
 
         The PriorPasser allows us to customize at what sigma the error values the model results are computed at to
         compute the passed sigma values and customizes whether the widths in the config file, these computed errors,
@@ -704,7 +787,7 @@ class PriorPasser:
         Lets say in search 1 we fit a model, and we estimate that a parameter is equal to 4.0 +- 2.0, where the error
         value of 2.0 was computed at 3.0 sigma confidence. To pass this as a prior to search 2, we would write:
 
-            model_component.parameter = result_1.model.model_component.parameter
+        model_component.parameter = result_1.model.model_component.parameter
 
         The prior on the parameter in search 2 would thus be a GaussianPrior, with mean=4.0 and
         sigma=2.0. If we had used a sigma value of 1.0 to compute the error, which reduced the estimate from 4.0 +- 2.0
@@ -725,7 +808,9 @@ class PriorPasser:
 
     @classmethod
     def from_config(cls, config):
-        """Load the PriorPasser from a non_linear config file."""
+        """
+        Load the PriorPasser from a non_linear config file.
+        """
         sigma = config("prior_passer", "sigma")
         use_errors = config("prior_passer", "use_errors")
         use_widths = config("prior_passer", "use_widths")

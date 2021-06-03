@@ -116,7 +116,6 @@ class MockSamples(af.PDFSamples):
 
 class MockSearch(af.NonLinearSearch):
     def __init__(self, samples=None, name=""):
-        self.name = name
         super().__init__(name=name)
 
         self.samples = samples or MockSamples()
@@ -282,7 +281,7 @@ class Profile:
         ----------
         centre : float
             The x coordinate of the profile centre.
-        intensity : float
+        intensity
             Overall intensity normalisation of the profile.
         """
         self.centre = centre
@@ -303,7 +302,7 @@ class Gaussian(Profile):
         ----------
         centre : float
             The x coordinate of the profile centre.
-        intensity : float
+        intensity
             Overall intensity normalisation of the Gaussian profile.
         sigma : float
             The sigma value controlling the size of the Gaussian.

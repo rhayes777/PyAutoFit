@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.log import logger
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.plot import DynestyPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
@@ -82,7 +81,7 @@ class AbstractDynesty(AbstractNest, ABC):
             else number_of_cores
         )
 
-        logger.debug("Creating DynestyStatic Search")
+        self.logger.debug("Creating DynestyStatic Search")
 
     class Fitness(AbstractNest.Fitness):
         @property
@@ -135,7 +134,7 @@ class AbstractDynesty(AbstractNest, ABC):
             else:
                 sampler.M = pool.map
 
-            logger.info("Existing Dynesty samples found, resuming non-linear search.")
+            self.logger.info("Existing Dynesty samples found, resuming non-linear search.")
 
         else:
 
@@ -143,7 +142,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 model=model, fitness_function=fitness_function, pool=pool
             )
 
-            logger.info("No Dynesty samples found, beginning new non-linear search. ")
+            self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
 
         finished = False
 

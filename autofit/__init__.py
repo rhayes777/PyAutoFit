@@ -74,4 +74,4 @@ from . import database as db
 
 conf.instance.register(__file__)
 
-__version__ = '0.76.0'
+__version__ = '2021.6.02.1'

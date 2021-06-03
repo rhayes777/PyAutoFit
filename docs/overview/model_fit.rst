@@ -1,16 +1,9 @@
 .. _model_fit:
 
 Fitting a Model
----------------
+===============
 
-To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to
-noisy data.
-
-The example ``data`` with errors (black) and the model-fit (red), are shown below:
-
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit.png
-  :width: 600
-  :alt: Alternative text
+To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to noisy data.
 
 To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
 
@@ -19,12 +12,24 @@ To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
     import autofit as af
     import numpy as np
 
-we define our 1D Gaussian profile as a **PyAutoFit** *model-component*. A *model component* is a component of the
-model we fit to the ``data`` and it is has associated with it a set of *parameters* which are varied for during
-*model-fitting*.
+Data
+----
 
-*Model components* are defined using Python classes using the format below, where the class name is the *model component*
-name and the constructor arguments are its *parameters*.
+The example ``data`` with errors (black) and the model-fit (red), are shown below:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit.png
+  :width: 600
+  :alt: Alternative text
+
+Model
+-----
+
+We now need to define a 1D Gaussian profile as a **PyAutoFit** *model-component*, where a *model component* is a
+component of the model we fit to the ``data``. It has associated with it a set of *parameters* which are varied for
+during a *model-fit*, which is performed using a *non-linear search*.
+
+*Model components* are defined using Python classes using the format below, where the class name is
+the *model component* name and the constructor arguments are its *parameters*.
 
 .. code-block:: bash
 
@@ -74,6 +79,19 @@ function that generates the 1D profile from the ``Gaussian``.
                 np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
             )
 
+We use the ``Model`` object to compose the model, which in this case is a single ``Gaussian``.  The model is
+defined with 3 free parameters, thus the dimensionality of non-linear parameter space is 3.
+
+.. code-block:: bash
+
+    model = af.Model(Gaussian)
+
+Complex high dimensional models can be built from these individual model components, as described in
+the `model composition overview page <https://pyautofit.readthedocs.io/en/latest/overview/model_complex.html>`_
+
+Analysis
+--------
+
 Now we've defined our model, we need to tell **PyAutoFit** how to fit the model to data. This requires us to
 define a **PyAutoFit** ``Analysis`` class:
 
@@ -90,25 +108,35 @@ define a **PyAutoFit** ``Analysis`` class:
 
         def log_likelihood_function(self, instance):
 
-            # The 'instance' that comes into this method is an instance of the Gaussian
-            # class, which the print statements below illustrates if you run the code!
+            """
+            The 'instance' that comes into this method is an instance of the Gaussian
+            class, whose parameters were chosen by our non-linear search.
+
+            The the print statements below will illustrate this when a model-fit is performed!
+            """
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
             print("Intensity = ", instance.intensity)
             print("Sigma = ", instance.sigma)
 
-            # Get the range of x-values the data is defined on, to evaluate the model
-            # of the Gaussian.
+            """
+            Get the range of x-values the data is defined on, to evaluate the model
+            of the Gaussian.
+            """
 
             xvalues = np.arange(self.data.shape[0])
 
-            # Use these xvalues to create model_data of our Gaussian.
+            """
+            Use these xvalues to create model_data of our Gaussian.
+            """
 
             model_data = instance.profile_from_xvalues(xvalues=xvalues)
 
-            # Fit the model gaussian to the data, computing the residuals, chi-squareds
-            # and returning the log likelihood value to the NonLinearSearch.
+            """
+            Fit the model gaussian to the data, computing the residuals, chi-squareds
+            and returning the log likelihood value to the non-linear search.
+            """
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -128,24 +156,25 @@ Lets consider exactly what is happening in the ``Analysis`` class above.
 - The ``log_likelihood_function`` returns a log likelihood value, which the non-linear search uses evaluate the
   goodness-of-fit of a model to the data when sampling parameter space.
 
+Non-Linear Search
+-----------------
+
 Next, we *compose* our model, set up our ``Analysis`` and fit the model to the ``data`` using a non-linear search:
 
 .. code-block:: bash
 
     model = af.Model(Gaussian)
-
     analysis = Analysis(data=data, noise_map=noise_map)
 
     emcee = af.Emcee(name="example_search")
 
     result = emcee.fit(model=model, analysis=analysis)
 
-Above, we use a ``Model`` object to compose the model. This tells **PyAutoFit** that the ``Gaussian`` class is to
-be used as a *model component* where its *parameters* are to be fitted for by the non-linear search. The model is
-defined with 3 free parameters, thus the dimensionality of non-linear parameter space is 3.
+We perform the fit using the non-linear search algorithm `emcee <https://github.com/dfm/emcee>`_. We cover
+non-linear search's in more detail in the `non-linear search overview page <https://pyautofit.readthedocs.io/en/latest/overview/non_linear_search.html>`_.
 
-We perform the fit using the non-linear search algorithm `emcee <https://github.com/dfm/emcee>`_ (we cover
-non-linear search's in more detail later).
+Result
+------
 
 By running the code above **PyAutoFit** performs the model-fit, outputting all results into structured paths on you
 hard-disk. It also returns a ``Result`` object in Python, which includes lists containing the non-linear search's
@@ -179,6 +208,11 @@ This can be used to straight forwardly plot the model fit to the data:
 
     plt.plot(range(data.shape[0]), data)
     plt.plot(range(data.shape[0]), model_data)
+
+Results are covered in more detail in the `result overview page <https://pyautofit.readthedocs.io/en/latest/overview/result.html>`_.
+
+Wrap-Up
+-------
 
 This completes our introduction to the **PyAutoFit** API. Next, we'll cover how to *compose* and *fit*
 models using multiple *model components* and *customize* the model parameterization.

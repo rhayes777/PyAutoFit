@@ -25,6 +25,11 @@ def make_complex_prior_model():
     return af.AbstractPriorModel.from_instance(instance)
 
 
+def test_class_assertion():
+    with pytest.raises(AssertionError):
+        af.Model("Hello")
+
+
 class TestAsModel:
     def test_instance(self, instance_prior_model):
         model = instance_prior_model.as_model()

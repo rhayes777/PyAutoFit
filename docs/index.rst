@@ -202,6 +202,15 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    api/api
 
 .. toctree::
+   :caption: Graphical models:
+   :maxdepth: 1
+   :hidden:
+
+   graphical/composition
+   graphical/multiple_datasets
+   graphical/expectation_propagation
+
+.. toctree::
    :caption: Features:
    :maxdepth: 1
    :hidden:
@@ -210,4 +219,3 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    features/search_grid_search
    features/search_chaining
    features/sensitivity_mapping
-   features/graphical_models

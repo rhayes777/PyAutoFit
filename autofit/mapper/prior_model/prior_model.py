@@ -57,6 +57,11 @@ class PriorModel(AbstractPriorModel):
         if cls is self:
             return
 
+        if not (inspect.isclass(cls) or inspect.isfunction(cls)):
+            raise AssertionError(
+                f"{cls} is not a class or function"
+            )
+
         self.cls = cls
 
         try:

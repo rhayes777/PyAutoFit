@@ -39,7 +39,7 @@ class SphProfile(GeometryProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) coordinates of the origin of the profile.
         """
         super(SphProfile, self).__init__(centre)
@@ -52,9 +52,9 @@ class EllProfile(SphProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) coordinates of the origin of the profiles
-        axis_ratio : float
+        axis_ratio
             Ratio of profiles ellipse's minor and major axes (b/a)
         phi : float
             Rotational angle of profiles ellipse counter-clockwise from positive x-axis
@@ -86,9 +86,9 @@ class EllMassProfile(EllProfile, MassProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The origin of the profile
-        axis_ratio : float
+        axis_ratio
             Ellipse's minor-to-major axis ratio (b/a)
         phi : float
             Rotation angle of profile's ellipse counter-clockwise from positive x-axis
@@ -114,9 +114,9 @@ class EllIsothermalCored(EllProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The image_grid of the origin of the profiles
-        axis_ratio : float
+        axis_ratio
             Ell mass profile's minor-to-major axis ratio (b/a)
         phi : float
             Rotation angle of mass profile's ellipse counter-clockwise from positive
@@ -148,16 +148,16 @@ class EllSersic(EllProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
-        effective_radius : float
+        effective_radius
             The circular radius containing half the light of this profile.
         sersic_index : Int
             Controls the concentration of the of the light profile.
@@ -189,16 +189,16 @@ class EllSersicCore(EllSersic):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
-        effective_radius : float
+        effective_radius
             The circular radius containing half the light of this profile.
         sersic_index : Int
             Controls the concetration of the of the light profile.
@@ -243,16 +243,16 @@ class EllExponential(EllSersic):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
-        effective_radius : float
+        effective_radius
             The circular radius containing half the light of this profile.
         """
         super(EllExponential, self).__init__(
@@ -273,13 +273,13 @@ class EllGaussian(EllProfile):
 
         Parameters
         ----------
-        centre: (float, float)
+        centre
             The (y,x) origin of the light profile.
-        axis_ratio : float
+        axis_ratio
             Ratio of light profiles ellipse's minor and major axes (b/a).
         phi : float
             Rotation angle of light profile counter-clockwise from positive x-axis.
-        intensity : float
+        intensity
             Overall intensity normalisation of the light profiles (electrons per
             second).
         sigma : float

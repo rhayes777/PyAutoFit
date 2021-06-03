@@ -1,3 +1,5 @@
+import os
+import logging
 from typing import Optional, List, Union
 
 from sqlalchemy import create_engine
@@ -6,7 +8,12 @@ from sqlalchemy.orm import sessionmaker, Session
 from autofit.database import query as q
 from .scrape import scrape_directory
 from .. import model as m
-from ..query.query import AbstractQuery
+from ..migration.steps import migrator
+from ..query.query import AbstractQuery, Attribute
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class NullPredicate(AbstractQuery):
@@ -19,18 +26,72 @@ class NullPredicate(AbstractQuery):
 
 
 class Query:
+    """
+    API for creating a query on the best fit instance
+    """
+
     @staticmethod
-    def for_name(name):
-        if name in m.fit_attributes:
-            if m.fit_attributes[
-                name
-            ].type.python_type == bool:
-                return q.BA(name)
-            return q.A(name)
+    def for_name(name: str) -> q.Q:
+        """
+        Create a query for fits based on the name of a
+        top level instance attribute
+
+        Parameters
+        ----------
+        name
+            The name of the attribute. e.g. galaxies
+
+        Returns
+        -------
+        A query generating object
+        """
         return q.Q(name)
 
     def __getattr__(self, name):
         return self.for_name(name)
+
+
+class FitQuery(Query):
+    """
+    API for creating a query on the attributes of a fit,
+    such as:
+        name
+        unique_tag
+        path_prefix
+        is_complete
+        is_grid_search
+    """
+
+    @staticmethod
+    def for_name(name: str) -> Union[
+        AbstractQuery,
+        Attribute
+    ]:
+        """
+        Create a query based on some attribute of the Fit.
+
+        Parameters
+        ----------
+        name
+            The name of an attribute of the Fit class
+
+        Returns
+        -------
+        A query based on an attribute
+
+        Examples
+        --------
+        aggregator.fit.name == 'example name'
+        """
+        if name not in m.fit_attributes:
+            raise AttributeError(
+                f"Fit has no attribute {name}"
+            )
+        if m.fit_attributes[
+            name
+        ].type.python_type == bool:
+            return q.BA(name)
+        return q.A(name)
 
 
 class Aggregator:
@@ -64,6 +125,18 @@ class Aggregator:
         return iter(
             self.fits
         )
+
+    @property
+    def search(self) -> FitQuery:
+        """
+        An object facilitating queries on fit attributes such as:
+            name
+            unique_tag
+            path_prefix
+            is_complete
+            is_grid_search
+        """
+        return FitQuery()
 
     @property
     def info(self):
@@ -243,6 +316,9 @@ class Aggregator:
         A list of fit objects, one for each id returned by the
         query
         """
+        logger.debug(
+            f"Executing query: {query}"
+        )
         fit_ids = {
             row[0]
             for row
@@ -250,6 +326,9 @@ class Aggregator:
                 query
             )
         }
+        logger.info(
+            f"{len(fit_ids)} fit(s) found matching query"
+        )
         return self.session.query(
             m.Fit
         ).filter(
@@ -318,12 +397,20 @@ class Aggregator:
         -------
         An aggregator connected to the database specified by the file.
         """
+        exists = os.path.exists(filename)
+
         engine = create_engine(
             f'sqlite:///{filename}'
         )
         session = sessionmaker(
             bind=engine
         )()
+
+        if exists:
+            migrator.migrate(
+                session
+            )
+
         m.Base.metadata.create_all(
             engine
         )
@@ -333,6 +420,6 @@ class Aggregator:
         )
         if completed_only:
             return aggregator(
-                aggregator.is_complete
+                aggregator.search.is_complete
             )
         return aggregator
