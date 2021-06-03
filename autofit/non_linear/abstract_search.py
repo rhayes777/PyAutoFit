@@ -239,6 +239,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         factor_approx = model_approx.factor_approximation(
             factor
         )
+
         arguments = {
             prior: factor_approx.model_dist[
                 prior
@@ -249,6 +250,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model = factor.prior_model.mapper_from_prior_arguments(
             arguments
         )
+
         analysis = factor.analysis
 
         result = self.fit(
@@ -265,10 +267,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             for prior in factor_approx.variables
         })
 
+        print(new_model_dist)
+
         projection, status = factor_approx.project(
             new_model_dist,
             delta=1
         )
+
+        print(projection)
+        print(status)
+        stop
+
         return model_approx.project(projection, status)
 
     @property
