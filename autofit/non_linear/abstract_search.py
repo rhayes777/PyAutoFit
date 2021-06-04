@@ -266,16 +266,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             for prior in factor_approx.variables
         })
 
-        print(new_model_dist)
-
         projection, status = factor_approx.project(
             new_model_dist,
             delta=1
         )
-
-        print(projection)
-        print(status)
-        stop
 
         return model_approx.project(projection, status)
 
