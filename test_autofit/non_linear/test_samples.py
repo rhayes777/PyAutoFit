@@ -328,8 +328,8 @@ class TestPDFSamples:
 
         vector_at_sigma = samples.vector_at_sigma(sigma=3.0)
 
-        assert vector_at_sigma[0] == pytest.approx((0.00242, 0.19757), 1e-1)
-        assert vector_at_sigma[1] == pytest.approx((0.30243, 0.49757), 1e-1)
+        assert vector_at_sigma[0] == pytest.approx((0.00121, 0.19878), 1e-1)
+        assert vector_at_sigma[1] == pytest.approx((0.30121, 0.49878), 1e-1)
 
         vector_at_sigma = samples.vector_at_upper_sigma(sigma=3.0)
 
@@ -338,8 +338,8 @@ class TestPDFSamples:
 
         vector_at_sigma = samples.vector_at_lower_sigma(sigma=3.0)
 
-        assert vector_at_sigma[0] == pytest.approx(0.00242, 1e-1)
-        assert vector_at_sigma[1] == pytest.approx(0.30243, 1e-1)
+        assert vector_at_sigma[0] == pytest.approx(0.00121, 1e-1)
+        assert vector_at_sigma[1] == pytest.approx(0.30121, 1e-1)
 
         vector_at_sigma = samples.vector_at_sigma(sigma=1.0)
 
@@ -358,8 +358,8 @@ class TestPDFSamples:
 
         instance_at_sigma = samples.instance_at_lower_sigma(sigma=3.0)
 
-        assert instance_at_sigma.mock_class.one == pytest.approx(0.00242, 1e-1)
-        assert instance_at_sigma.mock_class.two == pytest.approx(0.30243, 1e-1)
+        assert instance_at_sigma.mock_class.one == pytest.approx(0.00121, 1e-1)
+        assert instance_at_sigma.mock_class.two == pytest.approx(0.30121, 1e-1)
 
     def test__unconverged_vector_at_lower_and_upper_sigma(self):
         parameters = [
