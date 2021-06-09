@@ -309,7 +309,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         logger_name = self.__class__.__name__
         try:
-            # This is only here so that old pickles
+            # This is here so that old pickles don't throw an error
             logger_name = self.name
         except AttributeError:
             pass
