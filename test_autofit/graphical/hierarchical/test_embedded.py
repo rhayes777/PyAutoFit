@@ -52,7 +52,7 @@ def test_hierarchical_factor(
     laplace = g.LaplaceFactorOptimiser()
 
     gaussian = factor.optimise(laplace)
-    assert gaussian.instance_from_prior_medians().mean == pytest.approx(100, abs=0.1)
+    assert gaussian.instance_from_prior_medians().mean == pytest.approx(100, abs=1)
 
 
 @pytest.fixture(
