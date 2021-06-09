@@ -239,12 +239,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             factor
         )
 
-        arguments = {
-            prior: factor_approx.model_dist[
+        arguments = dict()
+
+        for prior in factor_approx.variables:
+            new_prior = factor_approx.model_dist[
                 prior
             ].as_prior()
-            for prior in factor_approx.variables
-        }
+            new_prior.id = prior.id
+            arguments[prior] = new_prior
 
         model = factor.prior_model.mapper_from_prior_arguments(
             arguments
@@ -257,14 +259,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis=analysis
         )
 
-        new_model_dist = MeanField({
-            prior: NormalMessage.from_prior(
-                result.model.prior_with_id(
-                    prior.id
+        mean_field_dict = dict()
+
+        for prior in factor_approx.variables:
+            new_prior = result.model.object_for_path(
+                model.path_for_prior(
+                    prior
                 )
             )
-            for prior in factor_approx.variables
-        })
+            mean_field_dict[
+                prior
+            ] = NormalMessage.from_prior(
+                new_prior
+            )
+
+        new_model_dist = MeanField(mean_field_dict)
 
         projection, status = factor_approx.project(
             new_model_dist,
