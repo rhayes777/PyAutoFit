@@ -43,6 +43,25 @@ def test_missing_field():
         )
 
 
+def test_change_class():
+    gaussian_0 = af.Model(
+        af.Gaussian,
+        intensity=af.UniformPrior(
+            lower_limit=1e-6,
+            upper_limit=1e6
+        )
+    )
+    gaussian_1 = af.Model(
+        af.Gaussian,
+        intensity=af.LogUniformPrior(
+            lower_limit=1e-6,
+            upper_limit=1e6
+        )
+    )
+
+    assert Identifier(gaussian_0) != Identifier(gaussian_1)
+
+
 def test_tiny_change():
     # noinspection PyTypeChecker
     instance = Class(

@@ -116,6 +116,10 @@ class Identifier:
         ):
             raise value
         if hasattr(value, "__dict__"):
+            if hasattr(value, "__class__"):
+                self.add_value_to_hash_list(
+                    value.__class__.__name__
+                )
             d = value.__dict__
             if hasattr(
                     value,
