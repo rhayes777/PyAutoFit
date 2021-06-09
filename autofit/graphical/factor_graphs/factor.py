@@ -180,7 +180,7 @@ class Factor(AbstractFactor):
         """
         self.vectorised = vectorised
         self.is_scalar = is_scalar
-        self._factor = factor
+        self._set_factor(factor)
 
         args = getfullargspec(self._factor).args
         kwargs = {
@@ -197,6 +197,56 @@ class Factor(AbstractFactor):
             **kwargs,
             name=name or factor.__name__
         )
+
+    def _set_factor(self, factor):
+        self._factor = factor
+        self._has_exact_projection = getattr(
+            factor, 'has_exact_projection', None)
+        self._calc_exact_projection = getattr(
+            factor, 'calc_exact_projection', None)
+        self._calc_exact_update = getattr(
+            factor, 'calc_exact_update', None)
+
+    def has_exact_projection(self, mean_field) -> bool:
+        if self._has_exact_projection:
+            return self._has_exact_projection(
+                **self.resolve_variable_dict(mean_field))
+        else:
+            return False
+
+    def calc_exact_projection(self, mean_field) -> 'MeanField':
+        if self._calc_exact_projection:
+            from autofit.graphical.mean_field import MeanField
+            projection = self._calc_exact_projection(
+                **self.resolve_variable_dict(mean_field))
+            return MeanField({
+                self._kwargs[v]: dist for v, dist in projection.items()
+            })
+        else:
+            return NotImplementedError
+
+    def calc_exact_update(self, mean_field) -> 'MeanField':
+        if self._calc_exact_update:
+            from autofit.graphical.mean_field import MeanField
+            projection = self._calc_exact_update(
+                **self.resolve_variable_dict(mean_field))
+            return MeanField({
+                self._kwargs[v]: dist for v, dist in projection.items()
+            })
+        else:
+            return NotImplementedError
+
+    def safe_exact_update(self, mean_field) -> Tuple[bool, 'MeanField']:
+        if self._has_exact_projection:
+            from autofit.graphical.mean_field import MeanField
+            _mean_field = self.resolve_variable_dict(mean_field)
+            if self._has_exact_projection(**_mean_field):
+                projection = self._calc_exact_update(**_mean_field)
+                return True, MeanField({
+                    self._kwargs[v]: dist for v, dist in projection.items()
+                })
+
+        return False, mean_field
 
     def __hash__(self) -> int:
         # TODO: might this break factor repetition somewhere?

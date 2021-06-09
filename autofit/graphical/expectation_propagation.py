@@ -232,7 +232,7 @@ class AbstractFactorOptimiser(ABC):
             self,
             factor: Factor,
             model_approx: EPMeanField,
-            status: Optional[Status] = None
+            status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
         pass
 
@@ -264,14 +264,16 @@ class EPHistory:
         self.history[i, factor] = approx
         self.statuses[i, factor] = status
 
-        stop = any([
-            callback(factor, approx, status) for callback in self._callbacks
-        ])
-        if stop:
-            return True
-        elif i:
-            last_approx = self.history[i - 1, factor]
-            return self._check_convergence(approx, last_approx)
+        if status.success:
+            stop = any([
+                callback(factor, approx, status)
+                for callback in self._callbacks
+            ])
+            if stop:
+                return True
+            elif i:
+                last_approx = self.history[i - 1, factor]
+                return self._check_convergence(approx, last_approx)
 
         return False
 
@@ -352,7 +354,15 @@ class EPOptimiser:
     ) -> EPMeanField:
         for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
-                model_approx, status = optimiser.optimise(factor, model_approx)
+                try:
+                    model_approx, status = optimiser.optimise(factor, model_approx)
+                except TypeError as e:
+                    raise e
+                except (ValueError, ArithmeticError, RuntimeError) as e:
+                    status = Status(
+                        False,
+                        f"Factor: {factor} experienced error {e}")
+
                 if self.callback(factor, model_approx, status):
                     break  # callback controls convergence
             else:  # If no break do next iteration

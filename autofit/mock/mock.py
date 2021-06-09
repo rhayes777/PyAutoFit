@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 
 import autofit as af
@@ -332,4 +334,24 @@ class Gaussian(Profile):
         return np.multiply(
             np.divide(self.intensity, self.sigma * np.sqrt(2.0 * np.pi)),
             np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
+        )
+
+    def inverse(
+            self,
+            y
+    ):
+        print(y)
+        print(f"centre = {self.centre}")
+        print(f"sigma = {self.sigma}")
+        print(f"intensity = {self.intensity}")
+        a = self.intensity / (
+                y * self.sigma * math.sqrt(2 * math.pi)
+        )
+        print(f"a = {a}")
+        b = 2 * math.log(
+            a
+        )
+        print(f"b = {b}")
+        return self.centre + self.sigma * math.sqrt(
+            b
         )

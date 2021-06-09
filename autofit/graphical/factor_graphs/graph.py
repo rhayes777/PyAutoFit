@@ -1,7 +1,7 @@
 from collections import Counter, defaultdict
 from functools import reduce
-from typing import \
-    (
+from itertools import count
+from typing import (
     Tuple, Dict, Collection, List
 )
 
@@ -237,3 +237,131 @@ class FactorGraph(AbstractNode):
     @property
     def factor_all_variables(self) -> Dict[Factor, List[Variable]]:
         return self._factor_all_variables
+
+    @property
+    def graph(self):
+        try:
+            import networkx as nx
+        except ImportError as e:
+            raise ImportError("networkx required for graph") from e
+
+        G = nx.Graph()
+        G.add_nodes_from(self.factors, bipartite='factor')
+        G.add_nodes_from(self.all_variables, bipartite='variable')
+        G.add_edges_from(
+            (f, v) for f, vs in self.factor_all_variables.items() for v in vs)
+
+        return G
+
+    def draw_graph(
+            self,
+            pos=None, ax=None, size=20, color='k', fill='w',
+            factor_shape='s', variable_shape='o',
+            factor_kws=None, variable_kws=None, edge_kws=None,
+            factors=None,
+            **kwargs
+    ):
+        try:
+            import matplotlib.pyplot as plt
+            import networkx as nx
+        except ImportError as e:
+            raise ImportError("Matplotlib and networkx required for draw_graph()") from e
+        except RuntimeError:
+            print("Matplotlib unable to open display")
+            raise
+
+        if ax is None:
+            ax = plt.gca()
+
+        G = self.graph
+        if pos is None:
+            pos = bipartite_layout(factors or self.factors)
+
+        kwargs.setdefault('ms', size)
+        kwargs.setdefault('c', color)
+        kwargs.setdefault('mec', color)
+        kwargs.setdefault('mfc', fill)
+        kwargs.setdefault('ls', '')
+
+        factor_kws = factor_kws or {}
+        factor_kws.setdefault('marker', factor_shape)
+
+        variable_kws = variable_kws or {}
+        variable_kws.setdefault('marker', variable_shape)
+
+        # draw factors
+        xy = np.array([pos[f] for f in self.factors]).T
+        fs = ax.plot(*xy, **{**kwargs, **factor_kws})
+        # draw variables
+        xy = np.array([pos[f] for f in self.all_variables]).T
+        vs = ax.plot(*xy, **{**kwargs, **variable_kws})
+        # draw edges
+        edges = nx.draw_networkx_edges(G, pos, **(edge_kws or {}))
+
+        # remove ticks from axes
+        ax.tick_params(
+            axis="both",
+            which="both",
+            bottom=False,
+            left=False,
+            labelbottom=False,
+            labelleft=False,
+        )
+        return fs, vs, edges
+
+    def draw_graph_labels(
+            self,
+            pos,
+            factor_labels=None,
+            variable_labels=None,
+            shift=0.1,
+            f_shift=None,
+            v_shift=None,
+            f_horizontalalignment='right',
+            v_horizontalalignment='left',
+            f_kws=None,
+            v_kws=None,
+            graph=None,
+            **kwargs
+    ):
+        try:
+            import networkx as nx
+        except ImportError as e:
+            raise ImportError("Matplotlib and networkx required for draw_graph()") from e
+
+        graph = graph or self.graph
+        factor_labels = (
+                factor_labels or {f: f.name for f in self.factors})
+        variable_labels = (
+                variable_labels or {v: v.name for v in self.all_variables})
+        f_kws = f_kws or {'horizontalalignment': 'right'}
+        v_kws = v_kws or {'horizontalalignment': 'left'}
+
+        f_shift = f_shift or shift
+        f_pos = {f: (x - f_shift, y) for f, (x, y) in pos.items()}
+        v_shift = v_shift or shift
+        v_pos = {f: (x + v_shift, y) for f, (x, y) in pos.items()}
+
+        return {
+            **nx.draw_networkx_labels(
+                graph, f_pos, labels=factor_labels, **f_kws, **kwargs),
+            **nx.draw_networkx_labels(
+                graph, v_pos, labels=variable_labels, **v_kws, **kwargs)
+        }
+
+
+def bipartite_layout(factors):
+    n_factors = len(factors)
+    n_variables = len(set().union(*(f.variables for f in factors)))
+    n = max(n_factors, n_variables)
+    factor_count = count()
+    variable_count = count()
+
+    pos = {}
+    for factor in factors:
+        pos[factor] = 0, next(factor_count) * n / n_factors
+        for v in factor.variables:
+            if v not in pos:
+                pos[v] = 1, next(variable_count) * n / n_variables
+
+    return pos

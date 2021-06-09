@@ -151,7 +151,7 @@ _M = TypeVar('_M')
 def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     """calculates the product of the passed iterable,
     much like sum, if a second argument is passed,
-    this is the inital value of the calculation
+    this is the initial value of the calculation
 
     Examples
     --------
@@ -223,6 +223,23 @@ def propagate_uncertainty(
         jac2d, cov2d, jac2d.T))
     det_cov = det_cov2d.reshape(det_shape + det_shape)
     return det_cov
+
+
+def numerical_jacobian(x: np.ndarray, func, eps=1e-8, args=(), **kwargs):
+    """
+    Calculates numerical jacobian of passed function
+    """
+    x0 = np.array(x)
+    f0 = func(x, *args, **kwargs)
+    jac = np.empty((np.size(f0), np.size(x0)))
+    with np.nditer(x0, op_flags=['readwrite']) as it:
+        for i, val in enumerate(it):
+            val += eps
+            f1 = func(x0, *args, **kwargs)
+            jac[:, i] = (f1 - f0) / eps
+            val -= eps
+
+    return jac.reshape(np.shape(f0) + np.shape(x0))
 
 
 def psilog(x: np.ndarray) -> np.ndarray:

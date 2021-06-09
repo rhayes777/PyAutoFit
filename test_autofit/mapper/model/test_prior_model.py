@@ -35,11 +35,6 @@ class TestAsModel:
         model = instance_prior_model.as_model()
         assert model.prior_count == 2
 
-    def test_list(self, list_prior_model):
-        model = list_prior_model.as_model()
-        assert isinstance(model, af.CollectionPriorModel)
-        assert model.prior_count == 2
-
     def test_complex(self, complex_prior_model):
         assert complex_prior_model.prior_count == 0
         model = complex_prior_model.as_model()

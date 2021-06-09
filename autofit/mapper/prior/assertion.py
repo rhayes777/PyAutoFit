@@ -84,11 +84,8 @@ class CompoundAssertion(AbstractPriorModel):
         self._name = name
 
     def _instance_for_arguments(self, arguments):
-        return self.assertion_1.instance_for_arguments(
-            arguments
-        ) and self.assertion_2.instance_for_arguments(
-            arguments
-        )
+        return self.assertion_1.instance_for_arguments(arguments, ) and self.assertion_2.instance_for_arguments(
+            arguments, )
 
 
 def unwrap(obj):
