@@ -24,3 +24,15 @@ def test_visualize():
         prior_model=gaussian_2,
         analysis=analysis_2
     )
+
+    factor_graph = g.FactorGraphModel(
+        analysis_factor_0,
+        analysis_factor_1,
+        analysis_factor_2
+    )
+
+    factor_graph.visualize(
+        af.DirectoryPaths(),
+        factor_graph.global_prior_model.instance_from_prior_medians(),
+        False
+    )
