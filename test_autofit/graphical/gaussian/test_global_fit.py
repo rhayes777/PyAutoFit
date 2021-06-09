@@ -36,7 +36,7 @@ class TestGlobalLikelihood:
                 == likelihood
         )
 
-    @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.0625)])
+    @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.5)])
     def test_collection(self, model_factor, unit_value, likelihood):
         collection = g.FactorGraphModel(model_factor, model_factor)
         assert (
@@ -47,7 +47,7 @@ class TestGlobalLikelihood:
         )
 
     @pytest.mark.parametrize(
-        "unit_vector, likelihood", [([0.5, 0.0], 0.0), ([1.0, 0.5], -0.0625)]
+        "unit_vector, likelihood", [([0.5, 0.0], 0.0), ([1.0, 0.5], -0.5)]
     )
     def test_two_factor(self, model_factor, model_factor_2, unit_vector, likelihood):
         collection = g.FactorGraphModel(model_factor, model_factor_2)
