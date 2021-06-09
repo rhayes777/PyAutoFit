@@ -61,21 +61,16 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         -------
         The combined likelihood of all factors
         """
-        likelihood = abs(
-            self.model_factors[0].log_likelihood_function(
-                instance[0]
-            )
-        )
+        log_likelihood = 0
         for model_factor, instance_ in zip(
-                self.model_factors[1:],
-                instance[1:]
+                self.model_factors,
+                instance
         ):
-            likelihood *= abs(
-                model_factor.log_likelihood_function(
-                    instance_
-                )
+            log_likelihood += model_factor.log_likelihood_function(
+                instance_
             )
-        return -likelihood
+
+        return log_likelihood
 
     @property
     def model_factors(self):
