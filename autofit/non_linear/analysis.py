@@ -1,5 +1,7 @@
 from abc import ABC
+from multiprocessing import Pool
 
+from autoconf import conf
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
@@ -64,6 +66,19 @@ class CombinedAnalysis(Analysis):
         """
         self.analyses = analyses
 
+        if conf.instance[
+            "general"
+        ][
+            "analysis"
+        ][
+            "n_cores"
+        ] > 1:
+            self.map = Pool(
+                processes=1
+            ).map
+        else:
+            self.map = map
+
     def log_likelihood_function(
             self,
             instance
@@ -84,14 +99,25 @@ class CombinedAnalysis(Analysis):
         log likelihoods
         """
 
-        def compute_log_likelihood(
-                analysis
-        ):
-            return analysis.log_likelihood_function(
-                instance
-            )
+        inverse = Inverse(
+            instance
+        )
 
-        return sum(map(
-            compute_log_likelihood,
+        return sum(self.map(
+            inverse,
             self.analyses
         ))
+
+
+class Inverse:
+    """
+    This allows us to map an instance onto a list an analyses
+    """
+
+    def __init__(self, instance):
+        self.instance = instance
+
+    def __call__(self, analysis):
+        return analysis.log_likelihood_function(
+            self.instance
+        )
