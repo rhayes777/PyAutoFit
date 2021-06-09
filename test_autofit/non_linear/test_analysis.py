@@ -19,3 +19,13 @@ def test_two_cores():
     assert (Analysis() + Analysis()).log_likelihood_function(
         None
     ) == -2
+
+
+def test_still_flat():
+    analysis = (Analysis() + Analysis()) + Analysis()
+
+    assert len(analysis) == 3
+
+    analysis = Analysis() + (Analysis() + Analysis())
+
+    assert len(analysis) == 3

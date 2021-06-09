@@ -49,6 +49,11 @@ class Analysis(ABC):
         -------
         A class that computes log likelihood based on both analyses
         """
+        if isinstance(
+                other,
+                CombinedAnalysis
+        ):
+            return other + self
         return CombinedAnalysis(
             self, other
         )
@@ -78,6 +83,23 @@ class CombinedAnalysis(Analysis):
             ).map
         else:
             self.map = map
+
+    def __len__(self):
+        return len(self.analyses)
+
+    def __add__(self, other):
+        if isinstance(
+                other,
+                CombinedAnalysis
+        ):
+            return CombinedAnalysis(
+                *self.analyses,
+                *other.analyses
+            )
+        return CombinedAnalysis(
+            *self.analyses,
+            other
+        )
 
     def log_likelihood_function(
             self,
