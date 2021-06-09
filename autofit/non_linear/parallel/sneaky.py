@@ -5,7 +5,7 @@ from typing import Iterable
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
-from .process import AbstractJob, Process
+from .process import AbstractJob, Process, StopCommand, AbstractPool
 
 logger = logging.getLogger(
     __name__
@@ -123,13 +123,6 @@ class SneakyJob(AbstractJob):
         )
 
 
-class StopCommand:
-    """
-    A command that can be passed into a process queue to gracefully stop
-    the process
-    """
-
-
 class SneakyProcess(Process):
     def run(self):
         """
@@ -162,7 +155,7 @@ class SneakyProcess(Process):
         self.job_queue.close()
 
 
-class SneakyPool:
+class SneakyPool(AbstractPool):
     def __init__(
             self,
             processes: int,
@@ -189,8 +182,8 @@ class SneakyPool:
         logger.debug(
             f"Creating SneakyPool with {processes} processes"
         )
-        self.job_queue = mp.Queue()
-        self.processes = [
+        self._job_queue = mp.Queue()
+        self._processes = [
             SneakyProcess(
                 str(number),
                 self.job_queue,
@@ -202,6 +195,14 @@ class SneakyPool:
         ]
         for process in self.processes:
             process.start()
+
+    @property
+    def processes(self):
+        return self._processes
+
+    @property
+    def job_queue(self):
+        return self._job_queue
 
     def map(self, function, args_list):
         """
