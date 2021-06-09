@@ -13,17 +13,17 @@ class Analysis(MockAnalysis):
 
 
 def test_visualize():
-    analysis_0 = Analysis()
+    analysis = Analysis()
 
-    gaussian_0 = af.Model(af.Gaussian)
+    gaussian = af.Model(af.Gaussian)
 
-    analysis_factor_0 = g.AnalysisFactor(
-        prior_model=gaussian_0,
-        analysis=analysis_0
+    analysis_factor = g.AnalysisFactor(
+        prior_model=gaussian,
+        analysis=analysis
     )
 
     factor_graph = g.FactorGraphModel(
-        analysis_factor_0
+        analysis_factor
     )
 
     model = factor_graph.global_prior_model
@@ -35,4 +35,4 @@ def test_visualize():
         False
     )
 
-    assert analysis_0.did_call_visualise is True
+    assert analysis.did_call_visualise is True
