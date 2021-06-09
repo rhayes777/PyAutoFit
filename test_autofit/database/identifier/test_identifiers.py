@@ -1,8 +1,31 @@
 import pytest
 
 import autofit as af
+from autofit import conf
 from autofit.mapper.model_object import Identifier
 from autofit.mock.mock import Gaussian
+
+
+def test_identifier_version():
+    def set_version(version):
+        conf.instance[
+            "general"
+        ][
+            "output"
+        ][
+            "identifier_version"
+        ] = version
+
+    set_version(1)
+    identifier = Identifier(Gaussian())
+
+    set_version(2)
+    assert identifier != Identifier(Gaussian())
+
+    assert identifier == Identifier(
+        Gaussian(),
+        version=1
+    )
 
 
 class Class:
@@ -41,6 +64,25 @@ def test_missing_field():
         Identifier(
             instance
         )
+
+
+def test_change_class():
+    gaussian_0 = af.Model(
+        af.Gaussian,
+        intensity=af.UniformPrior(
+            lower_limit=1e-6,
+            upper_limit=1e6
+        )
+    )
+    gaussian_1 = af.Model(
+        af.Gaussian,
+        intensity=af.LogUniformPrior(
+            lower_limit=1e-6,
+            upper_limit=1e6
+        )
+    )
+
+    assert Identifier(gaussian_0) != Identifier(gaussian_1)
 
 
 def test_tiny_change():
