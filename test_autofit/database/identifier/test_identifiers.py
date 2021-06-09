@@ -1,8 +1,31 @@
 import pytest
 
 import autofit as af
+from autofit import conf
 from autofit.mapper.model_object import Identifier
 from autofit.mock.mock import Gaussian
+
+
+def test_identifier_version():
+    def set_version(version):
+        conf.instance[
+            "general"
+        ][
+            "output"
+        ][
+            "identifier_version"
+        ] = version
+
+    set_version(1)
+    identifier = Identifier(Gaussian())
+
+    set_version(2)
+    assert identifier != Identifier(Gaussian())
+
+    assert identifier == Identifier(
+        Gaussian(),
+        version=1
+    )
 
 
 class Class:
