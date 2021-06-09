@@ -37,13 +37,6 @@ class TestModelInstance:
     def test_iterable(self, instance):
         assert len(list(instance)) == 2
 
-    def test_zip(self, instance):
-        combined = zip(instance, range(999))
-        instance, number = next(combined)
-
-        assert number == 0
-        assert instance == mock_real.Galaxy()
-
     def test_as_model(self, instance):
         model = instance.as_model()
         assert isinstance(model, af.ModelMapper)
