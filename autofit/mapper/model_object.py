@@ -4,7 +4,7 @@ from collections import Iterable
 from hashlib import md5
 from typing import Optional
 
-from autofit.util import get_class
+from autofit.tools.util import get_class
 
 # floats are rounded to this increment so floating point errors
 # have no impact on identifier value

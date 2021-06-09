@@ -184,6 +184,7 @@ class AbstractModelFactor(Analysis, ABC):
         during_analysis
             Is this visualisation during analysis?
         """
+        return
         logger.info(
             "Visualising factor model"
         )

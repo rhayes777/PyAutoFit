@@ -9,7 +9,7 @@ from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.prior import TuplePrior, Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
-from autofit.util import get_class_path
+from autofit.tools.util import get_class_path
 
 logger = logging.getLogger(__name__)
 
