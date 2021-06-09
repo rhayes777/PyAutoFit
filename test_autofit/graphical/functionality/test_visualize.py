@@ -3,36 +3,36 @@ from autofit import graphical as g
 from autofit.mock.mock import MockAnalysis
 
 
+class Analysis(MockAnalysis):
+    def __init__(self):
+        super().__init__()
+        self.did_call_visualise = False
+
+    def visualize(self, paths, instance, during_analysis):
+        self.did_call_visualise = True
+
+
 def test_visualize():
-    analysis_0 = MockAnalysis()
-    analysis_1 = MockAnalysis()
-    analysis_2 = MockAnalysis()
+    analysis_0 = Analysis()
 
     gaussian_0 = af.Model(af.Gaussian)
-    gaussian_1 = af.Model(af.Gaussian)
-    gaussian_2 = af.Model(af.Gaussian)
 
     analysis_factor_0 = g.AnalysisFactor(
         prior_model=gaussian_0,
         analysis=analysis_0
     )
-    analysis_factor_1 = g.AnalysisFactor(
-        prior_model=gaussian_1,
-        analysis=analysis_1
-    )
-    analysis_factor_2 = g.AnalysisFactor(
-        prior_model=gaussian_2,
-        analysis=analysis_2
-    )
 
     factor_graph = g.FactorGraphModel(
-        analysis_factor_0,
-        analysis_factor_1,
-        analysis_factor_2
+        analysis_factor_0
     )
+
+    model = factor_graph.global_prior_model
+    instance = model.instance_from_prior_medians()
 
     factor_graph.visualize(
         af.DirectoryPaths(),
-        factor_graph.global_prior_model.instance_from_prior_medians(),
+        instance,
         False
     )
+
+    assert analysis_0.did_call_visualise is True
