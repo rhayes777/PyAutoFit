@@ -306,8 +306,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.__dict__.update(
             state
         )
+
+        logger_name = self.__class__.__name__
+        try:
+            # This is only here so that old pickles
+            logger_name = self.name
+        except AttributeError:
+            pass
+
         self.logger = logging.getLogger(
-            self.name
+            logger_name
         )
         if self.paths.model is not None:
             self.setup_log_file()
