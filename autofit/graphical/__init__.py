@@ -1,8 +1,9 @@
-from .declarative import ModelFactor, FactorGraphModel
+from .declarative import AnalysisFactor, FactorGraphModel, HierarchicalFactor
 from .factor_graphs import \
     Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue, \
     DiagonalTransform, CholeskyTransform, VariableTransform, \
-    FullCholeskyTransform 
+    FullCholeskyTransform , CovarianceTransform, identity_transform
+
 from .mean_field import FactorApproximation, MeanField
 from .expectation_propagation import EPMeanField, EPOptimiser
 from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage
@@ -11,3 +12,4 @@ from .sampling import ImportanceSampler, project_factor_approx_sample
 from ..mapper.variable import Variable, Plate
 
 from . import optimise as optimize
+from . import utils

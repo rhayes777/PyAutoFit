@@ -23,7 +23,7 @@ class NormalMessage(AbstractMessage):
             log_norm=0.
     ):
         super().__init__(
-            (mu, sigma),
+            mu, sigma,
             log_norm=log_norm
         )
         self.mu, self.sigma = self.parameters

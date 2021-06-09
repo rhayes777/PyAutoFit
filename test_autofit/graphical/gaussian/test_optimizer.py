@@ -26,7 +26,7 @@ def make_factor_model(
         prior_model,
         analysis
 ):
-    return g.ModelFactor(
+    return g.AnalysisFactor(
         prior_model,
         analysis=analysis
     )

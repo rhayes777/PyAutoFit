@@ -1,9 +1,12 @@
 import pickle
+from typing import Tuple
 
 import pytest
 
 import autofit as af
 from autofit import exc
+from autofit.graphical import FactorApproximation
+from autofit.graphical.utils import Status
 from autofit.mock.mock import MockAnalysis
 
 
@@ -150,6 +153,14 @@ def make_grid_search_05():
 
 
 class MockOptimizer(af.MockSearch):
+    @property
+    def samples_cls(self):
+        return MockOptimizer
+
+    def project(self, factor_approx: FactorApproximation, status: Status = Status()) -> Tuple[
+        FactorApproximation, Status]:
+        pass
+
     init_args = list()
 
     def __init__(self, **kwargs):

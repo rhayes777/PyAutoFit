@@ -5,6 +5,7 @@ from hashlib import md5
 from typing import Optional
 
 from autofit.tools.util import get_class
+from autoconf import conf
 
 # floats are rounded to this increment so floating point errors
 # have no impact on identifier value
@@ -84,10 +85,29 @@ class IdentifierField:
 
 
 class Identifier:
-    def __init__(self, obj):
+    def __init__(self, obj, version=None):
         """
         Wraps an object and recursively generates an identifier
+
+        The version can be set in general.ini (output/identifier_version). It can
+        be overridden by specifying it explicitly in the constructor.
+
+        The version determines how the identifier is generated.
+
+        Version History
+        ---------------
+        1 - Original version
+        2 - Accounts for the class of objects
+        
         """
+        self._identifier_version = version or conf.instance[
+            "general"
+        ][
+            "output"
+        ][
+            "identifier_version"
+        ]
+
         self.hash_list = list()
         self._add_value_to_hash_list(
             obj
@@ -116,6 +136,11 @@ class Identifier:
         ):
             raise value
         if hasattr(value, "__dict__"):
+            if self._identifier_version >= 2:
+                if hasattr(value, "__class__"):
+                    self.add_value_to_hash_list(
+                        value.__class__.__name__
+                    )
             d = value.__dict__
             if hasattr(
                     value,
