@@ -7,7 +7,7 @@ from autofit import graphical as g
 from autofit.mock.mock import Gaussian
 from test_autofit.graphical.gaussian.model import Analysis
 
-x = np.arange(100)
+x = np.arange(200)
 n = 1
 
 should_plot = True
@@ -20,7 +20,7 @@ def make_centre_model():
     return af.PriorModel(
         af.GaussianPrior,
         mean=af.GaussianPrior(
-            mean=50,
+            mean=100,
             sigma=10
         ),
         sigma=af.GaussianPrior(
@@ -44,7 +44,7 @@ def test_hierarchical_factor(
 ):
     factor = g.HierarchicalFactor(
         centre_model,
-        af.GaussianPrior(50, 10)
+        af.GaussianPrior(100, 10)
     )
 
     assert len(factor.priors) == 3
@@ -52,7 +52,7 @@ def test_hierarchical_factor(
     laplace = g.LaplaceFactorOptimiser()
 
     gaussian = factor.optimise(laplace)
-    assert gaussian.instance_from_prior_medians().mean == pytest.approx(50, abs=0.1)
+    assert gaussian.instance_from_prior_medians().mean == pytest.approx(100, abs=1)
 
 
 @pytest.fixture(
@@ -130,7 +130,7 @@ def test_full_fit(centre_model, data, centres):
     graph = g.FactorGraphModel()
     for i, y in enumerate(data):
         centre_argument = af.GaussianPrior(
-            mean=50,
+            mean=100,
             sigma=20
         )
         prior_model = af.PriorModel(

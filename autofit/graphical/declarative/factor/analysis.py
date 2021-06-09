@@ -2,10 +2,11 @@ from typing import Optional
 
 import numpy as np
 
-from autofit.mapper.model import ModelInstance
-from autofit.non_linear.analysis import Analysis
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
+from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
+from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.paths.abstract import AbstractPaths
 from .abstract import AbstractModelFactor
 
 
@@ -80,6 +81,32 @@ class AnalysisFactor(AbstractModelFactor):
             optimiser=optimiser,
             prior_variable_dict=prior_variable_dict,
             name=name
+        )
+
+    def visualize(
+            self,
+            paths: AbstractPaths,
+            instance: ModelInstance,
+            during_analysis: bool
+    ):
+        """
+        Visualise the instances provided using each factor.
+
+        Instances in the ModelInstance must have the same order as the factors.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        instance
+            A collection of instances, each corresponding to a factor
+        during_analysis
+            Is this visualisation during analysis?
+        """
+        self.analysis.visualize(
+            paths,
+            instance,
+            during_analysis
         )
 
     def log_likelihood_function(
