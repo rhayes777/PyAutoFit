@@ -19,6 +19,18 @@ class AnalysisProcess(Process):
             analyses,
             analysis_queues
     ):
+        """
+        A process that performs one or more analyses on each
+        instance passed to it
+
+        Parameters
+        ----------
+        analyses
+            A list of analyses this process performs
+        analysis_queues
+            A list of queues by which instances are passed, one
+            for each analysis
+        """
         super().__init__()
         self.analyses = analyses
         self.analysis_queues = analysis_queues
@@ -31,6 +43,10 @@ class AnalysisProcess(Process):
         )
 
     def _run(self):
+        """
+        Private run function permitting process to be stopped using a return
+        when a StopCommand is passed
+        """
         while True:
             for analysis, queue in zip(
                     self.analyses,
@@ -67,9 +83,22 @@ class AnalysisProcess(Process):
 class AnalysisPool:
     def __init__(
             self,
-            analyses,
-            n_cores
+            analyses: list,
+            n_cores: int
     ):
+        """
+        A pool which distributes analysis evenly across
+        n_cores processes.
+
+        Callable as a log-likelihood function.
+
+        Parameters
+        ----------
+        analyses
+            A list of analyses to be performed in parallel
+        n_cores
+            The number of cores available to perform analyses over
+        """
         self.analyses = analyses
         self.n_cores = n_cores
 
@@ -134,7 +163,20 @@ class AnalysisPool:
             except Exception as e:
                 logger.exception(e)
 
-    def __call__(self, instance):
+    def __call__(self, instance) -> float:
+        """
+        Evaluate the likelihood of an instance according to several
+        analyses, in parallel.
+
+        Parameters
+        ----------
+        instance
+            Some instance
+
+        Returns
+        -------
+        The total log likelihood
+        """
         log_likelihood = 0
 
         count_ = 0
