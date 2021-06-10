@@ -3,11 +3,35 @@ import pytest
 import autofit as af
 from autoconf.conf import with_config
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
+from autofit.non_linear.paths.abstract import AbstractPaths
 
 
 class Analysis(af.Analysis):
+    def __init__(self):
+        self.did_visualise = False
+
     def log_likelihood_function(self, instance):
         return -1
+
+    def visualize(
+            self,
+            paths: AbstractPaths,
+            instance,
+            during_analysis
+    ):
+        self.did_visualise = True
+
+
+def test_visualise():
+    analysis_1 = Analysis()
+    analysis_2 = Analysis()
+
+    (analysis_1 + analysis_2).visualize(
+        af.DirectoryPaths(), None, None
+    )
+
+    assert analysis_1.did_visualise is True
+    assert analysis_2.did_visualise is True
 
 
 def test_add_analysis():
