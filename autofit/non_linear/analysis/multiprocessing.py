@@ -16,8 +16,7 @@ class AnalysisProcess(Process):
 
     def __init__(
             self,
-            analyses,
-            analysis_queues
+            analyses
     ):
         """
         A process that performs one or more analyses on each
@@ -27,13 +26,10 @@ class AnalysisProcess(Process):
         ----------
         analyses
             A list of analyses this process performs
-        analysis_queues
-            A list of queues by which instances are passed, one
-            for each analysis
         """
         super().__init__()
         self.analyses = analyses
-        self.analysis_queues = analysis_queues
+        self.instance_queue = Queue()
         self.queue = Queue()
 
         self.name = f"analysis_process_{next(self._id)}"
@@ -48,12 +44,10 @@ class AnalysisProcess(Process):
         when a StopCommand is passed
         """
         while True:
-            for analysis, queue in zip(
-                    self.analyses,
-                    self.analysis_queues
-            ):
-                instance = queue.get()
-
+            instance = self.instance_queue.get()
+            if instance is StopCommand:
+                return
+            for analysis in self.analyses:
                 if instance is StopCommand:
                     return
 
@@ -113,7 +107,6 @@ class AnalysisPool:
         )
 
         self.processes = list()
-        self.analysis_queues = list()
 
         for n in range(
                 n_processes
@@ -121,16 +114,9 @@ class AnalysisPool:
             analyses_ = analyses[
                         n * analyses_per_process: (n + 1) * analyses_per_process
                         ]
-            analysis_queues_ = [
-                Queue()
-                for _
-                in analyses_
-            ]
             process = AnalysisProcess(
-                analyses=analyses_,
-                analysis_queues=analysis_queues_
+                analyses=analyses_
             )
-            self.analysis_queues.extend(analysis_queues_)
 
             self.processes.append(
                 process
@@ -151,8 +137,8 @@ class AnalysisPool:
         logger.debug(
             "Terminating processes..."
         )
-        for analysis_queue in self.analysis_queues:
-            analysis_queue.put(StopCommand)
+        for process in self.processes:
+            process.instance_queue.put(StopCommand)
 
         logger.debug(
             "Joining processes..."
@@ -181,8 +167,10 @@ class AnalysisPool:
 
         count_ = 0
 
-        for queue in self.analysis_queues:
-            queue.put(instance)
+        for process in self.processes:
+            process.instance_queue.put(
+                instance
+            )
 
         while count_ < self.n_analyses:
             for process in self.processes:
