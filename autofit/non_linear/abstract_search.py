@@ -317,8 +317,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.logger = logging.getLogger(
             logger_name
         )
-        if self.paths.model is not None:
-            self.setup_log_file()
+        try:
+            if self.paths.model is not None:
+                self.setup_log_file()
+        except AttributeError:
+            pass
 
     @property
     def timer(self):
