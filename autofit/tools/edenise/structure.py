@@ -112,6 +112,10 @@ else:
         )
 
     @property
+    def target_import_string(self):
+        return f"from {self.target.target_import_path} import {self.suffix}"
+
+    @property
     def suffix(self):
         return self.string.split(" ")[-1]
 
@@ -127,6 +131,10 @@ class File(Item):
     def __init__(self, path: Path, prefix):
         super().__init__(prefix)
         self._path = path
+
+    @property
+    def name(self):
+        return super().name.replace(".py", "")
 
     @property
     def children(self):

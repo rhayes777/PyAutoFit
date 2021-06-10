@@ -71,6 +71,11 @@ def test_import_target(import_):
     )
 
 
+def test_target_import_string(import_):
+    string = "from VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise.VIS_CTI_Converter import Line"
+    assert import_.target_import_string == string
+
+
 def test_file(package):
     file = File(
         Path(__file__),
