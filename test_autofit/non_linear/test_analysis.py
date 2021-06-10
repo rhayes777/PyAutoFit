@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autoconf.conf import with_config
-from autofit.non_linear.analysis import AnalysisPool
+from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 
 
 class Analysis(af.Analysis):
