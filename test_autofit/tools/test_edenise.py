@@ -58,7 +58,7 @@ class TestPackageStructure:
     def test_import(self, package):
         import_ = Import("from autofit.tools.edenise import Line")
         import_.parent = package
-        assert "autofit/tools/edenise.py" in str(import_.path)
+        assert "autofit/tools/edenise/converter.py" in str(import_.path)
         assert import_.is_in_project is True
 
         import_ = Import("import os")
