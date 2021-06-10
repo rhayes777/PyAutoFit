@@ -144,6 +144,8 @@ class AnalysisPool:
 
         while count_ < self.n_analyses:
             for process in self.processes:
+                if process.queue.empty():
+                    continue
                 result = process.queue.get()
 
                 if isinstance(
