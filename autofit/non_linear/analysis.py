@@ -1,4 +1,5 @@
 import logging
+import math
 from abc import ABC
 from itertools import count
 from multiprocessing import Process
@@ -192,7 +193,7 @@ class AnalysisPool:
             n_cores
         )
 
-        analyses_per_process = int(
+        analyses_per_process = math.ceil(
             self.n_analyses / n_processes
         )
 
