@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from autofit.tools.edenise import Line, Converter, Package
+from autofit.tools.edenise import Line, Converter, Package, File, Import
 
 
 @pytest.fixture(name="as_line")
@@ -54,6 +54,18 @@ class TestPackageStructure:
         assert package.target_name == "VIS_CTI_Autofit"
         assert str(package.target_path) == "VIS_CTI_Autofit"
         assert str(child.target_path) == f"VIS_CTI_Autofit/{child.target_name}"
+
+    def test_import(self):
+        import_ = Import("from autofit.tools.edenise import Line")
+        assert "autofit/tools/edenise.py" in import_.path
+
+    def test_file(self):
+        file = File(
+            Path(__file__)
+        )
+
+        assert len(file.imports) > 1
+        assert len(file.project_imports) == 1
 
 
 class TestTestImports:

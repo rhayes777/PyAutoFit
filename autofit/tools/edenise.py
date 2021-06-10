@@ -8,6 +8,21 @@ from typing import List
 from uuid import uuid1
 
 
+class Import:
+    def __init__(self, string):
+        self.string = string
+
+    @property
+    def path(self):
+        loc = {}
+        exec(
+            f"{self.string}\npath = __file__",
+            globals(),
+            loc
+        )
+        return loc["path"]
+
+
 class File:
     def __init__(
             self,
@@ -15,6 +30,21 @@ class File:
     ):
         self.directory = directory
         self.parent = None
+
+    @property
+    def imports(self):
+        imports = list()
+        with open(self.directory) as f:
+            for line in f.read().split("\n"):
+                if line.startswith(
+                        "from"
+                ) or line.startswith(
+                    "import"
+                ):
+                    imports.append(
+                        Import(line)
+                    )
+        return imports
 
 
 class Package:
