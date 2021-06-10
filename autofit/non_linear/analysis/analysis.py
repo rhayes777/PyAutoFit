@@ -70,6 +70,13 @@ class CombinedAnalysis(Analysis):
         Computes the summed log likelihood of multiple analyses
         applied to a single model.
 
+        Either analyses are performed sequentially and summed,
+        or they are mapped out to processes.
+
+        If the number of cores is greater than one then the
+        analyses are distributed across a number of processes
+        equal to the number of cores.
+
         Parameters
         ----------
         analyses
@@ -100,7 +107,21 @@ class CombinedAnalysis(Analysis):
     def __len__(self):
         return len(self.analyses)
 
-    def __add__(self, other):
+    def __add__(self, other: Analysis):
+        """
+        Adding anything to a CombinedAnalysis results in another
+        analysis containing all underlying analyses (no combined
+        analysis children)
+
+        Parameters
+        ----------
+        other
+            Some analysis
+
+        Returns
+        -------
+        An overarching analysis
+        """
         if isinstance(
                 other,
                 CombinedAnalysis
@@ -118,4 +139,17 @@ class CombinedAnalysis(Analysis):
             self,
             instance
     ) -> float:
-        pass
+        """
+        The implementation of this function is decided in the constructor
+        based on the number of cores available
+
+        Parameters
+        ----------
+        instance
+            An instance of a model
+
+        Returns
+        -------
+        The likelihood that model corresponds to the data encapsulated
+        by the child analyses
+        """
