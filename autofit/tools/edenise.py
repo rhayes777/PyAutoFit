@@ -4,17 +4,27 @@ import shutil
 from configparser import ConfigParser
 from os import walk
 from pathlib import Path
+from typing import List
 from uuid import uuid1
+
+
+class File:
+    def __init__(
+            self,
+            directory: Path
+    ):
+        self.directory = directory
+        self.parent = None
 
 
 class Package:
     def __init__(
             self,
             directory: Path,
-            children,
-            files,
-            prefix,
-            is_top_level
+            children: List["Package"],
+            files: List[File],
+            prefix: str,
+            is_top_level: bool
     ):
         self.directory = directory
         self.children = children
@@ -25,6 +35,8 @@ class Package:
 
         for child in children:
             child.parent = self
+        for file in files:
+            file.parent = self
 
     @property
     def name(self):
@@ -62,7 +74,7 @@ class Package:
             path = directory / item
             if item.endswith(".py"):
                 files.append(
-                    path
+                    File(path)
                 )
 
             if os.path.isdir(path):
