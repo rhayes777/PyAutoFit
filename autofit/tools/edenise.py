@@ -1,8 +1,59 @@
+import os
 import re
 import shutil
+from configparser import ConfigParser
 from os import walk
 from uuid import uuid1
-from configparser import ConfigParser
+
+
+class Package:
+    def __init__(
+            self,
+            directory,
+            children,
+            files,
+            is_top_level
+    ):
+        self.directory = directory
+        self.children = children
+        self.files = files
+        self.is_top_level = is_top_level
+
+    @classmethod
+    def from_directory(
+            cls,
+            directory,
+            is_top_level=True
+    ):
+        files = list()
+        children = list()
+
+        for item in os.listdir(
+                directory
+        ):
+            path = directory / item
+            if item.endswith(".py"):
+                files.append(
+                    path
+                )
+
+            if os.path.isdir(path):
+                if "__init__.py" in os.listdir(
+                        path
+                ):
+                    children.append(
+                        Package.from_directory(
+                            path,
+                            is_top_level=False
+                        )
+                    )
+        return Package(
+            directory,
+            children,
+            files,
+            is_top_level
+        )
+
 
 class Line:
     def __init__(self, string):

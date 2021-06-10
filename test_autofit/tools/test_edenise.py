@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from autofit.tools.edenise import Line, Converter
+from autofit.tools.edenise import Line, Converter, Package
 
 
 @pytest.fixture(name="as_line")
@@ -15,8 +15,29 @@ def make_line():
     return Line("from .mapper.model import ModelInstance")
 
 
-class Test:
+directory = Path(
+    __file__
+).parent.parent.parent / "autofit"
 
+
+class TestPackageStructure:
+    def test_packages(self):
+        package = Package.from_directory(
+            directory
+        )
+
+        assert package.is_top_level is True
+        assert len(package.children) > 1
+
+        child = package.children[0]
+        assert isinstance(
+            child,
+            Package
+        )
+        assert child.is_top_level is False
+
+
+class TestTestImports:
     def test_line_is_import(self, as_line):
         assert as_line.is_import
         assert not Line(".mapper.model").is_import
@@ -35,8 +56,8 @@ class Test:
     def test_replace(self, as_line, line):
         converter = Converter("testfit", "tf", [as_line, line])
         assert (
-            converter.convert("import testfit as tf\n\ntf.ModelInstance\ntf.Instance")
-            == "from testfit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"
+                converter.convert("import testfit as tf\n\ntf.ModelInstance\ntf.Instance")
+                == "from testfit.mapper.model import ModelInstance\n\n\nModelInstance\nModelInstance"
         )
 
     def test_replace_dotted(self):
@@ -44,15 +65,14 @@ class Test:
         assert line.joint_source == "text.formatter"
         converter = Converter("testfit", "tf", [line])
         assert (
-            converter.convert(
-                "import testfit as tf\n\ntf.text.formatter.label_and_label_string"
-            )
-            == "from testfit.text import formatter\n\n\nformatter.label_and_label_string"
+                converter.convert(
+                    "import testfit as tf\n\ntf.text.formatter.label_and_label_string"
+                )
+                == "from testfit.text import formatter\n\n\nformatter.label_and_label_string"
         )
 
 
 def test_convert_formatter():
-
     unit_test_directory = Path(__file__).parent.parent
     test_path = unit_test_directory / "text/test_samples_text.py"
     with open(test_path) as f:
