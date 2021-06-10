@@ -15,26 +15,45 @@ def make_line():
     return Line("from .mapper.model import ModelInstance")
 
 
-directory = Path(
-    __file__
-).parent.parent.parent / "autofit"
+top_level_path = "top_level/path"
+
+
+@pytest.fixture(
+    name="package"
+)
+def make_package():
+    directory = Path(
+        __file__
+    ).parent.parent.parent / "autofit"
+    return Package.from_directory(
+        directory,
+        prefix="VIS_CTI"
+    )
+
+
+@pytest.fixture(
+    name="child"
+)
+def make_child(package):
+    return package.children[0]
 
 
 class TestPackageStructure:
-    def test_packages(self):
-        package = Package.from_directory(
-            directory
-        )
-
+    def test_top_level(self, package):
         assert package.is_top_level is True
         assert len(package.children) > 1
 
-        child = package.children[0]
+    def test_child(self, child):
         assert isinstance(
             child,
             Package
         )
         assert child.is_top_level is False
+
+    def test_path(self, package, child):
+        assert package.target_name == "VIS_CTI_Autofit"
+        assert str(package.target_path) == "VIS_CTI_Autofit"
+        assert str(child.target_path) == f"VIS_CTI_Autofit/{child.target_name}"
 
 
 class TestTestImports:

@@ -3,27 +3,55 @@ import re
 import shutil
 from configparser import ConfigParser
 from os import walk
+from pathlib import Path
 from uuid import uuid1
 
 
 class Package:
     def __init__(
             self,
-            directory,
+            directory: Path,
             children,
             files,
+            prefix,
             is_top_level
     ):
         self.directory = directory
         self.children = children
         self.files = files
+        self.prefix = prefix
         self.is_top_level = is_top_level
+        self.parent = None
+
+        for child in children:
+            child.parent = self
+
+    @property
+    def name(self):
+        return self.directory.name
+
+    @property
+    def target_name(self):
+        suffix = "".join(
+            string.title()
+            for string
+            in self.name.split("_")
+        )
+        return f"{self.prefix}_{suffix}"
+
+    @property
+    def target_path(self):
+        target_name = self.target_name
+        if self.parent is None:
+            return Path(target_name)
+        return self.parent.target_path / target_name
 
     @classmethod
     def from_directory(
             cls,
             directory,
-            is_top_level=True
+            prefix,
+            is_top_level=True,
     ):
         files = list()
         children = list()
@@ -44,6 +72,7 @@ class Package:
                     children.append(
                         Package.from_directory(
                             path,
+                            prefix=prefix,
                             is_top_level=False
                         )
                     )
@@ -51,6 +80,7 @@ class Package:
             directory,
             children,
             files,
+            prefix,
             is_top_level
         )
 
