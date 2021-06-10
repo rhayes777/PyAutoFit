@@ -55,14 +55,22 @@ class TestPackageStructure:
         assert str(package.target_path) == "VIS_CTI_Autofit"
         assert str(child.target_path) == f"VIS_CTI_Autofit/{child.target_name}"
 
-    def test_import(self):
+    def test_import(self, package):
         import_ = Import("from autofit.tools.edenise import Line")
-        assert "autofit/tools/edenise.py" in import_.path
+        import_.parent = package
+        assert "autofit/tools/edenise.py" in str(import_.path)
+        assert import_.is_in_project is True
 
-    def test_file(self):
+        import_ = Import("import os")
+        import_.parent = package
+        assert import_.is_in_project is False
+
+    def test_file(self, package):
         file = File(
             Path(__file__)
         )
+
+        file.parent = package
 
         assert len(file.imports) > 1
         assert len(file.project_imports) == 1
