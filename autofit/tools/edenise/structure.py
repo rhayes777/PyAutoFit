@@ -5,8 +5,9 @@ from typing import List
 
 
 class Item(ABC):
-    def __init__(self):
+    def __init__(self, prefix=""):
         self.parent = None
+        self.prefix = prefix
 
     @property
     def top_level(self):
@@ -19,17 +20,73 @@ class Item(ABC):
     def path(self) -> Path:
         pass
 
+    def __str__(self):
+        return str(self.path)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
+
+    @property
+    @abstractmethod
+    def children(self):
+        pass
+
     @property
     def is_in_project(self):
         return str(self.path).startswith(
             str(self.top_level.path)
         )
 
+    @property
+    def name(self):
+        return self.path.name
+
+    @property
+    def target_name(self):
+        suffix = "".join(
+            string.title()
+            for string
+            in self.name.split("_")
+        )
+        return f"{self.prefix}_{suffix}"
+
+    @property
+    def target_path(self):
+        target_name = self.target_name
+        if self.parent is None:
+            return Path(target_name)
+        return self.parent.target_path / target_name
+
 
 class Import(Item):
     def __init__(self, string):
         super().__init__()
         self.string = string
+
+    @property
+    def children(self):
+        return []
+
+    @property
+    def target(self):
+        path = str(self.path)
+
+        def get_from_item(
+                item
+        ):
+            for child in item.children:
+                if path == str(child.path):
+                    return child
+                if path.startswith(
+                        str(child.path)
+                ):
+                    return get_from_item(
+                        child
+                    )
+
+        return get_from_item(
+            self.top_level
+        ).target_path
 
     @property
     def suffix(self):
@@ -56,9 +113,13 @@ else:
 
 
 class File(Item):
-    def __init__(self, path: Path):
-        super().__init__()
+    def __init__(self, path: Path, prefix):
+        super().__init__(prefix)
         self._path = path
+
+    @property
+    def children(self):
+        return self.imports
 
     @property
     def path(self):
@@ -95,46 +156,27 @@ class Package(Item):
     def __init__(
             self,
             path: Path,
-            children: List["Package"],
+            packages: List["Package"],
             files: List[File],
             prefix: str,
             is_top_level: bool
     ):
-        super().__init__()
+        super().__init__(prefix)
         self._path = path
-        self.children = children
+        self.packages = packages
         self.files = files
-        self.prefix = prefix
         self.is_top_level = is_top_level
 
-        for child in children:
+        for child in self.children:
             child.parent = self
-        for file in files:
-            file.parent = self
+
+    @property
+    def children(self):
+        return self.packages + self.files
 
     @property
     def path(self):
         return self._path
-
-    @property
-    def name(self):
-        return self.path.name
-
-    @property
-    def target_name(self):
-        suffix = "".join(
-            string.title()
-            for string
-            in self.name.split("_")
-        )
-        return f"{self.prefix}_{suffix}"
-
-    @property
-    def target_path(self):
-        target_name = self.target_name
-        if self.parent is None:
-            return Path(target_name)
-        return self.parent.target_path / target_name
 
     @classmethod
     def from_directory(
@@ -152,7 +194,7 @@ class Package(Item):
             path = directory / item
             if item.endswith(".py"):
                 files.append(
-                    File(path)
+                    File(path, prefix)
                 )
 
             if os.path.isdir(path):
