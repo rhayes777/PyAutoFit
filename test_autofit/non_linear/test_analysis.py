@@ -16,16 +16,30 @@ def test_add_analysis():
     ) == -2
 
 
-def test_analysis_pool():
+@pytest.mark.parametrize(
+    "number, first, second",
+    [
+        (3, 2, 1),
+        (4, 2, 2),
+        (5, 3, 2),
+        (6, 3, 3),
+        (7, 4, 3),
+    ]
+)
+def test_analysis_pool(
+        number,
+        first,
+        second
+):
     pool = AnalysisPool(
-        3 * [Analysis()],
+        number * [Analysis()],
         2
     )
 
     process_1, process_2 = pool.processes
 
-    assert len(process_1.analyses) == 2
-    assert len(process_2.analyses) == 1
+    assert len(process_1.analyses) == first
+    assert len(process_2.analyses) == second
 
 
 @with_config(
