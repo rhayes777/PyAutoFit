@@ -64,13 +64,17 @@ def test_non_project_import(package):
     assert import_.is_in_project is False
 
 
-def test_edenise_import(import_):
-    assert import_.target == "from VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Line"
+def test_import_target(import_):
+    assert isinstance(
+        import_.target,
+        File
+    )
 
 
 def test_file(package):
     file = File(
-        Path(__file__)
+        Path(__file__),
+        prefix=""
     )
 
     file.parent = package

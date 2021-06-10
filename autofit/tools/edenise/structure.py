@@ -57,11 +57,34 @@ class Item(ABC):
             return Path(target_name)
         return self.parent.target_path / target_name
 
+    @property
+    def target_import_path(self):
+        if self.parent is None:
+            return self.target_name
+        return f"{self.parent.target_import_path}.{self.target_name}"
+
 
 class Import(Item):
     def __init__(self, string):
         super().__init__()
         self.string = string
+
+        self.loc = {}
+        exec(
+            f"""
+{self.string}
+import inspect
+
+is_class = inspect.isclass({self.suffix})
+
+if is_class:
+    path = inspect.getfile({self.suffix})
+else:
+    path = {self.suffix}.__file__
+""",
+            globals(),
+            self.loc
+        )
 
     @property
     def children(self):
@@ -86,30 +109,18 @@ class Import(Item):
 
         return get_from_item(
             self.top_level
-        ).target_path
+        )
 
     @property
     def suffix(self):
         return self.string.split(" ")[-1]
 
+    def is_class(self):
+        return self.loc["path"]
+
     @property
     def path(self):
-        loc = {}
-        print(self.suffix)
-        exec(
-            f"""
-{self.string}
-import inspect
-
-if inspect.isclass({self.suffix}):
-    path = inspect.getfile({self.suffix})
-else:
-    path = {self.suffix}.__file__
-""",
-            globals(),
-            loc
-        )
-        return Path(loc["path"])
+        return Path(self.loc["path"])
 
 
 class File(Item):
