@@ -5,7 +5,7 @@ from typing import Iterable
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
-from .process import AbstractJob, Process, StopCommand, AbstractPool
+from .process import AbstractJob, Process, StopCommand
 
 logger = logging.getLogger(
     __name__
@@ -155,7 +155,7 @@ class SneakyProcess(Process):
         self.job_queue.close()
 
 
-class SneakyPool(AbstractPool):
+class SneakyPool:
     def __init__(
             self,
             processes: int,

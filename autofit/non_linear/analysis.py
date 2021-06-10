@@ -1,10 +1,8 @@
-from abc import ABC
 import logging
 from abc import ABC
 from itertools import count
-from multiprocessing import Pool
 from multiprocessing import Process
-from multiprocessing.queues import Queue
+from multiprocessing import Queue
 
 from autoconf import conf
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -81,18 +79,26 @@ class CombinedAnalysis(Analysis):
         """
         self.analyses = analyses
 
-        if conf.instance[
+        n_cores = conf.instance[
             "general"
         ][
             "analysis"
         ][
             "n_cores"
-        ] > 1:
-            self.map = Pool(
-                processes=1
-            ).map
+        ]
+
+        if n_cores > 1:
+            self.log_likelihood_function = AnalysisPool(
+                analyses,
+                n_cores
+            )
         else:
-            self.map = map
+            self.log_likelihood_function = lambda instance: sum(
+                analysis.log_likelihood_function(
+                    instance
+                )
+                for analysis in analyses
+            )
 
     def __len__(self):
         return len(self.analyses)
@@ -115,30 +121,7 @@ class CombinedAnalysis(Analysis):
             self,
             instance
     ) -> float:
-        """
-        Compute the summed log likelihood of all analyses
-        applied to the instance
-
-        Parameters
-        ----------
-        instance
-            An instance of a model for some location in
-            parameter space
-
-        Returns
-        -------
-        The summed log likelihood across all contained
-        log likelihoods
-        """
-
-        inverse = Inverse(
-            instance
-        )
-
-        return sum(self.map(
-            inverse,
-            self.analyses
-        ))
+        pass
 
 
 class AnalysisProcess(Process):
@@ -286,17 +269,3 @@ class AnalysisPool:
                 count_ += 1
 
         return log_likelihood
-
-
-class Inverse:
-    """
-    This allows us to map an instance onto a list an analyses
-    """
-
-    def __init__(self, instance):
-        self.instance = instance
-
-    def __call__(self, analysis):
-        return analysis.log_likelihood_function(
-            self.instance
-        )
