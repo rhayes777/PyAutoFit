@@ -77,7 +77,7 @@ class AnalysisProcess(Process):
 class AnalysisPool:
     def __init__(
             self,
-            analyses: list,
+            analyses,
             n_cores: int
     ):
         """

@@ -104,6 +104,37 @@ class CombinedAnalysis(Analysis):
                 for analysis in analyses
             )
 
+    def visualize(
+            self,
+            paths: AbstractPaths,
+            instance,
+            during_analysis
+    ):
+        """
+        Visualise the instance according to each analysis.
+
+        Visualisation output is distinguished by using an integer suffix
+        for each analysis path.
+
+        Parameters
+        ----------
+        paths
+            Paths object for overall fit
+        instance
+            An instance of the model
+        during_analysis
+            Is this visualisation during analysis?
+        """
+        for i, analysis in enumerate(self.analyses):
+            child_paths = paths.create_child(
+                name=f"{paths.name}_{i}"
+            )
+            analysis.visualize(
+                child_paths,
+                instance,
+                during_analysis
+            )
+
     def __len__(self):
         return len(self.analyses)
 
