@@ -104,6 +104,89 @@ class CombinedAnalysis(Analysis):
                 for analysis in analyses
             )
 
+    def _for_each_analysis(self, func, paths):
+        """
+        Convenience function to call an underlying function for each
+        analysis with a paths object with an integer attached to the
+        end.
+
+        Parameters
+        ----------
+        func
+            Some function of the analysis class
+        paths
+            An object describing how data should be saved
+        """
+        for i, analysis in enumerate(self.analyses):
+            child_paths = paths.create_child(
+                name=f"{paths.name}_{i}"
+            )
+            func(child_paths, analysis)
+
+    def save_attributes_for_aggregator(self, paths: AbstractPaths):
+        def func(child_paths, analysis):
+            analysis.save_attributes_for_aggregator(
+                child_paths,
+                analysis
+            )
+
+        self._for_each_analysis(
+            func,
+            paths
+        )
+
+    def save_results_for_aggregator(
+            self,
+            paths: AbstractPaths,
+            model: CollectionPriorModel,
+            samples: OptimizerSamples
+    ):
+        def func(child_paths, analysis):
+            analysis.save_results_for_aggregator(
+                child_paths,
+                model,
+                samples
+            )
+
+        self._for_each_analysis(
+            func,
+            paths
+        )
+
+    def visualize(
+            self,
+            paths: AbstractPaths,
+            instance,
+            during_analysis
+    ):
+        """
+        Visualise the instance according to each analysis.
+
+        Visualisation output is distinguished by using an integer suffix
+        for each analysis path.
+
+        Parameters
+        ----------
+        paths
+            Paths object for overall fit
+        instance
+            An instance of the model
+        during_analysis
+            Is this visualisation during analysis?
+        """
+
+        def func(child_paths, analysis):
+            analysis.visualize(
+                child_paths,
+                instance,
+                during_analysis
+            )
+
+        self._for_each_analysis(
+            func,
+            paths
+        )
+
     def __len__(self):
         return len(self.analyses)
 
