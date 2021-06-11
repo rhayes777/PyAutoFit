@@ -127,7 +127,6 @@ class CombinedAnalysis(Analysis):
         def func(child_paths, analysis):
             analysis.save_attributes_for_aggregator(
                 child_paths,
-                analysis
             )
 
         self._for_each_analysis(
@@ -186,6 +185,11 @@ class CombinedAnalysis(Analysis):
             func,
             paths
         )
+
+    def make_result(
+        self, samples, model, search
+    ):
+        return [analysis.make_result(samples, model, search) for analysis in self.analyses]
 
     def __len__(self):
         return len(self.analyses)
