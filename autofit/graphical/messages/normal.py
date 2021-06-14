@@ -6,6 +6,8 @@ from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.graphical.utils import cached_property
 
+from .transform import phi_transform 
+
 class NormalMessage(AbstractMessage):
     @property
     def log_partition(self):
@@ -20,7 +22,8 @@ class NormalMessage(AbstractMessage):
             self,
             mu=0.,
             sigma=1.,
-            log_norm=0.
+            log_norm=0.,
+            **kwargs
     ):
         super().__init__(
             (mu, sigma),
@@ -132,3 +135,6 @@ class NormalMessage(AbstractMessage):
 
     def logpdf_gradient(self, x:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         return self.logpdf_gradient_hessian(x)[:2]
+
+
+UniformNormalMessage = NormalMessage.transformed(phi_transform)

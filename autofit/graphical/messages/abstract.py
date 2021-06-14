@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from functools import reduce
+from autofit.graphical.messages.transform import LinearShiftTransform
+from functools import reduce, lru_cache
 from itertools import chain
 from operator import and_
 from typing import Optional, Tuple, Union, Iterator
@@ -8,10 +9,13 @@ from inspect import getfullargspec
 import numpy as np
 
 from autofit.mapper.variable import Variable
+from .transform import LinearShiftTransform
+from ..utils import cached_property
 
 
 class AbstractMessage(ABC):
     log_base_measure: float
+    _projection_class: Optional['AbstractMessage'] = None
     _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
@@ -64,6 +68,38 @@ class AbstractMessage(ABC):
         else:
             self.parameters = tuple(parameters)
 
+    def calc_log_base_measure(self, x):
+        return self.log_base_measure
+
+    @classmethod
+    def transform_x(cls, x):
+        return x 
+
+    @classmethod
+    def inv_transform_x(cls, x):
+        return x
+
+    @classmethod
+    def scale_x(cls, x):
+        return x 
+
+    @classmethod
+    def inv_scale_x(cls, x):
+        return x
+
+    @classmethod 
+    def scale_x2(cls, x):
+        if np.shape(x):
+            return cls.scale_x(cls.scale_x(x).T)
+        else:
+            return cls.scale_x(cls.scale_x(x))
+
+    @classmethod 
+    def inv_scale_x2(cls, x):
+        if np.shape(x):
+            return cls.inv_scale_x(cls.inv_scale_x(x).T)
+        else:
+            return cls.inv_scale_x(cls.inv_scale_x(x))
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
@@ -71,6 +107,10 @@ class AbstractMessage(ABC):
     @property
     def shape(self) -> Tuple[int, ...]:
         return self._broadcast.shape
+
+    @property
+    def size(self) -> int:
+        return self._broadcast.size
 
     @property
     def ndim(self) -> int: 
@@ -82,6 +122,7 @@ class AbstractMessage(ABC):
             parameters: Tuple[np.ndarray, ...], 
             **kwargs
     ) -> "AbstractMessage":
+        cls = cls._projection_class or cls
         args = cls.invert_natural_parameters(parameters)
         return cls(*args, **kwargs)
 
@@ -95,6 +136,7 @@ class AbstractMessage(ABC):
     def from_sufficient_statistics(cls, suff_stats: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         natural_params = cls.invert_sufficient_statistics(suff_stats)
+        cls = cls._projection_class or cls
         return cls.from_natural_parameters(natural_params, **kwargs)
 
     def sum_natural_parameters(self, *dists: "AbstractMessage"
@@ -146,10 +188,14 @@ class AbstractMessage(ABC):
         log_norm = other * self.log_norm
         return self.from_natural_parameters(new_params, log_norm=log_norm)
 
+    @classmethod 
+    def parameter_names(cls):
+        return getfullargspec(cls.__init__).args[1:-1]
+
     def __str__(self) -> str:
         param_attrs = [
             (attr, np.asanyarray(getattr(self, attr)))
-            for attr in getfullargspec(self.__init__).args[1:-1]]
+            for attr in self.parameter_names()]
         if self.shape:
             pad = max(len(attr) for attr, _ in param_attrs)
             attr_str = "    {:<%d}={}" % pad
@@ -178,15 +224,17 @@ class AbstractMessage(ABC):
         if shape == self.shape:
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
-            log_base = self.log_base_measure
+            log_base = self.calc_log_base_measure(x)
             # TODO this can be made more efficient using tensordot
             eta_t = np.multiply(eta, t).sum(0)  
             return log_base + eta_t - self.log_partition
+
         elif shape[1:] == self.shape:
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
+            log_base = self.calc_log_base_measure(x)
             eta_t = np.multiply(eta[:, None, ...], t).sum(0)
-            return self.log_base_measure + eta_t - self.log_partition
+            return log_base + eta_t - self.log_partition
 
         raise ValueError(
             f"shape of passed value {shape} does not "
@@ -277,6 +325,8 @@ class AbstractMessage(ABC):
         # if weight_list aren't passed then equally weight all samples
 
         # Numerically stable weighting for very small/large weight_list
+        
+        #rescale coordinates to 'natural parameter space'
         log_w_max = np.max(log_weight_list, axis=0, keepdims=True)
         w = np.exp(log_weight_list - log_w_max)
         norm = w.mean(0)
@@ -287,6 +337,8 @@ class AbstractMessage(ABC):
         suff_stats = (tx * w[None, ...]).mean(1)
 
         assert np.isfinite(suff_stats).all()
+
+        cls = cls._projection_class or cls
         return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
 
     @classmethod
@@ -408,3 +460,87 @@ class AbstractMessage(ABC):
             name = f"{family}Likelihood" + (str(shape) if shape else '')
 
         return FactorJacobian(self, x=variable, name=name, vectorised=True)
+
+    @classmethod
+    def transformed(cls, transform):
+        support = tuple(zip(*map(
+            transform.transform, map(np.array, zip(*cls._support))
+        )))
+        projectionClass = (
+            None if cls._projection_class is None 
+            else TransformedMessage(cls._projection_class, transform)
+        )
+        if issubclass(cls, TransformedMessage):
+            clsname = f"Transformed{cls._Message.__name__}"
+            # Don't doubly inherit if transforming already transformed message
+            class Transformed(cls):
+                __qualname__ = clsname
+                _Message = cls
+                _transform = transform 
+                _support = support 
+                __projection_class = projectionClass
+
+        else:
+            clsname = f"Transformed{cls.__name__}"
+            class Transformed(TransformedMessage, cls):
+                __qualname__ = clsname
+                _Message = cls
+                _transform = transform 
+                _support = support 
+                __projection_class = projectionClass
+                parameter_names = cls.parameter_names
+
+        Transformed.__name__ = clsname
+        return Transformed
+
+    @classmethod
+    def shifted(cls, shift: float = 0, scale: float = 1):
+        return cls.transformed(
+            LinearShiftTransform(shift=shift, scale=scale)
+        )
+
+
+class TransformedMessage(AbstractMessage):
+    def _reconstruct(cls, transform, parameters, log_norm):
+        # Reconstructs TransformedMessage during unpickling
+        Transformed = cls.transformed(transform)
+        return Transformed(*parameters, log_norm=log_norm)
+    
+    def __reduce__(self):
+        # serialises TransformedMessage during pickling
+        return (
+            TransformedMessage._reconstruct,
+            (
+                self._Message, 
+                self._transform,
+                self.parameters, 
+                self.log_norm 
+            ), 
+        )
+ 
+    @classmethod 
+    def to_canonical_form(cls, x):
+        x = cls._transform.inv_transform(x)
+        return cls._Message.to_canonical_form(x)
+
+    @cached_property
+    def mean(self):
+        return self._transform.transform(self.Message.mean.func(self))
+
+    @cached_property
+    def variance(self):
+        return self._transform.transform(self.Message.variance.func(self))
+    
+    def sample(self, n_samples=None):
+        x = self._Message.sample(self, n_samples)
+        return self._transform.transform(x)
+
+    def logpdf_gradient(self, x):
+        logl, grad = self._Message.logpdf_gradient(self, x)
+        jac = self._transform.jacobian(x)
+        return logl, jac * grad
+
+    def logpdf_gradient_hessian(self, x):
+        logl, grad, hess = self._Message.logpdf_gradient(self, x)
+        jac = self._transform.jacobian(x)
+        return logl, jac * grad, jac.quad(hess)

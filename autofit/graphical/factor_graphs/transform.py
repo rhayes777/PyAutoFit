@@ -1,7 +1,7 @@
 
 
 from abc import ABC, abstractmethod
-from functools import wraps
+from functools import wraps, lru_cache
 from typing import Dict, Tuple, Optional, List
 
 import numpy as np
@@ -45,6 +45,20 @@ class AbstractArray1DarTransform(ABC):
     @abstractmethod
     def log_det(self):
         pass
+
+    @cached_property 
+    def avg_log_det(self):
+        return self.log_det / self.shape[0]
+
+    @cached_property
+    def log_scale(self):
+        return np.full(self.shape[0], self.avg_log_det)
+
+    def quad(self, M: np.ndarray) -> np.ndarray:
+        return (M * self).T * self 
+
+    def invquad(self, M: np.ndarray) -> np.ndarray:
+        return (M / self).T / self
     
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         if ufunc is np.multiply:
@@ -224,6 +238,36 @@ class CholeskyTransform(AbstractArray1DarTransform):
     def shape(self):
         return self.c.shape
 
+
+class InverseLinearTransform(AbstractArray1DarTransform):
+    def __init__(self, transform):
+        self.transform = transform 
+
+    @abstractmethod
+    def __mul__(self, x:np.ndarray) -> np.ndarray:
+        return x / self.transform 
+
+    @abstractmethod
+    def __rtruediv__(self, x:np.ndarray) -> np.ndarray:
+        return self.transform * x
+
+    @abstractmethod
+    def __rmul__(self, x:np.ndarray) -> np.ndarray:
+        return self.transform.ldiv(x) 
+
+    @abstractmethod
+    def ldiv(self, x: np.ndarray) -> np.ndarray:
+        return x * self.transform
+
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        return self.transform.shape 
+
+    @cached_property
+    def log_det(self):
+        return - self.transform.log_det
+
+
 class CovarianceTransform(CholeskyTransform):
     """In the case where the covariance matrix is passed
     we perform the inverse operations
@@ -245,28 +289,28 @@ class CovarianceTransform(CholeskyTransform):
 
 class DiagonalTransform(AbstractArray1DarTransform):
     def __init__(self, scale, inv_scale=None):
-        self.scale = scale
-        self.inv_scale = 1/scale if inv_scale is None else scale
+        self.scale = np.atleast_1d(scale)
+        self.inv_scale = 1/scale if inv_scale is None else np.atleast_1d(inv_scale)
 
     @_wrap_leftop
     def __mul__(self, x):
-        return self.inv_scale[:, None] * x 
+        return self.scale[:, None] * x 
 
     @_wrap_rightop
     def __rmul__(self, x):
-        return x * self.inv_scale
+        return x * self.scale
 
     @_wrap_rightop
     def __rtruediv__(self, x): 
-        return x * self.scale
+        return x * self.inv_scale
 
     @_wrap_leftop
     def ldiv(self, x):
-        return self.scale[:, None] * x 
+        return self.inv_scale[:, None] * x 
 
     @cached_property
     def log_det(self):
-        return np.sum(np.log(self.inv_scale))
+        return np.sum(np.log(self.scale))
 
     rdiv = __rtruediv__
     rmul = __rmul__
@@ -276,6 +320,10 @@ class DiagonalTransform(AbstractArray1DarTransform):
     @property
     def shape(self):
         return self.scale.shape * 2
+
+    @cached_property 
+    def log_scale(self):
+        return np.log(self.scale)
     
 
 class VariableTransform:
@@ -486,3 +534,4 @@ class TransformedNode(AbstractNode):
             return super().__getattribute__(name)
         except AttributeError:
             return getattr(self.node, name)
+
