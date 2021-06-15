@@ -9,8 +9,8 @@ from inspect import getfullargspec
 import numpy as np
 
 from autofit.mapper.variable import Variable
-from .transform import LinearShiftTransform
-from ..utils import cached_property
+from .transform import AbstractTransform, LinearShiftTransform
+from ..utils import cached_property, jac_grad_betaln
 
 
 class AbstractMessage(ABC):
@@ -68,8 +68,10 @@ class AbstractMessage(ABC):
         else:
             self.parameters = tuple(parameters)
 
-    def calc_log_base_measure(self, x):
-        return self.log_base_measure
+    
+    @classmethod
+    def calc_log_base_measure(cls, x):
+        return cls.log_base_measure
 
     @classmethod
     def transform_x(cls, x):
@@ -462,7 +464,7 @@ class AbstractMessage(ABC):
         return FactorJacobian(self, x=variable, name=name, vectorised=True)
 
     @classmethod
-    def transformed(cls, transform):
+    def transformed(cls, transform: AbstractTransform) -> "AbstractMessage":
         support = tuple(zip(*map(
             transform.transform, map(np.array, zip(*cls._support))
         )))
@@ -471,7 +473,8 @@ class AbstractMessage(ABC):
             else TransformedMessage(cls._projection_class, transform)
         )
         if issubclass(cls, TransformedMessage):
-            clsname = f"Transformed{cls._Message.__name__}"
+            depth = cls._depth + 1
+            clsname = f"Transformed{depth}{cls._Message.__name__}"
             # Don't doubly inherit if transforming already transformed message
             class Transformed(cls):
                 __qualname__ = clsname
@@ -479,7 +482,7 @@ class AbstractMessage(ABC):
                 _transform = transform 
                 _support = support 
                 __projection_class = projectionClass
-
+                _depth = depth
         else:
             clsname = f"Transformed{cls.__name__}"
             class Transformed(TransformedMessage, cls):
@@ -489,19 +492,26 @@ class AbstractMessage(ABC):
                 _support = support 
                 __projection_class = projectionClass
                 parameter_names = cls.parameter_names
+                _depth = 1
 
         Transformed.__name__ = clsname
         return Transformed
 
     @classmethod
-    def shifted(cls, shift: float = 0, scale: float = 1):
+    def shifted(cls, shift: float = 0, scale: float = 1) -> "AbstractMessage":
         return cls.transformed(
             LinearShiftTransform(shift=shift, scale=scale)
         )
 
 
 class TransformedMessage(AbstractMessage):
-    def _reconstruct(cls, transform, parameters, log_norm):
+    @classmethod
+    def _reconstruct(
+            cls, 
+            transform: AbstractTransform, 
+            parameters: Tuple[np.ndarray, ...], 
+            log_norm: float
+    ):
         # Reconstructs TransformedMessage during unpickling
         Transformed = cls.transformed(transform)
         return Transformed(*parameters, log_norm=log_norm)
@@ -517,30 +527,53 @@ class TransformedMessage(AbstractMessage):
                 self.log_norm 
             ), 
         )
+
+    @classmethod
+    def calc_log_base_measure(cls, x) -> np.ndarray:
+        jac = cls._transform.jacobian(x)
+        x = cls._transform.inv_transform(x)
+        log_base = cls._Message.calc_log_base_measure(x)
+        return log_base + jac.log_scale
  
     @classmethod 
-    def to_canonical_form(cls, x):
+    def to_canonical_form(cls, x) -> np.ndarray:
         x = cls._transform.inv_transform(x)
         return cls._Message.to_canonical_form(x)
 
     @cached_property
-    def mean(self):
+    def mean(self) -> np.ndarray:
         return self._transform.transform(self.Message.mean.func(self))
 
     @cached_property
-    def variance(self):
+    def variance(self) -> np.ndarray:
         return self._transform.transform(self.Message.variance.func(self))
     
-    def sample(self, n_samples=None):
+    def sample(self, n_samples=None) -> np.ndarray:
         x = self._Message.sample(self, n_samples)
         return self._transform.transform(x)
 
-    def logpdf_gradient(self, x):
+    def logpdf_gradient(
+        self, 
+        x: np.ndarray
+    )  -> Tuple[np.ndarray, np.ndarray]:
         logl, grad = self._Message.logpdf_gradient(self, x)
         jac = self._transform.jacobian(x)
         return logl, jac * grad
 
-    def logpdf_gradient_hessian(self, x):
+    def logpdf_gradient_hessian(
+        self, 
+        x: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         logl, grad, hess = self._Message.logpdf_gradient(self, x)
         jac = self._transform.jacobian(x)
         return logl, jac * grad, jac.quad(hess)
+
+    @classmethod
+    def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
+    ) -> "AbstractMessage":
+        mode, jac = cls._transform.inv_transform_jac(mode)
+        covariance = jac.inv_quad(covariance)
+        return cls.from_mode(mode, covariance)
+
+
+from ..factor_graphs.jacobians import FactorJacobian
