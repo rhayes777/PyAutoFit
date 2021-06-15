@@ -49,7 +49,8 @@ class BetaMessage(AbstractMessage):
         a, b = inv_beta_suffstats(*suff_stats)
         return cls.calc_natural_parameters(a, b)
     
-    def calc_log_base_measure(self, x):
+    @classmethod
+    def calc_log_base_measure(cls, x):
         return - np.log(x) - np.log1p(- x)
     
     @classmethod

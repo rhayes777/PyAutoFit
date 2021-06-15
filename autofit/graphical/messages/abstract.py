@@ -531,26 +531,26 @@ class TransformedMessage(AbstractMessage):
     @classmethod
     def calc_log_base_measure(cls, x) -> np.ndarray:
         jac = cls._transform.jacobian(x)
-        x = cls._transform.inv_transform(x)
+        x = cls._transform.transform(x)
         log_base = cls._Message.calc_log_base_measure(x)
         return log_base + jac.log_scale
  
     @classmethod 
     def to_canonical_form(cls, x) -> np.ndarray:
-        x = cls._transform.inv_transform(x)
+        x = cls._transform.transform(x)
         return cls._Message.to_canonical_form(x)
 
     @cached_property
     def mean(self) -> np.ndarray:
-        return self._transform.transform(self.Message.mean.func(self))
+        return self._transform.inv_transform(self.Message.mean.func(self))
 
     @cached_property
     def variance(self) -> np.ndarray:
-        return self._transform.transform(self.Message.variance.func(self))
+        return self._transform.inv_transform(self.Message.variance.func(self))
     
     def sample(self, n_samples=None) -> np.ndarray:
         x = self._Message.sample(self, n_samples)
-        return self._transform.transform(x)
+        return self._transform.inv_transform(x)
 
     def logpdf_gradient(
         self, 

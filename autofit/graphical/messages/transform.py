@@ -34,8 +34,8 @@ class AbstractTransform(ABC):
     def jacobian(self, x: np.ndarray) -> AbstractArray1DarTransform:
         pass 
 
-    def inv_transform_jac(self, x):
-        return self.inv_transform(x), self.jacobian(x)
+    def transform_jac(self, x):
+        return self.transform(x), self.jacobian(x)
 
     def transform_func(self, func):
         @wraps(func)
@@ -94,10 +94,10 @@ class LinearShiftTransform(LinearTransform):
         self.scale = scale
         self.linear = DiagonalTransform(np.reciprocal(self.scale))
 
-    def transform(self, x: np.ndarray) -> np.ndarray:
+    def inv_transform(self, x: np.ndarray) -> np.ndarray:
         return x  * self.scale  + self.shift
 
-    def inv_transform(self, x: np.ndarray) -> np.ndarray:
+    def transform(self, x: np.ndarray) -> np.ndarray:
         return (x - self.shift) / self.scale 
 
     def jacobian(self, x: np.ndarray) -> np.ndarray:
@@ -138,9 +138,9 @@ def logit_grad(x, scale=1, shift=0):
     x = (x - shift) / scale
     return np.reciprocal(x) + np.reciprocal(1 - x)
 
-logistic_transform = FunctionTransform(sigmoid, logit, logit_grad)
+logistic_transform = FunctionTransform(logit, sigmoid,  logit_grad)
 
 def ndtri_grad(x):
     return np.reciprocal(_norm_pdf(ndtri(x)))
 
-phi_transform = FunctionTransform(ndtr, ndtri, ndtri_grad)
+phi_transform = FunctionTransform(ndtri, ndtr, ndtri_grad)
