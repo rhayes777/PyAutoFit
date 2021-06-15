@@ -530,10 +530,9 @@ class TransformedMessage(AbstractMessage):
 
     @classmethod
     def calc_log_base_measure(cls, x) -> np.ndarray:
-        jac = cls._transform.jacobian(x)
-        x = cls._transform.transform(x)
+        x, log_det = cls._transform.transform_det(x)
         log_base = cls._Message.calc_log_base_measure(x)
-        return log_base + jac.log_scale
+        return log_base + log_det
  
     @classmethod 
     def to_canonical_form(cls, x) -> np.ndarray:
@@ -556,22 +555,22 @@ class TransformedMessage(AbstractMessage):
         self, 
         x: np.ndarray
     )  -> Tuple[np.ndarray, np.ndarray]:
+        x, logd, logd_grad, jac = self._transform.transform_det_jac(x)
         logl, grad = self._Message.logpdf_gradient(self, x)
-        jac = self._transform.jacobian(x)
-        return logl, jac * grad
+        return logl + logd, jac * grad + logd_grad
 
     def logpdf_gradient_hessian(
         self, 
         x: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        logl, grad, hess = self._Message.logpdf_gradient(self, x)
-        jac = self._transform.jacobian(x)
-        return logl, jac * grad, jac.quad(hess)
+        x, logd, logd_grad, jac = self._transform.transform_det_jac(x)
+        logl, grad, hess = self._Message.logpdf_gradient_hessian(self, x)
+        return logl + logd, jac * grad + logd_grad, jac.quad(hess)
 
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
     ) -> "AbstractMessage":
-        mode, jac = cls._transform.inv_transform_jac(mode)
+        mode, jac = cls._transform.transform_jac(mode)
         covariance = jac.inv_quad(covariance)
         return cls.from_mode(mode, covariance)
 

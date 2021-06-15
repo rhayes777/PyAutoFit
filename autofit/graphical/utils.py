@@ -323,3 +323,18 @@ def inv_beta_suffstats(lnX, ln1X):
         a, b = ab[0,:]
         
     return a, b
+
+
+def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
+    x = np.array(x)
+    f0 = func(x, *args, **kwargs)
+    jac = np.empty(np.shape(f0) + np.shape(x))
+    fslice = (slice(None), ) * np.ndim(f0)
+    with np.nditer(x, flags=['multi_index'], op_flags=['readwrite']) as it:
+        for xi in it:
+            xi += eps
+            f1 = func(x, *args, **kwargs)
+            jac[fslice + it.multi_index] = (f1 - f0)/eps
+            xi -= eps
+            
+    return jac

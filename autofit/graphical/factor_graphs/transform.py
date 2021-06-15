@@ -70,6 +70,7 @@ class AbstractArray1DarTransform(ABC):
         else:    
             return NotImplemented
 
+
 class IdentityTransform(AbstractArray1DarTransform):
     def __init__(self):
         pass
