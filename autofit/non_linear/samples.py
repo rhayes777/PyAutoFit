@@ -513,15 +513,15 @@ class PDFSamples(OptimizerSamples):
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
         if self.pdf_converged:
-            limit = math.erf(0.5 * sigma * math.sqrt(2))
+
+            low_limit = (1 - math.erf(sigma / math.sqrt(2))) / 2
 
             lower_errors = [
-                quantile(x=params, q=1.0 - limit, weights=self.weight_list)[0]
+                quantile(x=params, q=low_limit, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
-
             upper_errors = [
-                quantile(x=params, q=limit, weights=self.weight_list)[0]
+                quantile(x=params, q=1 - low_limit, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
 

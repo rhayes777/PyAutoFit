@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
-from autofit.graphical import ModelFactor, EPMeanField, MeanField, NormalMessage, Factor
+from autofit.graphical import EPMeanField, MeanField, NormalMessage, Factor, AnalysisFactor
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
@@ -229,7 +229,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         _ = status
         if not isinstance(
                 factor,
-                ModelFactor
+                AnalysisFactor
         ):
             raise NotImplementedError(
                 f"Optimizer {self.__class__.__name__} can only be applied to ModelFactors"
@@ -239,12 +239,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             factor
         )
 
-        arguments = {
-            prior: factor_approx.model_dist[
+        arguments = dict()
+
+        for prior in factor_approx.variables:
+            new_prior = factor_approx.model_dist[
                 prior
             ].as_prior()
-            for prior in factor_approx.variables
-        }
+            new_prior.id = prior.id
+            arguments[prior] = new_prior
 
         model = factor.prior_model.mapper_from_prior_arguments(
             arguments
@@ -257,14 +259,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis=analysis
         )
 
-        new_model_dist = MeanField({
-            prior: NormalMessage.from_prior(
-                result.model.prior_with_id(
-                    prior.id
+        mean_field_dict = dict()
+
+        for prior in factor_approx.variables:
+            new_prior = result.model.object_for_path(
+                model.path_for_prior(
+                    prior
                 )
             )
-            for prior in factor_approx.variables
-        })
+            mean_field_dict[
+                prior
+            ] = NormalMessage.from_prior(
+                new_prior
+            )
+
+        new_model_dist = MeanField(mean_field_dict)
 
         projection, status = factor_approx.project(
             new_model_dist,
@@ -297,11 +306,22 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.__dict__.update(
             state
         )
+
+        logger_name = self.__class__.__name__
+        try:
+            # This is here so that old pickles don't throw an error
+            logger_name = self.name
+        except AttributeError:
+            pass
+
         self.logger = logging.getLogger(
-            self.name
+            logger_name
         )
-        if self.paths.model is not None:
-            self.setup_log_file()
+        try:
+            if self.paths.model is not None:
+                self.setup_log_file()
+        except AttributeError:
+            pass
 
     @property
     def timer(self):

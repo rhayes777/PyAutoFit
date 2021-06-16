@@ -16,14 +16,14 @@ class Analysis(af.Analysis):
 def make_model_factor():
     model = af.Collection(one=af.UniformPrior())
 
-    return g.ModelFactor(model, Analysis(0.5))
+    return g.AnalysisFactor(model, Analysis(0.5))
 
 
 @pytest.fixture(name="model_factor_2")
 def make_model_factor_2():
     model_2 = af.Collection(one=af.UniformPrior())
 
-    return g.ModelFactor(model_2, Analysis(0.0))
+    return g.AnalysisFactor(model_2, Analysis(0.0))
 
 
 class TestGlobalLikelihood:
@@ -31,12 +31,12 @@ class TestGlobalLikelihood:
     def test_single_factor(self, model_factor, unit_value, likelihood):
         assert (
                 model_factor.log_likelihood_function(
-                    model_factor.global_prior_model.instance_from_unit_vector([unit_value])
+                    model_factor.global_prior_model.instance_from_unit_vector([unit_value])[0]
                 )
                 == likelihood
         )
 
-    @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.0625)])
+    @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.5)])
     def test_collection(self, model_factor, unit_value, likelihood):
         collection = g.FactorGraphModel(model_factor, model_factor)
         assert (
@@ -47,7 +47,7 @@ class TestGlobalLikelihood:
         )
 
     @pytest.mark.parametrize(
-        "unit_vector, likelihood", [([0.5, 0.0], 0.0), ([1.0, 0.5], -0.0625)]
+        "unit_vector, likelihood", [([0.5, 0.0], 0.0), ([1.0, 0.5], -0.5)]
     )
     def test_two_factor(self, model_factor, model_factor_2, unit_vector, likelihood):
         collection = g.FactorGraphModel(model_factor, model_factor_2)

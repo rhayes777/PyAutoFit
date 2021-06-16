@@ -183,3 +183,10 @@ class Process(multiprocessing.Process):
             process.join(timeout=1.0)
 
         logger.debug("Joining processes")
+
+
+class StopCommand:
+    """
+    A command that can be passed into a process queue to gracefully stop
+    the process
+    """

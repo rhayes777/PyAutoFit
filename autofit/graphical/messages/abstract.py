@@ -313,6 +313,25 @@ class AbstractMessage(ABC):
         cls = cls._projection_class or cls
         return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
 
+    def has_exact_projection(self, x: "AbstractMessage") -> bool:
+        return type(self) == type(x)
+
+    def calc_exact_projection(self, x: "AbstractMessage"):
+        if type(self) == type(x):
+            projection = self * x 
+            projection.log_norm = self.log_normalisation(x)
+            return {'x': projection}
+        else:
+            raise NotImplementedError()
+
+    def calc_exact_update(self, x: "AbstractMessage"):
+        if type(self) == type(x):
+            log_norm = self.log_normalisation(x)
+            return {'x': type(x)(*self.parameters, log_norm=log_norm)}
+        else:
+            raise NotImplementedError()
+
+
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
                   ) -> "AbstractMessage":

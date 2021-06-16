@@ -42,9 +42,7 @@ class CompoundPrior(
         A value for the left object
         """
         try:
-            return self.left.instance_for_arguments(
-                arguments
-            )
+            return self.left.instance_for_arguments(arguments, )
         except AttributeError:
             return self.left
 
@@ -65,9 +63,7 @@ class CompoundPrior(
         A value for the right object
         """
         try:
-            return self.right.instance_for_arguments(
-                arguments
-            )
+            return self.right.instance_for_arguments(arguments, )
         except AttributeError:
             return self.right
 
@@ -166,9 +162,7 @@ class NegativePrior(ModifiedPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return -self.prior.instance_for_arguments(
-            arguments
-        )
+        return -self.prior.instance_for_arguments(arguments, )
 
 
 class AbsolutePrior(ModifiedPrior):
@@ -177,6 +171,4 @@ class AbsolutePrior(ModifiedPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return abs(self.prior.instance_for_arguments(
-            arguments
-        ))
+        return abs(self.prior.instance_for_arguments(arguments, ))

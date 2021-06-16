@@ -7,7 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 import autofit as af
-from autofit.util import get_class_path, get_class
+from autofit.tools.util import get_class_path, get_class
 
 Base = declarative_base()
 

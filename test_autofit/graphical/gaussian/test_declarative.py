@@ -18,7 +18,7 @@ def make_make_model_factor(
             centre: float,
             sigma: float,
             optimiser=None
-    ) -> ep.ModelFactor:
+    ) -> ep.AnalysisFactor:
         """
         We'll make a LikelihoodModel for each Gaussian we're fitting.
 
@@ -55,7 +55,7 @@ def make_make_model_factor(
         We can also pass a custom optimiser in here that will be used to fit the factor instead
         of the default optimiser.
         """
-        return ep.ModelFactor(
+        return ep.AnalysisFactor(
             prior_model,
             analysis=Analysis(
                 x=x,
@@ -163,6 +163,34 @@ def test_optimise_factor_model(
     assert collection[0].intensity is collection[1].intensity
 
 
+def test_gaussian():
+    n_observations = 100
+    x = np.arange(n_observations)
+    y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
+
+    prior_model = af.PriorModel(
+        Gaussian,
+        centre=af.GaussianPrior(mean=50, sigma=20),
+        intensity=af.GaussianPrior(mean=25, sigma=10),
+        sigma=af.GaussianPrior(mean=10, sigma=10),
+    )
+
+    factor_model = ep.AnalysisFactor(
+        prior_model,
+        analysis=Analysis(
+            x=x,
+            y=y
+        )
+    )
+
+    laplace = ep.LaplaceFactorOptimiser()
+    model = factor_model.optimise(laplace)
+
+    assert model.centre.mean == pytest.approx(50, rel=0.1)
+    assert model.intensity.mean == pytest.approx(25, rel=0.1)
+    assert model.sigma.mean == pytest.approx(10, rel=0.1)
+
+
 @pytest.fixture(name="prior_model")
 def make_prior_model():
     return af.PriorModel(Gaussian)
@@ -175,7 +203,7 @@ def make_factor_model(prior_model):
         def log_likelihood_function(*_):
             return 1
 
-    return ep.ModelFactor(
+    return ep.AnalysisFactor(
         prior_model,
         analysis=MockAnalysis()
     )

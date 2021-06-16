@@ -38,7 +38,11 @@ class CollectionPriorModel(AbstractPriorModel):
         return len(self.values)
 
     def __str__(self):
-        return ", ".join(map(str, self))
+        return "\n".join(
+            f"{key} = {value}"
+            for key, value
+            in self.items()
+        )
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self}>"
@@ -50,15 +54,30 @@ class CollectionPriorModel(AbstractPriorModel):
     def items(self):
         return self._dict.items()
 
+    def with_prefix(
+            self,
+            prefix: str
+    ):
+        """
+        Filter members of the collection, only returning those that start
+        with a given prefix as a new collection.
+        """
+        return CollectionPriorModel({
+            key: value
+            for key, value
+            in self.items()
+            if key.startswith(
+                prefix
+            )
+        })
+
     def as_model(self):
-        return CollectionPriorModel(
-            {
-                key: value.as_model()
-                if isinstance(value, AbstractPriorModel)
-                else value
-                for key, value in self._dict.items()
-            }
-        )
+        return CollectionPriorModel({
+            key: value.as_model()
+            if isinstance(value, AbstractPriorModel)
+            else value
+            for key, value in self.dict.items()
+        })
 
     def __init__(self, *arguments, **kwargs):
         """

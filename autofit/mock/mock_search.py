@@ -1,8 +1,10 @@
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 from autoconf import conf
 from autofit import exc
+from autofit.graphical import FactorApproximation
+from autofit.graphical.utils import Status
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -13,6 +15,14 @@ from autofit.non_linear.samples import PDFSamples, Sample
 
 
 class MockSearch(NonLinearSearch):
+    @property
+    def samples_cls(self):
+        pass
+
+    def project(self, factor_approx: FactorApproximation, status: Status = Status()) -> Tuple[
+        FactorApproximation, Status]:
+        pass
+
     def __init__(
             self,
             name="",
