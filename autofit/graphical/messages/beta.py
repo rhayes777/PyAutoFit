@@ -22,7 +22,7 @@ class BetaMessage(AbstractMessage):
         self.alpha = alpha
         self.beta = beta           
         super().__init__(
-            (alpha, beta), log_norm=log_norm
+            alpha, beta, log_norm=log_norm
         )
     
     @cached_property
@@ -38,20 +38,20 @@ class BetaMessage(AbstractMessage):
     
     @staticmethod
     def calc_natural_parameters(alpha, beta):
-        return np.array([alpha, beta]) 
+        return np.array([alpha - 1, beta - 1]) 
     
     @staticmethod
     def invert_natural_parameters(natural_parameters):
-        return natural_parameters
+        return natural_parameters + 1
     
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         a, b = inv_beta_suffstats(*suff_stats)
         return cls.calc_natural_parameters(a, b)
     
-    @classmethod
-    def calc_log_base_measure(cls, x):
-        return - np.log(x) - np.log1p(- x)
+    # @classmethod
+    # def calc_log_base_measure(cls, x):
+    #     return - np.log(x) - np.log1p(- x)
     
     @classmethod
     def to_canonical_form(cls, x):
@@ -104,32 +104,3 @@ class BetaMessage(AbstractMessage):
         gradl = ax + bx
         hessl = ax/x + bx/(x-1)
         return logl, gradl, hessl
-    
-
-class UniformBeta(BetaMessage):
-    _projection_class = BetaMessage
-    
-    def __init__(self, shape=None, log_norm=0, **kwargs):
-        if shape:
-            a = np.zeros(shape)
-            super().__init__(a, a, log_norm=log_norm)
-        else:
-            super().__init__(0., 0., log_norm=log_norm)
-        
-    @cached_property    
-    def mean(self):
-        if self.shape:
-            return np.full(self.shape, 0.5)
-        else:
-            return 0.5
-        
-    @cached_property    
-    def mean(self):
-        if self.shape:
-            return np.full(self.shape, 1/12)
-        else:
-            return 1/12
-    
-    def sample(self, n_samples=None):
-        shape = (n_samples,) + self.shape if n_samples else self.shape
-        return self.transform_x(np.random.rand(*shape))

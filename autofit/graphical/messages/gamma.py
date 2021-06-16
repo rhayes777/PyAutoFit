@@ -26,12 +26,7 @@ class GammaMessage(AbstractMessage):
     ):
         self.alpha = alpha
         self.beta = beta
-        super().__init__(
-            parameters=[
-                alpha, beta
-            ],
-            log_norm=log_norm
-        )
+        super().__init__(alpha, beta, log_norm=log_norm)
 
     @cached_property
     def natural_parameters(self):

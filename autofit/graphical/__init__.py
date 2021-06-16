@@ -2,10 +2,10 @@ from .declarative import ModelFactor, FactorGraphModel
 from .factor_graphs import \
     Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue, \
     DiagonalTransform, CholeskyTransform, VariableTransform, \
-    FullCholeskyTransform 
+    FullCholeskyTransform
 from .mean_field import FactorApproximation, MeanField
 from .expectation_propagation import EPMeanField, EPOptimiser
-from .messages import FixedMessage, NormalMessage, GammaMessage, AbstractMessage
+from .messages import FixedMessage, NormalMessage, UniformNormalMessage, GammaMessage, AbstractMessage, BetaMessage
 from .optimise import OptFactor, LaplaceFactorOptimiser, lstsq_laplace_factor_approx
 from .sampling import ImportanceSampler, project_factor_approx_sample
 from ..mapper.variable import Variable, Plate

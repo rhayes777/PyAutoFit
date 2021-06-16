@@ -229,6 +229,16 @@ phi_transform = FunctionTransform(
 
 
 class MultinomialLogitTransform(AbstractTransform):
+    """
+    makes multinomial logististic transform from the p to x, where,
+
+    x_i = log(p_i / (1 - sum(p)))
+    p_i = exp(x_i) / (sum(exp(x_j) for x_j in x) + 1)
+    
+    When p's n-simplex is defined by,
+
+    all(0 <= p_i <= 1 for p_i in p) and sum(p) < 1 
+    """
     def transform(self, p):
         kws = {'axis': -1, 'keepdims': True} if np.ndim(p) > 1 else {}
         lnp1 = np.log(1 - np.sum(p, **kws))
