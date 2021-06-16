@@ -11,6 +11,7 @@ from scipy.stats._continuous_distns import _norm_pdf
 from ..factor_graphs.transform import (
     DiagonalTransform,
     AbstractArray1DarTransform,
+    MatrixOperator
 )
 from ..factor_graphs import transform
 
@@ -124,7 +125,7 @@ class LinearShiftTransform(LinearTransform):
         return (x - self.shift) / self.scale
 
     def log_det(self, x: np.ndarray) -> np.ndarray:
-        return np.log(self.scale) * np.size(x)
+        return - np.log(self.scale) * np.ones_like(x)
 
 
 class FunctionTransform(AbstractTransform):
@@ -223,4 +224,65 @@ def ndtri_grad_hess(x):
     return f, grad, hess
 
 
-phi_transform = FunctionTransform(ndtri, ndtr, ndtri_grad, func_grad_hess=ndtri_grad_hess)
+phi_transform = FunctionTransform(
+    ndtri, ndtr, ndtri_grad, func_grad_hess=ndtri_grad_hess)
+
+
+class MultinomialLogitTransform(AbstractTransform):
+    def transform(self, p):
+        kws = {'axis': -1, 'keepdims': True} if np.ndim(p) > 1 else {}
+        lnp1 = np.log(1 - np.sum(p, **kws))
+        lnp = np.log(p)
+        return lnp - lnp1
+
+    def inv_transform(self, x):
+        kws = {'axis': -1, 'keepdims': True} if np.ndim(x) > 1 else {}
+        expx = np.exp(x)
+        return expx / (expx.sum(**kws) + 1)
+
+    def jacobian(self, p):
+        # TODO define custom linear transform
+        # to take advantage of Sherman Morrison
+        if np.ndim(p) > 1:
+            raise NotImplementedError(
+                'jacobian for mutiple samples not defined')
+        n = np.shape(p)[-1]
+        pn1 = 1 - np.sum(p, axis=-1)
+        M = np.full((n, n), 1/pn1)
+        M.flat[::n+1] += 1/p
+        return MatrixOperator(M)
+
+    def log_det(self, p):
+        kws = {'axis': -1, 'keepdims': True} if np.ndim(p) > 1 else {}
+        p1 = 1 - np.sum(p, **kws)
+        log_d = - np.log(p).sum(**kws) - np.log(p1)
+        # Hack to make sure summation broadcasting works correctly
+        return log_d * np.full_like(p, p1.size / p.size)
+
+    def log_det_grad(self, p):
+        kws = {'axis': -1, 'keepdims': True} if np.ndim(p) > 1 else {}
+        p1 = 1 - np.sum(p, **kws)
+        log_d = - np.log(p).sum(**kws) - np.log(p1)
+        return log_d * np.full_like(p, p1.size / p.size), 1/p1 - 1/p
+
+    def transform_det_jac(
+        self, p
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, AbstractArray1DarTransform]:
+        p = np.asanyarray(p)
+        if np.ndim(p) > 1:
+            raise NotImplementedError(
+                'jacobian for mutiple samples not defined')
+
+        n = np.shape(p)[-1]
+        pn1 = 1 - np.sum(p)
+        ln1p = np.log(pn1)
+        lnp = np.log(p)
+        x = lnp - ln1p
+        logd = np.full_like(p,  (- lnp.sum() - ln1p) / p.size)
+        logd_grad = 1/pn1 - 1/p
+        M = np.full((n, n), 1/pn1)
+        M.flat[::n+1] += 1/p
+        jac = MatrixOperator(M)
+        return (
+            x, logd, logd_grad, jac
+        )

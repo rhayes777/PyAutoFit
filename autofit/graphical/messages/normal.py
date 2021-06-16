@@ -6,7 +6,8 @@ from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.graphical.utils import cached_property
 
-from .transform import phi_transform 
+from .transform import phi_transform
+
 
 class NormalMessage(AbstractMessage):
     @property
@@ -92,23 +93,23 @@ class NormalMessage(AbstractMessage):
                 return x * sigma[None, ...] + mu[None, ...]
         else:
             x = np.random.randn(*self.shape)
-            
+
         return x * sigma + mu
 
     def kl(self, dist):
         return (
-        np.log(dist.sigma/self.sigma) 
-        + (self.sigma**2 + (self.mu - dist.mu)**2) / 2 / dist.sigma**2
-        - 1/2
-    )
+            np.log(dist.sigma/self.sigma)
+            + (self.sigma**2 + (self.mu - dist.mu)**2) / 2 / dist.sigma**2
+            - 1/2
+        )
 
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: float = 1.):
         mode, variance = cls._get_mean_variance(mode, covariance)
         return cls(mode, variance ** 0.5)
 
-    def _logpdf_gradient_hessian(self, x:np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _logpdf_gradient_hessian(self, x: np.ndarray
+                                 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         # raise Exception
         shape = np.shape(x)
         if shape:
@@ -121,7 +122,7 @@ class NormalMessage(AbstractMessage):
 
             if shape[1:] == self.shape:
                 hess_logl = np.repeat(
-                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)), 
+                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)),
                     shape[0], 0)
 
         else:
@@ -135,8 +136,9 @@ class NormalMessage(AbstractMessage):
 
     logpdf_gradient_hessian = _logpdf_gradient_hessian
 
-    def logpdf_gradient(self, x:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         return self._logpdf_gradient_hessian(x)[:2]
 
 
-UniformNormalMessage = NormalMessage.transformed(phi_transform)
+UniformNormalMessage = NormalMessage.transformed(
+    phi_transform, 'UniformNormalMessage')

@@ -464,9 +464,9 @@ class AbstractMessage(ABC):
         return FactorJacobian(self, x=variable, name=name, vectorised=True)
 
     @classmethod
-    def transformed(cls, transform: AbstractTransform) -> "AbstractMessage":
+    def transformed(cls, transform: AbstractTransform, clsname: Optional[str] = None) -> "AbstractMessage":
         support = tuple(zip(*map(
-            transform.transform, map(np.array, zip(*cls._support))
+            transform.inv_transform, map(np.array, zip(*cls._support))
         )))
         projectionClass = (
             None if cls._projection_class is None 
@@ -474,7 +474,7 @@ class AbstractMessage(ABC):
         )
         if issubclass(cls, TransformedMessage):
             depth = cls._depth + 1
-            clsname = f"Transformed{depth}{cls._Message.__name__}"
+            clsname = clsname or f"Transformed{depth}{cls._Message.__name__}"
             # Don't doubly inherit if transforming already transformed message
             class Transformed(cls):
                 __qualname__ = clsname
@@ -484,7 +484,7 @@ class AbstractMessage(ABC):
                 __projection_class = projectionClass
                 _depth = depth
         else:
-            clsname = f"Transformed{cls.__name__}"
+            clsname =  clsname or f"Transformed{cls.__name__}"
             class Transformed(TransformedMessage, cls):
                 __qualname__ = clsname
                 _Message = cls
@@ -500,7 +500,8 @@ class AbstractMessage(ABC):
     @classmethod
     def shifted(cls, shift: float = 0, scale: float = 1) -> "AbstractMessage":
         return cls.transformed(
-            LinearShiftTransform(shift=shift, scale=scale)
+            LinearShiftTransform(shift=shift, scale=scale),
+            clsname=f"Shifted{cls.__name__}"
         )
 
 
@@ -508,12 +509,13 @@ class TransformedMessage(AbstractMessage):
     @classmethod
     def _reconstruct(
             cls, 
+            clsname: str, 
             transform: AbstractTransform, 
             parameters: Tuple[np.ndarray, ...], 
             log_norm: float
     ):
         # Reconstructs TransformedMessage during unpickling
-        Transformed = cls.transformed(transform)
+        Transformed = cls.transformed(transform, clsname)
         return Transformed(*parameters, log_norm=log_norm)
     
     def __reduce__(self):
@@ -522,6 +524,7 @@ class TransformedMessage(AbstractMessage):
             TransformedMessage._reconstruct,
             (
                 self._Message, 
+                self.__class__.__name__, 
                 self._transform,
                 self.parameters, 
                 self.log_norm 

@@ -12,18 +12,19 @@ from autofit.graphical.factor_graphs import \
     AbstractNode, Variable, Value, FactorValue, JacobianValue, HessianValue
 from autofit.graphical.utils import cached_property, Axis, FlattenArrays
 
+
 class AbstractArray1DarTransform(ABC):
     @abstractmethod
-    def __mul__(self, x:np.ndarray) -> np.ndarray:
-        pass 
-
-    @abstractmethod
-    def __rtruediv__(self, x:np.ndarray) -> np.ndarray:
+    def __mul__(self, x: np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
-    def __rmul__(self, x:np.ndarray) -> np.ndarray:
-        pass 
+    def __rtruediv__(self, x: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def __rmul__(self, x: np.ndarray) -> np.ndarray:
+        pass
 
     @abstractmethod
     def ldiv(self, x: np.ndarray) -> np.ndarray:
@@ -32,7 +33,7 @@ class AbstractArray1DarTransform(ABC):
     @property
     @abstractmethod
     def shape(self) -> Tuple[int, ...]:
-        pass 
+        pass
 
     def __len__(self) -> int:
         return self.shape[0]
@@ -46,7 +47,7 @@ class AbstractArray1DarTransform(ABC):
     def log_det(self):
         pass
 
-    @cached_property 
+    @cached_property
     def avg_log_det(self):
         return self.log_det / self.shape[0]
 
@@ -55,11 +56,11 @@ class AbstractArray1DarTransform(ABC):
         return np.full(self.shape[0], self.avg_log_det)
 
     def quad(self, M: np.ndarray) -> np.ndarray:
-        return (M * self).T * self 
+        return (M * self).T * self
 
     def invquad(self, M: np.ndarray) -> np.ndarray:
         return (M / self).T / self
-    
+
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         if ufunc is np.multiply:
             return self.__rmul__(inputs[0])
@@ -67,8 +68,34 @@ class AbstractArray1DarTransform(ABC):
             return self.__rtruediv__(inputs[0])
         elif ufunc is np.matmul:
             return self.__rmul__(inputs[0])
-        else:    
+        else:
             return NotImplemented
+
+
+class MatrixOperator(AbstractArray1DarTransform):
+
+    def __init__(self, M: np.ndarray):
+        self.M = M
+
+    @property
+    def shape(self):
+        return self.M.shape
+
+    @cached_property
+    def log_det(self):
+        return np.linalg.slogdet(self.M)[1]
+
+    def __mul__(self, x: np.ndarray) -> np.ndarray:
+        return self.M.dot(x)
+
+    def __rtruediv__(self, x: np.ndarray) -> np.ndarray:
+        return np.linalg.solve(self.M.T, x.T)
+
+    def __rmul__(self, x: np.ndarray) -> np.ndarray:
+        return np.dot(x, self.M)
+
+    def ldiv(self, x: np.ndarray) -> np.ndarray:
+        return np.linalg.solve(self.M, x)
 
 
 class IdentityTransform(AbstractArray1DarTransform):
@@ -100,12 +127,13 @@ class IdentityTransform(AbstractArray1DarTransform):
     def __len__(self):
         return 0
 
-def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False, 
+
+def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False,
                     check_finite=True):
     """wrapper for BLAS function trmv to perform triangular matrix
     multiplications
 
-    
+
     Parameters
     ----------
     a : (M, M) array_like
@@ -117,7 +145,7 @@ def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False,
         Default is to use upper triangle.
     trans : bool, optional
         type of multiplication,
-        
+
         ========  =========
         trans     system
         ========  =========
@@ -130,7 +158,7 @@ def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False,
         Whether to check that the input matrices contain only finite numbers.
         Disabling may give a performance gain, but may result in problems
         (crashes, non-termination) if the inputs do contain infinities or NaNs.
-    """    
+    """
     a1 = _asarray_validated(c, check_finite=check_finite)
     b1 = _asarray_validated(b, check_finite=check_finite)
 
@@ -141,18 +169,18 @@ def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False,
         raise ValueError(
             f"shapes {c.shape} and {b.shape} not aligned: "
             f"{n} (dim 1) != {b.shape[0]} (dim 0)")
-    
+
     trmv, = get_blas_funcs(('trmv',), (a1, b1))
     if a1.flags.f_contiguous:
         def _trmv(a1, b1, overwrite_x):
             return trmv(
-                a1, b1, 
+                a1, b1,
                 lower=lower, trans=trans, overwrite_x=overwrite_x)
     else:
         # transposed system is solved since trmv expects Fortran ordering
         def _trmv(a1, b1, overwrite_x=overwrite_b):
             return trmv(
-                a1.T, b1, 
+                a1.T, b1,
                 lower=not lower, trans=not trans, overwrite_x=overwrite_x)
 
     if b1.ndim == 1:
@@ -181,12 +209,14 @@ def _wrap_leftop(method):
 
     return leftmethod
 
+
 def _wrap_rightop(method):
     @wraps(method)
     def rightmethod(self, x):
         return method(self, np.reshape(x, (-1, len(self)))).reshape(x.shape)
 
     return rightmethod
+
 
 class CholeskyTransform(AbstractArray1DarTransform):
     """ This performs the whitening transforms for the passed
@@ -219,7 +249,7 @@ class CholeskyTransform(AbstractArray1DarTransform):
         return _mul_triangular(self.L, x.T, lower=True).T
 
     @_wrap_rightop
-    def __rtruediv__(self, x): 
+    def __rtruediv__(self, x):
         return solve_triangular(self.L, x.T, lower=True).T
 
     @_wrap_leftop
@@ -242,19 +272,19 @@ class CholeskyTransform(AbstractArray1DarTransform):
 
 class InverseLinearTransform(AbstractArray1DarTransform):
     def __init__(self, transform):
-        self.transform = transform 
+        self.transform = transform
 
     @abstractmethod
-    def __mul__(self, x:np.ndarray) -> np.ndarray:
-        return x / self.transform 
+    def __mul__(self, x: np.ndarray) -> np.ndarray:
+        return x / self.transform
 
     @abstractmethod
-    def __rtruediv__(self, x:np.ndarray) -> np.ndarray:
+    def __rtruediv__(self, x: np.ndarray) -> np.ndarray:
         return self.transform * x
 
     @abstractmethod
-    def __rmul__(self, x:np.ndarray) -> np.ndarray:
-        return self.transform.ldiv(x) 
+    def __rmul__(self, x: np.ndarray) -> np.ndarray:
+        return self.transform.ldiv(x)
 
     @abstractmethod
     def ldiv(self, x: np.ndarray) -> np.ndarray:
@@ -262,7 +292,7 @@ class InverseLinearTransform(AbstractArray1DarTransform):
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        return self.transform.shape 
+        return self.transform.shape
 
     @cached_property
     def log_det(self):
@@ -291,23 +321,24 @@ class CovarianceTransform(CholeskyTransform):
 class DiagonalTransform(AbstractArray1DarTransform):
     def __init__(self, scale, inv_scale=None):
         self.scale = np.atleast_1d(scale)
-        self.inv_scale = 1/scale if inv_scale is None else np.atleast_1d(inv_scale)
+        self.inv_scale = 1 / \
+            scale if inv_scale is None else np.atleast_1d(inv_scale)
 
     @_wrap_leftop
     def __mul__(self, x):
-        return self.scale[:, None] * x 
+        return self.scale[:, None] * x
 
     @_wrap_rightop
     def __rmul__(self, x):
         return x * self.scale
 
     @_wrap_rightop
-    def __rtruediv__(self, x): 
+    def __rtruediv__(self, x):
         return x * self.inv_scale
 
     @_wrap_leftop
     def ldiv(self, x):
-        return self.inv_scale[:, None] * x 
+        return self.inv_scale[:, None] * x
 
     @cached_property
     def log_det(self):
@@ -322,32 +353,33 @@ class DiagonalTransform(AbstractArray1DarTransform):
     def shape(self):
         return self.scale.shape * 2
 
-    @cached_property 
+    @cached_property
     def log_scale(self):
         return np.log(self.scale)
-    
+
 
 class VariableTransform:
     """
     """
+
     def __init__(self, transforms):
-        self.transforms = transforms 
-        
+        self.transforms = transforms
+
     def __mul__(self, values: Value) -> Value:
         return {
-            k: M * values[k] for k, M in self.transforms.items()} 
+            k: M * values[k] for k, M in self.transforms.items()}
 
     def __rtruediv__(self, values: Value) -> Value:
         return {
-            k: values[k] / M for k, M in self.transforms.items()} 
+            k: values[k] / M for k, M in self.transforms.items()}
 
     def __rmul__(self, values: Value) -> Value:
         return {
-            k: values[k] * M for k, M in self.transforms.items()} 
-         
+            k: values[k] * M for k, M in self.transforms.items()}
+
     def ldiv(self, values: Value) -> Value:
         return {
-            k: M.ldiv(values[k]) for k, M in self.transforms.items()} 
+            k: M.ldiv(values[k]) for k, M in self.transforms.items()}
 
     rdiv = __rtruediv__
     rmul = __rmul__
@@ -362,7 +394,7 @@ class VariableTransform:
     def invquad(self, values):
         return {
             v: H.T if np.ndim(H) else H
-             for v, H in (values / self).items()} / self
+            for v, H in (values / self).items()} / self
 
     @cached_property
     def log_det(self):
@@ -419,7 +451,7 @@ class FullCholeskyTransform(VariableTransform):
     def __rmul__(self, values: Value) -> Value:
         M, x = self.cholesky, self.param_shapes.flatten(values)
         return self.param_shapes.unflatten(x * M)
-         
+
     @abstractmethod
     def ldiv(self, values: Value) -> Value:
         M, x = self.cholesky, self.param_shapes.flatten(values)
@@ -457,21 +489,23 @@ class IdentityVariableTransform(VariableTransform):
     def log_det(self):
         return 0.
 
+
 identity_transform = IdentityTransform()
 identity_variable_transform = IdentityVariableTransform()
 
+
 class TransformedNode(AbstractNode):
     def __init__(
-        self, 
-        node: AbstractNode, 
+        self,
+        node: AbstractNode,
         transform: VariableTransform
     ):
-        self.node = node 
-        self.transform = transform 
+        self.node = node
+        self.transform = transform
 
-    @property 
+    @property
     def variables(self):
-        return self.node.variables 
+        return self.node.variables
 
     @property
     def deterministic_variables(self):
@@ -486,23 +520,23 @@ class TransformedNode(AbstractNode):
         return f"FactorApproximation({self.node.name})"
 
     def __call__(
-            self, 
+            self,
             values: Dict[Variable, np.ndarray],
-            axis: Axis = False, 
+            axis: Axis = False,
     ) -> FactorValue:
         return self.node(self.transform.ldiv(values), axis=axis)
 
     def func_jacobian(
-            self, 
+            self,
             values: Dict[Variable, np.ndarray],
             variables: Optional[List[Variable]] = None,
             axis: Axis = None,
             _calc_deterministic: bool = True,
-            **kwargs, 
+            **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         fval, jval = self.node.func_jacobian(
-            self.transform.ldiv(values), 
-            variables=variables, 
+            self.transform.ldiv(values),
+            variables=variables,
             axis=axis,
             _calc_deterministic=_calc_deterministic)
 
@@ -511,17 +545,17 @@ class TransformedNode(AbstractNode):
         return fval, grad
 
     def func_jacobian_hessian(
-            self, 
+            self,
             values: Dict[Variable, np.ndarray],
             variables: Optional[List[Variable]] = None,
             axis: Axis = None,
             _calc_deterministic: bool = True,
-            **kwargs, 
+            **kwargs,
     ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
         M = self.transform
         fval, jval, hval = self.node.func_jacobian_hessian(
-            M.ldiv(values), 
-            variables=variables, 
+            M.ldiv(values),
+            variables=variables,
             axis=axis,
             _calc_deterministic=_calc_deterministic)
 
@@ -535,4 +569,3 @@ class TransformedNode(AbstractNode):
             return super().__getattribute__(name)
         except AttributeError:
             return getattr(self.node, name)
-
