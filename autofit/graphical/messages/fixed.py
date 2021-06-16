@@ -9,10 +9,7 @@ class FixedMessage(AbstractMessage):
 
     def __init__(self, value: np.ndarray, log_norm: np.ndarray=0.):
         self.value = value
-        super().__init__(
-            (value,),
-            log_norm=log_norm
-        )
+        super().__init__(value, log_norm=log_norm)
 
     @property
     def natural_parameters(self) -> Tuple[np.ndarray, ...]:

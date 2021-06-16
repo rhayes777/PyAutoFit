@@ -41,8 +41,8 @@ def test_diagonal_transform():
     d = 3
 
     scale = np.random.rand(d)
-    D = np.diag(scale**-1)
-    iD = np.diag(scale)
+    D = np.diag(scale)
+    iD = np.diag(scale**-1)
     diag_scale = transform.DiagonalTransform(scale)
 
     b = np.random.rand(d)
@@ -176,7 +176,7 @@ def test_simple_transform_diagonal():
     scale = np.random.exponential(size=d)
     A = np.diag(scale**-2)
     
-    diag = transform.DiagonalTransform(scale)
+    diag = transform.DiagonalTransform(scale**-1)
     whiten = transform.VariableTransform({x: diag})
     white_factor = transform.TransformedNode(factor, whiten)
     white_func = white_factor.flatten(param_shapes)
@@ -244,8 +244,7 @@ def test_complex_transform():
         for v, X in param_shapes.unflatten(linalg.inv(A)).items()
     }
     cho_factors = {
-        v:  transform.CholeskyTransform(
-            linalg.cho_factor(linalg.inv(cov)))
+        v:  transform.CovarianceTransform.from_dense(cov)
         for v, cov in var_cov.items()
     }
     whiten = transform.VariableTransform(cho_factors)
@@ -272,7 +271,7 @@ def test_complex_transform():
 
     # test VariableTransform with CholeskyTransform
     diag_factors = {
-        v: transform.DiagonalTransform(cov.diagonal()**0.5)
+        v: transform.DiagonalTransform(cov.diagonal()**-0.5)
         for v, cov in var_cov.items()
     }
     whiten = transform.VariableTransform(diag_factors)

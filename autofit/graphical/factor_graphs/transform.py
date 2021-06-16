@@ -47,14 +47,6 @@ class AbstractArray1DarTransform(ABC):
     def log_det(self):
         pass
 
-    @cached_property
-    def avg_log_det(self):
-        return self.log_det / self.shape[0]
-
-    @cached_property
-    def log_scale(self):
-        return np.full(self.shape[0], self.avg_log_det)
-
     def quad(self, M: np.ndarray) -> np.ndarray:
         return (M * self).T * self
 

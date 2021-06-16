@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from autofit import graphical as mp
+from autofit import graphical as graph
 
 
 @pytest.fixture(
@@ -46,32 +46,75 @@ def make_model_approx(
     x = 5 * np.random.randn(n_obs, n_features)
     y = x.dot(a) + b + np.random.randn(n_obs, n_dims)
 
-    message_a = mp.NormalMessage.from_mode(
+    message_a = graph.NormalMessage.from_mode(
         np.zeros((n_features, n_dims)),
         100
     )
 
-    message_b = mp.NormalMessage.from_mode(
+    message_b = graph.NormalMessage.from_mode(
         np.zeros(n_dims),
         100
     )
 
-    message_z = mp.NormalMessage.from_mode(
+    message_z = graph.NormalMessage.from_mode(
         np.zeros((n_obs, n_dims)),
         100
     )
 
-    # return mp.MeanFieldApproximation.from_kws(
-    return mp.EPMeanField.from_approx_dists(
+    # return graph.MeanFieldApproximation.from_kws(
+    return graph.EPMeanField.from_approx_dists(
         model,
         {
             a_: message_a,
             b_: message_b,
             z_: message_z,
-            x_: mp.FixedMessage(x),
-            y_: mp.FixedMessage(y)
+            x_: graph.FixedMessage(x),
+            y_: graph.FixedMessage(y)
         }
     )
+
+@pytest.fixture(
+    name='model_jac_approx'
+)
+def make_model_jac_approx(
+        model,
+        a_,
+        b_,
+        z_,
+        x_,
+        y_,
+        likelihood_factor,
+        linear_factor_jac,
+        prior_a,
+        prior_b
+):
+    a = np.array([[-1.3], [0.7]])
+    b = np.array([-0.5])
+
+    n_obs = 100
+    n_features, n_dims = a.shape
+
+    x = 5 * np.random.randn(n_obs, n_features)
+    y = x.dot(a) + b + np.random.randn(n_obs, n_dims)
+
+    like = graph.NormalMessage(y, np.ones_like(y)).as_factor(z_)
+    model = like * linear_factor_jac * prior_a * prior_b
+
+    model_jac_approx = graph.EPMeanField.from_approx_dists(
+        model,
+        {
+            a_: graph.NormalMessage.from_mode(
+                np.zeros((n_features, n_dims)), 100),
+            b_: graph.NormalMessage.from_mode(
+                np.zeros(n_dims), 100),
+            z_: graph.NormalMessage.from_mode(
+                np.zeros((n_obs, n_dims)), 100),
+            x_: graph.FixedMessage(x),
+            y_: graph.FixedMessage(y)
+        }
+    )
+    return model_jac_approx
+
 
 def test_jacobian(
         a_,
@@ -137,7 +180,7 @@ def test_laplace_old(
         a_,
         b_
 ):
-    opt = mp.optimise.LaplaceOptimiser(n_iter=3)
+    opt = graph.optimise.LaplaceOptimiser(n_iter=3)
     model_approx, status = opt.run(model_approx)
     # assert status.success
 
@@ -157,8 +200,8 @@ def test_laplace(
         y_, 
         z_, 
 ):
-    laplace = mp.LaplaceFactorOptimiser()
-    opt = mp.EPOptimiser(
+    laplace = graph.LaplaceFactorOptimiser()
+    opt = graph.EPOptimiser(
         model_approx.factor_graph, 
         default_optimiser=laplace)
     model_approx = opt.run(model_approx)
@@ -166,8 +209,25 @@ def test_laplace(
     y = model_approx.mean_field[y_].mean
     y_pred = model_approx.mean_field[z_].mean
 
-    assert mp.utils.r2_score(y, y_pred) > 0.95
+    assert graph.utils.r2_score(y, y_pred) > 0.95
 
+def test_laplace_jac(
+        model_jac_approx,
+):
+    laplace = graph.LaplaceFactorOptimiser(
+        default_opt_kws={'jac': True}
+    )
+    opt = graph.EPOptimiser(
+        model_jac_approx.factor_graph, 
+        default_optimiser=laplace)
+    approx = opt.run(model_jac_approx)
+
+    like = approx.factors[0]
+    y = like._factor.mu
+    z_, = like.variables
+    y_pred = approx.mean_field[z_].mean
+
+    assert graph.utils.r2_score(y, y_pred) > 0.95
 
 
 def test_importance_sampling(
@@ -177,10 +237,10 @@ def test_importance_sampling(
         y_,
         z_, 
 ):
-    laplace = mp.LaplaceFactorOptimiser()
-    sampler = mp.ImportanceSampler(
+    laplace = graph.LaplaceFactorOptimiser()
+    sampler = graph.ImportanceSampler(
         n_samples=500, force_sample=True, delta=0.8)
-    ep_opt = mp.EPOptimiser(
+    ep_opt = graph.EPOptimiser(
         model, default_optimiser=laplace,
         factor_optimisers={linear_factor: sampler}
     )
@@ -189,4 +249,4 @@ def test_importance_sampling(
     y = model_approx.mean_field[y_].mean
     y_pred = model_approx.mean_field[z_].mean
     
-    assert mp.utils.r2_score(y, y_pred) > 0.90
+    assert graph.utils.r2_score(y, y_pred) > 0.90
