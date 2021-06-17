@@ -66,7 +66,7 @@ def test_numpy_array():
 def test_hash_list():
     identifier = Identifier(Class())
     assert identifier.hash_list == [
-        "one", "1", "two", "2"
+        "Class", "one", "1", "two", "2"
     ]
 
 
