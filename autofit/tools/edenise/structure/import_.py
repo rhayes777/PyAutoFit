@@ -77,10 +77,20 @@ else:
 
     @property
     def items(self):
-        return [
-            self.module[part.replace(",", "")]
-            for part in self._parts[3:]
-        ]
+        strings = self.string.split("import ")[-1].split(", ")
+
+        items = list()
+        module = self.module
+
+        for string in strings:
+            if " as" in string:
+                string, alias = string.split(" as ")
+                item = As(module[string], alias)
+            else:
+                item = module[string]
+
+            items.append(item)
+        return items
 
     @property
     def module_string(self):
@@ -133,3 +143,13 @@ else:
         The path to the file containing this import
         """
         return Path(self.loc["path"])
+
+
+class As:
+    def __init__(self, item, alias):
+        self.item = item
+        self.alias = alias
+
+    @property
+    def target_name(self):
+        return f"{self.item.target_name} as {self.alias}"

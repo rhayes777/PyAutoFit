@@ -93,6 +93,17 @@ def test_multi_import(
     assert import_.target_import_string == string
 
 
+def test_import_as(
+        package
+):
+    import_ = Import(
+        "from autofit.tools import edenise as e",
+        parent=package
+    )
+    string = "from VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise as e"
+    assert import_.target_import_string == string
+
+
 def test_package_import(
         package
 ):
