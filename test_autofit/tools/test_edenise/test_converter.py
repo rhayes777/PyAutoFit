@@ -51,7 +51,7 @@ class TestTestImports:
 
 
 def test_convert_formatter():
-    unit_test_directory = Path(__file__).parent.parent
+    unit_test_directory = Path(__file__).parent.parent.parent
     test_path = unit_test_directory / "text/test_samples_text.py"
     with open(test_path) as f:
         string = f.read()
