@@ -4,16 +4,17 @@ import pytest
 
 from autofit.tools.edenise import Package, File, Import
 
+package_directory = Path(
+    __file__
+).parent.parent.parent.parent / "autofit"
+
 
 @pytest.fixture(
     name="package"
 )
 def make_package():
-    directory = Path(
-        __file__
-    ).parent.parent.parent.parent / "autofit"
     return Package.from_directory(
-        directory,
+        package_directory,
         prefix="VIS_CTI"
     )
 
@@ -64,9 +65,9 @@ def test_non_project_import(package):
     assert import_.is_in_project is False
 
 
-def test_import_target(import_):
+def test_import_file(import_):
     assert isinstance(
-        import_.target,
+        import_.file,
         File
     )
 
@@ -86,3 +87,7 @@ def test_file(package):
 
     assert len(file.imports) > 1
     assert len(file.project_imports) == 1
+
+
+def test_convert_file():
+    pass
