@@ -102,5 +102,5 @@ class BetaMessage(AbstractMessage):
         a, b = self.parameters
         ax, bx = (a-1)/x, (b-1)/(x-1)
         gradl = ax + bx
-        hessl = ax/x + bx/(x-1)
+        hessl = -ax/x - bx/(x-1)
         return logl, gradl, hessl

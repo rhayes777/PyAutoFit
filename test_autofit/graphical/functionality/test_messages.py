@@ -12,7 +12,7 @@ from autofit.graphical.utils import numerical_jacobian
 
 def check_dist_norm(dist):
     norm, err = integrate.quad(dist.pdf, *dist._support[0])
-    assert norm == pytest.approx(1, abs=err)
+    assert norm == pytest.approx(1, abs=err), dist
 
 
 def check_dist_norms(dist):
@@ -20,7 +20,7 @@ def check_dist_norms(dist):
         lambda x: dist.pdf(np.full(dist.shape, x)),
         *dist._support[0]
     )
-    assert np.allclose(vals, 1, atol=err)
+    assert np.allclose(vals, 1, atol=err), dist
 
 
 def check_log_normalisation(ms):
@@ -33,14 +33,21 @@ def check_log_normalisation(ms):
         *m1._support[0])
 
     # verify within tolerance
-    assert np.abs(A - i12) < ierr < 1e-6
+    assert np.abs(A - i12) < ierr < 1e-1, m1 
 
 
-def check_numerical_gradient_hessians(message, x):
+def check_numerical_gradient_hessians(message, x=None):
+    x = message.sample() if x is None else x 
+
+    res = message.logpdf_gradient(x)
+    nres = message.numerical_logpdf_gradient(x)
+    for i, (x1, x2) in enumerate(zip(res, nres)):
+        assert np.allclose(x1, x2, rtol=1e-3, atol=1e-2), (i, x1, x2, message)
+
     res = message.logpdf_gradient_hessian(x)
     nres = message.numerical_logpdf_gradient_hessian(x)
-
-    assert np.allclose(res, nres, atol=1e-2)
+    for i, (x1, x2) in enumerate(zip(res, nres)):
+        assert np.allclose(x1, x2, rtol=1e-3, atol=1e-2), (i, x1, x2, message)
 
 
 def test_message_norm():
@@ -51,9 +58,6 @@ def test_message_norm():
         tuple(
             map(graph.NormalMessage,
                 [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
-        # tuple(
-        #     map(graph.UniformNormalMessage,
-        #         [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
         tuple(
             map(graph.GammaMessage,
                 [0.5, 1.1], [0.2, 1.3])),
@@ -68,19 +72,28 @@ def test_message_norm():
         check_log_normalisation(ms)
         for m in ms:
             check_dist_norm(m)
+            check_numerical_gradient_hessians(m)
 
 
 def test_numerical_gradient_hessians():
     N = graph.NormalMessage
+    UN = graph.UniformNormalMessage
+    LN = graph.LogNormalMessage
+    MLN = graph.MultiLogitNormalMessage
     test_cases = [
         (N, 1., 0.5, 0.3),
         (N, 1., 0.5, [0.3, 2.1]),
         (N, [0.1, 1., 2.], [2., 0.5, 3.], [0.1, 0.2, 0.3]),
         (N, [0.1, 1., 2.], [2., 0.5, 3.], [[0.1, 0.2, 0.3], [2., 1., -1]]),
+        (UN, 1., 0.5, None),
+        (UN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
+        (LN, 1., 0.5, None),
+        (LN, [0.1, 1., 2.], [2., 0.5, 3.], None),
+        (LN, [0.1, 1., 2.], [2., 0.5, 3.], None),
+        (MLN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
     ]
     for M, m, s, x in test_cases:
         check_numerical_gradient_hessians(M(m, s), x)
-
 
 def test_meanfield_gradients():
     n1, n2, n3 = 2, 3, 5
@@ -145,7 +158,7 @@ def test_beta():
     check_log_normalisation(betas)
 
 
-def test_transforms():
+def test_message_transforms():
     a = b = np.r_[2., 3.2, 1.5]
     mx, sigma = np.r_[-0.5, .1, 0.], np.r_[0.3, 0.5, 0.9]
     test_cases = [
@@ -160,7 +173,7 @@ def test_transforms():
 def check_transforms(transform, x):
     y, logd, logd_grad, jac = transform.transform_det_jac(x)
 
-    njac = numerical_jacobian(X, transform.transform)
+    njac = numerical_jacobian(x, transform.transform)
     nlogd_grad = numerical_jacobian(x, transform.log_det)
 
     assert np.allclose(transform.inv_transform(y), x)
@@ -175,13 +188,13 @@ def test_transforms():
         (transform.exp_transform, np.r_[10, -2, 0.1]),
         (transform.logistic_transform, np.r_[0.22, 0.51, 0.1]),
         (transform.phi_transform, np.r_[0.22, 0.51, 0.1]),
-        (transform.shifted_phi(11, 5.1), np.r_[11.1, 12, 16]),,
+        (transform.shifted_logistic(shift=11, scale=5.1), np.r_[11.1, 12, 16]),
     ]
     [check_transforms(*args) for args in tests]
 
 
 def test_multinomial_logit():
-    mult_logit = transform.MultinomialLogitTransform()
+    mult_logit = transform.multinomial_logit_transform
 
     d = 3
     p = np.random.dirichlet(np.ones(d+1))[:d]
@@ -203,7 +216,7 @@ def test_multinomial_logit():
     njac = numerical_jacobian(ps, mult_logit.transform).reshape(jac.shape)
     nlogd_grad = numerical_jacobian(ps, mult_logit.log_det)
 
-    assert np.allclose(mult_logit.inv_transform(x), ps)
+    assert np.allclose(mult_logit.inv_transform(xs), ps)
     assert np.allclose(njac, jac.to_dense())
     assert np.isclose(logd.sum(), np.linalg.slogdet(njac)[1])
     assert np.allclose(nlogd_grad.sum((0, 1)), logd_grad, 1e-5, 1e-3)
@@ -211,13 +224,15 @@ def test_multinomial_logit():
     assert np.allclose(xs[0], mult_logit.transform(ps[0]))
     assert np.allclose(logd[0], mult_logit.log_det(ps[0]))
     assert np.allclose(logd_grad[0], mult_logit.log_det_grad(ps[0])[1])
-    
+
 
 def test_normal_simplex():
     mult_logit = transform.MultinomialLogitTransform()
     NormalSimplex = graph.messages.NormalMessage.transformed(mult_logit)
 
     message = NormalSimplex([-1, 2], [.3, .3])
+    
+    check_numerical_gradient_hessians(message, message.sample())
 
     def func(*p):
         return message.pdf(p).prod()
@@ -225,12 +240,9 @@ def test_normal_simplex():
     def simplex_lims(*args):
         return [0, 1 - sum(args)]
 
-    # verify transformation normalises correctly 
+    # verify transformation normalises correctly
     res, err = integrate.nquad(
-        func, 
+        func,
         [simplex_lims] * message.size
     )
     assert res == pytest.approx(1, rel=err)
- 
-    check_numerical_gradient_hessians(message, message.sample())
-

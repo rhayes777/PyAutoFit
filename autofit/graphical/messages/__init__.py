@@ -7,7 +7,7 @@ import numpy as np
 from .abstract import AbstractMessage
 from .fixed import FixedMessage
 from .gamma import GammaMessage
-from .normal import NormalMessage, UniformNormalMessage
+from .normal import NormalMessage, UniformNormalMessage, LogNormalMessage, MultiLogitNormalMessage
 from .beta import BetaMessage
 
 def map_dists(dists: Dict[str, AbstractMessage],

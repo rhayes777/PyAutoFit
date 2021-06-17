@@ -1,6 +1,7 @@
 
 
 from abc import ABC, abstractmethod
+from autofit.graphical.utils import numerical_jacobian
 from autofit.mapper.operator import MultiVecOuterProduct
 from functools import cached_property, wraps
 from typing import Type, Union, Tuple
@@ -43,6 +44,11 @@ class AbstractDensityTransform(ABC):
     @abstractmethod
     def log_det_grad(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         pass
+
+    def log_det_hess(self, x: np.ndarray) -> np.ndarray:
+        return numerical_jacobian(
+            x, lambda x: self.log_det_grad(x)[1].sum(0)
+        )
 
     def transform_det(self, x) -> Tuple[np.ndarray, np.ndarray]:
         return self.transform(x), self.log_det(x)
@@ -259,7 +265,6 @@ class MultinomialLogitTransform(AbstractDensityTransform):
 
     all(0 <= p_i <= 1 for p_i in p) and sum(p) < 1 
     """
-
     def __init__(self, axis=-1):
         self.axis = axis
 

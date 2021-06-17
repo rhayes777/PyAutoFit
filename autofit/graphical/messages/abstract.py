@@ -572,13 +572,16 @@ class TransformedMessage(AbstractMessage):
         logl, grad = self._Message.logpdf_gradient(self, x)
         return logl + logd, jac * grad + logd_grad
 
-    def logpdf_gradient_hessian(  # type: ignore
-        self,
-        x: np.ndarray, 
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        x, logd, logd_grad, jac = self._transform.transform_det_jac(x)
-        logl, grad, hess = self._Message.logpdf_gradient_hessian(self, x)
-        return logl + logd, jac * grad + logd_grad, jac.quad(hess)
+    logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
+    
+    # def logpdf_gradient_hessian(  # type: ignore
+    #     self,
+    #     x: np.ndarray, 
+    # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    #     x, logd, logd_grad, jac = self._transform.transform_det_jac(x)
+    #     logd_hess = self._transform.log_det_hess(x)
+    #     logl, grad, hess = self._Message.logpdf_gradient_hessian(self, x)
+    #     return logl + logd, jac * grad + logd_grad, jac.quad(hess) + logd_hess
 
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
