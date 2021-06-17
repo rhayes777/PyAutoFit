@@ -100,6 +100,16 @@ def test_package_import(
         "from autofit.tools import edenise",
         parent=package["tools"]
     )
+    assert isinstance(
+        package["tools"]["edenise"],
+        Package
+    )
+    assert import_.module_path == ["autofit", "tools"]
+    assert isinstance(
+        import_.module["edenise"],
+        Package
+    )
+
     string = "from VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise"
     assert import_.target_import_string == string
 

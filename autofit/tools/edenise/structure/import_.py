@@ -93,7 +93,7 @@ else:
     @property
     def module(self):
         item = self.top_level
-        for name in self.module_path:
+        for name in self.module_path[1:]:
             item = item[name]
         return item
 
